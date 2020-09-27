@@ -10,6 +10,10 @@ namespace McPbrPipeline.Publishing
         public List<string> Tags {get; set;}
         public string Source {get; set;}
         public string Destination {get; set;}
+        public int? TextureWidth {get; set;}
+        public int? TextureHeight {get; set;}
+
+        public bool HasTextureDimensions => TextureWidth.HasValue && TextureHeight.HasValue;
 
 
         public PublishProfile()
