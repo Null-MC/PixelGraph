@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp.Processing;
+﻿using McPbrPipeline.Internal.Filtering;
+using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Transforms;
 
 namespace McPbrPipeline.Filters

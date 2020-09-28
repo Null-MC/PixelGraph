@@ -2,11 +2,13 @@
 using SixLabors.ImageSharp.Processing;
 using System.Collections.Generic;
 
-namespace McPbrPipeline.Filters
+namespace McPbrPipeline.Internal.Filtering
 {
     internal class FilterCollection
     {
         private readonly List<IImageFilter> filterList;
+
+        public bool Empty => filterList.Count == 0;
 
 
         public FilterCollection()

@@ -10,7 +10,7 @@ namespace McPbrPipeline.Publishing
 {
     internal class Publisher
     {
-        public PublishProfile Profile {get; set;}
+        public IPublishProfile Profile {get; set;}
 
 
         public async Task PublishAsync(CancellationToken token = default)

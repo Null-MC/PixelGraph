@@ -1,6 +1,6 @@
 ﻿using SixLabors.ImageSharp.Processing;
 
-namespace McPbrPipeline.Filters
+namespace McPbrPipeline.Internal.Filtering
 {
     internal interface IImageFilter
     {
