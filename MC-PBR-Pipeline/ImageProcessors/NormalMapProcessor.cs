@@ -21,28 +21,16 @@ namespace McPbrPipeline.ImageProcessors
 
     internal class NormalMapProcessor<TPixel> : IImageProcessor<TPixel> where TPixel : unmanaged, IPixel<TPixel>
     {
-        // can be changed to make more defined although bias can also have similar effect
-        //private const float Intensity_R = 0.1f;
-        //private const float Intensity_G = 0.1f;
-
         private readonly NormalMapProcessor processor;
-        private readonly Configuration configuration;
+        //private readonly Configuration configuration;
         private readonly Rectangle sourceRectangle;
         private readonly Image<TPixel> source;
-
-        //public float Bias {get; set;} = 50f;
-
-        //public bool Emboss {get; set;} = true;
-
-        //public bool Wrap {get; set;} = true;
-
-        //public EdgeDetectMethod EdgeDetectMethod {get; set;}
 
 
         public NormalMapProcessor(NormalMapProcessor processor, Image<TPixel> source, Configuration configuration, Rectangle sourceRectangle)
         {
             this.processor = processor;
-            this.configuration = configuration;
+            //this.configuration = configuration;
             this.sourceRectangle = sourceRectangle;
             this.source = source;
         }
@@ -62,7 +50,7 @@ namespace McPbrPipeline.ImageProcessors
 
                     angle.X = derivative.X;
                     angle.Y = derivative.Y;
-                    angle.Z = 1f / processor.Options.Strength;
+                    angle.Z = 1f / (processor.Options.Strength * 100f);
 
                     // TODO: implement by-ref normalize
                     var normal = Vector3.Normalize(angle);
@@ -131,10 +119,10 @@ namespace McPbrPipeline.ImageProcessors
             derivative.Y = kernel[0, 0] + kernel[1, 0] * 2f + kernel[2, 0] - kernel[0, 2] - kernel[1, 2] * 2f - kernel[2, 2];
         }
 
-        private static void GetPrewittDerivative(ref float[,] kernel, out Vector2 derivative)
-        {
-            derivative.X = kernel[0, 0] * 3.0f + kernel[0, 1] * 10.0f + kernel[0, 2] * 3.0f - kernel[2, 0] * 3.0f - kernel[2, 1] * 10.0f - kernel[2, 2] * 3.0f;
-            derivative.Y = kernel[0, 0] * 3.0f + kernel[1, 0] * 10.0f + kernel[2, 0] * 3.0f - kernel[0, 2] * 3.0f - kernel[1, 2] * 10.0f - kernel[2, 2] * 3.0f;
-        }
+        //private static void GetPrewittDerivative(ref float[,] kernel, out Vector2 derivative)
+        //{
+        //    derivative.X = kernel[0, 0] * 3.0f + kernel[0, 1] * 10.0f + kernel[0, 2] * 3.0f - kernel[2, 0] * 3.0f - kernel[2, 1] * 10.0f - kernel[2, 2] * 3.0f;
+        //    derivative.Y = kernel[0, 0] * 3.0f + kernel[1, 0] * 10.0f + kernel[2, 0] * 3.0f - kernel[0, 2] * 3.0f - kernel[1, 2] * 10.0f - kernel[2, 2] * 3.0f;
+        //}
     }
 }

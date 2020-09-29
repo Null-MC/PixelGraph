@@ -10,9 +10,18 @@ using System.Threading.Tasks;
 
 namespace McPbrPipeline.Textures
 {
-    internal class TextureLoader
+    internal interface ITextureLoader
+    {
+        string Root {get; set;}
+
+        Task<TextureCollection> LoadTextureAsync(string filename, CancellationToken token = default);
+    }
+
+    internal class TextureLoader : ITextureLoader
     {
         private readonly ILogger logger;
+
+        public string Root {get; set;}
 
 
         public TextureLoader(ILogger<TextureLoader> logger)
@@ -24,14 +33,10 @@ namespace McPbrPipeline.Textures
         {
             foreach (var filename in Directory.EnumerateFiles(path, "*.json")) {
                 token.ThrowIfCancellationRequested();
-
-                var texture = new TextureCollection {
-                    Name = Path.GetFileNameWithoutExtension(filename),
-                    Path = Path.GetDirectoryName(filename),
-                };
+                TextureCollection texture;
 
                 try {
-                    texture.Map = await LoadMapAsync(filename, token);
+                    texture = await LoadTextureAsync(filename, token);
                 }
                 catch (Exception error) {
                     logger.LogWarning(error, $"Failed to load texture map '{filename}'!");
@@ -40,6 +45,20 @@ namespace McPbrPipeline.Textures
 
                 yield return texture;
             }
+        }
+
+        public async Task<TextureCollection> LoadTextureAsync(string filename, CancellationToken token = default)
+        {
+            var path = Path.GetDirectoryName(filename);
+
+            if (path != null && path.StartsWith(Root, StringComparison.InvariantCultureIgnoreCase))
+                path = path[Root.Length..].TrimStart('\\', '/');
+
+            return new TextureCollection {
+                Name = Path.GetFileNameWithoutExtension(filename),
+                Map = await LoadMapAsync(filename, token),
+                Path = path,
+            };
         }
 
         private static async Task<TextureMap> LoadMapAsync(string filename, CancellationToken token)

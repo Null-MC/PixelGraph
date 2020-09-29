@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace McPbrPipeline.Textures
+﻿namespace McPbrPipeline.Textures
 {
     internal class TextureMap
     {
@@ -38,6 +36,9 @@ namespace McPbrPipeline.Textures
     {
         public string Texture {get; set;}
         public bool FromHeight {get; set;} = true;
+        public int DownSample {get; set;} = 1;
+        public float Strength {get; set;} = 100f;
+        public float Blur {get; set;} = 0f;
         public bool Wrap {get; set;} = true;
     }
 

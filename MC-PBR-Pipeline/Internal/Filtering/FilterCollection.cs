@@ -8,6 +8,8 @@ namespace McPbrPipeline.Internal.Filtering
     {
         private readonly List<IImageFilter> filterList;
 
+        public string SourceColor {get; set;}
+
         public bool Empty => filterList.Count == 0;
 
 
