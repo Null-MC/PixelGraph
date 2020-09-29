@@ -1,4 +1,4 @@
-﻿using McPbrPipeline.Internal.Filtering;
+﻿using McPbrPipeline.Filters;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -6,7 +6,6 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors;
 using System;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 namespace McPbrPipeline.ImageProcessors
 {
@@ -22,22 +21,20 @@ namespace McPbrPipeline.ImageProcessors
 
         public IImageProcessor<TPixel> CreatePixelSpecificProcessor<TPixel>(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle) where TPixel : unmanaged, IPixel<TPixel>
         {
-            return new NormalMapProcessor<TPixel>(this, source, configuration, sourceRectangle);
+            return new NormalMapProcessor<TPixel>(this, source, sourceRectangle);
         }
     }
 
     internal class NormalMapProcessor<TPixel> : IImageProcessor<TPixel> where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly NormalMapProcessor processor;
-        //private readonly Configuration configuration;
         private readonly Rectangle sourceRectangle;
         private readonly Image<TPixel> source;
 
 
-        public NormalMapProcessor(NormalMapProcessor processor, Image<TPixel> source, Configuration configuration, Rectangle sourceRectangle)
+        public NormalMapProcessor(NormalMapProcessor processor, Image<TPixel> source, Rectangle sourceRectangle)
         {
             this.processor = processor;
-            //this.configuration = configuration;
             this.sourceRectangle = sourceRectangle;
             this.source = source;
         }
@@ -47,6 +44,7 @@ namespace McPbrPipeline.ImageProcessors
             using var target = new Image<Rgba32>(sourceRectangle.Width, sourceRectangle.Height);
 
             var k = new float[3, 3];
+            var pixel = new Rgba32(0, 0, 0, 255);
             Vector2 derivative;
             Vector3 normal;
 
@@ -57,16 +55,25 @@ namespace McPbrPipeline.ImageProcessors
 
                     normal.X = derivative.X;
                     normal.Y = derivative.Y;
-                    normal.Z = 1f / (processor.Options.Strength * 100f);
+                    normal.Z = 1f / processor.Options.Strength;
 
                     Normalize(ref normal);
 
-                    target[x, y] = new Rgba32(normal.X * 0.5f + 0.5f, normal.Y * 0.5f + 0.5f, normal.Z);
+                    pixel.R = Saturate(normal.X * 0.5f + 0.5f);
+                    pixel.G = Saturate(normal.Y * 0.5f + 0.5f);
+                    pixel.B = Saturate(normal.Z);
+
+                    target[x, y] = pixel;
                 }
             }
 
             var brush = new ImageBrush(target);
-            source.Mutate(c => c.Fill(brush));
+            source.Mutate(c => c.Clear(brush));
+        }
+
+        private static byte Saturate(float value)
+        {
+            return Math.Clamp((byte)(value * 255f), (byte)0, (byte)255);
         }
 
         public void Dispose() {}
@@ -76,43 +83,17 @@ namespace McPbrPipeline.ImageProcessors
             for (var kY = 0; kY < 3; kY++) {
                 for (var kX = 0; kX < 3; kX++) {
                     if (kX == 1 && kY == 1) continue;
-                    kernel[kX, kY] = GetPixelFloat(x + kX - 1, y + kY - 1);
+
+                    var pX = x + kX - 1;
+                    var pY = y + kY - 1;
+
+                    if (processor.Options.Wrap) Wrap(ref pX, ref pY);
+                    else Clamp(ref pX, ref pY);
+
+                    var pixel = source[pX, pY].ToScaledVector4();
+                    kernel[kX, kY] = (pixel.X + pixel.Y + pixel.Z) / 3f;
                 }
             }
-        }
-
-        private float GetPixelFloat(int x, int y)
-        {
-            if (processor.Options.Wrap) {
-                if (x < sourceRectangle.Left)
-                    x += sourceRectangle.Width;
-
-                if (x >= sourceRectangle.Right)
-                    x -= sourceRectangle.Width;
-
-                if (y < sourceRectangle.Top)
-                    y += sourceRectangle.Height;
-
-                if (y >= sourceRectangle.Bottom)
-                    y -= sourceRectangle.Height;
-            }
-            else {
-                if (x < sourceRectangle.Left)
-                    x = sourceRectangle.Left;
-
-                if (x >= sourceRectangle.Right)
-                    x = sourceRectangle.Right - 1;
-
-                if (y < sourceRectangle.Top)
-                    y = sourceRectangle.Top;
-
-                if (y >= sourceRectangle.Bottom)
-                    y = sourceRectangle.Bottom - 1;
-            }
-
-            var pixel = source[x, y].ToVector4();
-
-            return (pixel.X / 255.0f + pixel.Y / 255.0f + pixel.Z / 255.0f) / 3f;
         }
 
         private static void GetSobelDerivative(ref float[,] kernel, out Vector2 derivative)
@@ -126,7 +107,6 @@ namespace McPbrPipeline.ImageProcessors
             derivative.X = bottomSide - topSide;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Normalize(ref Vector3 value)
         {
             float length;
@@ -141,6 +121,36 @@ namespace McPbrPipeline.ImageProcessors
             value.X /= length;
             value.Y /= length;
             value.Z /= length;
+        }
+
+        private void Wrap(ref int x, ref int y)
+        {
+            if (x < sourceRectangle.Left)
+                x += sourceRectangle.Width;
+
+            if (x >= sourceRectangle.Right)
+                x -= sourceRectangle.Width;
+
+            if (y < sourceRectangle.Top)
+                y += sourceRectangle.Height;
+
+            if (y >= sourceRectangle.Bottom)
+                y -= sourceRectangle.Height;
+        }
+
+        private void Clamp(ref int x, ref int y)
+        {
+            if (x < sourceRectangle.Left)
+                x = sourceRectangle.Left;
+
+            if (x >= sourceRectangle.Right)
+                x = sourceRectangle.Right - 1;
+
+            if (y < sourceRectangle.Top)
+                y = sourceRectangle.Top;
+
+            if (y >= sourceRectangle.Bottom)
+                y = sourceRectangle.Bottom - 1;
         }
     }
 }

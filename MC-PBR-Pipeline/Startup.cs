@@ -1,6 +1,6 @@
-﻿using McPbrPipeline.Publishing;
+﻿using McPbrPipeline.Internal.Publishing;
+using McPbrPipeline.Internal.Textures;
 using McPbrPipeline.Services;
-using McPbrPipeline.Textures;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +18,7 @@ namespace McPbrPipeline
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IPublisher, Publisher>();
             services.AddSingleton<ITextureLoader, TextureLoader>();
             services.AddSingleton<ITexturePublisher, TexturePublisher>();
 

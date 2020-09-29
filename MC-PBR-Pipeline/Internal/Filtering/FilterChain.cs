@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp;
+﻿using McPbrPipeline.Filters;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
@@ -46,17 +47,15 @@ namespace McPbrPipeline.Internal.Filtering
             await image.SaveAsPngAsync(DestinationFilename, token);
         }
 
-        private Task<Image> LoadSourceImageAsync(CancellationToken token)
+        private async Task<Image> LoadSourceImageAsync(CancellationToken token)
         {
-            if (!string.IsNullOrEmpty(SourceFilename))
-                return Image.LoadAsync(SourceFilename, token);
-
-            if (SourceColor.HasValue) {
-                var image = new Image<Rgba32>(1, 1, SourceColor.Value);
-                return Task.FromResult((Image)image);
+            if (!string.IsNullOrEmpty(SourceFilename)) {
+                return await Image.LoadAsync(SourceFilename, token);
             }
 
-            //return Task.FromResult<Image>(null);
+            if (SourceColor.HasValue)
+                return new Image<Rgba32>(1, 1, SourceColor.Value);
+
             throw new SourceEmptyException("No Source image was found, and no color is defined!");
         }
     }

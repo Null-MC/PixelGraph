@@ -1,7 +1,9 @@
 ﻿using McPbrPipeline.Filters;
 using McPbrPipeline.Internal.Filtering;
-using McPbrPipeline.Textures;
+using McPbrPipeline.Internal.Textures;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
@@ -10,7 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace McPbrPipeline.Publishing
+namespace McPbrPipeline.Internal.Publishing
 {
     internal interface ITexturePublisher
     {
@@ -19,11 +21,6 @@ namespace McPbrPipeline.Publishing
 
     internal class TexturePublisher : ITexturePublisher
     {
-        private const string Tag_Albedo = "#albedo";
-        private const string Tag_Height = "#height";
-        private const string Tag_Normal = "#normal";
-        private const string Tag_Specular = "#specular";
-
         private readonly ILogger logger;
 
 
@@ -69,11 +66,12 @@ namespace McPbrPipeline.Publishing
 
         private async Task PublishAlbedoAsync(IPublishProfile profile, TextureCollection texture, CancellationToken token)
         {
+            var sourcePath = profile.GetSourcePath(texture.Path, texture.Name);
+            var destinationFilename = profile.GetDestinationPath(texture.Path, $"{texture.Name}.png");
+
             var filters = new FilterChain {
-                DestinationFilename = profile.GetDestinationPath(texture.Path, $"{texture.Name}.png"),
-                SourceFilename = GetFilename(texture, Tag_Albedo,
-                    path: profile.GetSourcePath(texture.Path, texture.Name),
-                    exactName: texture.Map.Albedo?.Texture),
+                DestinationFilename = destinationFilename,
+                SourceFilename = GetFilename(texture, TextureTags.Albedo, sourcePath, texture.Map.Albedo?.Texture),
             };
 
             if (profile.TextureSize.HasValue) {
@@ -83,20 +81,25 @@ namespace McPbrPipeline.Publishing
             }
 
             await filters.ApplyAsync(token);
+
+            if (texture.Map.Albedo?.Metadata != null)
+                await PublishMcMetaAsync(texture.Map.Albedo.Metadata, destinationFilename, token);
         }
 
         private async Task PublishNormalAsync(IPublishProfile profile, TextureCollection texture, CancellationToken token)
         {
+            var sourcePath = profile.GetSourcePath(texture.Path, texture.Name);
+            var destinationFilename = profile.GetDestinationPath(texture.Path, $"{texture.Name}_n.png");
+
             var fromHeight = texture.Map.Normal?.FromHeight ?? true;
 
             var filters = new FilterChain {
-                DestinationFilename = profile.GetDestinationPath(texture.Path, $"{texture.Name}_n.png"),
+                DestinationFilename = destinationFilename,
             };
 
             if (fromHeight) {
-                filters.SourceFilename = GetFilename(texture, Tag_Height,
-                    path: profile.GetSourcePath(texture.Path, texture.Name),
-                    exactName: texture.Map.Normal?.Heightmap ?? texture.Map.Height?.Texture);
+                filters.SourceFilename = GetFilename(texture, TextureTags.Height, sourcePath,
+                    texture.Map.Normal?.Heightmap ?? texture.Map.Height?.Texture);
 
                 var options = new NormalMapOptions();
 
@@ -115,9 +118,7 @@ namespace McPbrPipeline.Publishing
                 filters.Append(new NormalMapFilter(options));
             }
             else {
-                filters.SourceFilename = GetFilename(texture, Tag_Normal,
-                    path: profile.GetSourcePath(texture.Path, texture.Name),
-                    exactName: texture.Map.Normal?.Texture);
+                filters.SourceFilename = GetFilename(texture, TextureTags.Normal, sourcePath, texture.Map.Normal?.Texture);
             }
 
             if (profile.TextureSize.HasValue) {
@@ -127,17 +128,20 @@ namespace McPbrPipeline.Publishing
             }
 
             await filters.ApplyAsync(token);
+
+            if (texture.Map.Normal?.Metadata != null)
+                await PublishMcMetaAsync(texture.Map.Normal.Metadata, destinationFilename, token);
         }
 
         private async Task PublishSpecularAsync(IPublishProfile profile, TextureCollection texture, CancellationToken token)
         {
+            var sourcePath = profile.GetSourcePath(texture.Path, texture.Name);
+            var destinationFilename = profile.GetDestinationPath(texture.Path, $"{texture.Name}_s.png");
             var specularMap = texture.Map.Specular;
 
             var filters = new FilterChain {
-                DestinationFilename = profile.GetDestinationPath(texture.Path, $"{texture.Name}_s.png"),
-                SourceFilename = GetFilename(texture, Tag_Specular,
-                    path: profile.GetSourcePath(texture.Path, texture.Name),
-                    exactName: texture.Map.Specular?.Texture),
+                DestinationFilename = destinationFilename,
+                SourceFilename = GetFilename(texture, TextureTags.Specular, sourcePath, texture.Map.Specular?.Texture),
             };
 
             if (texture.Map.Specular?.Color != null)
@@ -175,6 +179,9 @@ namespace McPbrPipeline.Publishing
             }
 
             await filters.ApplyAsync(token);
+
+            if (texture.Map.Specular?.Metadata != null)
+                await PublishMcMetaAsync(texture.Map.Specular.Metadata, destinationFilename, token);
         }
 
         private static string GetFilename(TextureCollection texture, string type, string path, string exactName)
@@ -201,20 +208,26 @@ namespace McPbrPipeline.Publishing
             return null;
         }
 
+        private static Task PublishMcMetaAsync(JToken metadata, string textureDestinationFilename, CancellationToken token)
+        {
+            var mcMetaDestinationFilename = $"{textureDestinationFilename}.mcmeta";
+            return JsonFile.WriteAsync(mcMetaDestinationFilename, metadata, Formatting.Indented, token);
+        }
+
         private static readonly Dictionary<string, Func<TextureMap, string>> TextureMap = new Dictionary<string, Func<TextureMap, string>>(StringComparer.InvariantCultureIgnoreCase)
         {
-            [Tag_Albedo] = map => map.Albedo.Texture,
-            [Tag_Height] = map => map.Height.Texture,
-            [Tag_Normal] = map => map.Normal.Texture,
-            [Tag_Specular] = map => map.Specular.Texture,
+            [TextureTags.Albedo] = map => map.Albedo.Texture,
+            [TextureTags.Height] = map => map.Height.Texture,
+            [TextureTags.Normal] = map => map.Normal.Texture,
+            [TextureTags.Specular] = map => map.Specular.Texture,
         };
 
         private static readonly Dictionary<string, string> MatchMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
-            [Tag_Albedo] = "albedo.*",
-            [Tag_Height] = "height.*",
-            [Tag_Normal] = "normal.*",
-            [Tag_Specular] = "specular.*",
+            [TextureTags.Albedo] = "albedo.*",
+            [TextureTags.Height] = "height.*",
+            [TextureTags.Normal] = "normal.*",
+            [TextureTags.Specular] = "specular.*",
         };
 
         private static readonly string[] SupportedImageExtensions = {

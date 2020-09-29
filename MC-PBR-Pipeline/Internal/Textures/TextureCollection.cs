@@ -1,4 +1,4 @@
-﻿namespace McPbrPipeline.Textures
+﻿namespace McPbrPipeline.Internal.Textures
 {
     internal class TextureCollection
     {

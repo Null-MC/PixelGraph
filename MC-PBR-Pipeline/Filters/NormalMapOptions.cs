@@ -1,4 +1,4 @@
-﻿namespace McPbrPipeline.Internal.Filtering
+﻿namespace McPbrPipeline.Filters
 {
     internal class NormalMapOptions
     {

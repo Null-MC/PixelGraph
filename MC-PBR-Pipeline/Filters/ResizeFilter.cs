@@ -15,10 +15,7 @@ namespace McPbrPipeline.Filters
             var size = context.GetCurrentSize();
             if (size.Width == TargetSize) return;
 
-            var aspect = size.Width / (float) size.Height;
-            var targetHeight = (int)(TargetSize * aspect);
-
-            context.Resize(TargetSize, targetHeight, Resampler);
+            context.Resize(TargetSize, 0, Resampler);
         }
     }
 }

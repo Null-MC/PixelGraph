@@ -35,7 +35,6 @@ namespace McPbrPipeline
         {
             logger.Enrich.FromLogContext()
                 .MinimumLevel.Debug()
-                //.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {UserId} {Event} - {Message}{NewLine}{Exception}")
                 .WriteTo.Console();
         }
 

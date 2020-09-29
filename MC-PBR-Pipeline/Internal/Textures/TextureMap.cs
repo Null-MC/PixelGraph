@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace McPbrPipeline.Textures
+namespace McPbrPipeline.Internal.Textures
 {
     internal class TextureMap
     {
@@ -22,6 +23,9 @@ namespace McPbrPipeline.Textures
     internal class AlbedoTextureMap
     {
         public string Texture {get; set;}
+
+        [JsonProperty("meta")]
+        public JToken Metadata {get; set;}
     }
 
     internal class HeightTextureMap
@@ -29,6 +33,9 @@ namespace McPbrPipeline.Textures
         public string Texture {get; set;}
         public float? Depth {get; set;}
         public bool? NormalizeDepth {get; set;}
+
+        [JsonProperty("meta")]
+        public JToken Metadata {get; set;}
     }
 
     internal class NormalTextureMap
@@ -43,6 +50,9 @@ namespace McPbrPipeline.Textures
         public float? Strength {get; set;}
         public float? Blur {get; set;}
         public bool? Wrap {get; set;}
+
+        [JsonProperty("meta")]
+        public JToken Metadata {get; set;}
     }
 
     internal class SpecularTextureMap
@@ -85,6 +95,9 @@ namespace McPbrPipeline.Textures
 
         [JsonProperty("emissive-scale")]
         public float? EmissiveScale {get; set;}
+
+        [JsonProperty("meta")]
+        public JToken Metadata {get; set;}
 
         public bool HasOffsets()
         {

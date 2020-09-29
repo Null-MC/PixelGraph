@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.IO;
 
-namespace McPbrPipeline.Publishing
+namespace McPbrPipeline.Internal.Publishing
 {
     public interface IPublishProfile
     {
@@ -30,15 +31,16 @@ namespace McPbrPipeline.Publishing
         public List<string> Tags {get; set;}
         public string Source {get; set;}
         public string Destination {get; set;}
+
+        [JsonProperty("texture-size")]
         public int? TextureSize {get; set;}
-        public int? TextureHeight {get; set;}
 
 
         public PublishProfile()
         {
             PackFormat = 5;
-            Source = ".";
-            Destination = Path.Combine(".", "published");
+            //Source = ".";
+            //Destination = Path.Combine(".", "published");
             Tags = new List<string>();
         }
     }

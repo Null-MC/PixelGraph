@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace McPbrPipeline.Serialization
+namespace McPbrPipeline.Internal.Serialization
 {
     internal class PackMetadata
     {

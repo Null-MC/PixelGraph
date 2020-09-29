@@ -1,70 +1,70 @@
-﻿using McPbrPipeline.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using McPbrPipeline.Internal.Serialization;
+using McPbrPipeline.Internal.Textures;
 
-namespace McPbrPipeline.Publishing
+namespace McPbrPipeline.Internal.Publishing
 {
-    internal class Publisher
+    internal interface IPublisher
     {
-        public IPublishProfile Profile {get; set;}
+        Task PublishAsync(string sourcePath, string destinationPath, CancellationToken token = default);
+    }
+
+    internal class Publisher : IPublisher
+    {
+        private readonly ITextureLoader textureLoader;
+        private readonly ITexturePublisher texturePublisher;
 
 
-        public async Task PublishAsync(CancellationToken token = default)
+        public Publisher(
+            ITextureLoader textureLoader,
+            ITexturePublisher texturePublisher)
         {
+            this.textureLoader = textureLoader;
+            this.texturePublisher = texturePublisher;
+        }
+
+        public async Task PublishAsync(string sourcePath, string destinationPath, CancellationToken token = default)
+        {
+            var packFilename = Path.Combine(sourcePath, "pack.json");
+
+            if (!File.Exists(packFilename))
+                throw new ApplicationException($"No pack.json file found in directory '{sourcePath}'!");
+
+            var profile = await JsonFile.ReadAsync<PublishProfile>(packFilename, token);
+
+            profile.Source = sourcePath;
+            profile.Destination = destinationPath;
+
             // TODO: pre-clean?
 
-            await PublishPackMetaAsync(token);
+            // Publish Pack Metadata
+            await PublishPackMetaAsync(profile, token);
 
-            var sourceTexturePath = GetSourcePath("assets", "minecraft", "textures");
+            // Publish Textures
+            await foreach (var texture in textureLoader.LoadAsync(sourcePath, token))
+                await texturePublisher.PublishAsync(profile, texture, token);
 
-            foreach (var file in Directory.EnumerateFiles(sourceTexturePath, "*.*", SearchOption.TopDirectoryOnly)) {
-                //
-            }
-
-            //foreach (var path in Directory.EnumerateDirectories(assetsPath, ))
-
-                // TODO: copy all content (except destination) from source to destination...
-                // TODO: apply filtering
+            // TODO: copy all content (except destination) from source to destination...
+            // TODO: apply filtering
         }
 
-        private Task PublishPackMetaAsync(CancellationToken token)
+        private static Task PublishPackMetaAsync(IPublishProfile profile, CancellationToken token)
         {
             var packMeta = new PackMetadata {
-                PackFormat = Profile.PackFormat,
-                Description = Profile.Description ?? string.Empty,
+                PackFormat = profile.PackFormat,
+                Description = profile.Description ?? string.Empty,
             };
 
-            if (Profile.Tags != null) {
-                if (packMeta.Description.Length > 0) packMeta.Description += "\r\n";
-                packMeta.Description += $"\r\n{string.Join(' ', Profile.Tags)}";
+            if (profile.Tags != null) {
+                packMeta.Description += $"\n{string.Join(' ', profile.Tags)}";
             }
 
-            var packMetaFilename = GetDestinationPath("pack.mcmeta");
-            return WriteJsonAsync(packMetaFilename, packMeta, token);
-        }
-
-        private string GetSourcePath(params string[] path)
-        {
-            var source = Path.GetFullPath(Profile.Source);
-            return Path.Combine(new[] {source}.Union(path).ToArray());
-        }
-
-        private string GetDestinationPath(params string[] path)
-        {
-            var destination = Path.GetFullPath(Profile.Destination);
-            return Path.Combine(new[] { destination }.Union(path).ToArray());
-        }
-
-        private static async Task WriteJsonAsync(string filename, object content, CancellationToken token)
-        {
-            await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
-            await using var writer = new StreamWriter(stream);
-            using var jsonWriter = new JsonTextWriter(writer);
-            await new JObject(content).WriteToAsync(jsonWriter, token);
+            var packMetaFilename = profile.GetDestinationPath("pack.mcmeta");
+            return JsonFile.WriteAsync(packMetaFilename, packMeta, Formatting.Indented, token);
         }
     }
 }

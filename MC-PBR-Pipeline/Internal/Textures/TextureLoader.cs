@@ -1,14 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
-namespace McPbrPipeline.Textures
+namespace McPbrPipeline.Internal.Textures
 {
     internal interface ITextureLoader
     {
@@ -47,24 +45,13 @@ namespace McPbrPipeline.Textures
 
         public async Task<TextureCollection> LoadTextureAsync(string rootPath, string filename, CancellationToken token = default)
         {
-            var item_path = Path.GetDirectoryName(filename);
-            var item_name = Path.GetFileName(item_path);
-            var local_path = Path.GetDirectoryName(item_path)?[rootPath.Length..].TrimStart('\\', '/');
+            var itemPath = Path.GetDirectoryName(filename);
 
             return new TextureCollection {
-                Name = item_name,
-                Path = local_path,
-                Map = await LoadMapAsync(filename, token),
+                Name = Path.GetFileName(itemPath),
+                Path = Path.GetDirectoryName(itemPath)?[rootPath.Length..].TrimStart('\\', '/'),
+                Map = await JsonFile.ReadAsync<TextureMap>(filename, token),
             };
-        }
-
-        private static async Task<TextureMap> LoadMapAsync(string filename, CancellationToken token)
-        {
-            await using var stream = File.Open(filename, FileMode.Open, FileAccess.Read);
-            using var reader = new StreamReader(stream);
-            using var jsonReader = new JsonTextReader(reader);
-            var data = await JToken.ReadFromAsync(jsonReader, token);
-            return data.ToObject<TextureMap>();
         }
     }
 }

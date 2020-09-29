@@ -1,7 +1,7 @@
-﻿using McPbrPipeline.Publishing;
-using McPbrPipeline.Textures;
+﻿using McPbrPipeline.Internal.Publishing;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Serilog;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,21 +11,15 @@ namespace McPbrPipeline.Services
     internal class TestService : BackgroundService
     {
         private readonly IHostApplicationLifetime lifetime;
-        private readonly ITextureLoader loader;
-        private readonly ITexturePublisher publisher;
-        private readonly ILogger logger;
+        private readonly IPublisher publisher;
 
 
         public TestService(
-            ILogger<TestService> logger,
             IHostApplicationLifetime lifetime,
-            ITextureLoader loader,
-            ITexturePublisher publisher)
+            IPublisher publisher)
         {
             this.lifetime = lifetime;
-            this.loader = loader;
             this.publisher = publisher;
-            this.logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken token)
@@ -41,17 +35,14 @@ namespace McPbrPipeline.Services
         private async Task RunAsync(CancellationToken token)
         {
             var root = Path.GetFullPath("..\\..\\..\\..\\test-data");
+            var source = Path.Combine(root, "src");
+            var destination = Path.Combine(root, "publish");
 
-            var profile = new PublishProfile {
-                Source = root,
-                Destination = Path.Combine(root, "publish"),
-                TextureSize = 128,
-                TextureHeight = 128,
-            };
+            var timer = Stopwatch.StartNew();
+            await publisher.PublishAsync(source, destination, token);
+            timer.Stop();
 
-            await foreach (var texture in loader.LoadAsync(root, token)) {
-                await publisher.PublishAsync(profile, texture, token);
-            }
+            Log.Information($"Duration: {timer.Elapsed:g}");
         }
     }
 }
