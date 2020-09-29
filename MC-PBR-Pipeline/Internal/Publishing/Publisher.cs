@@ -1,10 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using McPbrPipeline.Internal.Serialization;
+using McPbrPipeline.Internal.Textures;
+using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using McPbrPipeline.Internal.Serialization;
-using McPbrPipeline.Internal.Textures;
 
 namespace McPbrPipeline.Internal.Publishing
 {
@@ -39,6 +40,11 @@ namespace McPbrPipeline.Internal.Publishing
             profile.Source = sourcePath;
             profile.Destination = destinationPath;
 
+            if (!Directory.Exists(destinationPath)) {
+                Log.Debug($"Creating publish destination directory '{destinationPath}'.");
+                Directory.CreateDirectory(destinationPath);
+            }
+
             // TODO: pre-clean?
 
             // Publish Pack Metadata
@@ -64,6 +70,7 @@ namespace McPbrPipeline.Internal.Publishing
             }
 
             var packMetaFilename = profile.GetDestinationPath("pack.mcmeta");
+
             return JsonFile.WriteAsync(packMetaFilename, packMeta, Formatting.Indented, token);
         }
     }

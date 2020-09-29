@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,9 +33,8 @@ namespace McPbrPipeline.Services
 
         private async Task RunAsync(CancellationToken token)
         {
-            var root = Path.GetFullPath("..\\..\\..\\..\\test-data");
-            var source = Path.Combine(root, "src");
-            var destination = Path.Combine(root, "publish");
+            const string source = @"D:\MC-NULL-PBR";
+            const string destination = @"C:\Users\null5\AppData\Roaming\.minecraft\profiles\vanilla_1.16.2\resourcepacks\NULL-PBR-128x";
 
             var timer = Stopwatch.StartNew();
             await publisher.PublishAsync(source, destination, token);

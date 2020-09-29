@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using SixLabors.ImageSharp.Drawing.Processing;
 
 namespace McPbrPipeline.Internal.Filtering
 {
@@ -34,9 +35,13 @@ namespace McPbrPipeline.Internal.Filtering
             if (string.IsNullOrEmpty(DestinationFilename))
                 throw new ArgumentException("Value cannot be null or empty!", nameof(DestinationFilename));
 
-            using var image = await LoadSourceImageAsync(token);
+            using var sourceImage = await LoadSourceImageAsync(token);
+            using var targetImage = new Image<Rgba32>(Configuration.Default, sourceImage.Width, sourceImage.Height);
 
-            image.Mutate(context => {
+            var brush = new ImageBrush(sourceImage);
+            targetImage.Mutate(c => c.Clear(brush));
+
+            targetImage.Mutate(context => {
                 foreach (var filter in filterList)
                     filter.Apply(context);
             });
@@ -44,7 +49,7 @@ namespace McPbrPipeline.Internal.Filtering
             var path = Path.GetDirectoryName(DestinationFilename);
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
-            await image.SaveAsPngAsync(DestinationFilename, token);
+            await targetImage.SaveAsPngAsync(DestinationFilename, token);
         }
 
         private async Task<Image> LoadSourceImageAsync(CancellationToken token)

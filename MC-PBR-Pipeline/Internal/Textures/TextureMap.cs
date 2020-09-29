@@ -31,8 +31,8 @@ namespace McPbrPipeline.Internal.Textures
     internal class HeightTextureMap
     {
         public string Texture {get; set;}
-        public float? Depth {get; set;}
-        public bool? NormalizeDepth {get; set;}
+        //public float? DepthScale {get; set;}
+        //public bool? NormalizeDepth {get; set;}
 
         [JsonProperty("meta")]
         public JToken Metadata {get; set;}
@@ -45,6 +45,9 @@ namespace McPbrPipeline.Internal.Textures
 
         [JsonProperty("from-height")]
         public bool? FromHeight {get; set;}
+
+        [JsonProperty("depth-scale")]
+        public float? DepthScale {get; set;}
 
         public int? DownSample {get; set;}
         public float? Strength {get; set;}

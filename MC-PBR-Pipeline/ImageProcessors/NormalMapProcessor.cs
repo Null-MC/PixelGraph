@@ -42,6 +42,7 @@ namespace McPbrPipeline.ImageProcessors
         public void Execute()
         {
             using var target = new Image<Rgba32>(sourceRectangle.Width, sourceRectangle.Height);
+            var hasDepthScale = processor.Options.DepthScale > float.Epsilon;
 
             var k = new float[3, 3];
             var pixel = new Rgba32(0, 0, 0, 255);
@@ -63,6 +64,8 @@ namespace McPbrPipeline.ImageProcessors
                     pixel.G = Saturate(normal.Y * 0.5f + 0.5f);
                     pixel.B = Saturate(normal.Z);
 
+                    if (hasDepthScale) pixel.A = Saturate(1f - (1f - k[1, 1]) * processor.Options.DepthScale);
+
                     target[x, y] = pixel;
                 }
             }
@@ -82,7 +85,7 @@ namespace McPbrPipeline.ImageProcessors
         {
             for (var kY = 0; kY < 3; kY++) {
                 for (var kX = 0; kX < 3; kX++) {
-                    if (kX == 1 && kY == 1) continue;
+                    //if (kX == 1 && kY == 1) continue;
 
                     var pX = x + kX - 1;
                     var pY = y + kY - 1;

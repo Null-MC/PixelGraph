@@ -103,6 +103,9 @@ namespace McPbrPipeline.Internal.Publishing
 
                 var options = new NormalMapOptions();
 
+                if (texture.Map.Normal?.DepthScale.HasValue ?? false)
+                    options.DepthScale = texture.Map.Normal.DepthScale.Value;
+
                 if (texture.Map.Normal?.Blur != null)
                     options.Blur = texture.Map.Normal.Blur.Value;
 
