@@ -10,10 +10,7 @@ namespace McPbrPipeline.Publishing
         List<string> Tags {get;}
         string Source {get;}
         string Destination {get;}
-        int? TextureWidth {get;}
-        int? TextureHeight {get;}
-
-        bool HasTextureDimensions => TextureWidth.HasValue && TextureHeight.HasValue;
+        int? TextureSize {get;}
 
 
         string GetSourcePath(params string[] path) => GetPath(Source, path);
@@ -33,7 +30,7 @@ namespace McPbrPipeline.Publishing
         public List<string> Tags {get; set;}
         public string Source {get; set;}
         public string Destination {get; set;}
-        public int? TextureWidth {get; set;}
+        public int? TextureSize {get; set;}
         public int? TextureHeight {get; set;}
 
 

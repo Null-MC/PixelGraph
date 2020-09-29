@@ -1,10 +1,12 @@
-﻿using McPbrPipeline.Filters;
+﻿using McPbrPipeline.Internal.Filtering;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors;
+using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace McPbrPipeline.ImageProcessors
 {
@@ -12,6 +14,11 @@ namespace McPbrPipeline.ImageProcessors
     {
         public NormalMapOptions Options {get; set;}
 
+
+        public NormalMapProcessor(NormalMapOptions options = null)
+        {
+            Options = options ?? new NormalMapOptions();
+        }
 
         public IImageProcessor<TPixel> CreatePixelSpecificProcessor<TPixel>(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle) where TPixel : unmanaged, IPixel<TPixel>
         {
@@ -40,20 +47,19 @@ namespace McPbrPipeline.ImageProcessors
             using var target = new Image<Rgba32>(sourceRectangle.Width, sourceRectangle.Height);
 
             var k = new float[3, 3];
-            Vector3 angle;
             Vector2 derivative;
+            Vector3 normal;
 
             for (var y = sourceRectangle.Top; y < sourceRectangle.Bottom; y++) {
                 for (var x = sourceRectangle.Left; x < sourceRectangle.Right; x++) {
                     PopulateKernel_3x3(ref k, x, y);
                     GetSobelDerivative(ref k, out derivative);
 
-                    angle.X = derivative.X;
-                    angle.Y = derivative.Y;
-                    angle.Z = 1f / (processor.Options.Strength * 100f);
+                    normal.X = derivative.X;
+                    normal.Y = derivative.Y;
+                    normal.Z = 1f / (processor.Options.Strength * 100f);
 
-                    // TODO: implement by-ref normalize
-                    var normal = Vector3.Normalize(angle);
+                    Normalize(ref normal);
 
                     target[x, y] = new Rgba32(normal.X * 0.5f + 0.5f, normal.Y * 0.5f + 0.5f, normal.Z);
                 }
@@ -69,11 +75,7 @@ namespace McPbrPipeline.ImageProcessors
         {
             for (var kY = 0; kY < 3; kY++) {
                 for (var kX = 0; kX < 3; kX++) {
-                    if (kX == 1 && kY == 1) {
-                        kernel[1, 1] = 0f;
-                        continue;
-                    }
-
+                    if (kX == 1 && kY == 1) continue;
                     kernel[kX, kY] = GetPixelFloat(x + kX - 1, y + kY - 1);
                 }
             }
@@ -115,14 +117,30 @@ namespace McPbrPipeline.ImageProcessors
 
         private static void GetSobelDerivative(ref float[,] kernel, out Vector2 derivative)
         {
-            derivative.X = kernel[0, 0] + kernel[0, 1] * 2f + kernel[0, 2] - kernel[2, 0] - kernel[2, 1] * 2f - kernel[2, 2];
-            derivative.Y = kernel[0, 0] + kernel[1, 0] * 2f + kernel[2, 0] - kernel[0, 2] - kernel[1, 2] * 2f - kernel[2, 2];
+            var topSide = kernel[0,0] + 2f * kernel[0,1] + kernel[0,2];
+            var bottomSide = kernel[2,0] + 2f * kernel[2,1] + kernel[2,2];
+            var rightSide = kernel[0,2] + 2f * kernel[1,2] + kernel[2,2];
+            var leftSide = kernel[0,0] + 2f * kernel[1,0] + kernel[2,0];
+
+            derivative.Y = rightSide - leftSide;
+            derivative.X = bottomSide - topSide;
         }
 
-        //private static void GetPrewittDerivative(ref float[,] kernel, out Vector2 derivative)
-        //{
-        //    derivative.X = kernel[0, 0] * 3.0f + kernel[0, 1] * 10.0f + kernel[0, 2] * 3.0f - kernel[2, 0] * 3.0f - kernel[2, 1] * 10.0f - kernel[2, 2] * 3.0f;
-        //    derivative.Y = kernel[0, 0] * 3.0f + kernel[1, 0] * 10.0f + kernel[2, 0] * 3.0f - kernel[0, 2] * 3.0f - kernel[1, 2] * 10.0f - kernel[2, 2] * 3.0f;
-        //}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Normalize(ref Vector3 value)
+        {
+            float length;
+            if (Vector.IsHardwareAccelerated) {
+                length = value.Length();
+            }
+            else {
+                var ls = value.X * value.X + value.Y * value.Y + value.Z * value.Z;
+                length = MathF.Sqrt(ls);
+            }
+
+            value.X /= length;
+            value.Y /= length;
+            value.Z /= length;
+        }
     }
 }

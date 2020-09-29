@@ -17,7 +17,7 @@ namespace McPbrPipeline
             try {
                 await Host.CreateDefaultBuilder(args)
                     .UseStartup<Startup>()
-                    .UseSerilog()
+                    .UseSerilog(ConfigureLogging)
                     .RunConsoleAsync();
 
                 return 0;
@@ -29,6 +29,14 @@ namespace McPbrPipeline
             finally {
                 Log.CloseAndFlush();
             }
+        }
+
+        private static void ConfigureLogging(HostBuilderContext context, LoggerConfiguration logger)
+        {
+            logger.Enrich.FromLogContext()
+                .MinimumLevel.Debug()
+                //.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {UserId} {Event} - {Message}{NewLine}{Exception}")
+                .WriteTo.Console();
         }
 
         private static string GetVersion()

@@ -57,7 +57,7 @@ namespace McPbrPipeline.Internal.Filtering
             }
 
             //return Task.FromResult<Image>(null);
-            throw new ArgumentException("No Source image was found, and no color is defined!");
+            throw new SourceEmptyException("No Source image was found, and no color is defined!");
         }
     }
 }

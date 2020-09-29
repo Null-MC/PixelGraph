@@ -42,29 +42,9 @@ namespace McPbrPipeline.Filters
                 chain.Add(new GaussianBlurProcessor(Options.Blur));
             }
 
-            chain.Add(new NormalMapProcessor {
-                Options = Options,
-            });
-
-            //if (Options.DownSample > 0) {
-            //    var options = new ResizeOptions {
-            //        Mode = ResizeMode.Stretch,
-            //        Sampler = KnownResamplers.Bicubic,
-            //        Size = sourceSize,
-            //    };
-
-            //    chain.Add(new ResizeProcessor(options, downSampleSize));
-            //}
+            chain.Add(new NormalMapProcessor(Options));
 
             context.ApplyProcessors(chain.ToArray());
         }
-    }
-
-    internal class NormalMapOptions
-    {
-        public int DownSample {get; set;} = 1;
-        public float Strength {get; set;} = 1f;
-        public float Blur {get; set;} = 0f;
-        public bool Wrap {get; set;} = true;
     }
 }

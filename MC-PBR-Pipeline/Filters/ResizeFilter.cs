@@ -7,20 +7,18 @@ namespace McPbrPipeline.Filters
     internal class ResizeFilter : IImageFilter
     {
         public IResampler Resampler {get; set;} = KnownResamplers.Bicubic;
-        public int TargetWidth {get; set;}
-        public int TargetHeight {get; set;}
+        public int TargetSize {get; set;}
 
 
         public void Apply(IImageProcessingContext context)
         {
             var size = context.GetCurrentSize();
+            if (size.Width == TargetSize) return;
 
-            if (size.IsEmpty || (size.Width == TargetWidth && size.Height == TargetHeight)) {
-                // image is empty or already target size
-                return;
-            }
+            var aspect = size.Width / (float) size.Height;
+            var targetHeight = (int)(TargetSize * aspect);
 
-            context.Resize(TargetWidth, TargetHeight, Resampler);
+            context.Resize(TargetSize, targetHeight, Resampler);
         }
     }
 }

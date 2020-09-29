@@ -12,16 +12,13 @@ namespace McPbrPipeline.Textures
 {
     internal interface ITextureLoader
     {
-        string Root {get; set;}
-
-        Task<TextureCollection> LoadTextureAsync(string filename, CancellationToken token = default);
+        IAsyncEnumerable<TextureCollection> LoadAsync(string path, CancellationToken token = default);
+        Task<TextureCollection> LoadTextureAsync(string rootPath, string filename, CancellationToken token = default);
     }
 
     internal class TextureLoader : ITextureLoader
     {
         private readonly ILogger logger;
-
-        public string Root {get; set;}
 
 
         public TextureLoader(ILogger<TextureLoader> logger)
@@ -29,14 +26,15 @@ namespace McPbrPipeline.Textures
             this.logger = logger;
         }
 
-        public async IAsyncEnumerable<TextureCollection> LoadAsync(string path, [EnumeratorCancellation] CancellationToken token)
+        public async IAsyncEnumerable<TextureCollection> LoadAsync(string path, [EnumeratorCancellation] CancellationToken token = default)
         {
-            foreach (var filename in Directory.EnumerateFiles(path, "*.json")) {
+            TextureCollection texture;
+
+            foreach (var filename in Directory.EnumerateFiles(path, "pbr.json", SearchOption.AllDirectories)) {
                 token.ThrowIfCancellationRequested();
-                TextureCollection texture;
 
                 try {
-                    texture = await LoadTextureAsync(filename, token);
+                    texture = await LoadTextureAsync(path, filename, token);
                 }
                 catch (Exception error) {
                     logger.LogWarning(error, $"Failed to load texture map '{filename}'!");
@@ -47,17 +45,16 @@ namespace McPbrPipeline.Textures
             }
         }
 
-        public async Task<TextureCollection> LoadTextureAsync(string filename, CancellationToken token = default)
+        public async Task<TextureCollection> LoadTextureAsync(string rootPath, string filename, CancellationToken token = default)
         {
-            var path = Path.GetDirectoryName(filename);
-
-            if (path != null && path.StartsWith(Root, StringComparison.InvariantCultureIgnoreCase))
-                path = path[Root.Length..].TrimStart('\\', '/');
+            var item_path = Path.GetDirectoryName(filename);
+            var item_name = Path.GetFileName(item_path);
+            var local_path = Path.GetDirectoryName(item_path)?[rootPath.Length..].TrimStart('\\', '/');
 
             return new TextureCollection {
-                Name = Path.GetFileNameWithoutExtension(filename),
+                Name = item_name,
+                Path = local_path,
                 Map = await LoadMapAsync(filename, token),
-                Path = path,
             };
         }
 

@@ -1,6 +1,7 @@
 ﻿using McPbrPipeline.Publishing;
 using McPbrPipeline.Textures;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,9 +13,11 @@ namespace McPbrPipeline.Services
         private readonly IHostApplicationLifetime lifetime;
         private readonly ITextureLoader loader;
         private readonly ITexturePublisher publisher;
+        private readonly ILogger logger;
 
 
         public TestService(
+            ILogger<TestService> logger,
             IHostApplicationLifetime lifetime,
             ITextureLoader loader,
             ITexturePublisher publisher)
@@ -22,6 +25,7 @@ namespace McPbrPipeline.Services
             this.lifetime = lifetime;
             this.loader = loader;
             this.publisher = publisher;
+            this.logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken token)
@@ -41,15 +45,13 @@ namespace McPbrPipeline.Services
             var profile = new PublishProfile {
                 Source = root,
                 Destination = Path.Combine(root, "publish"),
-                TextureWidth = 128,
+                TextureSize = 128,
                 TextureHeight = 128,
             };
 
-            loader.Root = root;
-            var filename = Path.Combine(root, "assets\\minecraft\\textures\\block\\pumpkin_stem.json");
-            var texture = await loader.LoadTextureAsync(filename, token);
-
-            await publisher.PublishAsync(profile, texture, token);
+            await foreach (var texture in loader.LoadAsync(root, token)) {
+                await publisher.PublishAsync(profile, texture, token);
+            }
         }
     }
 }
