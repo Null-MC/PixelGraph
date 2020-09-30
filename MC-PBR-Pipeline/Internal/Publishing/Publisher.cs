@@ -29,21 +29,27 @@ namespace McPbrPipeline.Internal.Publishing
             this.logger = logger;
         }
 
-        public async Task PublishAsync(string sourcePath, string destinationPath, CancellationToken token = default)
+        public async Task PublishAsync(string profileFilename, string destinationPath, CancellationToken token = default)
         {
-            var packFilename = Path.Combine(sourcePath, "pack.json");
+            if (profileFilename == null) throw new ArgumentNullException(nameof(profileFilename));
+            if (destinationPath == null) throw new ArgumentNullException(nameof(destinationPath));
 
-            if (!File.Exists(packFilename))
-                throw new ApplicationException($"No pack.json file found in directory '{sourcePath}'!");
+            var sourcePath = Path.GetDirectoryName(profileFilename);
 
-            var profile = await JsonFile.ReadAsync<PublishProfile>(packFilename, token);
+            var profile = await JsonFile.ReadAsync<PublishProfile>(profileFilename, token);
 
             profile.Source = sourcePath;
             profile.Destination = destinationPath;
 
             if (!Directory.Exists(destinationPath)) {
                 logger.LogInformation($"Creating publish destination directory '{destinationPath}'.");
-                Directory.CreateDirectory(destinationPath);
+
+                try {
+                    Directory.CreateDirectory(destinationPath);
+                }
+                catch (Exception error) {
+                    throw new ApplicationException("Failed to create destination directory!", error);
+                }
             }
 
             // TODO: pre-clean?

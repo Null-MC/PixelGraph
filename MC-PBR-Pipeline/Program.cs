@@ -1,11 +1,8 @@
 ﻿using McPbrPipeline.Internal.Publishing;
 using McPbrPipeline.Internal.Textures;
-using McPbrPipeline.Services;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace McPbrPipeline
@@ -14,16 +11,20 @@ namespace McPbrPipeline
     {
         public static async Task<int> Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .MinimumLevel.Information()
+                .WriteTo.Console()
+                .CreateLogger();
+
             try {
-                var version = GetVersion();
-                Console.WriteLine($"Minecraft PBR-Pipeline {version}");
+                var services = new ServiceCollection();
+                ConfigureServices(services);
 
-                await Host.CreateDefaultBuilder(args)
-                    .ConfigureServices(ConfigureServices)
-                    .UseSerilog(ConfigureLogging)
-                    .RunConsoleAsync();
+                await using var provider = services.BuildServiceProvider();
+                var commandLine = provider.GetRequiredService<IAppCommandLine>();
 
-                return 0;
+                return await commandLine.RunAsync(args);
             }
             catch (Exception error) {
                 Log.Logger.Fatal(error, "An unhandled exception has occurred!");
@@ -34,25 +35,15 @@ namespace McPbrPipeline
             }
         }
 
-        private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
+        private static void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IPublisher, Publisher>();
+            services.AddLogging(builder => {
+                builder.AddSerilog();
+            });
+
+            services.AddSingleton<IAppCommandLine, AppCommandLine>();
             services.AddSingleton<ITextureLoader, TextureLoader>();
-
-            services.AddHostedService<TestService>();
-        }
-
-        private static void ConfigureLogging(HostBuilderContext context, LoggerConfiguration logger)
-        {
-            logger.Enrich.FromLogContext()
-                .MinimumLevel.Information()
-                .WriteTo.Console();
-        }
-
-        private static string GetVersion()
-        {
-            return Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-                ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+            services.AddSingleton<IPublisher, Publisher>();
         }
     }
 }

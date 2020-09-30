@@ -1,11 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <Version>0.1.0</Version>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>McPbrPipeline</RootNamespace>
-    <Version>0.1.0</Version>
+    <AssemblyName>MCPBRP</AssemblyName>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Services\**" />
+    <EmbeddedResource Remove="Services\**" />
+    <None Remove="Services\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="Internal\Filtering\FilterCollection.cs" />
@@ -21,6 +28,7 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.1" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0010" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20371.2" />
   </ItemGroup>
 
 </Project>

@@ -352,3 +352,4 @@ MigrationBackup/
 
 # CUSTOM
 /test-data
+launchSettings.json
