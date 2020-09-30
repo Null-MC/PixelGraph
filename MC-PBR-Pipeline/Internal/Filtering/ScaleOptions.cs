@@ -1,4 +1,4 @@
-﻿namespace McPbrPipeline.Filters
+﻿namespace McPbrPipeline.Internal.Filtering
 {
     internal struct ScaleOptions
     {

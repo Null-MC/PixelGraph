@@ -1,5 +1,5 @@
-﻿using McPbrPipeline.Filters;
-using McPbrPipeline.Internal;
+﻿using McPbrPipeline.Internal;
+using McPbrPipeline.Internal.Filtering;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;

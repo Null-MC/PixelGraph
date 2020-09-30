@@ -1,5 +1,4 @@
-﻿using McPbrPipeline.Filters;
-using McPbrPipeline.Internal.Serialization;
+﻿using McPbrPipeline.Internal.Filtering;
 using McPbrPipeline.Internal.Textures;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
