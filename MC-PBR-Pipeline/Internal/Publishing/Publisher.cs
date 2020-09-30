@@ -97,28 +97,32 @@ namespace McPbrPipeline.Internal.Publishing
                 logger.LogError(error, $"Failed to publish albedo texture '{texture.Name}'!");
             }
 
-            try {
-                await new NormalTexturePublisher(profile).PublishAsync(texture, token);
+            if (profile.IncludeNormal ?? true) {
+                try {
+                    await new NormalTexturePublisher(profile).PublishAsync(texture, token);
 
-                logger.LogInformation($"Normal texture generated for item '{texture.Name}'.");
-            }
-            catch (SourceEmptyException) {
-                logger.LogWarning($"No normal texture to publish for item '{texture.Name}'.");
-            }
-            catch (Exception error) {
-                logger.LogError(error, $"Failed to publish normal texture '{texture.Name}'!");
+                    logger.LogInformation($"Normal texture generated for item '{texture.Name}'.");
+                }
+                catch (SourceEmptyException) {
+                    logger.LogWarning($"No normal texture to publish for item '{texture.Name}'.");
+                }
+                catch (Exception error) {
+                    logger.LogError(error, $"Failed to publish normal texture '{texture.Name}'!");
+                }
             }
 
-            try {
-                await new SpecularTexturePublisher(profile).PublishAsync(texture, token);
+            if (profile.IncludeSpecular ?? true) {
+                try {
+                    await new SpecularTexturePublisher(profile).PublishAsync(texture, token);
 
-                logger.LogInformation($"Specular texture generated for item '{texture.Name}'.");
-            }
-            catch (SourceEmptyException) {
-                logger.LogWarning($"No specular texture to publish for item '{texture.Name}'.");
-            }
-            catch (Exception error) {
-                logger.LogError(error, $"Failed to publish specular texture '{texture.Name}'!");
+                    logger.LogInformation($"Specular texture generated for item '{texture.Name}'.");
+                }
+                catch (SourceEmptyException) {
+                    logger.LogWarning($"No specular texture to publish for item '{texture.Name}'.");
+                }
+                catch (Exception error) {
+                    logger.LogError(error, $"Failed to publish specular texture '{texture.Name}'!");
+                }
             }
         }
     }

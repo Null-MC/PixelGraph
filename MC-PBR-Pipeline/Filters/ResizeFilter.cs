@@ -6,7 +6,7 @@ namespace McPbrPipeline.Filters
 {
     internal class ResizeFilter : IImageFilter
     {
-        public IResampler Resampler {get; set;} = KnownResamplers.Bicubic;
+        public IResampler Resampler {get; set;} = KnownResamplers.Box;
         public int TargetSize {get; set;}
 
 

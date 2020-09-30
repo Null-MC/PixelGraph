@@ -13,14 +13,21 @@ namespace McPbrPipeline.Internal.Publishing
         string Destination {get;}
         int? TextureSize {get;}
 
+        [JsonProperty("include-normal")]
+        bool? IncludeNormal {get;}
+
+        [JsonProperty("include-specular")]
+        bool? IncludeSpecular {get;}
+
 
         string GetSourcePath(params string[] path) => GetPath(Source, path);
         string GetDestinationPath(params string[] path) => GetPath(Destination, path);
 
         private static string GetPath(string basePath, string[] localPath)
         {
-            if (localPath == null) return Path.GetFullPath(basePath);
-            return Path.GetFullPath(Path.Combine(localPath), basePath);
+            return localPath != null
+                ? Path.GetFullPath(Path.Combine(localPath), basePath)
+                : Path.GetFullPath(basePath);
         }
     }
 
@@ -31,6 +38,8 @@ namespace McPbrPipeline.Internal.Publishing
         public List<string> Tags {get; set;}
         public string Source {get; set;}
         public string Destination {get; set;}
+        public bool? IncludeNormal {get; set;}
+        public bool? IncludeSpecular {get; set;}
 
         [JsonProperty("texture-size")]
         public int? TextureSize {get; set;}
