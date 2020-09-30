@@ -71,7 +71,8 @@ namespace McPbrPipeline.Internal.Publishing
 
             var packMetaFilename = profile.GetDestinationPath("pack.mcmeta");
 
-            return JsonFile.WriteAsync(packMetaFilename, packMeta, Formatting.Indented, token);
+            var data = new {pack = packMeta};
+            return JsonFile.WriteAsync(packMetaFilename, data, Formatting.Indented, token);
         }
     }
 }

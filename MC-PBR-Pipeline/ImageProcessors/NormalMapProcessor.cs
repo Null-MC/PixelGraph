@@ -106,8 +106,8 @@ namespace McPbrPipeline.ImageProcessors
             var rightSide = kernel[0,2] + 2f * kernel[1,2] + kernel[2,2];
             var leftSide = kernel[0,0] + 2f * kernel[1,0] + kernel[2,0];
 
-            derivative.Y = rightSide - leftSide;
-            derivative.X = bottomSide - topSide;
+            derivative.Y = leftSide - rightSide;
+            derivative.X = topSide - bottomSide;
         }
 
         public static void Normalize(ref Vector3 value)

@@ -22,9 +22,7 @@ namespace McPbrPipeline.Internal
         {
             await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
             await using var writer = new StreamWriter(stream);
-            using var jsonWriter = new JsonTextWriter(writer) {
-                Formatting = Formatting.Indented,
-            };
+            using var jsonWriter = new JsonTextWriter(writer) {Formatting = formatting};
 
             await JToken.FromObject(content).WriteToAsync(jsonWriter, token);
         }
