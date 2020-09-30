@@ -20,14 +20,12 @@ namespace McPbrPipeline.Internal.Publishing
             Profile = profile;
         }
 
-        public abstract Task PublishAsync(TextureCollection texture, CancellationToken token);
-
         protected static string GetFilename(TextureCollection texture, string type, string path, string exactName)
         {
-            var matchName = MatchMap[type];
+            var matchName = GetMatchName(texture, type);
 
             if (exactName != null && TextureMap.TryGetValue(exactName, out var remap)) {
-                matchName = MatchMap[exactName];
+                matchName = GetMatchName(texture, exactName);
                 exactName = remap(texture.Map);
             }
 
@@ -52,6 +50,13 @@ namespace McPbrPipeline.Internal.Publishing
             return JsonFile.WriteAsync(mcMetaDestinationFilename, metadata, Formatting.Indented, token);
         }
 
+        private static string GetMatchName(TextureCollection texture, string type)
+        {
+            return texture.UseGlobalMatching
+                ? GlobalMatchMap[type](texture.Name)
+                : LocalMatchMap[type];
+        }
+
         private static readonly Dictionary<string, Func<TextureMap, string>> TextureMap = new Dictionary<string, Func<TextureMap, string>>(StringComparer.InvariantCultureIgnoreCase)
         {
             [TextureTags.Albedo] = map => map.Albedo.Texture,
@@ -60,12 +65,20 @@ namespace McPbrPipeline.Internal.Publishing
             [TextureTags.Specular] = map => map.Specular.Texture,
         };
 
-        private static readonly Dictionary<string, string> MatchMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+        private static readonly Dictionary<string, string> LocalMatchMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
             [TextureTags.Albedo] = "albedo.*",
             [TextureTags.Height] = "height.*",
             [TextureTags.Normal] = "normal.*",
             [TextureTags.Specular] = "specular.*",
+        };
+
+        private static readonly Dictionary<string, Func<string, string>> GlobalMatchMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            [TextureTags.Albedo] = item => $"{item}.*",
+            [TextureTags.Height] = item => $"{item}_h.*",
+            [TextureTags.Normal] = item => $"{item}_n.*",
+            [TextureTags.Specular] = item => $"{item}_s.*",
         };
 
         private static readonly string[] SupportedImageExtensions = {

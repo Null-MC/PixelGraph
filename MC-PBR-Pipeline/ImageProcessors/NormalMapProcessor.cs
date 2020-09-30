@@ -1,4 +1,5 @@
 ﻿using McPbrPipeline.Filters;
+using McPbrPipeline.Internal;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -58,7 +59,7 @@ namespace McPbrPipeline.ImageProcessors
                     normal.Y = derivative.Y;
                     normal.Z = 1f / processor.Options.Strength;
 
-                    Normalize(ref normal);
+                    MathEx.Normalize(ref normal);
 
                     pixel.R = Saturate(normal.X * 0.5f + 0.5f);
                     pixel.G = Saturate(normal.Y * 0.5f + 0.5f);
@@ -108,22 +109,6 @@ namespace McPbrPipeline.ImageProcessors
 
             derivative.Y = leftSide - rightSide;
             derivative.X = topSide - bottomSide;
-        }
-
-        public static void Normalize(ref Vector3 value)
-        {
-            float length;
-            if (Vector.IsHardwareAccelerated) {
-                length = value.Length();
-            }
-            else {
-                var ls = value.X * value.X + value.Y * value.Y + value.Z * value.Z;
-                length = MathF.Sqrt(ls);
-            }
-
-            value.X /= length;
-            value.Y /= length;
-            value.Z /= length;
         }
 
         private void Wrap(ref int x, ref int y)

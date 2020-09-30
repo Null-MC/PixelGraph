@@ -1,7 +1,8 @@
-﻿using McPbrPipeline.Internal.Serialization;
+﻿using McPbrPipeline.Filters;
+using McPbrPipeline.Internal.Serialization;
 using McPbrPipeline.Internal.Textures;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Serilog;
 using System;
 using System.IO;
 using System.Threading;
@@ -17,15 +18,15 @@ namespace McPbrPipeline.Internal.Publishing
     internal class Publisher : IPublisher
     {
         private readonly ITextureLoader textureLoader;
-        private readonly ITexturePublisher texturePublisher;
+        private readonly ILogger logger;
 
 
         public Publisher(
-            ITextureLoader textureLoader,
-            ITexturePublisher texturePublisher)
+            ILogger<Publisher> logger,
+            ITextureLoader textureLoader)
         {
             this.textureLoader = textureLoader;
-            this.texturePublisher = texturePublisher;
+            this.logger = logger;
         }
 
         public async Task PublishAsync(string sourcePath, string destinationPath, CancellationToken token = default)
@@ -41,7 +42,7 @@ namespace McPbrPipeline.Internal.Publishing
             profile.Destination = destinationPath;
 
             if (!Directory.Exists(destinationPath)) {
-                Log.Debug($"Creating publish destination directory '{destinationPath}'.");
+                logger.LogInformation($"Creating publish destination directory '{destinationPath}'.");
                 Directory.CreateDirectory(destinationPath);
             }
 
@@ -52,7 +53,7 @@ namespace McPbrPipeline.Internal.Publishing
 
             // Publish Textures
             await foreach (var texture in textureLoader.LoadAsync(sourcePath, token))
-                await texturePublisher.PublishAsync(profile, texture, token);
+                await PublishTextureAsync(profile, texture, token);
 
             // TODO: copy all content (except destination) from source to destination...
             // TODO: apply filtering
@@ -73,6 +74,47 @@ namespace McPbrPipeline.Internal.Publishing
 
             var data = new {pack = packMeta};
             return JsonFile.WriteAsync(packMetaFilename, data, Formatting.Indented, token);
+        }
+
+        public async Task PublishTextureAsync(IPublishProfile profile, TextureCollection texture, CancellationToken token = default)
+        {
+            logger.LogDebug($"Publishing texture '{texture.Name}'.");
+
+            try {
+                await new AlbedoTexturePublisher(profile).PublishAsync(texture, token);
+
+                logger.LogInformation($"Albedo texture generated for item '{texture.Name}'.");
+            }
+            catch (SourceEmptyException) {
+                logger.LogWarning($"No albedo texture to publish for item '{texture.Name}'.");
+            }
+            catch (Exception error) {
+                logger.LogError(error, $"Failed to publish albedo texture '{texture.Name}'!");
+            }
+
+            try {
+                await new NormalTexturePublisher(profile).PublishAsync(texture, token);
+
+                logger.LogInformation($"Normal texture generated for item '{texture.Name}'.");
+            }
+            catch (SourceEmptyException) {
+                logger.LogWarning($"No normal texture to publish for item '{texture.Name}'.");
+            }
+            catch (Exception error) {
+                logger.LogError(error, $"Failed to publish normal texture '{texture.Name}'!");
+            }
+
+            try {
+                await new SpecularTexturePublisher(profile).PublishAsync(texture, token);
+
+                logger.LogInformation($"Specular texture generated for item '{texture.Name}'.");
+            }
+            catch (SourceEmptyException) {
+                logger.LogWarning($"No specular texture to publish for item '{texture.Name}'.");
+            }
+            catch (Exception error) {
+                logger.LogError(error, $"Failed to publish specular texture '{texture.Name}'!");
+            }
         }
     }
 }

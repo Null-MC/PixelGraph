@@ -1,6 +1,7 @@
 ﻿using McPbrPipeline.Filters;
 using McPbrPipeline.Internal.Filtering;
 using McPbrPipeline.Internal.Textures;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,14 +11,16 @@ namespace McPbrPipeline.Internal.Publishing
     {
         public AlbedoTexturePublisher(IPublishProfile profile) : base(profile) {}
 
-        public override async Task PublishAsync(TextureCollection texture, CancellationToken token)
+        public async Task PublishAsync(TextureCollection texture, CancellationToken token)
         {
-            var sourcePath = Profile.GetSourcePath(texture.Path, texture.Name);
+            var sourcePath = Profile.GetSourcePath(texture.Path);
+            if (!texture.UseGlobalMatching) sourcePath = Path.Combine(sourcePath, texture.Name);
             var destinationFilename = Profile.GetDestinationPath(texture.Path, $"{texture.Name}.png");
+            var albedoTexture = texture.Map.Albedo;
 
             var filters = new FilterChain {
                 DestinationFilename = destinationFilename,
-                SourceFilename = GetFilename(texture, TextureTags.Albedo, sourcePath, texture.Map.Albedo?.Texture),
+                SourceFilename = GetFilename(texture, TextureTags.Albedo, sourcePath, albedoTexture?.Texture),
             };
 
             if (Profile.TextureSize.HasValue) {
@@ -28,8 +31,8 @@ namespace McPbrPipeline.Internal.Publishing
 
             await filters.ApplyAsync(token);
 
-            if (texture.Map.Albedo?.Metadata != null)
-                await PublishMcMetaAsync(texture.Map.Albedo.Metadata, destinationFilename, token);
+            if (albedoTexture?.Metadata != null)
+                await PublishMcMetaAsync(albedoTexture.Metadata, destinationFilename, token);
         }
     }
 }

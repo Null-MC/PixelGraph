@@ -2,6 +2,7 @@
 using McPbrPipeline.Internal.Filtering;
 using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp.PixelFormats;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,19 +12,20 @@ namespace McPbrPipeline.Internal.Publishing
     {
         public SpecularTexturePublisher(IPublishProfile profile) : base(profile) {}
 
-        public override async Task PublishAsync(TextureCollection texture, CancellationToken token)
+        public async Task PublishAsync(TextureCollection texture, CancellationToken token)
         {
-            var sourcePath = Profile.GetSourcePath(texture.Path, texture.Name);
+            var sourcePath = Profile.GetSourcePath(texture.Path);
+            if (!texture.UseGlobalMatching) sourcePath = Path.Combine(sourcePath, texture.Name);
             var destinationFilename = Profile.GetDestinationPath(texture.Path, $"{texture.Name}_s.png");
             var specularMap = texture.Map.Specular;
 
             var filters = new FilterChain {
                 DestinationFilename = destinationFilename,
-                SourceFilename = GetFilename(texture, TextureTags.Specular, sourcePath, texture.Map.Specular?.Texture),
+                SourceFilename = GetFilename(texture, TextureTags.Specular, sourcePath, specularMap?.Texture),
             };
 
-            if (texture.Map.Specular?.Color != null)
-                filters.SourceColor = Rgba32.ParseHex(texture.Map.Specular.Color);
+            if (specularMap?.Color != null)
+                filters.SourceColor = Rgba32.ParseHex(specularMap.Color);
 
             if (specularMap?.HasScaling() ?? false) {
                 // TODO: set channel min-max using material channel mapping
@@ -58,8 +60,8 @@ namespace McPbrPipeline.Internal.Publishing
 
             await filters.ApplyAsync(token);
 
-            if (texture.Map.Specular?.Metadata != null)
-                await PublishMcMetaAsync(texture.Map.Specular.Metadata, destinationFilename, token);
+            if (specularMap?.Metadata != null)
+                await PublishMcMetaAsync(specularMap.Metadata, destinationFilename, token);
         }
     }
 }

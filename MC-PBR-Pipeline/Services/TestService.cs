@@ -1,6 +1,6 @@
 ﻿using McPbrPipeline.Internal.Publishing;
 using Microsoft.Extensions.Hosting;
-using Serilog;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +40,9 @@ namespace McPbrPipeline.Services
             await publisher.PublishAsync(source, destination, token);
             timer.Stop();
 
-            Log.Information($"Duration: {timer.Elapsed:g}");
+            Console.ForegroundColor = ConsoleColor.DarkCyan;
+            Console.WriteLine($"Publish Duration: {timer.Elapsed:g}");
+            Console.ResetColor();
         }
     }
 }

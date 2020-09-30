@@ -1,4 +1,7 @@
-﻿using McPbrPipeline.Internal.Extensions;
+﻿using McPbrPipeline.Internal.Publishing;
+using McPbrPipeline.Internal.Textures;
+using McPbrPipeline.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
@@ -11,12 +14,12 @@ namespace McPbrPipeline
     {
         public static async Task<int> Main(string[] args)
         {
-            var version = GetVersion();
-            Console.WriteLine($"Minecraft PBR-Pipeline {version}");
-
             try {
+                var version = GetVersion();
+                Console.WriteLine($"Minecraft PBR-Pipeline {version}");
+
                 await Host.CreateDefaultBuilder(args)
-                    .UseStartup<Startup>()
+                    .ConfigureServices(ConfigureServices)
                     .UseSerilog(ConfigureLogging)
                     .RunConsoleAsync();
 
@@ -31,10 +34,18 @@ namespace McPbrPipeline
             }
         }
 
+        private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
+        {
+            services.AddSingleton<IPublisher, Publisher>();
+            services.AddSingleton<ITextureLoader, TextureLoader>();
+
+            services.AddHostedService<TestService>();
+        }
+
         private static void ConfigureLogging(HostBuilderContext context, LoggerConfiguration logger)
         {
             logger.Enrich.FromLogContext()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Information()
                 .WriteTo.Console();
         }
 

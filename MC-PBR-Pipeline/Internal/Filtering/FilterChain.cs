@@ -54,9 +54,8 @@ namespace McPbrPipeline.Internal.Filtering
 
         private async Task<Image> LoadSourceImageAsync(CancellationToken token)
         {
-            if (!string.IsNullOrEmpty(SourceFilename)) {
+            if (!string.IsNullOrEmpty(SourceFilename))
                 return await Image.LoadAsync(SourceFilename, token);
-            }
 
             if (SourceColor.HasValue)
                 return new Image<Rgba32>(1, 1, SourceColor.Value);

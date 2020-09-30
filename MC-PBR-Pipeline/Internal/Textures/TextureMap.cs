@@ -43,6 +43,8 @@ namespace McPbrPipeline.Internal.Textures
         public string Texture {get; set;}
         public string Heightmap {get; set;}
 
+        public float[] Angle {get; set;}
+
         [JsonProperty("from-height")]
         public bool? FromHeight {get; set;}
 
