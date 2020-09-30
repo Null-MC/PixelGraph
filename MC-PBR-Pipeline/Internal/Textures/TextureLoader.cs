@@ -12,7 +12,6 @@ namespace McPbrPipeline.Internal.Textures
     internal interface ITextureLoader
     {
         IAsyncEnumerable<TextureCollection> LoadAsync(string path, CancellationToken token = default);
-        //Task<TextureCollection> LoadTextureAsync(string rootPath, string filename, CancellationToken token = default);
     }
 
     internal class TextureLoader : ITextureLoader
@@ -25,55 +24,54 @@ namespace McPbrPipeline.Internal.Textures
             this.logger = logger;
         }
 
-        public IAsyncEnumerable<TextureCollection> LoadAsync(string path, CancellationToken token = default)
+        public IAsyncEnumerable<TextureCollection> LoadAsync(string rootPath, CancellationToken token = default)
         {
-            return LoadRecursiveAsync(path, path, token);
+            return LoadRecursiveAsync(rootPath, rootPath, token);
         }
 
-        private async IAsyncEnumerable<TextureCollection> LoadRecursiveAsync(string root, string path, [EnumeratorCancellation] CancellationToken token)
+        private async IAsyncEnumerable<TextureCollection> LoadRecursiveAsync(string rootPath, string searchPath, [EnumeratorCancellation] CancellationToken token)
         {
-            foreach (var directory in Directory.EnumerateDirectories(path, "*")) {
+            foreach (var directory in Directory.EnumerateDirectories(searchPath, "*")) {
                 token.ThrowIfCancellationRequested();
 
                 var mapFile = Path.Combine(directory, "pbr.json");
 
                 if (File.Exists(mapFile)) {
-                    TextureCollection texture;
+                    TextureCollection texture = null;
 
                     try {
-                        texture = await LoadLocalTextureAsync(root, mapFile, token);
+                        texture = await LoadLocalTextureAsync(rootPath, mapFile, token);
                     }
                     catch (Exception error) {
                         logger.LogWarning(error, $"Failed to load local texture map '{mapFile}'!");
-                        continue;
                     }
 
-                    yield return texture;
+                    if (texture != null) yield return texture;
+                    continue;
                 }
 
-                await foreach (var texture in LoadRecursiveAsync(root, directory, token))
+                await foreach (var texture in LoadRecursiveAsync(rootPath, directory, token))
                     yield return texture;
 
                 var ignoreList = new List<string> {
-                    Path.Combine(root, "pack.json"),
+                    Path.Combine(rootPath, "pack.json"),
                 };
 
-                foreach (var filename in Directory.EnumerateFiles(path, "*.pbr")) {
-                    var texture = await LoadGlobalTextureAsync(root, filename, token);
-                    //ignoreList.Add(filename);
+                foreach (var filename in Directory.EnumerateFiles(directory, "*.pbr")) {
+                    var texture = await LoadGlobalTextureAsync(rootPath, filename, token);
 
-                    ignoreList.AddRange(Directory.EnumerateFiles(path, $"{texture.Name}.*"));
-                    ignoreList.AddRange(Directory.EnumerateFiles(path, $"{texture.Name}_h.*"));
-                    ignoreList.AddRange(Directory.EnumerateFiles(path, $"{texture.Name}_n.*"));
-                    ignoreList.AddRange(Directory.EnumerateFiles(path, $"{texture.Name}_s.*"));
+                    ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}.*"));
+                    ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_h.*"));
+                    ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_n.*"));
+                    ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_s.*"));
 
                     yield return texture;
                 }
 
-                foreach (var filename in Directory.EnumerateFiles(path, "*")) {
+                foreach (var filename in Directory.EnumerateFiles(directory, "*")) {
                     if (ignoreList.Contains(filename, StringComparer.InvariantCultureIgnoreCase)) continue;
 
-                    var localFile = filename[root.Length..].TrimStart('\\', '/');
+                    var localFile = filename[rootPath.Length..].TrimStart('\\', '/');
                     logger.LogInformation($"Found other file '{localFile}'.");
                 }
             }
