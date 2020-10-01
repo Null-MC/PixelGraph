@@ -14,9 +14,12 @@ Written in .NET Core; supports Windows, Linux, Mac.
 
 **NOTE:** _MC-PBRP is still a pre-release application in early development! The initial release will be coming soon though, so please check back soon!_
 
-[TODO]
-- Publish binary to github releases.
-- Generate Docker image.
+*Manual*
+Download the latest [release](https://github.com/null511/MC-PBR-Pipeline/releases). For best results, add to your system PATH variable.
+
+*Automated*
+- Chocolatey: TODO
+- Docker: example coming soon.
 
 ## Usage
 
@@ -30,13 +33,13 @@ Publishing Profiles are JSON documents in the root of the source project that de
 
 	// remap specular materials
 	"specular-in": {
-		"red": "rough",
-		"green": "metal",
+		"red": "metal",
+		"green": "rough",
 		"blue": "emissive"
 	},
 	"specular-out": {
-		"red": "metal",
-		"green": "smooth",
+		"red": "smooth",
+		"green": "metal",
 		"blue": "emissive"
 	}
 }
@@ -55,7 +58,7 @@ The additional publishing profile below is used to publish a non-PBR version of 
 }
 ```
 
-Each item-texture requires a matching `*.pbr` file to enable filtering. For more details, see the Wiki.
+Each item-texture requires a matching `*.pbr` file to enable filtering. For more details, see the [Wiki](/wiki/File-Loading).
 ```
 // ~/assets/minecraft/textures/block/lantern.pbr
 {
@@ -69,6 +72,3 @@ Each item-texture requires a matching `*.pbr` file to enable filtering. For more
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-[GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)

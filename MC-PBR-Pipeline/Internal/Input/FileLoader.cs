@@ -59,21 +59,31 @@ namespace McPbrPipeline.Internal.Input
                 };
 
                 foreach (var filename in Directory.EnumerateFiles(directory, "*.pbr")) {
-                    var texture = await LoadGlobalTextureAsync(rootPath, filename, token);
+                    TextureCollection texture = null;
 
-                    ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}.*"));
-                    ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_h.*"));
-                    ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_n.*"));
-                    ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_s.*"));
+                    try {
+                        texture = await LoadGlobalTextureAsync(rootPath, filename, token);
 
-                    yield return texture;
+                        ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}.*"));
+                        ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_h.*"));
+                        ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_n.*"));
+                        ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_s.*"));
+                    }
+                    catch (Exception error) {
+                        logger.LogWarning(error, $"Failed to load local texture map '{mapFile}'!");
+                    }
+
+                    if (texture != null) yield return texture;
                 }
 
                 foreach (var filename in Directory.EnumerateFiles(directory, "*")) {
                     if (ignoreList.Contains(filename, StringComparer.InvariantCultureIgnoreCase)) continue;
 
+                    var extension = Path.GetExtension(filename);
+                    if (IgnoredExtensions.Contains(extension, StringComparer.InvariantCultureIgnoreCase))
+                        continue;
+
                     yield return filename[rootPath.Length..].TrimStart('\\', '/');
-                    //logger.LogInformation($"Found other file '{localFile}'.");
                 }
             }
         }
@@ -98,5 +108,7 @@ namespace McPbrPipeline.Internal.Input
                 Map = await JsonFile.ReadAsync<TextureMap>(filename, token),
             };
         }
+
+        private static readonly string[] IgnoredExtensions = {".zip", ".db", ".cmd", ".sh", ".xcf", ".psd"};
     }
 }
