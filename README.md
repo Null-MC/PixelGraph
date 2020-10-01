@@ -2,11 +2,11 @@
 
 MC-PBRP is a command-line application for publishing Minecraft resource packs, with special tooling for PBR materials. Automate the workload of modifying and distributing your resource packs through simple JSON configuration files.
 
- - **Simplify** your workflow by adjusting text instead of pixels. Getting image-based material values just right can be tedious, time consuming, and destructive.
+ - **Simplify your workflow** by adjusting text instead of pixels. Getting image-based material values just right can be tedious, time consuming, and destructive.
 
  - **Preserve Quality** by adjusting material values through text rather than altering the original image data. Repeatedly scaling the integer-based channels of your image slowly destroys quality. Save the gradients!
 
- - **Support** more users by publishing multiple packs with varying quality. The resolution and included textures can be altered using either the command-line or Publishing Profiles to create multiple distributions.
+ - **Support more users** by publishing multiple packs with varying quality. The resolution and included textures can be altered using either the command-line or Publishing Profiles to create multiple distributions.
 
  - **Automate** normal-map creation, resizing, and channel-swapping so that you can spend more time designing and less time repeating yourself.
 
@@ -15,14 +15,13 @@ Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
 ## Installation
 
 **NOTE:** _MC-PBRP is still a pre-release application in early development! The initial release will be coming soon though, so please check back soon!_
-
-*Manual*
+#### Manual
 Download the latest [release](https://github.com/null511/MC-PBR-Pipeline/releases). For best results, add to your system PATH variable.
 
-*Chocolatey*
+#### Chocolatey
 TODO
 
-*Docker*
+#### Docker
 example coming soon.
 
 ## Usage
