@@ -4,6 +4,7 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing.Processors;
 using System;
+using McPbrPipeline.Internal;
 
 namespace McPbrPipeline.ImageProcessors
 {
@@ -93,8 +94,7 @@ namespace McPbrPipeline.ImageProcessors
 
             private static byte Filter(in byte value, in float scale)
             {
-                var result = value / 255f * scale;
-                return Math.Clamp((byte)(result * 255f), (byte)0, (byte)255);
+                return MathEx.Saturate(value / 255f * scale);
             }
         }
     }

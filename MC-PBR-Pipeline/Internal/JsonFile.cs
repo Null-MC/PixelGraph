@@ -18,18 +18,23 @@ namespace McPbrPipeline.Internal
             return data.ToObject<T>();
         }
 
-        public static async Task WriteAsync(string filename, object content, Formatting formatting, CancellationToken token)
+        public static async Task WriteAsync(Stream stream, object content, Formatting formatting, CancellationToken token)
         {
-            await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
             await using var writer = new StreamWriter(stream);
             using var jsonWriter = new JsonTextWriter(writer) {Formatting = formatting};
 
             await JToken.FromObject(content).WriteToAsync(jsonWriter, token);
         }
 
-        public static Task WriteAsync(string filename, object content, CancellationToken token)
+        public static async Task WriteAsync(string filename, object content, Formatting formatting, CancellationToken token)
         {
-            return WriteAsync(filename, content, Formatting.None, token);
+            await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
+            await WriteAsync(stream, content, formatting, token);
         }
+
+        //public static Task WriteAsync(string filename, object content, CancellationToken token)
+        //{
+        //    return WriteAsync(filename, content, Formatting.None, token);
+        //}
     }
 }

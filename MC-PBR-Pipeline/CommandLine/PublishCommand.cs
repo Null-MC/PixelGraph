@@ -61,16 +61,11 @@ namespace McPbrPipeline.CommandLine
             ConsoleEx.WriteLine(destination.FullName, ConsoleColor.Cyan);
             Console.WriteLine();
 
-            if (zip) {
-                ConsoleEx.WriteLine("ZIP feature is not yet implemented!", ConsoleColor.DarkYellow);
-                return -2;
-            }
-
             var timer = Stopwatch.StartNew();
 
             try {
                 var publisher = provider.GetRequiredService<IPublisher>();
-                await publisher.PublishAsync(profile.FullName, destination.FullName);
+                await publisher.PublishAsync(profile.FullName, destination.FullName, zip);
             }
             catch (ApplicationException error) {
                 ConsoleEx.Write("ERROR: ", ConsoleColor.Red);

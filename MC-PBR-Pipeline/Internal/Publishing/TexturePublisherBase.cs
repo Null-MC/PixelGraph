@@ -1,4 +1,5 @@
-﻿using McPbrPipeline.Internal.Textures;
+﻿using McPbrPipeline.Internal.Output;
+using McPbrPipeline.Internal.Textures;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -12,12 +13,14 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal abstract class TexturePublisherBase
     {
-        protected IPublishProfile Profile {get;}
+        protected IProfile Profile {get;}
+        protected IOutputWriter Output {get;}
 
 
-        protected TexturePublisherBase(IPublishProfile profile)
+        protected TexturePublisherBase(IProfile profile, IOutputWriter output)
         {
             Profile = profile;
+            Output = output;
         }
 
         protected static string GetFilename(TextureCollection texture, string type, string path, string exactName)

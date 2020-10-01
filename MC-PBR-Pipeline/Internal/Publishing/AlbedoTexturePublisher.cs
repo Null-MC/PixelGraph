@@ -1,5 +1,6 @@
 ﻿using McPbrPipeline.Filters;
 using McPbrPipeline.Internal.Filtering;
+using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
 using System.IO;
 using System.Threading;
@@ -9,13 +10,13 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal class AlbedoTexturePublisher : TexturePublisherBase
     {
-        public AlbedoTexturePublisher(IPublishProfile profile) : base(profile) {}
+        public AlbedoTexturePublisher(IProfile profile, IOutputWriter output) : base(profile, output) {}
 
         public async Task PublishAsync(TextureCollection texture, CancellationToken token)
         {
             var sourcePath = Profile.GetSourcePath(texture.Path);
             if (!texture.UseGlobalMatching) sourcePath = Path.Combine(sourcePath, texture.Name);
-            var destinationFilename = Profile.GetDestinationPath(texture.Path, $"{texture.Name}.png");
+            var destinationFilename = Path.Combine(texture.Path, $"{texture.Name}.png");
             var albedoTexture = texture.Map.Albedo;
 
             var filters = new FilterChain {
@@ -29,7 +30,7 @@ namespace McPbrPipeline.Internal.Publishing
                 });
             }
 
-            await filters.ApplyAsync(token);
+            await filters.ApplyAsync(Output, token);
 
             if (albedoTexture?.Metadata != null)
                 await PublishMcMetaAsync(albedoTexture.Metadata, destinationFilename, token);

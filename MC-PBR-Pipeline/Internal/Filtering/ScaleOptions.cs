@@ -1,4 +1,6 @@
-﻿namespace McPbrPipeline.Internal.Filtering
+﻿using McPbrPipeline.Internal.Textures;
+
+namespace McPbrPipeline.Internal.Filtering
 {
     internal struct ScaleOptions
     {
@@ -14,6 +16,24 @@
             Green = green;
             Blue = blue;
             Alpha = alpha;
+        }
+
+        public void Set(ColorChannel channel, float value)
+        {
+            switch (channel) {
+                case ColorChannel.Red:
+                    Red = value;
+                    break;
+                case ColorChannel.Green:
+                    Green = value;
+                    break;
+                case ColorChannel.Blue:
+                    Blue = value;
+                    break;
+                case ColorChannel.Alpha:
+                    Alpha = value;
+                    break;
+            }
         }
     }
 }

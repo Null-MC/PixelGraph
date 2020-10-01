@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using McPbrPipeline.Internal.Textures;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,29 +8,29 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace McPbrPipeline.Internal.Textures
+namespace McPbrPipeline.Internal.Input
 {
-    internal interface ITextureLoader
+    internal interface IFileLoader
     {
-        IAsyncEnumerable<TextureCollection> LoadAsync(string path, CancellationToken token = default);
+        IAsyncEnumerable<object> LoadAsync(string path, CancellationToken token = default);
     }
 
-    internal class TextureLoader : ITextureLoader
+    internal class FileLoader : IFileLoader
     {
         private readonly ILogger logger;
 
 
-        public TextureLoader(ILogger<TextureLoader> logger)
+        public FileLoader(ILogger<FileLoader> logger)
         {
             this.logger = logger;
         }
 
-        public IAsyncEnumerable<TextureCollection> LoadAsync(string rootPath, CancellationToken token = default)
+        public IAsyncEnumerable<object> LoadAsync(string rootPath, CancellationToken token = default)
         {
             return LoadRecursiveAsync(rootPath, rootPath, token);
         }
 
-        private async IAsyncEnumerable<TextureCollection> LoadRecursiveAsync(string rootPath, string searchPath, [EnumeratorCancellation] CancellationToken token)
+        private async IAsyncEnumerable<object> LoadRecursiveAsync(string rootPath, string searchPath, [EnumeratorCancellation] CancellationToken token)
         {
             foreach (var directory in Directory.EnumerateDirectories(searchPath, "*")) {
                 token.ThrowIfCancellationRequested();
@@ -71,8 +72,8 @@ namespace McPbrPipeline.Internal.Textures
                 foreach (var filename in Directory.EnumerateFiles(directory, "*")) {
                     if (ignoreList.Contains(filename, StringComparer.InvariantCultureIgnoreCase)) continue;
 
-                    var localFile = filename[rootPath.Length..].TrimStart('\\', '/');
-                    logger.LogInformation($"Found other file '{localFile}'.");
+                    yield return filename[rootPath.Length..].TrimStart('\\', '/');
+                    //logger.LogInformation($"Found other file '{localFile}'.");
                 }
             }
         }

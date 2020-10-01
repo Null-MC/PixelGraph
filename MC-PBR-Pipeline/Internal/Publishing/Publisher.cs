@@ -1,4 +1,6 @@
 ﻿using McPbrPipeline.Internal.Filtering;
+using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -11,60 +13,43 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal interface IPublisher
     {
-        Task PublishAsync(string sourcePath, string destinationPath, CancellationToken token = default);
+        Task PublishAsync(string sourcePath, string destinationPath, bool compress = false, CancellationToken token = default);
     }
 
     internal class Publisher : IPublisher
     {
-        private readonly ITextureLoader textureLoader;
+        private readonly IFileLoader textureLoader;
         private readonly ILogger logger;
 
 
         public Publisher(
             ILogger<Publisher> logger,
-            ITextureLoader textureLoader)
+            IFileLoader textureLoader)
         {
             this.textureLoader = textureLoader;
             this.logger = logger;
         }
 
-        public async Task PublishAsync(string profileFilename, string destinationPath, CancellationToken token = default)
+        public async Task PublishAsync(string profileFilename, string destination, bool compress = false, CancellationToken token = default)
         {
             if (profileFilename == null) throw new ArgumentNullException(nameof(profileFilename));
-            if (destinationPath == null) throw new ArgumentNullException(nameof(destinationPath));
+            if (destination == null) throw new ArgumentNullException(nameof(destination));
 
             var sourcePath = Path.GetDirectoryName(profileFilename);
-
-            var profile = await JsonFile.ReadAsync<PublishProfile>(profileFilename, token);
+            var profile = await JsonFile.ReadAsync<Profile>(profileFilename, token);
 
             profile.Source = sourcePath;
-            profile.Destination = destinationPath;
 
-            if (!Directory.Exists(destinationPath)) {
-                logger.LogInformation($"Creating publish destination directory '{destinationPath}'.");
-
-                try {
-                    Directory.CreateDirectory(destinationPath);
-                }
-                catch (Exception error) {
-                    throw new ApplicationException("Failed to create destination directory!", error);
-                }
-            }
+            await using var output = GetOutputWriter(destination, compress);
 
             // TODO: pre-clean?
 
-            // Publish Pack Metadata
-            await PublishPackMetaAsync(profile, token);
+            await PublishPackMetaAsync(profile, output, token);
 
-            // Publish Textures
-            await foreach (var texture in textureLoader.LoadAsync(sourcePath, token))
-                await PublishTextureAsync(profile, texture, token);
-
-            // TODO: copy all content (except destination) from source to destination...
-            // TODO: apply filtering
+            await PublishContentAsync(profile, output, token);
         }
 
-        private static Task PublishPackMetaAsync(IPublishProfile profile, CancellationToken token)
+        private static Task PublishPackMetaAsync(IProfile profile, IOutputWriter output, CancellationToken token)
         {
             var packMeta = new PackMetadata {
                 PackFormat = profile.PackFormat,
@@ -75,55 +60,96 @@ namespace McPbrPipeline.Internal.Publishing
                 packMeta.Description += $"\n{string.Join(' ', profile.Tags)}";
             }
 
-            var packMetaFilename = profile.GetDestinationPath("pack.mcmeta");
-
             var data = new {pack = packMeta};
-            return JsonFile.WriteAsync(packMetaFilename, data, Formatting.Indented, token);
+            using var stream = output.WriteFile("pack.mcmeta");
+            return JsonFile.WriteAsync(stream, data, Formatting.Indented, token);
         }
 
-        public async Task PublishTextureAsync(IPublishProfile profile, TextureCollection texture, CancellationToken token = default)
+        public async Task PublishContentAsync(IProfile profile, IOutputWriter output, CancellationToken token = default)
         {
-            logger.LogDebug($"Publishing texture '{texture.Name}'.");
+            var albedoPublisher = new AlbedoTexturePublisher(profile, output);
+            var normalPublisher = new NormalTexturePublisher(profile, output);
+            var specularPublisher = new SpecularTexturePublisher(profile, output);
 
-            try {
-                await new AlbedoTexturePublisher(profile).PublishAsync(texture, token);
+            await foreach (var fileObj in textureLoader.LoadAsync(profile.Source, token)) {
+                token.ThrowIfCancellationRequested();
 
-                logger.LogInformation($"Albedo texture generated for item '{texture.Name}'.");
-            }
-            catch (SourceEmptyException) {
-                logger.LogWarning($"No albedo texture to publish for item '{texture.Name}'.");
-            }
-            catch (Exception error) {
-                logger.LogError(error, $"Failed to publish albedo texture '{texture.Name}'!");
-            }
+                switch (fileObj) {
+                    case TextureCollection texture: {
+                        logger.LogDebug($"Publishing texture '{texture.Name}'.");
 
-            if (profile.IncludeNormal ?? true) {
-                try {
-                    await new NormalTexturePublisher(profile).PublishAsync(texture, token);
+                        try {
+                            await albedoPublisher.PublishAsync(texture, token);
 
-                    logger.LogInformation($"Normal texture generated for item '{texture.Name}'.");
+                            logger.LogInformation($"Albedo texture generated for item '{texture.Name}'.");
+                        }
+                        catch (SourceEmptyException) {
+                            logger.LogWarning($"No albedo texture to publish for item '{texture.Name}'.");
+                        }
+                        catch (Exception error) {
+                            logger.LogError(error, $"Failed to publish albedo texture '{texture.Name}'!");
+                        }
+
+                        if (profile.IncludeNormal ?? true) {
+                            try {
+                                await normalPublisher.PublishAsync(texture, token);
+
+                                logger.LogInformation($"Normal texture generated for item '{texture.Name}'.");
+                            }
+                            catch (SourceEmptyException) {
+                                logger.LogWarning($"No normal texture to publish for item '{texture.Name}'.");
+                            }
+                            catch (Exception error) {
+                                logger.LogError(error, $"Failed to publish normal texture '{texture.Name}'!");
+                            }
+                        }
+
+                        if (profile.IncludeSpecular ?? true) {
+                            try {
+                                await specularPublisher.PublishAsync(texture, token);
+
+                                logger.LogInformation($"Specular texture generated for item '{texture.Name}'.");
+                            }
+                            catch (SourceEmptyException) {
+                                logger.LogWarning($"No specular texture to publish for item '{texture.Name}'.");
+                            }
+                            catch (Exception error) {
+                                logger.LogError(error, $"Failed to publish specular texture '{texture.Name}'!");
+                            }
+                        }
+
+                        break;
+                    }
+                    case string localName: {
+                        logger.LogDebug($"Publishing untracked file '{localName}'.");
+
+                        var filename = profile.GetSourcePath(localName);
+                        await using var srcStream = File.Open(filename, FileMode.Open, FileAccess.Read);
+                        await using var destStream = output.WriteFile(localName);
+                        await srcStream.CopyToAsync(destStream, token);
+
+                        break;
+                    }
                 }
-                catch (SourceEmptyException) {
-                    logger.LogWarning($"No normal texture to publish for item '{texture.Name}'.");
+            }
+        }
+
+        private IOutputWriter GetOutputWriter(string destination, bool compress)
+        {
+            if (compress) return new ArchiveOutputWriter(destination);
+            
+            if (!Directory.Exists(destination)) {
+                logger.LogInformation($"Creating publish destination directory '{destination}'.");
+
+                try {
+                    Directory.CreateDirectory(destination);
                 }
                 catch (Exception error) {
-                    logger.LogError(error, $"Failed to publish normal texture '{texture.Name}'!");
+                    throw new ApplicationException("Failed to create destination directory!", error);
                 }
             }
 
-            if (profile.IncludeSpecular ?? true) {
-                try {
-                    await new SpecularTexturePublisher(profile).PublishAsync(texture, token);
-
-                    logger.LogInformation($"Specular texture generated for item '{texture.Name}'.");
-                }
-                catch (SourceEmptyException) {
-                    logger.LogWarning($"No specular texture to publish for item '{texture.Name}'.");
-                }
-                catch (Exception error) {
-                    logger.LogError(error, $"Failed to publish specular texture '{texture.Name}'!");
-                }
-            }
+            return new FileOutputWriter(destination);
         }
     }
 }

@@ -1,5 +1,5 @@
-﻿using McPbrPipeline.Internal.Publishing;
-using McPbrPipeline.Internal.Textures;
+﻿using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Publishing;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
@@ -42,7 +42,7 @@ namespace McPbrPipeline
             });
 
             services.AddSingleton<IAppCommandLine, AppCommandLine>();
-            services.AddSingleton<ITextureLoader, TextureLoader>();
+            services.AddSingleton<IFileLoader, FileLoader>();
             services.AddSingleton<IPublisher, Publisher>();
         }
     }

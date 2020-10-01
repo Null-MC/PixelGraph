@@ -5,7 +5,6 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors;
-using System;
 using System.Numerics;
 
 namespace McPbrPipeline.ImageProcessors
@@ -61,11 +60,11 @@ namespace McPbrPipeline.ImageProcessors
 
                     MathEx.Normalize(ref normal);
 
-                    pixel.R = Saturate(normal.X * 0.5f + 0.5f);
-                    pixel.G = Saturate(normal.Y * 0.5f + 0.5f);
-                    pixel.B = Saturate(normal.Z);
+                    pixel.R = MathEx.Saturate(normal.X * 0.5f + 0.5f);
+                    pixel.G = MathEx.Saturate(normal.Y * 0.5f + 0.5f);
+                    pixel.B = MathEx.Saturate(normal.Z);
 
-                    if (hasDepthScale) pixel.A = Saturate(1f - (1f - k[1, 1]) * processor.Options.DepthScale);
+                    if (hasDepthScale) pixel.A = MathEx.Saturate(1f - (1f - k[1, 1]) * processor.Options.DepthScale);
 
                     target[x, y] = pixel;
                 }
@@ -73,11 +72,6 @@ namespace McPbrPipeline.ImageProcessors
 
             var brush = new ImageBrush(target);
             source.Mutate(c => c.Clear(brush));
-        }
-
-        private static byte Saturate(float value)
-        {
-            return Math.Clamp((byte)(value * 255f), (byte)0, (byte)255);
         }
 
         public void Dispose() {}

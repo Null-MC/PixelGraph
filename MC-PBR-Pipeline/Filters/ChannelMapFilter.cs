@@ -4,19 +4,19 @@ using SixLabors.ImageSharp.Processing;
 
 namespace McPbrPipeline.Filters
 {
-    internal class RangeFilter : IImageFilter
+    internal class ChannelMapFilter : IImageFilter
     {
-        public RangeOptions Options {get; set;}
+        private readonly ChannelMapOptions options;
 
 
-        public RangeFilter(RangeOptions options)
+        public ChannelMapFilter(in ChannelMapOptions options)
         {
-            Options = options;
+            this.options = options;
         }
 
         public void Apply(IImageProcessingContext context)
         {
-            var processor = new RangeProcessor(Options);
+            var processor = new ChannelMapProcessor(options);
             context.ApplyProcessor(processor);
         }
     }

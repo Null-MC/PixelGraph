@@ -20,5 +20,10 @@ namespace McPbrPipeline.Internal
             value.Y /= length;
             value.Z /= length;
         }
+
+        public static byte Saturate(float value)
+        {
+            return (byte)Math.Clamp(value * 255f, 0f, 255f);
+        }
     }
 }

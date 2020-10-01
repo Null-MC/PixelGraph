@@ -9,12 +9,12 @@ using System.Collections.Generic;
 
 namespace McPbrPipeline.Filters
 {
-    internal class NormalMapFilter : IImageFilter
+    internal class NormalFilter : IImageFilter
     {
         public NormalMapOptions Options {get; set;}
 
 
-        public NormalMapFilter(NormalMapOptions options = null)
+        public NormalFilter(NormalMapOptions options = null)
         {
             Options = options ?? new NormalMapOptions();
         }

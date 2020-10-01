@@ -1,4 +1,4 @@
-﻿using McPbrPipeline.Internal.Publishing;
+﻿using McPbrPipeline.Internal.Output;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -30,7 +30,7 @@ namespace McPbrPipeline.Internal.Filtering
             filterList.Add(filter);
         }
 
-        public async Task ApplyAsync(CancellationToken token = default)
+        public async Task ApplyAsync(IOutputWriter output, CancellationToken token = default)
         {
             if (string.IsNullOrEmpty(DestinationFilename))
                 throw new ArgumentException("Value cannot be null or empty!", nameof(DestinationFilename));
@@ -49,7 +49,8 @@ namespace McPbrPipeline.Internal.Filtering
             var path = Path.GetDirectoryName(DestinationFilename);
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
-            await targetImage.SaveAsPngAsync(DestinationFilename, token);
+            await using var stream = output.WriteFile(DestinationFilename);
+            await targetImage.SaveAsPngAsync(stream, token);
         }
 
         private async Task<Image> LoadSourceImageAsync(CancellationToken token)

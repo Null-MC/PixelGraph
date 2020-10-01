@@ -1,5 +1,6 @@
 ﻿using McPbrPipeline.Filters;
 using McPbrPipeline.Internal.Filtering;
+using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System.IO;
@@ -11,13 +12,13 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal class NormalTexturePublisher : TexturePublisherBase
     {
-        public NormalTexturePublisher(IPublishProfile profile) : base(profile) {}
+        public NormalTexturePublisher(IProfile profile, IOutputWriter output) : base(profile, output) {}
 
         public async Task PublishAsync(TextureCollection texture, CancellationToken token)
         {
             var sourcePath = Profile.GetSourcePath(texture.Path);
             if (!texture.UseGlobalMatching) sourcePath = Path.Combine(sourcePath, texture.Name);
-            var destinationFilename = Profile.GetDestinationPath(texture.Path, $"{texture.Name}_n.png");
+            var destinationFilename = Path.Combine(texture.Path, $"{texture.Name}_n.png");
             var normalMap = texture.Map.Normal;
             var heightMap = texture.Map.Height;
 
@@ -46,6 +47,14 @@ namespace McPbrPipeline.Internal.Publishing
 
             if (existingNormal != null && File.Exists(existingNormal)) {
                 filters.SourceFilename = existingNormal;
+
+                if (normalMap?.DepthScale != null && normalMap.DepthScale.Value > float.Epsilon) {
+                    var options = new NormalMapOptions {
+                        DepthScale = normalMap.DepthScale.Value,
+                    };
+
+                    filters.Append(new NormalDepthFilter(options));
+                }
             }
             else if (fromHeight && existingHeight != null) {
                 var options = new NormalMapOptions();
@@ -66,7 +75,7 @@ namespace McPbrPipeline.Internal.Publishing
                     options.Wrap = normalMap.Wrap.Value;
 
                 filters.SourceFilename = existingHeight;
-                filters.Append(new NormalMapFilter(options));
+                filters.Append(new NormalFilter(options));
             }
 
             if (Profile.TextureSize.HasValue) {
@@ -75,7 +84,7 @@ namespace McPbrPipeline.Internal.Publishing
                 });
             }
 
-            await filters.ApplyAsync(token);
+            await filters.ApplyAsync(Output, token);
 
             if (normalMap?.Metadata != null)
                 await PublishMcMetaAsync(normalMap.Metadata, destinationFilename, token);
