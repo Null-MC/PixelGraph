@@ -14,7 +14,6 @@ Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
 
 ## Installation
 
-**NOTE:** _MC-PBRP is still a pre-release application in early development! The initial release will be coming soon though, so please check back soon!_
 #### Manual
 Download the latest [release](https://github.com/null511/MC-PBR-Pipeline/releases). For best results, add to your system PATH variable.
 
