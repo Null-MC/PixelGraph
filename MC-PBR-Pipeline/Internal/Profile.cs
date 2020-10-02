@@ -11,6 +11,7 @@ namespace McPbrPipeline.Internal
         int PackFormat {get;}
         string Description {get;}
         List<string> Tags {get;}
+        string ResizeSampler {get;}
         int? TextureSize {get;}
         bool? IncludeNormal {get;}
         bool? IncludeSpecular {get;}
@@ -46,6 +47,9 @@ namespace McPbrPipeline.Internal
         public int PackFormat {get; set;}
         public string Description {get; set;}
         public List<string> Tags {get; set;}
+
+        [JsonProperty("resize-sampler")]
+        public string ResizeSampler {get; set;}
 
         [JsonProperty("texture-size")]
         public int? TextureSize {get; set;}

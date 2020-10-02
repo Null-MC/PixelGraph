@@ -1,4 +1,5 @@
-﻿using McPbrPipeline.Filters;
+﻿using System;
+using McPbrPipeline.Filters;
 using McPbrPipeline.Internal.Filtering;
 using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
@@ -45,12 +46,14 @@ namespace McPbrPipeline.Internal.Publishing
             var existingNormal = GetFilename(texture, TextureTags.Normal, sourcePath, normalMap?.Texture);
             var existingHeight = GetFilename(texture, TextureTags.Height, sourcePath, normalMap?.Heightmap ?? heightMap?.Texture);
 
+            var depthScale = heightMap?.Scale ?? normalMap?.DepthScale ?? 1f;
+
             if (existingNormal != null && File.Exists(existingNormal)) {
                 filters.SourceFilename = existingNormal;
 
-                if (normalMap?.DepthScale != null && normalMap.DepthScale.Value > float.Epsilon) {
+                if (Math.Abs(depthScale - 1) > float.Epsilon) {
                     var options = new NormalMapOptions {
-                        DepthScale = normalMap.DepthScale.Value,
+                        DepthScale = depthScale,
                     };
 
                     filters.Append(new NormalDepthFilter(options));
@@ -59,8 +62,8 @@ namespace McPbrPipeline.Internal.Publishing
             else if (fromHeight && existingHeight != null) {
                 var options = new NormalMapOptions();
 
-                if (normalMap?.DepthScale.HasValue ?? false)
-                    options.DepthScale = normalMap.DepthScale.Value;
+                if (Math.Abs(depthScale - 1) > float.Epsilon)
+                    options.DepthScale = depthScale;
 
                 if (normalMap?.Blur != null)
                     options.Blur = normalMap.Blur.Value;
@@ -80,6 +83,7 @@ namespace McPbrPipeline.Internal.Publishing
 
             if (Profile.TextureSize.HasValue) {
                 filters.Append(new ResizeFilter {
+                    Sampler = Profile.ResizeSampler,
                     TargetSize = Profile.TextureSize.Value,
                 });
             }

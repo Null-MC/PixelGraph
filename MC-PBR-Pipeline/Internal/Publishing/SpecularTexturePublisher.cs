@@ -36,6 +36,7 @@ namespace McPbrPipeline.Internal.Publishing
 
             if (Profile.TextureSize.HasValue) {
                 filters.Append(new ResizeFilter {
+                    Sampler = Profile.ResizeSampler,
                     TargetSize = Profile.TextureSize.Value,
                 });
             }
