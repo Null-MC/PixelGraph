@@ -1,4 +1,5 @@
-﻿using McPbrPipeline.Internal.Output;
+﻿using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Output;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -13,6 +14,8 @@ namespace McPbrPipeline.Internal.Filtering
 {
     internal class FilterChain
     {
+        private readonly IInputReader reader;
+        private readonly IOutputWriter writer;
         private readonly List<IImageFilter> filterList;
 
         public string SourceFilename {get; set;}
@@ -20,8 +23,11 @@ namespace McPbrPipeline.Internal.Filtering
         public Rgba32? SourceColor {get; set;}
 
 
-        public FilterChain()
+        public FilterChain(IInputReader reader, IOutputWriter writer)
         {
+            this.reader = reader;
+            this.writer = writer;
+
             filterList = new List<IImageFilter>();
         }
 
@@ -30,7 +36,7 @@ namespace McPbrPipeline.Internal.Filtering
             filterList.Add(filter);
         }
 
-        public async Task ApplyAsync(IOutputWriter output, CancellationToken token = default)
+        public async Task ApplyAsync(CancellationToken token = default)
         {
             if (string.IsNullOrEmpty(DestinationFilename))
                 throw new ArgumentException("Value cannot be null or empty!", nameof(DestinationFilename));
@@ -49,14 +55,16 @@ namespace McPbrPipeline.Internal.Filtering
             var path = Path.GetDirectoryName(DestinationFilename);
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
-            await using var stream = output.WriteFile(DestinationFilename);
+            await using var stream = writer.WriteFile(DestinationFilename);
             await targetImage.SaveAsPngAsync(stream, token);
         }
 
         private async Task<Image> LoadSourceImageAsync(CancellationToken token)
         {
-            if (!string.IsNullOrEmpty(SourceFilename))
-                return await Image.LoadAsync(SourceFilename, token);
+            if (!string.IsNullOrEmpty(SourceFilename)) {
+                await using var stream = reader.Open(SourceFilename);
+                return await Image.LoadAsync(Configuration.Default, stream, token);
+            }
 
             if (SourceColor.HasValue)
                 return new Image<Rgba32>(1, 1, SourceColor.Value);

@@ -72,6 +72,7 @@ namespace McPbrPipeline.Internal.Input
                         ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_h.*"));
                         ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_n.*"));
                         ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_s.*"));
+                        ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_e.*"));
                     }
                     catch (Exception error) {
                         logger.LogWarning(error, $"Failed to load local texture map '{mapFile}'!");

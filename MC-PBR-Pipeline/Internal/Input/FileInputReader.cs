@@ -41,6 +41,12 @@ namespace McPbrPipeline.Internal.Input
             }
         }
 
+        public Stream Open(string localFile)
+        {
+            var fullFile = Path.Combine(root, localFile);
+            return File.Open(fullFile, FileMode.Open, FileAccess.Read);
+        }
+
         public Task<T> ReadJsonAsync<T>(string localFile, CancellationToken token = default) where T : new()
         {
             var fullFile = Path.Combine(root, localFile);

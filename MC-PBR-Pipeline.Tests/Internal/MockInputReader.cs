@@ -49,5 +49,10 @@ namespace McPbrPipeline.Tests.Internal
             var fullFile = Path.Combine(Root, localFile);
             return Content.FileExists(fullFile);
         }
+
+        public Stream Open(string localFile)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

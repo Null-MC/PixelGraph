@@ -1,4 +1,7 @@
-﻿using McPbrPipeline.Internal.Output;
+﻿using McPbrPipeline.Filters;
+using McPbrPipeline.Internal.Filtering;
+using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -14,13 +17,31 @@ namespace McPbrPipeline.Internal.Publishing
     internal abstract class TexturePublisherBase
     {
         protected IProfile Profile {get;}
-        protected IOutputWriter Output {get;}
+        protected IInputReader Reader {get;}
+        protected IOutputWriter Writer {get;}
 
 
-        protected TexturePublisherBase(IProfile profile, IOutputWriter output)
+        protected TexturePublisherBase(
+            IProfile profile,
+            IInputReader reader,
+            IOutputWriter writer)
         {
             Profile = profile;
-            Output = output;
+            Reader = reader;
+            Writer = writer;
+        }
+
+        protected void Resize(FilterChain filters, TextureCollection texture)
+        {
+            if (texture?.Map.DisableResize ?? false) return;
+
+            if (Profile.TextureSize.HasValue || Profile.TextureScale.HasValue) {
+                filters.Append(new ResizeFilter {
+                    Sampler = Profile.ResizeSampler,
+                    Scale = Profile.TextureScale,
+                    TargetSize = Profile.TextureSize,
+                });
+            }
         }
 
         protected static string GetFilename(TextureCollection texture, string type, string path, string exactName)
@@ -40,7 +61,7 @@ namespace McPbrPipeline.Internal.Publishing
             foreach (var filename in Directory.EnumerateFiles(path, matchName)) {
                 var extension = Path.GetExtension(filename);
 
-                if (SupportedImageExtensions.Contains(extension, StringComparer.InvariantCultureIgnoreCase))
+                if (ImageExtensions.Supported.Contains(extension, StringComparer.InvariantCultureIgnoreCase))
                     return filename;
             }
 
@@ -66,6 +87,7 @@ namespace McPbrPipeline.Internal.Publishing
             [TextureTags.Height] = map => map.Height.Texture,
             [TextureTags.Normal] = map => map.Normal.Texture,
             [TextureTags.Specular] = map => map.Specular.Texture,
+            [TextureTags.Emissive] = map => map.Emissive.Texture,
         };
 
         private static readonly Dictionary<string, string> LocalMatchMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
@@ -74,6 +96,7 @@ namespace McPbrPipeline.Internal.Publishing
             [TextureTags.Height] = "height.*",
             [TextureTags.Normal] = "normal.*",
             [TextureTags.Specular] = "specular.*",
+            [TextureTags.Emissive] = "emissive.*",
         };
 
         private static readonly Dictionary<string, Func<string, string>> GlobalMatchMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase)
@@ -82,15 +105,7 @@ namespace McPbrPipeline.Internal.Publishing
             [TextureTags.Height] = item => $"{item}_h.*",
             [TextureTags.Normal] = item => $"{item}_n.*",
             [TextureTags.Specular] = item => $"{item}_s.*",
-        };
-
-        private static readonly string[] SupportedImageExtensions = {
-            ".bmp",
-            ".png",
-            ".tga",
-            ".gif",
-            ".jpg",
-            ".jpeg",
+            [TextureTags.Emissive] = item => $"{item}_e.*",
         };
     }
 }

@@ -1,5 +1,6 @@
 ﻿using McPbrPipeline.Filters;
 using McPbrPipeline.Internal.Filtering;
+using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp.PixelFormats;
@@ -11,7 +12,7 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal class SpecularTexturePublisher : TexturePublisherBase
     {
-        public SpecularTexturePublisher(IProfile profile, IOutputWriter output) : base(profile, output) {}
+        public SpecularTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
 
         public async Task PublishAsync(TextureCollection texture, CancellationToken token)
         {
@@ -20,7 +21,7 @@ namespace McPbrPipeline.Internal.Publishing
             var destinationFilename = Path.Combine(texture.Path, $"{texture.Name}_s.png");
             var specularMap = texture.Map.Specular;
 
-            var filters = new FilterChain {
+            var filters = new FilterChain(Reader, Writer) {
                 DestinationFilename = destinationFilename,
                 SourceFilename = GetFilename(texture, TextureTags.Specular, sourcePath, specularMap?.Texture),
             };
@@ -34,17 +35,12 @@ namespace McPbrPipeline.Internal.Publishing
             if (specularMap?.HasOffsets() ?? false)
                 filters.Append(BuildRangeFilter(specularMap));
 
-            if (Profile.TextureSize.HasValue) {
-                filters.Append(new ResizeFilter {
-                    Sampler = Profile.ResizeSampler,
-                    TargetSize = Profile.TextureSize.Value,
-                });
-            }
+            Resize(filters, texture);
 
             if (!Profile.SpecularChannelsMatch())
                 filters.Append(BuildChannelMapFilter());
 
-            await filters.ApplyAsync(Output, token);
+            await filters.ApplyAsync(token);
 
             if (specularMap?.Metadata != null)
                 await PublishMcMetaAsync(specularMap.Metadata, destinationFilename, token);

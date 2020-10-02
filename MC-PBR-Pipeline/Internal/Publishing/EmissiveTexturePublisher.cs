@@ -8,31 +8,28 @@ using System.Threading.Tasks;
 
 namespace McPbrPipeline.Internal.Publishing
 {
-    internal class AlbedoTexturePublisher : TexturePublisherBase
+    internal class EmissiveTexturePublisher : TexturePublisherBase
     {
-        public AlbedoTexturePublisher(
-            IProfile profile,
-            IInputReader reader,
-            IOutputWriter writer) : base(profile, reader, writer) {}
+        public EmissiveTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
 
         public async Task PublishAsync(TextureCollection texture, CancellationToken token)
         {
             var sourcePath = Profile.GetSourcePath(texture.Path);
             if (!texture.UseGlobalMatching) sourcePath = Path.Combine(sourcePath, texture.Name);
-            var destinationFilename = Path.Combine(texture.Path, $"{texture.Name}.png");
-            var albedoTexture = texture.Map.Albedo;
+            var destinationFilename = Path.Combine(texture.Path, $"{texture.Name}_e.png");
+            var emissiveTexture = texture.Map.Emissive;
 
             var filters = new FilterChain(Reader, Writer) {
                 DestinationFilename = destinationFilename,
-                SourceFilename = GetFilename(texture, TextureTags.Albedo, sourcePath, albedoTexture?.Texture),
+                SourceFilename = GetFilename(texture, TextureTags.Emissive, sourcePath, emissiveTexture?.Texture),
             };
 
             Resize(filters, texture);
 
             await filters.ApplyAsync(token);
 
-            if (albedoTexture?.Metadata != null)
-                await PublishMcMetaAsync(albedoTexture.Metadata, destinationFilename, token);
+            if (emissiveTexture?.Metadata != null)
+                await PublishMcMetaAsync(emissiveTexture.Metadata, destinationFilename, token);
         }
     }
 }

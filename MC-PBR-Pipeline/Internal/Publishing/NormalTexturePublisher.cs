@@ -1,9 +1,10 @@
-﻿using System;
-using McPbrPipeline.Filters;
+﻿using McPbrPipeline.Filters;
 using McPbrPipeline.Internal.Filtering;
+using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
 using System.IO;
 using System.Numerics;
 using System.Threading;
@@ -13,7 +14,7 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal class NormalTexturePublisher : TexturePublisherBase
     {
-        public NormalTexturePublisher(IProfile profile, IOutputWriter output) : base(profile, output) {}
+        public NormalTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
 
         public async Task PublishAsync(TextureCollection texture, CancellationToken token)
         {
@@ -25,7 +26,7 @@ namespace McPbrPipeline.Internal.Publishing
 
             var fromHeight = normalMap?.FromHeight ?? true;
 
-            var filters = new FilterChain {
+            var filters = new FilterChain(Reader, Writer) {
                 DestinationFilename = destinationFilename,
             };
 
@@ -81,14 +82,9 @@ namespace McPbrPipeline.Internal.Publishing
                 filters.Append(new NormalFilter(options));
             }
 
-            if (Profile.TextureSize.HasValue) {
-                filters.Append(new ResizeFilter {
-                    Sampler = Profile.ResizeSampler,
-                    TargetSize = Profile.TextureSize.Value,
-                });
-            }
+            Resize(filters, texture);
 
-            await filters.ApplyAsync(Output, token);
+            await filters.ApplyAsync(token);
 
             if (normalMap?.Metadata != null)
                 await PublishMcMetaAsync(normalMap.Metadata, destinationFilename, token);

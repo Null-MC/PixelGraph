@@ -9,20 +9,30 @@ namespace McPbrPipeline.Filters
     internal class ResizeFilter : IImageFilter
     {
         public string Sampler {get; set;}
-        public int TargetSize {get; set;}
+        public int? TargetSize {get; set;}
+        public float? Scale {get; set;}
 
 
         public void Apply(IImageProcessingContext context)
         {
-            var size = context.GetCurrentSize();
-            if (size.Width == TargetSize) return;
+            var (width, height) = context.GetCurrentSize();
 
             var resampler = KnownResamplers.Bicubic;
 
             if (Sampler != null && SamplerMap.TryGetValue(Sampler, out var _resampler))
                 resampler = _resampler;
 
-            context.Resize(TargetSize, 0, resampler);
+            if (TargetSize.HasValue) {
+                if (width == TargetSize) return;
+
+                context.Resize(TargetSize.Value, 0, resampler);
+            }
+            else if (Scale.HasValue) {
+                var targetWidth = (int)(width * Scale);
+                var targetHeight = (int)(height * Scale);
+
+                context.Resize(targetWidth, targetHeight, resampler);
+            }
         }
 
         private static readonly Dictionary<string, IResampler> SamplerMap = new Dictionary<string, IResampler>(StringComparer.InvariantCultureIgnoreCase) {

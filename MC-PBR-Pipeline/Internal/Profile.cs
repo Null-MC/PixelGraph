@@ -12,9 +12,12 @@ namespace McPbrPipeline.Internal
         string Description {get;}
         List<string> Tags {get;}
         string ResizeSampler {get;}
+        float? TextureScale {get;}
         int? TextureSize {get;}
+        bool? IncludeAlbedo {get;}
         bool? IncludeNormal {get;}
         bool? IncludeSpecular {get;}
+        bool? IncludeEmissive {get;}
         SpecularChannelMap SpecularIn {get;}
         SpecularChannelMap SpecularOut {get;}
 
@@ -51,14 +54,23 @@ namespace McPbrPipeline.Internal
         [JsonProperty("resize-sampler")]
         public string ResizeSampler {get; set;}
 
+        [JsonProperty("texture-scale")]
+        public float? TextureScale {get; set;}
+
         [JsonProperty("texture-size")]
         public int? TextureSize {get; set;}
+
+        [JsonProperty("include-albedo")]
+        public bool? IncludeAlbedo {get; set;}
 
         [JsonProperty("include-normal")]
         public bool? IncludeNormal {get; set;}
 
         [JsonProperty("include-specular")]
         public bool? IncludeSpecular {get; set;}
+
+        [JsonProperty("include-emissive")]
+        public bool? IncludeEmissive {get; set;}
 
         [JsonProperty("specular-in")]
         public SpecularChannelMap SpecularIn {get; set;}
