@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>McPbrPipeline.Tests</RootNamespace>
+
+    <IsPackable>false</IsPackable>
+
+    <AssemblyName>MCPBRP.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <PackageReference Include="coverlet.collector" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="OutputTests\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MC-PBR-Pipeline\MC-PBR-Pipeline.csproj" />
+  </ItemGroup>
+
+</Project>

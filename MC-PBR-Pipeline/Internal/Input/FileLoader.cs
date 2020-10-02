@@ -1,4 +1,5 @@
 ﻿using McPbrPipeline.Internal.Textures;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -12,36 +13,41 @@ namespace McPbrPipeline.Internal.Input
 {
     internal interface IFileLoader
     {
-        IAsyncEnumerable<object> LoadAsync(string path, CancellationToken token = default);
+        IAsyncEnumerable<object> LoadAsync(CancellationToken token = default);
     }
 
     internal class FileLoader : IFileLoader
     {
+        private readonly IInputReader reader;
         private readonly ILogger logger;
 
 
-        public FileLoader(ILogger<FileLoader> logger)
+        public FileLoader(
+            IServiceProvider provider,
+            IInputReader reader)
         {
-            this.logger = logger;
+            this.reader = reader;
+
+            logger = provider.GetRequiredService<ILogger<FileLoader>>();
         }
 
-        public IAsyncEnumerable<object> LoadAsync(string rootPath, CancellationToken token = default)
+        public IAsyncEnumerable<object> LoadAsync(CancellationToken token = default)
         {
-            return LoadRecursiveAsync(rootPath, rootPath, token);
+            return LoadRecursiveAsync(".", token);
         }
 
-        private async IAsyncEnumerable<object> LoadRecursiveAsync(string rootPath, string searchPath, [EnumeratorCancellation] CancellationToken token)
+        private async IAsyncEnumerable<object> LoadRecursiveAsync(string searchPath, [EnumeratorCancellation] CancellationToken token)
         {
-            foreach (var directory in Directory.EnumerateDirectories(searchPath, "*")) {
+            foreach (var directory in reader.EnumerateDirectories(searchPath, "*")) {
                 token.ThrowIfCancellationRequested();
 
                 var mapFile = Path.Combine(directory, "pbr.json");
 
-                if (File.Exists(mapFile)) {
+                if (reader.FileExists(mapFile)) {
                     TextureCollection texture = null;
 
                     try {
-                        texture = await LoadLocalTextureAsync(rootPath, mapFile, token);
+                        texture = await LoadLocalTextureAsync(mapFile, token);
                     }
                     catch (Exception error) {
                         logger.LogWarning(error, $"Failed to load local texture map '{mapFile}'!");
@@ -51,23 +57,21 @@ namespace McPbrPipeline.Internal.Input
                     continue;
                 }
 
-                await foreach (var texture in LoadRecursiveAsync(rootPath, directory, token))
+                await foreach (var texture in LoadRecursiveAsync(directory, token))
                     yield return texture;
 
-                var ignoreList = new List<string> {
-                    Path.Combine(rootPath, "pack.json"),
-                };
+                var ignoreList = new List<string>();
 
-                foreach (var filename in Directory.EnumerateFiles(directory, "*.pbr")) {
+                foreach (var filename in reader.EnumerateFiles(directory, "*.pbr")) {
                     TextureCollection texture = null;
 
                     try {
-                        texture = await LoadGlobalTextureAsync(rootPath, filename, token);
+                        texture = await LoadGlobalTextureAsync(filename, token);
 
-                        ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}.*"));
-                        ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_h.*"));
-                        ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_n.*"));
-                        ignoreList.AddRange(Directory.EnumerateFiles(directory, $"{texture.Name}_s.*"));
+                        ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}.*"));
+                        ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_h.*"));
+                        ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_n.*"));
+                        ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_s.*"));
                     }
                     catch (Exception error) {
                         logger.LogWarning(error, $"Failed to load local texture map '{mapFile}'!");
@@ -76,36 +80,38 @@ namespace McPbrPipeline.Internal.Input
                     if (texture != null) yield return texture;
                 }
 
-                foreach (var filename in Directory.EnumerateFiles(directory, "*")) {
+                foreach (var filename in reader.EnumerateFiles(directory, "*")) {
                     if (ignoreList.Contains(filename, StringComparer.InvariantCultureIgnoreCase)) continue;
 
                     var extension = Path.GetExtension(filename);
-                    if (IgnoredExtensions.Contains(extension, StringComparer.InvariantCultureIgnoreCase))
+                    if (IgnoredExtensions.Contains(extension, StringComparer.InvariantCultureIgnoreCase)) {
+                        logger.LogDebug($"Ignoring file '{filename}'.");
                         continue;
+                    }
 
-                    yield return filename[rootPath.Length..].TrimStart('\\', '/');
+                    yield return filename;
                 }
             }
         }
 
-        public async Task<TextureCollection> LoadGlobalTextureAsync(string rootPath, string filename, CancellationToken token = default)
+        public async Task<TextureCollection> LoadGlobalTextureAsync(string localFile, CancellationToken token = default)
         {
             return new TextureCollection {
-                Name = Path.GetFileNameWithoutExtension(filename),
-                Path = Path.GetDirectoryName(filename)?[rootPath.Length..].TrimStart('\\', '/'),
-                Map = await JsonFile.ReadAsync<TextureMap>(filename, token),
+                Name = Path.GetFileNameWithoutExtension(localFile),
+                Path = Path.GetDirectoryName(localFile),
+                Map = await reader.ReadJsonAsync<TextureMap>(localFile, token),
                 UseGlobalMatching = true,
             };
         }
 
-        public async Task<TextureCollection> LoadLocalTextureAsync(string rootPath, string filename, CancellationToken token = default)
+        public async Task<TextureCollection> LoadLocalTextureAsync(string localFile, CancellationToken token = default)
         {
-            var itemPath = Path.GetDirectoryName(filename);
+            var itemPath = Path.GetDirectoryName(localFile);
 
             return new TextureCollection {
                 Name = Path.GetFileName(itemPath),
-                Path = Path.GetDirectoryName(itemPath)?[rootPath.Length..].TrimStart('\\', '/'),
-                Map = await JsonFile.ReadAsync<TextureMap>(filename, token),
+                Path = Path.GetDirectoryName(itemPath),
+                Map = await reader.ReadJsonAsync<TextureMap>(localFile, token),
             };
         }
 

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MC-PBR-Pipeline", "MC-PBR-Pipeline\MC-PBR-Pipeline.csproj", "{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MC-PBR-Pipeline", "MC-PBR-Pipeline\MC-PBR-Pipeline.csproj", "{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MC-PBR-Pipeline.Tests", "MC-PBR-Pipeline.Tests\MC-PBR-Pipeline.Tests.csproj", "{F890D8CF-90E6-4806-A631-782EEA7C8AFC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

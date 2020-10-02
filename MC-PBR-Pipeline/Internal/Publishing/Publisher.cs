@@ -2,6 +2,7 @@
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -18,16 +19,15 @@ namespace McPbrPipeline.Internal.Publishing
 
     internal class Publisher : IPublisher
     {
-        private readonly IFileLoader textureLoader;
+        private readonly IServiceProvider provider;
         private readonly ILogger logger;
 
 
-        public Publisher(
-            ILogger<Publisher> logger,
-            IFileLoader textureLoader)
+        public Publisher(IServiceProvider provider)
         {
-            this.textureLoader = textureLoader;
-            this.logger = logger;
+            this.provider = provider;
+
+            logger = provider.GetRequiredService<ILogger<Publisher>>();
         }
 
         public async Task PublishAsync(string profileFilename, string destination, bool compress = false, CancellationToken token = default)
@@ -67,11 +67,14 @@ namespace McPbrPipeline.Internal.Publishing
 
         public async Task PublishContentAsync(IProfile profile, IOutputWriter output, CancellationToken token = default)
         {
+            var reader = new FileInputReader(profile.Source);
+            var loader = new FileLoader(provider, reader);
+
             var albedoPublisher = new AlbedoTexturePublisher(profile, output);
             var normalPublisher = new NormalTexturePublisher(profile, output);
             var specularPublisher = new SpecularTexturePublisher(profile, output);
 
-            await foreach (var fileObj in textureLoader.LoadAsync(profile.Source, token)) {
+            await foreach (var fileObj in loader.LoadAsync(token)) {
                 token.ThrowIfCancellationRequested();
 
                 switch (fileObj) {
