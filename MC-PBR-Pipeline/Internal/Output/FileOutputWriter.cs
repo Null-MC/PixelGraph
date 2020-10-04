@@ -14,6 +14,12 @@ namespace McPbrPipeline.Internal.Output
             this.destinationPath = destinationPath;
         }
 
+        public void Prepare()
+        {
+            if (!Directory.Exists(destinationPath))
+                Directory.CreateDirectory(destinationPath);
+        }
+
         public Stream WriteFile(string localFilename)
         {
             var filename = Path.Combine(destinationPath, localFilename);

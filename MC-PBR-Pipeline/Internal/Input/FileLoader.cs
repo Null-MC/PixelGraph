@@ -11,12 +11,7 @@ using System.Threading.Tasks;
 
 namespace McPbrPipeline.Internal.Input
 {
-    //internal interface IFileLoader
-    //{
-    //    IAsyncEnumerable<object> LoadAsync(CancellationToken token = default);
-    //}
-
-    internal class FileLoader //: IFileLoader
+    internal class FileLoader
     {
         private readonly IInputReader reader;
         private readonly ILogger logger;
@@ -68,11 +63,7 @@ namespace McPbrPipeline.Internal.Input
                     try {
                         texture = await LoadGlobalTextureAsync(filename, token);
 
-                        ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}.*"));
-                        ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_h.*"));
-                        ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_n.*"));
-                        ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_s.*"));
-                        ignoreList.AddRange(reader.EnumerateFiles(directory, $"{texture.Name}_e.*"));
+                        ignoreList.AddRange(texture.GetAllTextures(reader));
                     }
                     catch (Exception error) {
                         logger.LogWarning(error, $"Failed to load local texture map '{mapFile}'!");

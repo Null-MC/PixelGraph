@@ -1,6 +1,6 @@
 # MC-PBR-Pipeline
 
-MC-PBRP is a command-line application for publishing Minecraft resource packs, with special tooling for PBR materials. Automate the workload of modifying and distributing your resource packs through simple JSON configuration files.
+MC-PBRP is a command-line application for publishing Minecraft resource packs, with special tooling for PBR materials. Automate the workload of modifying and distributing your resource packs through simple properties files.
 
  - **Simplify your workflow** by adjusting text instead of pixels. Getting image-based material values just right can be tedious, time consuming, and destructive.
 
@@ -63,13 +63,9 @@ The additional publishing profile below is used to publish a non-PBR version of 
 Each item-texture requires a matching `*.pbr` file to enable filtering. For more details, see the [Wiki](/wiki/File-Loading).
 ```
 // ~/assets/minecraft/textures/block/lantern.pbr
-{
- 	"specular": {
- 		"metal": 0.8,
- 		"smooth": 1.6,
- 		"emissive": 0,
- 	}
- }
+smooth.scale = 1.2
+metal.scale = 0.8
+emissive.scale = 0.2
 ```
 
 ## Contributing

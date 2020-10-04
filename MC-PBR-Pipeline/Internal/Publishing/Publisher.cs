@@ -94,7 +94,7 @@ namespace McPbrPipeline.Internal.Publishing
                 token.ThrowIfCancellationRequested();
 
                 switch (fileObj) {
-                    case IPbrProperties texture:
+                    case PbrProperties texture:
                         logger.LogDebug($"Publishing texture '{texture.Name}'.");
 
                         if (profile.IncludeAlbedo ?? true) {

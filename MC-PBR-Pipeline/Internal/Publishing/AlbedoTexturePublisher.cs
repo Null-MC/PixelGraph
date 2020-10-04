@@ -14,11 +14,9 @@ namespace McPbrPipeline.Internal.Publishing
             IInputReader reader,
             IOutputWriter writer) : base(profile, reader, writer) {}
 
-        public async Task PublishAsync(IPbrProperties texture, CancellationToken token)
+        public async Task PublishAsync(PbrProperties texture, CancellationToken token)
         {
-            var sourcePath = Profile.GetSourcePath(texture.Path);
-            if (!texture.UseGlobalMatching) sourcePath = Path.Combine(sourcePath, texture.Name);
-            var sourceFile = GetFilename(texture, TextureTags.Albedo, sourcePath, texture.AlbedoTexture);
+            var sourceFile = texture.GetTextureFile(Reader, TextureTags.Albedo);
             var destinationFile = Path.Combine(texture.Path, $"{texture.Name}.png");
 
             await PublishAsync(sourceFile, null, destinationFile, context => {

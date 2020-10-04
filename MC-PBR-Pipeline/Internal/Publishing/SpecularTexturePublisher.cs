@@ -15,11 +15,9 @@ namespace McPbrPipeline.Internal.Publishing
     {
         public SpecularTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
 
-        public async Task PublishAsync(IPbrProperties texture, CancellationToken token)
+        public async Task PublishAsync(PbrProperties texture, CancellationToken token)
         {
-            var sourcePath = Profile.GetSourcePath(texture.Path);
-            if (!texture.UseGlobalMatching) sourcePath = Path.Combine(sourcePath, texture.Name);
-            var sourceFile = GetFilename(texture, TextureTags.Specular, sourcePath, texture.SpecularTexture);
+            var sourceFile = texture.GetTextureFile(Reader, TextureTags.Specular);
             var destinationFile = Path.Combine(texture.Path, $"{texture.Name}_s.png");
 
             Rgba32? sourceColor = null;
@@ -42,7 +40,7 @@ namespace McPbrPipeline.Internal.Publishing
             //    await PublishMcMetaAsync(specularMap.Metadata, destinationFilename, token);
         }
 
-        private void ApplyScaleFilter(IImageProcessingContext context, IPbrProperties texture)
+        private void ApplyScaleFilter(IImageProcessingContext context, PbrProperties texture)
         {
             var options = new ScaleOptions();
 

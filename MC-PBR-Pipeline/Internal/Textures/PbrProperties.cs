@@ -1,49 +1,43 @@
-﻿using System;
+﻿using McPbrPipeline.Internal.Input;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SysPath = System.IO.Path;
 
 namespace McPbrPipeline.Internal.Textures
 {
-    internal interface IPbrProperties
-    {
-        string Name {get;}
-        string Path {get;}
-        bool UseGlobalMatching {get;}
-
-        T Get<T>(string key, T defaultValue = default);
-
-        bool Wrap => Get(PbrProperty.Wrap, true);
-        bool ResizeEnabled => Get(PbrProperty.ResizeEnabled, true);
-
-        string AlbedoTexture => Get<string>(PbrProperty.AlbedoTexture);
-
-        string HeightTexture => Get<string>(PbrProperty.HeightTexture);
-        float HeightScale => Get(PbrProperty.HeightScale, 1f);
-
-        string NormalTexture => Get<string>(PbrProperty.NormalTexture);
-        bool NormalFromHeight => Get(PbrProperty.NormalFromHeight, true);
-        float NormalStrength => Get(PbrProperty.NormalStrength, 1f);
-        float NormalDepthScale => Get(PbrProperty.NormalDepthScale, 1f);
-
-        string SpecularTexture => Get<string>(PbrProperty.SpecularTexture);
-        string SpecularColor => Get<string>(PbrProperty.SpecularColor);
-        float SmoothScale => Get(PbrProperty.SmoothScale, 1f);
-        float RoughScale => Get(PbrProperty.RoughScale, 1f);
-        float MetalScale => Get(PbrProperty.MetalScale, 1f);
-        float EmissiveScale => Get(PbrProperty.EmissiveScale, 1f);
-
-        string EmissiveTexture => Get<string>(PbrProperty.EmissiveTexture);
-    }
-
-    internal class PbrProperties : IPbrProperties
+    internal class PbrProperties
     {
         private readonly Dictionary<string, string> properties;
 
         public string Name {get; set;}
         public string Path {get; set;}
         public bool UseGlobalMatching {get; set;}
+
+        public bool Wrap => Get(PbrProperty.Wrap, true);
+        public bool ResizeEnabled => Get(PbrProperty.ResizeEnabled, true);
+
+        public string AlbedoTexture => Get<string>(PbrProperty.AlbedoTexture);
+
+        public string HeightTexture => Get<string>(PbrProperty.HeightTexture);
+        public float HeightScale => Get(PbrProperty.HeightScale, 1f);
+
+        public string NormalTexture => Get<string>(PbrProperty.NormalTexture);
+        public bool NormalFromHeight => Get(PbrProperty.NormalFromHeight, true);
+        public float NormalStrength => Get(PbrProperty.NormalStrength, 1f);
+        public float NormalDepthScale => Get(PbrProperty.NormalDepthScale, 1f);
+
+        public string SpecularTexture => Get<string>(PbrProperty.SpecularTexture);
+        public string SpecularColor => Get<string>(PbrProperty.SpecularColor);
+        public float SmoothScale => Get(PbrProperty.SmoothScale, 1f);
+        public float RoughScale => Get(PbrProperty.RoughScale, 1f);
+        public float MetalScale => Get(PbrProperty.MetalScale, 1f);
+        public float EmissiveScale => Get(PbrProperty.EmissiveScale, 1f);
+
+        public string EmissiveTexture => Get<string>(PbrProperty.EmissiveTexture);
 
 
         public PbrProperties()
@@ -79,6 +73,40 @@ namespace McPbrPipeline.Internal.Textures
                 var value = line[(i+1)..].TrimStart();
                 properties[key] = value;
             }
+        }
+
+        public IEnumerable<string> GetAllTextures(IInputReader reader)
+        {
+            return TextureTags.All
+                .Select(tag => GetTextureFile(reader, tag))
+                .Where(file => file != null).Distinct();
+        }
+
+        public string GetTextureFile(IInputReader reader, string type)
+        {
+            var filename = TextureTags.Get(this, type);
+
+            while (filename != null) {
+                var linkedFilename = TextureTags.Get(this, filename);
+                if (string.IsNullOrEmpty(linkedFilename)) break;
+
+                type = filename;
+                filename = linkedFilename;
+            }
+
+            var srcPath = UseGlobalMatching
+                ? Path : SysPath.Combine(Path, Name);
+
+            if (!string.IsNullOrEmpty(filename)) {
+                return SysPath.Combine(srcPath, filename);
+            }
+
+            var matchName = TextureTags.GetMatchName(this, type);
+
+            return reader.EnumerateFiles(srcPath, matchName).FirstOrDefault(f => {
+                var ext = SysPath.GetExtension(f);
+                return ImageExtensions.Supported.Contains(ext, StringComparer.InvariantCultureIgnoreCase);
+            });
         }
     }
 }

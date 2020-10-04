@@ -22,12 +22,8 @@ namespace McPbrPipeline.Internal.Publishing
     {
         public NormalTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
 
-        public async Task PublishAsync(IPbrProperties texture, CancellationToken token)
+        public async Task PublishAsync(PbrProperties texture, CancellationToken token)
         {
-            var sourcePath = Profile.GetSourcePath(texture.Path);
-            if (!texture.UseGlobalMatching) sourcePath = Path.Combine(sourcePath, texture.Name);
-            var destinationFile = Path.Combine(texture.Path, $"{texture.Name}_n.png");
-
             Rgba32? sourceColor = null;
             if (TryGetNormalAngle(texture, out var normalAngle)) {
                 MathEx.Normalize(ref normalAngle);
@@ -38,22 +34,23 @@ namespace McPbrPipeline.Internal.Publishing
                     normalAngle.Z);
             }
 
-            var existingNormal = GetFilename(texture, TextureTags.Normal, sourcePath, texture.NormalTexture);
-            var existingHeight = GetFilename(texture, TextureTags.Height, sourcePath, texture.HeightTexture);
+            var existingNormal = texture.GetTextureFile(Reader, TextureTags.Normal);
+            var existingHeight = texture.GetTextureFile(Reader, TextureTags.Height);
 
             string sourceFile = null;
-            if (existingNormal != null && File.Exists(existingNormal)) {
+            if (existingNormal != null && Reader.FileExists(existingNormal)) {
                 sourceFile = existingNormal;
             }
             else if (texture.NormalFromHeight && existingHeight != null) {
                 sourceFile = existingHeight;
             }
 
+            var destinationFile = Path.Combine(texture.Path, $"{texture.Name}_n.png");
             await PublishAsync(sourceFile, sourceColor, destinationFile, context => {
-                if (existingNormal != null && File.Exists(existingNormal)) {
-                    if (Math.Abs(texture.HeightScale - 1) > float.Epsilon) {
+                if (existingNormal != null && Reader.FileExists(existingNormal)) {
+                    if (Math.Abs(texture.NormalDepthScale - 1) > float.Epsilon) {
                         var options = new NormalMapOptions {
-                            DepthScale = texture.HeightScale,
+                            DepthScale = texture.NormalDepthScale,
                         };
 
                         var processor = new NormalDepthProcessor(options);
@@ -110,7 +107,7 @@ namespace McPbrPipeline.Internal.Publishing
             //    await PublishMcMetaAsync(normalMap.Metadata, destinationFilename, token);
         }
 
-        private static bool TryGetNormalAngle(IPbrProperties texture, out Vector3 angle)
+        private static bool TryGetNormalAngle(PbrProperties texture, out Vector3 angle)
         {
             var x = texture.Get<float?>(PbrProperty.NormalX);
             var y = texture.Get<float?>(PbrProperty.NormalY);

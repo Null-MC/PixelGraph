@@ -17,6 +17,8 @@ namespace McPbrPipeline.Internal.Output
             archive = new ZipArchive(fileStream, ZipArchiveMode.Create);
         }
 
+        public void Prepare() {}
+
         public Stream WriteFile(string localFilename)
         {
             if (Path.DirectorySeparatorChar != '/')

@@ -7,9 +7,6 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,14 +41,13 @@ namespace McPbrPipeline.Internal.Publishing
             targetImage.Mutate(c => c.Clear(brush));
             targetImage.Mutate(processAction);
 
-            var path = Path.GetDirectoryName(destinationFile);
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            Writer.Prepare();
 
             await using var stream = Writer.WriteFile(destinationFile);
             await targetImage.SaveAsPngAsync(stream, token);
         }
 
-        protected void Resize(IImageProcessingContext context, IPbrProperties texture)
+        protected void Resize(IImageProcessingContext context, PbrProperties texture)
         {
             if (!(texture?.ResizeEnabled ?? true)) return;
             if (!Profile.TextureSize.HasValue && !Profile.TextureScale.HasValue) return;
@@ -90,69 +86,5 @@ namespace McPbrPipeline.Internal.Publishing
 
             throw new SourceEmptyException("No Source image was found, and no color is defined!");
         }
-
-        protected static string GetFilename(IPbrProperties texture, string type, string path, string exactName)
-        {
-            var matchName = GetMatchName(texture, type);
-
-            if (exactName != null && TextureMap.TryGetValue(exactName, out var remap)) {
-                matchName = GetMatchName(texture, exactName);
-                exactName = remap(texture);
-            }
-
-            if (exactName != null) {
-                var filename = Path.Combine(path, exactName);
-                if (File.Exists(filename)) return filename;
-            }
-
-            foreach (var filename in Directory.EnumerateFiles(path, matchName)) {
-                var extension = Path.GetExtension(filename);
-
-                if (ImageExtensions.Supported.Contains(extension, StringComparer.InvariantCultureIgnoreCase))
-                    return filename;
-            }
-
-            return null;
-        }
-
-        //protected static Task PublishMcMetaAsync(JToken metadata, string textureDestinationFilename, CancellationToken token)
-        //{
-        //    var mcMetaDestinationFilename = $"{textureDestinationFilename}.mcmeta";
-        //    return JsonFile.WriteAsync(mcMetaDestinationFilename, metadata, Formatting.Indented, token);
-        //}
-
-        private static string GetMatchName(IPbrProperties texture, string type)
-        {
-            return texture.UseGlobalMatching
-                ? GlobalMatchMap[type](texture.Name)
-                : LocalMatchMap[type];
-        }
-
-        private static readonly Dictionary<string, Func<IPbrProperties, string>> TextureMap = new Dictionary<string, Func<IPbrProperties, string>>(StringComparer.InvariantCultureIgnoreCase)
-        {
-            [TextureTags.Albedo] = t => t.AlbedoTexture,
-            [TextureTags.Height] = t => t.HeightTexture,
-            [TextureTags.Normal] = t => t.NormalTexture,
-            [TextureTags.Specular] = t => t.SpecularTexture,
-            [TextureTags.Emissive] = t => t.EmissiveTexture,
-        };
-
-        private static readonly Dictionary<string, string> LocalMatchMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
-        {
-            [TextureTags.Albedo] = "albedo.*",
-            [TextureTags.Height] = "height.*",
-            [TextureTags.Normal] = "normal.*",
-            [TextureTags.Specular] = "specular.*",
-            [TextureTags.Emissive] = "emissive.*",
-        };
-
-        private static readonly Dictionary<string, Func<string, string>> GlobalMatchMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase)
-        {
-            [TextureTags.Albedo] = item => $"{item}.*",
-            [TextureTags.Height] = item => $"{item}_h.*",
-            [TextureTags.Normal] = item => $"{item}_n.*",
-            [TextureTags.Specular] = item => $"{item}_s.*",
-            [TextureTags.Emissive] = item => $"{item}_e.*",
-        };
     }
 }
