@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
 
@@ -18,9 +19,16 @@ namespace McPbrPipeline.Internal.Output
 
         public Stream WriteFile(string localFilename)
         {
+            if (Path.DirectorySeparatorChar != '/')
+                localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
+
             var entry = archive.CreateEntry(localFilename);
             return entry.Open();
         }
+
+        public DateTime? GetWriteTime(string localFile) => null;
+
+        public void Clean() {}
 
         public async ValueTask DisposeAsync()
         {

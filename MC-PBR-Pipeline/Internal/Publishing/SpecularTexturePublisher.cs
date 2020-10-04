@@ -1,9 +1,10 @@
-﻿using McPbrPipeline.Filters;
+﻿using McPbrPipeline.ImageProcessors;
 using McPbrPipeline.Internal.Filtering;
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,97 +15,95 @@ namespace McPbrPipeline.Internal.Publishing
     {
         public SpecularTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
 
-        public async Task PublishAsync(TextureCollection texture, CancellationToken token)
+        public async Task PublishAsync(IPbrProperties texture, CancellationToken token)
         {
             var sourcePath = Profile.GetSourcePath(texture.Path);
             if (!texture.UseGlobalMatching) sourcePath = Path.Combine(sourcePath, texture.Name);
-            var destinationFilename = Path.Combine(texture.Path, $"{texture.Name}_s.png");
-            var specularMap = texture.Map.Specular;
+            var sourceFile = GetFilename(texture, TextureTags.Specular, sourcePath, texture.SpecularTexture);
+            var destinationFile = Path.Combine(texture.Path, $"{texture.Name}_s.png");
 
-            var filters = new FilterChain(Reader, Writer) {
-                DestinationFilename = destinationFilename,
-                SourceFilename = GetFilename(texture, TextureTags.Specular, sourcePath, specularMap?.Texture),
-            };
+            Rgba32? sourceColor = null;
+            if (texture.SpecularColor != null)
+                sourceColor = Rgba32.ParseHex(texture.SpecularColor);
 
-            if (specularMap?.Color != null)
-                filters.SourceColor = Rgba32.ParseHex(specularMap.Color);
+            await PublishAsync(sourceFile, sourceColor, destinationFile, context => {
+                ApplyScaleFilter(context, texture);
 
-            if (specularMap?.HasScaling() ?? false)
-                filters.Append(BuildScaleFilter(specularMap));
+                //if (specularMap?.HasOffsets() ?? false)
+                //    filters.Append(BuildRangeFilter(specularMap));
 
-            if (specularMap?.HasOffsets() ?? false)
-                filters.Append(BuildRangeFilter(specularMap));
+                Resize(context, texture);
 
-            Resize(filters, texture);
+                if (!Profile.SpecularChannelsMatch())
+                    ApplyChannelMapFilter(context);
+            }, token);
 
-            if (!Profile.SpecularChannelsMatch())
-                filters.Append(BuildChannelMapFilter());
-
-            await filters.ApplyAsync(token);
-
-            if (specularMap?.Metadata != null)
-                await PublishMcMetaAsync(specularMap.Metadata, destinationFilename, token);
+            //if (specularMap?.Metadata != null)
+            //    await PublishMcMetaAsync(specularMap.Metadata, destinationFilename, token);
         }
 
-        private ScaleFilter BuildScaleFilter(SpecularTextureMap specularMap)
+        private void ApplyScaleFilter(IImageProcessingContext context, IPbrProperties texture)
         {
             var options = new ScaleOptions();
 
-            if (Profile.SpecularIn.Rough != ColorChannel.None && specularMap.RoughScale.HasValue)
-                options.Set(Profile.SpecularIn.Rough, specularMap.RoughScale.Value);
+            if (Profile.SpecularIn.Smooth != ColorChannel.None)
+                options.Set(Profile.SpecularIn.Smooth, texture.SmoothScale);
 
-            if (Profile.SpecularIn.Smooth != ColorChannel.None && specularMap.SmoothScale.HasValue)
-                options.Set(Profile.SpecularIn.Smooth, specularMap.SmoothScale.Value);
+            if (Profile.SpecularIn.Rough != ColorChannel.None)
+                options.Set(Profile.SpecularIn.Rough, texture.RoughScale);
 
-            if (Profile.SpecularIn.Metal != ColorChannel.None && specularMap.MetalScale.HasValue)
-                options.Set(Profile.SpecularIn.Metal, specularMap.MetalScale.Value);
+            if (Profile.SpecularIn.Metal != ColorChannel.None)
+                options.Set(Profile.SpecularIn.Metal, texture.MetalScale);
 
-            if (Profile.SpecularIn.Emissive != ColorChannel.None && specularMap.EmissiveScale.HasValue)
-                options.Set(Profile.SpecularIn.Emissive, specularMap.EmissiveScale.Value);
+            if (Profile.SpecularIn.Emissive != ColorChannel.None)
+                options.Set(Profile.SpecularIn.Emissive, texture.EmissiveScale);
 
-            return new ScaleFilter(options);
+            if (!options.Any) return;
+
+            var processor = new ScaleProcessor(options);
+            context.ApplyProcessor(processor);
         }
 
-        private RangeFilter BuildRangeFilter(SpecularTextureMap specularMap)
-        {
-            var options = new RangeOptions();
+        //private RangeFilter BuildRangeFilter(IPbrProperties texture)
+        //{
+        //    var options = new RangeOptions();
 
-            if (Profile.SpecularIn.Rough != ColorChannel.None) {
-                if (specularMap.RoughMin.HasValue)
-                    options.SetMin(Profile.SpecularIn.Rough, specularMap.RoughMin.Value);
+        //    if (Profile.SpecularIn.Rough != ColorChannel.None) {
+        //        if (specularMap.RoughMin.HasValue)
+        //            options.SetMin(Profile.SpecularIn.Rough, specularMap.RoughMin.Value);
 
-                if (specularMap.RoughMax.HasValue)
-                    options.SetMax(Profile.SpecularIn.Rough, specularMap.RoughMax.Value);
-            }
+        //        if (specularMap.RoughMax.HasValue)
+        //            options.SetMax(Profile.SpecularIn.Rough, specularMap.RoughMax.Value);
+        //    }
 
-            if (Profile.SpecularIn.Smooth != ColorChannel.None) {
-                if (specularMap.SmoothMin.HasValue)
-                    options.SetMin(Profile.SpecularIn.Smooth, specularMap.SmoothMin.Value);
+        //    if (Profile.SpecularIn.Smooth != ColorChannel.None) {
+        //        if (specularMap.SmoothMin.HasValue)
+        //            options.SetMin(Profile.SpecularIn.Smooth, specularMap.SmoothMin.Value);
 
-                if (specularMap.SmoothMax.HasValue)
-                    options.SetMax(Profile.SpecularIn.Smooth, specularMap.SmoothMax.Value);
-            }
+        //        if (specularMap.SmoothMax.HasValue)
+        //            options.SetMax(Profile.SpecularIn.Smooth, specularMap.SmoothMax.Value);
+        //    }
 
-            if (Profile.SpecularIn.Metal != ColorChannel.None) {
-                if (specularMap.MetalMin.HasValue)
-                    options.SetMin(Profile.SpecularIn.Metal, specularMap.MetalMin.Value);
+        //    if (Profile.SpecularIn.Metal != ColorChannel.None) {
+        //        if (specularMap.MetalMin.HasValue)
+        //            options.SetMin(Profile.SpecularIn.Metal, specularMap.MetalMin.Value);
 
-                if (specularMap.MetalMax.HasValue)
-                    options.SetMax(Profile.SpecularIn.Metal, specularMap.MetalMax.Value);
-            }
+        //        if (specularMap.MetalMax.HasValue)
+        //            options.SetMax(Profile.SpecularIn.Metal, specularMap.MetalMax.Value);
+        //    }
 
-            if (Profile.SpecularIn.Emissive != ColorChannel.None) {
-                if (specularMap.EmissiveMin.HasValue)
-                    options.SetMin(Profile.SpecularIn.Emissive, specularMap.EmissiveMin.Value);
+        //    if (Profile.SpecularIn.Emissive != ColorChannel.None) {
+        //        if (specularMap.EmissiveMin.HasValue)
+        //            options.SetMin(Profile.SpecularIn.Emissive, specularMap.EmissiveMin.Value);
 
-                if (specularMap.EmissiveMax.HasValue)
-                    options.SetMax(Profile.SpecularIn.Emissive, specularMap.EmissiveMax.Value);
-            }
+        //        if (specularMap.EmissiveMax.HasValue)
+        //            options.SetMax(Profile.SpecularIn.Emissive, specularMap.EmissiveMax.Value);
+        //    }
 
-            return new RangeFilter(options);
-        }
+        //    return new RangeFilter(options);
+        //}
 
-        private ChannelMapFilter BuildChannelMapFilter()
+        private void ApplyChannelMapFilter(IImageProcessingContext context)
         {
             var options = new ChannelMapOptions {
                 AlphaSource = ColorChannel.Alpha,
@@ -115,7 +114,8 @@ namespace McPbrPipeline.Internal.Publishing
             options.Set(Profile.SpecularIn.Metal, Profile.SpecularOut.Metal);
             options.Set(Profile.SpecularIn.Emissive, Profile.SpecularOut.Emissive);
 
-            return new ChannelMapFilter(options);
+            var processor = new ChannelMapProcessor(options);
+            context.ApplyProcessor(processor);
         }
     }
 }

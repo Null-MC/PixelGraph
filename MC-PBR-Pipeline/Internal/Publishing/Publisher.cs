@@ -15,7 +15,7 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal interface IPublisher
     {
-        Task PublishAsync(string sourcePath, string destinationPath, bool compress = false, CancellationToken token = default);
+        Task PublishAsync(PublishOptions options, CancellationToken token = default);
     }
 
     internal class Publisher : IPublisher
@@ -31,19 +31,29 @@ namespace McPbrPipeline.Internal.Publishing
             logger = provider.GetRequiredService<ILogger<Publisher>>();
         }
 
-        public async Task PublishAsync(string profileFilename, string destination, bool compress = false, CancellationToken token = default)
+        public async Task PublishAsync(PublishOptions options, CancellationToken token = default)
         {
-            if (profileFilename == null) throw new ArgumentNullException(nameof(profileFilename));
-            if (destination == null) throw new ArgumentNullException(nameof(destination));
+            if (options == null) throw new ArgumentNullException(nameof(options));
 
-            var sourcePath = Path.GetDirectoryName(profileFilename);
-            var profile = await JsonFile.ReadAsync<Profile>(profileFilename, token);
+            var profile = await JsonFile.ReadAsync<Profile>(options.Profile, token);
+            profile.Source = Path.GetDirectoryName(options.Profile);
+            profile.ProfileWriteTime = File.GetLastWriteTime(options.Profile);
 
-            profile.Source = sourcePath;
+            await using var output = GetOutputWriter(options.Destination, options.Compress);
 
-            await using var output = GetOutputWriter(destination, compress);
+            if (options.Clean) {
+                logger.LogDebug("Cleaning destination...");
 
-            // TODO: pre-clean?
+                try {
+                    output.Clean();
+
+                    logger.LogInformation("Destination directory clean.");
+                }
+                catch (Exception error) {
+                    logger.LogError(error, "Failed to clean destination!");
+                    throw new ApplicationException("Failed to clean destination!", error);
+                }
+            }
 
             await PublishPackMetaAsync(profile, output, token);
 
@@ -77,11 +87,14 @@ namespace McPbrPipeline.Internal.Publishing
             var emissivePublisher = new EmissiveTexturePublisher(profile, reader, writer);
             var genericPublisher = new GenericTexturePublisher(profile, reader, writer);
 
+            var fontPath = Path.Combine("assets", "minecraft", "textures", "font");
+            var guiPath = Path.Combine("assets", "minecraft", "textures", "gui");
+
             await foreach (var fileObj in loader.LoadAsync(token)) {
                 token.ThrowIfCancellationRequested();
 
                 switch (fileObj) {
-                    case TextureCollection texture: {
+                    case IPbrProperties texture:
                         logger.LogDebug($"Publishing texture '{texture.Name}'.");
 
                         if (profile.IncludeAlbedo ?? true) {
@@ -141,12 +154,22 @@ namespace McPbrPipeline.Internal.Publishing
                         }
 
                         break;
-                    }
-                    case string localName: {
-                        logger.LogDebug($"Publishing untracked file '{localName}'.");
+                    case string localName:
+                        var sourceTime = reader.GetWriteTime(localName);
+                        var destinationTime = writer.GetWriteTime(localName);
+
+                        if (IsUpToDate(profile.ProfileWriteTime, sourceTime, destinationTime)) {
+                            logger.LogDebug($"Skipping up-to-date file '{localName}'.");
+                            continue;
+                        }
 
                         var extension = Path.GetExtension(localName);
-                        if (ImageExtensions.Supported.Contains(extension, StringComparer.InvariantCultureIgnoreCase)) {
+                        var filterImage = ImageExtensions.Supported.Contains(extension, StringComparer.InvariantCultureIgnoreCase);
+
+                        if (localName.StartsWith(fontPath)) filterImage = false;
+                        if (localName.StartsWith(guiPath)) filterImage = false;
+
+                        if (filterImage) {
                             await genericPublisher.PublishAsync(localName, token);
                         }
                         else {
@@ -156,10 +179,17 @@ namespace McPbrPipeline.Internal.Publishing
                             await srcStream.CopyToAsync(destStream, token);
                         }
 
+                        logger.LogInformation($"Published untracked file '{localName}'.");
                         break;
                     }
-                }
             }
+        }
+
+        private bool IsUpToDate(DateTime profileWriteTime, DateTime? sourceWriteTime, DateTime? destWriteTime)
+        {
+            if (!destWriteTime.HasValue || !sourceWriteTime.HasValue) return false;
+            if (profileWriteTime > destWriteTime.Value) return false;
+            return sourceWriteTime <= destWriteTime.Value;
         }
 
         private IOutputWriter GetOutputWriter(string destination, bool compress)

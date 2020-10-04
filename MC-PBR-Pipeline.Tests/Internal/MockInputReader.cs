@@ -1,4 +1,5 @@
-﻿using McPbrPipeline.Internal.Input;
+﻿using System;
+using McPbrPipeline.Internal.Input;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -53,6 +54,11 @@ namespace McPbrPipeline.Tests.Internal
         public Stream Open(string localFile)
         {
             throw new System.NotImplementedException();
+        }
+
+        public DateTime? GetWriteTime(string localFile)
+        {
+            return null;
         }
     }
 }

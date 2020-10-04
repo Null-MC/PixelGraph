@@ -2,7 +2,7 @@
 
 namespace McPbrPipeline.Internal.Filtering
 {
-    internal struct ChannelMapOptions
+    internal class ChannelMapOptions
     {
         public ColorChannel RedSource {get; set;}
         public ColorChannel GreenSource {get; set;}

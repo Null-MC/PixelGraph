@@ -41,10 +41,10 @@ namespace McPbrPipeline.Internal.Input
             foreach (var directory in reader.EnumerateDirectories(searchPath, "*")) {
                 token.ThrowIfCancellationRequested();
 
-                var mapFile = Path.Combine(directory, "pbr.json");
+                var mapFile = Path.Combine(directory, "pbr.properties");
 
                 if (reader.FileExists(mapFile)) {
-                    TextureCollection texture = null;
+                    PbrProperties texture = null;
 
                     try {
                         texture = await LoadLocalTextureAsync(mapFile, token);
@@ -63,7 +63,7 @@ namespace McPbrPipeline.Internal.Input
                 var ignoreList = new List<string>();
 
                 foreach (var filename in reader.EnumerateFiles(directory, "*.pbr")) {
-                    TextureCollection texture = null;
+                    PbrProperties texture = null;
 
                     try {
                         texture = await LoadGlobalTextureAsync(filename, token);
@@ -95,25 +95,33 @@ namespace McPbrPipeline.Internal.Input
             }
         }
 
-        public async Task<TextureCollection> LoadGlobalTextureAsync(string localFile, CancellationToken token = default)
+        public async Task<PbrProperties> LoadGlobalTextureAsync(string localFile, CancellationToken token = default)
         {
-            return new TextureCollection {
+            var properties = new PbrProperties {
                 Name = Path.GetFileNameWithoutExtension(localFile),
                 Path = Path.GetDirectoryName(localFile),
-                Map = await reader.ReadJsonAsync<TextureMap>(localFile, token),
                 UseGlobalMatching = true,
             };
+
+            await using var stream = reader.Open(localFile);
+            await properties.ReadAsync(stream, token);
+
+            return properties;
         }
 
-        public async Task<TextureCollection> LoadLocalTextureAsync(string localFile, CancellationToken token = default)
+        public async Task<PbrProperties> LoadLocalTextureAsync(string localFile, CancellationToken token = default)
         {
             var itemPath = Path.GetDirectoryName(localFile);
 
-            return new TextureCollection {
+            var properties = new PbrProperties {
                 Name = Path.GetFileName(itemPath),
                 Path = Path.GetDirectoryName(itemPath),
-                Map = await reader.ReadJsonAsync<TextureMap>(localFile, token),
             };
+
+            await using var stream = reader.Open(localFile);
+            await properties.ReadAsync(stream, token);
+
+            return properties;
         }
 
         private static readonly string[] IgnoredExtensions = {".zip", ".db", ".cmd", ".sh", ".xcf", ".psd"};

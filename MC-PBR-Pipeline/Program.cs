@@ -1,4 +1,5 @@
-﻿using McPbrPipeline.Internal.Input;
+﻿using McPbrPipeline.Internal;
+using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Publishing;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -9,11 +10,21 @@ namespace McPbrPipeline
 {
     internal class Program
     {
+        private static readonly AppLifetime lifetime;
+
+
+        static Program()
+        {
+            lifetime = new AppLifetime();
+        }
+
         public static async Task<int> Main(string[] args)
         {
+            Console.CancelKeyPress += Console_OnCancelKeyPress;
+
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
-                .MinimumLevel.Warning()
+                .MinimumLevel.Information()
                 .WriteTo.Console()
                 .CreateLogger();
 
@@ -41,9 +52,17 @@ namespace McPbrPipeline
                 builder.AddSerilog();
             });
 
+            services.AddSingleton<IAppLifetime>(lifetime);
             services.AddSingleton<IAppCommandLine, AppCommandLine>();
             services.AddSingleton<IFileLoader, FileLoader>();
             services.AddSingleton<IPublisher, Publisher>();
+        }
+
+        private static void Console_OnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            ConsoleEx.WriteLine("Cancelling...", ConsoleColor.Yellow);
+            lifetime.Cancel();
+            e.Cancel = true;
         }
     }
 }

@@ -1,10 +1,16 @@
-﻿using McPbrPipeline.Filters;
+﻿using McPbrPipeline.ImageProcessors;
 using McPbrPipeline.Internal.Filtering;
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors;
+using SixLabors.ImageSharp.Processing.Processors.Convolution;
+using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Threading;
@@ -16,78 +22,109 @@ namespace McPbrPipeline.Internal.Publishing
     {
         public NormalTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
 
-        public async Task PublishAsync(TextureCollection texture, CancellationToken token)
+        public async Task PublishAsync(IPbrProperties texture, CancellationToken token)
         {
             var sourcePath = Profile.GetSourcePath(texture.Path);
             if (!texture.UseGlobalMatching) sourcePath = Path.Combine(sourcePath, texture.Name);
-            var destinationFilename = Path.Combine(texture.Path, $"{texture.Name}_n.png");
-            var normalMap = texture.Map.Normal;
-            var heightMap = texture.Map.Height;
+            var destinationFile = Path.Combine(texture.Path, $"{texture.Name}_n.png");
 
-            var fromHeight = normalMap?.FromHeight ?? true;
+            Rgba32? sourceColor = null;
+            if (TryGetNormalAngle(texture, out var normalAngle)) {
+                MathEx.Normalize(ref normalAngle);
 
-            var filters = new FilterChain(Reader, Writer) {
-                DestinationFilename = destinationFilename,
-            };
-
-            if (normalMap?.Angle != null && normalMap.Angle.Length == 3) {
-                var vector = new Vector3(
-                    normalMap.Angle[0],
-                    normalMap.Angle[1],
-                    normalMap.Angle[2]);
-
-                MathEx.Normalize(ref vector);
-
-                filters.SourceColor = new Rgba32(
-                    vector.X * 0.5f + 0.5f,
-                    vector.Y * 0.5f + 0.5f,
-                    vector.Z);
+                sourceColor = new Rgba32(
+                    normalAngle.X * 0.5f + 0.5f,
+                    normalAngle.Y * 0.5f + 0.5f,
+                    normalAngle.Z);
             }
 
-            var existingNormal = GetFilename(texture, TextureTags.Normal, sourcePath, normalMap?.Texture);
-            var existingHeight = GetFilename(texture, TextureTags.Height, sourcePath, normalMap?.Heightmap ?? heightMap?.Texture);
+            var existingNormal = GetFilename(texture, TextureTags.Normal, sourcePath, texture.NormalTexture);
+            var existingHeight = GetFilename(texture, TextureTags.Height, sourcePath, texture.HeightTexture);
 
-            var depthScale = heightMap?.Scale ?? normalMap?.DepthScale ?? 1f;
-
+            string sourceFile = null;
             if (existingNormal != null && File.Exists(existingNormal)) {
-                filters.SourceFilename = existingNormal;
+                sourceFile = existingNormal;
+            }
+            else if (texture.NormalFromHeight && existingHeight != null) {
+                sourceFile = existingHeight;
+            }
 
-                if (Math.Abs(depthScale - 1) > float.Epsilon) {
-                    var options = new NormalMapOptions {
-                        DepthScale = depthScale,
+            await PublishAsync(sourceFile, sourceColor, destinationFile, context => {
+                if (existingNormal != null && File.Exists(existingNormal)) {
+                    if (Math.Abs(texture.HeightScale - 1) > float.Epsilon) {
+                        var options = new NormalMapOptions {
+                            DepthScale = texture.HeightScale,
+                        };
+
+                        var processor = new NormalDepthProcessor(options);
+                        context.ApplyProcessor(processor);
+                    }
+                }
+                else if (texture.NormalFromHeight && existingHeight != null) {
+                    var normalOptions = new NormalMapOptions {
+                        Wrap = texture.Wrap,
+                        Strength = texture.NormalStrength,
+                        DepthScale = texture.NormalDepthScale,
                     };
 
-                    filters.Append(new NormalDepthFilter(options));
+                    //if (texture.NormalBlur != null)
+                    //    normalOptions.Blur = texture.NormalBlur;
+
+                    //if (texture.NormalDownSample != null)
+                    //    normalOptions.DownSample = texture.NormalDownSample.Value;
+
+                    var chain = new List<IImageProcessor>();
+                    var sourceSize = context.GetCurrentSize();
+                    var downSampleSize = new Size();
+
+                    if (normalOptions.DownSample > 1) {
+                        downSampleSize.Width = sourceSize.Width / normalOptions.DownSample;
+                        downSampleSize.Height = sourceSize.Height / normalOptions.DownSample;
+
+                        var resizeOptions = new ResizeOptions {
+                            Mode = ResizeMode.Stretch,
+                            Sampler = KnownResamplers.Bicubic,
+                            Size = downSampleSize,
+                        };
+
+                        chain.Add(new ResizeProcessor(resizeOptions, sourceSize));
+
+                        // TODO: Re-normalize after resize!
+                    }
+
+                    if (normalOptions.Blur > float.Epsilon) {
+                        chain.Add(new GaussianBlurProcessor(normalOptions.Blur));
+                    }
+
+                    chain.Add(new NormalMapProcessor(normalOptions));
+
+                    context.ApplyProcessors(chain.ToArray());
                 }
-            }
-            else if (fromHeight && existingHeight != null) {
-                var options = new NormalMapOptions();
 
-                if (Math.Abs(depthScale - 1) > float.Epsilon)
-                    options.DepthScale = depthScale;
+                Resize(context, texture);
 
-                if (normalMap?.Blur != null)
-                    options.Blur = normalMap.Blur.Value;
+                // TODO: Re-normalize after resize!
+            }, token);
 
-                if (normalMap?.DownSample != null)
-                    options.DownSample = normalMap.DownSample.Value;
+            //if (normalMap?.Metadata != null)
+            //    await PublishMcMetaAsync(normalMap.Metadata, destinationFilename, token);
+        }
 
-                if (normalMap?.Strength != null)
-                    options.Strength = normalMap.Strength.Value;
+        private static bool TryGetNormalAngle(IPbrProperties texture, out Vector3 angle)
+        {
+            var x = texture.Get<float?>(PbrProperty.NormalX);
+            var y = texture.Get<float?>(PbrProperty.NormalX);
+            var z = texture.Get<float?>(PbrProperty.NormalX);
 
-                if (normalMap?.Wrap != null)
-                    options.Wrap = normalMap.Wrap.Value;
-
-                filters.SourceFilename = existingHeight;
-                filters.Append(new NormalFilter(options));
+            if (!x.HasValue && !y.HasValue && !z.HasValue) {
+                angle = Vector3.Zero;
+                return false;
             }
 
-            Resize(filters, texture);
-
-            await filters.ApplyAsync(token);
-
-            if (normalMap?.Metadata != null)
-                await PublishMcMetaAsync(normalMap.Metadata, destinationFilename, token);
+            angle.X = x ?? 0f;
+            angle.Y = y ?? 0f;
+            angle.Z = z ?? 0f;
+            return true;
         }
     }
 }

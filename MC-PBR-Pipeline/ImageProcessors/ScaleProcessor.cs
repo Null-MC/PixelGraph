@@ -1,10 +1,9 @@
-﻿using McPbrPipeline.Internal.Filtering;
+﻿using McPbrPipeline.Internal;
+using McPbrPipeline.Internal.Filtering;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing.Processors;
-using System;
-using McPbrPipeline.Internal;
 
 namespace McPbrPipeline.ImageProcessors
 {
@@ -48,45 +47,30 @@ namespace McPbrPipeline.ImageProcessors
 
         private readonly struct RowOperation : IRowOperation
         {
-            //private readonly Configuration configuration;
             private readonly ImageFrame<TPixel> sourceFrame;
             private readonly ScaleOptions options;
 
 
             public RowOperation(
-                //Configuration configuration,
                 ImageFrame<TPixel> sourceFrame,
                 in ScaleOptions options)
             {
-                //this.configuration = configuration;
                 this.sourceFrame = sourceFrame;
                 this.options = options;
             }
 
             public void Invoke(int y)
             {
-                var rScale = options.Red ?? 1f;
-                var gScale = options.Green ?? 1f;
-                var bScale = options.Blue ?? 1f;
-                var aScale = options.Alpha ?? 1f;
-
                 var row = sourceFrame.GetPixelRowSpan(y);
 
                 var pixel = new Rgba32();
                 for (var x = 0; x < sourceFrame.Width; x++) {
                     row[x].ToRgba32(ref pixel);
 
-                    if (options.Red.HasValue)
-                        pixel.R = Filter(in pixel.R, in rScale);
-
-                    if (options.Green.HasValue)
-                        pixel.G = Filter(in pixel.G, in gScale);
-
-                    if (options.Blue.HasValue)
-                        pixel.B = Filter(in pixel.B, in bScale);
-
-                    if (options.Alpha.HasValue)
-                        pixel.A = Filter(in pixel.A, in aScale);
+                    pixel.R = Filter(in pixel.R, in options.Red);
+                    pixel.G = Filter(in pixel.G, in options.Green);
+                    pixel.B = Filter(in pixel.B, in options.Blue);
+                    pixel.A = Filter(in pixel.A, in options.Alpha);
 
                     row[x].FromRgba32(pixel);
                 }

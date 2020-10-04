@@ -36,28 +36,28 @@ namespace McPbrPipeline.Internal.Filtering
             filterList.Add(filter);
         }
 
-        public async Task ApplyAsync(CancellationToken token = default)
-        {
-            if (string.IsNullOrEmpty(DestinationFilename))
-                throw new ArgumentException("Value cannot be null or empty!", nameof(DestinationFilename));
+        //public async Task ApplyAsync(CancellationToken token = default)
+        //{
+        //    if (string.IsNullOrEmpty(DestinationFilename))
+        //        throw new ArgumentException("Value cannot be null or empty!", nameof(DestinationFilename));
 
-            using var sourceImage = await LoadSourceImageAsync(token);
-            using var targetImage = new Image<Rgba32>(Configuration.Default, sourceImage.Width, sourceImage.Height);
+        //    using var sourceImage = await LoadSourceImageAsync(token);
+        //    using var targetImage = new Image<Rgba32>(Configuration.Default, sourceImage.Width, sourceImage.Height);
 
-            var brush = new ImageBrush(sourceImage);
-            targetImage.Mutate(c => c.Clear(brush));
+        //    var brush = new ImageBrush(sourceImage);
+        //    targetImage.Mutate(c => c.Clear(brush));
 
-            targetImage.Mutate(context => {
-                foreach (var filter in filterList)
-                    filter.Apply(context);
-            });
+        //    targetImage.Mutate(context => {
+        //        foreach (var filter in filterList)
+        //            filter.Apply(context);
+        //    });
 
-            var path = Path.GetDirectoryName(DestinationFilename);
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+        //    var path = Path.GetDirectoryName(DestinationFilename);
+        //    if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
-            await using var stream = writer.WriteFile(DestinationFilename);
-            await targetImage.SaveAsPngAsync(stream, token);
-        }
+        //    await using var stream = writer.WriteFile(DestinationFilename);
+        //    await targetImage.SaveAsPngAsync(stream, token);
+        //}
 
         private async Task<Image> LoadSourceImageAsync(CancellationToken token)
         {

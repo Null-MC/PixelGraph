@@ -1,5 +1,4 @@
-﻿using McPbrPipeline.Internal.Filtering;
-using McPbrPipeline.Internal.Input;
+﻿using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using System.IO;
 using System.Threading;
@@ -17,14 +16,11 @@ namespace McPbrPipeline.Internal.Publishing
             var name = Path.GetFileNameWithoutExtension(filename);
             var newName = $"{name}.png";
 
-            var filters = new FilterChain(Reader, Writer) {
-                SourceFilename = filename,
-                DestinationFilename = path == null ? newName : Path.Combine(path, newName),
-            };
+            var destinationFile = path == null ? newName : Path.Combine(path, newName);
 
-            Resize(filters, null);
-
-            await filters.ApplyAsync(token);
+            await PublishAsync(filename, null, destinationFile, context => {
+                Resize(context, null);
+            }, token);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using McPbrPipeline.Internal.Textures;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -8,6 +9,7 @@ namespace McPbrPipeline.Internal
     public interface IProfile
     {
         string Source {get;}
+        DateTime ProfileWriteTime {get;}
         int PackFormat {get;}
         string Description {get;}
         List<string> Tags {get;}
@@ -46,6 +48,9 @@ namespace McPbrPipeline.Internal
     {
         [JsonIgnore]
         public string Source {get; set;}
+
+        [JsonIgnore]
+        public DateTime ProfileWriteTime {get; set;}
 
         public int PackFormat {get; set;}
         public string Description {get; set;}

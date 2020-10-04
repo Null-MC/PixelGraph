@@ -2,7 +2,7 @@
 
 namespace McPbrPipeline.Internal.Filtering
 {
-    internal struct RangeOptions
+    internal class RangeOptions
     {
         public float? RedMin;
         public float? RedMax;

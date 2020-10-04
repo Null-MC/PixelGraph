@@ -21,8 +21,6 @@ namespace McPbrPipeline.Filters
 
         public void Apply(IImageProcessingContext context)
         {
-            var processor = new ScaleProcessor(Options);
-            context.ApplyProcessor(processor);
         }
     }
 }

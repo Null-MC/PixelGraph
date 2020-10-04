@@ -9,13 +9,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Filters\**" />
     <Compile Remove="Services\**" />
+    <EmbeddedResource Remove="Filters\**" />
     <EmbeddedResource Remove="Services\**" />
+    <None Remove="Filters\**" />
     <None Remove="Services\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Internal\Filtering\FilterChain.cs" />
     <Compile Remove="Internal\Filtering\FilterCollection.cs" />
+    <Compile Remove="Internal\Filtering\IImageFilter.cs" />
+    <Compile Remove="Internal\Textures\AlbedoTextureMap.cs" />
+    <Compile Remove="Internal\Textures\EmissiveTextureMap.cs" />
+    <Compile Remove="Internal\Textures\HeightTextureMap.cs" />
+    <Compile Remove="Internal\Textures\Material.cs" />
+    <Compile Remove="Internal\Textures\NormalTextureMap.cs" />
+    <Compile Remove="Internal\Textures\SpecularTextureMap.cs" />
+    <Compile Remove="Internal\Textures\TextureCollection.cs" />
+    <Compile Remove="Internal\Textures\TextureMap.cs" />
   </ItemGroup>
 
   <ItemGroup>

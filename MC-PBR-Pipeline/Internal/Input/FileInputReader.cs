@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,6 +58,13 @@ namespace McPbrPipeline.Internal.Input
         {
             var fullFile = Path.Combine(root, localFile);
             return File.Exists(fullFile);
+        }
+
+        public DateTime? GetWriteTime(string localFile)
+        {
+            var fullFile = Path.Combine(root, localFile);
+            if (!File.Exists(fullFile)) return null;
+            return File.GetLastWriteTime(fullFile);
         }
     }
 }

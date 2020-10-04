@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace McPbrPipeline.Internal.Output
@@ -21,6 +22,18 @@ namespace McPbrPipeline.Internal.Output
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
 
             return File.Open(filename, FileMode.Create, FileAccess.Write);
+        }
+
+        public void Clean()
+        {
+            Directory.Delete(destinationPath, true);
+        }
+
+        public DateTime? GetWriteTime(string localFile)
+        {
+            var fullFile = Path.Combine(destinationPath, localFile);
+            if (!File.Exists(fullFile)) return null;
+            return File.GetLastWriteTime(fullFile);
         }
 
         public ValueTask DisposeAsync() => default;
