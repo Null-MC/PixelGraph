@@ -3,7 +3,7 @@ using SixLabors.ImageSharp.Processing.Processors.Transforms;
 using System;
 using System.Collections.Generic;
 
-namespace McPbrPipeline.Internal.Filtering
+namespace McPbrPipeline.Internal.Textures
 {
     internal static class Samplers
     {

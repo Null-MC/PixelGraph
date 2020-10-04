@@ -9,39 +9,34 @@ namespace McPbrPipeline.ImageProcessors
 {
     internal class ScaleProcessor : IImageProcessor
     {
-        public ScaleOptions Options {get; set;}
+        private readonly ScaleOptions options;
 
-
-        public ScaleProcessor()
-        {
-            Options = new ScaleOptions();
-        }
 
         public ScaleProcessor(ScaleOptions options)
         {
-            Options = options;
+            this.options = options;
         }
 
         public IImageProcessor<TPixel> CreatePixelSpecificProcessor<TPixel>(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle) where TPixel : unmanaged, IPixel<TPixel>
         {
-            return new ScaleProcessor<TPixel>(this, source, configuration, sourceRectangle);
+            return new ScaleProcessor<TPixel>(source, configuration, sourceRectangle, options);
         }
     }
 
     internal class ScaleProcessor<TPixel> : ImageProcessor<TPixel> where TPixel : unmanaged, IPixel<TPixel>
     {
-        private readonly ScaleProcessor processor;
+        private readonly ScaleOptions options;
 
 
-        public ScaleProcessor(ScaleProcessor processor, Image<TPixel> source, Configuration configuration, Rectangle sourceRectangle)
+        public ScaleProcessor(Image<TPixel> source, Configuration configuration, Rectangle sourceRectangle, ScaleOptions options)
             : base(configuration, source, sourceRectangle)
         {
-            this.processor = processor;
+            this.options = options;
         }
 
         protected override void OnFrameApply(ImageFrame<TPixel> source)
         {
-            var operation = new RowOperation(source, processor.Options);
+            var operation = new RowOperation(source, options);
             ParallelRowIterator.IterateRows(Configuration, SourceRectangle, in operation);
         }
 

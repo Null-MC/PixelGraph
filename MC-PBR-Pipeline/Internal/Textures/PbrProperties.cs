@@ -53,10 +53,14 @@ namespace McPbrPipeline.Internal.Textures
 
         public T Get<T>(string key, T defaultValue = default)
         {
-            if (!properties.TryGetValue(key, out var value))
-                return defaultValue;
+            if (!properties.TryGetValue(key, out var stringValue)) return defaultValue;
+            if (string.IsNullOrEmpty(stringValue)) return defaultValue;
 
-            return (T)Convert.ChangeType(value, typeof(T));
+            var valueType = typeof(T);
+            if (valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                valueType = Nullable.GetUnderlyingType(valueType) ?? valueType;
+
+            return (T)Convert.ChangeType(stringValue, valueType);
         }
 
         public async Task ReadAsync(Stream stream, CancellationToken token = default)

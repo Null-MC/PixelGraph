@@ -9,55 +9,47 @@ namespace McPbrPipeline.ImageProcessors
 {
     internal class RangeProcessor : IImageProcessor
     {
-        public RangeOptions Options {get; set;}
+        private readonly RangeOptions options;
 
-
-        public RangeProcessor()
-        {
-            Options = new RangeOptions();
-        }
 
         public RangeProcessor(RangeOptions options)
         {
-            Options = options;
+            this.options = options;
         }
 
         public IImageProcessor<TPixel> CreatePixelSpecificProcessor<TPixel>(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle) where TPixel : unmanaged, IPixel<TPixel>
         {
-            return new RangeProcessor<TPixel>(this, source, configuration, sourceRectangle);
+            return new RangeProcessor<TPixel>(source, configuration, sourceRectangle, options);
         }
     }
 
     internal class RangeProcessor<TPixel> : ImageProcessor<TPixel> where TPixel : unmanaged, IPixel<TPixel>
     {
-        private readonly RangeProcessor processor;
+        private readonly RangeOptions options;
 
 
-        public RangeProcessor(RangeProcessor processor, Image<TPixel> source, Configuration configuration, Rectangle sourceRectangle)
+        public RangeProcessor(Image<TPixel> source, Configuration configuration, Rectangle sourceRectangle, RangeOptions options)
             : base(configuration, source, sourceRectangle)
         {
-            this.processor = processor;
+            this.options = options;
         }
 
         protected override void OnFrameApply(ImageFrame<TPixel> source)
         {
-            var operation = new RowOperation(source, processor.Options);
+            var operation = new RowOperation(source, options);
             ParallelRowIterator.IterateRows(Configuration, SourceRectangle, in operation);
         }
 
         private readonly struct RowOperation : IRowOperation
         {
-            //private readonly Configuration configuration;
             private readonly ImageFrame<TPixel> sourceFrame;
             private readonly RangeOptions options;
 
 
             public RowOperation(
-                //Configuration configuration,
                 ImageFrame<TPixel> sourceFrame,
                 RangeOptions options)
             {
-                //this.configuration = configuration;
                 this.sourceFrame = sourceFrame;
                 this.options = options;
             }

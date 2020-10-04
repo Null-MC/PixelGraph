@@ -1,9 +1,8 @@
-﻿using McPbrPipeline.CommandLine;
-using System;
+﻿using System;
 using System.CommandLine;
 using System.Threading.Tasks;
 
-namespace McPbrPipeline
+namespace McPbrPipeline.CommandLine
 {
     internal interface IAppCommandLine
     {

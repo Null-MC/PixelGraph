@@ -185,7 +185,7 @@ namespace McPbrPipeline.Internal.Publishing
             }
         }
 
-        private bool IsUpToDate(DateTime profileWriteTime, DateTime? sourceWriteTime, DateTime? destWriteTime)
+        private static bool IsUpToDate(DateTime profileWriteTime, DateTime? sourceWriteTime, DateTime? destWriteTime)
         {
             if (!destWriteTime.HasValue || !sourceWriteTime.HasValue) return false;
             if (profileWriteTime > destWriteTime.Value) return false;

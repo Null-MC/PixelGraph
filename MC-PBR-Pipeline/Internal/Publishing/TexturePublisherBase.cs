@@ -2,8 +2,6 @@
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -84,8 +82,11 @@ namespace McPbrPipeline.Internal.Publishing
                 return await Image.LoadAsync(Configuration.Default, stream, token);
             }
 
-            if (sourceColor.HasValue)
+            if (sourceColor.HasValue) {
+                // TODO: support texture sizing?
+
                 return new Image<Rgba32>(Configuration.Default, 1, 1, sourceColor.Value);
+            }
 
             throw new SourceEmptyException("No Source image was found, and no color is defined!");
         }
@@ -114,11 +115,11 @@ namespace McPbrPipeline.Internal.Publishing
             return null;
         }
 
-        protected static Task PublishMcMetaAsync(JToken metadata, string textureDestinationFilename, CancellationToken token)
-        {
-            var mcMetaDestinationFilename = $"{textureDestinationFilename}.mcmeta";
-            return JsonFile.WriteAsync(mcMetaDestinationFilename, metadata, Formatting.Indented, token);
-        }
+        //protected static Task PublishMcMetaAsync(JToken metadata, string textureDestinationFilename, CancellationToken token)
+        //{
+        //    var mcMetaDestinationFilename = $"{textureDestinationFilename}.mcmeta";
+        //    return JsonFile.WriteAsync(mcMetaDestinationFilename, metadata, Formatting.Indented, token);
+        //}
 
         private static string GetMatchName(IPbrProperties texture, string type)
         {

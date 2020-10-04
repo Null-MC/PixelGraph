@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 
 namespace McPbrPipeline.Internal.Input
 {
-    internal interface IFileLoader
-    {
-        IAsyncEnumerable<object> LoadAsync(CancellationToken token = default);
-    }
+    //internal interface IFileLoader
+    //{
+    //    IAsyncEnumerable<object> LoadAsync(CancellationToken token = default);
+    //}
 
-    internal class FileLoader : IFileLoader
+    internal class FileLoader //: IFileLoader
     {
         private readonly IInputReader reader;
         private readonly ILogger logger;

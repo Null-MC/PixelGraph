@@ -113,8 +113,8 @@ namespace McPbrPipeline.Internal.Publishing
         private static bool TryGetNormalAngle(IPbrProperties texture, out Vector3 angle)
         {
             var x = texture.Get<float?>(PbrProperty.NormalX);
-            var y = texture.Get<float?>(PbrProperty.NormalX);
-            var z = texture.Get<float?>(PbrProperty.NormalX);
+            var y = texture.Get<float?>(PbrProperty.NormalY);
+            var z = texture.Get<float?>(PbrProperty.NormalZ);
 
             if (!x.HasValue && !y.HasValue && !z.HasValue) {
                 angle = Vector3.Zero;
@@ -124,6 +124,7 @@ namespace McPbrPipeline.Internal.Publishing
             angle.X = x ?? 0f;
             angle.Y = y ?? 0f;
             angle.Z = z ?? 0f;
+            MathEx.Normalize(ref angle);
             return true;
         }
     }
