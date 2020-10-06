@@ -9,7 +9,7 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal class EmissiveTexturePublisher : TexturePublisherBase
     {
-        public EmissiveTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
+        public EmissiveTexturePublisher(PackProperties pack, IInputReader reader, IOutputWriter writer) : base(pack, reader, writer) {}
 
         public async Task PublishAsync(PbrProperties texture, CancellationToken token)
         {

@@ -8,7 +8,7 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal class GenericTexturePublisher : TexturePublisherBase
     {
-        public GenericTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
+        public GenericTexturePublisher(PackProperties pack, IInputReader reader, IOutputWriter writer) : base(pack, reader, writer) {}
 
         public async Task PublishAsync(string filename, CancellationToken token)
         {

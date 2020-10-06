@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace McPbrPipeline.Internal.Publishing
+namespace McPbrPipeline.Internal.Output
 {
     internal class PackMetadata
     {

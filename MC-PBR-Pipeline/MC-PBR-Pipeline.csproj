@@ -21,11 +21,17 @@
     <Compile Remove="Internal\Filtering\FilterChain.cs" />
     <Compile Remove="Internal\Filtering\FilterCollection.cs" />
     <Compile Remove="Internal\Filtering\IImageFilter.cs" />
+    <Compile Remove="Internal\Profile.cs" />
+    <Compile Remove="Internal\Publishing\AlbedoTexturePublisher.cs" />
+    <Compile Remove="Internal\Publishing\EmissiveTexturePublisher.cs" />
+    <Compile Remove="Internal\Publishing\NormalTexturePublisher.cs" />
+    <Compile Remove="Internal\Publishing\SpecularTexturePublisher.cs" />
     <Compile Remove="Internal\Textures\AlbedoTextureMap.cs" />
     <Compile Remove="Internal\Textures\EmissiveTextureMap.cs" />
     <Compile Remove="Internal\Textures\HeightTextureMap.cs" />
     <Compile Remove="Internal\Textures\Material.cs" />
     <Compile Remove="Internal\Textures\NormalTextureMap.cs" />
+    <Compile Remove="Internal\Textures\PbrProperty.cs" />
     <Compile Remove="Internal\Textures\SpecularTextureMap.cs" />
     <Compile Remove="Internal\Textures\TextureCollection.cs" />
     <Compile Remove="Internal\Textures\TextureMap.cs" />

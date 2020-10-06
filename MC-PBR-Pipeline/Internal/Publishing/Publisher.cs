@@ -1,5 +1,4 @@
-﻿using McPbrPipeline.Internal.Filtering;
-using McPbrPipeline.Internal.Input;
+﻿using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,9 +34,17 @@ namespace McPbrPipeline.Internal.Publishing
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
 
-            var profile = await JsonFile.ReadAsync<Profile>(options.Profile, token);
-            profile.Source = Path.GetDirectoryName(options.Profile);
-            profile.ProfileWriteTime = File.GetLastWriteTime(options.Profile);
+            var pack = new PackProperties {
+                Source = Path.GetDirectoryName(options.Profile),
+                WriteTime = File.GetLastWriteTime(options.Profile),
+            };
+
+            await using (var stream = File.Open(options.Profile, FileMode.Open, FileAccess.Read)) {
+                await pack.ReadAsync(stream, token);
+            }
+
+            pack.ApplyInputFormat();
+            pack.ApplyOutputFormat();
 
             await using var output = GetOutputWriter(options.Destination, options.Compress);
 
@@ -55,20 +62,20 @@ namespace McPbrPipeline.Internal.Publishing
                 }
             }
 
-            await PublishPackMetaAsync(profile, output, token);
+            await PublishPackMetaAsync(pack, output, token);
 
-            await PublishContentAsync(profile, output, token);
+            await PublishContentAsync(pack, output, token);
         }
 
-        private static Task PublishPackMetaAsync(IProfile profile, IOutputWriter writer, CancellationToken token)
+        private static Task PublishPackMetaAsync(PackProperties pack, IOutputWriter writer, CancellationToken token)
         {
             var packMeta = new PackMetadata {
-                PackFormat = profile.PackFormat,
-                Description = profile.Description ?? string.Empty,
+                PackFormat = pack.PackFormat,
+                Description = pack.PackDescription ?? string.Empty,
             };
 
-            if (profile.Tags != null) {
-                packMeta.Description += $"\n{string.Join(' ', profile.Tags)}";
+            if (pack.PackTags != null) {
+                packMeta.Description += $"\n{string.Join(' ', pack.PackTags)}";
             }
 
             var data = new {pack = packMeta};
@@ -76,16 +83,13 @@ namespace McPbrPipeline.Internal.Publishing
             return JsonFile.WriteAsync(stream, data, Formatting.Indented, token);
         }
 
-        public async Task PublishContentAsync(IProfile profile, IOutputWriter writer, CancellationToken token = default)
+        public async Task PublishContentAsync(PackProperties pack, IOutputWriter writer, CancellationToken token = default)
         {
-            var reader = new FileInputReader(profile.Source);
+            var reader = new FileInputReader(pack.Source);
             var loader = new FileLoader(provider, reader);
+            var graph = new TextureGraph(pack, reader, writer);
 
-            var albedoPublisher = new AlbedoTexturePublisher(profile, reader, writer);
-            var normalPublisher = new NormalTexturePublisher(profile, reader, writer);
-            var specularPublisher = new SpecularTexturePublisher(profile, reader, writer);
-            var emissivePublisher = new EmissiveTexturePublisher(profile, reader, writer);
-            var genericPublisher = new GenericTexturePublisher(profile, reader, writer);
+            var genericPublisher = new GenericTexturePublisher(pack, reader, writer);
 
             var fontPath = Path.Combine("assets", "minecraft", "textures", "font");
             var guiPath = Path.Combine("assets", "minecraft", "textures", "gui");
@@ -97,68 +101,14 @@ namespace McPbrPipeline.Internal.Publishing
                     case PbrProperties texture:
                         logger.LogDebug($"Publishing texture '{texture.Name}'.");
 
-                        if (profile.IncludeAlbedo ?? true) {
-                            try {
-                                await albedoPublisher.PublishAsync(texture, token);
-
-                                logger.LogInformation($"Albedo texture generated for item '{texture.Name}'.");
-                            }
-                            catch (SourceEmptyException) {
-                                logger.LogWarning($"No albedo texture to publish for item '{texture.Name}'.");
-                            }
-                            catch (Exception error) {
-                                logger.LogError(error, $"Failed to publish albedo texture '{texture.Name}'!");
-                            }
-                        }
-
-                        if (profile.IncludeNormal ?? true) {
-                            try {
-                                await normalPublisher.PublishAsync(texture, token);
-
-                                logger.LogInformation($"Normal texture generated for item '{texture.Name}'.");
-                            }
-                            catch (SourceEmptyException) {
-                                logger.LogWarning($"No normal texture to publish for item '{texture.Name}'.");
-                            }
-                            catch (Exception error) {
-                                logger.LogError(error, $"Failed to publish normal texture '{texture.Name}'!");
-                            }
-                        }
-
-                        if (profile.IncludeSpecular ?? true) {
-                            try {
-                                await specularPublisher.PublishAsync(texture, token);
-
-                                logger.LogInformation($"Specular texture generated for item '{texture.Name}'.");
-                            }
-                            catch (SourceEmptyException) {
-                                logger.LogWarning($"No specular texture to publish for item '{texture.Name}'.");
-                            }
-                            catch (Exception error) {
-                                logger.LogError(error, $"Failed to publish specular texture '{texture.Name}'!");
-                            }
-                        }
-
-                        if (profile.IncludeEmissive ?? true) {
-                            try {
-                                await emissivePublisher.PublishAsync(texture, token);
-
-                                logger.LogInformation($"Emissive texture generated for item '{texture.Name}'.");
-                            }
-                            catch (SourceEmptyException) {
-                                //logger.LogWarning($"No emissive texture to publish for item '{texture.Name}'.");
-                            }
-                            catch (Exception error) {
-                                logger.LogError(error, $"Failed to publish emissive texture '{texture.Name}'!");
-                            }
-                        }
+                        await graph.BuildAsync(texture, token);
 
                         break;
                     case string localName:
                         var sourceTime = reader.GetWriteTime(localName);
                         var destinationTime = writer.GetWriteTime(localName);
 
-                        if (IsUpToDate(profile.ProfileWriteTime, sourceTime, destinationTime)) {
+                        if (IsUpToDate(pack.WriteTime, sourceTime, destinationTime)) {
                             logger.LogDebug($"Skipping up-to-date file '{localName}'.");
                             continue;
                         }
@@ -173,15 +123,14 @@ namespace McPbrPipeline.Internal.Publishing
                             await genericPublisher.PublishAsync(localName, token);
                         }
                         else {
-                            var filename = profile.GetSourcePath(localName);
-                            await using var srcStream = File.Open(filename, FileMode.Open, FileAccess.Read);
+                            await using var srcStream = reader.Open(localName);
                             await using var destStream = writer.WriteFile(localName);
                             await srcStream.CopyToAsync(destStream, token);
                         }
 
                         logger.LogInformation($"Published untracked file '{localName}'.");
                         break;
-                    }
+                }
             }
         }
 

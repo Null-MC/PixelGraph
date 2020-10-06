@@ -13,7 +13,7 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal class SpecularTexturePublisher : TexturePublisherBase
     {
-        public SpecularTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
+        public SpecularTexturePublisher(PackProperties pack, IInputReader reader, IOutputWriter writer) : base(pack, reader, writer) {}
 
         public async Task PublishAsync(PbrProperties texture, CancellationToken token)
         {
@@ -32,7 +32,7 @@ namespace McPbrPipeline.Internal.Publishing
 
                 Resize(context, texture);
 
-                if (!Profile.SpecularChannelsMatch())
+                if (!Pack.SpecularChannelsMatch())
                     ApplyChannelMapFilter(context);
             }, token);
 
@@ -44,17 +44,17 @@ namespace McPbrPipeline.Internal.Publishing
         {
             var options = new ScaleOptions();
 
-            if (Profile.SpecularIn.Smooth != ColorChannel.None)
-                options.Set(Profile.SpecularIn.Smooth, texture.SmoothScale);
+            if (Pack.SpecularIn.Smooth != ColorChannel.None)
+                options.Set(Pack.SpecularIn.Smooth, texture.SmoothScale);
 
-            if (Profile.SpecularIn.Rough != ColorChannel.None)
-                options.Set(Profile.SpecularIn.Rough, texture.RoughScale);
+            if (Pack.SpecularIn.Rough != ColorChannel.None)
+                options.Set(Pack.SpecularIn.Rough, texture.RoughScale);
 
-            if (Profile.SpecularIn.Metal != ColorChannel.None)
-                options.Set(Profile.SpecularIn.Metal, texture.MetalScale);
+            if (Pack.SpecularIn.Metal != ColorChannel.None)
+                options.Set(Pack.SpecularIn.Metal, texture.MetalScale);
 
-            if (Profile.SpecularIn.Emissive != ColorChannel.None)
-                options.Set(Profile.SpecularIn.Emissive, texture.EmissiveScale);
+            if (Pack.SpecularIn.Emissive != ColorChannel.None)
+                options.Set(Pack.SpecularIn.Emissive, texture.EmissiveScale);
 
             if (!options.Any) return;
 
@@ -107,10 +107,10 @@ namespace McPbrPipeline.Internal.Publishing
                 AlphaSource = ColorChannel.Alpha,
             };
 
-            options.Set(Profile.SpecularIn.Rough, Profile.SpecularOut.Rough);
-            options.Set(Profile.SpecularIn.Smooth, Profile.SpecularOut.Smooth);
-            options.Set(Profile.SpecularIn.Metal, Profile.SpecularOut.Metal);
-            options.Set(Profile.SpecularIn.Emissive, Profile.SpecularOut.Emissive);
+            options.Set(Pack.SpecularIn.Rough, Pack.SpecularOut.Rough);
+            options.Set(Pack.SpecularIn.Smooth, Pack.SpecularOut.Smooth);
+            options.Set(Pack.SpecularIn.Metal, Pack.SpecularOut.Metal);
+            options.Set(Pack.SpecularIn.Emissive, Pack.SpecularOut.Emissive);
 
             var processor = new ChannelMapProcessor(options);
             context.ApplyProcessor(processor);

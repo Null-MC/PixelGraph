@@ -14,17 +14,17 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal abstract class TexturePublisherBase
     {
-        protected IProfile Profile {get;}
+        protected PackProperties Pack {get;}
         protected IInputReader Reader {get;}
         protected IOutputWriter Writer {get;}
 
 
         protected TexturePublisherBase(
-            IProfile profile,
+            PackProperties pack,
             IInputReader reader,
             IOutputWriter writer)
         {
-            Profile = profile;
+            Pack = pack;
             Reader = reader;
             Writer = writer;
         }
@@ -50,22 +50,22 @@ namespace McPbrPipeline.Internal.Publishing
         protected void Resize(IImageProcessingContext context, PbrProperties texture)
         {
             if (!(texture?.ResizeEnabled ?? true)) return;
-            if (!Profile.TextureSize.HasValue && !Profile.TextureScale.HasValue) return;
+            if (!Pack.TextureSize.HasValue && !Pack.TextureScale.HasValue) return;
 
             var (width, height) = context.GetCurrentSize();
 
             var resampler = KnownResamplers.Bicubic;
-            if (Profile.ResizeSampler != null && Samplers.TryParse(Profile.ResizeSampler, out var _resampler))
+            if (Pack.Sampler != null && Samplers.TryParse(Pack.Sampler, out var _resampler))
                 resampler = _resampler;
 
-            if (Profile.TextureSize.HasValue) {
-                if (width == Profile.TextureSize) return;
+            if (Pack.TextureSize.HasValue) {
+                if (width == Pack.TextureSize) return;
 
-                context.Resize(Profile.TextureSize.Value, 0, resampler);
+                context.Resize(Pack.TextureSize.Value, 0, resampler);
             }
             else {
-                var targetWidth = (int)Math.Max(width * Profile.TextureScale.Value, 1f);
-                var targetHeight = (int)Math.Max(height * Profile.TextureScale.Value, 1f);
+                var targetWidth = (int)Math.Max(width * Pack.TextureScale.Value, 1f);
+                var targetHeight = (int)Math.Max(height * Pack.TextureScale.Value, 1f);
 
                 context.Resize(targetWidth, targetHeight, resampler);
             }

@@ -25,5 +25,10 @@ namespace McPbrPipeline.Internal
         {
             return (byte)Math.Clamp(value * 255f, 0f, 255f);
         }
+
+        public static byte Saturate(double value)
+        {
+            return (byte)Math.Clamp(value * 255, 0, 255);
+        }
     }
 }

@@ -1,5 +1,4 @@
-﻿using McPbrPipeline.Internal.Textures;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -115,6 +114,6 @@ namespace McPbrPipeline.Internal.Input
             return properties;
         }
 
-        private static readonly string[] IgnoredExtensions = {".zip", ".db", ".cmd", ".sh", ".xcf", ".psd"};
+        private static readonly string[] IgnoredExtensions = {".pbr", ".zip", ".db", ".cmd", ".sh", ".xcf", ".psd"};
     }
 }

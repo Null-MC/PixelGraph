@@ -20,7 +20,7 @@ namespace McPbrPipeline.Internal.Publishing
 {
     internal class NormalTexturePublisher : TexturePublisherBase
     {
-        public NormalTexturePublisher(IProfile profile, IInputReader reader, IOutputWriter writer) : base(profile, reader, writer) {}
+        public NormalTexturePublisher(PackProperties pack, IInputReader reader, IOutputWriter writer) : base(pack, reader, writer) {}
 
         public async Task PublishAsync(PbrProperties texture, CancellationToken token)
         {
@@ -109,18 +109,14 @@ namespace McPbrPipeline.Internal.Publishing
 
         private static bool TryGetNormalAngle(PbrProperties texture, out Vector3 angle)
         {
-            var x = texture.Get<float?>(PbrProperty.NormalX);
-            var y = texture.Get<float?>(PbrProperty.NormalY);
-            var z = texture.Get<float?>(PbrProperty.NormalZ);
-
-            if (!x.HasValue && !y.HasValue && !z.HasValue) {
+            if (!texture.NormalX.HasValue && !texture.NormalY.HasValue && !texture.NormalZ.HasValue) {
                 angle = Vector3.Zero;
                 return false;
             }
 
-            angle.X = x ?? 0f;
-            angle.Y = y ?? 0f;
-            angle.Z = z ?? 0f;
+            angle.X = texture.NormalX ?? 0f;
+            angle.Y = texture.NormalY ?? 0f;
+            angle.Z = texture.NormalZ ?? 0f;
             MathEx.Normalize(ref angle);
             return true;
         }
