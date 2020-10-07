@@ -1,5 +1,6 @@
 ﻿using McPbrPipeline.CommandLine;
 using McPbrPipeline.Internal;
+using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Publishing;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -54,7 +55,6 @@ namespace McPbrPipeline
 
             services.AddSingleton<IAppLifetime>(lifetime);
             services.AddSingleton<IAppCommandLine, AppCommandLine>();
-            //services.AddSingleton<IFileLoader, FileLoader>();
             services.AddSingleton<IPublisher, Publisher>();
         }
 

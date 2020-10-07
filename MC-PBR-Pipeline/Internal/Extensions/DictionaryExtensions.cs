@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace McPbrPipeline.Internal
+namespace McPbrPipeline.Internal.Extensions
 {
     internal static class DictionaryExtensions
     {

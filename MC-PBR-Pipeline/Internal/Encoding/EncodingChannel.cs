@@ -16,7 +16,7 @@ namespace McPbrPipeline.Internal.Encoding
         public const string NormalX = "normal-x";
         public const string NormalY = "normal-y";
         public const string NormalZ = "normal-z";
-        public const string AmbientOcclusion = "ao";
+        public const string Occlusion = "occlusion";
         public const string Smooth = "smooth";
         public const string Rough = "rough";
         public const string PerceptualSmooth = "smooth2";

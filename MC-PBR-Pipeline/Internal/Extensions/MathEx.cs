@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 
-namespace McPbrPipeline.Internal
+namespace McPbrPipeline.Internal.Extensions
 {
     internal static class MathEx
     {

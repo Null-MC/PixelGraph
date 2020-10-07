@@ -1,4 +1,6 @@
-﻿using McPbrPipeline.Internal.Textures;
+﻿using McPbrPipeline.Internal.Encoding;
+using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.Textures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +16,7 @@ namespace McPbrPipeline.Internal.Input
 
         public bool Wrap => Get("wrap", true);
         public bool ResizeEnabled => Get("resize.enabled", true);
+        public string InputFormat => Get<string>("input.format");
 
         public string AlbedoTexture => Get<string>("albedo.texture");
         public string AlbedoInputR => Get<string>("albedo.input.r");
@@ -26,6 +29,10 @@ namespace McPbrPipeline.Internal.Input
         public float AlbedoScaleA => Get("albedo.scale.a", 1f);
 
         public string HeightTexture => Get<string>("height.texture");
+        public string HeightInputR => Get<string>("height.input.r");
+        public string HeightInputG => Get<string>("height.input.g");
+        public string HeightInputB => Get<string>("height.input.b");
+        public string HeightInputA => Get<string>("height.input.a");
         public float HeightScale => Get("height.scale", 1f);
 
         public string NormalTexture => Get<string>("normal.texture");
@@ -58,6 +65,18 @@ namespace McPbrPipeline.Internal.Input
         public string EmissiveInputA => Get<string>("emissive.input.a");
         public float EmissiveScale => Get("emissive.scale", 1f);
 
+        public string OcclusionTexture => Get<string>("occlusion.texture");
+        public string OcclusionInputR => Get<string>("occlusion.input.r");
+        public string OcclusionInputG => Get<string>("occlusion.input.g");
+        public string OcclusionInputB => Get<string>("occlusion.input.b");
+        public string OcclusionInputA => Get<string>("occlusion.input.a");
+
+
+        public void ApplyFormat()
+        {
+            if (!string.IsNullOrWhiteSpace(InputFormat))
+                EncodingFormat.ApplyInputFormat(Properties, InputFormat);
+        }
 
         public IEnumerable<string> GetAllTextures(IInputReader reader)
         {
@@ -79,10 +98,10 @@ namespace McPbrPipeline.Internal.Input
             }
 
             var srcPath = UseGlobalMatching
-                ? Path : SysPath.Combine(Path, Name);
+                ? Path : PathEx.Join(Path, Name);
 
             if (!string.IsNullOrEmpty(filename)) {
-                return SysPath.Combine(srcPath, filename);
+                return PathEx.Join(srcPath, filename);
             }
 
             var matchName = TextureTags.GetMatchName(this, type);

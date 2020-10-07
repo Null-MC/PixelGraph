@@ -1,14 +1,15 @@
 ﻿using McPbrPipeline.ImageProcessors;
 using McPbrPipeline.Internal.Encoding;
+using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Filtering;
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
+using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,49 +44,71 @@ namespace McPbrPipeline.Internal.Textures
                 // TODO: pre-generate normal map
             }
 
-            await ProcessTextureAsync(texture, pack.AlbedoOutputEncoding, $"{texture.Name}.png", token);
-            await ProcessTextureAsync(texture, pack.NormalOutputEncoding, $"{texture.Name}_n.png", token);
-            await ProcessTextureAsync(texture, pack.SpecularOutputEncoding, $"{texture.Name}_s.png", token);
-            await ProcessTextureAsync(texture, pack.EmissiveOutputEncoding, $"{texture.Name}_e.png", token);
-        }
+            if (pack.OutputAlbedo) await ProcessTextureAsync(texture, pack.AlbedoOutputEncoding, $"{texture.Name}.png", token);
 
-        private async Task ProcessTextureAsync(PbrProperties texture, TextureEncoding encoding, string name, CancellationToken token)
-        {
-            if (pack.EmissiveIncluded && encoding.Any()) {
-                using var image = await BuildSourceImageAsync(texture, encoding, token);
+            if (pack.OutputHeight) await ProcessTextureAsync(texture, pack.HeightOutputEncoding, $"{texture.Name}_h.png", token);
 
-                filter.Apply(image, texture, encoding);
+            if (pack.OutputNormal) await ProcessTextureAsync(texture, pack.NormalOutputEncoding, $"{texture.Name}_n.png", token);
 
-                await SaveImageAsync(texture, image, name, token);
-            }
+            if (pack.OutputSpecular) await ProcessTextureAsync(texture, pack.SpecularOutputEncoding, $"{texture.Name}_s.png", token);
+
+            if (pack.OutputEmissive) await ProcessTextureAsync(texture, pack.EmissiveOutputEncoding, $"{texture.Name}_e.png", token);
+
+            if (pack.OutputOcclusion) await ProcessTextureAsync(texture, pack.OcclusionOutputEncoding, $"{texture.Name}_ao.png", token);
+
+            // smooth/smooth2/rough
+
+            // reflect
+
+            // porosity
+
+            // sss
         }
 
         private void BuildSourceMap(PbrProperties texture)
         {
-            MapSource(TextureTags.Albedo, ColorChannel.Red, pack.AlbedoInputR, texture.AlbedoInputR);
-            MapSource(TextureTags.Albedo, ColorChannel.Green, pack.AlbedoInputG, texture.AlbedoInputG);
-            MapSource(TextureTags.Albedo, ColorChannel.Blue, pack.AlbedoInputB, texture.AlbedoInputB);
-            MapSource(TextureTags.Albedo, ColorChannel.Alpha, pack.AlbedoInputA, texture.AlbedoInputA);
+            MapSource(TextureTags.Albedo, ColorChannel.Red, texture.AlbedoInputR ?? pack.AlbedoInputR);
+            MapSource(TextureTags.Albedo, ColorChannel.Green, texture.AlbedoInputG ?? pack.AlbedoInputG);
+            MapSource(TextureTags.Albedo, ColorChannel.Blue, texture.AlbedoInputB ?? pack.AlbedoInputB);
+            MapSource(TextureTags.Albedo, ColorChannel.Alpha, texture.AlbedoInputA ?? pack.AlbedoInputA);
 
-            MapSource(TextureTags.Normal, ColorChannel.Red, pack.NormalInputR, texture.NormalInputR);
-            MapSource(TextureTags.Normal, ColorChannel.Green, pack.NormalInputG, texture.NormalInputG);
-            MapSource(TextureTags.Normal, ColorChannel.Blue, pack.NormalInputB, texture.NormalInputB);
-            MapSource(TextureTags.Normal, ColorChannel.Alpha, pack.NormalInputA, texture.NormalInputA);
+            MapSource(TextureTags.Height, ColorChannel.Red, texture.HeightInputR ?? pack.HeightInputR);
+            MapSource(TextureTags.Height, ColorChannel.Green, texture.HeightInputG ?? pack.HeightInputG);
+            MapSource(TextureTags.Height, ColorChannel.Blue, texture.HeightInputB ?? pack.HeightInputB);
+            MapSource(TextureTags.Height, ColorChannel.Alpha, texture.HeightInputA ?? pack.HeightInputA);
 
-            MapSource(TextureTags.Specular, ColorChannel.Red, pack.SpecularInputR, texture.SpecularInputR);
-            MapSource(TextureTags.Specular, ColorChannel.Green, pack.SpecularInputG, texture.SpecularInputG);
-            MapSource(TextureTags.Specular, ColorChannel.Blue, pack.SpecularInputB, texture.SpecularInputB);
-            MapSource(TextureTags.Specular, ColorChannel.Alpha, pack.SpecularInputA, texture.SpecularInputA);
+            MapSource(TextureTags.Normal, ColorChannel.Red, texture.NormalInputR ?? pack.NormalInputR);
+            MapSource(TextureTags.Normal, ColorChannel.Green, texture.NormalInputG ?? pack.NormalInputG);
+            MapSource(TextureTags.Normal, ColorChannel.Blue, texture.NormalInputB ?? pack.NormalInputB);
+            MapSource(TextureTags.Normal, ColorChannel.Alpha, texture.NormalInputA ?? pack.NormalInputA);
 
-            MapSource(TextureTags.Emissive, ColorChannel.Red, pack.EmissiveInputR, texture.EmissiveInputR);
-            MapSource(TextureTags.Emissive, ColorChannel.Green, pack.EmissiveInputG, texture.EmissiveInputG);
-            MapSource(TextureTags.Emissive, ColorChannel.Blue, pack.EmissiveInputB, texture.EmissiveInputB);
-            MapSource(TextureTags.Emissive, ColorChannel.Alpha, pack.EmissiveInputA, texture.EmissiveInputA);
+            MapSource(TextureTags.Specular, ColorChannel.Red, texture.SpecularInputR ?? pack.SpecularInputR);
+            MapSource(TextureTags.Specular, ColorChannel.Green, texture.SpecularInputG ?? pack.SpecularInputG);
+            MapSource(TextureTags.Specular, ColorChannel.Blue, texture.SpecularInputB ?? pack.SpecularInputB);
+            MapSource(TextureTags.Specular, ColorChannel.Alpha, texture.SpecularInputA ?? pack.SpecularInputA);
+
+            MapSource(TextureTags.Emissive, ColorChannel.Red, texture.EmissiveInputR ?? pack.EmissiveInputR);
+            MapSource(TextureTags.Emissive, ColorChannel.Green, texture.EmissiveInputG ?? pack.EmissiveInputG);
+            MapSource(TextureTags.Emissive, ColorChannel.Blue, texture.EmissiveInputB ?? pack.EmissiveInputB);
+            MapSource(TextureTags.Emissive, ColorChannel.Alpha, texture.EmissiveInputA ?? pack.EmissiveInputA);
+
+            MapSource(TextureTags.Occlusion, ColorChannel.Red, texture.OcclusionInputR ?? pack.OcclusionInputR);
+            MapSource(TextureTags.Occlusion, ColorChannel.Green, texture.OcclusionInputG ?? pack.OcclusionInputG);
+            MapSource(TextureTags.Occlusion, ColorChannel.Blue, texture.OcclusionInputB ?? pack.OcclusionInputB);
+            MapSource(TextureTags.Occlusion, ColorChannel.Alpha, texture.OcclusionInputA ?? pack.OcclusionInputA);
+
+            // smooth/smooth2/rough
+
+            // reflect
+
+            // porosity
+
+            // sss
         }
 
-        private void MapSource(string tag, ColorChannel channel, string packInput, string textureInput)
+        private void MapSource(string tag, ColorChannel channel, string input)
         {
-            var input = textureInput ?? packInput;
+            //var input = textureInput ?? packInput;
             if (string.IsNullOrEmpty(input)) return;
             if (string.Equals(input, EncodingChannel.None, StringComparison.InvariantCultureIgnoreCase)) return;
             sourceMap[input] = new ChannelSource(tag, channel);
@@ -96,6 +119,7 @@ namespace McPbrPipeline.Internal.Textures
             var optionsMap = new Dictionary<string, OverlayOptions>();
             static OverlayOptions NewOptions() => new OverlayOptions();
             var sourceColor = new Rgba32();
+            var restoreNormalZ = false;
 
             if (outputEncoding.R != null) {
                 if (byte.TryParse(outputEncoding.R, out var value)) sourceColor.R = value;
@@ -116,6 +140,9 @@ namespace McPbrPipeline.Internal.Textures
                         opt.RedSource = source.Channel;
                         opt.RedPower = 1;
                     }
+
+                    // restore normal-z
+                    if (string.Equals(outputEncoding.R, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
                 }
             }
 
@@ -138,6 +165,9 @@ namespace McPbrPipeline.Internal.Textures
                         opt.GreenSource = source.Channel;
                         opt.GreenPower = 1;
                     }
+
+                    // restore normal-z
+                    if (string.Equals(outputEncoding.G, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
                 }
             }
 
@@ -160,6 +190,9 @@ namespace McPbrPipeline.Internal.Textures
                         opt.BlueSource = source.Channel;
                         opt.BluePower = 1;
                     }
+
+                    // restore normal-z
+                    if (string.Equals(outputEncoding.B, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
                 }
             }
 
@@ -182,6 +215,9 @@ namespace McPbrPipeline.Internal.Textures
                         opt.AlphaSource = source.Channel;
                         opt.AlphaPower = 1;
                     }
+
+                    // restore normal-z
+                    if (string.Equals(outputEncoding.A, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
                 }
             }
 
@@ -189,6 +225,13 @@ namespace McPbrPipeline.Internal.Textures
             try {
                 foreach (var tag in optionsMap.Keys) {
                     var file = texture.GetTextureFile(reader, tag);
+
+                    if (file == null) {
+                        // TODO: replace with local logger!
+                        Log.Warning($"No '{tag}' source found for texture '{texture.Name}'.");
+                        continue;
+                    }
+
                     await using var sourceStream = reader.Open(file);
                     using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
 
@@ -204,6 +247,22 @@ namespace McPbrPipeline.Internal.Textures
                     targetImage.Mutate(context => context.ApplyProcessor(processor));
                 }
 
+                if (targetImage != null && restoreNormalZ) {
+                    var options = new NormalRestoreProcessor.Options {
+                        NormalX = outputEncoding.GetChannel(EncodingChannel.NormalX),
+                        NormalY = outputEncoding.GetChannel(EncodingChannel.NormalY),
+                        NormalZ = outputEncoding.GetChannel(EncodingChannel.NormalZ),
+                    };
+
+                    if (options.HasAllMappings()) {
+                        var processor = new NormalRestoreProcessor(options);
+                        targetImage.Mutate(c => c.ApplyProcessor(processor));
+                    }
+                    else {
+                        Log.Warning($"Unable to restore normal-z for texture '{texture.Name}'.");
+                    }
+                }
+
                 return targetImage ?? new Image<Rgba32>(1, 1, sourceColor);
             }
             catch {
@@ -212,9 +271,15 @@ namespace McPbrPipeline.Internal.Textures
             }
         }
 
-        private async Task SaveImageAsync(PbrProperties texture, Image image, string destFileName, CancellationToken token)
+        private async Task ProcessTextureAsync(PbrProperties texture, TextureEncoding encoding, string name, CancellationToken token)
         {
-            var destFile = Path.Combine(texture.Path, destFileName);
+            if (!encoding.Any()) return;
+
+            using var image = await BuildSourceImageAsync(texture, encoding, token);
+
+            filter.Apply(image, texture, encoding);
+
+            var destFile = PathEx.Join(texture.Path, name);
             await using var stream = writer.WriteFile(destFile);
             await image.SaveAsPngAsync(stream, token);
         }

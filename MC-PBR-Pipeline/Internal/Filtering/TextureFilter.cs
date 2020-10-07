@@ -30,7 +30,7 @@ namespace McPbrPipeline.Internal.Filtering
 
         private void ApplyScaling(Image image, PbrProperties texture, TextureEncoding encoding)
         {
-            var scaleOptions = new ScaleOptions {
+            var scaleOptions = new ScaleProcessor.Options {
                 Red = GetScale(texture, encoding.R),
                 Green = GetScale(texture, encoding.G),
                 Blue = GetScale(texture, encoding.B),

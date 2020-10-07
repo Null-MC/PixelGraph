@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using McPbrPipeline.Internal.Extensions;
 
 namespace McPbrPipeline.Internal.Publishing
 {
@@ -43,8 +44,7 @@ namespace McPbrPipeline.Internal.Publishing
                 await pack.ReadAsync(stream, token);
             }
 
-            pack.ApplyInputFormat();
-            pack.ApplyOutputFormat();
+            pack.ApplyFormat();
 
             await using var output = GetOutputWriter(options.Destination, options.Compress);
 
@@ -100,6 +100,8 @@ namespace McPbrPipeline.Internal.Publishing
                 switch (fileObj) {
                     case PbrProperties texture:
                         logger.LogDebug($"Publishing texture '{texture.Name}'.");
+
+                        texture.ApplyFormat();
 
                         await graph.BuildAsync(texture, token);
 

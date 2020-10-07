@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using McPbrPipeline.Internal.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -35,7 +36,7 @@ namespace McPbrPipeline.Internal.Input
             foreach (var directory in reader.EnumerateDirectories(searchPath, "*")) {
                 token.ThrowIfCancellationRequested();
 
-                var mapFile = Path.Combine(directory, "pbr.properties");
+                var mapFile = PathEx.Join(directory, "pbr.properties");
 
                 if (reader.FileExists(mapFile)) {
                     PbrProperties texture = null;

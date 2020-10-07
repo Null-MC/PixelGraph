@@ -13,148 +13,101 @@ namespace McPbrPipeline.Internal.Input
         public string PackDescription => Get<string>("pack.description");
         public string PackTags => Get<string>("pack.tags");
 
-        public string InputFormat => Get<string>("input-format");
-        public string OutputFormat => Get<string>("output-format");
+        public string InputFormat {
+            get => Get<string>(PackProperty.InputFormat);
+            set => Properties[PackProperty.InputFormat] = value;
+        }
+
+        public string OutputFormat {
+            get => Get<string>(PackProperty.OutputFormat);
+            set => Properties[PackProperty.OutputFormat] = value;
+        }
+
         public string Sampler => Get<string>("sampler");
         public int? TextureSize => Get<int?>("texture.size");
         public float? TextureScale => Get<float?>("texture.scale");
 
-        public bool AlbedoIncluded => Get("albedo.included", true);
-        public string AlbedoInputR => Get("albedo.input.r", EncodingChannel.AlbedoR);
-        public string AlbedoInputG => Get("albedo.input.g", EncodingChannel.AlbedoG);
-        public string AlbedoInputB => Get("albedo.input.b", EncodingChannel.AlbedoB);
-        public string AlbedoInputA => Get("albedo.input.a", EncodingChannel.AlbedoA);
-        public string AlbedoOutputR => Get("albedo.output.r", EncodingChannel.AlbedoR);
-        public string AlbedoOutputG => Get("albedo.output.g", EncodingChannel.AlbedoG);
-        public string AlbedoOutputB => Get("albedo.output.b", EncodingChannel.AlbedoB);
-        public string AlbedoOutputA => Get("albedo.output.a", EncodingChannel.AlbedoA);
+        public string AlbedoInputR => Get<string>("albedo.input.r");
+        public string AlbedoInputG => Get<string>("albedo.input.g");
+        public string AlbedoInputB => Get<string>("albedo.input.b");
+        public string AlbedoInputA => Get<string>("albedo.input.a");
+        public bool OutputAlbedo => Get<bool>("output.albedo");
+        public string OutputAlbedoR => Get<string>("output.albedo.r");
+        public string OutputAlbedoG => Get<string>("output.albedo.g");
+        public string OutputAlbedoB => Get<string>("output.albedo.b");
+        public string OutputAlbedoA => Get<string>("output.albedo.a");
 
-        public bool NormalIncluded => Get("normal.included", true);
-        public string NormalInputR => Get("normal.input.r", EncodingChannel.NormalX);
-        public string NormalInputG => Get("normal.input.g", EncodingChannel.NormalY);
-        public string NormalInputB => Get("normal.input.b", EncodingChannel.NormalZ);
+        public string HeightInputR => Get<string>("height.input.r");
+        public string HeightInputG => Get<string>("height.input.g");
+        public string HeightInputB => Get<string>("height.input.b");
+        public string HeightInputA => Get<string>("height.input.a");
+        public bool OutputHeight => Get<bool>("output.height");
+        public string OutputHeightR => Get<string>("output.height.r");
+        public string OutputHeightG => Get<string>("output.height.g");
+        public string OutputHeightB => Get<string>("output.height.b");
+        public string OutputHeightA => Get<string>("output.height.a");
+
+        public string NormalInputR => Get<string>("normal.input.r");
+        public string NormalInputG => Get<string>("normal.input.g");
+        public string NormalInputB => Get<string>("normal.input.b");
         public string NormalInputA => Get<string>("normal.input.a");
-        public string NormalOutputR => Get("normal.output.r", EncodingChannel.NormalX);
-        public string NormalOutputG => Get("normal.output.g", EncodingChannel.NormalY);
-        public string NormalOutputB => Get("normal.output.b", EncodingChannel.NormalZ);
-        public string NormalOutputA => Get("normal.output.a", EncodingChannel.White);
+        public bool OutputNormal => Get<bool>("output.normal");
+        public string OutputNormalR => Get<string>("output.normal.r");
+        public string OutputNormalG => Get<string>("output.normal.g");
+        public string OutputNormalB => Get<string>("output.normal.b");
+        public string OutputNormalA => Get<string>("output.normal.a");
 
-        public bool SpecularIncluded => Get("specular.included", true);
-        public string SpecularInputR => Get("specular.input.r", EncodingChannel.Smooth);
+        public string SpecularInputR => Get<string>("specular.input.r");
         public string SpecularInputG => Get<string>("specular.input.g");
         public string SpecularInputB => Get<string>("specular.input.b");
         public string SpecularInputA => Get<string>("specular.input.a");
-        public string SpecularOutputR => Get("specular.output.r", EncodingChannel.Smooth);
-        public string SpecularOutputG => Get<string>("specular.output.g");
-        public string SpecularOutputB => Get<string>("specular.output.b");
-        public string SpecularOutputA => Get("specular.output.a", EncodingChannel.White);
+        public bool OutputSpecular => Get<bool>("output.specular");
+        public string OutputSpecularR => Get<string>("output.specular.r");
+        public string OutputSpecularG => Get<string>("output.specular.g");
+        public string OutputSpecularB => Get<string>("output.specular.b");
+        public string OutputSpecularA => Get<string>("output.specular.a");
 
-        public bool EmissiveIncluded => Get("emissive.included", true);
         public string EmissiveInputR => Get<string>("emissive.input.r");
         public string EmissiveInputG => Get<string>("emissive.input.g");
         public string EmissiveInputB => Get<string>("emissive.input.b");
         public string EmissiveInputA => Get<string>("emissive.input.a");
-        public string EmissiveOutputR => Get<string>("emissive.output.r");
-        public string EmissiveOutputG => Get<string>("emissive.output.g");
-        public string EmissiveOutputB => Get<string>("emissive.output.b");
-        public string EmissiveOutputA => Get<string>("emissive.output.a");
+        public bool OutputEmissive => Get<bool>("output.emissive");
+        public string OutputEmissiveR => Get<string>("output.emissive.r");
+        public string OutputEmissiveG => Get<string>("output.emissive.g");
+        public string OutputEmissiveB => Get<string>("output.emissive.b");
+        public string OutputEmissiveA => Get<string>("output.emissive.a");
 
+        public string OcclusionInputR => Get<string>("occlusion.input.r");
+        public string OcclusionInputG => Get<string>("occlusion.input.g");
+        public string OcclusionInputB => Get<string>("occlusion.input.b");
+        public string OcclusionInputA => Get<string>("occlusion.input.a");
+        public bool OutputOcclusion => Get<bool>("output.occlusion");
+        public string OutputOcclusionR => Get<string>("output.occlusion.r");
+        public string OutputOcclusionG => Get<string>("output.occlusion.g");
+        public string OutputOcclusionB => Get<string>("output.occlusion.b");
+        public string OutputOcclusionA => Get<string>("output.occlusion.a");
 
         public TextureEncoding AlbedoOutputEncoding => TextureEncoding.CreateOutput(this, TextureTags.Albedo);
+        public TextureEncoding HeightOutputEncoding => TextureEncoding.CreateOutput(this, TextureTags.Height);
         public TextureEncoding NormalOutputEncoding => TextureEncoding.CreateOutput(this, TextureTags.Normal);
         public TextureEncoding SpecularOutputEncoding => TextureEncoding.CreateOutput(this, TextureTags.Specular);
         public TextureEncoding EmissiveOutputEncoding => TextureEncoding.CreateOutput(this, TextureTags.Emissive);
+        public TextureEncoding OcclusionOutputEncoding => TextureEncoding.CreateOutput(this, TextureTags.Occlusion);
 
-        public void ApplyInputFormat()
+
+        public void ApplyFormat()
         {
-            if (string.Equals(MaterialFormat.Legacy, InputFormat, StringComparison.InvariantCultureIgnoreCase)) {
-                SetIfEmpty("albedo.input.r", EncodingChannel.AlbedoR);
-                SetIfEmpty("albedo.input.g", EncodingChannel.AlbedoG);
-                SetIfEmpty("albedo.input.b", EncodingChannel.AlbedoB);
-                SetIfEmpty("albedo.input.a", EncodingChannel.AlbedoA);
+            if (!string.IsNullOrWhiteSpace(InputFormat))
+                EncodingFormat.ApplyInputFormat(Properties, InputFormat);
 
-                SetIfEmpty("normal.input.r", EncodingChannel.NormalX);
-                SetIfEmpty("normal.input.g", EncodingChannel.NormalY);
-                SetIfEmpty("normal.input.b", EncodingChannel.NormalZ);
-                SetIfEmpty("normal.input.a", EncodingChannel.Height);
-
-                SetIfEmpty("specular.input.r", EncodingChannel.Smooth);
-                SetIfEmpty("specular.input.g", EncodingChannel.Reflect);
-                SetIfEmpty("specular.input.b", EncodingChannel.Emissive);
-                return;
-            }
-
-            if (string.Equals(MaterialFormat.Lab13, InputFormat, StringComparison.InvariantCultureIgnoreCase)) {
-                SetIfEmpty("albedo.input.r", EncodingChannel.AlbedoR);
-                SetIfEmpty("albedo.input.g", EncodingChannel.AlbedoG);
-                SetIfEmpty("albedo.input.b", EncodingChannel.AlbedoB);
-                SetIfEmpty("albedo.input.a", EncodingChannel.AlbedoA);
-
-                SetIfEmpty("normal.input.r", EncodingChannel.NormalX);
-                SetIfEmpty("normal.input.g", EncodingChannel.NormalY);
-                SetIfEmpty("normal.input.b", EncodingChannel.AmbientOcclusion);
-                SetIfEmpty("normal.input.a", EncodingChannel.Height);
-
-                SetIfEmpty("specular.input.r", EncodingChannel.PerceptualSmooth);
-                SetIfEmpty("specular.input.g", EncodingChannel.Reflect);
-                SetIfEmpty("specular.input.b", EncodingChannel.Porosity_SSS);
-                SetIfEmpty("specular.input.a", EncodingChannel.Emissive);
-                return;
-            }
-
-            if (string.IsNullOrEmpty(InputFormat)) {
-                
-                return;
-            }
-
-            throw new ApplicationException($"Unknown input format '{InputFormat}'!");
+            if (!string.IsNullOrWhiteSpace(OutputFormat))
+                EncodingFormat.ApplyOutputFormat(Properties, OutputFormat);
         }
+    }
 
-        private void SetIfEmpty(string key, string value)
-        {
-            if (!Properties.ContainsKey(key)) Properties[key] = value;
-        }
-
-        public void ApplyOutputFormat()
-        {
-            if (string.IsNullOrEmpty(OutputFormat)) return;
-
-            if (string.Equals(MaterialFormat.Legacy, OutputFormat, StringComparison.InvariantCultureIgnoreCase)) {
-                SetIfEmpty("albedo.output.r", EncodingChannel.AlbedoR);
-                SetIfEmpty("albedo.output.g", EncodingChannel.AlbedoG);
-                SetIfEmpty("albedo.output.b", EncodingChannel.AlbedoB);
-                SetIfEmpty("albedo.output.a", EncodingChannel.AlbedoA);
-
-                SetIfEmpty("normal.output.r", EncodingChannel.NormalX);
-                SetIfEmpty("normal.output.g", EncodingChannel.NormalY);
-                SetIfEmpty("normal.output.b", EncodingChannel.NormalZ);
-                SetIfEmpty("normal.output.a", EncodingChannel.Height);
-
-                SetIfEmpty("specular.output.r", EncodingChannel.Smooth);
-                SetIfEmpty("specular.output.g", EncodingChannel.Reflect);
-                SetIfEmpty("specular.output.b", EncodingChannel.Emissive);
-                return;
-            }
-
-            if (string.Equals(MaterialFormat.Lab13, OutputFormat, StringComparison.InvariantCultureIgnoreCase)) {
-                SetIfEmpty("albedo.output.r", EncodingChannel.AlbedoR);
-                SetIfEmpty("albedo.output.g", EncodingChannel.AlbedoG);
-                SetIfEmpty("albedo.output.b", EncodingChannel.AlbedoB);
-                SetIfEmpty("albedo.output.a", EncodingChannel.AlbedoA);
-
-                SetIfEmpty("normal.output.r", EncodingChannel.NormalX);
-                SetIfEmpty("normal.output.g", EncodingChannel.NormalY);
-                SetIfEmpty("normal.output.b", EncodingChannel.AmbientOcclusion);
-                SetIfEmpty("normal.output.a", EncodingChannel.Height);
-
-                SetIfEmpty("specular.output.r", EncodingChannel.PerceptualSmooth);
-                SetIfEmpty("specular.output.g", EncodingChannel.Reflect);
-                SetIfEmpty("specular.output.b", EncodingChannel.Porosity_SSS);
-                SetIfEmpty("specular.output.a", EncodingChannel.Emissive);
-                return;
-            }
-
-            throw new ApplicationException($"Unknown output format '{OutputFormat}'!");
-        }
+    internal static class PackProperty
+    {
+        public const string InputFormat = "input.format";
+        public const string OutputFormat = "output.format";
     }
 }

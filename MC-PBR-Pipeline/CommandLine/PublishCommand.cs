@@ -8,6 +8,7 @@ using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using McPbrPipeline.Internal.Extensions;
 
 namespace McPbrPipeline.CommandLine
 {
@@ -82,21 +83,23 @@ namespace McPbrPipeline.CommandLine
             try {
                 var publisher = provider.GetRequiredService<IPublisher>();
                 await publisher.PublishAsync(options, lifetime.Token);
+                return 0;
             }
             catch (ApplicationException error) {
                 ConsoleEx.Write("ERROR: ", ConsoleColor.Red);
                 ConsoleEx.WriteLine(error.Message, ConsoleColor.DarkRed);
+                return -1;
             }
             catch (Exception error) {
                 logger.LogError(error, "An unhandled exception occurred while publishing!");
+                return -1;
             }
             finally {
                 timer.Stop();
-            }
 
-            ConsoleEx.Write("\nPublish Duration: ", ConsoleColor.Gray);
-            ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
-            return 0;
+                ConsoleEx.Write("\nDuration: ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
+            }
         }
     }
 }

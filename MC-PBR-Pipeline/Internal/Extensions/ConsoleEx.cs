@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace McPbrPipeline.Internal
+namespace McPbrPipeline.Internal.Extensions
 {
     internal static class ConsoleEx
     {

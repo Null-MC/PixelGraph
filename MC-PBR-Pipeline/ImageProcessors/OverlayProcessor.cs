@@ -6,6 +6,7 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing.Processors;
 using System;
+using McPbrPipeline.Internal.Extensions;
 
 namespace McPbrPipeline.ImageProcessors
 {

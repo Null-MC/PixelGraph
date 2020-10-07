@@ -11,8 +11,9 @@ namespace McPbrPipeline.Internal.Textures
         public const string Normal = "#normal";
         public const string Specular = "#specular";
         public const string Emissive = "#emissive";
+        public const string Occlusion = "#occlusion";
 
-        public static string[] All {get;} = {Albedo, Height, Normal, Specular, Emissive};
+        public static string[] All {get;} = {Albedo, Height, Normal, Specular, Emissive, Occlusion};
 
 
         public static string Get(PbrProperties material, string tag)
@@ -24,8 +25,8 @@ namespace McPbrPipeline.Internal.Textures
         public static string GetMatchName(PbrProperties texture, string type)
         {
             return texture.UseGlobalMatching
-                ? GlobalMatchMap[type](texture.Name)
-                : LocalMatchMap[type];
+                ? globalMatchMap[type](texture.Name)
+                : localMatchMap[type];
         }
 
         private static readonly Dictionary<string, Func<PbrProperties, string>> map = new Dictionary<string, Func<PbrProperties, string>>(StringComparer.InvariantCultureIgnoreCase)
@@ -35,24 +36,27 @@ namespace McPbrPipeline.Internal.Textures
             [Normal] = t => t.NormalTexture,
             [Specular] = t => t.SpecularTexture,
             [Emissive] = t => t.EmissiveTexture,
+            [Occlusion] = t => t.OcclusionTexture,
         };
 
-        private static readonly Dictionary<string, string> LocalMatchMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+        private static readonly Dictionary<string, string> localMatchMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
             [Albedo] = "albedo.*",
             [Height] = "height.*",
             [Normal] = "normal.*",
             [Specular] = "specular.*",
             [Emissive] = "emissive.*",
+            [Occlusion] = "occlusion.*",
         };
 
-        private static readonly Dictionary<string, Func<string, string>> GlobalMatchMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase)
+        private static readonly Dictionary<string, Func<string, string>> globalMatchMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase)
         {
             [Albedo] = item => $"{item}.*",
             [Height] = item => $"{item}_h.*",
             [Normal] = item => $"{item}_n.*",
             [Specular] = item => $"{item}_s.*",
             [Emissive] = item => $"{item}_e.*",
+            [Occlusion] = item => $"{item}_ao.*",
         };
     }
 }

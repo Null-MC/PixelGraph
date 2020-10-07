@@ -18,18 +18,23 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="ImageProcessors\ChannelMapProcessor.cs" />
+    <Compile Remove="ImageProcessors\NormalDepthProcessor.cs" />
     <Compile Remove="Internal\Filtering\FilterChain.cs" />
     <Compile Remove="Internal\Filtering\FilterCollection.cs" />
     <Compile Remove="Internal\Filtering\IImageFilter.cs" />
+    <Compile Remove="Internal\Filtering\ScaleOptions.cs" />
     <Compile Remove="Internal\Profile.cs" />
     <Compile Remove="Internal\Publishing\AlbedoTexturePublisher.cs" />
     <Compile Remove="Internal\Publishing\EmissiveTexturePublisher.cs" />
     <Compile Remove="Internal\Publishing\NormalTexturePublisher.cs" />
     <Compile Remove="Internal\Publishing\SpecularTexturePublisher.cs" />
+    <Compile Remove="Internal\Publishing\TexturePublisherBase.cs" />
     <Compile Remove="Internal\Textures\AlbedoTextureMap.cs" />
     <Compile Remove="Internal\Textures\EmissiveTextureMap.cs" />
     <Compile Remove="Internal\Textures\HeightTextureMap.cs" />
     <Compile Remove="Internal\Textures\Material.cs" />
+    <Compile Remove="Internal\Textures\MaterialFormat.cs" />
     <Compile Remove="Internal\Textures\NormalTextureMap.cs" />
     <Compile Remove="Internal\Textures\PbrProperty.cs" />
     <Compile Remove="Internal\Textures\SpecularTextureMap.cs" />

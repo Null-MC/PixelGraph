@@ -1,19 +1,21 @@
 ﻿using McPbrPipeline.Internal;
+using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing.Processors;
 using System;
+using System.Numerics;
 using McPbrPipeline.Internal.Extensions;
 
 namespace McPbrPipeline.ImageProcessors
 {
-    internal class ScaleProcessor : IImageProcessor
+    internal class NormalRestoreProcessor : IImageProcessor
     {
         private readonly Options options;
 
 
-        public ScaleProcessor(Options options)
+        public NormalRestoreProcessor(Options options)
         {
             this.options = options;
         }
@@ -25,38 +27,17 @@ namespace McPbrPipeline.ImageProcessors
 
         public class Options
         {
-            public float Red = 1f;
-            public float Green = 1f;
-            public float Blue = 1f;
-            public float Alpha = 1f;
+            public ColorChannel NormalX = ColorChannel.None;
+            public ColorChannel NormalY = ColorChannel.None;
+            public ColorChannel NormalZ = ColorChannel.None;
 
 
-            //public void Set(ColorChannel channel, float value)
-            //{
-            //    switch (channel) {
-            //        case ColorChannel.Red:
-            //            Red = value;
-            //            break;
-            //        case ColorChannel.Green:
-            //            Green = value;
-            //            break;
-            //        case ColorChannel.Blue:
-            //            Blue = value;
-            //            break;
-            //        case ColorChannel.Alpha:
-            //            Alpha = value;
-            //            break;
-            //    }
-            //}
-
-            public bool Any {
-                get {
-                    if (Math.Abs(Red - 1) > float.Epsilon) return true;
-                    if (Math.Abs(Green - 1) > float.Epsilon) return true;
-                    if (Math.Abs(Blue - 1) > float.Epsilon) return true;
-                    if (Math.Abs(Alpha - 1) > float.Epsilon) return true;
-                    return false;
-                }
+            public bool HasAllMappings()
+            {
+                if (NormalX == ColorChannel.None) return false;
+                if (NormalY == ColorChannel.None) return false;
+                if (NormalZ == ColorChannel.None) return false;
+                return true;
             }
         }
 
@@ -96,22 +77,48 @@ namespace McPbrPipeline.ImageProcessors
             {
                 var row = sourceFrame.GetPixelRowSpan(y);
 
+                var vector = new Vector3();
                 var pixel = new Rgba32();
                 for (var x = 0; x < sourceFrame.Width; x++) {
                     row[x].ToRgba32(ref pixel);
 
-                    pixel.R = Filter(in pixel.R, in options.Red);
-                    pixel.G = Filter(in pixel.G, in options.Green);
-                    pixel.B = Filter(in pixel.B, in options.Blue);
-                    pixel.A = Filter(in pixel.A, in options.Alpha);
+                    vector.X = Get(in pixel, options.NormalX) / 255f;
+                    vector.Y = Get(in pixel, options.NormalY) / 255f;
+
+                    var dot = vector.X * vector.X + vector.Y * vector.Y;
+                    vector.Z = (float)Math.Sqrt(1f - dot);
+
+                    // TODO: not "necessary"
+                    //MathEx.Normalize(ref vector);
+
+                    switch (options.NormalZ) {
+                        case ColorChannel.Red:
+                            pixel.R = MathEx.Saturate(vector.Z);
+                            break;
+                        case ColorChannel.Green:
+                            pixel.G = MathEx.Saturate(vector.Z);
+                            break;
+                        case ColorChannel.Blue:
+                            pixel.B = MathEx.Saturate(vector.Z);
+                            break;
+                        case ColorChannel.Alpha:
+                            pixel.A = MathEx.Saturate(vector.Z);
+                            break;
+                    }
 
                     row[x].FromRgba32(pixel);
                 }
             }
 
-            private static byte Filter(in byte value, in float scale)
+            private static byte Get(in Rgba32 pixel, ColorChannel channel)
             {
-                return MathEx.Saturate(value / 255f * scale);
+                return channel switch {
+                    ColorChannel.Red => pixel.R,
+                    ColorChannel.Green => pixel.G,
+                    ColorChannel.Blue => pixel.B,
+                    ColorChannel.Alpha => pixel.A,
+                    _ => 0,
+                };
             }
         }
     }

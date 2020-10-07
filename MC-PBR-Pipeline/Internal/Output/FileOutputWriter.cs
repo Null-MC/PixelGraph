@@ -1,4 +1,5 @@
-﻿using System;
+﻿using McPbrPipeline.Internal.Extensions;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -22,7 +23,7 @@ namespace McPbrPipeline.Internal.Output
 
         public Stream WriteFile(string localFilename)
         {
-            var filename = Path.Combine(destinationPath, localFilename);
+            var filename = PathEx.Join(destinationPath, localFilename);
 
             var path = Path.GetDirectoryName(filename);
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
@@ -37,7 +38,7 @@ namespace McPbrPipeline.Internal.Output
 
         public DateTime? GetWriteTime(string localFile)
         {
-            var fullFile = Path.Combine(destinationPath, localFile);
+            var fullFile = PathEx.Join(destinationPath, localFile);
             if (!File.Exists(fullFile)) return null;
             return File.GetLastWriteTime(fullFile);
         }

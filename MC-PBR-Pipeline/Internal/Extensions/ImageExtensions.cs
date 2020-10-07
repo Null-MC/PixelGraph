@@ -1,4 +1,4 @@
-﻿namespace McPbrPipeline.Internal
+﻿namespace McPbrPipeline.Internal.Extensions
 {
     internal static class ImageExtensions
     {

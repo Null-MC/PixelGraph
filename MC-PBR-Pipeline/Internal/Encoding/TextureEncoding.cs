@@ -7,7 +7,6 @@ namespace McPbrPipeline.Internal.Encoding
 {
     internal class TextureEncoding
     {
-        //public string Tag {get; set;}
         public string R {get; set;}
         public string G {get; set;}
         public string B {get; set;}
@@ -23,40 +22,59 @@ namespace McPbrPipeline.Internal.Encoding
             return false;
         }
 
+        public ColorChannel GetChannel(string encodingChannel)
+        {
+            if (string.Equals(R, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) return ColorChannel.Red;
+            if (string.Equals(G, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) return ColorChannel.Green;
+            if (string.Equals(B, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) return ColorChannel.Blue;
+            if (string.Equals(A, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) return ColorChannel.Alpha;
+            return ColorChannel.None;
+        }
+
         public static TextureEncoding CreateOutput(PackProperties pack, string tag)
         {
-            return outputMap.TryGetValue(tag, out var encodingFunc)
-                ? encodingFunc(pack) : null;
+            if (outputMap.TryGetValue(tag, out var encodingFunc))
+                return encodingFunc(pack);
+
+            throw new ApplicationException($"Unknown texture type '{tag}'!");
         }
 
         private static readonly Dictionary<string, Func<PackProperties, TextureEncoding>> outputMap = new Dictionary<string, Func<PackProperties, TextureEncoding>>(StringComparer.InvariantCultureIgnoreCase) {
             [TextureTags.Albedo] = pack => new TextureEncoding {
-                //Tag = TextureTags.Albedo,
-                R = pack.AlbedoOutputR,
-                G = pack.AlbedoOutputG,
-                B = pack.AlbedoOutputB,
-                A = pack.AlbedoOutputA,
+                R = pack.OutputAlbedoR,
+                G = pack.OutputAlbedoG,
+                B = pack.OutputAlbedoB,
+                A = pack.OutputAlbedoA,
+            },
+            [TextureTags.Height] = pack => new TextureEncoding {
+                R = pack.OutputHeightR,
+                G = pack.OutputHeightG,
+                B = pack.OutputHeightB,
+                A = pack.OutputHeightA,
             },
             [TextureTags.Normal] = pack => new TextureEncoding {
-                //Tag = TextureTags.Normal,
-                R = pack.NormalOutputR,
-                G = pack.NormalOutputG,
-                B = pack.NormalOutputB,
-                A = pack.NormalOutputA,
+                R = pack.OutputNormalR,
+                G = pack.OutputNormalG,
+                B = pack.OutputNormalB,
+                A = pack.OutputNormalA,
             },
             [TextureTags.Specular] = pack => new TextureEncoding {
-                //Tag = TextureTags.Specular,
-                R = pack.SpecularOutputR,
-                G = pack.SpecularOutputG,
-                B = pack.SpecularOutputB,
-                A = pack.SpecularOutputA,
+                R = pack.OutputSpecularR,
+                G = pack.OutputSpecularG,
+                B = pack.OutputSpecularB,
+                A = pack.OutputSpecularA,
             },
             [TextureTags.Emissive] = pack => new TextureEncoding {
-                //Tag = TextureTags.Emissive,
-                R = pack.EmissiveOutputR,
-                G = pack.EmissiveOutputG,
-                B = pack.EmissiveOutputB,
-                A = pack.EmissiveOutputA,
+                R = pack.OutputEmissiveR,
+                G = pack.OutputEmissiveG,
+                B = pack.OutputEmissiveB,
+                A = pack.OutputEmissiveA,
+            },
+            [TextureTags.Occlusion] = pack => new TextureEncoding {
+                R = pack.OutputOcclusionR,
+                G = pack.OutputOcclusionG,
+                B = pack.OutputOcclusionB,
+                A = pack.OutputOcclusionA,
             },
         };
     }
