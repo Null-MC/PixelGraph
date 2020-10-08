@@ -96,9 +96,26 @@ namespace McPbrPipeline.Internal.Publishing
 
             await foreach (var fileObj in loader.LoadAsync(token)) {
                 token.ThrowIfCancellationRequested();
+                DateTime? sourceTime, destinationTime;
 
                 switch (fileObj) {
                     case PbrProperties texture:
+                        sourceTime = reader.GetWriteTime(texture.FileName);
+                        foreach (var texFile in texture.GetAllTextures(reader)) {
+                            var z = reader.GetWriteTime(texFile);
+                            if (!z.HasValue) continue;
+                            if (!sourceTime.HasValue || z.Value > sourceTime.Value) sourceTime = z.Value;
+                        }
+
+                        var albedoOutputName = PathEx.Join(texture.Path, $"{texture.Name}.png");
+                        destinationTime = writer.FileExists(albedoOutputName)
+                            ? writer.GetWriteTime(albedoOutputName) : null;
+
+                        if (IsUpToDate(pack.WriteTime, sourceTime, destinationTime)) {
+                            logger.LogDebug($"Skipping up-to-date texture '{texture.Name}'.");
+                            continue;
+                        }
+
                         logger.LogDebug($"Publishing texture '{texture.Name}'.");
 
                         await graph.BuildAsync(texture, token);
@@ -107,8 +124,8 @@ namespace McPbrPipeline.Internal.Publishing
 
                         break;
                     case string localName:
-                        var sourceTime = reader.GetWriteTime(localName);
-                        var destinationTime = writer.GetWriteTime(localName);
+                        sourceTime = reader.GetWriteTime(localName);
+                        destinationTime = writer.GetWriteTime(localName);
 
                         if (IsUpToDate(pack.WriteTime, sourceTime, destinationTime)) {
                             logger.LogDebug($"Skipping up-to-date file '{localName}'.");

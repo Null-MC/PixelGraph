@@ -110,6 +110,7 @@ namespace McPbrPipeline.Internal.Input
             name = name.Substring(0, name.Length - 15);
 
             var properties = new PbrProperties {
+                FileName = localFile,
                 Name = name,
                 Path = Path.GetDirectoryName(localFile),
                 UseGlobalMatching = true,
@@ -126,6 +127,7 @@ namespace McPbrPipeline.Internal.Input
             var itemPath = Path.GetDirectoryName(localFile);
 
             var properties = new PbrProperties {
+                FileName = localFile,
                 Name = Path.GetFileName(itemPath),
                 Path = Path.GetDirectoryName(itemPath),
             };

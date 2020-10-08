@@ -1,5 +1,4 @@
 ﻿using McPbrPipeline.Internal.Extensions;
-using McPbrPipeline.Internal.Filtering;
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;

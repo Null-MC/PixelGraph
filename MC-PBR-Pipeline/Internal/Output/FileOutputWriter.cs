@@ -31,6 +31,12 @@ namespace McPbrPipeline.Internal.Output
             return File.Open(filename, FileMode.Create, FileAccess.Write);
         }
 
+        public bool FileExists(string localFile)
+        {
+            var fullFile = PathEx.Join(destinationPath, localFile);
+            return File.Exists(fullFile);
+        }
+
         public void Clean()
         {
             Directory.Delete(destinationPath, true);

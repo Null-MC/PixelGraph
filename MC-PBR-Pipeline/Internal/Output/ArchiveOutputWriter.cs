@@ -28,6 +28,7 @@ namespace McPbrPipeline.Internal.Output
             return entry.Open();
         }
 
+        public bool FileExists(string localFile) => false;
         public DateTime? GetWriteTime(string localFile) => null;
 
         public void Clean() {}

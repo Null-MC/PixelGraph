@@ -8,6 +8,7 @@ namespace McPbrPipeline.Internal.Input
 {
     internal class PbrProperties : PropertiesFile
     {
+        public string FileName {get; set;}
         public string Name {get; set;}
         public string Path {get; set;}
         public bool UseGlobalMatching {get; set;}
@@ -38,13 +39,6 @@ namespace McPbrPipeline.Internal.Input
 
         public string SpecularTexture => Get<string>("specular.texture");
         //public string SpecularColor => Get<string>("specular.color");
-        public float SmoothScale => Get("smooth.scale", 1f);
-        public byte? SmoothValue => Get<byte?>("smooth.value");
-        //public float PerceptualSmoothScale => Get("smooth.scale", 1f);
-        public float RoughScale => Get("rough.scale", 1f);
-        public byte? RoughValue => Get<byte?>("rough.value");
-        public float MetalScale => Get("metal.scale", 1f);
-        public byte? MetalValue => Get<byte?>("metal.value");
 
         public string EmissiveTexture => Get<string>("emissive.texture");
         public float EmissiveScale => Get("emissive.scale", 1f);
@@ -54,6 +48,15 @@ namespace McPbrPipeline.Internal.Input
         public byte? OcclusionValue => Get<byte?>("occlusion.value");
 
         public string SmoothTexture => Get<string>("smooth.texture");
+        public float SmoothScale => Get("smooth.scale", 1f);
+        public byte? SmoothValue => Get<byte?>("smooth.value");
+        //public float PerceptualSmoothScale => Get("smooth.scale", 1f);
+        public float RoughScale => Get("rough.scale", 1f);
+        public byte? RoughValue => Get<byte?>("rough.value");
+
+        public string MetalTexture => Get<string>("metal.texture");
+        public float MetalScale => Get("metal.scale", 1f);
+        public byte? MetalValue => Get<byte?>("metal.value");
 
         public byte? PorosityValue => Get<byte?>("porosity.value");
 
@@ -95,6 +98,7 @@ namespace McPbrPipeline.Internal.Input
         public PbrProperties Clone()
         {
             return new PbrProperties {
+                FileName = FileName,
                 Name = Name,
                 Path = Path,
                 UseGlobalMatching = UseGlobalMatching,

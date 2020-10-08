@@ -7,6 +7,7 @@ namespace McPbrPipeline.Internal.Output
     {
         void Prepare();
         Stream WriteFile(string localFilename);
+        bool FileExists(string localFile);
         DateTime? GetWriteTime(string localFile);
         void Clean();
     }

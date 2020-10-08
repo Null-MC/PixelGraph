@@ -65,16 +65,6 @@ namespace McPbrPipeline.Internal.Textures
             MapSource(TextureTags.Specular, ColorChannel.Blue, Encoding.SpecularInputB);
             MapSource(TextureTags.Specular, ColorChannel.Alpha, Encoding.SpecularInputA);
 
-            MapSource(TextureTags.Emissive, ColorChannel.Red, Encoding.EmissiveInputR);
-            MapSource(TextureTags.Emissive, ColorChannel.Green, Encoding.EmissiveInputG);
-            MapSource(TextureTags.Emissive, ColorChannel.Blue, Encoding.EmissiveInputB);
-            MapSource(TextureTags.Emissive, ColorChannel.Alpha, Encoding.EmissiveInputA);
-
-            MapSource(TextureTags.Occlusion, ColorChannel.Red, Encoding.OcclusionInputR);
-            MapSource(TextureTags.Occlusion, ColorChannel.Green, Encoding.OcclusionInputG);
-            MapSource(TextureTags.Occlusion, ColorChannel.Blue, Encoding.OcclusionInputB);
-            MapSource(TextureTags.Occlusion, ColorChannel.Alpha, Encoding.OcclusionInputA);
-
             MapSource(TextureTags.Smooth, ColorChannel.Red, Encoding.SmoothInputR);
             MapSource(TextureTags.Smooth, ColorChannel.Green, Encoding.SmoothInputG);
             MapSource(TextureTags.Smooth, ColorChannel.Blue, Encoding.SmoothInputB);
@@ -82,11 +72,24 @@ namespace McPbrPipeline.Internal.Textures
 
             // smooth2/rough
 
-            // metal
+            MapSource(TextureTags.Metal, ColorChannel.Red, Encoding.MetalInputR);
+            MapSource(TextureTags.Metal, ColorChannel.Green, Encoding.MetalInputG);
+            MapSource(TextureTags.Metal, ColorChannel.Blue, Encoding.MetalInputB);
+            MapSource(TextureTags.Metal, ColorChannel.Alpha, Encoding.MetalInputA);
 
             // porosity
 
             // sss
+
+            MapSource(TextureTags.Occlusion, ColorChannel.Red, Encoding.OcclusionInputR);
+            MapSource(TextureTags.Occlusion, ColorChannel.Green, Encoding.OcclusionInputG);
+            MapSource(TextureTags.Occlusion, ColorChannel.Blue, Encoding.OcclusionInputB);
+            MapSource(TextureTags.Occlusion, ColorChannel.Alpha, Encoding.OcclusionInputA);
+
+            MapSource(TextureTags.Emissive, ColorChannel.Red, Encoding.EmissiveInputR);
+            MapSource(TextureTags.Emissive, ColorChannel.Green, Encoding.EmissiveInputG);
+            MapSource(TextureTags.Emissive, ColorChannel.Blue, Encoding.EmissiveInputB);
+            MapSource(TextureTags.Emissive, ColorChannel.Alpha, Encoding.EmissiveInputA);
         }
 
         public async Task BuildNormalMapAsync(CancellationToken token = default)

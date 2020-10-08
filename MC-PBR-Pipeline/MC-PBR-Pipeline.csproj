@@ -21,12 +21,6 @@
     <Compile Remove="ImageProcessors\ChannelMapProcessor.cs" />
     <Compile Remove="ImageProcessors\RangeProcessor.cs" />
     <Compile Remove="Internal\Encoding\EncodingFormat.cs" />
-    <Compile Remove="Internal\Filtering\ChannelMapOptions.cs" />
-    <Compile Remove="Internal\Filtering\FilterChain.cs" />
-    <Compile Remove="Internal\Filtering\FilterCollection.cs" />
-    <Compile Remove="Internal\Filtering\IImageFilter.cs" />
-    <Compile Remove="Internal\Filtering\OverlayOptions.cs" />
-    <Compile Remove="Internal\Filtering\ScaleOptions.cs" />
     <Compile Remove="Internal\Profile.cs" />
     <Compile Remove="Internal\Publishing\AlbedoTexturePublisher.cs" />
     <Compile Remove="Internal\Publishing\EmissiveTexturePublisher.cs" />

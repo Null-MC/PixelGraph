@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace McPbrPipeline.Internal.Filtering
+namespace McPbrPipeline.Internal.Publishing
 {
     public class SourceEmptyException : Exception
     {

@@ -11,11 +11,12 @@ namespace McPbrPipeline.Internal.Textures
         public const string NormalGenerated = "#normal-generated";
         public const string Normal = "#normal";
         public const string Specular = "#specular";
-        public const string Emissive = "#emissive";
-        public const string Occlusion = "#occlusion";
         public const string Smooth = "#smooth";
+        public const string Metal = "#metal";
+        public const string Occlusion = "#occlusion";
+        public const string Emissive = "#emissive";
 
-        public static string[] All {get;} = {Albedo, Height, Normal, Specular, Emissive, Occlusion, Smooth};
+        public static string[] All {get;} = {Albedo, Height, Normal, Specular, Emissive, Occlusion, Smooth, Metal};
 
 
         public static string Get(PbrProperties material, string tag)
@@ -37,9 +38,10 @@ namespace McPbrPipeline.Internal.Textures
             [Height] = t => t.HeightTexture,
             [Normal] = t => t.NormalTexture,
             [Specular] = t => t.SpecularTexture,
-            [Emissive] = t => t.EmissiveTexture,
-            [Occlusion] = t => t.OcclusionTexture,
             [Smooth] = t => t.SmoothTexture,
+            [Metal] = t => t.MetalTexture,
+            [Occlusion] = t => t.OcclusionTexture,
+            [Emissive] = t => t.EmissiveTexture,
         };
 
         private static readonly Dictionary<string, string> localMatchMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
@@ -48,9 +50,10 @@ namespace McPbrPipeline.Internal.Textures
             [Height] = "height.*",
             [Normal] = "normal.*",
             [Specular] = "specular.*",
-            [Emissive] = "emissive.*",
-            [Occlusion] = "occlusion.*",
             [Smooth] = "smooth.*",
+            [Metal] = "metal.*",
+            [Occlusion] = "occlusion.*",
+            [Emissive] = "emissive.*",
         };
 
         private static readonly Dictionary<string, Func<string, string>> globalMatchMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase)
@@ -59,9 +62,10 @@ namespace McPbrPipeline.Internal.Textures
             [Height] = item => $"{item}_h.*",
             [Normal] = item => $"{item}_n.*",
             [Specular] = item => $"{item}_s.*",
-            [Emissive] = item => $"{item}_e.*",
-            [Occlusion] = item => $"{item}_ao.*",
             [Smooth] = item => $"{item}_smooth.*",
+            [Metal] = item => $"{item}_metal.*",
+            [Occlusion] = item => $"{item}_ao.*",
+            [Emissive] = item => $"{item}_e.*",
         };
     }
 }

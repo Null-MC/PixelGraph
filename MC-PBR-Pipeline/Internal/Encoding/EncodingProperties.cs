@@ -82,6 +82,16 @@ namespace McPbrPipeline.Internal.Encoding
         public string OutputSmoothB => Get<string>("output.smooth.b");
         public string OutputSmoothA => Get<string>("output.smooth.a");
 
+        public string MetalInputR => Get<string>("metal.input.r");
+        public string MetalInputG => Get<string>("metal.input.g");
+        public string MetalInputB => Get<string>("metal.input.b");
+        public string MetalInputA => Get<string>("metal.input.a");
+        public bool OutputMetal => Get<bool>("output.metal");
+        public string OutputMetalR => Get<string>("output.metal.r");
+        public string OutputMetalG => Get<string>("output.metal.g");
+        public string OutputMetalB => Get<string>("output.metal.b");
+        public string OutputMetalA => Get<string>("output.metal.a");
+
 
         public void Build(PackProperties pack, PbrProperties texture)
         {
@@ -113,15 +123,13 @@ namespace McPbrPipeline.Internal.Encoding
                     ["normal.input.g"] = EncodingChannel.NormalY,
                     ["normal.input.b"] = EncodingChannel.NormalZ,
 
-                    //["specular.input.r"] = EncodingChannel.Smooth,
-                    ["specular.input.g"] = EncodingChannel.Metal,
-                    ["specular.input.b"] = EncodingChannel.Porosity_SSS,
+                    ["smooth.input.r"] = EncodingChannel.Smooth,
+
+                    ["metal.input.r"] = EncodingChannel.Metal,
 
                     ["emissive.input.r"] = EncodingChannel.Emissive,
 
                     ["occlusion.input.r"] = EncodingChannel.Occlusion,
-
-                    ["smooth.input.r"] = EncodingChannel.Smooth,
                 });
                 return;
             }
@@ -190,9 +198,17 @@ namespace McPbrPipeline.Internal.Encoding
 
                     ["output.specular"] = bool.TrueString,
                     //["output.specular.r"] = EncodingChannel.Smooth,
-                    ["output.specular.g"] = EncodingChannel.Metal,
+                    //["output.specular.g"] = EncodingChannel.Metal,
                     ["output.specular.b"] = EncodingChannel.Porosity_SSS,
                     ["output.specular.a"] = EncodingChannel.White,
+
+                    ["output.smooth"] = bool.TrueString,
+                    ["output.smooth.r"] = EncodingChannel.Smooth,
+                    ["output.smooth.a"] = EncodingChannel.White,
+
+                    ["output.metal"] = bool.TrueString,
+                    ["output.metal.r"] = EncodingChannel.Metal,
+                    ["output.metal.a"] = EncodingChannel.White,
 
                     ["output.emissive"] = bool.TrueString,
                     ["output.emissive.r"] = EncodingChannel.Emissive,
@@ -201,10 +217,6 @@ namespace McPbrPipeline.Internal.Encoding
                     ["output.occlusion"] = bool.TrueString,
                     ["output.occlusion.r"] = EncodingChannel.Occlusion,
                     ["output.occlusion.a"] = EncodingChannel.White,
-
-                    ["output.smooth"] = bool.TrueString,
-                    ["output.smooth.r"] = EncodingChannel.Smooth,
-                    ["output.smooth.a"] = EncodingChannel.White,
                 });
                 return;
             }

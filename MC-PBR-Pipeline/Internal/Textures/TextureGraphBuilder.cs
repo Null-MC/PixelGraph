@@ -33,10 +33,8 @@ namespace McPbrPipeline.Internal.Textures
 
             graph.Build();
 
-            if (graph.ContainsSource(EncodingChannel.Height)) {
-                // pre-generate normal map
+            if (graph.ContainsSource(EncodingChannel.Height))
                 await graph.BuildNormalMapAsync(token);
-            }
 
             if (graph.Encoding.OutputAlbedo) await ProcessTextureAsync(graph, TextureTags.Albedo, token);
 
@@ -46,17 +44,18 @@ namespace McPbrPipeline.Internal.Textures
 
             if (graph.Encoding.OutputSpecular) await ProcessTextureAsync(graph, TextureTags.Specular, token);
 
-            if (graph.Encoding.OutputEmissive) await ProcessTextureAsync(graph, TextureTags.Emissive, token);
+            // smooth2/rough
+            if (graph.Encoding.OutputSmooth) await ProcessTextureAsync(graph, TextureTags.Smooth, token);
 
-            if (graph.Encoding.OutputOcclusion) await ProcessTextureAsync(graph, TextureTags.Occlusion, token);
-
-            // smooth/smooth2/rough
-
-            //if (pack.OutputMetal) await ProcessTextureAsync(texture, pack.MetalOutputEncoding, $"{texture.Name}_m.png", token);
+            if (graph.Encoding.OutputMetal) await ProcessTextureAsync(graph, TextureTags.Metal, token);
 
             // porosity
 
             // sss
+
+            if (graph.Encoding.OutputOcclusion) await ProcessTextureAsync(graph, TextureTags.Occlusion, token);
+
+            if (graph.Encoding.OutputEmissive) await ProcessTextureAsync(graph, TextureTags.Emissive, token);
         }
 
         private async Task ProcessTextureAsync(TextureGraph graph, string tag, CancellationToken token)
