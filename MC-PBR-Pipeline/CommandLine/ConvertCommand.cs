@@ -16,6 +16,7 @@ namespace McPbrPipeline.CommandLine
 {
     internal class ConvertCommand
     {
+        private readonly IServiceProvider provider;
         private readonly IAppLifetime lifetime;
         private readonly ILogger logger;
 
@@ -24,6 +25,8 @@ namespace McPbrPipeline.CommandLine
 
         public ConvertCommand(IServiceProvider provider)
         {
+            this.provider = provider;
+
             lifetime = provider.GetRequiredService<IAppLifetime>();
             logger = provider.GetRequiredService<ILogger<ConvertCommand>>();
 
@@ -83,7 +86,7 @@ namespace McPbrPipeline.CommandLine
 
             var reader = new FileInputReader(pack.Source);
             var writer = new FileOutputWriter(destination.FullName);
-            var graph = new TextureGraphBuilder(pack, reader, writer);
+            var graph = new TextureGraphBuilder(provider, reader, writer, pack);
 
             var pbrTexture = new PbrProperties {
                 UseGlobalMatching = true,

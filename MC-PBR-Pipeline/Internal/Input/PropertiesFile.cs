@@ -8,7 +8,7 @@ namespace McPbrPipeline.Internal.Input
 {
     internal class PropertiesFile
     {
-        public Dictionary<string, string> Properties {get;}
+        public Dictionary<string, string> Properties {get; protected set;}
 
 
         public PropertiesFile()

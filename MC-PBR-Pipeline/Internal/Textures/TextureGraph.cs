@@ -2,7 +2,8 @@
 using McPbrPipeline.Internal.Encoding;
 using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Input;
-using Serilog;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -20,17 +21,20 @@ namespace McPbrPipeline.Internal.Textures
         private readonly PackProperties pack;
         private readonly TextureFilter filter;
         private readonly Dictionary<string, List<ChannelSource>> sourceMap;
+        private readonly ILogger logger;
         private Image<Rgba32> normalMap;
 
         public PbrProperties Texture {get;}
         public EncodingProperties Encoding {get;}
 
 
-        public TextureGraph(IInputReader reader, PackProperties pack, PbrProperties texture)
+        public TextureGraph(IServiceProvider provider, IInputReader reader, PackProperties pack, PbrProperties texture)
         {
             this.reader = reader;
             this.pack = pack;
             Texture = texture;
+
+            logger = provider.GetRequiredService<ILogger<TextureGraph>>();
 
             filter = new TextureFilter(pack);
             sourceMap = new Dictionary<string, List<ChannelSource>>();
@@ -93,7 +97,6 @@ namespace McPbrPipeline.Internal.Textures
                 throw new ApplicationException("No height source textures found!");
 
             foreach (var source in sourceList) {
-                // TODO: load image by source.Tag
                 var file = Texture.GetTextureFile(reader, source.Tag);
                 if (file == null) continue;
 
@@ -122,7 +125,8 @@ namespace McPbrPipeline.Internal.Textures
                 return;
             }
 
-            throw new ApplicationException("Failed to generated normal map! No height source textures found!");
+            //throw new ApplicationException("Failed to generated normal map! No height source textures found!");
+            logger.LogWarning($"Failed to generated normal map for '{Texture.Name}'; no height source textures found.");
         }
 
         public async Task<Image<Rgba32>> BuildFinalImageAsync(string tag, CancellationToken token = default)
@@ -271,7 +275,7 @@ namespace McPbrPipeline.Internal.Textures
 
                             if (file == null) {
                                 // TODO: replace with local logger!
-                                Log.Warning($"No '{tag}' source found for texture '{graph.Texture.Name}'.");
+                                graph.logger.LogWarning($"No '{tag}' source found for texture '{graph.Texture.Name}'.");
                                 continue;
                             }
 
@@ -303,7 +307,7 @@ namespace McPbrPipeline.Internal.Textures
                             targetImage.Mutate(c => c.ApplyProcessor(processor));
                         }
                         else {
-                            Log.Warning($"Unable to restore normal-z for texture '{graph.Texture.Name}'.");
+                            graph.logger.LogWarning($"Unable to restore normal-z for texture '{graph.Texture.Name}'.");
                         }
                     }
 
@@ -360,6 +364,7 @@ namespace McPbrPipeline.Internal.Textures
             [EncodingChannel.Metal] = tex => tex.MetalValue,
             [EncodingChannel.Emissive] = tex => tex.EmissiveValue,
             [EncodingChannel.Occlusion] = tex => tex.OcclusionValue,
+            [EncodingChannel.Porosity] = tex => tex.PorosityValue,
         };
     }
 }

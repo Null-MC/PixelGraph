@@ -3,6 +3,7 @@ using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using SixLabors.ImageSharp;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,23 +11,25 @@ namespace McPbrPipeline.Internal.Textures
 {
     internal class TextureGraphBuilder
     {
-        private readonly PackProperties pack;
+        private readonly IServiceProvider provider;
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
+        private readonly PackProperties pack;
 
         public bool UseGlobalOutput {get; set;}
 
 
-        public TextureGraphBuilder(PackProperties pack, IInputReader reader, IOutputWriter writer)
+        public TextureGraphBuilder(IServiceProvider provider, IInputReader reader, IOutputWriter writer, PackProperties pack)
         {
-            this.pack = pack;
+            this.provider = provider;
             this.reader = reader;
             this.writer = writer;
+            this.pack = pack;
         }
 
         public async Task BuildAsync(PbrProperties texture, CancellationToken token = default)
         {
-            using var graph = new TextureGraph(reader, pack, texture);
+            using var graph = new TextureGraph(provider, reader, pack, texture);
 
             graph.Build();
 

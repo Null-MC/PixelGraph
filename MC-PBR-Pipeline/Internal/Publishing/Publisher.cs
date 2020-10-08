@@ -85,7 +85,7 @@ namespace McPbrPipeline.Internal.Publishing
         {
             var reader = new FileInputReader(pack.Source);
             var loader = new FileLoader(provider, reader);
-            var graph = new TextureGraphBuilder(pack, reader, writer) {
+            var graph = new TextureGraphBuilder(provider, reader, writer, pack) {
                 UseGlobalOutput = true,
             };
 
@@ -102,6 +102,8 @@ namespace McPbrPipeline.Internal.Publishing
                         logger.LogDebug($"Publishing texture '{texture.Name}'.");
 
                         await graph.BuildAsync(texture, token);
+
+                        // TODO: Publish mcmeta files
 
                         break;
                     case string localName:

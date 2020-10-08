@@ -15,6 +15,8 @@ namespace McPbrPipeline.Internal.Input
         public bool Wrap => Get("wrap", true);
         public bool ResizeEnabled => Get("resize.enabled", true);
         public string InputFormat => Get<string>("input.format");
+        public int? RangeMin => Get<int?>("range.min");
+        public int? RangeMax => Get<int?>("range.max");
 
         public string AlbedoTexture => Get<string>("albedo.texture");
         public float AlbedoScaleR => Get("albedo.scale.r", 1f);
@@ -27,15 +29,15 @@ namespace McPbrPipeline.Internal.Input
         public byte? HeightValue => Get<byte?>("height.value");
 
         public string NormalTexture => Get<string>("normal.texture");
-        public bool NormalFromHeight => Get("normal.from-height", true);
+        //public bool NormalFromHeight => Get("normal.from-height", true);
         public float NormalStrength => Get("normal.strength", 1f);
-        public float NormalDepthScale => Get("normal.depth.scale", 1f);
+        //public float NormalDepthScale => Get("normal.depth.scale", 1f);
         public byte? NormalValueX => Get<byte?>("normal.value.x");
         public byte? NormalValueY => Get<byte?>("normal.value.y");
         public byte? NormalValueZ => Get<byte?>("normal.value.z");
 
         public string SpecularTexture => Get<string>("specular.texture");
-        public string SpecularColor => Get<string>("specular.color");
+        //public string SpecularColor => Get<string>("specular.color");
         public float SmoothScale => Get("smooth.scale", 1f);
         public byte? SmoothValue => Get<byte?>("smooth.value");
         //public float PerceptualSmoothScale => Get("smooth.scale", 1f);
@@ -53,6 +55,7 @@ namespace McPbrPipeline.Internal.Input
 
         public string SmoothTexture => Get<string>("smooth.texture");
 
+        public byte? PorosityValue => Get<byte?>("porosity.value");
 
 
         public IEnumerable<string> GetAllTextures(IInputReader reader)
@@ -87,6 +90,16 @@ namespace McPbrPipeline.Internal.Input
                 var ext = System.IO.Path.GetExtension(f);
                 return ImageExtensions.Supported.Contains(ext, StringComparer.InvariantCultureIgnoreCase);
             });
+        }
+
+        public PbrProperties Clone()
+        {
+            return new PbrProperties {
+                Name = Name,
+                Path = Path,
+                UseGlobalMatching = UseGlobalMatching,
+                Properties = new Dictionary<string, string>(Properties, StringComparer.InvariantCultureIgnoreCase),
+            };
         }
     }
 }

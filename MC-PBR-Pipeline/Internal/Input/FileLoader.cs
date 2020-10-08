@@ -57,20 +57,37 @@ namespace McPbrPipeline.Internal.Input
 
                 var ignoreList = new List<string>();
 
+                var textureList = new List<PbrProperties>();
                 foreach (var filename in reader.EnumerateFiles(directory, "*.pbr.properties")) {
-                    PbrProperties texture = null;
+                    textureList.Clear();
 
                     try {
-                        texture = await LoadGlobalTextureAsync(filename, token);
-
+                        var texture = await LoadGlobalTextureAsync(filename, token);
                         ignoreList.Add(filename);
-                        ignoreList.AddRange(texture.GetAllTextures(reader));
+
+                        if (texture.RangeMin.HasValue && texture.RangeMax.HasValue) {
+                            // clone texture for each index in range
+                            var min = texture.RangeMin.Value;
+                            var max = texture.RangeMax.Value;
+
+                            for (var i = min; i <= max; i++) {
+                                var subTexture = texture.Clone();
+                                subTexture.Name = i.ToString();
+                                textureList.Add(subTexture);
+                                ignoreList.AddRange(texture.GetAllTextures(reader));
+                            }
+                        }
+                        else {
+                            textureList.Add(texture);
+                            ignoreList.AddRange(texture.GetAllTextures(reader));
+                        }
                     }
                     catch (Exception error) {
                         logger.LogWarning(error, $"Failed to load local texture map '{mapFile}'!");
                     }
 
-                    if (texture != null) yield return texture;
+                    foreach (var texture in textureList)
+                        yield return texture;
                 }
 
                 foreach (var filename in reader.EnumerateFiles(directory, "*")) {
