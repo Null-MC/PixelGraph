@@ -30,5 +30,18 @@ namespace McPbrPipeline.Internal.Extensions
         {
             return (byte)Math.Clamp(value * 255, 0, 255);
         }
+
+        public static float Max(params float[] values)
+        {
+            float result = 0;
+
+            for (var i = 0; i < values.Length; i++) {
+                if (i == 0) result = values[i];
+                else if (values[i] > result)
+                    result = values[i];
+            }
+
+            return result;
+        }
     }
 }

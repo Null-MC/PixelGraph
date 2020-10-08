@@ -8,7 +8,7 @@ namespace McPbrPipeline.Internal.Input
 {
     internal class PropertiesFile
     {
-        protected readonly Dictionary<string, string> Properties;
+        public Dictionary<string, string> Properties {get;}
 
 
         public PropertiesFile()
@@ -37,13 +37,19 @@ namespace McPbrPipeline.Internal.Input
                 line = line.Trim();
                 if (line.StartsWith('#') || string.IsNullOrEmpty(line)) continue;
 
-                var i = line.IndexOf('=');
-                if (i < 0) continue;
-
-                var key = line[..i].TrimEnd();
-                var value = line[(i+1)..].TrimStart();
-                Properties[key] = value;
+                TrySet(line);
             }
+        }
+
+        public bool TrySet(string property)
+        {
+            var i = property.IndexOf('=');
+            if (i < 0) return false;
+
+            var key = property[..i].TrimEnd();
+            var value = property[(i+1)..].TrimStart();
+            Properties[key] = value;
+            return true;
         }
     }
 }

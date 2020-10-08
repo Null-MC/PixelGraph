@@ -1,9 +1,7 @@
 ﻿using McPbrPipeline.ImageProcessors;
 using McPbrPipeline.Internal.Encoding;
 using McPbrPipeline.Internal.Extensions;
-using McPbrPipeline.Internal.Filtering;
 using McPbrPipeline.Internal.Input;
-using McPbrPipeline.Internal.Output;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -16,273 +14,161 @@ using System.Threading.Tasks;
 
 namespace McPbrPipeline.Internal.Textures
 {
-    internal class TextureGraph
+    internal class TextureGraph : IDisposable
     {
-        private readonly PackProperties pack;
         private readonly IInputReader reader;
-        private readonly IOutputWriter writer;
+        private readonly PackProperties pack;
         private readonly TextureFilter filter;
-        private readonly Dictionary<string, ChannelSource> sourceMap;
+        private readonly Dictionary<string, List<ChannelSource>> sourceMap;
+        private Image<Rgba32> normalMap;
+
+        public PbrProperties Texture {get;}
+        public EncodingProperties Encoding {get;}
 
 
-        public TextureGraph(PackProperties pack, IInputReader reader, IOutputWriter writer)
+        public TextureGraph(IInputReader reader, PackProperties pack, PbrProperties texture)
         {
-            this.pack = pack;
             this.reader = reader;
-            this.writer = writer;
+            this.pack = pack;
+            Texture = texture;
 
             filter = new TextureFilter(pack);
-            sourceMap = new Dictionary<string, ChannelSource>();
+            sourceMap = new Dictionary<string, List<ChannelSource>>();
+            Encoding = new EncodingProperties();
         }
 
-        public async Task BuildAsync(PbrProperties texture, CancellationToken token = default)
+        public void Build()
         {
-            sourceMap.Clear();
-            BuildSourceMap(texture);
+            Encoding.Build(pack, Texture);
 
-            if (sourceMap.Keys.Contains(EncodingChannel.Height)) {
-                // TODO: pre-generate normal map
-            }
+            MapSource(TextureTags.Albedo, ColorChannel.Red, Encoding.AlbedoInputR);
+            MapSource(TextureTags.Albedo, ColorChannel.Green, Encoding.AlbedoInputG);
+            MapSource(TextureTags.Albedo, ColorChannel.Blue, Encoding.AlbedoInputB);
+            MapSource(TextureTags.Albedo, ColorChannel.Alpha, Encoding.AlbedoInputA);
 
-            if (pack.OutputAlbedo) await ProcessTextureAsync(texture, pack.AlbedoOutputEncoding, $"{texture.Name}.png", token);
+            MapSource(TextureTags.Height, ColorChannel.Red, Encoding.HeightInputR);
+            MapSource(TextureTags.Height, ColorChannel.Green, Encoding.HeightInputG);
+            MapSource(TextureTags.Height, ColorChannel.Blue, Encoding.HeightInputB);
+            MapSource(TextureTags.Height, ColorChannel.Alpha, Encoding.HeightInputA);
 
-            if (pack.OutputHeight) await ProcessTextureAsync(texture, pack.HeightOutputEncoding, $"{texture.Name}_h.png", token);
+            MapSource(TextureTags.Normal, ColorChannel.Red, Encoding.NormalInputR);
+            MapSource(TextureTags.Normal, ColorChannel.Green, Encoding.NormalInputG);
+            MapSource(TextureTags.Normal, ColorChannel.Blue, Encoding.NormalInputB);
+            MapSource(TextureTags.Normal, ColorChannel.Alpha, Encoding.NormalInputA);
 
-            if (pack.OutputNormal) await ProcessTextureAsync(texture, pack.NormalOutputEncoding, $"{texture.Name}_n.png", token);
+            MapSource(TextureTags.Specular, ColorChannel.Red, Encoding.SpecularInputR);
+            MapSource(TextureTags.Specular, ColorChannel.Green, Encoding.SpecularInputG);
+            MapSource(TextureTags.Specular, ColorChannel.Blue, Encoding.SpecularInputB);
+            MapSource(TextureTags.Specular, ColorChannel.Alpha, Encoding.SpecularInputA);
 
-            if (pack.OutputSpecular) await ProcessTextureAsync(texture, pack.SpecularOutputEncoding, $"{texture.Name}_s.png", token);
+            MapSource(TextureTags.Emissive, ColorChannel.Red, Encoding.EmissiveInputR);
+            MapSource(TextureTags.Emissive, ColorChannel.Green, Encoding.EmissiveInputG);
+            MapSource(TextureTags.Emissive, ColorChannel.Blue, Encoding.EmissiveInputB);
+            MapSource(TextureTags.Emissive, ColorChannel.Alpha, Encoding.EmissiveInputA);
 
-            if (pack.OutputEmissive) await ProcessTextureAsync(texture, pack.EmissiveOutputEncoding, $"{texture.Name}_e.png", token);
+            MapSource(TextureTags.Occlusion, ColorChannel.Red, Encoding.OcclusionInputR);
+            MapSource(TextureTags.Occlusion, ColorChannel.Green, Encoding.OcclusionInputG);
+            MapSource(TextureTags.Occlusion, ColorChannel.Blue, Encoding.OcclusionInputB);
+            MapSource(TextureTags.Occlusion, ColorChannel.Alpha, Encoding.OcclusionInputA);
 
-            if (pack.OutputOcclusion) await ProcessTextureAsync(texture, pack.OcclusionOutputEncoding, $"{texture.Name}_ao.png", token);
+            MapSource(TextureTags.Smooth, ColorChannel.Red, Encoding.SmoothInputR);
+            MapSource(TextureTags.Smooth, ColorChannel.Green, Encoding.SmoothInputG);
+            MapSource(TextureTags.Smooth, ColorChannel.Blue, Encoding.SmoothInputB);
+            MapSource(TextureTags.Smooth, ColorChannel.Alpha, Encoding.SmoothInputA);
 
-            // smooth/smooth2/rough
+            // smooth2/rough
 
-            // reflect
+            // metal
 
             // porosity
 
             // sss
         }
 
-        private void BuildSourceMap(PbrProperties texture)
+        public async Task BuildNormalMapAsync(CancellationToken token = default)
         {
-            MapSource(TextureTags.Albedo, ColorChannel.Red, texture.AlbedoInputR ?? pack.AlbedoInputR);
-            MapSource(TextureTags.Albedo, ColorChannel.Green, texture.AlbedoInputG ?? pack.AlbedoInputG);
-            MapSource(TextureTags.Albedo, ColorChannel.Blue, texture.AlbedoInputB ?? pack.AlbedoInputB);
-            MapSource(TextureTags.Albedo, ColorChannel.Alpha, texture.AlbedoInputA ?? pack.AlbedoInputA);
+            if (normalMap != null) throw new ApplicationException("Normal texture has already been generated!");
 
-            MapSource(TextureTags.Height, ColorChannel.Red, texture.HeightInputR ?? pack.HeightInputR);
-            MapSource(TextureTags.Height, ColorChannel.Green, texture.HeightInputG ?? pack.HeightInputG);
-            MapSource(TextureTags.Height, ColorChannel.Blue, texture.HeightInputB ?? pack.HeightInputB);
-            MapSource(TextureTags.Height, ColorChannel.Alpha, texture.HeightInputA ?? pack.HeightInputA);
+            if (!sourceMap.TryGetValue(EncodingChannel.Height, out var sourceList))
+                throw new ApplicationException("No height source textures found!");
 
-            MapSource(TextureTags.Normal, ColorChannel.Red, texture.NormalInputR ?? pack.NormalInputR);
-            MapSource(TextureTags.Normal, ColorChannel.Green, texture.NormalInputG ?? pack.NormalInputG);
-            MapSource(TextureTags.Normal, ColorChannel.Blue, texture.NormalInputB ?? pack.NormalInputB);
-            MapSource(TextureTags.Normal, ColorChannel.Alpha, texture.NormalInputA ?? pack.NormalInputA);
+            foreach (var source in sourceList) {
+                // TODO: load image by source.Tag
+                var file = Texture.GetTextureFile(reader, source.Tag);
+                if (file == null) continue;
 
-            MapSource(TextureTags.Specular, ColorChannel.Red, texture.SpecularInputR ?? pack.SpecularInputR);
-            MapSource(TextureTags.Specular, ColorChannel.Green, texture.SpecularInputG ?? pack.SpecularInputG);
-            MapSource(TextureTags.Specular, ColorChannel.Blue, texture.SpecularInputB ?? pack.SpecularInputB);
-            MapSource(TextureTags.Specular, ColorChannel.Alpha, texture.SpecularInputA ?? pack.SpecularInputA);
+                await using var stream = reader.Open(file);
+                normalMap = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
 
-            MapSource(TextureTags.Emissive, ColorChannel.Red, texture.EmissiveInputR ?? pack.EmissiveInputR);
-            MapSource(TextureTags.Emissive, ColorChannel.Green, texture.EmissiveInputG ?? pack.EmissiveInputG);
-            MapSource(TextureTags.Emissive, ColorChannel.Blue, texture.EmissiveInputB ?? pack.EmissiveInputB);
-            MapSource(TextureTags.Emissive, ColorChannel.Alpha, texture.EmissiveInputA ?? pack.EmissiveInputA);
+                var options = new NormalMapProcessor.Options {
+                    HeightChannel = source.Channel,
+                    Strength = Texture.NormalStrength,
+                    Wrap = Texture.Wrap,
+                };
 
-            MapSource(TextureTags.Occlusion, ColorChannel.Red, texture.OcclusionInputR ?? pack.OcclusionInputR);
-            MapSource(TextureTags.Occlusion, ColorChannel.Green, texture.OcclusionInputG ?? pack.OcclusionInputG);
-            MapSource(TextureTags.Occlusion, ColorChannel.Blue, texture.OcclusionInputB ?? pack.OcclusionInputB);
-            MapSource(TextureTags.Occlusion, ColorChannel.Alpha, texture.OcclusionInputA ?? pack.OcclusionInputA);
+                var processor = new NormalMapProcessor(options);
+                normalMap.Mutate(c => c.ApplyProcessor(processor));
 
-            // smooth/smooth2/rough
+                // add to source graph
+                sourceMap.GetOrCreate(EncodingChannel.NormalX, NewSourceMap)
+                    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Red));
 
-            // reflect
+                sourceMap.GetOrCreate(EncodingChannel.NormalY, NewSourceMap)
+                    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Green));
 
-            // porosity
+                sourceMap.GetOrCreate(EncodingChannel.NormalZ, NewSourceMap)
+                    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Blue));
 
-            // sss
+                return;
+            }
+
+            throw new ApplicationException("Failed to generated normal map! No height source textures found!");
         }
 
-        private void MapSource(string tag, ColorChannel channel, string input)
+        public async Task<Image<Rgba32>> BuildFinalImageAsync(string tag, CancellationToken token = default)
         {
-            //var input = textureInput ?? packInput;
-            if (string.IsNullOrEmpty(input)) return;
-            if (string.Equals(input, EncodingChannel.None, StringComparison.InvariantCultureIgnoreCase)) return;
-            sourceMap[input] = new ChannelSource(tag, channel);
-        }
+            var textureEncoding = TextureEncoding.CreateOutput(Encoding, tag);
+            var op = new ImageOperation(this, textureEncoding);
 
-        private async Task<Image> BuildSourceImageAsync(PbrProperties texture, TextureEncoding outputEncoding, CancellationToken token = default)
-        {
-            var optionsMap = new Dictionary<string, OverlayOptions>();
-            static OverlayOptions NewOptions() => new OverlayOptions();
-            var sourceColor = new Rgba32();
-            var restoreNormalZ = false;
+            op.MapColor(ColorChannel.Red);
+            op.MapColor(ColorChannel.Green);
+            op.MapColor(ColorChannel.Blue);
+            op.MapColor(ColorChannel.Alpha);
 
-            if (outputEncoding.R != null) {
-                if (byte.TryParse(outputEncoding.R, out var value)) sourceColor.R = value;
-                else if (sourceMap.TryGetValue(outputEncoding.R, out var source))
-                    optionsMap.GetOrCreate(source.Tag, NewOptions).RedSource = source.Channel;
-                else {
-                    // Handle conversion of Smooth <> Smooth2
-                    var isSmooth = string.Equals(outputEncoding.R, EncodingChannel.Smooth, StringComparison.InvariantCultureIgnoreCase);
-                    var isSmooth2 = string.Equals(outputEncoding.R, EncodingChannel.PerceptualSmooth, StringComparison.InvariantCultureIgnoreCase);
-
-                    if (isSmooth2 && sourceMap.TryGetValue(EncodingChannel.Smooth, out source)) {
-                        var opt = optionsMap.GetOrCreate(source.Tag, NewOptions);
-                        opt.RedSource = source.Channel;
-                        opt.RedPower = -1;
-                    }
-                    else if (isSmooth && sourceMap.TryGetValue(EncodingChannel.PerceptualSmooth, out source)) {
-                        var opt = optionsMap.GetOrCreate(source.Tag, NewOptions);
-                        opt.RedSource = source.Channel;
-                        opt.RedPower = 1;
-                    }
-
-                    // restore normal-z
-                    if (string.Equals(outputEncoding.R, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
-                }
-            }
-
-            if (outputEncoding.G != null) {
-                if (byte.TryParse(outputEncoding.G, out var value)) sourceColor.G = value;
-                else if (sourceMap.TryGetValue(outputEncoding.G, out var source))
-                    optionsMap.GetOrCreate(source.Tag, NewOptions).GreenSource = source.Channel;
-                else {
-                    // Handle conversion of Smooth <> Smooth2
-                    var isSmooth = string.Equals(outputEncoding.G, EncodingChannel.Smooth, StringComparison.InvariantCultureIgnoreCase);
-                    var isSmooth2 = string.Equals(outputEncoding.G, EncodingChannel.PerceptualSmooth, StringComparison.InvariantCultureIgnoreCase);
-
-                    if (isSmooth2 && sourceMap.TryGetValue(EncodingChannel.Smooth, out source)) {
-                        var opt = optionsMap.GetOrCreate(source.Tag, NewOptions);
-                        opt.GreenSource = source.Channel;
-                        opt.GreenPower = -1;
-                    }
-                    else if (isSmooth && sourceMap.TryGetValue(EncodingChannel.PerceptualSmooth, out source)) {
-                        var opt = optionsMap.GetOrCreate(source.Tag, NewOptions);
-                        opt.GreenSource = source.Channel;
-                        opt.GreenPower = 1;
-                    }
-
-                    // restore normal-z
-                    if (string.Equals(outputEncoding.G, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
-                }
-            }
-
-            if (outputEncoding.B != null) {
-                if (byte.TryParse(outputEncoding.B, out var value)) sourceColor.B = value;
-                else if (sourceMap.TryGetValue(outputEncoding.B, out var source))
-                    optionsMap.GetOrCreate(source.Tag, NewOptions).BlueSource = source.Channel;
-                else {
-                    // Handle conversion of Smooth <> Smooth2
-                    var isSmooth = string.Equals(outputEncoding.B, EncodingChannel.Smooth, StringComparison.InvariantCultureIgnoreCase);
-                    var isSmooth2 = string.Equals(outputEncoding.B, EncodingChannel.PerceptualSmooth, StringComparison.InvariantCultureIgnoreCase);
-
-                    if (isSmooth2 && sourceMap.TryGetValue(EncodingChannel.Smooth, out source)) {
-                        var opt = optionsMap.GetOrCreate(source.Tag, NewOptions);
-                        opt.BlueSource = source.Channel;
-                        opt.BluePower = -1;
-                    }
-                    else if (isSmooth && sourceMap.TryGetValue(EncodingChannel.PerceptualSmooth, out source)) {
-                        var opt = optionsMap.GetOrCreate(source.Tag, NewOptions);
-                        opt.BlueSource = source.Channel;
-                        opt.BluePower = 1;
-                    }
-
-                    // restore normal-z
-                    if (string.Equals(outputEncoding.B, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
-                }
-            }
-
-            if (outputEncoding.A != null) {
-                if (byte.TryParse(outputEncoding.A, out var value)) sourceColor.A = value;
-                else if (sourceMap.TryGetValue(outputEncoding.A, out var source))
-                    optionsMap.GetOrCreate(source.Tag, NewOptions).AlphaSource = source.Channel;
-                else {
-                    // Handle conversion of Smooth <> Smooth2
-                    var isSmooth = string.Equals(outputEncoding.A, EncodingChannel.Smooth, StringComparison.InvariantCultureIgnoreCase);
-                    var isSmooth2 = string.Equals(outputEncoding.A, EncodingChannel.PerceptualSmooth, StringComparison.InvariantCultureIgnoreCase);
-
-                    if (isSmooth2 && sourceMap.TryGetValue(EncodingChannel.Smooth, out source)) {
-                        var opt = optionsMap.GetOrCreate(source.Tag, NewOptions);
-                        opt.AlphaSource = source.Channel;
-                        opt.AlphaPower = -1;
-                    }
-                    else if (isSmooth && sourceMap.TryGetValue(EncodingChannel.PerceptualSmooth, out source)) {
-                        var opt = optionsMap.GetOrCreate(source.Tag, NewOptions);
-                        opt.AlphaSource = source.Channel;
-                        opt.AlphaPower = 1;
-                    }
-
-                    // restore normal-z
-                    if (string.Equals(outputEncoding.A, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
-                }
-            }
-
-            Image targetImage = null;
+            Image<Rgba32> image = null;
             try {
-                foreach (var tag in optionsMap.Keys) {
-                    var file = texture.GetTextureFile(reader, tag);
+                image = await op.CreateImageAsync(token);
 
-                    if (file == null) {
-                        // TODO: replace with local logger!
-                        Log.Warning($"No '{tag}' source found for texture '{texture.Name}'.");
-                        continue;
-                    }
+                filter.Apply(image, Texture, textureEncoding);
 
-                    await using var sourceStream = reader.Open(file);
-                    using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
-
-                    if (targetImage == null) {
-                        var (width, height) = sourceImage.Size();
-                        targetImage = new Image<Rgba32>(width, height, sourceColor);
-                    }
-
-                    var options = optionsMap[tag];
-                    options.Source = sourceImage;
-
-                    var processor = new OverlayProcessor(options);
-                    targetImage.Mutate(context => context.ApplyProcessor(processor));
-                }
-
-                if (targetImage != null && restoreNormalZ) {
-                    var options = new NormalRestoreProcessor.Options {
-                        NormalX = outputEncoding.GetChannel(EncodingChannel.NormalX),
-                        NormalY = outputEncoding.GetChannel(EncodingChannel.NormalY),
-                        NormalZ = outputEncoding.GetChannel(EncodingChannel.NormalZ),
-                    };
-
-                    if (options.HasAllMappings()) {
-                        var processor = new NormalRestoreProcessor(options);
-                        targetImage.Mutate(c => c.ApplyProcessor(processor));
-                    }
-                    else {
-                        Log.Warning($"Unable to restore normal-z for texture '{texture.Name}'.");
-                    }
-                }
-
-                return targetImage ?? new Image<Rgba32>(1, 1, sourceColor);
+                return image;
             }
             catch {
-                targetImage?.Dispose();
+                image?.Dispose();
                 throw;
             }
         }
 
-        private async Task ProcessTextureAsync(PbrProperties texture, TextureEncoding encoding, string name, CancellationToken token)
+        public bool ContainsSource(string encodingChannel)
         {
-            if (!encoding.Any()) return;
-
-            using var image = await BuildSourceImageAsync(texture, encoding, token);
-
-            filter.Apply(image, texture, encoding);
-
-            var destFile = PathEx.Join(texture.Path, name);
-            await using var stream = writer.WriteFile(destFile);
-            await image.SaveAsPngAsync(stream, token);
+            return sourceMap.Keys.Contains(encodingChannel, StringComparer.InvariantCultureIgnoreCase);
         }
+
+        public void Dispose()
+        {
+            normalMap?.Dispose();
+        }
+
+        private void MapSource(string tag, ColorChannel channel, string input)
+        {
+            if (string.IsNullOrEmpty(input)) return;
+            if (string.Equals(input, EncodingChannel.None, StringComparison.InvariantCultureIgnoreCase)) return;
+
+            sourceMap.GetOrCreate(input, NewSourceMap)
+                .Add(new ChannelSource(tag, channel));
+        }
+
+        private static List<ChannelSource> NewSourceMap() => new List<ChannelSource>();
 
         private class ChannelSource
         {
@@ -296,5 +182,184 @@ namespace McPbrPipeline.Internal.Textures
                 Channel = channel;
             }
         }
+
+        private class ImageOperation
+        {
+            private readonly TextureGraph graph;
+            private readonly TextureEncoding encoding;
+            private readonly Dictionary<string, OverlayProcessor.Options> optionsMap;
+            private Rgba32 sourceColor;
+            private bool restoreNormalZ;
+
+
+            public ImageOperation(TextureGraph graph, TextureEncoding encoding)
+            {
+                this.graph = graph;
+                this.encoding = encoding;
+
+                optionsMap = new Dictionary<string, OverlayProcessor.Options>(StringComparer.InvariantCultureIgnoreCase);
+                sourceColor = new Rgba32();
+            }
+
+            public void MapColor(ColorChannel color)
+            {
+                var outputChannel = encoding.Get(color);
+                if (outputChannel == null) return;
+
+                if (byte.TryParse(outputChannel, out var value))
+                    SetSourceColor(color, value);
+
+                else if (TryGetChannelValue(outputChannel, out value))
+                    SetSourceColor(color, value);
+
+                else if (graph.sourceMap.TryGetValue(outputChannel, out var sourceList)) {
+                    foreach (var source in sourceList)
+                        optionsMap.GetOrCreate(source.Tag, NewOptions)
+                            .Set(source.Channel, color);
+                }
+
+                else {
+                    // Smooth2 > Smooth
+                    var isSmooth2 = string.Equals(outputChannel, EncodingChannel.PerceptualSmooth, StringComparison.InvariantCultureIgnoreCase);
+                    if (isSmooth2 && graph.sourceMap.TryGetValue(EncodingChannel.Smooth, out sourceList)) {
+                        foreach (var source in sourceList) {
+                            optionsMap.GetOrCreate(source.Tag, NewOptions)
+                                .Set(color, source.Channel, -1);
+                        }
+                    }
+
+                    // Smooth > Smooth2
+                    var isSmooth = string.Equals(outputChannel, EncodingChannel.Smooth, StringComparison.InvariantCultureIgnoreCase);
+                    if (isSmooth && graph.sourceMap.TryGetValue(EncodingChannel.PerceptualSmooth, out sourceList)) {
+                        foreach (var source in sourceList) {
+                            optionsMap.GetOrCreate(source.Tag, NewOptions)
+                                .Set(color, source.Channel, 1);
+                        }
+                    }
+
+                    // TODO: Smooth > Rough
+
+                    // TODO: Rough > Smooth
+
+                    // TODO: Smooth2 > Rough; Rough > Smooth2
+
+                    // restore normal-z
+                    if (string.Equals(outputChannel, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
+                }
+            }
+
+            public async Task<Image<Rgba32>> CreateImageAsync(CancellationToken token = default)
+            {
+                Image<Rgba32> targetImage = null;
+
+                try {
+                    foreach (var tag in optionsMap.Keys.Reverse()) {
+                        if (string.Equals(tag, TextureTags.NormalGenerated, StringComparison.InvariantCultureIgnoreCase)) {
+                            if (targetImage == null) {
+                                var (width, height) = graph.normalMap.Size();
+                                targetImage = new Image<Rgba32>(width, height, sourceColor);
+                            }
+
+                            var options = optionsMap[tag];
+                            options.Source = graph.normalMap;
+
+                            var processor = new OverlayProcessor(options);
+                            targetImage.Mutate(context => context.ApplyProcessor(processor));
+                        }
+                        else {
+                            var file = graph.Texture.GetTextureFile(graph.reader, tag);
+
+                            if (file == null) {
+                                // TODO: replace with local logger!
+                                Log.Warning($"No '{tag}' source found for texture '{graph.Texture.Name}'.");
+                                continue;
+                            }
+
+                            await using var sourceStream = graph.reader.Open(file);
+                            using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
+
+                            if (targetImage == null) {
+                                var (width, height) = sourceImage.Size();
+                                targetImage = new Image<Rgba32>(width, height, sourceColor);
+                            }
+
+                            var options = optionsMap[tag];
+                            options.Source = sourceImage;
+
+                            var processor = new OverlayProcessor(options);
+                            targetImage.Mutate(context => context.ApplyProcessor(processor));
+                        }
+                    }
+
+                    if (targetImage != null && restoreNormalZ) {
+                        var options = new NormalRestoreProcessor.Options {
+                            NormalX = encoding.GetChannel(EncodingChannel.NormalX),
+                            NormalY = encoding.GetChannel(EncodingChannel.NormalY),
+                            NormalZ = encoding.GetChannel(EncodingChannel.NormalZ),
+                        };
+
+                        if (options.HasAllMappings()) {
+                            var processor = new NormalRestoreProcessor(options);
+                            targetImage.Mutate(c => c.ApplyProcessor(processor));
+                        }
+                        else {
+                            Log.Warning($"Unable to restore normal-z for texture '{graph.Texture.Name}'.");
+                        }
+                    }
+
+                    return targetImage ?? new Image<Rgba32>(1, 1, sourceColor);
+                }
+                catch {
+                    targetImage?.Dispose();
+                    throw;
+                }
+            }
+
+            private void SetSourceColor(ColorChannel color, byte value)
+            {
+                switch (color) {
+                    case ColorChannel.Red:
+                        sourceColor.R = value;
+                        break;
+                    case ColorChannel.Green:
+                        sourceColor.G = value;
+                        break;
+                    case ColorChannel.Blue:
+                        sourceColor.B = value;
+                        break;
+                    case ColorChannel.Alpha:
+                        sourceColor.A = value;
+                        break;
+                }
+            }
+
+            private bool TryGetChannelValue(string encodingChannel, out byte value)
+            {
+                byte? result = null;
+
+                if (valueMap.TryGetValue(encodingChannel, out var valueFunc)) {
+                    result = valueFunc(graph.Texture);
+                    value = result ?? 0;
+                }
+                else value = 0;
+
+                return result.HasValue;
+            }
+
+            private static OverlayProcessor.Options NewOptions() => new OverlayProcessor.Options();
+        }
+
+        private static readonly Dictionary<string, Func<PbrProperties, byte?>> valueMap = new Dictionary<string, Func<PbrProperties, byte?>>(StringComparer.InvariantCultureIgnoreCase) {
+            [EncodingChannel.NormalX] = tex => tex.NormalValueX,
+            [EncodingChannel.NormalY] = tex => tex.NormalValueY,
+            [EncodingChannel.NormalZ] = tex => tex.NormalValueZ,
+            [EncodingChannel.Height] = tex => tex.HeightValue,
+            [EncodingChannel.Smooth] = tex => tex.SmoothValue,
+            [EncodingChannel.PerceptualSmooth] = tex => tex.SmoothValue,
+            [EncodingChannel.Rough] = tex => tex.RoughValue,
+            [EncodingChannel.Metal] = tex => tex.MetalValue,
+            [EncodingChannel.Emissive] = tex => tex.EmissiveValue,
+            [EncodingChannel.Occlusion] = tex => tex.OcclusionValue,
+        };
     }
 }

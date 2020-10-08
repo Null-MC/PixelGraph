@@ -1,18 +1,18 @@
 ﻿using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing.Processors;
-using System;
 
 namespace McPbrPipeline.ImageProcessors
 {
-    internal class ScaleProcessor : IImageProcessor
+    internal class HeightScaleProcessor : IImageProcessor
     {
         private readonly Options options;
 
 
-        public ScaleProcessor(Options options)
+        public HeightScaleProcessor(Options options)
         {
             this.options = options;
         }
@@ -24,21 +24,8 @@ namespace McPbrPipeline.ImageProcessors
 
         public class Options
         {
-            public float Red = 1f;
-            public float Green = 1f;
-            public float Blue = 1f;
-            public float Alpha = 1f;
-
-
-            public bool Any {
-                get {
-                    if (Math.Abs(Red - 1) > float.Epsilon) return true;
-                    if (Math.Abs(Green - 1) > float.Epsilon) return true;
-                    if (Math.Abs(Blue - 1) > float.Epsilon) return true;
-                    if (Math.Abs(Alpha - 1) > float.Epsilon) return true;
-                    return false;
-                }
-            }
+            public float Scale {get; set;} = 1f;
+            public ColorChannel HeightChannel;
         }
 
         private class Processor<TPixel> : ImageProcessor<TPixel> where TPixel : unmanaged, IPixel<TPixel>
@@ -65,9 +52,7 @@ namespace McPbrPipeline.ImageProcessors
             private readonly Options options;
 
 
-            public RowOperation(
-                ImageFrame<TPixel> sourceFrame,
-                in Options options)
+            public RowOperation(ImageFrame<TPixel> sourceFrame, Options options)
             {
                 this.sourceFrame = sourceFrame;
                 this.options = options;
@@ -81,18 +66,20 @@ namespace McPbrPipeline.ImageProcessors
                 for (var x = 0; x < sourceFrame.Width; x++) {
                     row[x].ToRgba32(ref pixel);
 
-                    pixel.R = Filter(in pixel.R, in options.Red);
-                    pixel.G = Filter(in pixel.G, in options.Green);
-                    pixel.B = Filter(in pixel.B, in options.Blue);
-                    pixel.A = Filter(in pixel.A, in options.Alpha);
+                    if (options.HeightChannel.HasFlag(ColorChannel.Red))
+                        pixel.R = MathEx.Saturate(1 - (1 - pixel.R / 255d) * options.Scale);
+
+                    if (options.HeightChannel.HasFlag(ColorChannel.Green))
+                        pixel.G = MathEx.Saturate(1 - (1 - pixel.G / 255d) * options.Scale);
+
+                    if (options.HeightChannel.HasFlag(ColorChannel.Blue))
+                        pixel.B = MathEx.Saturate(1 - (1 - pixel.B / 255d) * options.Scale);
+
+                    if (options.HeightChannel.HasFlag(ColorChannel.Alpha))
+                        pixel.A = MathEx.Saturate(1 - (1 - pixel.A / 255d) * options.Scale);
 
                     row[x].FromRgba32(pixel);
                 }
-            }
-
-            private static byte Filter(in byte value, in float scale)
-            {
-                return MathEx.Saturate(value / 255f * scale);
             }
         }
     }

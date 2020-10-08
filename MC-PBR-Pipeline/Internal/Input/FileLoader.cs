@@ -57,12 +57,13 @@ namespace McPbrPipeline.Internal.Input
 
                 var ignoreList = new List<string>();
 
-                foreach (var filename in reader.EnumerateFiles(directory, "*.pbr")) {
+                foreach (var filename in reader.EnumerateFiles(directory, "*.pbr.properties")) {
                     PbrProperties texture = null;
 
                     try {
                         texture = await LoadGlobalTextureAsync(filename, token);
 
+                        ignoreList.Add(filename);
                         ignoreList.AddRange(texture.GetAllTextures(reader));
                     }
                     catch (Exception error) {
@@ -88,8 +89,11 @@ namespace McPbrPipeline.Internal.Input
 
         public async Task<PbrProperties> LoadGlobalTextureAsync(string localFile, CancellationToken token = default)
         {
+            var name = Path.GetFileName(localFile);
+            name = name.Substring(0, name.Length - 15);
+
             var properties = new PbrProperties {
-                Name = Path.GetFileNameWithoutExtension(localFile),
+                Name = name,
                 Path = Path.GetDirectoryName(localFile),
                 UseGlobalMatching = true,
             };
@@ -115,6 +119,6 @@ namespace McPbrPipeline.Internal.Input
             return properties;
         }
 
-        private static readonly string[] IgnoredExtensions = {".pbr", ".zip", ".db", ".cmd", ".sh", ".xcf", ".psd"};
+        private static readonly string[] IgnoredExtensions = {".zip", ".db", ".cmd", ".sh", ".xcf", ".psd"};
     }
 }

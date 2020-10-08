@@ -1,13 +1,12 @@
 ﻿using McPbrPipeline.ImageProcessors;
 using McPbrPipeline.Internal.Encoding;
 using McPbrPipeline.Internal.Input;
-using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 
-namespace McPbrPipeline.Internal.Filtering
+namespace McPbrPipeline.Internal.Textures
 {
     internal class TextureFilter
     {
@@ -23,12 +22,37 @@ namespace McPbrPipeline.Internal.Filtering
         {
             // TODO: apply modifications
 
-            ApplyScaling(image, texture, encoding);
+            //SetValues(image, texture, encoding);
+
+            ApplyHeightScaling(image, texture, encoding);
+
+            ApplyChannelScaling(image, texture, encoding);
 
             Resize(image, texture);
         }
 
-        private void ApplyScaling(Image image, PbrProperties texture, TextureEncoding encoding)
+        //private void SetValues(Image image, PbrProperties texture, TextureEncoding encoding)
+        //{
+        //    //
+        //}
+
+        private void ApplyHeightScaling(Image image, PbrProperties texture, TextureEncoding encoding)
+        {
+            var options = new HeightScaleProcessor.Options {
+                Scale = texture.HeightScale,
+            };
+
+            if (Math.Abs(options.Scale - 1f) < float.Epsilon) return;
+
+            foreach (var color in encoding.GetChannels(EncodingChannel.Height))
+                options.HeightChannel |= color;
+
+            if (options.HeightChannel == ColorChannel.None) return;
+            var processor = new HeightScaleProcessor(options);
+            image.Mutate(c => c.ApplyProcessor(processor));
+        }
+
+        private void ApplyChannelScaling(Image image, PbrProperties texture, TextureEncoding encoding)
         {
             var scaleOptions = new ScaleProcessor.Options {
                 Red = GetScale(texture, encoding.R),
@@ -77,12 +101,12 @@ namespace McPbrPipeline.Internal.Filtering
             [EncodingChannel.AlbedoG] = t => t.AlbedoScaleG,
             [EncodingChannel.AlbedoB] = t => t.AlbedoScaleB,
             [EncodingChannel.AlbedoA] = t => t.AlbedoScaleA,
-            [EncodingChannel.Height] = t => t.HeightScale,
+            //[EncodingChannel.Height] = t => t.HeightScale,
             // AO
             [EncodingChannel.Smooth] = t => t.SmoothScale,
             [EncodingChannel.PerceptualSmooth] = t => t.SmoothScale, // TODO: scale in linear space?
             [EncodingChannel.Rough] = t => t.RoughScale,
-            [EncodingChannel.Reflect] = t => t.ReflectScale,
+            [EncodingChannel.Metal] = t => t.MetalScale,
             // Porosity-SSS
             [EncodingChannel.Emissive] = t => t.EmissiveScale,
         };

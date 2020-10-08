@@ -18,7 +18,8 @@ namespace McPbrPipeline.CommandLine
         {
             root = new RootCommand();
 
-            root.AddCommand(new ConvertCommand(provider).Command);
+            //root.AddCommand(new ConvertCommand(provider).Command);
+            root.AddCommand(new ImportCommand(provider).Command);
             root.AddCommand(new PublishCommand(provider).Command);
         }
 

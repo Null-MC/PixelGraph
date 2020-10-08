@@ -20,7 +20,7 @@ namespace McPbrPipeline.Internal.Encoding
         public const string Smooth = "smooth";
         public const string Rough = "rough";
         public const string PerceptualSmooth = "smooth2";
-        public const string Reflect = "reflect";
+        public const string Metal = "metal";
         public const string Emissive = "emissive";
         public const string Porosity = "porosity";
         public const string Porosity_SSS = "porosity-sss";

@@ -1,58 +1,92 @@
-﻿using McPbrPipeline.Internal;
-using McPbrPipeline.Internal.Filtering;
+﻿using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing.Processors;
 using System;
-using McPbrPipeline.Internal.Extensions;
 
 namespace McPbrPipeline.ImageProcessors
 {
     internal class OverlayProcessor : IImageProcessor
     {
-        private readonly OverlayOptions options;
+        private readonly Options options;
 
 
-        public OverlayProcessor(in OverlayOptions options)
+        public OverlayProcessor(in Options options)
         {
             this.options = options;
         }
 
         public IImageProcessor<TPixel> CreatePixelSpecificProcessor<TPixel>(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle) where TPixel : unmanaged, IPixel<TPixel>
         {
-            return new OverlayProcessor<TPixel>(configuration, source, sourceRectangle, options);
+            return new Processor<TPixel>(configuration, source, sourceRectangle, options);
         }
-    }
 
-    internal class OverlayProcessor<TPixel> : ImageProcessor<TPixel> where TPixel : unmanaged, IPixel<TPixel>
-    {
-        private readonly OverlayOptions options;
-
-
-        public OverlayProcessor(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle, OverlayOptions options)
-            : base(configuration, source, sourceRectangle)
+        public class Options
         {
-            this.options = options;
+            public Image<Rgba32> Source {get; set;}
+            public ColorChannel RedSource {get; set;}
+            public ColorChannel GreenSource {get; set;}
+            public ColorChannel BlueSource {get; set;}
+            public ColorChannel AlphaSource {get; set;}
+            public short RedPower;
+            public short GreenPower;
+            public short BluePower;
+            public short AlphaPower;
+
+
+            public void Set(ColorChannel source, ColorChannel destination, short power = 0)
+            {
+                switch (destination) {
+                    case ColorChannel.Red:
+                        RedSource = source;
+                        RedPower = power;
+                        break;
+                    case ColorChannel.Green:
+                        GreenSource = source;
+                        GreenPower = power;
+                        break;
+                    case ColorChannel.Blue:
+                        BlueSource = source;
+                        BluePower = power;
+                        break;
+                    case ColorChannel.Alpha:
+                        AlphaSource = source;
+                        AlphaPower = power;
+                        break;
+                }
+            }
         }
 
-        protected override void OnFrameApply(ImageFrame<TPixel> source)
+        private class Processor<TPixel> : ImageProcessor<TPixel> where TPixel : unmanaged, IPixel<TPixel>
         {
-            var operation = new RowOperation(source, options);
-            ParallelRowIterator.IterateRows(Configuration, SourceRectangle, in operation);
+            private readonly Options options;
+
+
+            public Processor(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle, Options options)
+                : base(configuration, source, sourceRectangle)
+            {
+                this.options = options;
+            }
+
+            protected override void OnFrameApply(ImageFrame<TPixel> source)
+            {
+                var operation = new RowOperation<TPixel>(source, options);
+                ParallelRowIterator.IterateRows(Configuration, SourceRectangle, in operation);
+            }
         }
 
-        private readonly struct RowOperation : IRowOperation
+        private readonly struct RowOperation<TPixel> : IRowOperation where TPixel : unmanaged, IPixel<TPixel>
         {
             private readonly ImageFrame<Rgba32> sourceFrame;
             private readonly ImageFrame<TPixel> targetFrame;
-            private readonly OverlayOptions options;
+            private readonly Options options;
 
 
             public RowOperation(
                 ImageFrame<TPixel> targetFrame,
-                OverlayOptions options)
+                Options options)
             {
                 this.targetFrame = targetFrame;
                 this.options = options;
@@ -72,9 +106,8 @@ namespace McPbrPipeline.ImageProcessors
                     sourceRow[x].ToRgba32(ref pixelSource);
                     targetRow[x].ToRgba32(ref pixelTarget);
 
-                    if (options.RedSource != ColorChannel.None) {
+                    if (options.RedSource != ColorChannel.None)
                         pixelTarget.R = GetChannel(options.RedSource, in pixelSource, in options.RedPower);
-                    }
 
                     if (options.GreenSource != ColorChannel.None)
                         pixelTarget.G = GetChannel(options.GreenSource, in pixelSource, in options.GreenPower);
@@ -96,11 +129,11 @@ namespace McPbrPipeline.ImageProcessors
                     ColorChannel.Green => sourcePixel.G,
                     ColorChannel.Blue => sourcePixel.B,
                     ColorChannel.Alpha => sourcePixel.A,
-                    _ => (byte)0,
+                    _ => (byte) 0,
                 };
 
-                if (power > 0) return MathEx.Saturate(Math.Pow(result / 255d, 2));
-                if (power < 0) return (byte)Math.Sqrt(result / 255d);
+                if (power < 0) return MathEx.Saturate(1f - Math.Pow(1f - result / 255d, 2));
+                if (power > 0) return MathEx.Saturate(1f - Math.Sqrt(1f - result / 255d));
                 return result;
             }
         }

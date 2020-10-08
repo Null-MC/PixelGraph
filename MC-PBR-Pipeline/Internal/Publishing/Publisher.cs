@@ -1,4 +1,5 @@
-﻿using McPbrPipeline.Internal.Input;
+﻿using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using McPbrPipeline.Internal.Extensions;
 
 namespace McPbrPipeline.Internal.Publishing
 {
@@ -43,8 +43,6 @@ namespace McPbrPipeline.Internal.Publishing
             await using (var stream = File.Open(options.Profile, FileMode.Open, FileAccess.Read)) {
                 await pack.ReadAsync(stream, token);
             }
-
-            pack.ApplyFormat();
 
             await using var output = GetOutputWriter(options.Destination, options.Compress);
 
@@ -87,7 +85,9 @@ namespace McPbrPipeline.Internal.Publishing
         {
             var reader = new FileInputReader(pack.Source);
             var loader = new FileLoader(provider, reader);
-            var graph = new TextureGraph(pack, reader, writer);
+            var graph = new TextureGraphBuilder(pack, reader, writer) {
+                UseGlobalOutput = true,
+            };
 
             var genericPublisher = new GenericTexturePublisher(pack, reader, writer);
 
@@ -100,8 +100,6 @@ namespace McPbrPipeline.Internal.Publishing
                 switch (fileObj) {
                     case PbrProperties texture:
                         logger.LogDebug($"Publishing texture '{texture.Name}'.");
-
-                        texture.ApplyFormat();
 
                         await graph.BuildAsync(texture, token);
 

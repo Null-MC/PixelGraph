@@ -1,5 +1,8 @@
-﻿namespace McPbrPipeline.Internal.Textures
+﻿using System;
+
+namespace McPbrPipeline.Internal.Textures
 {
+    [Flags]
     public enum ColorChannel
     {
         None,

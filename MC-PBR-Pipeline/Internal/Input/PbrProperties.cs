@@ -1,10 +1,8 @@
-﻿using McPbrPipeline.Internal.Encoding;
-using McPbrPipeline.Internal.Extensions;
+﻿using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Textures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SysPath = System.IO.Path;
 
 namespace McPbrPipeline.Internal.Input
 {
@@ -19,64 +17,43 @@ namespace McPbrPipeline.Internal.Input
         public string InputFormat => Get<string>("input.format");
 
         public string AlbedoTexture => Get<string>("albedo.texture");
-        public string AlbedoInputR => Get<string>("albedo.input.r");
-        public string AlbedoInputG => Get<string>("albedo.input.g");
-        public string AlbedoInputB => Get<string>("albedo.input.b");
-        public string AlbedoInputA => Get<string>("albedo.input.a");
         public float AlbedoScaleR => Get("albedo.scale.r", 1f);
         public float AlbedoScaleG => Get("albedo.scale.g", 1f);
         public float AlbedoScaleB => Get("albedo.scale.b", 1f);
         public float AlbedoScaleA => Get("albedo.scale.a", 1f);
 
         public string HeightTexture => Get<string>("height.texture");
-        public string HeightInputR => Get<string>("height.input.r");
-        public string HeightInputG => Get<string>("height.input.g");
-        public string HeightInputB => Get<string>("height.input.b");
-        public string HeightInputA => Get<string>("height.input.a");
         public float HeightScale => Get("height.scale", 1f);
+        public byte? HeightValue => Get<byte?>("height.value");
 
         public string NormalTexture => Get<string>("normal.texture");
-        public string NormalInputR => Get<string>("normal.input.r");
-        public string NormalInputG => Get<string>("normal.input.g");
-        public string NormalInputB => Get<string>("normal.input.b");
-        public string NormalInputA => Get<string>("normal.input.a");
         public bool NormalFromHeight => Get("normal.from-height", true);
         public float NormalStrength => Get("normal.strength", 1f);
         public float NormalDepthScale => Get("normal.depth.scale", 1f);
-        public float? NormalX => Get<float?>("normal.x");
-        public float? NormalY => Get<float?>("normal.y");
-        public float? NormalZ => Get<float?>("normal.z");
+        public byte? NormalValueX => Get<byte?>("normal.value.x");
+        public byte? NormalValueY => Get<byte?>("normal.value.y");
+        public byte? NormalValueZ => Get<byte?>("normal.value.z");
 
         public string SpecularTexture => Get<string>("specular.texture");
-        public string SpecularInputR => Get<string>("specular.input.r");
-        public string SpecularInputG => Get<string>("specular.input.g");
-        public string SpecularInputB => Get<string>("specular.input.b");
-        public string SpecularInputA => Get<string>("specular.input.a");
         public string SpecularColor => Get<string>("specular.color");
         public float SmoothScale => Get("smooth.scale", 1f);
+        public byte? SmoothValue => Get<byte?>("smooth.value");
         //public float PerceptualSmoothScale => Get("smooth.scale", 1f);
         public float RoughScale => Get("rough.scale", 1f);
-        public float ReflectScale => Get("reflect.scale", 1f);
+        public byte? RoughValue => Get<byte?>("rough.value");
+        public float MetalScale => Get("metal.scale", 1f);
+        public byte? MetalValue => Get<byte?>("metal.value");
 
         public string EmissiveTexture => Get<string>("emissive.texture");
-        public string EmissiveInputR => Get<string>("emissive.input.r");
-        public string EmissiveInputG => Get<string>("emissive.input.g");
-        public string EmissiveInputB => Get<string>("emissive.input.b");
-        public string EmissiveInputA => Get<string>("emissive.input.a");
         public float EmissiveScale => Get("emissive.scale", 1f);
+        public byte? EmissiveValue => Get<byte?>("emissive.value");
 
         public string OcclusionTexture => Get<string>("occlusion.texture");
-        public string OcclusionInputR => Get<string>("occlusion.input.r");
-        public string OcclusionInputG => Get<string>("occlusion.input.g");
-        public string OcclusionInputB => Get<string>("occlusion.input.b");
-        public string OcclusionInputA => Get<string>("occlusion.input.a");
+        public byte? OcclusionValue => Get<byte?>("occlusion.value");
+
+        public string SmoothTexture => Get<string>("smooth.texture");
 
 
-        public void ApplyFormat()
-        {
-            if (!string.IsNullOrWhiteSpace(InputFormat))
-                EncodingFormat.ApplyInputFormat(Properties, InputFormat);
-        }
 
         public IEnumerable<string> GetAllTextures(IInputReader reader)
         {
@@ -107,7 +84,7 @@ namespace McPbrPipeline.Internal.Input
             var matchName = TextureTags.GetMatchName(this, type);
 
             return reader.EnumerateFiles(srcPath, matchName).FirstOrDefault(f => {
-                var ext = SysPath.GetExtension(f);
+                var ext = System.IO.Path.GetExtension(f);
                 return ImageExtensions.Supported.Contains(ext, StringComparer.InvariantCultureIgnoreCase);
             });
         }

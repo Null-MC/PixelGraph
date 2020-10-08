@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace McPbrPipeline.CommandLine
 {
-    internal class ConvertCommand
+    internal class ImportCommand
     {
         private readonly IAppLifetime lifetime;
         private readonly ILogger logger;
@@ -22,22 +22,22 @@ namespace McPbrPipeline.CommandLine
         public Command Command {get;}
 
 
-        public ConvertCommand(IServiceProvider provider)
+        public ImportCommand(IServiceProvider provider)
         {
             lifetime = provider.GetRequiredService<IAppLifetime>();
             logger = provider.GetRequiredService<ILogger<ConvertCommand>>();
 
-            Command = new Command("convert", "Converts a specified texture from a source format to a destination format.") {
-                Handler = CommandHandler.Create<string, DirectoryInfo, string, string>(RunAsync),
+            Command = new Command("import", "Imports a texture from the specified source format to a destination format.") {
+                Handler = CommandHandler.Create<string, DirectoryInfo, string, string, string[]>(RunAsync),
             };
 
             Command.AddOption(new Option<string>(
                 new [] {"-t", "--texture"},
-                "The name of the texture to convert, excluding extension."));
+                "The name of the texture to import, excluding extension."));
 
             Command.AddOption(new Option<DirectoryInfo>(
                 new[] { "-d", "--destination" },
-                "The target directory to write the converted texture to."));
+                "The target directory to write the imported texture to."));
 
             Command.AddOption(new Option<string>(
                 new[] { "-i", "--input-format" },
@@ -45,10 +45,14 @@ namespace McPbrPipeline.CommandLine
 
             Command.AddOption(new Option<string>(
                 new[] { "-o", "--output-format" },
-                "The target format of the converted texture."));
+                "The target format of the imported texture."));
+
+            Command.AddOption(new Option<string[]>(
+                new[] { "-p", "--property" },
+                "The target format of the imported texture."));
         }
 
-        private async Task<int> RunAsync(string texture, DirectoryInfo destination, string inputFormat, string outputFormat)
+        private async Task<int> RunAsync(string texture, DirectoryInfo destination, string inputFormat, string outputFormat, string[] property)
         {
             if (texture == null) {
                 ConsoleEx.WriteLine("Source texture is undefined!", ConsoleColor.DarkRed);
@@ -60,7 +64,7 @@ namespace McPbrPipeline.CommandLine
                 return -1;
             }
 
-            ConsoleEx.WriteLine("\nConverting...", ConsoleColor.White);
+            ConsoleEx.WriteLine("\nImporting...", ConsoleColor.White);
             ConsoleEx.Write("  Texture     : ", ConsoleColor.Gray);
             ConsoleEx.WriteLine(texture, ConsoleColor.Cyan);
             ConsoleEx.Write("  Destination : ", ConsoleColor.Gray);
@@ -72,29 +76,11 @@ namespace McPbrPipeline.CommandLine
             ConsoleEx.WriteLine();
 
             var fullFile = Path.GetFullPath(texture);
-
-            var pack = new PackProperties {
-                Source = Path.GetDirectoryName(fullFile),
-                Properties = {
-                    ["input.format"] = inputFormat,
-                    ["output.format"] = outputFormat,
-                },
-            };
-
-            var reader = new FileInputReader(pack.Source);
-            var writer = new FileOutputWriter(destination.FullName);
-            var graph = new TextureGraphBuilder(pack, reader, writer);
-
-            var pbrTexture = new PbrProperties {
-                UseGlobalMatching = true,
-                Name = Path.GetFileName(texture),
-                Path = ".",
-            };
-
             var timer = Stopwatch.StartNew();
 
             try {
-                await graph.BuildAsync(pbrTexture, lifetime.Token);
+                await ImportTextureAsync(fullFile, destination.FullName, inputFormat, outputFormat, property);
+
                 return 0;
             }
             catch (ApplicationException error) {
@@ -112,6 +98,44 @@ namespace McPbrPipeline.CommandLine
                 ConsoleEx.Write("\nDuration: ", ConsoleColor.Gray);
                 ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
             }
+        }
+
+        private async Task ImportTextureAsync(string fullFile, string destination, string inputFormat, string outputFormat, string[] property)
+        {
+            var pack = new PackProperties {
+                Source = Path.GetDirectoryName(fullFile),
+                Properties = {
+                    ["input.format"] = inputFormat,
+                    ["output.format"] = outputFormat,
+                },
+            };
+
+            var reader = new FileInputReader(pack.Source);
+            var writer = new FileOutputWriter(destination);
+            var graph = new TextureGraphBuilder(pack, reader, writer);
+
+            var pbrTexture = new PbrProperties {
+                UseGlobalMatching = true,
+                Name = Path.GetFileName(fullFile),
+                Path = ".",
+            };
+
+            if (property != null) {
+                foreach (var p in property)
+                    pbrTexture.TrySet(p);
+            }
+
+            await graph.BuildAsync(pbrTexture, lifetime.Token);
+
+            await CreatePbrPropertiesAsync(writer, pbrTexture, outputFormat);
+        }
+
+        private static async Task CreatePbrPropertiesAsync(IOutputWriter writer, PbrProperties texture, string outputFormat)
+        {
+            var file = PathEx.Join(texture.Path, "pbr.properties");
+            await using var stream = writer.WriteFile(file);
+            await using var streamWriter = new StreamWriter(stream);
+            await streamWriter.WriteLineAsync($"input.format = {outputFormat}");
         }
     }
 }
