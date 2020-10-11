@@ -95,17 +95,22 @@ namespace McPbrPipeline.Internal.Encoding
 
         public void Build(PackProperties pack, PbrProperties texture)
         {
-            if (!string.IsNullOrWhiteSpace(texture.InputFormat)) {
+            var hasPackInputFormat = !string.IsNullOrWhiteSpace(pack.InputFormat);
+            var hasPackOutputFormat = !string.IsNullOrWhiteSpace(pack.OutputFormat);
+            var hasTextureInputFormat = !string.IsNullOrWhiteSpace(texture.InputFormat);
+
+            if (hasTextureInputFormat)
                 ApplyInputFormat(texture.InputFormat);
-            }
-            else {
+            else if (hasPackInputFormat)
                 ApplyInputFormat(pack.InputFormat);
+
+            if (hasPackOutputFormat)
+                ApplyOutputFormat(pack.OutputFormat);
+
+            if (!hasTextureInputFormat)
                 Properties.Update(pack.Properties);
-            }
 
             Properties.Update(texture.Properties);
-
-            ApplyOutputFormat(pack.OutputFormat);
         }
 
         private void ApplyInputFormat(string format)

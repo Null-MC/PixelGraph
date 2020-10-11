@@ -231,7 +231,7 @@ namespace McPbrPipeline.Internal.Textures
                     if (isSmooth2 && graph.sourceMap.TryGetValue(EncodingChannel.Smooth, out sourceList)) {
                         foreach (var source in sourceList) {
                             optionsMap.GetOrCreate(source.Tag, NewOptions)
-                                .Set(color, source.Channel, -1);
+                                .Set(source.Channel, color, -1);
                         }
                     }
 
@@ -240,7 +240,7 @@ namespace McPbrPipeline.Internal.Textures
                     if (isSmooth && graph.sourceMap.TryGetValue(EncodingChannel.PerceptualSmooth, out sourceList)) {
                         foreach (var source in sourceList) {
                             optionsMap.GetOrCreate(source.Tag, NewOptions)
-                                .Set(color, source.Channel, 1);
+                                .Set(source.Channel, color, 1);
                         }
                     }
 
