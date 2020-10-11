@@ -14,14 +14,7 @@ Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
 
 ## Installation
 
-#### Manual
-Download the latest [release](https://github.com/null511/MC-PBR-Pipeline/releases). For best results, add to your system PATH variable.
-
-#### Chocolatey
-TODO
-
-#### Docker
-example coming soon.
+See the [wiki](https://github.com/null511/MC-PBR-Pipeline/wiki/Installation) for more information.
 
 ## Usage
 
@@ -55,7 +48,7 @@ output.normal = false
 output.specular = false
 ```
 
-Each item-texture requires a matching `*.pbr.properties` file to enable filtering. For more details, see the [Wiki](/wiki/File-Loading).
+Each item-texture requires a matching `*.pbr.properties` file to enable filtering. For more details, see the [Wiki](https://github.com/null511/MC-PBR-Pipeline/wiki/File-Loading).
 ```
 // ~/assets/minecraft/textures/block/lantern.pbr.properties
 smooth.scale = 1.2
