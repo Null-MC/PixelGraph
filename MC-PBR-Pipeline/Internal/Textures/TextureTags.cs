@@ -16,7 +16,7 @@ namespace McPbrPipeline.Internal.Textures
         public const string Occlusion = "#occlusion";
         public const string Emissive = "#emissive";
 
-        public static string[] All {get;} = {Albedo, Height, Normal, Specular, Emissive, Occlusion, Smooth, Metal};
+        public static string[] All {get;} = {Albedo, Height, Normal, Specular, Smooth, Metal, Occlusion, Emissive};
 
 
         public static string Get(PbrProperties material, string tag)

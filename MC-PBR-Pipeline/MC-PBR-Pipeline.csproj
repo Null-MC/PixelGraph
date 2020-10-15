@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>McPbrPipeline</RootNamespace>
     <AssemblyName>MCPBRP</AssemblyName>
@@ -19,7 +19,10 @@
 
   <ItemGroup>
     <Compile Remove="ImageProcessors\ChannelMapProcessor.cs" />
+    <Compile Remove="ImageProcessors\HeightScaleProcessor.cs" />
+    <Compile Remove="ImageProcessors\RangeOptions.cs" />
     <Compile Remove="ImageProcessors\RangeProcessor.cs" />
+    <Compile Remove="ImageProcessors\ScaleProcessor.cs" />
     <Compile Remove="Internal\Encoding\EncodingFormat.cs" />
     <Compile Remove="Internal\Profile.cs" />
     <Compile Remove="Internal\Publishing\AlbedoTexturePublisher.cs" />
@@ -36,6 +39,7 @@
     <Compile Remove="Internal\Textures\PbrProperty.cs" />
     <Compile Remove="Internal\Textures\SpecularTextureMap.cs" />
     <Compile Remove="Internal\Textures\TextureCollection.cs" />
+    <Compile Remove="Internal\Textures\TextureFilter.cs" />
     <Compile Remove="Internal\Textures\TextureMap.cs" />
   </ItemGroup>
 

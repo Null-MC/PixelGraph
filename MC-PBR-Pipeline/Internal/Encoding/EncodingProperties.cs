@@ -173,7 +173,7 @@ namespace McPbrPipeline.Internal.Encoding
                     ["specular.input.r"] = EncodingChannel.PerceptualSmooth,
                     ["specular.input.g"] = EncodingChannel.Metal,
                     ["specular.input.b"] = EncodingChannel.Porosity_SSS,
-                    ["specular.input.a"] = EncodingChannel.Emissive,
+                    ["specular.input.a"] = EncodingChannel.EmissiveClipped,
                 });
                 return;
             }
@@ -266,7 +266,7 @@ namespace McPbrPipeline.Internal.Encoding
                     ["output.specular.r"] = EncodingChannel.PerceptualSmooth,
                     ["output.specular.g"] = EncodingChannel.Metal,
                     ["output.specular.b"] = EncodingChannel.Porosity_SSS,
-                    ["output.specular.a"] = EncodingChannel.Emissive,
+                    ["output.specular.a"] = EncodingChannel.EmissiveClipped,
                 });
                 return;
             }

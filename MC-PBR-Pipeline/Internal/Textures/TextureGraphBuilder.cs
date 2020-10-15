@@ -3,6 +3,7 @@ using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,14 +61,55 @@ namespace McPbrPipeline.Internal.Textures
 
         private async Task ProcessTextureAsync(TextureGraph graph, string tag, CancellationToken token)
         {
-            var name = OutputNamingStructure.Get(graph.Texture.Name, tag, UseGlobalOutput);
+            var name = NamingStructure.GetOutputTextureName(tag, graph.Texture.Name, UseGlobalOutput);
 
             using var image = await graph.BuildFinalImageAsync(tag, token);
-            if (image == null) return;
 
-            var destFile = PathEx.Join(graph.Texture.Path, name);
-            await using var stream = writer.WriteFile(destFile);
-            await image.SaveAsPngAsync(stream, token);
+            if (image != null) {
+                Resize(image, graph.Texture);
+
+                var destFile = PathEx.Join(graph.Texture.Path, name);
+                await using var stream = writer.WriteFile(destFile);
+                await image.SaveAsPngAsync(stream, token);
+            }
+
+            await CopyMetaAsync(graph, tag, token);
+        }
+
+        private void Resize(Image image, PbrProperties texture)
+        {
+            if (!(texture?.ResizeEnabled ?? true)) return;
+            if (!pack.TextureSize.HasValue && !pack.TextureScale.HasValue) return;
+
+            var (width, height) = image.Size();
+
+            var resampler = KnownResamplers.Bicubic;
+            if (pack.Sampler != null && Samplers.TryParse(pack.Sampler, out var _resampler))
+                resampler = _resampler;
+
+            if (pack.TextureSize.HasValue) {
+                if (width == pack.TextureSize) return;
+
+                image.Mutate(c => c.Resize(pack.TextureSize.Value, 0, resampler));
+            }
+            else {
+                var targetWidth = (int)Math.Max(width * pack.TextureScale.Value, 1f);
+                var targetHeight = (int)Math.Max(height * pack.TextureScale.Value, 1f);
+
+                image.Mutate(c => c.Resize(targetWidth, targetHeight, resampler));
+            }
+        }
+
+        private async Task CopyMetaAsync(TextureGraph graph, string tag, CancellationToken token)
+        {
+            var metaFileIn = NamingStructure.GetInputMetaName(tag, graph.Texture);
+            if (!reader.FileExists(metaFileIn)) return;
+
+            var metaFileOut = NamingStructure.GetOutputMetaName(tag, graph.Texture, UseGlobalOutput);
+
+            await using var sourceStream = reader.Open(metaFileIn);
+            await using var destStream = writer.WriteFile(metaFileOut);
+            await sourceStream.CopyToAsync(destStream, token);
         }
     }
 }

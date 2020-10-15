@@ -19,7 +19,6 @@ namespace McPbrPipeline.Internal.Textures
     {
         private readonly IInputReader reader;
         private readonly PackProperties pack;
-        private readonly TextureFilter filter;
         private readonly Dictionary<string, List<ChannelSource>> sourceMap;
         private readonly ILogger logger;
         private Image<Rgba32> normalMap;
@@ -35,8 +34,6 @@ namespace McPbrPipeline.Internal.Textures
             Texture = texture;
 
             logger = provider.GetRequiredService<ILogger<TextureGraph>>();
-
-            filter = new TextureFilter(pack);
             sourceMap = new Dictionary<string, List<ChannelSource>>();
             Encoding = new EncodingProperties();
         }
@@ -136,24 +133,7 @@ namespace McPbrPipeline.Internal.Textures
         {
             var textureEncoding = TextureEncoding.CreateOutput(Encoding, tag);
             var op = new ImageOperation(this, textureEncoding);
-
-            op.MapColor(ColorChannel.Red);
-            op.MapColor(ColorChannel.Green);
-            op.MapColor(ColorChannel.Blue);
-            op.MapColor(ColorChannel.Alpha);
-
-            Image<Rgba32> image = null;
-            try {
-                image = await op.CreateImageAsync(token);
-
-                filter.Apply(image, Texture, textureEncoding);
-
-                return image;
-            }
-            catch {
-                image?.Dispose();
-                throw;
-            }
+            return await op.CreateImageAsync(token);
         }
 
         public bool ContainsSource(string encodingChannel)
@@ -195,6 +175,7 @@ namespace McPbrPipeline.Internal.Textures
             private readonly TextureGraph graph;
             private readonly TextureEncoding encoding;
             private readonly Dictionary<string, OverlayProcessor.Options> optionsMap;
+            private readonly PixelProcessor.Options filterOptions;
             private Rgba32 sourceColor;
             private bool restoreNormalZ;
 
@@ -205,10 +186,16 @@ namespace McPbrPipeline.Internal.Textures
                 this.encoding = encoding;
 
                 optionsMap = new Dictionary<string, OverlayProcessor.Options>(StringComparer.InvariantCultureIgnoreCase);
+                filterOptions = new PixelProcessor.Options();
                 sourceColor = new Rgba32();
+
+                MapColor(ColorChannel.Red);
+                MapColor(ColorChannel.Green);
+                MapColor(ColorChannel.Blue);
+                MapColor(ColorChannel.Alpha);
             }
 
-            public void MapColor(ColorChannel color)
+            private void MapColor(ColorChannel color)
             {
                 var outputChannel = encoding.Get(color);
                 if (outputChannel == null) return;
@@ -223,25 +210,33 @@ namespace McPbrPipeline.Internal.Textures
                     foreach (var source in sourceList)
                         optionsMap.GetOrCreate(source.Tag, NewOptions)
                             .Set(source.Channel, color);
+
+                    if (string.Equals(EncodingChannel.EmissiveClipped, outputChannel, StringComparison.InvariantCultureIgnoreCase))
+                        filterOptions
+                            .Append(color, EmissiveClippedToEmissive)
+                            .SetPost(color, EmissiveToEmissiveClipped);
                 }
 
                 else {
+                    // restore normal-z
+                    if (string.Equals(outputChannel, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
+
                     // Smooth2 > Smooth
                     var isSmooth2 = string.Equals(outputChannel, EncodingChannel.PerceptualSmooth, StringComparison.InvariantCultureIgnoreCase);
                     if (isSmooth2 && graph.sourceMap.TryGetValue(EncodingChannel.Smooth, out sourceList)) {
-                        foreach (var source in sourceList) {
-                            optionsMap.GetOrCreate(source.Tag, NewOptions)
-                                .Set(source.Channel, color, -1);
-                        }
+                        foreach (var source in sourceList)
+                            optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
+
+                        filterOptions.Append(color, PerceptualSmoothToSmooth);
                     }
 
                     // Smooth > Smooth2
                     var isSmooth = string.Equals(outputChannel, EncodingChannel.Smooth, StringComparison.InvariantCultureIgnoreCase);
                     if (isSmooth && graph.sourceMap.TryGetValue(EncodingChannel.PerceptualSmooth, out sourceList)) {
-                        foreach (var source in sourceList) {
-                            optionsMap.GetOrCreate(source.Tag, NewOptions)
-                                .Set(source.Channel, color, 1);
-                        }
+                        foreach (var source in sourceList)
+                            optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
+
+                        filterOptions.SetPost(color, SmoothToPerceptualSmooth);
                     }
 
                     // TODO: Smooth > Rough
@@ -250,28 +245,86 @@ namespace McPbrPipeline.Internal.Textures
 
                     // TODO: Smooth2 > Rough; Rough > Smooth2
 
-                    // restore normal-z
-                    if (string.Equals(outputChannel, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
+                    // Emissive > EmissiveClipped
+                    var isEmissiveClipped = string.Equals(outputChannel, EncodingChannel.EmissiveClipped, StringComparison.InvariantCultureIgnoreCase);
+                    if (isEmissiveClipped && graph.sourceMap.TryGetValue(EncodingChannel.Emissive, out sourceList)) {
+                        foreach (var source in sourceList)
+                            optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
+
+                        filterOptions.SetPost(color, EmissiveToEmissiveClipped);
+                    }
+
+                    // EmissiveClipped > Emissive
+                    var isEmissive = string.Equals(outputChannel, EncodingChannel.Emissive, StringComparison.InvariantCultureIgnoreCase);
+                    if (isEmissive && graph.sourceMap.TryGetValue(EncodingChannel.EmissiveClipped, out sourceList)) {
+                        foreach (var source in sourceList)
+                            optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
+
+                        filterOptions.Append(color, EmissiveClippedToEmissive);
+                    }
                 }
             }
 
             public async Task<Image<Rgba32>> CreateImageAsync(CancellationToken token = default)
             {
+                Image<Rgba32> image = null;
+
+                try {
+                    image = await CreateSourceImageAsync(token);
+
+                    // Height-Scale
+                    if (Math.Abs(graph.Texture.HeightScale - 1f) > float.Epsilon) {
+                        foreach (var color in encoding.GetChannels(EncodingChannel.Height))
+                            filterOptions.Append(color, HeightScaleFilter);
+                    }
+
+                    // Generic Scaling
+                    var redScale = GetScale(encoding.R);
+                    if (Math.Abs(redScale - 1f) > float.Epsilon)
+                        filterOptions.Append(ColorChannel.Red, (ref byte v) => GenericScaleFilter(ref v, in redScale));
+
+                    var greenScale = GetScale(encoding.G);
+                    if (Math.Abs(greenScale - 1f) > float.Epsilon)
+                        filterOptions.Append(ColorChannel.Green, (ref byte v) => GenericScaleFilter(ref v, in greenScale));
+
+                    var blueScale = GetScale(encoding.B);
+                    if (Math.Abs(blueScale - 1f) > float.Epsilon)
+                        filterOptions.Append(ColorChannel.Blue, (ref byte v) => GenericScaleFilter(ref v, in blueScale));
+
+                    var alphaScale = GetScale(encoding.A);
+                    if (Math.Abs(alphaScale - 1f) > float.Epsilon)
+                        filterOptions.Append(ColorChannel.Alpha, (ref byte v) => GenericScaleFilter(ref v, in alphaScale));
+
+                    // TODO: additional filtering operations
+
+                    var filter = new PixelProcessor(filterOptions);
+                    image.Mutate(context => context.ApplyProcessor(filter));
+                    return image;
+                }
+                catch {
+                    image?.Dispose();
+                    throw;
+                }
+            }
+
+            private async Task<Image<Rgba32>> CreateSourceImageAsync(CancellationToken token)
+            {
                 Image<Rgba32> targetImage = null;
 
                 try {
                     foreach (var tag in optionsMap.Keys.Reverse()) {
+                        var options = optionsMap[tag];
+
                         if (string.Equals(tag, TextureTags.NormalGenerated, StringComparison.InvariantCultureIgnoreCase)) {
                             if (targetImage == null) {
                                 var (width, height) = graph.normalMap.Size();
                                 targetImage = new Image<Rgba32>(width, height, sourceColor);
                             }
 
-                            var options = optionsMap[tag];
                             options.Source = graph.normalMap;
 
-                            var processor = new OverlayProcessor(options);
-                            targetImage.Mutate(context => context.ApplyProcessor(processor));
+                            var overlay = new OverlayProcessor(options);
+                            targetImage.Mutate(context => context.ApplyProcessor(overlay));
                         }
                         else {
                             var file = graph.Texture.GetTextureFile(graph.reader, tag);
@@ -290,11 +343,10 @@ namespace McPbrPipeline.Internal.Textures
                                 targetImage = new Image<Rgba32>(width, height, sourceColor);
                             }
 
-                            var options = optionsMap[tag];
                             options.Source = sourceImage;
 
-                            var processor = new OverlayProcessor(options);
-                            targetImage.Mutate(context => context.ApplyProcessor(processor));
+                            var overlay = new OverlayProcessor(options);
+                            targetImage.Mutate(context => context.ApplyProcessor(overlay));
                         }
                     }
 
@@ -353,7 +405,29 @@ namespace McPbrPipeline.Internal.Textures
                 return result.HasValue;
             }
 
+            private float GetScale(string channel)
+            {
+                if (EncodingChannel.IsEmpty(channel)) return 1f;
+                return scaleMap.TryGetValue(channel, out var value) ? value(graph.Texture) : 1f;
+            }
+
             private static OverlayProcessor.Options NewOptions() => new OverlayProcessor.Options();
+
+            private void GenericScaleFilter(ref byte value, in float scale) =>
+                value = MathEx.Saturate(value / 255d * scale);
+
+            private void HeightScaleFilter(ref byte value) =>
+                value = MathEx.Saturate(1 - (1 - value / 255d) * graph.Texture.HeightScale);
+
+            private static void SmoothToPerceptualSmooth(ref byte value) =>
+                value = MathEx.Saturate(1f - Math.Sqrt(1f - value / 255d));
+
+            private static void PerceptualSmoothToSmooth(ref byte value) =>
+                value = MathEx.Saturate(1f - Math.Pow(1f - value / 255d, 2));
+
+            private static void EmissiveToEmissiveClipped(ref byte value) => value = (byte)(value - 1);
+
+            private static void EmissiveClippedToEmissive(ref byte value) => value = (byte)(value + 1);
         }
 
         private static readonly Dictionary<string, Func<PbrProperties, byte?>> valueMap = new Dictionary<string, Func<PbrProperties, byte?>>(StringComparer.InvariantCultureIgnoreCase) {
@@ -366,8 +440,24 @@ namespace McPbrPipeline.Internal.Textures
             [EncodingChannel.Rough] = tex => tex.RoughValue,
             [EncodingChannel.Metal] = tex => tex.MetalValue,
             [EncodingChannel.Emissive] = tex => tex.EmissiveValue,
+            [EncodingChannel.EmissiveClipped] = tex => tex.EmissiveValue,
             [EncodingChannel.Occlusion] = tex => tex.OcclusionValue,
             [EncodingChannel.Porosity] = tex => tex.PorosityValue,
+        };
+
+        private static readonly Dictionary<string, Func<PbrProperties, float>> scaleMap = new Dictionary<string, Func<PbrProperties, float>>(StringComparer.InvariantCultureIgnoreCase) {
+            [EncodingChannel.AlbedoR] = t => t.AlbedoScaleR,
+            [EncodingChannel.AlbedoG] = t => t.AlbedoScaleG,
+            [EncodingChannel.AlbedoB] = t => t.AlbedoScaleB,
+            [EncodingChannel.AlbedoA] = t => t.AlbedoScaleA,
+            // AO
+            [EncodingChannel.Smooth] = t => t.SmoothScale,
+            [EncodingChannel.PerceptualSmooth] = t => t.SmoothScale,
+            [EncodingChannel.Rough] = t => t.RoughScale,
+            [EncodingChannel.Metal] = t => t.MetalScale,
+            // Porosity-SSS
+            [EncodingChannel.Emissive] = t => t.EmissiveScale,
+            [EncodingChannel.EmissiveClipped] = t => t.EmissiveScale,
         };
     }
 }

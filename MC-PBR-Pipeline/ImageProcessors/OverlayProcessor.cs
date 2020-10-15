@@ -1,10 +1,8 @@
-﻿using McPbrPipeline.Internal.Extensions;
-using McPbrPipeline.Internal.Textures;
+﻿using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing.Processors;
-using System;
 
 namespace McPbrPipeline.ImageProcessors
 {
@@ -30,30 +28,22 @@ namespace McPbrPipeline.ImageProcessors
             public ColorChannel GreenSource {get; set;}
             public ColorChannel BlueSource {get; set;}
             public ColorChannel AlphaSource {get; set;}
-            public short RedPower;
-            public short GreenPower;
-            public short BluePower;
-            public short AlphaPower;
 
 
-            public void Set(ColorChannel source, ColorChannel destination, short power = 0)
+            public void Set(ColorChannel source, ColorChannel destination)
             {
                 switch (destination) {
                     case ColorChannel.Red:
                         RedSource = source;
-                        RedPower = power;
                         break;
                     case ColorChannel.Green:
                         GreenSource = source;
-                        GreenPower = power;
                         break;
                     case ColorChannel.Blue:
                         BlueSource = source;
-                        BluePower = power;
                         break;
                     case ColorChannel.Alpha:
                         AlphaSource = source;
-                        AlphaPower = power;
                         break;
                 }
             }
@@ -79,7 +69,7 @@ namespace McPbrPipeline.ImageProcessors
 
         private readonly struct RowOperation<TPixel> : IRowOperation where TPixel : unmanaged, IPixel<TPixel>
         {
-            private readonly ImageFrame<Rgba32> sourceFrame;
+            //private readonly ImageFrame<Rgba32> sourceFrame;
             private readonly ImageFrame<TPixel> targetFrame;
             private readonly Options options;
 
@@ -91,12 +81,12 @@ namespace McPbrPipeline.ImageProcessors
                 this.targetFrame = targetFrame;
                 this.options = options;
 
-                sourceFrame = options.Source.Frames.RootFrame;
+                //sourceFrame = options.Source.Frames.RootFrame;
             }
 
             public void Invoke(int y)
             {
-                var sourceRow = sourceFrame.GetPixelRowSpan(y);
+                var sourceRow = options.Source.GetPixelRowSpan(y);
                 var targetRow = targetFrame.GetPixelRowSpan(y);
 
                 var pixelSource = new Rgba32();
@@ -107,34 +97,30 @@ namespace McPbrPipeline.ImageProcessors
                     targetRow[x].ToRgba32(ref pixelTarget);
 
                     if (options.RedSource != ColorChannel.None)
-                        pixelTarget.R = GetChannel(options.RedSource, in pixelSource, in options.RedPower);
+                        pixelTarget.R = GetValue(options.RedSource, in pixelSource);
 
                     if (options.GreenSource != ColorChannel.None)
-                        pixelTarget.G = GetChannel(options.GreenSource, in pixelSource, in options.GreenPower);
+                        pixelTarget.G = GetValue(options.GreenSource, in pixelSource);
 
                     if (options.BlueSource != ColorChannel.None)
-                        pixelTarget.B = GetChannel(options.BlueSource, in pixelSource, in options.BluePower);
+                        pixelTarget.B = GetValue(options.BlueSource, in pixelSource);
 
                     if (options.AlphaSource != ColorChannel.None)
-                        pixelTarget.A = GetChannel(options.AlphaSource, in pixelSource, in options.AlphaPower);
+                        pixelTarget.A = GetValue(options.AlphaSource, in pixelSource);
 
                     targetRow[x].FromRgba32(pixelTarget);
                 }
             }
 
-            private static byte GetChannel(in ColorChannel channel, in Rgba32 sourcePixel, in short power)
+            private static byte GetValue(in ColorChannel color, in Rgba32 sourcePixel)
             {
-                var result = channel switch {
+                return color switch {
                     ColorChannel.Red => sourcePixel.R,
                     ColorChannel.Green => sourcePixel.G,
                     ColorChannel.Blue => sourcePixel.B,
                     ColorChannel.Alpha => sourcePixel.A,
-                    _ => (byte) 0,
+                    _ => 0,
                 };
-
-                if (power < 0) return MathEx.Saturate(1f - Math.Pow(1f - result / 255d, 2));
-                if (power > 0) return MathEx.Saturate(1f - Math.Sqrt(1f - result / 255d));
-                return result;
             }
         }
     }

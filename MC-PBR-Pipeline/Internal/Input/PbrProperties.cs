@@ -30,15 +30,12 @@ namespace McPbrPipeline.Internal.Input
         public byte? HeightValue => Get<byte?>("height.value");
 
         public string NormalTexture => Get<string>("normal.texture");
-        //public bool NormalFromHeight => Get("normal.from-height", true);
         public float NormalStrength => Get("normal.strength", 1f);
-        //public float NormalDepthScale => Get("normal.depth.scale", 1f);
         public byte? NormalValueX => Get<byte?>("normal.value.x");
         public byte? NormalValueY => Get<byte?>("normal.value.y");
         public byte? NormalValueZ => Get<byte?>("normal.value.z");
 
         public string SpecularTexture => Get<string>("specular.texture");
-        //public string SpecularColor => Get<string>("specular.color");
 
         public string EmissiveTexture => Get<string>("emissive.texture");
         public float EmissiveScale => Get("emissive.scale", 1f);
@@ -50,7 +47,8 @@ namespace McPbrPipeline.Internal.Input
         public string SmoothTexture => Get<string>("smooth.texture");
         public float SmoothScale => Get("smooth.scale", 1f);
         public byte? SmoothValue => Get<byte?>("smooth.value");
-        //public float PerceptualSmoothScale => Get("smooth.scale", 1f);
+
+        public string RoughTexture => Get<string>("rough.texture");
         public float RoughScale => Get("rough.scale", 1f);
         public byte? RoughValue => Get<byte?>("rough.value");
 
