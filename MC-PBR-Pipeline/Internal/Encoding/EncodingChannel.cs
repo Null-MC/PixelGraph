@@ -23,6 +23,7 @@ namespace McPbrPipeline.Internal.Encoding
         public const string Metal = "metal";
         public const string Emissive = "emissive";
         public const string EmissiveClipped = "emissive-clip";
+        public const string EmissiveInverse = "emissive-inv";
         public const string Porosity = "porosity";
         public const string Porosity_SSS = "porosity-sss";
         public const string SubSurfaceScattering = "sss";

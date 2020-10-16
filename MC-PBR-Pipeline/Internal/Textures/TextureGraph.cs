@@ -200,21 +200,35 @@ namespace McPbrPipeline.Internal.Textures
                 var outputChannel = encoding.Get(color);
                 if (outputChannel == null) return;
 
-                if (byte.TryParse(outputChannel, out var value))
+                if (byte.TryParse(outputChannel, out var value)) {
                     SetSourceColor(color, value);
 
-                else if (TryGetChannelValue(outputChannel, out value))
+                    if (string.Equals(EncodingChannel.EmissiveClipped, outputChannel, StringComparison.InvariantCultureIgnoreCase))
+                        filterOptions.SetPost(color, EmissiveToEmissiveClipped);
+
+                    if (string.Equals(EncodingChannel.EmissiveInverse, outputChannel, StringComparison.InvariantCultureIgnoreCase))
+                        filterOptions.SetPost(color, Invert);
+                }
+
+                else if (TryGetChannelValue(outputChannel, out value)) {
                     SetSourceColor(color, value);
+
+                    if (string.Equals(EncodingChannel.EmissiveClipped, outputChannel, StringComparison.InvariantCultureIgnoreCase))
+                        filterOptions.SetPost(color, EmissiveToEmissiveClipped);
+
+                    if (string.Equals(EncodingChannel.EmissiveInverse, outputChannel, StringComparison.InvariantCultureIgnoreCase))
+                        filterOptions.SetPost(color, Invert);
+                }
 
                 else if (graph.sourceMap.TryGetValue(outputChannel, out var sourceList)) {
                     foreach (var source in sourceList)
                         optionsMap.GetOrCreate(source.Tag, NewOptions)
                             .Set(source.Channel, color);
 
-                    if (string.Equals(EncodingChannel.EmissiveClipped, outputChannel, StringComparison.InvariantCultureIgnoreCase))
+                    if (string.Equals(EncodingChannel.EmissiveInverse, outputChannel, StringComparison.InvariantCultureIgnoreCase))
                         filterOptions
-                            .Append(color, EmissiveClippedToEmissive)
-                            .SetPost(color, EmissiveToEmissiveClipped);
+                            .Append(color, Invert)
+                            .SetPost(color, Invert);
                 }
 
                 else {
@@ -261,6 +275,24 @@ namespace McPbrPipeline.Internal.Textures
                             optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
 
                         filterOptions.Append(color, EmissiveClippedToEmissive);
+                    }
+
+                    // Emissive > EmissiveInv
+                    var isEmissiveInv = string.Equals(outputChannel, EncodingChannel.EmissiveInverse, StringComparison.InvariantCultureIgnoreCase);
+                    if (isEmissiveInv && graph.sourceMap.TryGetValue(EncodingChannel.Emissive, out sourceList)) {
+                        foreach (var source in sourceList)
+                            optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
+
+                        filterOptions.SetPost(color, Invert);
+                    }
+
+                    // EmissiveInv > Emissive
+                    //var isEmissive = string.Equals(outputChannel, EncodingChannel.Emissive, StringComparison.InvariantCultureIgnoreCase);
+                    if (isEmissive && graph.sourceMap.TryGetValue(EncodingChannel.EmissiveInverse, out sourceList)) {
+                        foreach (var source in sourceList)
+                            optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
+
+                        filterOptions.Append(color, Invert);
                     }
                 }
             }
@@ -420,14 +452,16 @@ namespace McPbrPipeline.Internal.Textures
                 value = MathEx.Saturate(1 - (1 - value / 255d) * graph.Texture.HeightScale);
 
             private static void SmoothToPerceptualSmooth(ref byte value) =>
-                value = MathEx.Saturate(1f - Math.Sqrt(1f - value / 255d));
+                value = MathEx.Saturate(Math.Sqrt(value / 255d));
 
             private static void PerceptualSmoothToSmooth(ref byte value) =>
-                value = MathEx.Saturate(1f - Math.Pow(1f - value / 255d, 2));
+                value = MathEx.Saturate(Math.Pow(value / 255d, 2));
 
             private static void EmissiveToEmissiveClipped(ref byte value) => value = (byte)(value - 1);
 
             private static void EmissiveClippedToEmissive(ref byte value) => value = (byte)(value + 1);
+
+            private static void Invert(ref byte value) => value = (byte)(255 - value);
         }
 
         private static readonly Dictionary<string, Func<PbrProperties, byte?>> valueMap = new Dictionary<string, Func<PbrProperties, byte?>>(StringComparer.InvariantCultureIgnoreCase) {
@@ -441,6 +475,7 @@ namespace McPbrPipeline.Internal.Textures
             [EncodingChannel.Metal] = tex => tex.MetalValue,
             [EncodingChannel.Emissive] = tex => tex.EmissiveValue,
             [EncodingChannel.EmissiveClipped] = tex => tex.EmissiveValue,
+            [EncodingChannel.EmissiveInverse] = tex => tex.EmissiveValue,
             [EncodingChannel.Occlusion] = tex => tex.OcclusionValue,
             [EncodingChannel.Porosity] = tex => tex.PorosityValue,
         };
@@ -458,6 +493,7 @@ namespace McPbrPipeline.Internal.Textures
             // Porosity-SSS
             [EncodingChannel.Emissive] = t => t.EmissiveScale,
             [EncodingChannel.EmissiveClipped] = t => t.EmissiveScale,
+            [EncodingChannel.EmissiveInverse] = t => t.EmissiveScale,
         };
     }
 }
