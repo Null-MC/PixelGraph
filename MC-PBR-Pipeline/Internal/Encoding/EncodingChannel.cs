@@ -29,6 +29,11 @@ namespace McPbrPipeline.Internal.Encoding
         public const string SubSurfaceScattering = "sss";
 
 
+        public static bool Is(string channelActual, string channelExpected)
+        {
+            return string.Equals(channelActual, channelExpected, StringComparison.InvariantCultureIgnoreCase);
+        }
+
         public static bool IsEmpty(string channel)
         {
             return string.IsNullOrWhiteSpace(channel) || string.Equals(channel, None, StringComparison.InvariantCultureIgnoreCase);

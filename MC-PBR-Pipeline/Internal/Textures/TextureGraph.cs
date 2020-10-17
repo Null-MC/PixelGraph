@@ -107,7 +107,7 @@ namespace McPbrPipeline.Internal.Textures
         public async Task<Image<Rgba32>> BuildFinalImageAsync(string tag, CancellationToken token = default)
         {
             var textureEncoding = TextureEncoding.CreateOutput(Encoding, tag);
-            var op = new ImageOperation(provider, this, textureEncoding);
+            var op = new TextureBuilder(provider, this, textureEncoding);
             return await op.CreateImageAsync(token);
         }
 
@@ -175,16 +175,6 @@ namespace McPbrPipeline.Internal.Textures
 
                 var processor = new NormalMapProcessor(options);
                 normalMap.Mutate(c => c.ApplyProcessor(processor));
-
-                //// add to source graph
-                //sourceMap.GetOrCreate(EncodingChannel.NormalX, NewSourceMap)
-                //    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Red));
-
-                //sourceMap.GetOrCreate(EncodingChannel.NormalY, NewSourceMap)
-                //    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Green));
-
-                //sourceMap.GetOrCreate(EncodingChannel.NormalZ, NewSourceMap)
-                //    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Blue));
 
                 return;
             }
