@@ -2,6 +2,8 @@
 using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System;
@@ -16,6 +18,7 @@ namespace McPbrPipeline.Internal.Textures
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
         private readonly PackProperties pack;
+        private readonly ILogger logger;
 
         public bool UseGlobalOutput {get; set;}
 
@@ -26,6 +29,8 @@ namespace McPbrPipeline.Internal.Textures
             this.reader = reader;
             this.writer = writer;
             this.pack = pack;
+
+            logger = provider.GetRequiredService<ILogger<TextureGraphBuilder>>();
         }
 
         public async Task BuildAsync(PbrProperties texture, CancellationToken token = default)
@@ -35,7 +40,8 @@ namespace McPbrPipeline.Internal.Textures
             graph.Build();
 
             if (graph.ContainsSource(EncodingChannel.Height))
-                await graph.BuildNormalMapAsync(token);
+                //await graph.BuildNormalMapAsync(token);
+                graph.MapGeneratedNormal();
 
             if (graph.Encoding.OutputAlbedo) await ProcessTextureAsync(graph, TextureTags.Albedo, token);
 
@@ -71,6 +77,8 @@ namespace McPbrPipeline.Internal.Textures
                 var destFile = PathEx.Join(graph.Texture.Path, name);
                 await using var stream = writer.WriteFile(destFile);
                 await image.SaveAsPngAsync(stream, token);
+
+                logger.LogInformation("Published texture {Name} tag {tag}.", graph.Texture.Name, tag);
             }
 
             await CopyMetaAsync(graph, tag, token);

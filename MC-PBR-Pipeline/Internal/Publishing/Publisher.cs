@@ -91,9 +91,6 @@ namespace McPbrPipeline.Internal.Publishing
 
             var genericPublisher = new GenericTexturePublisher(pack, reader, writer);
 
-            var fontPath = Path.Combine("assets", "minecraft", "textures", "font");
-            var guiPath = Path.Combine("assets", "minecraft", "textures", "gui");
-
             await foreach (var fileObj in loader.LoadAsync(token)) {
                 token.ThrowIfCancellationRequested();
                 DateTime? sourceTime, destinationTime;
@@ -112,11 +109,11 @@ namespace McPbrPipeline.Internal.Publishing
                             ? writer.GetWriteTime(albedoOutputName) : null;
 
                         if (IsUpToDate(pack.WriteTime, sourceTime, destinationTime)) {
-                            logger.LogDebug($"Skipping up-to-date texture '{texture.Name}'.");
+                            logger.LogDebug("Skipping up-to-date texture {Name}.", texture.Name);
                             continue;
                         }
 
-                        logger.LogDebug($"Publishing texture '{texture.Name}'.");
+                        logger.LogDebug("Publishing texture {Name}.", texture.Name);
 
                         await graph.BuildAsync(texture, token);
 
@@ -128,15 +125,13 @@ namespace McPbrPipeline.Internal.Publishing
                         destinationTime = writer.GetWriteTime(localName);
 
                         if (IsUpToDate(pack.WriteTime, sourceTime, destinationTime)) {
-                            logger.LogDebug($"Skipping up-to-date file '{localName}'.");
+                            logger.LogDebug("Skipping up-to-date untracked file {localName}.", localName);
                             continue;
                         }
 
                         var extension = Path.GetExtension(localName);
-                        var filterImage = ImageExtensions.Supported.Contains(extension, StringComparer.InvariantCultureIgnoreCase);
-
-                        if (localName.StartsWith(fontPath)) filterImage = false;
-                        if (localName.StartsWith(guiPath)) filterImage = false;
+                        var filterImage = ImageExtensions.Supported.Contains(extension, StringComparer.InvariantCultureIgnoreCase)
+                            && !pathIgnoreList.Any(x => localName.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
 
                         if (filterImage) {
                             await genericPublisher.PublishAsync(localName, token);
@@ -147,7 +142,7 @@ namespace McPbrPipeline.Internal.Publishing
                             await srcStream.CopyToAsync(destStream, token);
                         }
 
-                        logger.LogInformation($"Published untracked file '{localName}'.");
+                        logger.LogInformation("Published untracked file {localName}.", localName);
                         break;
                 }
             }
@@ -165,7 +160,7 @@ namespace McPbrPipeline.Internal.Publishing
             if (compress) return new ArchiveOutputWriter(destination);
             
             if (!Directory.Exists(destination)) {
-                logger.LogInformation($"Creating publish destination directory '{destination}'.");
+                logger.LogInformation("Creating publish destination directory {destination}.", destination);
 
                 try {
                     Directory.CreateDirectory(destination);
@@ -177,5 +172,13 @@ namespace McPbrPipeline.Internal.Publishing
 
             return new FileOutputWriter(destination);
         }
+
+        private static readonly string[] pathIgnoreList = {
+            Path.Combine("assets", "minecraft", "textures", "font"),
+            Path.Combine("assets", "minecraft", "textures", "gui"),
+            Path.Combine("assets", "minecraft", "textures", "colormap"),
+            Path.Combine("assets", "minecraft", "textures", "misc"),
+            Path.Combine("assets", "minecraft", "optifine", "colormap"),
+        };
     }
 }

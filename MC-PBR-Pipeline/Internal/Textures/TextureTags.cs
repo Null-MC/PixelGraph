@@ -32,6 +32,8 @@ namespace McPbrPipeline.Internal.Textures
                 : localMatchMap[type];
         }
 
+        public static bool Is(string tagActual, string tagExpected) => string.Equals(tagActual, tagExpected, StringComparison.InvariantCultureIgnoreCase);
+
         private static readonly Dictionary<string, Func<PbrProperties, string>> map = new Dictionary<string, Func<PbrProperties, string>>(StringComparer.InvariantCultureIgnoreCase)
         {
             [Albedo] = t => t.AlbedoTexture,

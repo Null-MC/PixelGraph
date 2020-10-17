@@ -39,16 +39,15 @@
     <Compile Remove="Internal\Textures\PbrProperty.cs" />
     <Compile Remove="Internal\Textures\SpecularTextureMap.cs" />
     <Compile Remove="Internal\Textures\TextureCollection.cs" />
-    <Compile Remove="Internal\Textures\TextureFilter.cs" />
     <Compile Remove="Internal\Textures\TextureMap.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.9" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0-dev-00839" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.1" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0010" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20371.2" />

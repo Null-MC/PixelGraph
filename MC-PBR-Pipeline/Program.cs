@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
 using System.Threading.Tasks;
+using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace McPbrPipeline
 {
@@ -25,8 +27,12 @@ namespace McPbrPipeline
 
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
-                .MinimumLevel.Information()
-                .WriteTo.Console()
+                .MinimumLevel.Debug()
+                .WriteTo.Console(
+                    LogEventLevel.Information, 
+                    "{Message:lj}{NewLine}{Exception}",
+                    theme: AnsiConsoleTheme.Code,
+                    applyThemeToRedirectedOutput: true)
                 .CreateLogger();
 
             try {
