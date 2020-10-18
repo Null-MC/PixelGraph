@@ -61,42 +61,22 @@ namespace McPbrPipeline.Internal.Textures
             var isOutputEmissiveInverse = EncodingChannel.Is(outputChannel, EncodingChannel.EmissiveInverse);
             if (isOutputEmissiveInverse) filterOptions.SetPost(color, filter.Invert);
 
-            if (byte.TryParse(outputChannel, out var value)) {
+            if (byte.TryParse(outputChannel, out var value))
                 SetSourceColor(color, value);
 
-                //if (string.Equals(EncodingChannel.Height, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.Invert);
-
-                //if (string.Equals(EncodingChannel.EmissiveClipped, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
-
-                //if (string.Equals(EncodingChannel.EmissiveInverse, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.Invert);
-            }
-
-            else if (filter.TryGetChannelValue(outputChannel, out value)) {
+            else if (filter.TryGetChannelValue(outputChannel, out value))
                 SetSourceColor(color, value);
-
-                //if (string.Equals(EncodingChannel.Height, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.Invert);
-
-                //if (string.Equals(EncodingChannel.EmissiveClipped, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
-
-                //if (string.Equals(EncodingChannel.EmissiveInverse, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.Invert);
-            }
 
             else if (graph.TryGetSources(outputChannel, out var sourceList)) {
                 foreach (var source in sourceList)
                     optionsMap.GetOrCreate(source.Tag, NewOptions)
                         .Set(source.Channel, color);
 
-                if (isOutputHeight) filterOptions.Append(color, filter.Invert); //.SetPost(color, filter.Invert);
+                if (isOutputHeight) filterOptions.Append(color, filter.Invert);
 
-                if (isOutputEmissiveClipped) filterOptions.Append(color, filter.EmissiveClippedToEmissive); //.SetPost(color, filter.Invert);
+                if (isOutputEmissiveClipped) filterOptions.Append(color, filter.EmissiveClippedToEmissive);
 
-                if (isOutputEmissiveInverse) filterOptions.Append(color, filter.Invert); //.SetPost(color, filter.Invert);
+                if (isOutputEmissiveInverse) filterOptions.Append(color, filter.Invert);
             }
 
             else {
@@ -129,8 +109,6 @@ namespace McPbrPipeline.Internal.Textures
                 if (isOutputEmissiveClipped && graph.TryGetSources(EncodingChannel.Emissive, out sourceList)) {
                     foreach (var source in sourceList)
                         optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
-
-                    //filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
                 }
 
                 // EmissiveClipped > Emissive
@@ -145,9 +123,6 @@ namespace McPbrPipeline.Internal.Textures
                 if (isOutputEmissiveInverse && graph.TryGetSources(EncodingChannel.Emissive, out sourceList)) {
                     foreach (var source in sourceList)
                         optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
-
-                    // TODO: Not sure if this is redundant?
-                    //filterOptions.Append(color, filter.Invert);
                 }
 
                 // EmissiveInv > Emissive
