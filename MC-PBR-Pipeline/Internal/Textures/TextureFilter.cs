@@ -19,9 +19,6 @@ namespace McPbrPipeline.Internal.Textures
         public void GenericScaleFilter(ref byte value, in float scale) =>
             value = MathEx.Saturate(value / 255d * scale);
 
-        //public void HeightScaleFilter(ref byte value) =>
-        //    value = MathEx.Saturate(1 - (1 - value / 255d) * texture.HeightScale);
-
         public void SmoothToPerceptualSmooth(ref byte value) =>
             value = MathEx.Saturate(Math.Sqrt(value / 255d));
 
@@ -54,10 +51,11 @@ namespace McPbrPipeline.Internal.Textures
         }
 
         private static readonly Dictionary<string, Func<PbrProperties, byte?>> valueMap = new Dictionary<string, Func<PbrProperties, byte?>>(StringComparer.InvariantCultureIgnoreCase) {
+            [EncodingChannel.Height] = tex => tex.HeightValue,
             [EncodingChannel.NormalX] = tex => tex.NormalValueX,
             [EncodingChannel.NormalY] = tex => tex.NormalValueY,
             [EncodingChannel.NormalZ] = tex => tex.NormalValueZ,
-            [EncodingChannel.Height] = tex => tex.HeightValue,
+            [EncodingChannel.Occlusion] = tex => tex.OcclusionValue,
             [EncodingChannel.Smooth] = tex => tex.SmoothValue,
             [EncodingChannel.PerceptualSmooth] = tex => tex.SmoothValue,
             [EncodingChannel.Rough] = tex => tex.RoughValue,
@@ -65,7 +63,6 @@ namespace McPbrPipeline.Internal.Textures
             [EncodingChannel.Emissive] = tex => tex.EmissiveValue,
             [EncodingChannel.EmissiveClipped] = tex => tex.EmissiveValue,
             [EncodingChannel.EmissiveInverse] = tex => tex.EmissiveValue,
-            [EncodingChannel.Occlusion] = tex => tex.OcclusionValue,
             [EncodingChannel.Porosity] = tex => tex.PorosityValue,
         };
 
@@ -75,15 +72,15 @@ namespace McPbrPipeline.Internal.Textures
             [EncodingChannel.AlbedoB] = t => t.AlbedoScaleB,
             [EncodingChannel.AlbedoA] = t => t.AlbedoScaleA,
             [EncodingChannel.Height] = t => t.HeightScale,
-            // AO
+            [EncodingChannel.Occlusion] = t => t.OcclusionScale,
             [EncodingChannel.Smooth] = t => t.SmoothScale,
             [EncodingChannel.PerceptualSmooth] = t => t.SmoothScale,
             [EncodingChannel.Rough] = t => t.RoughScale,
             [EncodingChannel.Metal] = t => t.MetalScale,
-            // Porosity-SSS
             [EncodingChannel.Emissive] = t => t.EmissiveScale,
             [EncodingChannel.EmissiveClipped] = t => t.EmissiveScale,
             [EncodingChannel.EmissiveInverse] = t => t.EmissiveScale,
+            // Porosity-SSS
         };
     }
 }

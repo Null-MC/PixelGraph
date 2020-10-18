@@ -42,7 +42,7 @@ namespace McPbrPipeline.ImageProcessors
                 AlphaActions = new List<PixelAction>();
             }
 
-            public Options Append(ColorChannel color, PixelAction action = null)
+            public Options Append(ColorChannel color, PixelAction action)
             {
                 switch (color) {
                     case ColorChannel.Red:
@@ -62,7 +62,7 @@ namespace McPbrPipeline.ImageProcessors
                 return this;
             }
 
-            public Options SetPost(ColorChannel color, PixelAction action = null)
+            public Options SetPost(ColorChannel color, PixelAction action)
             {
                 switch (color) {
                     case ColorChannel.Red:

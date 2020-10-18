@@ -35,26 +35,27 @@ namespace McPbrPipeline.Internal.Input
         public byte? NormalValueY => Get<byte?>("normal.value.y");
         public byte? NormalValueZ => Get<byte?>("normal.value.z");
 
-        public string SpecularTexture => Get<string>("specular.texture");
-
-        public string EmissiveTexture => Get<string>("emissive.texture");
-        public float EmissiveScale => Get("emissive.scale", 1f);
-        public byte? EmissiveValue => Get<byte?>("emissive.value");
-
         public string OcclusionTexture => Get<string>("occlusion.texture");
         public byte? OcclusionValue => Get<byte?>("occlusion.value");
+        public float OcclusionScale => Get("occlusion.scale", 1f);
+
+        public string SpecularTexture => Get<string>("specular.texture");
 
         public string SmoothTexture => Get<string>("smooth.texture");
-        public float SmoothScale => Get("smooth.scale", 1f);
         public byte? SmoothValue => Get<byte?>("smooth.value");
+        public float SmoothScale => Get("smooth.scale", 1f);
 
         public string RoughTexture => Get<string>("rough.texture");
-        public float RoughScale => Get("rough.scale", 1f);
         public byte? RoughValue => Get<byte?>("rough.value");
+        public float RoughScale => Get("rough.scale", 1f);
 
         public string MetalTexture => Get<string>("metal.texture");
         public float MetalScale => Get("metal.scale", 1f);
         public byte? MetalValue => Get<byte?>("metal.value");
+
+        public string EmissiveTexture => Get<string>("emissive.texture");
+        public byte? EmissiveValue => Get<byte?>("emissive.value");
+        public float EmissiveScale => Get("emissive.scale", 1f);
 
         public byte? PorosityValue => Get<byte?>("porosity.value");
 
