@@ -24,26 +24,34 @@ namespace McPbrPipeline.ImageProcessors
         public class Options
         {
             public Image<Rgba32> Source {get; set;}
-            public ColorChannel RedSource {get; set;}
-            public ColorChannel GreenSource {get; set;}
-            public ColorChannel BlueSource {get; set;}
-            public ColorChannel AlphaSource {get; set;}
+            public ColorChannel RedSource;
+            public PixelAction RedAction;
+            public ColorChannel GreenSource;
+            public PixelAction GreenAction;
+            public ColorChannel BlueSource;
+            public PixelAction BlueAction;
+            public ColorChannel AlphaSource;
+            public PixelAction AlphaAction;
 
 
-            public void Set(ColorChannel source, ColorChannel destination)
+            public void Set(ColorChannel source, ColorChannel destination, PixelAction action = null)
             {
                 switch (destination) {
                     case ColorChannel.Red:
                         RedSource = source;
+                        RedAction = action;
                         break;
                     case ColorChannel.Green:
                         GreenSource = source;
+                        GreenAction = action;
                         break;
                     case ColorChannel.Blue:
                         BlueSource = source;
+                        BlueAction = action;
                         break;
                     case ColorChannel.Alpha:
                         AlphaSource = source;
+                        AlphaAction = action;
                         break;
                 }
             }
@@ -69,7 +77,6 @@ namespace McPbrPipeline.ImageProcessors
 
         private readonly struct RowOperation<TPixel> : IRowOperation where TPixel : unmanaged, IPixel<TPixel>
         {
-            //private readonly ImageFrame<Rgba32> sourceFrame;
             private readonly ImageFrame<TPixel> targetFrame;
             private readonly Options options;
 
@@ -80,8 +87,6 @@ namespace McPbrPipeline.ImageProcessors
             {
                 this.targetFrame = targetFrame;
                 this.options = options;
-
-                //sourceFrame = options.Source.Frames.RootFrame;
             }
 
             public void Invoke(int y)
@@ -97,22 +102,28 @@ namespace McPbrPipeline.ImageProcessors
                     targetRow[x].ToRgba32(ref pixelTarget);
 
                     if (options.RedSource != ColorChannel.None)
-                        pixelTarget.R = GetValue(options.RedSource, in pixelSource);
+                        GetValue(in pixelSource, in options.RedSource, options.RedAction, out pixelTarget.R);
 
                     if (options.GreenSource != ColorChannel.None)
-                        pixelTarget.G = GetValue(options.GreenSource, in pixelSource);
+                        GetValue(in pixelSource, in options.GreenSource, options.GreenAction, out pixelTarget.G);
 
                     if (options.BlueSource != ColorChannel.None)
-                        pixelTarget.B = GetValue(options.BlueSource, in pixelSource);
+                        GetValue(in pixelSource, in options.BlueSource, options.BlueAction, out pixelTarget.B);
 
                     if (options.AlphaSource != ColorChannel.None)
-                        pixelTarget.A = GetValue(options.AlphaSource, in pixelSource);
+                        GetValue(in pixelSource, in options.AlphaSource, options.AlphaAction, out pixelTarget.A);
 
                     targetRow[x].FromRgba32(pixelTarget);
                 }
             }
 
-            private static byte GetValue(in ColorChannel color, in Rgba32 sourcePixel)
+            private static void GetValue(in Rgba32 sourcePixel, in ColorChannel color, PixelAction action, out byte value)
+            {
+                value = GetSourceValue(in sourcePixel, in color);
+                action?.Invoke(ref value);
+            }
+
+            private static byte GetSourceValue(in Rgba32 sourcePixel, in ColorChannel color)
             {
                 return color switch {
                     ColorChannel.Red => sourcePixel.R,

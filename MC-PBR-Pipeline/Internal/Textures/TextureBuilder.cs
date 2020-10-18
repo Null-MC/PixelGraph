@@ -49,113 +49,80 @@ namespace McPbrPipeline.Internal.Textures
             if (outputChannel == null) return;
 
             var isOutputHeight = EncodingChannel.Is(outputChannel, EncodingChannel.Height);
-            if (isOutputHeight) filterOptions.SetPost(color, filter.Invert);
-
-            var isSmooth = string.Equals(outputChannel, EncodingChannel.Smooth, StringComparison.InvariantCultureIgnoreCase);
-            var isSmooth2 = string.Equals(outputChannel, EncodingChannel.PerceptualSmooth, StringComparison.InvariantCultureIgnoreCase);
+            var isOutputNormalZ = EncodingChannel.Is(outputChannel, EncodingChannel.NormalZ);
+            var isOutputSmooth = EncodingChannel.Is(outputChannel, EncodingChannel.Smooth);
+            var isOutputSmooth2 = EncodingChannel.Is(outputChannel, EncodingChannel.PerceptualSmooth);
+            var isOutputRough = EncodingChannel.Is(outputChannel, EncodingChannel.Rough);
+            var isOutputOcclusion = EncodingChannel.Is(outputChannel, EncodingChannel.Occlusion);
             var isOutputEmissive = EncodingChannel.Is(outputChannel, EncodingChannel.Emissive);
-
             var isOutputEmissiveClipped = EncodingChannel.Is(outputChannel, EncodingChannel.EmissiveClipped);
-            if (isOutputEmissiveClipped) filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
-
             var isOutputEmissiveInverse = EncodingChannel.Is(outputChannel, EncodingChannel.EmissiveInverse);
+
+            if (isOutputHeight) filterOptions.SetPost(color, filter.Invert);
+            if (isOutputOcclusion) filterOptions.SetPost(color, filter.Invert);
+            if (isOutputRough) filterOptions.SetPost(color, filter.Invert);
+            if (isOutputSmooth2) filterOptions.SetPost(color, filter.SmoothToPerceptualSmooth);
+            if (isOutputEmissiveClipped) filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
             if (isOutputEmissiveInverse) filterOptions.SetPost(color, filter.Invert);
 
-            if (byte.TryParse(outputChannel, out var value)) {
+            if (byte.TryParse(outputChannel, out var value))
                 SetSourceColor(color, value);
 
-                //if (string.Equals(EncodingChannel.Height, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.Invert);
-
-                //if (string.Equals(EncodingChannel.EmissiveClipped, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
-
-                //if (string.Equals(EncodingChannel.EmissiveInverse, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.Invert);
-            }
-
-            else if (filter.TryGetChannelValue(outputChannel, out value)) {
+            else if (filter.TryGetChannelValue(outputChannel, out value))
                 SetSourceColor(color, value);
-
-                //if (string.Equals(EncodingChannel.Height, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.Invert);
-
-                //if (string.Equals(EncodingChannel.EmissiveClipped, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
-
-                //if (string.Equals(EncodingChannel.EmissiveInverse, outputChannel, StringComparison.InvariantCultureIgnoreCase))
-                //    filterOptions.SetPost(color, filter.Invert);
-            }
 
             else if (graph.TryGetSources(outputChannel, out var sourceList)) {
+                PixelAction action = null;
+                if (isOutputHeight) action = filter.Invert;
+                if (isOutputOcclusion) action = filter.Invert;
+                if (isOutputRough) action = filter.Invert;
+                if (isOutputSmooth2) action = filter.PerceptualSmoothToSmooth;
+                if (isOutputEmissiveClipped) action = filter.EmissiveClippedToEmissive;
+                if (isOutputEmissiveInverse) action = filter.Invert;
+
                 foreach (var source in sourceList)
                     optionsMap.GetOrCreate(source.Tag, NewOptions)
-                        .Set(source.Channel, color);
-
-                if (isOutputHeight) filterOptions.Append(color, filter.Invert); //.SetPost(color, filter.Invert);
-
-                if (isOutputEmissiveClipped) filterOptions.Append(color, filter.EmissiveClippedToEmissive); //.SetPost(color, filter.Invert);
-
-                if (isOutputEmissiveInverse) filterOptions.Append(color, filter.Invert); //.SetPost(color, filter.Invert);
+                        .Set(source.Channel, color, action);
             }
 
             else {
                 // restore normal-z
-                if (string.Equals(outputChannel, EncodingChannel.NormalZ, StringComparison.InvariantCultureIgnoreCase)) restoreNormalZ = true;
+                if (isOutputNormalZ) restoreNormalZ = true;
+
+                // Smooth > *
+                if ((isOutputRough || isOutputSmooth2) && graph.TryGetSources(EncodingChannel.Smooth, out sourceList)) {
+                    foreach (var source in sourceList)
+                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
+                }
+
+                // Rough > Smooth
+                if ((isOutputSmooth || isOutputSmooth2) && graph.TryGetSources(EncodingChannel.Rough, out sourceList)) {
+                    foreach (var source in sourceList)
+                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color, filter.Invert);
+                }
 
                 // Smooth2 > Smooth
-                if (isSmooth2 && graph.TryGetSources(EncodingChannel.Smooth, out sourceList)) {
+                if ((isOutputRough || isOutputSmooth) && graph.TryGetSources(EncodingChannel.PerceptualSmooth, out sourceList)) {
                     foreach (var source in sourceList)
-                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
-
-                    filterOptions.Append(color, filter.PerceptualSmoothToSmooth);
+                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color, filter.PerceptualSmoothToSmooth);
                 }
 
-                // Smooth > Smooth2
-                if (isSmooth && graph.TryGetSources(EncodingChannel.PerceptualSmooth, out sourceList)) {
+                // Emissive > *
+                if ((isOutputEmissiveClipped || isOutputEmissiveInverse) && graph.TryGetSources(EncodingChannel.Emissive, out sourceList)) {
                     foreach (var source in sourceList)
                         optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
-
-                    filterOptions.SetPost(color, filter.SmoothToPerceptualSmooth);
-                }
-
-                // TODO: Smooth > Rough
-
-                // TODO: Rough > Smooth
-
-                // TODO: Smooth2 > Rough; Rough > Smooth2
-
-                // Emissive > EmissiveClipped
-                if (isOutputEmissiveClipped && graph.TryGetSources(EncodingChannel.Emissive, out sourceList)) {
-                    foreach (var source in sourceList)
-                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
-
-                    //filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
                 }
 
                 // EmissiveClipped > Emissive
-                if (isOutputEmissive && graph.TryGetSources(EncodingChannel.EmissiveClipped, out sourceList)) {
+                if ((isOutputEmissive || isOutputEmissiveInverse) && graph.TryGetSources(EncodingChannel.EmissiveClipped, out sourceList)) {
                     foreach (var source in sourceList)
-                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
-
-                    filterOptions.Append(color, filter.EmissiveClippedToEmissive);
+                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color, filter.EmissiveClippedToEmissive);
                 }
 
-                // Emissive > EmissiveInv
-                if (isOutputEmissiveInverse && graph.TryGetSources(EncodingChannel.Emissive, out sourceList)) {
+                // EmissiveInverse > Emissive
+                if ((isOutputEmissive || isOutputEmissiveClipped) && graph.TryGetSources(EncodingChannel.EmissiveInverse, out sourceList)) {
                     foreach (var source in sourceList)
-                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
-
-                    // TODO: Not sure if this is redundant?
-                    //filterOptions.Append(color, filter.Invert);
-                }
-
-                // EmissiveInv > Emissive
-                if (isOutputEmissive && graph.TryGetSources(EncodingChannel.EmissiveInverse, out sourceList)) {
-                    foreach (var source in sourceList)
-                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
-
-                    filterOptions.Append(color, filter.Invert);
+                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color, filter.Invert);
                 }
             }
         }
