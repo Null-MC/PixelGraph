@@ -1,8 +1,8 @@
-﻿using McPbrPipeline.Internal.Textures;
+﻿using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Textures;
 using System;
 using System.Collections.Generic;
-using McPbrPipeline.Internal.Extensions;
-using McPbrPipeline.Internal.Input;
 
 namespace McPbrPipeline.Internal.Output
 {
@@ -18,18 +18,24 @@ namespace McPbrPipeline.Internal.Output
                 [TextureTags.Albedo] = (name, ext) => $"{name}.{ext}",
                 [TextureTags.Height] = (name, ext) => $"{name}_h.{ext}",
                 [TextureTags.Normal] = (name, ext) => $"{name}_n.{ext}",
-                [TextureTags.Specular] = (name, ext) => $"{name}_s.{ext}",
-                [TextureTags.Emissive] = (name, ext) => $"{name}_e.{ext}",
                 [TextureTags.Occlusion] = (name, ext) => $"{name}_ao.{ext}",
+                [TextureTags.Specular] = (name, ext) => $"{name}_s.{ext}",
+                [TextureTags.Smooth] = (name, ext) => $"{name}_smooth.{ext}",
+                [TextureTags.Rough] = (name, ext) => $"{name}_rough.{ext}",
+                [TextureTags.Metal] = (name, ext) => $"{name}_metal.{ext}",
+                [TextureTags.Emissive] = (name, ext) => $"{name}_e.{ext}",
             };
 
             localMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase) {
                 [TextureTags.Albedo] = ext => $"albedo.{ext}",
                 [TextureTags.Height] = ext => $"height.{ext}",
                 [TextureTags.Normal] = ext => $"normal.{ext}",
-                [TextureTags.Specular] = ext => $"specular.{ext}",
-                [TextureTags.Emissive] = ext => $"emissive.{ext}",
                 [TextureTags.Occlusion] = ext => $"occlusion.{ext}",
+                [TextureTags.Specular] = ext => $"specular.{ext}",
+                [TextureTags.Smooth] = ext => $"smooth.{ext}",
+                [TextureTags.Rough] = ext => $"rough.{ext}",
+                [TextureTags.Metal] = ext => $"metal.{ext}",
+                [TextureTags.Emissive] = ext => $"emissive.{ext}",
             };
         }
 

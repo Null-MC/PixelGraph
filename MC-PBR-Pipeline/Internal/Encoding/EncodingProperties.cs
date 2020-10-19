@@ -42,26 +42,6 @@ namespace McPbrPipeline.Internal.Encoding
         public string OutputNormalB => Get<string>("output.normal.b");
         public string OutputNormalA => Get<string>("output.normal.a");
 
-        public string SpecularInputR => Get<string>("specular.input.r");
-        public string SpecularInputG => Get<string>("specular.input.g");
-        public string SpecularInputB => Get<string>("specular.input.b");
-        public string SpecularInputA => Get<string>("specular.input.a");
-        public bool OutputSpecular => Get<bool>("output.specular");
-        public string OutputSpecularR => Get<string>("output.specular.r");
-        public string OutputSpecularG => Get<string>("output.specular.g");
-        public string OutputSpecularB => Get<string>("output.specular.b");
-        public string OutputSpecularA => Get<string>("output.specular.a");
-
-        public string EmissiveInputR => Get<string>("emissive.input.r");
-        public string EmissiveInputG => Get<string>("emissive.input.g");
-        public string EmissiveInputB => Get<string>("emissive.input.b");
-        public string EmissiveInputA => Get<string>("emissive.input.a");
-        public bool OutputEmissive => Get<bool>("output.emissive");
-        public string OutputEmissiveR => Get<string>("output.emissive.r");
-        public string OutputEmissiveG => Get<string>("output.emissive.g");
-        public string OutputEmissiveB => Get<string>("output.emissive.b");
-        public string OutputEmissiveA => Get<string>("output.emissive.a");
-
         public string OcclusionInputR => Get<string>("occlusion.input.r");
         public string OcclusionInputG => Get<string>("occlusion.input.g");
         public string OcclusionInputB => Get<string>("occlusion.input.b");
@@ -71,6 +51,16 @@ namespace McPbrPipeline.Internal.Encoding
         public string OutputOcclusionG => Get<string>("output.occlusion.g");
         public string OutputOcclusionB => Get<string>("output.occlusion.b");
         public string OutputOcclusionA => Get<string>("output.occlusion.a");
+
+        public string SpecularInputR => Get<string>("specular.input.r");
+        public string SpecularInputG => Get<string>("specular.input.g");
+        public string SpecularInputB => Get<string>("specular.input.b");
+        public string SpecularInputA => Get<string>("specular.input.a");
+        public bool OutputSpecular => Get<bool>("output.specular");
+        public string OutputSpecularR => Get<string>("output.specular.r");
+        public string OutputSpecularG => Get<string>("output.specular.g");
+        public string OutputSpecularB => Get<string>("output.specular.b");
+        public string OutputSpecularA => Get<string>("output.specular.a");
 
         public string SmoothInputR => Get<string>("smooth.input.r");
         public string SmoothInputG => Get<string>("smooth.input.g");
@@ -82,6 +72,16 @@ namespace McPbrPipeline.Internal.Encoding
         public string OutputSmoothB => Get<string>("output.smooth.b");
         public string OutputSmoothA => Get<string>("output.smooth.a");
 
+        public string RoughInputR => Get<string>("rough.input.r");
+        public string RoughInputG => Get<string>("rough.input.g");
+        public string RoughInputB => Get<string>("rough.input.b");
+        public string RoughInputA => Get<string>("rough.input.a");
+        public bool OutputRough => Get<bool>("output.rough");
+        public string OutputRoughR => Get<string>("output.rough.r");
+        public string OutputRoughG => Get<string>("output.rough.g");
+        public string OutputRoughB => Get<string>("output.rough.b");
+        public string OutputRoughA => Get<string>("output.rough.a");
+
         public string MetalInputR => Get<string>("metal.input.r");
         public string MetalInputG => Get<string>("metal.input.g");
         public string MetalInputB => Get<string>("metal.input.b");
@@ -91,6 +91,16 @@ namespace McPbrPipeline.Internal.Encoding
         public string OutputMetalG => Get<string>("output.metal.g");
         public string OutputMetalB => Get<string>("output.metal.b");
         public string OutputMetalA => Get<string>("output.metal.a");
+
+        public string EmissiveInputR => Get<string>("emissive.input.r");
+        public string EmissiveInputG => Get<string>("emissive.input.g");
+        public string EmissiveInputB => Get<string>("emissive.input.b");
+        public string EmissiveInputA => Get<string>("emissive.input.a");
+        public bool OutputEmissive => Get<bool>("output.emissive");
+        public string OutputEmissiveR => Get<string>("output.emissive.r");
+        public string OutputEmissiveG => Get<string>("output.emissive.g");
+        public string OutputEmissiveB => Get<string>("output.emissive.b");
+        public string OutputEmissiveA => Get<string>("output.emissive.a");
 
 
         public void Build(PackProperties pack, PbrProperties texture)
@@ -128,13 +138,15 @@ namespace McPbrPipeline.Internal.Encoding
                     ["normal.input.g"] = EncodingChannel.NormalY,
                     ["normal.input.b"] = EncodingChannel.NormalZ,
 
+                    ["occlusion.input.r"] = EncodingChannel.Occlusion,
+
                     ["smooth.input.r"] = EncodingChannel.Smooth,
+
+                    ["rough.input.r"] = EncodingChannel.Rough,
 
                     ["metal.input.r"] = EncodingChannel.Metal,
 
                     ["emissive.input.r"] = EncodingChannel.Emissive,
-
-                    ["occlusion.input.r"] = EncodingChannel.Occlusion,
                 });
                 return;
             }
@@ -201,15 +213,21 @@ namespace McPbrPipeline.Internal.Encoding
                     ["output.normal.b"] = EncodingChannel.NormalZ,
                     ["output.normal.a"] = EncodingChannel.White,
 
+                    ["output.occlusion"] = bool.TrueString,
+                    ["output.occlusion.r"] = EncodingChannel.Occlusion,
+                    ["output.occlusion.a"] = EncodingChannel.White,
+
                     ["output.specular"] = bool.TrueString,
-                    //["output.specular.r"] = EncodingChannel.Smooth,
-                    //["output.specular.g"] = EncodingChannel.Metal,
                     ["output.specular.b"] = EncodingChannel.Porosity_SSS,
                     ["output.specular.a"] = EncodingChannel.White,
 
                     ["output.smooth"] = bool.TrueString,
                     ["output.smooth.r"] = EncodingChannel.Smooth,
                     ["output.smooth.a"] = EncodingChannel.White,
+
+                    ["output.rough"] = bool.TrueString,
+                    ["output.rough.r"] = EncodingChannel.Rough,
+                    ["output.rough.a"] = EncodingChannel.White,
 
                     ["output.metal"] = bool.TrueString,
                     ["output.metal.r"] = EncodingChannel.Metal,
@@ -218,10 +236,6 @@ namespace McPbrPipeline.Internal.Encoding
                     ["output.emissive"] = bool.TrueString,
                     ["output.emissive.r"] = EncodingChannel.Emissive,
                     ["output.emissive.a"] = EncodingChannel.White,
-
-                    ["output.occlusion"] = bool.TrueString,
-                    ["output.occlusion.r"] = EncodingChannel.Occlusion,
-                    ["output.occlusion.a"] = EncodingChannel.White,
                 });
                 return;
             }

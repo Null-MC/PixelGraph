@@ -1,4 +1,5 @@
 ﻿using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Textures;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 
 namespace McPbrPipeline.Internal.Input
 {
-    internal class PbrProperties : PropertiesFile
+    public class PbrProperties : PropertiesFile
     {
         public string FileName {get; set;}
         public string Name {get; set;}
@@ -60,33 +61,32 @@ namespace McPbrPipeline.Internal.Input
         public byte? PorosityValue => Get<byte?>("porosity.value");
 
 
-        public IEnumerable<string> GetAllTextures(IInputReader reader)
+        internal IEnumerable<string> GetAllTextures(IInputReader reader)
         {
             return TextureTags.All
                 .Select(tag => GetTextureFile(reader, tag))
                 .Where(file => file != null).Distinct();
         }
 
-        public string GetTextureFile(IInputReader reader, string type)
+        internal string GetTextureFile(IInputReader reader, string tag)
         {
-            var filename = TextureTags.Get(this, type);
+            var filename = TextureTags.Get(this, tag);
 
             while (filename != null) {
                 var linkedFilename = TextureTags.Get(this, filename);
                 if (string.IsNullOrEmpty(linkedFilename)) break;
 
-                type = filename;
+                tag = filename;
                 filename = linkedFilename;
             }
 
             var srcPath = UseGlobalMatching
                 ? Path : PathEx.Join(Path, Name);
 
-            if (!string.IsNullOrEmpty(filename)) {
+            if (!string.IsNullOrEmpty(filename))
                 return PathEx.Join(srcPath, filename);
-            }
 
-            var matchName = TextureTags.GetMatchName(this, type);
+            var matchName = NamingStructure.GetInputTextureName(tag, Name, UseGlobalMatching);
 
             return reader.EnumerateFiles(srcPath, matchName).FirstOrDefault(f => {
                 var ext = System.IO.Path.GetExtension(f);

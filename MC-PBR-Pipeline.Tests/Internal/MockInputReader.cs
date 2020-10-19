@@ -1,64 +1,51 @@
-﻿using System;
-using McPbrPipeline.Internal.Input;
+﻿using McPbrPipeline.Internal.Input;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+using McPbrPipeline.Internal.Extensions;
 
 namespace McPbrPipeline.Tests.Internal
 {
     internal class MockInputReader : IInputReader
     {
-        public MockInputContent Content {get;}
-        public string Root {get; set;}
+        public MockFileContent Content {get;}
+        public string Root {get; set;} = ".";
 
 
-        public MockInputReader()
+        public MockInputReader(MockFileContent content)
         {
-            Content = new MockInputContent();
+            Content = content;
         }
 
         public IEnumerable<string> EnumerateDirectories(string localPath, string pattern = default)
         {
-            var fullPath = localPath == "." ? Root : Path.Combine(Root, localPath);
+            var fullPath = PathEx.Join(Root, localPath);
 
             foreach (var directory in Content.EnumerateDirectories(fullPath, pattern)) {
                 var directoryName = Path.GetFileName(directory);
-                yield return localPath == "." ? directoryName : Path.Combine(localPath, directoryName);
+                yield return PathEx.Join(localPath, directoryName);
             }
         }
 
         public IEnumerable<string> EnumerateFiles(string localPath, string pattern = default)
         {
-            var fullPath = Path.Combine(Root, localPath);
+            var fullPath = PathEx.Join(Root, localPath);
 
             foreach (var file in Content.EnumerateFiles(fullPath, pattern)) {
-                var fileName = Path.GetFileName(file);
-                yield return Path.Combine(localPath, fileName);
+                var fileName = Path.GetFileName(file.Filename) ?? string.Empty;
+                yield return PathEx.Join(localPath, fileName);
             }
-        }
-
-        public Task<T> ReadJsonAsync<T>(string localFile, CancellationToken token = default) where T : new()
-        {
-            if (!FileExists(localFile)) throw new FileNotFoundException();
-
-            return Task.FromResult(new T());
         }
 
         public bool FileExists(string localFile)
         {
-            var fullFile = Path.Combine(Root, localFile);
+            var fullFile = PathEx.Join(Root, localFile);
             return Content.FileExists(fullFile);
         }
 
         public Stream Open(string localFile)
         {
-            throw new System.NotImplementedException();
-        }
-
-        public DateTime? GetWriteTime(string localFile)
-        {
-            return null;
+            var fullFile = PathEx.Join(Root, localFile);
+            return Content.OpenRead(fullFile);
         }
     }
 }

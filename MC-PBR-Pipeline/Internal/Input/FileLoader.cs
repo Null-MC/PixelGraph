@@ -74,7 +74,7 @@ namespace McPbrPipeline.Internal.Input
                                 var subTexture = texture.Clone();
                                 subTexture.Name = i.ToString();
                                 textureList.Add(subTexture);
-                                ignoreList.AddRange(texture.GetAllTextures(reader));
+                                ignoreList.AddRange(subTexture.GetAllTextures(reader));
                             }
                         }
                         else {
@@ -107,7 +107,7 @@ namespace McPbrPipeline.Internal.Input
         public async Task<PbrProperties> LoadGlobalTextureAsync(string localFile, CancellationToken token = default)
         {
             var name = Path.GetFileName(localFile);
-            name = name.Substring(0, name.Length - 15);
+            name = name[..^15];
 
             var properties = new PbrProperties {
                 FileName = localFile,
