@@ -21,20 +21,24 @@ namespace McPbrPipeline.Internal.Input
         public int? RangeMax => Get<int?>("range.max");
 
         public string AlbedoTexture => Get<string>("albedo.texture");
+        public byte? AlbedoValueR => Get<byte?>("albedo.value.r");
+        public byte? AlbedoValueG => Get<byte?>("albedo.value.g");
+        public byte? AlbedoValueB => Get<byte?>("albedo.value.b");
+        public byte? AlbedoValueA => Get<byte?>("albedo.value.a");
         public float AlbedoScaleR => Get("albedo.scale.r", 1f);
         public float AlbedoScaleG => Get("albedo.scale.g", 1f);
         public float AlbedoScaleB => Get("albedo.scale.b", 1f);
         public float AlbedoScaleA => Get("albedo.scale.a", 1f);
 
         public string HeightTexture => Get<string>("height.texture");
-        public float HeightScale => Get("height.scale", 1f);
         public byte? HeightValue => Get<byte?>("height.value");
+        public float HeightScale => Get("height.scale", 1f);
 
         public string NormalTexture => Get<string>("normal.texture");
-        public float NormalStrength => Get("normal.strength", 1f);
         public byte? NormalValueX => Get<byte?>("normal.value.x");
         public byte? NormalValueY => Get<byte?>("normal.value.y");
         public byte? NormalValueZ => Get<byte?>("normal.value.z");
+        public float NormalStrength => Get("normal.strength", 1f);
 
         public string OcclusionTexture => Get<string>("occlusion.texture");
         public byte? OcclusionValue => Get<byte?>("occlusion.value");
@@ -51,8 +55,8 @@ namespace McPbrPipeline.Internal.Input
         public float RoughScale => Get("rough.scale", 1f);
 
         public string MetalTexture => Get<string>("metal.texture");
-        public float MetalScale => Get("metal.scale", 1f);
         public byte? MetalValue => Get<byte?>("metal.value");
+        public float MetalScale => Get("metal.scale", 1f);
 
         public string EmissiveTexture => Get<string>("emissive.texture");
         public byte? EmissiveValue => Get<byte?>("emissive.value");

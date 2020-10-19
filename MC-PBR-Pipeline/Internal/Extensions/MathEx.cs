@@ -23,12 +23,12 @@ namespace McPbrPipeline.Internal.Extensions
 
         public static byte Saturate(float value)
         {
-            return (byte)Math.Clamp(value * 255f, 0f, 255f);
+            return (byte)Math.Clamp(value * 255f + 0.5f, 0f, 255f);
         }
 
         public static byte Saturate(double value)
         {
-            return (byte)Math.Clamp(value * 255, 0, 255);
+            return (byte)Math.Clamp(value * 255d + 0.5d, 0, 255);
         }
 
         public static float Max(params float[] values)

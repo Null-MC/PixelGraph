@@ -2,8 +2,6 @@
 using McPbrPipeline.Internal.Textures;
 using McPbrPipeline.Tests.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -25,7 +23,36 @@ namespace McPbrPipeline.Tests.ImageTests
             };
         }
 
-        [InlineData(0)]
+        [InlineData(  0,  0.0f,   0)]
+        [InlineData(100,  1.0f, 100)]
+        [InlineData(100,  0.5f,  50)]
+        [InlineData(100,  2.0f, 200)]
+        [InlineData(100,  3.0f, 255)]
+        [InlineData(200, 0.01f,   2)]
+        [Theory] public async Task Scale(byte value, float scale, byte expected)
+        {
+            var reader = new MockInputReader(Content);
+            await using var writer = new MockOutputWriter(Content);
+            await using var provider = Services.BuildServiceProvider();
+
+            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
+                UseGlobalOutput = true,
+            };
+
+            await graphBuilder.BuildAsync(new PbrProperties {
+                Name = "test",
+                Path = "assets",
+                Properties = {
+                    ["rough.value"] = value.ToString(),
+                    ["rough.scale"] = scale.ToString("F"),
+                }
+            });
+
+            using var image = await Content.OpenImageAsync("assets/test_rough.png");
+            PixelAssert.RedEquals(expected, image);
+        }
+
+        [InlineData(  0)]
         [InlineData(100)]
         [InlineData(155)]
         [InlineData(255)]
@@ -35,8 +62,7 @@ namespace McPbrPipeline.Tests.ImageTests
             await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
 
-            var roughColor = new Rgba32(value, 0, 0, 0);
-            using var roughImage = new Image<Rgba32>(Configuration.Default, 1, 1, roughColor);
+            using var roughImage = CreateImageR(value);
             await Content.AddAsync("assets/test/rough.png", roughImage);
 
             var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
@@ -55,18 +81,17 @@ namespace McPbrPipeline.Tests.ImageTests
             PixelAssert.RedEquals(value, image);
         }
 
-        [InlineData(0, 255)]
+        [InlineData(  0, 255)]
         [InlineData(100, 155)]
         [InlineData(155, 100)]
-        [InlineData(255, 0)]
-        [Theory] public async Task ConvertsSmoothToRough(byte actualSmooth, byte expectedRough)
+        [InlineData(255,   0)]
+        [Theory] public async Task ConvertsSmoothToRough(byte value, byte expected)
         {
             var reader = new MockInputReader(Content);
             await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
 
-            var smoothColor = new Rgba32(actualSmooth, 0, 0, 0);
-            using var smoothImage = new Image<Rgba32>(Configuration.Default, 1, 1, smoothColor);
+            using var smoothImage = CreateImageR(value);
             await Content.AddAsync("assets/test/smooth.png", smoothImage);
 
             var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
@@ -82,7 +107,7 @@ namespace McPbrPipeline.Tests.ImageTests
             });
 
             using var image = await Content.OpenImageAsync("assets/test_rough.png");
-            PixelAssert.RedEquals(expectedRough, image);
+            PixelAssert.RedEquals(expected, image);
         }
     }
 }

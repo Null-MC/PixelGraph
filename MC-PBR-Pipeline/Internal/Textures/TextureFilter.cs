@@ -51,6 +51,10 @@ namespace McPbrPipeline.Internal.Textures
         }
 
         private static readonly Dictionary<string, Func<PbrProperties, byte?>> valueMap = new Dictionary<string, Func<PbrProperties, byte?>>(StringComparer.InvariantCultureIgnoreCase) {
+            [EncodingChannel.AlbedoR] = tex => tex.AlbedoValueR,
+            [EncodingChannel.AlbedoG] = tex => tex.AlbedoValueG,
+            [EncodingChannel.AlbedoB] = tex => tex.AlbedoValueB,
+            [EncodingChannel.AlbedoA] = tex => tex.AlbedoValueA,
             [EncodingChannel.Height] = tex => tex.HeightValue,
             [EncodingChannel.NormalX] = tex => tex.NormalValueX,
             [EncodingChannel.NormalY] = tex => tex.NormalValueY,

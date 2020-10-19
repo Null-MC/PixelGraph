@@ -1,7 +1,7 @@
-﻿using McPbrPipeline.Internal.Input;
+﻿using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.Input;
 using System.Collections.Generic;
 using System.IO;
-using McPbrPipeline.Internal.Extensions;
 
 namespace McPbrPipeline.Tests.Internal
 {

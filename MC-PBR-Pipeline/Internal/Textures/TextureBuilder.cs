@@ -60,7 +60,6 @@ namespace McPbrPipeline.Internal.Textures
 
             if (isOutputHeight) filterOptions.SetPost(color, filter.Invert);
             if (isOutputOcclusion) filterOptions.SetPost(color, filter.Invert);
-            if (isOutputRough) filterOptions.SetPost(color, filter.Invert);
             if (isOutputSmooth2) filterOptions.SetPost(color, filter.SmoothToPerceptualSmooth);
             if (isOutputEmissiveClipped) filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
             if (isOutputEmissiveInverse) filterOptions.SetPost(color, filter.Invert);
@@ -75,7 +74,6 @@ namespace McPbrPipeline.Internal.Textures
                 PixelAction action = null;
                 if (isOutputHeight) action = filter.Invert;
                 if (isOutputOcclusion) action = filter.Invert;
-                if (isOutputRough) action = filter.Invert;
                 if (isOutputSmooth2) action = filter.PerceptualSmoothToSmooth;
                 if (isOutputEmissiveClipped) action = filter.EmissiveClippedToEmissive;
                 if (isOutputEmissiveInverse) action = filter.Invert;
@@ -89,22 +87,27 @@ namespace McPbrPipeline.Internal.Textures
                 // restore normal-z
                 if (isOutputNormalZ) restoreNormalZ = true;
 
-                // Smooth > *
-                if ((isOutputRough || isOutputSmooth2) && graph.TryGetSources(EncodingChannel.Smooth, out sourceList)) {
-                    foreach (var source in sourceList)
-                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color);
-                }
-
-                // Rough > Smooth
+                // Rough > Smooth/2
                 if ((isOutputSmooth || isOutputSmooth2) && graph.TryGetSources(EncodingChannel.Rough, out sourceList)) {
                     foreach (var source in sourceList)
                         optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color, filter.Invert);
                 }
 
-                // Smooth2 > Smooth
-                if ((isOutputRough || isOutputSmooth) && graph.TryGetSources(EncodingChannel.PerceptualSmooth, out sourceList)) {
-                    foreach (var source in sourceList)
-                        optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color, filter.PerceptualSmoothToSmooth);
+                if (isOutputRough) {
+                    // Smooth > Rough
+                    if (graph.TryGetSources(EncodingChannel.Smooth, out sourceList)) {
+                        foreach (var source in sourceList)
+                            optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color, filter.Invert);
+                    }
+
+                    // Smooth2 > Rough
+                    if (graph.TryGetSources(EncodingChannel.PerceptualSmooth, out sourceList)) {
+                        foreach (var source in sourceList)
+                            optionsMap.GetOrCreate(source.Tag, NewOptions).Set(source.Channel, color, (ref byte v) => {
+                                filter.PerceptualSmoothToSmooth(ref v);
+                                filter.Invert(ref v);
+                            });
+                    }
                 }
 
                 // Emissive > *

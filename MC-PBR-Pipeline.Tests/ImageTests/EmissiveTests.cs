@@ -2,8 +2,6 @@
 using McPbrPipeline.Internal.Textures;
 using McPbrPipeline.Tests.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -25,18 +23,75 @@ namespace McPbrPipeline.Tests.ImageTests
             };
         }
 
-        [InlineData(0, 1)]
+        [InlineData(  0,  0.0f,   0)]
+        [InlineData(100,  1.0f, 100)]
+        [InlineData(100,  0.5f,  50)]
+        [InlineData(100,  2.0f, 200)]
+        [InlineData(100,  3.0f, 255)]
+        [InlineData(200, 0.01f,   2)]
+        [Theory] public async Task Scale(byte value, float scale, byte expected)
+        {
+            var reader = new MockInputReader(Content);
+            await using var writer = new MockOutputWriter(Content);
+            await using var provider = Services.BuildServiceProvider();
+
+            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
+                UseGlobalOutput = true,
+            };
+
+            await graphBuilder.BuildAsync(new PbrProperties {
+                Name = "test",
+                Path = "assets",
+                Properties = {
+                    ["emissive.value"] = value.ToString(),
+                    ["emissive.scale"] = scale.ToString("F"),
+                }
+            });
+
+            using var image = await Content.OpenImageAsync("assets/test_e.png");
+            PixelAssert.RedEquals(expected, image);
+        }
+
+        [InlineData(  0)]
+        [InlineData(100)]
+        [InlineData(155)]
+        [InlineData(255)]
+        [Theory] public async Task Passthrough(byte value)
+        {
+            var reader = new MockInputReader(Content);
+            await using var writer = new MockOutputWriter(Content);
+            await using var provider = Services.BuildServiceProvider();
+
+            using var emissiveImage = CreateImageR(value);
+            await Content.AddAsync("assets/test/emissive.png", emissiveImage);
+
+            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
+                UseGlobalOutput = true,
+            };
+
+            await graphBuilder.BuildAsync(new PbrProperties {
+                Name = "test",
+                Path = "assets",
+                Properties = {
+                    ["emissive.input.r"] = "emissive",
+                }
+            });
+
+            using var image = await Content.OpenImageAsync("assets/test_e.png");
+            PixelAssert.RedEquals(value, image);
+        }
+
+        [InlineData(  0,   1)]
         [InlineData(127, 128)]
         [InlineData(254, 255)]
-        [InlineData(255, 0)]
-        [Theory] public async Task ConvertsEmissiveClippedToEmissive(byte actualEmissiveClipped, byte expectedEmissive)
+        [InlineData(255,   0)]
+        [Theory] public async Task ConvertsEmissiveClippedToEmissive(byte value, byte expected)
         {
             var reader = new MockInputReader(Content);
             await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
             
-            var emissiveColor = new Rgba32(actualEmissiveClipped, 0, 0, 0);
-            using var emissiveImage = new Image<Rgba32>(Configuration.Default, 1, 1, emissiveColor);
+            using var emissiveImage = CreateImageR(value);
             await Content.AddAsync("assets/test/emissive.png", emissiveImage);
 
             var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
@@ -52,7 +107,36 @@ namespace McPbrPipeline.Tests.ImageTests
             });
 
             using var image = await Content.OpenImageAsync("assets/test_e.png");
-            PixelAssert.RedEquals(expectedEmissive, image);
+            PixelAssert.RedEquals(expected, image);
+        }
+
+        [InlineData(0, 255)]
+        [InlineData(128, 127)]
+        [InlineData(254, 1)]
+        [InlineData(255, 0)]
+        [Theory] public async Task ConvertsEmissiveInverseToEmissive(byte value, byte expected)
+        {
+            var reader = new MockInputReader(Content);
+            await using var writer = new MockOutputWriter(Content);
+            await using var provider = Services.BuildServiceProvider();
+            
+            using var emissiveImage = CreateImageR(value);
+            await Content.AddAsync("assets/test/emissive.png", emissiveImage);
+
+            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
+                UseGlobalOutput = true,
+            };
+
+            await graphBuilder.BuildAsync(new PbrProperties {
+                Name = "test",
+                Path = "assets",
+                Properties = {
+                    ["emissive.input.r"] = "emissive-inv",
+                }
+            });
+
+            using var image = await Content.OpenImageAsync("assets/test_e.png");
+            PixelAssert.RedEquals(expected, image);
         }
     }
 }
