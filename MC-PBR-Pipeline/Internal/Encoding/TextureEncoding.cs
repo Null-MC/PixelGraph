@@ -45,7 +45,8 @@ namespace McPbrPipeline.Internal.Encoding
             if (outputMap.TryGetValue(tag, out var encodingFunc))
                 return encodingFunc(encoding);
 
-            throw new ApplicationException($"Unknown texture type '{tag}'!");
+            //throw new ApplicationException($"Unknown texture type '{tag}'!");
+            return null;
         }
 
         private static readonly Dictionary<string, Func<EncodingProperties, TextureEncoding>> outputMap = new Dictionary<string, Func<EncodingProperties, TextureEncoding>>(StringComparer.InvariantCultureIgnoreCase) {
@@ -67,23 +68,41 @@ namespace McPbrPipeline.Internal.Encoding
                 B = encoding.OutputNormalB,
                 A = encoding.OutputNormalA,
             },
+            [TextureTags.Occlusion] = encoding => new TextureEncoding(TextureTags.Occlusion) {
+                R = encoding.OutputOcclusionR,
+                G = encoding.OutputOcclusionG,
+                B = encoding.OutputOcclusionB,
+                A = encoding.OutputOcclusionA,
+            },
             [TextureTags.Specular] = encoding => new TextureEncoding(TextureTags.Specular) {
                 R = encoding.OutputSpecularR,
                 G = encoding.OutputSpecularG,
                 B = encoding.OutputSpecularB,
                 A = encoding.OutputSpecularA,
             },
+            [TextureTags.Smooth] = encoding => new TextureEncoding(TextureTags.Smooth) {
+                R = encoding.OutputSmoothR,
+                G = encoding.OutputSmoothG,
+                B = encoding.OutputSmoothB,
+                A = encoding.OutputSmoothA,
+            },
+            [TextureTags.Rough] = encoding => new TextureEncoding(TextureTags.Rough) {
+                R = encoding.OutputRoughR,
+                G = encoding.OutputRoughG,
+                B = encoding.OutputRoughB,
+                A = encoding.OutputRoughA,
+            },
+            [TextureTags.Metal] = encoding => new TextureEncoding(TextureTags.Metal) {
+                R = encoding.OutputMetalR,
+                G = encoding.OutputMetalG,
+                B = encoding.OutputMetalB,
+                A = encoding.OutputMetalA,
+            },
             [TextureTags.Emissive] = encoding => new TextureEncoding(TextureTags.Emissive) {
                 R = encoding.OutputEmissiveR,
                 G = encoding.OutputEmissiveG,
                 B = encoding.OutputEmissiveB,
                 A = encoding.OutputEmissiveA,
-            },
-            [TextureTags.Occlusion] = encoding => new TextureEncoding(TextureTags.Occlusion) {
-                R = encoding.OutputOcclusionR,
-                G = encoding.OutputOcclusionG,
-                B = encoding.OutputOcclusionB,
-                A = encoding.OutputOcclusionA,
             },
         };
     }

@@ -10,5 +10,11 @@ namespace McPbrPipeline.Internal.Extensions
             var parts = pathParts.Where(p => p != null && p != ".").ToArray();
             return Path.Join(parts);
         }
+
+        public static string Normalize(string filename)
+        {
+            if (Path.DirectorySeparatorChar == '/') return filename;
+            return filename.Replace('/', Path.DirectorySeparatorChar);
+        }
     }
 }

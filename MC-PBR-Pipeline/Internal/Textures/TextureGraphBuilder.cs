@@ -1,5 +1,4 @@
-﻿using McPbrPipeline.Internal.Encoding;
-using McPbrPipeline.Internal.Extensions;
+﻿using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Output;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,30 +36,25 @@ namespace McPbrPipeline.Internal.Textures
         {
             using var graph = new TextureGraph(provider, reader, pack, texture);
 
-            graph.Build();
-
-            if (graph.ContainsSource(EncodingChannel.Height))
-                //await graph.BuildNormalMapAsync(token);
-                graph.MapGeneratedNormal();
-
             if (graph.Encoding.OutputAlbedo) await ProcessTextureAsync(graph, TextureTags.Albedo, token);
 
             if (graph.Encoding.OutputHeight) await ProcessTextureAsync(graph, TextureTags.Height, token);
 
             if (graph.Encoding.OutputNormal) await ProcessTextureAsync(graph, TextureTags.Normal, token);
 
+            if (graph.Encoding.OutputOcclusion) await ProcessTextureAsync(graph, TextureTags.Occlusion, token);
+
             if (graph.Encoding.OutputSpecular) await ProcessTextureAsync(graph, TextureTags.Specular, token);
 
-            // smooth2/rough
             if (graph.Encoding.OutputSmooth) await ProcessTextureAsync(graph, TextureTags.Smooth, token);
+
+            if (graph.Encoding.OutputRough) await ProcessTextureAsync(graph, TextureTags.Rough, token);
 
             if (graph.Encoding.OutputMetal) await ProcessTextureAsync(graph, TextureTags.Metal, token);
 
             // porosity
 
             // sss
-
-            if (graph.Encoding.OutputOcclusion) await ProcessTextureAsync(graph, TextureTags.Occlusion, token);
 
             if (graph.Encoding.OutputEmissive) await ProcessTextureAsync(graph, TextureTags.Emissive, token);
         }

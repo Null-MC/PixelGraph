@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace McPbrPipeline.Internal.Input
 {
-    internal class PropertiesFile
+    public abstract class PropertiesFile
     {
         public Dictionary<string, string> Properties {get; protected set;}
 
 
-        public PropertiesFile()
+        protected PropertiesFile()
         {
             Properties = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
         }
