@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Publish Windows x64
-        run: dotnet publish -c Release -r win-x64 -o /publish/win-x64 -p:PublishSingleFile=true --no-self-contained
+        run: dotnet publish -c Release -r win-x64 -o ./publish/win-x64 -p:PublishSingleFile=true --no-self-contained
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -44,7 +44,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /publish/win-x64/MCPBRP.exe
+          asset_path: ./publish/win-x64/MCPBRP.exe
           asset_name: MCPBRP-win-x64.exe
           asset_content_type: application/exe
       - name: Login to DockerHub
