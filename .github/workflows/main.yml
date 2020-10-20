@@ -1,4 +1,4 @@
-name: Manual triggered publishing workflow
+name: Build, Test, Publish
 on:
   push:
   pull_request:
@@ -9,26 +9,24 @@ on:
         required: false
 
 jobs:
-  build:
-    name: Build Release
+  build_test:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: dotnet restore
-      - run: dotnet build
-  test:
-    name: Unit Test
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Test Release
+      - name: Build
+        run: |
+          dotnet restore
+          dotnet build
+      - name: Test
         run: dotnet test
   publish:
     name: Publish
     runs-on: ubuntu-latest
-    needs: test
+    needs: build_test
     if: github.event.inputs.version != ''
     steps:
+      - uses: actions/checkout@v2
       - name: Publish Windows x64
         run: dotnet publish -c Release -r win-x64 -o /publish/win-x64 -p:PublishSingleFile=true --no-self-contained
       - name: Create Release
@@ -49,3 +47,18 @@ jobs:
           asset_path: /publish/win-x64/MCPBRP.exe
           asset_name: MCPBRP-win-x64.exe
           asset_content_type: application/exe
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Publish Dockerfile
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/386,linux/amd64
+          push: true
+          tags: |
+            null511/mcpbrp:latest
+            null511/mcpbrp:${{ github.event.inputs.version }}
