@@ -1,9 +1,0 @@
-language: csharp
-mono: none
-dotnet: 3.1
-solution: solution-name.sln
-install:
-  - dotnet restore
-script:
-  - dotnet build
-  - dotnet test ./MC-PBR-Pipeline.Tests/MC-PBR-Pipeline.Tests.csproj
