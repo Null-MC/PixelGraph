@@ -51,8 +51,8 @@ namespace McPbrPipeline.CommandLine
                 "The target format of the imported texture."));
 
             Command.AddOption(new Option<string[]>(
-                new[] { "-p", "--property" },
-                "The target format of the imported texture."));
+                new[] { "--property" },
+                "Override a pack property."));
         }
 
         private async Task<int> RunAsync(string texture, DirectoryInfo destination, string inputFormat, string outputFormat, string[] property)

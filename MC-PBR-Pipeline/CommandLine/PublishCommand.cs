@@ -1,4 +1,5 @@
 ﻿using McPbrPipeline.Internal;
+using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Publishing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,7 +9,6 @@ using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using McPbrPipeline.Internal.Extensions;
 
 namespace McPbrPipeline.CommandLine
 {
@@ -29,7 +29,7 @@ namespace McPbrPipeline.CommandLine
             logger = provider.GetRequiredService<ILogger<PublishCommand>>();
 
             Command = new Command("publish", "Publishes the specified profile.") {
-                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, bool, bool>(RunAsync),
+                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, bool, bool, string[]>(RunAsync),
             };
 
             Command.AddOption(new Option<FileInfo>(
@@ -50,9 +50,13 @@ namespace McPbrPipeline.CommandLine
                 new [] {"-z", "--zip"},
                 () => false,
                 "Generates a compressed ZIP archive of the published contents."));
+
+            Command.AddOption(new Option<string[]>(
+                new[] {"--property" },
+                "Override a pack property."));
         }
 
-        private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, bool clean, bool zip)
+        private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, bool clean, bool zip, string[] property)
         {
             if (profile == null) {
                 ConsoleEx.WriteLine("profile is undefined!", ConsoleColor.DarkRed);
@@ -76,6 +80,7 @@ namespace McPbrPipeline.CommandLine
                 Destination = destination.FullName,
                 Compress = zip,
                 Clean = clean,
+                Properties = property,
             };
 
             var timer = Stopwatch.StartNew();

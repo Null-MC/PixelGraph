@@ -6,5 +6,6 @@
         public string Destination {get; set;}
         public bool Clean {get; set;} = false;
         public bool Compress {get; set;} = false;
+        public string[] Properties {get; set;}
     }
 }

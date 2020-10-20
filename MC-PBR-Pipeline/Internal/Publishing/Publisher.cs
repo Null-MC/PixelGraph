@@ -44,6 +44,10 @@ namespace McPbrPipeline.Internal.Publishing
                 await pack.ReadAsync(stream, token);
             }
 
+            if (options.Properties != null)
+                foreach (var property in options.Properties)
+                    pack.TrySet(property);
+
             await using var output = GetOutputWriter(options.Destination, options.Compress);
 
             if (options.Clean) {
