@@ -28,10 +28,12 @@ jobs:
     if: github.event.inputs.version != ''
     steps:
       - uses: actions/checkout@v2
-      - name: Publish Windows x64
+      - name: Publish Binaries
         run: |
           cd MC-PBR-Pipeline
           dotnet publish -c Release -r win-x64 -o ../publish/win-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish -c Release -r linux-x64 -o ../publish/linux-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish -c Release -r osx-x64 -o ../publish/osx-x64 -p:PublishSingleFile=true --self-contained false
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -41,7 +43,7 @@ jobs:
           tag_name: ${{ github.event.inputs.version }}
           release_name: Release ${{ github.event.inputs.version }}
           draft: true
-      - name: Upload Windows x64 Binary
+      - name: Upload Windows-x64 Binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -49,6 +51,24 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./publish/win-x64/MCPBRP.exe
           asset_name: MCPBRP-win-x64.exe
+          asset_content_type: application/exe
+      - name: Upload Linux-x64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./publish/linux-x64/MCPBRP
+          asset_name: MCPBRP-linux-x64
+          asset_content_type: application/exe
+      - name: Upload OSX-x64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./publish/osx-x64/MCPBRP
+          asset_name: MCPBRP-osx-x64
           asset_content_type: application/exe
       - name: Publish Dockerfile
         uses: docker/build-push-action@v1
