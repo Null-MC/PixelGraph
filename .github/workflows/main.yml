@@ -50,18 +50,10 @@ jobs:
           asset_path: ./publish/win-x64/MCPBRP.exe
           asset_name: MCPBRP-win-x64.exe
           asset_content_type: application/exe
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
+      - name: Publish Dockerfile
+        uses: docker/build-push-action@v1
         with:
+          repository: null511/mcpbrp
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Publish Dockerfile
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile
-          #platforms: linux/386,linux/amd64
-          push: true
-          tags: |
-            null511/mcpbrp:latest
-            null511/mcpbrp:${{ github.event.inputs.version }}
+          tags: latest,${{ github.event.inputs.version }}
