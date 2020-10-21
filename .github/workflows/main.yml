@@ -60,7 +60,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/386,linux/amd64
+          #platforms: linux/386,linux/amd64
           push: true
           tags: |
             null511/mcpbrp:latest
