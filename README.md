@@ -1,4 +1,4 @@
-# MC-PBR-Pipeline
+# MC-PBR-Pipeline [![Actions Status](https://github.com/null511/MC-PBR-Pipeline/workflows/Release/badge.svg)](https://github.com/null511/MC-PBR-Pipeline/actions)
 
 MC-PBRP is a command-line application for publishing Minecraft resource packs, with special tooling for PBR materials. Automate the workload of modifying and distributing your resource packs through simple properties files.
 
