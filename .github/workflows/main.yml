@@ -29,7 +29,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Publish Windows x64
-        run: dotnet publish -c Release -r win-x64 -o ./publish/win-x64 -p:PublishSingleFile=true --self-contained=false
+        run: |
+          cd MC-PBR-Pipeline
+          dotnet publish -c Release -r win-x64 -o ../publish/win-x64 -p:PublishSingleFile=true --self-contained false
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
