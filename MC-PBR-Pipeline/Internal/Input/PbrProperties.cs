@@ -39,6 +39,7 @@ namespace McPbrPipeline.Internal.Input
         public byte? NormalValueY => Get<byte?>("normal.value.y");
         public byte? NormalValueZ => Get<byte?>("normal.value.z");
         public float NormalStrength => Get("normal.strength", 1f);
+        public float NormalNoise => Get("normal.noise", 0f);
 
         public string OcclusionTexture => Get<string>("occlusion.texture");
         public byte? OcclusionValue => Get<byte?>("occlusion.value");

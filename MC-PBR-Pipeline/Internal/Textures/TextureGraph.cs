@@ -185,6 +185,7 @@ namespace McPbrPipeline.Internal.Textures
                 var options = new NormalMapProcessor.Options {
                     HeightChannel = source.Channel,
                     Strength = Texture.NormalStrength,
+                    Noise = Texture.NormalNoise,
                     Wrap = Texture.Wrap,
                 };
 

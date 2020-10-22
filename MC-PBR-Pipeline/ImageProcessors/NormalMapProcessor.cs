@@ -1,4 +1,5 @@
-﻿using McPbrPipeline.Internal.Extensions;
+﻿using System;
+using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
@@ -29,6 +30,7 @@ namespace McPbrPipeline.ImageProcessors
             public ColorChannel HeightChannel {get; set;}
             //public int DownSample {get; set;} = 1;
             public float Strength {get; set;} = 1f;
+            public float Noise {get; set;} = 0f;
             //public float Blur {get; set;} = 0f;
             public bool Wrap {get; set;} = true;
         }
@@ -53,6 +55,8 @@ namespace McPbrPipeline.ImageProcessors
 
                 var k = new float[3, 3];
                 var pixel = new Rgba32(0, 0, 0, 255);
+                var random = new Lazy<Random>();
+                var hasNoise = options.Noise > float.Epsilon;
                 Vector2 derivative;
                 Vector3 normal;
 
@@ -64,6 +68,11 @@ namespace McPbrPipeline.ImageProcessors
                         normal.X = derivative.X;
                         normal.Y = derivative.Y;
                         normal.Z = 1f / options.Strength;
+
+                        if (hasNoise) {
+                            normal.X += ((float)random.Value.NextDouble()*2f - 1f) * options.Noise;
+                            normal.Y += ((float)random.Value.NextDouble()*2f - 1f) * options.Noise;
+                        }
 
                         MathEx.Normalize(ref normal);
 
