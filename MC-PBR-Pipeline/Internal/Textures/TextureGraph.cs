@@ -127,9 +127,15 @@ namespace McPbrPipeline.Internal.Textures
             MapSource(TextureTags.Metal, ColorChannel.Blue, Encoding.MetalInputB);
             MapSource(TextureTags.Metal, ColorChannel.Alpha, Encoding.MetalInputA);
 
-            // porosity
+            MapSource(TextureTags.Porosity, ColorChannel.Red, Encoding.PorosityInputR);
+            MapSource(TextureTags.Porosity, ColorChannel.Green, Encoding.PorosityInputG);
+            MapSource(TextureTags.Porosity, ColorChannel.Blue, Encoding.PorosityInputB);
+            MapSource(TextureTags.Porosity, ColorChannel.Alpha, Encoding.PorosityInputA);
 
-            // sss
+            MapSource(TextureTags.SubSurfaceScattering, ColorChannel.Red, Encoding.SubSurfaceScatteringInputR);
+            MapSource(TextureTags.SubSurfaceScattering, ColorChannel.Green, Encoding.SubSurfaceScatteringInputG);
+            MapSource(TextureTags.SubSurfaceScattering, ColorChannel.Blue, Encoding.SubSurfaceScatteringInputB);
+            MapSource(TextureTags.SubSurfaceScattering, ColorChannel.Alpha, Encoding.SubSurfaceScatteringInputA);
 
             MapSource(TextureTags.Emissive, ColorChannel.Red, Encoding.EmissiveInputR);
             MapSource(TextureTags.Emissive, ColorChannel.Green, Encoding.EmissiveInputG);

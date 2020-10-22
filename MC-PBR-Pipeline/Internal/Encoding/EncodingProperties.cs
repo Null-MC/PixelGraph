@@ -92,6 +92,26 @@ namespace McPbrPipeline.Internal.Encoding
         public string OutputMetalB => Get<string>("output.metal.b");
         public string OutputMetalA => Get<string>("output.metal.a");
 
+        public string PorosityInputR => Get<string>("porosity.input.r");
+        public string PorosityInputG => Get<string>("porosity.input.g");
+        public string PorosityInputB => Get<string>("porosity.input.b");
+        public string PorosityInputA => Get<string>("porosity.input.a");
+        public bool OutputPorosity => Get<bool>("output.porosity");
+        public string OutputPorosityR => Get<string>("output.porosity.r");
+        public string OutputPorosityG => Get<string>("output.porosity.g");
+        public string OutputPorosityB => Get<string>("output.porosity.b");
+        public string OutputPorosityA => Get<string>("output.porosity.a");
+
+        public string SubSurfaceScatteringInputR => Get<string>("sss.input.r");
+        public string SubSurfaceScatteringInputG => Get<string>("sss.input.g");
+        public string SubSurfaceScatteringInputB => Get<string>("sss.input.b");
+        public string SubSurfaceScatteringInputA => Get<string>("sss.input.a");
+        public bool OutputSubSurfaceScattering => Get<bool>("output.sss");
+        public string OutputSubSurfaceScatteringR => Get<string>("output.sss.r");
+        public string OutputSubSurfaceScatteringG => Get<string>("output.sss.g");
+        public string OutputSubSurfaceScatteringB => Get<string>("output.sss.b");
+        public string OutputSubSurfaceScatteringA => Get<string>("output.sss.a");
+
         public string EmissiveInputR => Get<string>("emissive.input.r");
         public string EmissiveInputG => Get<string>("emissive.input.g");
         public string EmissiveInputB => Get<string>("emissive.input.b");
@@ -217,9 +237,9 @@ namespace McPbrPipeline.Internal.Encoding
                     ["output.occlusion.r"] = EncodingChannel.Occlusion,
                     ["output.occlusion.a"] = EncodingChannel.White,
 
-                    ["output.specular"] = bool.TrueString,
-                    ["output.specular.b"] = EncodingChannel.Porosity_SSS,
-                    ["output.specular.a"] = EncodingChannel.White,
+                    ["output.specular"] = bool.FalseString,
+                    //["output.specular.b"] = EncodingChannel.Porosity_SSS,
+                    //["output.specular.a"] = EncodingChannel.White,
 
                     ["output.smooth"] = bool.TrueString,
                     ["output.smooth.r"] = EncodingChannel.Smooth,

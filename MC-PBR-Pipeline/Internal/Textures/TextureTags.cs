@@ -10,14 +10,16 @@ namespace McPbrPipeline.Internal.Textures
         public const string Height = "#height";
         public const string NormalGenerated = "#normal-generated";
         public const string Normal = "#normal";
+        public const string Occlusion = "#occlusion";
         public const string Specular = "#specular";
         public const string Rough = "#rough";
         public const string Smooth = "#smooth";
         public const string Metal = "#metal";
-        public const string Occlusion = "#occlusion";
+        public const string Porosity = "#porosity";
+        public const string SubSurfaceScattering = "#sss";
         public const string Emissive = "#emissive";
 
-        public static string[] All {get;} = {Albedo, Height, Normal, Specular, Smooth, Rough, Metal, Occlusion, Emissive};
+        public static string[] All {get;} = {Albedo, Height, Normal, Occlusion, Specular, Smooth, Rough, Metal, Porosity, SubSurfaceScattering, Emissive};
 
 
         public static string Get(PbrProperties material, string tag)
@@ -34,11 +36,13 @@ namespace McPbrPipeline.Internal.Textures
             [Albedo] = t => t.AlbedoTexture,
             [Height] = t => t.HeightTexture,
             [Normal] = t => t.NormalTexture,
+            [Occlusion] = t => t.OcclusionTexture,
             [Specular] = t => t.SpecularTexture,
             [Smooth] = t => t.SmoothTexture,
             [Rough] = t => t.RoughTexture,
             [Metal] = t => t.MetalTexture,
-            [Occlusion] = t => t.OcclusionTexture,
+            [Porosity] = t => t.PorosityTexture,
+            [SubSurfaceScattering] = t => t.SubSurfaceScatteringTexture,
             [Emissive] = t => t.EmissiveTexture,
         };
     }

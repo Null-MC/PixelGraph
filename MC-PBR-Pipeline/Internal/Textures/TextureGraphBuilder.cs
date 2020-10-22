@@ -52,9 +52,9 @@ namespace McPbrPipeline.Internal.Textures
 
             if (graph.Encoding.OutputMetal) await ProcessTextureAsync(graph, TextureTags.Metal, token);
 
-            // porosity
+            if (graph.Encoding.OutputPorosity) await ProcessTextureAsync(graph, TextureTags.Porosity, token);
 
-            // sss
+            if (graph.Encoding.OutputSubSurfaceScattering) await ProcessTextureAsync(graph, TextureTags.SubSurfaceScattering, token);
 
             if (graph.Encoding.OutputEmissive) await ProcessTextureAsync(graph, TextureTags.Emissive, token);
         }

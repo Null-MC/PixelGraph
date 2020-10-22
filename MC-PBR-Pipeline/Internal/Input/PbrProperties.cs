@@ -58,11 +58,17 @@ namespace McPbrPipeline.Internal.Input
         public byte? MetalValue => Get<byte?>("metal.value");
         public float MetalScale => Get("metal.scale", 1f);
 
+        public string PorosityTexture => Get<string>("porosity.texture");
+        public byte? PorosityValue => Get<byte?>("porosity.value");
+        public float PorosityScale => Get("porosity.scale", 1f);
+
+        public string SubSurfaceScatteringTexture => Get<string>("sss.texture");
+        public byte? SubSurfaceScatteringValue => Get<byte?>("sss.value");
+        public float SubSurfaceScatteringScale => Get("sss.scale", 1f);
+
         public string EmissiveTexture => Get<string>("emissive.texture");
         public byte? EmissiveValue => Get<byte?>("emissive.value");
         public float EmissiveScale => Get("emissive.scale", 1f);
-
-        public byte? PorosityValue => Get<byte?>("porosity.value");
 
 
         internal IEnumerable<string> GetAllTextures(IInputReader reader)

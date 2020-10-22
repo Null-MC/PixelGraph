@@ -8,27 +8,27 @@ using Xunit.Abstractions;
 
 namespace McPbrPipeline.Tests.ImageTests
 {
-    public class HeightTests : TestBase
+    public class PorosityTests : TestBase
     {
         private readonly PackProperties pack;
 
 
-        public HeightTests(ITestOutputHelper output) : base(output)
+        public PorosityTests(ITestOutputHelper output) : base(output)
         {
             pack = new PackProperties {
                 Properties = {
-                    ["output.height.r"] = "height",
-                    ["output.height"] = "true",
+                    ["output.porosity.r"] = "porosity",
+                    ["output.porosity"] = "true",
                 }
             };
         }
 
-        [InlineData(  0,  0.0f, 255)]
-        [InlineData(100,  1.0f, 155)]
-        [InlineData(100,  0.5f, 205)]
-        [InlineData(100,  2.0f,  55)]
-        [InlineData(100,  3.0f,   0)]
-        [InlineData(200, 0.01f, 253)]
+        [InlineData(  0,  0.0f,   0)]
+        [InlineData(100,  1.0f, 100)]
+        [InlineData(100,  0.5f,  50)]
+        [InlineData(100,  2.0f, 200)]
+        [InlineData(100,  3.0f, 255)]
+        [InlineData(200, 0.01f,   2)]
         [Theory] public async Task Scale(byte value, float scale, byte expected)
         {
             var reader = new MockInputReader(Content);
@@ -43,12 +43,12 @@ namespace McPbrPipeline.Tests.ImageTests
                 Name = "test",
                 Path = "assets",
                 Properties = {
-                    ["height.value"] = value.ToString(),
-                    ["height.scale"] = scale.ToString("F"),
+                    ["porosity.value"] = value.ToString(),
+                    ["porosity.scale"] = scale.ToString("F"),
                 }
             });
 
-            using var image = await Content.OpenImageAsync("assets/test_h.png");
+            using var image = await Content.OpenImageAsync("assets/test_p.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -63,7 +63,7 @@ namespace McPbrPipeline.Tests.ImageTests
             await using var provider = Services.BuildServiceProvider();
 
             using var heightImage = CreateImageR(value);
-            await Content.AddAsync("assets/test/height.png", heightImage);
+            await Content.AddAsync("assets/test/porosity.png", heightImage);
 
             var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
                 UseGlobalOutput = true,
@@ -73,11 +73,11 @@ namespace McPbrPipeline.Tests.ImageTests
                 Name = "test",
                 Path = "assets",
                 Properties = {
-                    ["height.input.r"] = "height",
+                    ["porosity.input.r"] = "porosity",
                 }
             });
 
-            using var image = await Content.OpenImageAsync("assets/test_h.png");
+            using var image = await Content.OpenImageAsync("assets/test_p.png");
             PixelAssert.RedEquals(value, image);
         }
     }

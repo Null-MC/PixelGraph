@@ -68,6 +68,8 @@ namespace McPbrPipeline.Internal.Textures
             [EncodingChannel.EmissiveClipped] = tex => tex.EmissiveValue,
             [EncodingChannel.EmissiveInverse] = tex => tex.EmissiveValue,
             [EncodingChannel.Porosity] = tex => tex.PorosityValue,
+            [EncodingChannel.SubSurfaceScattering] = tex => tex.SubSurfaceScatteringValue,
+            [EncodingChannel.Porosity_SSS] = tex => tex.PorosityValue ?? tex.SubSurfaceScatteringValue,
         };
 
         private static readonly Dictionary<string, Func<PbrProperties, float>> scaleMap = new Dictionary<string, Func<PbrProperties, float>>(StringComparer.InvariantCultureIgnoreCase) {
@@ -84,7 +86,9 @@ namespace McPbrPipeline.Internal.Textures
             [EncodingChannel.Emissive] = t => t.EmissiveScale,
             [EncodingChannel.EmissiveClipped] = t => t.EmissiveScale,
             [EncodingChannel.EmissiveInverse] = t => t.EmissiveScale,
-            // Porosity-SSS
+            [EncodingChannel.Porosity] = tex => tex.PorosityScale,
+            [EncodingChannel.SubSurfaceScattering] = tex => tex.SubSurfaceScatteringScale,
+            [EncodingChannel.Porosity_SSS] = tex => 1f,
         };
     }
 }

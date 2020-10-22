@@ -98,6 +98,18 @@ namespace McPbrPipeline.Internal.Encoding
                 B = encoding.OutputMetalB,
                 A = encoding.OutputMetalA,
             },
+            [TextureTags.Porosity] = encoding => new TextureEncoding(TextureTags.Porosity) {
+                R = encoding.OutputPorosityR,
+                G = encoding.OutputPorosityG,
+                B = encoding.OutputPorosityB,
+                A = encoding.OutputPorosityA,
+            },
+            [TextureTags.SubSurfaceScattering] = encoding => new TextureEncoding(TextureTags.SubSurfaceScattering) {
+                R = encoding.OutputSubSurfaceScatteringR,
+                G = encoding.OutputSubSurfaceScatteringG,
+                B = encoding.OutputSubSurfaceScatteringB,
+                A = encoding.OutputSubSurfaceScatteringA,
+            },
             [TextureTags.Emissive] = encoding => new TextureEncoding(TextureTags.Emissive) {
                 R = encoding.OutputEmissiveR,
                 G = encoding.OutputEmissiveG,
