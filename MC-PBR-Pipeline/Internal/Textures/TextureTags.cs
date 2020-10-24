@@ -8,9 +8,10 @@ namespace McPbrPipeline.Internal.Textures
     {
         public const string Albedo = "#albedo";
         public const string Height = "#height";
-        public const string NormalGenerated = "#normal-generated";
         public const string Normal = "#normal";
+        public const string NormalGenerated = "#normal-generated";
         public const string Occlusion = "#occlusion";
+        public const string OcclusionGenerated = "#occlusion-generated";
         public const string Specular = "#specular";
         public const string Rough = "#rough";
         public const string Smooth = "#smooth";

@@ -21,6 +21,16 @@ namespace McPbrPipeline.Internal.Extensions
             value.Z /= length;
         }
 
+        public static byte Clamp(float value)
+        {
+            return (byte)Math.Clamp(value, 0f, 255f);
+        }
+
+        public static void Saturate(float value, out byte result)
+        {
+            result = (byte)Math.Clamp(value * 255f + 0.5f, 0f, 255f);
+        }
+
         public static byte Saturate(float value)
         {
             return (byte)Math.Clamp(value * 255f + 0.5f, 0f, 255f);
@@ -29,19 +39,6 @@ namespace McPbrPipeline.Internal.Extensions
         public static byte Saturate(double value)
         {
             return (byte)Math.Clamp(value * 255d + 0.5d, 0, 255);
-        }
-
-        public static float Max(params float[] values)
-        {
-            float result = 0;
-
-            for (var i = 0; i < values.Length; i++) {
-                if (i == 0) result = values[i];
-                else if (values[i] > result)
-                    result = values[i];
-            }
-
-            return result;
         }
     }
 }

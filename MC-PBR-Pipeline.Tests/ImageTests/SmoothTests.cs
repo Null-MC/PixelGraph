@@ -109,5 +109,34 @@ namespace McPbrPipeline.Tests.ImageTests
             using var image = await Content.OpenImageAsync("assets/test_smooth.png");
             PixelAssert.RedEquals(expected, image);
         }
+
+        [InlineData(  0,   0)]
+        [InlineData(160, 100)]
+        [InlineData(226, 200)]
+        [InlineData(255, 255)]
+        [Theory] public async Task ConvertsPerceptualSmoothToSmooth(byte value, byte expected)
+        {
+            var reader = new MockInputReader(Content);
+            await using var writer = new MockOutputWriter(Content);
+            await using var provider = Services.BuildServiceProvider();
+
+            using var smoothImage = CreateImageR(value);
+            await Content.AddAsync("assets/test/smooth.png", smoothImage);
+
+            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
+                UseGlobalOutput = true,
+            };
+
+            await graphBuilder.BuildAsync(new PbrProperties {
+                Name = "test",
+                Path = "assets",
+                Properties = {
+                    ["smooth.input.r"] = "smooth2",
+                }
+            });
+
+            using var image = await Content.OpenImageAsync("assets/test_smooth.png");
+            PixelAssert.RedEquals(expected, image);
+        }
     }
 }

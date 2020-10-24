@@ -23,7 +23,8 @@ namespace McPbrPipeline.Internal.Textures
         private readonly PackProperties pack;
         private readonly Dictionary<string, List<ChannelSource>> sourceMap;
         private readonly ILogger logger;
-        private Image<Rgba32> normalMap;
+        private Image<Rgba32> normalTexture;
+        private Image<Rgba32> occlusionTexture;
 
         public PbrProperties Texture {get;}
         public EncodingProperties Encoding {get;}
@@ -54,10 +55,18 @@ namespace McPbrPipeline.Internal.Textures
 
         public async Task<Image<Rgba32>> GetGeneratedNormalAsync(CancellationToken token = default)
         {
-            if (normalMap == null)
-                await BuildNormalMapAsync(token);
+            if (normalTexture == null)
+                await GenerateNormalAsync(token);
             
-            return normalMap;
+            return normalTexture;
+        }
+
+        public async Task<Image<Rgba32>> GetGeneratedOcclusionAsync(CancellationToken token = default)
+        {
+            if (occlusionTexture == null)
+                await GenerateOcclusionAsync(token);
+            
+            return occlusionTexture;
         }
 
         public bool ContainsSource(string encodingChannel)
@@ -80,7 +89,8 @@ namespace McPbrPipeline.Internal.Textures
 
         public void Dispose()
         {
-            normalMap?.Dispose();
+            normalTexture?.Dispose();
+            occlusionTexture?.Dispose();
         }
 
         private void Build()
@@ -142,7 +152,19 @@ namespace McPbrPipeline.Internal.Textures
             MapSource(TextureTags.Emissive, ColorChannel.Blue, Encoding.EmissiveInputB);
             MapSource(TextureTags.Emissive, ColorChannel.Alpha, Encoding.EmissiveInputA);
 
-            if (ContainsSource(EncodingChannel.Height)) MapGeneratedNormal();
+            if (ContainsSource(EncodingChannel.Height)) {
+                sourceMap.GetOrCreate(EncodingChannel.NormalX, NewSourceMap)
+                    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Red));
+
+                sourceMap.GetOrCreate(EncodingChannel.NormalY, NewSourceMap)
+                    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Green));
+
+                sourceMap.GetOrCreate(EncodingChannel.NormalZ, NewSourceMap)
+                    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Blue));
+
+                sourceMap.GetOrCreate(EncodingChannel.Occlusion, NewSourceMap)
+                    .Add(new ChannelSource(TextureTags.OcclusionGenerated, ColorChannel.Red));
+            }
         }
 
         private void MapSource(string tag, ColorChannel channel, string input)
@@ -154,49 +176,73 @@ namespace McPbrPipeline.Internal.Textures
                 .Add(new ChannelSource(tag, channel));
         }
 
-        private void MapGeneratedNormal()
+        private async Task GenerateNormalAsync(CancellationToken token)
         {
-            sourceMap.GetOrCreate(EncodingChannel.NormalX, NewSourceMap)
-                .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Red));
+            if (normalTexture != null) throw new ApplicationException("Normal texture has already been generated!");
 
-            sourceMap.GetOrCreate(EncodingChannel.NormalY, NewSourceMap)
-                .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Green));
-
-            sourceMap.GetOrCreate(EncodingChannel.NormalZ, NewSourceMap)
-                .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Blue));
-        }
-
-        private async Task BuildNormalMapAsync(CancellationToken token)
-        {
-            if (normalMap != null) throw new ApplicationException("Normal texture has already been generated!");
+            logger.LogInformation("Generating normal map for texture {Name}.", Texture.Name);
 
             if (!sourceMap.TryGetValue(EncodingChannel.Height, out var sourceList))
                 throw new ApplicationException("No height source textures found!");
-
-            logger.LogInformation("Generating normal map for texture {Name}.", Texture.Name);
 
             foreach (var source in sourceList) {
                 var file = Texture.GetTextureFile(reader, source.Tag);
                 if (file == null) continue;
 
                 await using var stream = reader.Open(file);
-                normalMap = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
+                using var heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
 
                 var options = new NormalMapProcessor.Options {
+                    Source = heightTexture,
                     HeightChannel = source.Channel,
-                    Strength = Texture.NormalStrength,
-                    Noise = Texture.NormalNoise,
+                    Strength = Texture.NormalStrength ?? 1f,
+                    Noise = Texture.NormalNoise ?? 0f,
                     Wrap = Texture.Wrap,
                 };
 
                 var processor = new NormalMapProcessor(options);
-                normalMap.Mutate(c => c.ApplyProcessor(processor));
+                normalTexture = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
+                normalTexture.Mutate(c => c.ApplyProcessor(processor));
 
                 return;
             }
 
-            //throw new ApplicationException("Failed to generated normal map! No height source textures found!");
-            logger.LogWarning("Failed to generated normal map for {Name}; no height source textures found.", Texture.Name);
+            logger.LogWarning("Failed to generated normal map for {Name}; no height textures found.", Texture.Name);
+        }
+
+        private async Task GenerateOcclusionAsync(CancellationToken token)
+        {
+            if (occlusionTexture != null) throw new ApplicationException("Occlusion texture has already been generated!");
+
+            logger.LogInformation("Generating occlusion map for texture {Name}.", Texture.Name);
+
+            if (!sourceMap.TryGetValue(EncodingChannel.Height, out var sourceList))
+                throw new ApplicationException("No height source textures found!");
+
+            foreach (var source in sourceList) {
+                var file = Texture.GetTextureFile(reader, source.Tag);
+                if (file == null) continue;
+
+                await using var stream = reader.Open(file);
+                using var heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
+
+                var options = new OcclusionProcessor.Options {
+                    Source = heightTexture,
+                    HeightChannel = source.Channel,
+                    StepCount = Texture.OcclusionSteps,
+                    Quality = Texture.OcclusionQuality,
+                    ZScale = Texture.OcclusionZScale,
+                    Wrap = Texture.Wrap,
+                };
+
+                var processor = new OcclusionProcessor(options);
+                occlusionTexture = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
+                occlusionTexture.Mutate(c => c.ApplyProcessor(processor));
+
+                return;
+            }
+
+            logger.LogWarning("Failed to generated occlusion map for {Name}; no height textures found.", Texture.Name);
         }
 
         private static List<ChannelSource> NewSourceMap() => new List<ChannelSource>();

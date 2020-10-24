@@ -29,6 +29,12 @@ namespace McPbrPipeline.Internal.Textures
 
         public void EmissiveClippedToEmissive(ref byte value) => value = (byte)(value + 1);
 
+        public void PorosityToPSSS(ref byte value) => value = MathEx.Clamp(value * 0.25f + 0.5f);
+
+        public void SSSToPSSS(ref byte value) => value = MathEx.Clamp(65.5f + value * (190f / 255f));
+
+        public void PSSSToSSS(ref byte value) => value = MathEx.Clamp((value - 65) * (255f / 190f) + 0.5f);
+
         public void Invert(ref byte value) => value = (byte)(255 - value);
 
         public bool TryGetChannelValue(string encodingChannel, out byte value)
@@ -69,26 +75,26 @@ namespace McPbrPipeline.Internal.Textures
             [EncodingChannel.EmissiveInverse] = tex => tex.EmissiveValue,
             [EncodingChannel.Porosity] = tex => tex.PorosityValue,
             [EncodingChannel.SubSurfaceScattering] = tex => tex.SubSurfaceScatteringValue,
-            [EncodingChannel.Porosity_SSS] = tex => tex.PorosityValue ?? tex.SubSurfaceScatteringValue,
+            //[EncodingChannel.Porosity_SSS] = tex => tex.PorosityValue ?? tex.SubSurfaceScatteringValue,
         };
 
         private static readonly Dictionary<string, Func<PbrProperties, float>> scaleMap = new Dictionary<string, Func<PbrProperties, float>>(StringComparer.InvariantCultureIgnoreCase) {
-            [EncodingChannel.AlbedoR] = t => t.AlbedoScaleR,
-            [EncodingChannel.AlbedoG] = t => t.AlbedoScaleG,
-            [EncodingChannel.AlbedoB] = t => t.AlbedoScaleB,
-            [EncodingChannel.AlbedoA] = t => t.AlbedoScaleA,
-            [EncodingChannel.Height] = t => t.HeightScale,
-            [EncodingChannel.Occlusion] = t => t.OcclusionScale,
-            [EncodingChannel.Smooth] = t => t.SmoothScale,
-            [EncodingChannel.PerceptualSmooth] = t => t.SmoothScale,
-            [EncodingChannel.Rough] = t => t.RoughScale,
-            [EncodingChannel.Metal] = t => t.MetalScale,
-            [EncodingChannel.Emissive] = t => t.EmissiveScale,
-            [EncodingChannel.EmissiveClipped] = t => t.EmissiveScale,
-            [EncodingChannel.EmissiveInverse] = t => t.EmissiveScale,
-            [EncodingChannel.Porosity] = tex => tex.PorosityScale,
-            [EncodingChannel.SubSurfaceScattering] = tex => tex.SubSurfaceScatteringScale,
-            [EncodingChannel.Porosity_SSS] = tex => 1f,
+            [EncodingChannel.AlbedoR] = t => t.AlbedoScaleR ?? 1f,
+            [EncodingChannel.AlbedoG] = t => t.AlbedoScaleG ?? 1f,
+            [EncodingChannel.AlbedoB] = t => t.AlbedoScaleB ?? 1f,
+            [EncodingChannel.AlbedoA] = t => t.AlbedoScaleA ?? 1f,
+            [EncodingChannel.Height] = t => t.HeightScale ?? 1f,
+            [EncodingChannel.Occlusion] = t => t.OcclusionScale ?? 1f,
+            [EncodingChannel.Smooth] = t => t.SmoothScale ?? 1f,
+            [EncodingChannel.PerceptualSmooth] = t => t.SmoothScale ?? 1f,
+            [EncodingChannel.Rough] = t => t.RoughScale ?? 1f,
+            [EncodingChannel.Metal] = t => t.MetalScale ?? 1f,
+            [EncodingChannel.Emissive] = t => t.EmissiveScale ?? 1f,
+            [EncodingChannel.EmissiveClipped] = t => t.EmissiveScale ?? 1f,
+            [EncodingChannel.EmissiveInverse] = t => t.EmissiveScale ?? 1f,
+            [EncodingChannel.Porosity] = tex => tex.PorosityScale ?? 1f,
+            [EncodingChannel.SubSurfaceScattering] = tex => tex.SubSurfaceScatteringScale ?? 1f,
+            [EncodingChannel.Porosity_SSS] = tex => tex.PorosityScale ?? tex.SubSurfaceScatteringScale ?? 1f,
         };
     }
 }

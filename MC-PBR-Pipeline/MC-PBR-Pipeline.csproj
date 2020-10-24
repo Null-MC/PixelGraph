@@ -20,6 +20,9 @@
   <ItemGroup>
     <Compile Remove="ImageProcessors\ChannelMapProcessor.cs" />
     <Compile Remove="ImageProcessors\HeightScaleProcessor.cs" />
+    <Compile Remove="Internal\PixelOperations\ComposeRowOperation.cs" />
+    <Compile Remove="Internal\PixelOperations\FilterRowOperation.cs" />
+    <Compile Remove="ImageProcessors\OverlayProcessor2.cs" />
     <Compile Remove="ImageProcessors\RangeOptions.cs" />
     <Compile Remove="ImageProcessors\RangeProcessor.cs" />
     <Compile Remove="ImageProcessors\ScaleProcessor.cs" />

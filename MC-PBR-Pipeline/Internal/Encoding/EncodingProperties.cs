@@ -166,6 +166,10 @@ namespace McPbrPipeline.Internal.Encoding
 
                     ["metal.input.r"] = EncodingChannel.Metal,
 
+                    ["porosity.input.r"] = EncodingChannel.Porosity,
+
+                    ["sss.input.r"] = EncodingChannel.SubSurfaceScattering,
+
                     ["emissive.input.r"] = EncodingChannel.Emissive,
                 });
                 return;
@@ -237,10 +241,6 @@ namespace McPbrPipeline.Internal.Encoding
                     ["output.occlusion.r"] = EncodingChannel.Occlusion,
                     ["output.occlusion.a"] = EncodingChannel.White,
 
-                    ["output.specular"] = bool.FalseString,
-                    //["output.specular.b"] = EncodingChannel.Porosity_SSS,
-                    //["output.specular.a"] = EncodingChannel.White,
-
                     ["output.smooth"] = bool.TrueString,
                     ["output.smooth.r"] = EncodingChannel.Smooth,
                     ["output.smooth.a"] = EncodingChannel.White,
@@ -252,6 +252,14 @@ namespace McPbrPipeline.Internal.Encoding
                     ["output.metal"] = bool.TrueString,
                     ["output.metal.r"] = EncodingChannel.Metal,
                     ["output.metal.a"] = EncodingChannel.White,
+
+                    ["output.porosity"] = bool.TrueString,
+                    ["output.porosity.r"] = EncodingChannel.Porosity,
+                    ["output.porosity.a"] = EncodingChannel.White,
+
+                    ["output.sss"] = bool.TrueString,
+                    ["output.sss.r"] = EncodingChannel.SubSurfaceScattering,
+                    ["output.sss.a"] = EncodingChannel.White,
 
                     ["output.emissive"] = bool.TrueString,
                     ["output.emissive.r"] = EncodingChannel.Emissive,

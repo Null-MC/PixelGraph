@@ -20,6 +20,7 @@ namespace McPbrPipeline.CommandLine
 
             //root.AddCommand(new ConvertCommand(provider).Command);
             root.AddCommand(new ImportCommand(provider).Command);
+            root.AddCommand(new GenerateCommand(provider).Command);
             root.AddCommand(new PublishCommand(provider).Command);
         }
 
