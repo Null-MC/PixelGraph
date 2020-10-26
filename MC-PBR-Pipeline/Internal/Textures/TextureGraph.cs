@@ -1,6 +1,6 @@
-﻿using McPbrPipeline.ImageProcessors;
-using McPbrPipeline.Internal.Encoding;
+﻿using McPbrPipeline.Internal.Encoding;
 using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.ImageProcessors;
 using McPbrPipeline.Internal.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -85,6 +85,28 @@ namespace McPbrPipeline.Internal.Textures
         {
             var file = Texture.GetTextureFile(reader, tag);
             return file == null ? null : reader.Open(file);
+        }
+
+        public async Task<(Image<Rgba32>, ColorChannel)> GetSourceImageAsync(string encodingChannel, CancellationToken token = default)
+        {
+            if (sourceMap.TryGetValue(encodingChannel, out var sourceList)) {
+                foreach (var source in sourceList) {
+                    var file = Texture.GetTextureFile(reader, source.Tag);
+                    if (file == null) continue;
+
+                    await using var stream = reader.Open(file);
+
+                    try {
+                        var image = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
+                        return (image, source.Channel);
+                    }
+                    catch {
+                        logger.LogWarning("Failed to load texture {file}!", file);
+                    }
+                }
+            }
+
+            return (null, ColorChannel.None);
         }
 
         public void Dispose()
@@ -182,19 +204,22 @@ namespace McPbrPipeline.Internal.Textures
 
             logger.LogInformation("Generating normal map for texture {DisplayName}.", Texture.DisplayName);
 
-            if (!sourceMap.TryGetValue(EncodingChannel.Height, out var sourceList))
+            if (!sourceMap.ContainsKey(EncodingChannel.Height))
                 throw new ApplicationException("No height source textures found!");
 
-            foreach (var source in sourceList) {
-                var file = Texture.GetTextureFile(reader, source.Tag);
-                if (file == null) continue;
+            Image<Rgba32> heightTexture = null;
+            try {
+                ColorChannel heightChannel;
+                (heightTexture, heightChannel) = await GetSourceImageAsync(EncodingChannel.Height, token);
 
-                await using var stream = reader.Open(file);
-                using var heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
+                if (heightTexture == null) {
+                    logger.LogWarning("Failed to generated normal map for {DisplayName}; no height textures found.", Texture.DisplayName);
+                    return;
+                }
 
                 var options = new NormalMapProcessor.Options {
                     Source = heightTexture,
-                    HeightChannel = source.Channel,
+                    HeightChannel = heightChannel,
                     Strength = Texture.NormalStrength ?? 1f,
                     Noise = Texture.NormalNoise ?? 0f,
                     Wrap = Texture.Wrap,
@@ -203,11 +228,10 @@ namespace McPbrPipeline.Internal.Textures
                 var processor = new NormalMapProcessor(options);
                 normalTexture = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
                 normalTexture.Mutate(c => c.ApplyProcessor(processor));
-
-                return;
             }
-
-            logger.LogWarning("Failed to generated normal map for {DisplayName}; no height textures found.", Texture.DisplayName);
+            finally {
+                heightTexture?.Dispose();
+            }
         }
 
         private async Task GenerateOcclusionAsync(CancellationToken token)
@@ -216,19 +240,29 @@ namespace McPbrPipeline.Internal.Textures
 
             logger.LogInformation("Generating occlusion map for texture {DisplayName}.", Texture.DisplayName);
 
-            if (!sourceMap.TryGetValue(EncodingChannel.Height, out var sourceList))
+            if (!sourceMap.ContainsKey(EncodingChannel.Height))
                 throw new ApplicationException("No height source textures found!");
 
-            foreach (var source in sourceList) {
-                var file = Texture.GetTextureFile(reader, source.Tag);
-                if (file == null) continue;
+            Image<Rgba32> heightTexture = null;
+            Image<Rgba32> emissiveImage = null;
+            try {
+                ColorChannel heightChannel, emissiveChannel = ColorChannel.None;
+                (heightTexture, heightChannel) = await GetSourceImageAsync(EncodingChannel.Height, token);
 
-                await using var stream = reader.Open(file);
-                using var heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
+                if (heightTexture == null) {
+                    logger.LogWarning("Failed to generated occlusion map for {DisplayName}; no height textures found.", Texture.DisplayName);
+                    return;
+                }
+
+                if (Texture.OcclusionClipEmissive ?? false) {
+                    (emissiveImage, emissiveChannel) = await GetSourceImageAsync(EncodingChannel.Emissive, token);
+                }
 
                 var options = new OcclusionProcessor.Options {
-                    Source = heightTexture,
-                    HeightChannel = source.Channel,
+                    HeightSource = heightTexture,
+                    HeightChannel = heightChannel,
+                    EmissiveSource = emissiveImage,
+                    EmissiveChannel = emissiveChannel,
                     StepCount = Texture.OcclusionSteps,
                     Quality = Texture.OcclusionQuality,
                     ZScale = Texture.OcclusionZScale,
@@ -238,11 +272,11 @@ namespace McPbrPipeline.Internal.Textures
                 var processor = new OcclusionProcessor(options);
                 occlusionTexture = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
                 occlusionTexture.Mutate(c => c.ApplyProcessor(processor));
-
-                return;
             }
-
-            logger.LogWarning("Failed to generated occlusion map for {DisplayName}; no height textures found.", Texture.DisplayName);
+            finally {
+                heightTexture?.Dispose();
+                emissiveImage?.Dispose();
+            }
         }
 
         private static List<ChannelSource> NewSourceMap() => new List<ChannelSource>();

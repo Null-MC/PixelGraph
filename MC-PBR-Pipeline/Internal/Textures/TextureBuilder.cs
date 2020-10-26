@@ -1,6 +1,6 @@
-﻿using McPbrPipeline.ImageProcessors;
-using McPbrPipeline.Internal.Encoding;
+﻿using McPbrPipeline.Internal.Encoding;
 using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.ImageProcessors;
 using McPbrPipeline.Internal.PixelOperations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

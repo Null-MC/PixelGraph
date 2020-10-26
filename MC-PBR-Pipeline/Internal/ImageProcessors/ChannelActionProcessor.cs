@@ -1,9 +1,9 @@
-﻿using McPbrPipeline.Internal.Textures;
-using SixLabors.ImageSharp.PixelFormats;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using McPbrPipeline.Internal.PixelOperations;
+using McPbrPipeline.Internal.Textures;
+using SixLabors.ImageSharp.PixelFormats;
 
-namespace McPbrPipeline.ImageProcessors
+namespace McPbrPipeline.Internal.ImageProcessors
 {
     internal class ChannelActionProcessor : PixelFilterProcessor
     {

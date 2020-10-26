@@ -1,12 +1,12 @@
-﻿using McPbrPipeline.Internal.Extensions;
+﻿using System;
+using System.Numerics;
+using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.PixelOperations;
 using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Numerics;
 
-namespace McPbrPipeline.ImageProcessors
+namespace McPbrPipeline.Internal.ImageProcessors
 {
     internal class NormalMapProcessor : PixelComposeProcessor
     {

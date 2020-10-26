@@ -1,12 +1,9 @@
-﻿using McPbrPipeline.ImageProcessors;
-using McPbrPipeline.Internal;
+﻿using McPbrPipeline.Internal;
 using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Textures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -18,7 +15,7 @@ namespace McPbrPipeline.CommandLine
 {
     internal class GenerateOcclusionCommand
     {
-        //private readonly IServiceProvider provider;
+        private readonly IServiceProvider provider;
         private readonly IAppLifetime lifetime;
         private readonly ILogger logger;
 
@@ -27,13 +24,13 @@ namespace McPbrPipeline.CommandLine
 
         public GenerateOcclusionCommand(IServiceProvider provider)
         {
-            //this.provider = provider;
+            this.provider = provider;
 
             lifetime = provider.GetRequiredService<IAppLifetime>();
             logger = provider.GetRequiredService<ILogger<GenerateOcclusionCommand>>();
 
             Command = new Command("occlusion", "Generates an ambient-occlusion texture from a specified height texture.") {
-                Handler = CommandHandler.Create<FileInfo, FileInfo, string>(RunAsync),
+                Handler = CommandHandler.Create<FileInfo, FileInfo, string, string[]>(RunAsync),
             };
 
             Command.AddOption(new Option<FileInfo>(
@@ -49,61 +46,89 @@ namespace McPbrPipeline.CommandLine
                 new [] {"-ao", "--occlusion"},
                 () => "occlusion.png",
                 "The name of the occlusion texture to generate. Defaults to 'occlusion.png'."));
+
+            Command.AddOption(new Option<string[]>(
+                new[] {"--property" },
+                "Override a pack property."));
         }
 
-        private async Task<int> RunAsync(FileInfo pbr, FileInfo height, string occlusion)
+        private async Task<int> RunAsync(FileInfo pbr, FileInfo height, string occlusion, string[] property)
         {
             if (string.IsNullOrEmpty(occlusion)) {
                 logger.LogError("Filename for occlusion output is undefined!");
                 return 1;
             }
 
-            PbrProperties texture = null;
+            var pack = LoadPack(property);
+            var texture = await LoadTextureAsync(pbr);
+            var reader = new FileInputReader(pbr.DirectoryName);
 
-            if (pbr.Exists) {
-                await using var stream = pbr.Open(FileMode.Open, FileAccess.Read);
-
-                texture = new PbrProperties();
-                await texture.ReadAsync(stream, lifetime.Token);
+            if (height?.Exists ?? false) {
+                texture.Name = height.Name;
+                texture.Properties["height.texture"] = height.FullName;
             }
 
-            var heightFile = height?.FullName;
-            if (heightFile == null && texture != null) {
-                var reader = new FileInputReader(pbr.DirectoryName);
-                heightFile = texture.GetTextureFile(reader, TextureTags.Height);
-            }
-
-            if (heightFile == null) {
-                logger.LogError("Height texture file not found!");
-                return 1;
-            }
-
-            logger.LogDebug("Generating ambient occlusion from height texture {heightFile}.", heightFile);
+            //logger.LogDebug("Generating ambient occlusion for texture {DisplayName}.", texture.DisplayName);
             var timer = Stopwatch.StartNew();
 
-            using var heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, heightFile, lifetime.Token);
+            try {
+                var graphBuilder = new TextureGraphBuilder(provider, reader, null, pack);
 
-            var options = new OcclusionProcessor.Options {
-                Source = heightTexture,
-                // TODO: get channel from texture
-                HeightChannel = ColorChannel.Red,
-                StepCount = texture?.OcclusionSteps ?? 8,
-                Quality = texture?.OcclusionQuality ?? 0.1f,
-                ZScale = texture?.OcclusionZScale ?? 10f,
-                Wrap = texture?.Wrap ?? true,
-            };
+                using var graph = graphBuilder.CreateGraph(texture);
+                using var image = await graph.GetGeneratedOcclusionAsync(lifetime.Token);
+                await image.SaveAsync(occlusion, lifetime.Token);
 
-            var processor = new OcclusionProcessor(options);
-            using var occlusionTexture = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
-            occlusionTexture.Mutate(c => c.ApplyProcessor(processor));
-
-            await occlusionTexture.SaveAsync(occlusion, lifetime.Token);
+                logger.LogInformation("Ambient Occlusion texture {occlusion} generated successfully.", occlusion);
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to generate Ambient Occlusion texture {occlusion}!", occlusion);
+            }
 
             timer.Stop();
             var duration = timer.Elapsed.ToString("g");
-            logger.LogInformation("Ambient Occlusion texture {occlusion} generated successfully. Duration: {duration}", occlusion, duration);
+            logger.LogDebug("Duration: {duration}", duration);
 
             return 0;
+        }
+
+        private static PackProperties LoadPack(string[] properties)
+        {
+            var pack = new PackProperties {
+                Properties = {
+                    ["input.format"] = "default",
+                    ["output.format"] = "default",
+                }
+            };
+
+            // TODO: load actual pack properties
+
+            if (properties != null)
+                foreach (var p in properties) pack.TrySet(p);
+
+            return pack;
+        }
+
+        private async Task<PbrProperties> LoadTextureAsync(FileInfo textureFile)
+        {
+            var texture = new PbrProperties {
+                UseGlobalMatching = false,
+            };
+
+            if (textureFile.Exists) {
+                texture.UseGlobalMatching = !string.Equals(textureFile.Name, "pbr.properties", StringComparison.InvariantCultureIgnoreCase);
+                
+                texture.Name = texture.UseGlobalMatching
+                    ? textureFile.Name
+                    : textureFile.Directory?.Name;
+                
+                texture.Path = texture.UseGlobalMatching
+                    ? "." : "..";
+
+                await using var stream = textureFile.Open(FileMode.Open, FileAccess.Read);
+                await texture.ReadAsync(stream, lifetime.Token);
+            }
+
+            return texture;
         }
     }
 }

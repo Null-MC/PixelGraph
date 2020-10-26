@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace McPbrPipeline.ImageProcessors
+namespace McPbrPipeline.Internal.ImageProcessors
 {
     internal class OcclusionProcessor : PixelComposeProcessor
     {
@@ -25,7 +25,7 @@ namespace McPbrPipeline.ImageProcessors
 
         protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
         {
-            var sourceRow = options.Source.GetPixelRowSpan(context.Y);
+            var sourceRow = options.HeightSource.GetPixelRowSpan(context.Y);
 
             var pixelIn = new Rgba32();
             sourceRow[context.X].ToRgba32(ref pixelIn);
@@ -108,7 +108,7 @@ namespace McPbrPipeline.ImageProcessors
             if (options.Wrap) context.Wrap(ref px, ref py);
             else context.Clamp(ref px, ref py);
 
-            var row = options.Source.GetPixelRowSpan(py);
+            var row = options.HeightSource.GetPixelRowSpan(py);
 
             var pixel = new Rgba32();
             row[px].ToRgba32(ref pixel);
@@ -156,7 +156,9 @@ namespace McPbrPipeline.ImageProcessors
 
         public class Options
         {
-            public Image<Rgba32> Source;
+            public Image<Rgba32> HeightSource;
+            public Image<Rgba32> EmissiveSource;
+            public ColorChannel EmissiveChannel;
             public ColorChannel HeightChannel;
             public int StepCount;
             public float ZScale;

@@ -32,9 +32,14 @@ namespace McPbrPipeline.Internal.Textures
             logger = provider.GetRequiredService<ILogger<TextureGraphBuilder>>();
         }
 
+        public TextureGraph CreateGraph(PbrProperties texture)
+        {
+            return new TextureGraph(provider, reader, pack, texture);
+        }
+
         public async Task BuildAsync(PbrProperties texture, CancellationToken token = default)
         {
-            using var graph = new TextureGraph(provider, reader, pack, texture);
+            using var graph = CreateGraph(texture);
 
             if (graph.Encoding.OutputAlbedo) await ProcessTextureAsync(graph, TextureTags.Albedo, token);
 

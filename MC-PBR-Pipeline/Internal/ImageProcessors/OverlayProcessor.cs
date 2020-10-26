@@ -3,7 +3,7 @@ using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace McPbrPipeline.ImageProcessors
+namespace McPbrPipeline.Internal.ImageProcessors
 {
     internal class OverlayProcessor : PixelComposeProcessor
     {
