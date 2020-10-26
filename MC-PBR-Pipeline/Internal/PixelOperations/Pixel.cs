@@ -16,6 +16,17 @@ namespace McPbrPipeline.Internal.PixelOperations
             };
         }
 
+        public static void GetNormalizedChannelValue(this in Rgba32 pixel, in ColorChannel channel, out float value)
+        {
+            value = channel switch {
+                ColorChannel.Red => pixel.R / 255f,
+                ColorChannel.Green => pixel.G / 255f,
+                ColorChannel.Blue => pixel.B / 255f,
+                ColorChannel.Alpha => pixel.A / 255f,
+                _ => 0,
+            };
+        }
+
         public static void SetChannelValue(this ref Rgba32 pixel, in ColorChannel channel, in byte value)
         {
             switch (channel) {

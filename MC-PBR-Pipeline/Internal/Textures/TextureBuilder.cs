@@ -1,6 +1,7 @@
 ﻿using McPbrPipeline.ImageProcessors;
 using McPbrPipeline.Internal.Encoding;
 using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.PixelOperations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
@@ -66,7 +67,7 @@ namespace McPbrPipeline.Internal.Textures
             if (isOutputEmissiveInverse) filterOptions.SetPost(color, filter.Invert);
 
             if (GetSourceValue(outputChannel, out var value)) {
-                SetSourceColor(color, value);
+                sourceColor.SetChannelValue(in color, in value);
                 return;
             }
 
@@ -139,7 +140,7 @@ namespace McPbrPipeline.Internal.Textures
             if (isOutputPorositySSS) {
                 // Porosity > Porosity-SSS
                 if (GetSourceValue(EncodingChannel.Porosity, out value)) {
-                    SetSourceColor(color, value);
+                    sourceColor.SetChannelValue(in color, in value);
                     filterOptions.SetPost(color, filter.PorosityToPSSS);
                     return;
                 }
@@ -153,7 +154,7 @@ namespace McPbrPipeline.Internal.Textures
 
                 // SSS > Porosity-SSS
                 if (GetSourceValue(EncodingChannel.SubSurfaceScattering, out value)) {
-                    SetSourceColor(color, value);
+                    sourceColor.SetChannelValue(in color, in value);
                     filterOptions.SetPost(color, filter.SSSToPSSS);
                     return;
                 }
@@ -259,7 +260,7 @@ namespace McPbrPipeline.Internal.Textures
                         }
 
                         if (sourceImage == null) {
-                            logger.LogDebug("No source found for texture {Name} tag {tag}.", graph.Texture.Name, tag);
+                            logger.LogDebug("No source found for texture {DisplayName} tag {tag}.", graph.Texture.DisplayName, tag);
                             continue;
                         }
 
@@ -301,25 +302,7 @@ namespace McPbrPipeline.Internal.Textures
             }
             else {
                 // TODO: use custom exception instead
-                logger.LogWarning("Unable to restore normal-z for texture {Name}.", graph.Texture.Name);
-            }
-        }
-
-        private void SetSourceColor(ColorChannel color, byte value)
-        {
-            switch (color) {
-                case ColorChannel.Red:
-                    sourceColor.R = value;
-                    break;
-                case ColorChannel.Green:
-                    sourceColor.G = value;
-                    break;
-                case ColorChannel.Blue:
-                    sourceColor.B = value;
-                    break;
-                case ColorChannel.Alpha:
-                    sourceColor.A = value;
-                    break;
+                logger.LogWarning("Unable to restore normal-z for texture {DisplayName}.", graph.Texture.DisplayName);
             }
         }
 

@@ -5,6 +5,9 @@ namespace McPbrPipeline.Internal.Extensions
 {
     internal static class MathEx
     {
+        public const float Deg2Rad = (float)(Math.PI / 180);
+
+
         public static void Normalize(ref Vector3 value)
         {
             float length;
@@ -39,6 +42,11 @@ namespace McPbrPipeline.Internal.Extensions
         public static byte Saturate(double value)
         {
             return (byte)Math.Clamp(value * 255d + 0.5d, 0, 255);
+        }
+
+        public static void Lerp(in float min, in float max, in float mix, out float result)
+        {
+            result = min * (1f - mix) + max * mix;
         }
     }
 }

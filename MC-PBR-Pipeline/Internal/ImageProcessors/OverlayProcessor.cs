@@ -1,5 +1,4 @@
-﻿using McPbrPipeline.Internal.Extensions;
-using McPbrPipeline.Internal.PixelOperations;
+﻿using McPbrPipeline.Internal.PixelOperations;
 using McPbrPipeline.Internal.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;

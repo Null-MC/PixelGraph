@@ -113,11 +113,11 @@ namespace McPbrPipeline.Internal.Publishing
                             ? writer.GetWriteTime(albedoOutputName) : null;
 
                         if (IsUpToDate(pack.WriteTime, sourceTime, destinationTime)) {
-                            logger.LogDebug("Skipping up-to-date texture {Name}.", texture.Name);
+                            logger.LogDebug("Skipping up-to-date texture {DisplayName}.", texture.DisplayName);
                             continue;
                         }
 
-                        logger.LogDebug("Publishing texture {Name}.", texture.Name);
+                        logger.LogDebug("Publishing texture {DisplayName}.", texture.DisplayName);
 
                         await graph.BuildAsync(texture, token);
 

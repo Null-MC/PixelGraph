@@ -11,8 +11,11 @@ namespace McPbrPipeline.Internal.Input
     {
         public string FileName {get; set;}
         public string Name {get; set;}
+        public string Alias {get; set;}
         public string Path {get; set;}
         public bool UseGlobalMatching {get; set;}
+
+        public string DisplayName => Alias != null ? $"{Alias}:{Name}" : Name;
 
         public bool Wrap => Get("wrap", true);
         public bool ResizeEnabled => Get("resize.enabled", true);
@@ -44,9 +47,9 @@ namespace McPbrPipeline.Internal.Input
         public string OcclusionTexture => Get<string>("occlusion.texture");
         public byte? OcclusionValue => Get<byte?>("occlusion.value");
         public float? OcclusionScale => Get<float?>("occlusion.scale");
-        public float OcclusionZScale => Get("occlusion.z-scale", 10f);
-        public float OcclusionQuality => Get("occlusion.quality", 0.02f);
-        public int OcclusionSteps => Get("occlusion.steps", 8);
+        public float OcclusionZScale => Get("occlusion.z-scale", 8f);
+        public float OcclusionQuality => Get("occlusion.quality", 0.06f);
+        public int OcclusionSteps => Get("occlusion.steps", 12);
 
         public string SpecularTexture => Get<string>("specular.texture");
 

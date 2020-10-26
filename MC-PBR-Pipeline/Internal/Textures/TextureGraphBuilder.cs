@@ -72,7 +72,7 @@ namespace McPbrPipeline.Internal.Textures
                 await using var stream = writer.WriteFile(destFile);
                 await image.SaveAsPngAsync(stream, token);
 
-                logger.LogInformation("Published texture {Name} tag {tag}.", graph.Texture.Name, tag);
+                logger.LogInformation("Published texture {DisplayName} tag {tag}.", graph.Texture.DisplayName, tag);
             }
 
             await CopyMetaAsync(graph, tag, token);

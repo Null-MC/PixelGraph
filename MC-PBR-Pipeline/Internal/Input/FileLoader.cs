@@ -73,6 +73,7 @@ namespace McPbrPipeline.Internal.Input
                             for (var i = min; i <= max; i++) {
                                 var subTexture = texture.Clone();
                                 subTexture.Name = i.ToString();
+                                subTexture.Alias = texture.Name;
                                 textureList.Add(subTexture);
                                 ignoreList.AddRange(subTexture.GetAllTextures(reader));
                             }

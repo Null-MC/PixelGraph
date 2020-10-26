@@ -180,7 +180,7 @@ namespace McPbrPipeline.Internal.Textures
         {
             if (normalTexture != null) throw new ApplicationException("Normal texture has already been generated!");
 
-            logger.LogInformation("Generating normal map for texture {Name}.", Texture.Name);
+            logger.LogInformation("Generating normal map for texture {DisplayName}.", Texture.DisplayName);
 
             if (!sourceMap.TryGetValue(EncodingChannel.Height, out var sourceList))
                 throw new ApplicationException("No height source textures found!");
@@ -207,14 +207,14 @@ namespace McPbrPipeline.Internal.Textures
                 return;
             }
 
-            logger.LogWarning("Failed to generated normal map for {Name}; no height textures found.", Texture.Name);
+            logger.LogWarning("Failed to generated normal map for {DisplayName}; no height textures found.", Texture.DisplayName);
         }
 
         private async Task GenerateOcclusionAsync(CancellationToken token)
         {
             if (occlusionTexture != null) throw new ApplicationException("Occlusion texture has already been generated!");
 
-            logger.LogInformation("Generating occlusion map for texture {Name}.", Texture.Name);
+            logger.LogInformation("Generating occlusion map for texture {DisplayName}.", Texture.DisplayName);
 
             if (!sourceMap.TryGetValue(EncodingChannel.Height, out var sourceList))
                 throw new ApplicationException("No height source textures found!");
@@ -242,7 +242,7 @@ namespace McPbrPipeline.Internal.Textures
                 return;
             }
 
-            logger.LogWarning("Failed to generated occlusion map for {Name}; no height textures found.", Texture.Name);
+            logger.LogWarning("Failed to generated occlusion map for {DisplayName}; no height textures found.", Texture.DisplayName);
         }
 
         private static List<ChannelSource> NewSourceMap() => new List<ChannelSource>();
