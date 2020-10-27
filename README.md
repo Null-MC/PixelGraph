@@ -1,6 +1,6 @@
 # MC-PBR-Pipeline [![Actions Status](https://github.com/null511/MC-PBR-Pipeline/workflows/Release/badge.svg)](https://github.com/null511/MC-PBR-Pipeline/actions)
 
-MC-PBRP is a command-line application for publishing Minecraft resource packs, with special tooling for PBR materials. Automate the workload of modifying and distributing your resource packs through simple properties files.
+MC-PBRP is a command-line application for publishing Minecraft resource packs, with special tooling for post-processing PBR materials. Automate the workload of modifying and distributing your resource packs through simple properties files. Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
 
  - **Simplify your workflow** by adjusting text instead of pixels. Getting image-based material values just right can be tedious, time consuming, and destructive.
 
@@ -9,18 +9,16 @@ MC-PBRP is a command-line application for publishing Minecraft resource packs, w
  - **Support more users** by publishing multiple packs with varying quality. The resolution and included textures can be altered using either the command-line or Publishing Profiles to create multiple distributions.
 
  - **Automate** normal-map creation, resizing, and channel-swapping so that you can spend more time designing and less time repeating yourself.
-
-Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
  
-#### Normal-Map Generation
+### Normal-Map Generation
 
-![Normal-Map from Height-Map](https://github.com/null511/MC-PBR-Pipeline/raw/master/media/NormalGeneration.png)
+<img src="https://github.com/null511/MC-PBR-Pipeline/raw/master/media/NormalGeneration.png" alt="Normal-Map from Height-Map" height="140px"/>
 
 Allows normal-map textures to be created from height-maps as needed during publishing, or by prerendering them beforehand. Strength, blur, and wrapping can be managed using the textures matching pbr-properties file.
  
-#### Occlusion-Map Generation
+### Occlusion-Map Generation
 
-![Occlusion-Map from Height-Map](https://github.com/null511/MC-PBR-Pipeline/raw/master/media/OcclusionGeneration.png)
+<img src="https://github.com/null511/MC-PBR-Pipeline/raw/master/media/OcclusionGeneration.png" alt="Occlusion-Map from Height-Map" height="140px"/>
 
 Allows ambient-occlusion textures to be created from height-maps as needed during publishing, or by prerendering them beforehand. Quality, Z-scale, step-count, and wrapping can be managed using the textures matching pbr-properties file.
 
