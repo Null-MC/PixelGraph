@@ -1,6 +1,6 @@
 # MC-PBR-Pipeline [![Actions Status](https://github.com/null511/MC-PBR-Pipeline/workflows/Release/badge.svg)](https://github.com/null511/MC-PBR-Pipeline/actions)
 
-MC-PBRP is a command-line application for publishing Minecraft resource packs, with special tooling for post-processing PBR materials. Automate the workload of modifying and distributing your resource packs through simple properties files. Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
+MCPBRP is a command-line application for publishing Minecraft resource packs, with special tooling for post-processing PBR materials. Automate the workload of modifying and distributing your resource packs through simple property files. Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
 
  - **Simplify your workflow** by adjusting text instead of pixels. Getting image-based material values just right can be tedious, time consuming, and destructive.
 
@@ -24,11 +24,11 @@ Allows ambient-occlusion textures to be created from height-maps as needed durin
 
 ## Installation
 
-See the [wiki](https://github.com/null511/MC-PBR-Pipeline/wiki/Installation) for more information.
+For manual installation, download the latest standalone executable from the [Releases](https://github.com/null511/MC-PBR-Pipeline/releases) page. For automated usage see [Docker Usage](https://github.com/null511/MC-PBR-Pipeline/wiki/Installation#docker). Visit the [wiki](https://github.com/null511/MC-PBR-Pipeline/wiki/Installation) for more information.
 
 ## Usage
 
-Pack property files are text documents in the root of the source project that describe how the resource pack should be published. Each profile allows several options to be configured for the generated resource pack; this includes description, tags, resolution, channel-mappings, and more. The following pack ensures all textures are 128x* (preserving aspect) and remaps the material channels of the specular map from the source `{smooth2, metal, emissive}` to the `{smooth, metal, porosity, emissive}` encoding expected by the SEUS renewed shader.
+Pack property files describe how the resource pack should be published, as well as an global properties affecting all textures. Multiple pack property files can be defined allowing packs with different descriptions, tags, resolution, channel-mappings, and more. Pre-defined input/output encoding have also been provided, including `lab-1.1` and `lab-1.3`.
 
 ```ini
 # ~/pack.properties
@@ -43,6 +43,10 @@ smooth.scale = 1.2
 metal.scale = 0.8
 emissive.scale = 0.2
 ```
+
+## Sample Repository
+
+Coming Soon! I am _not_ a texture artist and need a good set of example content for a proper sample. If you own content you'd like to submit please reach out to me.
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
