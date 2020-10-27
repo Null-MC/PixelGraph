@@ -31,31 +31,9 @@ See the [wiki](https://github.com/null511/MC-PBR-Pipeline/wiki/Installation) for
 Pack property files are text documents in the root of the source project that describe how the resource pack should be published. Each profile allows several options to be configured for the generated resource pack; this includes description, tags, resolution, channel-mappings, and more. The following pack ensures all textures are 128x* (preserving aspect) and remaps the material channels of the specular map from the source `{smooth2, metal, emissive}` to the `{smooth, metal, porosity, emissive}` encoding expected by the SEUS renewed shader.
 
 ```ini
-# ~/pack.SEUS-PBR-x128.properties
-texture.size = 128
-
-# remap specular materials
-porosity.value = 64
-specular.input.r = metal
-specular.input.g = rough
-specular.input.b = emissive
-output.specular.r = smooth2
-output.specular.g = metal
-output.specular.b = porosity-sss
-output.specular.a = emissive
-```
-
-The additional publishing profile below is used to publish a non-PBR version of the resource pack, that is downsized to 32x\*.
-```ini
-# ~/pack.vanilla-x32.properties
-
-# resize textures down to 32x*
-texture.size = 32
-
-# exclude pbr materials
-output.albedo = true
-output.normal = false
-output.specular = false
+# ~/pack.properties
+input.format = default
+output.format = lab-1.3
 ```
 
 Each item-texture requires a matching `*.pbr.properties` file to enable filtering. For more details, see the [Wiki](https://github.com/null511/MC-PBR-Pipeline/wiki/File-Loading).
