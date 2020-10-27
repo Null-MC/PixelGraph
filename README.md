@@ -2,6 +2,8 @@
 
 MCPBRP is a command-line application for publishing Minecraft resource packs, with special tooling for post-processing PBR materials. Automate the workload of modifying and distributing your resource packs through simple property files. Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
 
+<img src="https://github.com/null511/MC-PBR-Pipeline/raw/master/media/LAB11.png" alt="PBR Workflow" />
+
  - **Simplify your workflow** by adjusting text instead of pixels. Getting image-based material values just right can be tedious, time consuming, and destructive.
 
  - **Preserve Quality** by adjusting material values through text rather than altering the original image data. Repeatedly scaling the integer-based channels of your image slowly destroys quality. Save the gradients!
