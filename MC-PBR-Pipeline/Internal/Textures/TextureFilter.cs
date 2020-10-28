@@ -29,11 +29,11 @@ namespace McPbrPipeline.Internal.Textures
 
         public void EmissiveClippedToEmissive(ref byte value) => value = (byte)(value + 1);
 
-        public void PorosityToPSSS(ref byte value) => value = MathEx.Clamp(value * 0.25f + 0.5f);
+        public void PorosityToPSSS(ref byte value) => value = MathEx.Clamp(value * 0.25f);
 
-        public void SSSToPSSS(ref byte value) => value = MathEx.Clamp(65.5f + value * (190f / 255f));
+        public void SSSToPSSS(ref byte value) => value = MathEx.Clamp(65f + value * (190f / 255f));
 
-        public void PSSSToSSS(ref byte value) => value = MathEx.Clamp((value - 65) * (255f / 190f) + 0.5f);
+        public void PSSSToSSS(ref byte value) => value = MathEx.Clamp((value - 65) * (255f / 190f));
 
         public void Invert(ref byte value) => value = (byte)(255 - value);
 

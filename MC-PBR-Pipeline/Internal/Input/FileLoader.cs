@@ -7,13 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace McPbrPipeline.Internal.Input
 {
     internal class FileLoader
     {
         private readonly IInputReader reader;
+        private readonly PbrReader pbrReader;
         private readonly ILogger logger;
 
 
@@ -24,6 +24,8 @@ namespace McPbrPipeline.Internal.Input
             this.reader = reader;
 
             logger = provider.GetRequiredService<ILogger<FileLoader>>();
+
+            pbrReader = new PbrReader(reader);
         }
 
         public IAsyncEnumerable<object> LoadAsync(CancellationToken token = default)
@@ -42,7 +44,7 @@ namespace McPbrPipeline.Internal.Input
                     PbrProperties texture = null;
 
                     try {
-                        texture = await LoadLocalTextureAsync(mapFile, token);
+                        texture = await pbrReader.LoadLocalAsync(mapFile, token);
                     }
                     catch (Exception error) {
                         logger.LogWarning(error, $"Failed to load local texture map '{mapFile}'!");
@@ -62,18 +64,11 @@ namespace McPbrPipeline.Internal.Input
                     textureList.Clear();
 
                     try {
-                        var texture = await LoadGlobalTextureAsync(filename, token);
+                        var texture = await pbrReader.LoadGlobalAsync(filename, token);
                         ignoreList.Add(filename);
 
-                        if (texture.RangeMin.HasValue && texture.RangeMax.HasValue) {
-                            // clone texture for each index in range
-                            var min = texture.RangeMin.Value;
-                            var max = texture.RangeMax.Value;
-
-                            for (var i = min; i <= max; i++) {
-                                var subTexture = texture.Clone();
-                                subTexture.Name = i.ToString();
-                                subTexture.Alias = texture.Name;
+                        if (pbrReader.TryExpandRange(texture, out var subTextureList)) {
+                            foreach (var subTexture in subTextureList) {
                                 textureList.Add(subTexture);
                                 ignoreList.AddRange(subTexture.GetAllTextures(reader));
                             }
@@ -103,40 +98,6 @@ namespace McPbrPipeline.Internal.Input
                     yield return filename;
                 }
             }
-        }
-
-        public async Task<PbrProperties> LoadGlobalTextureAsync(string localFile, CancellationToken token = default)
-        {
-            var name = Path.GetFileName(localFile);
-            name = name[..^15];
-
-            var properties = new PbrProperties {
-                FileName = localFile,
-                Name = name,
-                Path = Path.GetDirectoryName(localFile),
-                UseGlobalMatching = true,
-            };
-
-            await using var stream = reader.Open(localFile);
-            await properties.ReadAsync(stream, token);
-
-            return properties;
-        }
-
-        public async Task<PbrProperties> LoadLocalTextureAsync(string localFile, CancellationToken token = default)
-        {
-            var itemPath = Path.GetDirectoryName(localFile);
-
-            var properties = new PbrProperties {
-                FileName = localFile,
-                Name = Path.GetFileName(itemPath),
-                Path = Path.GetDirectoryName(itemPath),
-            };
-
-            await using var stream = reader.Open(localFile);
-            await properties.ReadAsync(stream, token);
-
-            return properties;
         }
 
         private static readonly string[] IgnoredExtensions = {".zip", ".db", ".cmd", ".sh", ".xcf", ".psd"};

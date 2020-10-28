@@ -255,8 +255,13 @@ namespace McPbrPipeline.Internal.Textures
                             options = optionsMap[TextureTags.NormalGenerated];
                         }
                         else if (TextureTags.Is(tag, TextureTags.Occlusion) && optionsMap.ContainsKey(TextureTags.OcclusionGenerated)) {
-                            sourceImage = await graph.GetGeneratedOcclusionAsync(token);
-                            options = optionsMap[TextureTags.OcclusionGenerated];
+                            try {
+                                sourceImage = await graph.GetGeneratedOcclusionAsync(token);
+                                options = optionsMap[TextureTags.OcclusionGenerated];
+                            }
+                            catch {
+                                sourceImage = null;
+                            }
                         }
 
                         if (sourceImage == null) {

@@ -2,6 +2,7 @@
 using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.ImageProcessors;
 using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Publishing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
@@ -241,7 +242,7 @@ namespace McPbrPipeline.Internal.Textures
             logger.LogInformation("Generating occlusion map for texture {DisplayName}.", Texture.DisplayName);
 
             if (!sourceMap.ContainsKey(EncodingChannel.Height))
-                throw new ApplicationException("No height source textures found!");
+                throw new SourceEmptyException("No height source textures found!");
 
             Image<Rgba32> heightTexture = null;
             Image<Rgba32> emissiveImage = null;
@@ -250,8 +251,9 @@ namespace McPbrPipeline.Internal.Textures
                 (heightTexture, heightChannel) = await GetSourceImageAsync(EncodingChannel.Height, token);
 
                 if (heightTexture == null) {
-                    logger.LogWarning("Failed to generated occlusion map for {DisplayName}; no height textures found.", Texture.DisplayName);
-                    return;
+                    //throw new SourceEmptyException("Failed to generated occlusion map for {DisplayName}; no height textures found.", Texture.DisplayName);
+                    //return;
+                    throw new SourceEmptyException("No height source textures found!");
                 }
 
                 if (Texture.OcclusionClipEmissive ?? false) {
@@ -266,6 +268,7 @@ namespace McPbrPipeline.Internal.Textures
                     StepCount = Texture.OcclusionSteps,
                     Quality = Texture.OcclusionQuality,
                     ZScale = Texture.OcclusionZScale,
+                    ZBias = Texture.OcclusionZBias,
                     Wrap = Texture.Wrap,
                 };
 

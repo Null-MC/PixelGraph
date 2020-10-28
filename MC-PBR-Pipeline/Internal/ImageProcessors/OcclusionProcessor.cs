@@ -12,6 +12,8 @@ namespace McPbrPipeline.Internal.ImageProcessors
 {
     internal class OcclusionProcessor : PixelComposeProcessor
     {
+        private const bool UseLinear = true;
+
         private readonly Options options;
         private readonly Lazy<Vector3[]> rayList;
 
@@ -30,7 +32,7 @@ namespace McPbrPipeline.Internal.ImageProcessors
             var pixelIn = new Rgba32();
             sourceRow[context.X].ToRgba32(ref pixelIn);
             pixelIn.GetNormalizedChannelValue(in options.HeightChannel, out var height);
-            var z = height * options.ZScale;
+            var z = height * options.ZScale + options.ZBias;
 
             var hitCount = 0;
             var position = new Vector3(context.X, context.Y, z);
@@ -91,10 +93,11 @@ namespace McPbrPipeline.Internal.ImageProcessors
 
                 if (position.Z > options.ZScale) return false;
 
-                SampleHeightPoint(in position.X, in position.Y, in context, out var height);
-                var sampleZ = height * options.ZScale;
+                float height;
+                if (UseLinear) SampleHeightLinear(in position.X, in position.Y, in context, out height);
+                else SampleHeightPoint(in position.X, in position.Y, in context, out height);
 
-                if (position.Z < sampleZ) return true;
+                if (position.Z < height * options.ZScale) return true;
             }
 
             return false;
@@ -115,44 +118,44 @@ namespace McPbrPipeline.Internal.ImageProcessors
             pixel.GetNormalizedChannelValue(in options.HeightChannel, out height);
         }
 
-        //private void SampleHeightLinear(in float x, in float y, in PixelContext context, out float height)
-        //{
-        //    var pxMin = (int)x;
-        //    var pxMax = pxMin + 1;
-        //    var pyMin = (int)y;
-        //    var pyMax = pyMin + 1;
+        private void SampleHeightLinear(in float x, in float y, in PixelContext context, out float height)
+        {
+            var pxMin = (int)x;
+            var pxMax = pxMin + 1;
+            var pyMin = (int)y;
+            var pyMax = pyMin + 1;
 
-        //    var fx = x - pxMin;
-        //    var fy = y - pyMin;
+            var fx = x - pxMin;
+            var fy = y - pyMin;
 
-        //    if (options.Wrap) {
-        //        context.Wrap(ref pxMin, ref pyMin);
-        //        context.Wrap(ref pxMax, ref pyMax);
-        //    }
-        //    else {
-        //        context.Clamp(ref pxMin, ref pyMin);
-        //        context.Clamp(ref pxMax, ref pyMax);
-        //    }
+            if (options.Wrap) {
+                context.Wrap(ref pxMin, ref pyMin);
+                context.Wrap(ref pxMax, ref pyMax);
+            }
+            else {
+                context.Clamp(ref pxMin, ref pyMin);
+                context.Clamp(ref pxMax, ref pyMax);
+            }
 
-        //    var rowMin = options.Source.GetPixelRowSpan(pyMin);
-        //    var rowMax = options.Source.GetPixelRowSpan(pyMax);
+            var rowMin = options.HeightSource.GetPixelRowSpan(pyMin);
+            var rowMax = options.HeightSource.GetPixelRowSpan(pyMax);
 
-        //    var pixelMatrix = new Rgba32[4];
-        //    rowMin[pxMin].ToRgba32(ref pixelMatrix[0]);
-        //    rowMin[pxMax].ToRgba32(ref pixelMatrix[1]);
-        //    rowMax[pxMin].ToRgba32(ref pixelMatrix[2]);
-        //    rowMax[pxMax].ToRgba32(ref pixelMatrix[3]);
+            var pixelMatrix = new Rgba32[4];
+            rowMin[pxMin].ToRgba32(ref pixelMatrix[0]);
+            rowMin[pxMax].ToRgba32(ref pixelMatrix[1]);
+            rowMax[pxMin].ToRgba32(ref pixelMatrix[2]);
+            rowMax[pxMax].ToRgba32(ref pixelMatrix[3]);
 
-        //    var heightMatrix = new float[4];
-        //    pixelMatrix[0].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[0]);
-        //    pixelMatrix[1].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[1]);
-        //    pixelMatrix[2].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[2]);
-        //    pixelMatrix[3].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[3]);
+            var heightMatrix = new float[4];
+            pixelMatrix[0].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[0]);
+            pixelMatrix[1].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[1]);
+            pixelMatrix[2].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[2]);
+            pixelMatrix[3].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[3]);
 
-        //    MathEx.Lerp(in heightMatrix[0], in heightMatrix[1], in fx, out var zMin);
-        //    MathEx.Lerp(in heightMatrix[2], in heightMatrix[3], in fx, out var zMax);
-        //    MathEx.Lerp(in zMin, in zMax, in fy, out height);
-        //}
+            MathEx.Lerp(in heightMatrix[0], in heightMatrix[1], in fx, out var zMin);
+            MathEx.Lerp(in heightMatrix[2], in heightMatrix[3], in fx, out var zMax);
+            MathEx.Lerp(in zMin, in zMax, in fy, out height);
+        }
 
         public class Options
         {
@@ -162,6 +165,7 @@ namespace McPbrPipeline.Internal.ImageProcessors
             public ColorChannel HeightChannel;
             public int StepCount;
             public float ZScale;
+            public float ZBias;
             public float Quality;
             public bool Wrap;
         }

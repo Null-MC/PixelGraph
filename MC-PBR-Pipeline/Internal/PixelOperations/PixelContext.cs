@@ -18,11 +18,11 @@
 
         public readonly void Wrap(ref int x, ref int y)
         {
-            if (x < 0) x += Width;
-            if (y < 0) y += Height;
+            while (x < 0) x += Width;
+            while (y < 0) y += Height;
 
-            if (x >= Width) x -= Width;
-            if (y >= Height) y -= Height;
+            while (x >= Width) x -= Width;
+            while (y >= Height) y -= Height;
         }
 
         public readonly void Clamp(ref int x, ref int y)

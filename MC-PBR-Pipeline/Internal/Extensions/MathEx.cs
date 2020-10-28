@@ -26,7 +26,7 @@ namespace McPbrPipeline.Internal.Extensions
 
         public static byte Clamp(float value)
         {
-            return (byte)Math.Clamp(value, 0f, 255f);
+            return (byte)Math.Clamp(value + 0.5f, 0f, 255f);
         }
 
         public static void Saturate(float value, out byte result)

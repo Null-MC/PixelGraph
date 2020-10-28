@@ -1,5 +1,7 @@
 ﻿using McPbrPipeline.Internal;
 using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Output;
+using McPbrPipeline.Internal.Publishing;
 using McPbrPipeline.Internal.Textures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -54,34 +56,39 @@ namespace McPbrPipeline.CommandLine
 
         private async Task<int> RunAsync(FileInfo pbr, FileInfo height, string normal, string[] property)
         {
-            if (string.IsNullOrEmpty(normal)) {
-                logger.LogError("Filename for normal output is undefined!");
-                return 1;
-            }
-
             var pack = LoadPack(property);
-            var texture = await LoadTextureAsync(pbr);
+
             var reader = new FileInputReader(pbr.DirectoryName);
+            var pbrReader = new PbrReader(reader);
+            var textureList = await pbrReader.LoadAsync(pbr.Name, lifetime.Token);
 
             if (height?.Exists ?? false) {
-                texture.Name = height.Name;
-                texture.Properties["height.texture"] = height.FullName;
+                foreach (var texture in textureList) {
+                    texture.Name = height.Name;
+                    texture.Properties["height.texture"] = height.FullName;
+                }
             }
 
-            //logger.LogDebug("Generating normals from height texture {DisplayName}.", texture.DisplayName);
             var timer = Stopwatch.StartNew();
+            var graphBuilder = new TextureGraphBuilder(provider, reader, null, pack);
 
-            try {
-                var graphBuilder = new TextureGraphBuilder(provider, reader, null, pack);
+            foreach (var texture in textureList) {
+                logger.LogDebug("Generating normals for texture {DisplayName}.", texture.DisplayName);
+                var finalName = normal ?? NamingStructure.GetOutputTextureName(TextureTags.Normal, texture.Name, texture.UseGlobalMatching);
 
-                using var graph = graphBuilder.CreateGraph(texture);
-                using var image = await graph.GetGeneratedNormalAsync(lifetime.Token);
-                await image.SaveAsync(normal, lifetime.Token);
+                try {
+                    using var graph = graphBuilder.CreateGraph(texture);
+                    using var image = await graph.GetGeneratedNormalAsync(lifetime.Token);
 
-                logger.LogInformation("Normal texture {normal} generated successfully.", normal);
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to generate Normal texture {normal}!", normal);
+                    await image.SaveAsync(finalName, lifetime.Token);
+                    logger.LogInformation("Normal texture {finalName} generated successfully.", finalName);
+                }
+                catch (SourceEmptyException error) {
+                    logger.LogError($"Failed to generate Normal texture {{finalName}}! {error.Message}", finalName);
+                }
+                catch (Exception error) {
+                    logger.LogError(error, "Failed to generate Normal texture {finalName}!", finalName);
+                }
             }
 
             timer.Stop();
@@ -106,29 +113,6 @@ namespace McPbrPipeline.CommandLine
                 foreach (var p in properties) pack.TrySet(p);
 
             return pack;
-        }
-
-        private async Task<PbrProperties> LoadTextureAsync(FileInfo textureFile)
-        {
-            var texture = new PbrProperties {
-                UseGlobalMatching = false,
-            };
-
-            if (textureFile.Exists) {
-                texture.UseGlobalMatching = !string.Equals(textureFile.Name, "pbr.properties", StringComparison.InvariantCultureIgnoreCase);
-                
-                texture.Name = texture.UseGlobalMatching
-                    ? textureFile.Name
-                    : textureFile.Directory?.Name;
-                
-                texture.Path = texture.UseGlobalMatching
-                    ? "." : "..";
-
-                await using var stream = textureFile.Open(FileMode.Open, FileAccess.Read);
-                await texture.ReadAsync(stream, lifetime.Token);
-            }
-
-            return texture;
         }
     }
 }

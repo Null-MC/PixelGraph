@@ -47,9 +47,10 @@ namespace McPbrPipeline.Internal.Input
         public string OcclusionTexture => Get<string>("occlusion.texture");
         public byte? OcclusionValue => Get<byte?>("occlusion.value");
         public float? OcclusionScale => Get<float?>("occlusion.scale");
-        public float OcclusionZScale => Get("occlusion.z-scale", 8f);
-        public float OcclusionQuality => Get("occlusion.quality", 0.06f);
-        public int OcclusionSteps => Get("occlusion.steps", 12);
+        public float OcclusionZScale => Get("occlusion.z-scale", 16f);
+        public float OcclusionZBias => Get("occlusion.z-bias", 0.1f);
+        public float OcclusionQuality => Get("occlusion.quality", 0.1f);
+        public int OcclusionSteps => Get("occlusion.steps", 32);
         public bool? OcclusionClipEmissive => Get<bool?>("occlusion.clip-emissive");
 
         public string SpecularTexture => Get<string>("specular.texture");
