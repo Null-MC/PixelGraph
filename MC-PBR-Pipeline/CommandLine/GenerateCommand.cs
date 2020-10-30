@@ -1,5 +1,4 @@
-﻿using System;
-using System.CommandLine;
+﻿using System.CommandLine;
 
 namespace McPbrPipeline.CommandLine
 {
@@ -8,11 +7,13 @@ namespace McPbrPipeline.CommandLine
         public Command Command {get;}
 
 
-        public GenerateCommand(IServiceProvider provider)
+        public GenerateCommand(
+            GenerateNormalCommand generateNormalCommand,
+            GenerateOcclusionCommand generateOcclusionCommand)
         {
             Command = new Command("generate", "Generate textures.");
-            Command.AddCommand(new GenerateNormalCommand(provider).Command);
-            Command.AddCommand(new GenerateOcclusionCommand(provider).Command);
+            Command.AddCommand(generateNormalCommand.Command);
+            Command.AddCommand(generateOcclusionCommand.Command);
         }
     }
 }

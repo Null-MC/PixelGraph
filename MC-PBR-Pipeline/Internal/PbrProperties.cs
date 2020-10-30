@@ -1,11 +1,10 @@
-﻿using McPbrPipeline.Internal.Extensions;
-using McPbrPipeline.Internal.Output;
-using McPbrPipeline.Internal.Textures;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Textures;
 
-namespace McPbrPipeline.Internal.Input
+namespace McPbrPipeline.Internal
 {
     public class PbrProperties : PropertiesFile
     {
@@ -83,34 +82,8 @@ namespace McPbrPipeline.Internal.Input
         internal IEnumerable<string> GetAllTextures(IInputReader reader)
         {
             return TextureTags.All
-                .Select(tag => GetTextureFile(reader, tag))
+                .SelectMany(tag => reader.EnumerateTextures(this, tag))
                 .Where(file => file != null).Distinct();
-        }
-
-        internal string GetTextureFile(IInputReader reader, string tag)
-        {
-            var filename = TextureTags.Get(this, tag);
-
-            while (filename != null) {
-                var linkedFilename = TextureTags.Get(this, filename);
-                if (string.IsNullOrEmpty(linkedFilename)) break;
-
-                tag = filename;
-                filename = linkedFilename;
-            }
-
-            var srcPath = UseGlobalMatching
-                ? Path : PathEx.Join(Path, Name);
-
-            if (!string.IsNullOrEmpty(filename))
-                return PathEx.Join(srcPath, filename);
-
-            var matchName = NamingStructure.GetInputTextureName(tag, Name, UseGlobalMatching);
-
-            return reader.EnumerateFiles(srcPath, matchName).FirstOrDefault(f => {
-                var ext = System.IO.Path.GetExtension(f);
-                return ImageExtensions.Supported.Contains(ext, StringComparer.InvariantCultureIgnoreCase);
-            });
         }
 
         public PbrProperties Clone()

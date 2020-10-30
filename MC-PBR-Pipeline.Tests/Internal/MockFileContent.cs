@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using McPbrPipeline.Internal;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace McPbrPipeline.Tests.Internal

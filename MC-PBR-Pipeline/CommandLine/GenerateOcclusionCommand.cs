@@ -17,19 +17,21 @@ namespace McPbrPipeline.CommandLine
 {
     internal class GenerateOcclusionCommand
     {
-        private readonly IServiceProvider provider;
+        private readonly ProviderFactory factory;
         private readonly IAppLifetime lifetime;
         private readonly ILogger logger;
 
         public Command Command {get;}
 
 
-        public GenerateOcclusionCommand(IServiceProvider provider)
+        public GenerateOcclusionCommand(
+            ProviderFactory factory,
+            IAppLifetime lifetime,
+            ILogger<GenerateOcclusionCommand> logger)
         {
-            this.provider = provider;
-
-            lifetime = provider.GetRequiredService<IAppLifetime>();
-            logger = provider.GetRequiredService<ILogger<GenerateOcclusionCommand>>();
+            this.factory = factory;
+            this.lifetime = lifetime;
+            this.logger = logger;
 
             Command = new Command("occlusion", "Generates an ambient-occlusion texture from a specified height texture.") {
                 Handler = CommandHandler.Create<FileInfo, FileInfo, string, string[]>(RunAsync),
@@ -55,9 +57,16 @@ namespace McPbrPipeline.CommandLine
 
         private async Task<int> RunAsync(FileInfo pbr, FileInfo height, string occlusion, string[] property)
         {
-            var pack = LoadPack(property);
+            await using var commandProvider = factory.Build(false);
+            var reader = commandProvider.GetRequiredService<IInputReader>();
+            var naming = commandProvider.GetRequiredService<INamingStructure>();
+            var graphBuilder = commandProvider.GetRequiredService<ITextureGraphBuilder>();
+
+            reader.SetRoot(pbr.DirectoryName);
+
+            var packReader = new PackReader();
+            var pack = await packReader.ReadAsync(pbr.FullName, property, lifetime.Token);
             
-            var reader = new FileInputReader(pbr.DirectoryName);
             var pbrReader = new PbrReader(reader);
             var textureList = await pbrReader.LoadAsync(pbr.Name, lifetime.Token);
 
@@ -69,14 +78,13 @@ namespace McPbrPipeline.CommandLine
             }
 
             var timer = Stopwatch.StartNew();
-            var graphBuilder = new TextureGraphBuilder(provider, reader, null, pack);
 
             foreach (var texture in textureList) {
                 logger.LogDebug("Generating ambient occlusion for texture {DisplayName}.", texture.DisplayName);
-                var finalName = occlusion ?? NamingStructure.GetOutputTextureName(TextureTags.Occlusion, texture.Name, texture.UseGlobalMatching);
+                var finalName = occlusion ?? naming.GetOutputTextureName(TextureTags.Occlusion, texture.Name, texture.UseGlobalMatching);
 
                 try {
-                    using var graph = graphBuilder.CreateGraph(texture);
+                    using var graph = graphBuilder.CreateGraph(pack, texture);
                     using var image = await graph.GetGeneratedOcclusionAsync(lifetime.Token);
 
                     await image.SaveAsync(finalName, lifetime.Token);
@@ -95,23 +103,6 @@ namespace McPbrPipeline.CommandLine
             logger.LogDebug("Duration: {duration}", duration);
 
             return 0;
-        }
-
-        private static PackProperties LoadPack(string[] properties)
-        {
-            var pack = new PackProperties {
-                Properties = {
-                    ["input.format"] = "default",
-                    ["output.format"] = "default",
-                }
-            };
-
-            // TODO: load actual pack properties
-
-            if (properties != null)
-                foreach (var p in properties) pack.TrySet(p);
-
-            return pack;
         }
     }
 }

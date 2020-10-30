@@ -17,19 +17,21 @@ namespace McPbrPipeline.CommandLine
 {
     internal class GenerateNormalCommand
     {
-        private readonly IServiceProvider provider;
+        private readonly ProviderFactory factory;
         private readonly IAppLifetime lifetime;
         private readonly ILogger logger;
 
         public Command Command {get;}
 
 
-        public GenerateNormalCommand(IServiceProvider provider)
+        public GenerateNormalCommand(
+            ProviderFactory factory,
+            IAppLifetime lifetime,
+            ILogger<GenerateNormalCommand> logger)
         {
-            this.provider = provider;
-
-            lifetime = provider.GetRequiredService<IAppLifetime>();
-            logger = provider.GetRequiredService<ILogger<GenerateNormalCommand>>();
+            this.factory = factory;
+            this.lifetime = lifetime;
+            this.logger = logger;
 
             Command = new Command("normal", "Generates a normal texture from a specified height texture.") {
                 Handler = CommandHandler.Create<FileInfo, FileInfo, string, string[]>(RunAsync),
@@ -56,9 +58,16 @@ namespace McPbrPipeline.CommandLine
 
         private async Task<int> RunAsync(FileInfo pbr, FileInfo height, string normal, string[] property)
         {
-            var pack = LoadPack(property);
+            await using var commandProvider = factory.Build(false);
+            var naming = commandProvider.GetRequiredService<INamingStructure>();
+            var reader = commandProvider.GetRequiredService<IInputReader>();
+            var graphBuilder = commandProvider.GetRequiredService<ITextureGraphBuilder>();
 
-            var reader = new FileInputReader(pbr.DirectoryName);
+            reader.SetRoot(pbr.DirectoryName);
+
+            var packReader = new PackReader();
+            var pack = await packReader.ReadAsync(pbr.FullName, property, lifetime.Token);
+
             var pbrReader = new PbrReader(reader);
             var textureList = await pbrReader.LoadAsync(pbr.Name, lifetime.Token);
 
@@ -70,14 +79,13 @@ namespace McPbrPipeline.CommandLine
             }
 
             var timer = Stopwatch.StartNew();
-            var graphBuilder = new TextureGraphBuilder(provider, reader, null, pack);
 
             foreach (var texture in textureList) {
                 logger.LogDebug("Generating normals for texture {DisplayName}.", texture.DisplayName);
-                var finalName = normal ?? NamingStructure.GetOutputTextureName(TextureTags.Normal, texture.Name, texture.UseGlobalMatching);
+                var finalName = normal ?? naming.GetOutputTextureName(TextureTags.Normal, texture.Name, texture.UseGlobalMatching);
 
                 try {
-                    using var graph = graphBuilder.CreateGraph(texture);
+                    using var graph = graphBuilder.CreateGraph(pack, texture);
                     using var image = await graph.GetGeneratedNormalAsync(lifetime.Token);
 
                     await image.SaveAsync(finalName, lifetime.Token);
@@ -96,23 +104,6 @@ namespace McPbrPipeline.CommandLine
             logger.LogDebug("Duration: {duration}", duration);
 
             return 0;
-        }
-
-        private static PackProperties LoadPack(string[] properties)
-        {
-            var pack = new PackProperties {
-                Properties = {
-                    ["input.format"] = "default",
-                    ["output.format"] = "default",
-                }
-            };
-
-            // TODO: load actual pack properties
-
-            if (properties != null)
-                foreach (var p in properties) pack.TrySet(p);
-
-            return pack;
         }
     }
 }

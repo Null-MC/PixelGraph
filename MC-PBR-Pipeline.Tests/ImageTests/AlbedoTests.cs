@@ -1,4 +1,4 @@
-﻿using McPbrPipeline.Internal.Input;
+﻿using McPbrPipeline.Internal;
 using McPbrPipeline.Internal.Textures;
 using McPbrPipeline.Tests.Internal;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,15 +34,11 @@ namespace McPbrPipeline.Tests.ImageTests
         [InlineData(200, 0.01f,   2)]
         [Theory] public async Task ScaleRed(byte value, float scale, byte expected)
         {
-            var reader = new MockInputReader(Content);
-            await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            graphBuilder.UseGlobalOutput = true;
 
-            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
-                UseGlobalOutput = true,
-            };
-
-            await graphBuilder.BuildAsync(new PbrProperties {
+            await graphBuilder.BuildAsync(pack, new PbrProperties {
                 Name = "test",
                 Path = "assets",
                 Properties = {
@@ -58,18 +54,14 @@ namespace McPbrPipeline.Tests.ImageTests
         [Fact]
         public async Task ShiftRGB()
         {
-            var reader = new MockInputReader(Content);
-            await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            graphBuilder.UseGlobalOutput = true;
 
             using var image = CreateImage(60, 120, 180);
             await Content.AddAsync("assets/test/albedo.png", image);
 
-            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
-                UseGlobalOutput = true,
-            };
-
-            await graphBuilder.BuildAsync(new PbrProperties {
+            await graphBuilder.BuildAsync(pack, new PbrProperties {
                 Name = "test",
                 Path = "assets",
                 Properties = {

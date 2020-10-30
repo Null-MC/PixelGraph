@@ -187,7 +187,7 @@ namespace McPbrPipeline.Internal.Encoding
                     ["normal.input.b"] = EncodingChannel.NormalZ,
                     ["normal.input.a"] = EncodingChannel.Height,
 
-                    ["specular.input.r"] = EncodingChannel.Smooth,
+                    ["specular.input.r"] = EncodingChannel.PerceptualSmooth,
                     ["specular.input.g"] = EncodingChannel.Metal,
                     ["specular.input.b"] = EncodingChannel.Emissive,
                 });

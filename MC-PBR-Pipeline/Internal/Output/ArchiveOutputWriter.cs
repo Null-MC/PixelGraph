@@ -7,13 +7,13 @@ namespace McPbrPipeline.Internal.Output
 {
     internal class ArchiveOutputWriter : IOutputWriter
     {
-        private readonly Stream fileStream;
-        private readonly ZipArchive archive;
+        private Stream fileStream;
+        private ZipArchive archive;
 
 
-        public ArchiveOutputWriter(string destinationFile)
+        public void SetRoot(string absolutePath)
         {
-            fileStream = File.Open(destinationFile, FileMode.Create, FileAccess.Write);
+            fileStream = File.Open(absolutePath, FileMode.Create, FileAccess.Write);
             archive = new ZipArchive(fileStream, ZipArchiveMode.Create);
         }
 

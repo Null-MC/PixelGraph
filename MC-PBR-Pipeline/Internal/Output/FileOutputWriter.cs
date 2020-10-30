@@ -7,12 +7,12 @@ namespace McPbrPipeline.Internal.Output
 {
     internal class FileOutputWriter : IOutputWriter
     {
-        private readonly string destinationPath;
+        private string destinationPath;
 
 
-        public FileOutputWriter(string destinationPath)
+        public void SetRoot(string absolutePath)
         {
-            this.destinationPath = destinationPath;
+            destinationPath = absolutePath;
         }
 
         public void Prepare()

@@ -11,35 +11,43 @@ using System.Threading.Tasks;
 
 namespace McPbrPipeline.Internal.Textures
 {
-    internal class TextureGraphBuilder
+    internal interface ITextureGraphBuilder
+    {
+        bool UseGlobalOutput {get; set;}
+
+        TextureGraph CreateGraph(PackProperties pack, PbrProperties texture);
+        Task BuildAsync(PackProperties pack, PbrProperties texture, CancellationToken token = default);
+    }
+
+    internal class TextureGraphBuilder : ITextureGraphBuilder
     {
         private readonly IServiceProvider provider;
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
-        private readonly PackProperties pack;
+        private readonly INamingStructure naming;
         private readonly ILogger logger;
 
         public bool UseGlobalOutput {get; set;}
 
 
-        public TextureGraphBuilder(IServiceProvider provider, IInputReader reader, IOutputWriter writer, PackProperties pack)
+        public TextureGraphBuilder(IServiceProvider provider)
         {
             this.provider = provider;
-            this.reader = reader;
-            this.writer = writer;
-            this.pack = pack;
 
+            reader = provider.GetRequiredService<IInputReader>();
+            writer = provider.GetRequiredService<IOutputWriter>();
+            naming = provider.GetRequiredService<INamingStructure>();
             logger = provider.GetRequiredService<ILogger<TextureGraphBuilder>>();
         }
 
-        public TextureGraph CreateGraph(PbrProperties texture)
+        public TextureGraph CreateGraph(PackProperties pack, PbrProperties texture)
         {
             return new TextureGraph(provider, reader, pack, texture);
         }
 
-        public async Task BuildAsync(PbrProperties texture, CancellationToken token = default)
+        public async Task BuildAsync(PackProperties pack, PbrProperties texture, CancellationToken token = default)
         {
-            using var graph = CreateGraph(texture);
+            using var graph = CreateGraph(pack, texture);
 
             if (graph.Encoding.OutputAlbedo) await ProcessTextureAsync(graph, TextureTags.Albedo, token);
 
@@ -66,12 +74,12 @@ namespace McPbrPipeline.Internal.Textures
 
         private async Task ProcessTextureAsync(TextureGraph graph, string tag, CancellationToken token)
         {
-            var name = NamingStructure.GetOutputTextureName(tag, graph.Texture.Name, UseGlobalOutput);
+            var name = naming.GetOutputTextureName(tag, graph.Texture.Name, UseGlobalOutput);
 
             using var image = await graph.BuildFinalImageAsync(tag, token);
 
             if (image != null) {
-                Resize(image, graph.Texture);
+                Resize(graph.Pack, graph.Texture, image);
 
                 var destFile = PathEx.Join(graph.Texture.Path, name);
                 await using var stream = writer.WriteFile(destFile);
@@ -83,7 +91,7 @@ namespace McPbrPipeline.Internal.Textures
             await CopyMetaAsync(graph, tag, token);
         }
 
-        private void Resize(Image image, PbrProperties texture)
+        private static void Resize(PackProperties pack, PbrProperties texture, Image image)
         {
             if (!(texture?.ResizeEnabled ?? true)) return;
             if (!pack.TextureSize.HasValue && !pack.TextureScale.HasValue) return;
@@ -109,10 +117,10 @@ namespace McPbrPipeline.Internal.Textures
 
         private async Task CopyMetaAsync(TextureGraph graph, string tag, CancellationToken token)
         {
-            var metaFileIn = NamingStructure.GetInputMetaName(tag, graph.Texture);
+            var metaFileIn = naming.GetInputMetaName(tag, graph.Texture);
             if (!reader.FileExists(metaFileIn)) return;
 
-            var metaFileOut = NamingStructure.GetOutputMetaName(tag, graph.Texture, UseGlobalOutput);
+            var metaFileOut = naming.GetOutputMetaName(tag, graph.Texture, UseGlobalOutput);
 
             await using var sourceStream = reader.Open(metaFileIn);
             await using var destStream = writer.WriteFile(metaFileOut);

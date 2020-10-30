@@ -10,18 +10,13 @@ namespace McPbrPipeline.Tests.InputTests
 {
     public class FileLoaderTests : TestBase
     {
-        private readonly MockInputReader reader;
-
-
-        public FileLoaderTests(ITestOutputHelper output) : base(output)
-        {
-            reader = new MockInputReader(Content);
-        }
+        public FileLoaderTests(ITestOutputHelper output) : base(output) {}
 
         [InlineData("assets/junk.zip")]
         [Theory] public async Task IgnoresFiles(string filename)
         {
             Content.Add(filename);
+
             var items = await LoadFilesAsync();
             Assert.Empty(items);
         }
@@ -50,7 +45,7 @@ namespace McPbrPipeline.Tests.InputTests
         private async Task<object[]> LoadFilesAsync()
         {
             await using var provider = Services.BuildServiceProvider();
-            var loader = new FileLoader(provider, reader);
+            var loader = provider.GetRequiredService<IFileLoader>();
 
             var items = new List<object>();
             await foreach (var item in loader.LoadAsync()) items.Add(item);

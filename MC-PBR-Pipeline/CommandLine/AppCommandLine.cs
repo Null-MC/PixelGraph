@@ -1,5 +1,4 @@
-﻿using System;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.Threading.Tasks;
 
 namespace McPbrPipeline.CommandLine
@@ -14,14 +13,17 @@ namespace McPbrPipeline.CommandLine
         private readonly RootCommand root;
 
 
-        public AppCommandLine(IServiceProvider provider)
+        public AppCommandLine(
+            ImportCommand importCommand,
+            GenerateCommand generateCommand,
+            PublishCommand publishCommand)
         {
             root = new RootCommand();
 
             //root.AddCommand(new ConvertCommand(provider).Command);
-            root.AddCommand(new ImportCommand(provider).Command);
-            root.AddCommand(new GenerateCommand(provider).Command);
-            root.AddCommand(new PublishCommand(provider).Command);
+            root.AddCommand(importCommand.Command);
+            root.AddCommand(generateCommand.Command);
+            root.AddCommand(publishCommand.Command);
         }
 
 

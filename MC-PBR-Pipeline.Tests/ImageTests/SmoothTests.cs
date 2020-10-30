@@ -1,4 +1,4 @@
-﻿using McPbrPipeline.Internal.Input;
+﻿using McPbrPipeline.Internal;
 using McPbrPipeline.Internal.Textures;
 using McPbrPipeline.Tests.Internal;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,15 +31,11 @@ namespace McPbrPipeline.Tests.ImageTests
         [InlineData(200, 0.01f,   2)]
         [Theory] public async Task Scale(byte value, float scale, byte expected)
         {
-            var reader = new MockInputReader(Content);
-            await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            graphBuilder.UseGlobalOutput = true;
 
-            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
-                UseGlobalOutput = true,
-            };
-
-            await graphBuilder.BuildAsync(new PbrProperties {
+            await graphBuilder.BuildAsync(pack, new PbrProperties {
                 Name = "test",
                 Path = "assets",
                 Properties = {
@@ -58,18 +54,14 @@ namespace McPbrPipeline.Tests.ImageTests
         [InlineData(255)]
         [Theory] public async Task Passthrough(byte value)
         {
-            var reader = new MockInputReader(Content);
-            await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            graphBuilder.UseGlobalOutput = true;
 
             using var smoothImage = CreateImageR(value);
             await Content.AddAsync("assets/test/smooth.png", smoothImage);
 
-            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
-                UseGlobalOutput = true,
-            };
-
-            await graphBuilder.BuildAsync(new PbrProperties {
+            await graphBuilder.BuildAsync(pack, new PbrProperties {
                 Name = "test",
                 Path = "assets",
                 Properties = {
@@ -87,18 +79,14 @@ namespace McPbrPipeline.Tests.ImageTests
         [InlineData(255,   0)]
         [Theory] public async Task ConvertsRoughToSmooth(byte value, byte expected)
         {
-            var reader = new MockInputReader(Content);
-            await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            graphBuilder.UseGlobalOutput = true;
 
             using var roughImage = CreateImageR(value);
             await Content.AddAsync("assets/test/rough.png", roughImage);
 
-            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
-                UseGlobalOutput = true,
-            };
-
-            await graphBuilder.BuildAsync(new PbrProperties {
+            await graphBuilder.BuildAsync(pack, new PbrProperties {
                 Name = "test",
                 Path = "assets",
                 Properties = {
@@ -116,18 +104,14 @@ namespace McPbrPipeline.Tests.ImageTests
         [InlineData(255, 255)]
         [Theory] public async Task ConvertsPerceptualSmoothToSmooth(byte value, byte expected)
         {
-            var reader = new MockInputReader(Content);
-            await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            graphBuilder.UseGlobalOutput = true;
 
             using var smoothImage = CreateImageR(value);
             await Content.AddAsync("assets/test/smooth.png", smoothImage);
 
-            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
-                UseGlobalOutput = true,
-            };
-
-            await graphBuilder.BuildAsync(new PbrProperties {
+            await graphBuilder.BuildAsync(pack, new PbrProperties {
                 Name = "test",
                 Path = "assets",
                 Properties = {

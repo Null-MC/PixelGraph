@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Output;
+using McPbrPipeline.Internal.Textures;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -14,12 +17,19 @@ namespace McPbrPipeline.Tests.Internal
 
         protected TestBase(ITestOutputHelper output)
         {
+            Content = new MockFileContent();
+
             Services = new ServiceCollection();
             Services.AddSingleton(output);
             Services.AddSingleton(typeof(ILogger<>), typeof(TestLogger<>));
             Services.AddSingleton<ILogger, TestLogger>();
+            Services.AddSingleton(Content);
 
-            Content = new MockFileContent();
+            Services.AddSingleton<INamingStructure, JavaNamingStructure>();
+            Services.AddSingleton<IInputReader, MockInputReader>();
+            Services.AddSingleton<IOutputWriter, MockOutputWriter>();
+            Services.AddSingleton<ITextureGraphBuilder, TextureGraphBuilder>();
+            Services.AddSingleton<IFileLoader, FileLoader>();
         }
 
         protected Image CreateImageR(byte value)

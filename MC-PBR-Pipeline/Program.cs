@@ -1,13 +1,12 @@
 ﻿using McPbrPipeline.CommandLine;
 using McPbrPipeline.Internal;
 using McPbrPipeline.Internal.Extensions;
-using McPbrPipeline.Internal.Publishing;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using System;
-using System.Threading.Tasks;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
+using System;
+using System.Threading.Tasks;
 
 namespace McPbrPipeline
 {
@@ -61,7 +60,13 @@ namespace McPbrPipeline
 
             services.AddSingleton<IAppLifetime>(lifetime);
             services.AddSingleton<IAppCommandLine, AppCommandLine>();
-            services.AddSingleton<IPublisher, Publisher>();
+            services.AddSingleton<ImportCommand>();
+            services.AddSingleton<ConvertCommand>();
+            services.AddSingleton<GenerateCommand>();
+            services.AddSingleton<GenerateNormalCommand>();
+            services.AddSingleton<GenerateOcclusionCommand>();
+            services.AddSingleton<PublishCommand>();
+            services.AddSingleton<ProviderFactory>();
         }
 
         private static void Console_OnCancelKeyPress(object sender, ConsoleCancelEventArgs e)

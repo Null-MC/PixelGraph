@@ -1,4 +1,4 @@
-﻿using McPbrPipeline.Internal.Input;
+﻿using McPbrPipeline.Internal;
 using McPbrPipeline.Internal.Textures;
 using McPbrPipeline.Tests.Internal;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,18 +29,14 @@ namespace McPbrPipeline.Tests.ImageTests
         [InlineData(255)]
         [Theory] public async Task Passthrough(byte value)
         {
-            var reader = new MockInputReader(Content);
-            await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            graphBuilder.UseGlobalOutput = true;
 
             using var heightImage = CreateImageR(value);
             await Content.AddAsync("assets/test/specular.png", heightImage);
 
-            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
-                UseGlobalOutput = true,
-            };
-
-            await graphBuilder.BuildAsync(new PbrProperties {
+            await graphBuilder.BuildAsync(pack, new PbrProperties {
                 Name = "test",
                 Path = "assets",
                 Properties = {
@@ -58,18 +54,14 @@ namespace McPbrPipeline.Tests.ImageTests
         [InlineData(255, 64)]
         [Theory] public async Task ConvertsPorosityToPSSS(byte value, byte expected)
         {
-            var reader = new MockInputReader(Content);
-            await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            graphBuilder.UseGlobalOutput = true;
 
             using var porosityImage = CreateImageR(value);
             await Content.AddAsync("assets/test/porosity.png", porosityImage);
 
-            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
-                UseGlobalOutput = true,
-            };
-
-            await graphBuilder.BuildAsync(new PbrProperties {
+            await graphBuilder.BuildAsync(pack, new PbrProperties {
                 Name = "test",
                 Path = "assets",
                 Properties = {
@@ -88,18 +80,14 @@ namespace McPbrPipeline.Tests.ImageTests
         [InlineData(255, 255)]
         [Theory] public async Task ConvertsSSSToPSSS(byte value, byte expected)
         {
-            var reader = new MockInputReader(Content);
-            await using var writer = new MockOutputWriter(Content);
             await using var provider = Services.BuildServiceProvider();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            graphBuilder.UseGlobalOutput = true;
 
             using var porosityImage = CreateImageR(value);
             await Content.AddAsync("assets/test/sss.png", porosityImage);
 
-            var graphBuilder = new TextureGraphBuilder(provider, reader, writer, pack) {
-                UseGlobalOutput = true,
-            };
-
-            await graphBuilder.BuildAsync(new PbrProperties {
+            await graphBuilder.BuildAsync(pack, new PbrProperties {
                 Name = "test",
                 Path = "assets",
                 Properties = {

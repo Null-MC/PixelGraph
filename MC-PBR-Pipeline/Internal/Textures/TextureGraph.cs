@@ -21,12 +21,12 @@ namespace McPbrPipeline.Internal.Textures
     {
         private readonly IServiceProvider provider;
         private readonly IInputReader reader;
-        private readonly PackProperties pack;
         private readonly Dictionary<string, List<ChannelSource>> sourceMap;
         private readonly ILogger logger;
         private Image<Rgba32> normalTexture;
         private Image<Rgba32> occlusionTexture;
 
+        public PackProperties Pack {get;}
         public PbrProperties Texture {get;}
         public EncodingProperties Encoding {get;}
 
@@ -35,7 +35,7 @@ namespace McPbrPipeline.Internal.Textures
         {
             this.provider = provider;
             this.reader = reader;
-            this.pack = pack;
+            Pack = pack;
             Texture = texture;
 
             logger = provider.GetRequiredService<ILogger<TextureGraph>>();
@@ -84,7 +84,7 @@ namespace McPbrPipeline.Internal.Textures
 
         public Stream OpenTexture(string tag)
         {
-            var file = Texture.GetTextureFile(reader, tag);
+            var file = reader.EnumerateTextures(Texture, tag).FirstOrDefault();
             return file == null ? null : reader.Open(file);
         }
 
@@ -92,7 +92,7 @@ namespace McPbrPipeline.Internal.Textures
         {
             if (sourceMap.TryGetValue(encodingChannel, out var sourceList)) {
                 foreach (var source in sourceList) {
-                    var file = Texture.GetTextureFile(reader, source.Tag);
+                    var file = reader.EnumerateTextures(Texture, source.Tag).FirstOrDefault();
                     if (file == null) continue;
 
                     await using var stream = reader.Open(file);
@@ -118,7 +118,7 @@ namespace McPbrPipeline.Internal.Textures
 
         private void Build()
         {
-            Encoding.Build(pack, Texture);
+            Encoding.Build(Pack, Texture);
 
             MapSource(TextureTags.Albedo, ColorChannel.Red, Encoding.AlbedoInputR);
             MapSource(TextureTags.Albedo, ColorChannel.Green, Encoding.AlbedoInputG);
@@ -249,12 +249,7 @@ namespace McPbrPipeline.Internal.Textures
             try {
                 ColorChannel heightChannel, emissiveChannel = ColorChannel.None;
                 (heightTexture, heightChannel) = await GetSourceImageAsync(EncodingChannel.Height, token);
-
-                if (heightTexture == null) {
-                    //throw new SourceEmptyException("Failed to generated occlusion map for {DisplayName}; no height textures found.", Texture.DisplayName);
-                    //return;
-                    throw new SourceEmptyException("No height source textures found!");
-                }
+                if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
                 if (Texture.OcclusionClipEmissive ?? false) {
                     (emissiveImage, emissiveChannel) = await GetSourceImageAsync(EncodingChannel.Emissive, token);

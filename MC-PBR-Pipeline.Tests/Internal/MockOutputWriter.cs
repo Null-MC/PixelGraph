@@ -17,6 +17,11 @@ namespace McPbrPipeline.Tests.Internal
             Content = content;
         }
 
+        public void SetRoot(string absolutePath)
+        {
+            Root = absolutePath;
+        }
+
         public void Prepare() {}
 
         public Stream WriteFile(string localFilename)

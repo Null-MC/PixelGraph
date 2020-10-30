@@ -1,5 +1,4 @@
 ﻿using McPbrPipeline.Internal.Extensions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,12 @@ using System.Threading;
 
 namespace McPbrPipeline.Internal.Input
 {
-    internal class FileLoader
+    internal interface IFileLoader
+    {
+        IAsyncEnumerable<object> LoadAsync(CancellationToken token = default);
+    }
+
+    internal class FileLoader : IFileLoader
     {
         private readonly IInputReader reader;
         private readonly PbrReader pbrReader;
@@ -18,12 +22,11 @@ namespace McPbrPipeline.Internal.Input
 
 
         public FileLoader(
-            IServiceProvider provider,
-            IInputReader reader)
+            IInputReader reader,
+            ILogger<FileLoader> logger)
         {
             this.reader = reader;
-
-            logger = provider.GetRequiredService<ILogger<FileLoader>>();
+            this.logger = logger;
 
             pbrReader = new PbrReader(reader);
         }

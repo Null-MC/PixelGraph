@@ -1,6 +1,7 @@
-﻿using System;
+﻿using McPbrPipeline.Internal.Input;
+using System;
 
-namespace McPbrPipeline.Internal.Input
+namespace McPbrPipeline.Internal
 {
     internal class PackProperties : PropertiesFile
     {

@@ -1,6 +1,9 @@
 ﻿using McPbrPipeline.Internal;
 using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Output;
 using McPbrPipeline.Internal.Publishing;
+using McPbrPipeline.Internal.Textures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -14,22 +17,24 @@ namespace McPbrPipeline.CommandLine
 {
     internal class PublishCommand
     {
-        private readonly IServiceProvider provider;
+        private readonly ProviderFactory factory;
         private readonly IAppLifetime lifetime;
         private readonly ILogger logger;
 
         public Command Command {get;}
 
 
-        public PublishCommand(IServiceProvider provider)
+        public PublishCommand(
+            ProviderFactory factory,
+            IAppLifetime lifetime,
+            ILogger<GenerateNormalCommand> logger)
         {
-            this.provider = provider;
-
-            lifetime = provider.GetRequiredService<IAppLifetime>();
-            logger = provider.GetRequiredService<ILogger<PublishCommand>>();
+            this.factory = factory;
+            this.lifetime = lifetime;
+            this.logger = logger;
 
             Command = new Command("publish", "Publishes the specified profile.") {
-                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, bool, bool, string[]>(RunAsync),
+                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, FileInfo, bool, string[]>(RunAsync),
             };
 
             Command.AddOption(new Option<FileInfo>(
@@ -41,13 +46,12 @@ namespace McPbrPipeline.CommandLine
                 new[] { "-d", "--destination" },
                 "The target directory to publish the resource pack to."));
 
-            Command.AddOption(new Option<bool>(
-                new [] {"-c", "--clean"},
-                () => false,
+            Command.AddOption(new Option<string>(
+                new [] {"-z", "--zip"},
                 "Generates a compressed ZIP archive of the published contents."));
 
             Command.AddOption(new Option<bool>(
-                new [] {"-z", "--zip"},
+                new [] {"-c", "--clean"},
                 () => false,
                 "Generates a compressed ZIP archive of the published contents."));
 
@@ -56,38 +60,45 @@ namespace McPbrPipeline.CommandLine
                 "Override a pack property."));
         }
 
-        private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, bool clean, bool zip, string[] property)
+        private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, FileInfo zip, bool clean, string[] property)
         {
             if (profile == null) {
                 ConsoleEx.WriteLine("profile is undefined!", ConsoleColor.DarkRed);
                 return -1;
             }
 
-            if (destination == null) {
-                ConsoleEx.WriteLine("Destination is undefined!", ConsoleColor.DarkRed);
+            if (destination == null && zip == null) {
+                ConsoleEx.WriteLine("Either Destination or Zip must be defined!", ConsoleColor.DarkRed);
                 return -1;
             }
 
+            var destPath = zip?.FullName ?? destination.FullName;
             ConsoleEx.WriteLine("\nPublishing...", ConsoleColor.White);
             ConsoleEx.Write("  Profile     : ", ConsoleColor.Gray);
             ConsoleEx.WriteLine(profile.FullName, ConsoleColor.Cyan);
             ConsoleEx.Write("  Destination : ", ConsoleColor.Gray);
-            ConsoleEx.WriteLine(destination.FullName, ConsoleColor.Cyan);
+            ConsoleEx.WriteLine(destPath, ConsoleColor.Cyan);
             ConsoleEx.WriteLine();
 
-            var options = new PublishOptions {
-                Profile = profile.FullName,
-                Destination = destination.FullName,
-                Compress = zip,
-                Clean = clean,
-                Properties = property,
-            };
+            await using var commandProvider = factory.Build(zip != null);
+            var reader = commandProvider.GetRequiredService<IInputReader>();
+            var writer = commandProvider.GetRequiredService<IOutputWriter>();
+            var graphBuilder = commandProvider.GetRequiredService<ITextureGraphBuilder>();
+
+            var packReader = new PackReader();
+            var pack = await packReader.ReadAsync(profile.FullName, property, lifetime.Token);
+
+            graphBuilder.UseGlobalOutput = true;
+            reader.SetRoot(pack.Source);
+            writer.SetRoot(destPath);
 
             var timer = Stopwatch.StartNew();
 
             try {
-                var publisher = provider.GetRequiredService<IPublisher>();
-                await publisher.PublishAsync(options, lifetime.Token);
+                writer.Prepare();
+
+                var publisher = commandProvider.GetRequiredService<IPublisher>();
+                await publisher.PublishAsync(pack, destPath, clean);
                 return 0;
             }
             catch (ApplicationException error) {

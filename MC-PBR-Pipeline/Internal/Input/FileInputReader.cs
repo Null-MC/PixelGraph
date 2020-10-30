@@ -1,21 +1,24 @@
 ﻿using McPbrPipeline.Internal.Extensions;
+using McPbrPipeline.Internal.Output;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace McPbrPipeline.Internal.Input
 {
-    internal class FileInputReader : IInputReader
+    internal class FileInputReader : BaseInputReader
     {
-        private readonly string root;
+        private string root;
 
 
-        public FileInputReader(string root)
+        public FileInputReader(INamingStructure naming) : base(naming) {}
+
+        public override void SetRoot(string absolutePath)
         {
-            this.root = root;
+            root = absolutePath;
         }
 
-        public IEnumerable<string> EnumerateDirectories(string localPath, string pattern = "*")
+        public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = "*")
         {
             var fullPath = PathEx.Join(root, localPath);
 
@@ -25,7 +28,7 @@ namespace McPbrPipeline.Internal.Input
             }
         }
 
-        public IEnumerable<string> EnumerateFiles(string localPath, string pattern = "*")
+        public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = "*")
         {
             var fullPath = PathEx.Join(root, localPath);
 
@@ -35,19 +38,19 @@ namespace McPbrPipeline.Internal.Input
             }
         }
 
-        public Stream Open(string localFile)
+        public override Stream Open(string localFile)
         {
             var fullFile = PathEx.Join(root, localFile);
             return File.Open(fullFile, FileMode.Open, FileAccess.Read);
         }
 
-        public bool FileExists(string localFile)
+        public override bool FileExists(string localFile)
         {
             var fullFile = PathEx.Join(root, localFile);
             return File.Exists(fullFile);
         }
 
-        public DateTime? GetWriteTime(string localFile)
+        public override DateTime? GetWriteTime(string localFile)
         {
             var fullFile = PathEx.Join(root, localFile);
             if (!File.Exists(fullFile)) return null;

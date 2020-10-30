@@ -1,22 +1,29 @@
 ﻿using McPbrPipeline.Internal.Extensions;
 using McPbrPipeline.Internal.Input;
+using McPbrPipeline.Internal.Output;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace McPbrPipeline.Tests.Internal
 {
-    internal class MockInputReader : IInputReader
+    internal class MockInputReader : BaseInputReader
     {
         public MockFileContent Content {get;}
         public string Root {get; set;} = ".";
 
 
-        public MockInputReader(MockFileContent content)
+        public MockInputReader(MockFileContent content, INamingStructure naming) : base(naming)
         {
             Content = content;
         }
 
-        public IEnumerable<string> EnumerateDirectories(string localPath, string pattern = default)
+        public override void SetRoot(string absolutePath)
+        {
+            Root = absolutePath;
+        }
+
+        public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = default)
         {
             var fullPath = PathEx.Join(Root, localPath);
 
@@ -26,7 +33,7 @@ namespace McPbrPipeline.Tests.Internal
             }
         }
 
-        public IEnumerable<string> EnumerateFiles(string localPath, string pattern = default)
+        public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = default)
         {
             var fullPath = PathEx.Join(Root, localPath);
 
@@ -36,16 +43,18 @@ namespace McPbrPipeline.Tests.Internal
             }
         }
 
-        public bool FileExists(string localFile)
+        public override bool FileExists(string localFile)
         {
             var fullFile = PathEx.Join(Root, localFile);
             return Content.FileExists(fullFile);
         }
 
-        public Stream Open(string localFile)
+        public override Stream Open(string localFile)
         {
             var fullFile = PathEx.Join(Root, localFile);
             return Content.OpenRead(fullFile);
         }
+
+        public override DateTime? GetWriteTime(string localFile) => null;
     }
 }

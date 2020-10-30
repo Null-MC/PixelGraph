@@ -16,19 +16,21 @@ namespace McPbrPipeline.CommandLine
 {
     internal class ConvertCommand
     {
-        private readonly IServiceProvider provider;
+        private readonly ProviderFactory factory;
         private readonly IAppLifetime lifetime;
         private readonly ILogger logger;
 
         public Command Command {get;}
 
 
-        public ConvertCommand(IServiceProvider provider)
+        public ConvertCommand(
+            ProviderFactory factory,
+            IAppLifetime lifetime,
+            ILogger<ConvertCommand> logger)
         {
-            this.provider = provider;
-
-            lifetime = provider.GetRequiredService<IAppLifetime>();
-            logger = provider.GetRequiredService<ILogger<ConvertCommand>>();
+            this.factory = factory;
+            this.lifetime = lifetime;
+            this.logger = logger;
 
             Command = new Command("convert", "Converts a specified texture from a source format to a destination format.") {
                 Handler = CommandHandler.Create<string, DirectoryInfo, string, string>(RunAsync),
@@ -74,19 +76,16 @@ namespace McPbrPipeline.CommandLine
             ConsoleEx.WriteLine(outputFormat, ConsoleColor.Cyan);
             ConsoleEx.WriteLine();
 
+            await using var commandProvider = factory.Build(false);
+            var reader = commandProvider.GetRequiredService<IInputReader>();
+            var writer = commandProvider.GetRequiredService<IOutputWriter>();
+
             var fullFile = Path.GetFullPath(texture);
 
-            var pack = new PackProperties {
-                Source = Path.GetDirectoryName(fullFile),
-                Properties = {
-                    ["input.format"] = inputFormat,
-                    ["output.format"] = outputFormat,
-                },
-            };
-
-            var reader = new FileInputReader(pack.Source);
-            var writer = new FileOutputWriter(destination.FullName);
-            var graph = new TextureGraphBuilder(provider, reader, writer, pack);
+            var packReader = new PackReader();
+            var pack = await packReader.ReadAsync(fullFile, token: lifetime.Token);
+            pack.Properties["input.format"] = inputFormat;
+            pack.Properties["output.format"] = outputFormat;
 
             var pbrTexture = new PbrProperties {
                 UseGlobalMatching = true,
@@ -94,10 +93,14 @@ namespace McPbrPipeline.CommandLine
                 Path = ".",
             };
 
+            reader.SetRoot(pack.Source);
+            writer.SetRoot(destination.FullName);
+
             var timer = Stopwatch.StartNew();
 
             try {
-                await graph.BuildAsync(pbrTexture, lifetime.Token);
+                var graph = commandProvider.GetRequiredService<ITextureGraphBuilder>();
+                await graph.BuildAsync(pack, pbrTexture, lifetime.Token);
                 return 0;
             }
             catch (ApplicationException error) {
