@@ -1,28 +1,28 @@
 ﻿using McPbrPipeline.Internal.Extensions;
-using McPbrPipeline.Internal.Input;
 using McPbrPipeline.Internal.Textures;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace McPbrPipeline.Internal.Output
 {
     internal interface INamingStructure
     {
-        string GetInputTextureName(string tag, string textureName, bool global);
-        string GetOutputTextureName(string tag, string textureName, bool global);
-        string GetInputMetaName(string tag, PbrProperties texture);
-        string GetOutputMetaName(string tag, PbrProperties texture, bool global);
+        string GetInputTextureName(PbrProperties texture, string tag);
+        string GetInputMetaName(PbrProperties texture, string tag);
+        string GetOutputTextureName(PackProperties pack, PbrProperties texture, string tag, bool global);
+        string GetOutputMetaName(PackProperties pack, PbrProperties texture, string tag, bool global);
         string Get(string tag, string textureName, string extension, bool global);
     }
 
     internal abstract class NamingStructureBase : INamingStructure
     {
-        protected static readonly Dictionary<string, Func<string, string>> localMap;
+        protected static readonly Dictionary<string, Func<string, string>> LocalMap;
 
 
         static NamingStructureBase()
         {
-            localMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase) {
+            LocalMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase) {
                 [TextureTags.Albedo] = ext => $"albedo.{ext}",
                 [TextureTags.Height] = ext => $"height.{ext}",
                 [TextureTags.Normal] = ext => $"normal.{ext}",
@@ -39,27 +39,29 @@ namespace McPbrPipeline.Internal.Output
 
         public abstract string Get(string tag, string textureName, string extension, bool global);
 
-        public string GetInputTextureName(string tag, string textureName, bool global)
+        public string GetInputTextureName(PbrProperties texture, string tag)
         {
-            return Get(tag, textureName, "*", global);
+            return Get(tag, texture.Name, "*", texture.UseGlobalMatching);
         }
 
-        public string GetOutputTextureName(string tag, string textureName, bool global)
-        {
-            return Get(tag, textureName, "png", global);
-        }
-
-        public string GetInputMetaName(string tag, PbrProperties texture)
+        public string GetInputMetaName(PbrProperties texture, string tag)
         {
             var path = GetPath(texture, texture.UseGlobalMatching);
             var file = Get(tag, texture.Name, "mcmeta", texture.UseGlobalMatching);
             return PathEx.Join(path, file);
         }
 
-        public string GetOutputMetaName(string tag, PbrProperties texture, bool global)
+        public string GetOutputTextureName(PackProperties pack, PbrProperties texture, string tag, bool global)
+        {
+            var ext = GetExtension(pack);
+            return Get(tag, texture.Name, ext, global);
+        }
+
+        public string GetOutputMetaName(PackProperties pack, PbrProperties texture, string tag, bool global)
         {
             var path = GetPath(texture, global);
-            var file = Get(tag, texture.Name, "png.mcmeta", global);
+            var ext = GetExtension(pack);
+            var file = Get(tag, texture.Name, $"{ext}.mcmeta", global);
             return PathEx.Join(path, file);
         }
 
@@ -67,6 +69,16 @@ namespace McPbrPipeline.Internal.Output
         {
             return global ? texture.Path : PathEx.Join(texture.Path, texture.Name);
         }
+
+        private static string GetExtension(PackProperties pack)
+        {
+            if (!supportedExtensions.Contains(pack.OutputEncoding))
+                throw new ApplicationException($"Unsupported image encoding '{pack.OutputEncoding}'!");
+
+            return pack.OutputEncoding;
+        }
+
+        private static readonly string[] supportedExtensions = {"bmp", "jpg", "jpeg", "gif", "png", "tga"};
     }
 
     internal class JavaNamingStructure : NamingStructureBase
@@ -95,7 +107,7 @@ namespace McPbrPipeline.Internal.Output
         {
             return global
                 ? globalMap[tag](textureName, extension)
-                : localMap[tag](extension);
+                : LocalMap[tag](extension);
         }
     }
 
@@ -125,7 +137,7 @@ namespace McPbrPipeline.Internal.Output
         {
             return global
                 ? globalMap[tag](textureName, extension)
-                : localMap[tag](extension);
+                : LocalMap[tag](extension);
         }
     }
 }

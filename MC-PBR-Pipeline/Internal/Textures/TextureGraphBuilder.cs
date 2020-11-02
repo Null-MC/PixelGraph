@@ -74,8 +74,7 @@ namespace McPbrPipeline.Internal.Textures
 
         private async Task ProcessTextureAsync(TextureGraph graph, string tag, CancellationToken token)
         {
-            var name = naming.GetOutputTextureName(tag, graph.Texture.Name, UseGlobalOutput);
-
+            var name = naming.GetOutputTextureName(graph.Pack, graph.Texture, tag, UseGlobalOutput);
             using var image = await graph.BuildFinalImageAsync(tag, token);
 
             if (image != null) {
@@ -117,10 +116,10 @@ namespace McPbrPipeline.Internal.Textures
 
         private async Task CopyMetaAsync(TextureGraph graph, string tag, CancellationToken token)
         {
-            var metaFileIn = naming.GetInputMetaName(tag, graph.Texture);
+            var metaFileIn = naming.GetInputMetaName(graph.Texture, tag);
             if (!reader.FileExists(metaFileIn)) return;
 
-            var metaFileOut = naming.GetOutputMetaName(tag, graph.Texture, UseGlobalOutput);
+            var metaFileOut = naming.GetOutputMetaName(graph.Pack, graph.Texture, tag, UseGlobalOutput);
 
             await using var sourceStream = reader.Open(metaFileIn);
             await using var destStream = writer.WriteFile(metaFileOut);

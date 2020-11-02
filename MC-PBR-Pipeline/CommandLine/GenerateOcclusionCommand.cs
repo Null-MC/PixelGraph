@@ -81,7 +81,7 @@ namespace McPbrPipeline.CommandLine
 
             foreach (var texture in textureList) {
                 logger.LogDebug("Generating ambient occlusion for texture {DisplayName}.", texture.DisplayName);
-                var finalName = occlusion ?? naming.GetOutputTextureName(TextureTags.Occlusion, texture.Name, texture.UseGlobalMatching);
+                var finalName = occlusion ?? naming.GetOutputTextureName(pack, texture, TextureTags.Occlusion, texture.UseGlobalMatching);
 
                 try {
                     using var graph = graphBuilder.CreateGraph(pack, texture);

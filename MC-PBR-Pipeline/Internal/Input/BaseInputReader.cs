@@ -43,7 +43,7 @@ namespace McPbrPipeline.Internal.Input
             if (!string.IsNullOrEmpty(filename))
                 yield return PathEx.Join(srcPath, filename);
 
-            var matchName = naming.GetInputTextureName(tag, texture.Name, texture.UseGlobalMatching);
+            var matchName = naming.GetInputTextureName(texture, tag);
 
             foreach (var file in EnumerateFiles(srcPath, matchName)) {
                 var ext = Path.GetExtension(file);

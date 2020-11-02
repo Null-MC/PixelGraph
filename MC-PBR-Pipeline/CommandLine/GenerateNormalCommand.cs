@@ -82,7 +82,7 @@ namespace McPbrPipeline.CommandLine
 
             foreach (var texture in textureList) {
                 logger.LogDebug("Generating normals for texture {DisplayName}.", texture.DisplayName);
-                var finalName = normal ?? naming.GetOutputTextureName(TextureTags.Normal, texture.Name, texture.UseGlobalMatching);
+                var finalName = normal ?? naming.GetOutputTextureName(pack, texture, TextureTags.Normal, texture.UseGlobalMatching);
 
                 try {
                     using var graph = graphBuilder.CreateGraph(pack, texture);
