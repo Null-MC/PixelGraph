@@ -14,10 +14,14 @@ jobs:
       - uses: actions/checkout@v2
       - name: Publish Binaries
         run: |
-          cd MC-PBR-Pipeline
-          dotnet publish -c Release -r win-x64 -o ../publish/win-x64 -p:PublishSingleFile=true --self-contained false
-          dotnet publish -c Release -r linux-x64 -o ../publish/linux-x64 -p:PublishSingleFile=true --self-contained false
-          dotnet publish -c Release -r osx-x64 -o ../publish/osx-x64 -p:PublishSingleFile=true --self-contained false
+          cd PixelGraph.CLI
+          dotnet publish -c Release -r win-x64 -o ../publish/win-cli-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish -c Release -r linux-x64 -o ../publish/linux-cli-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish -c Release -r osx-x64 -o ../publish/osx-cli-x64 -p:PublishSingleFile=true --self-contained false
+          cd ../PixelGraph.UI
+          dotnet publish -c Release -r win-x64 -o ../publish/win-ui-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish -c Release -r linux-x64 -o ../publish/linux-ui-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish -c Release -r osx-x64 -o ../publish/osx-ui-x64 -p:PublishSingleFile=true --self-contained false
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -27,37 +31,64 @@ jobs:
           tag_name: ${{ github.event.inputs.version }}
           release_name: Release ${{ github.event.inputs.version }}
           draft: true
-      - name: Upload Windows-x64 Binary
+      - name: Upload Windows-CLI-x64 Binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./publish/win-x64/MCPBRP.exe
-          asset_name: MCPBRP-win-x64.exe
+          asset_path: ./publish/win-cli-x64/PixelGraph.exe
+          asset_name: PixelGraph-CLI-win-x64.exe
           asset_content_type: application/exe
-      - name: Upload Linux-x64 Binary
+      - name: Upload Linux-CLI-x64 Binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./publish/linux-x64/MCPBRP
-          asset_name: MCPBRP-linux-x64
+          asset_path: ./publish/linux-cli-x64/PixelGraph
+          asset_name: PixelGraph-CLI-linux-x64
           asset_content_type: application/exe
-      - name: Upload OSX-x64 Binary
+      - name: Upload OSX-CLI-x64 Binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./publish/osx-x64/MCPBRP
-          asset_name: MCPBRP-osx-x64
+          asset_path: ./publish/osx-cli-x64/PixelGraph
+          asset_name: PixelGraph-CLI-osx-x64
+          asset_content_type: application/exe
+      - name: Upload Windows-UI-x64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./publish/win-ui-x64/PixelGraph.exe
+          asset_name: PixelGraph-UI-win-x64.exe
+          asset_content_type: application/exe
+      - name: Upload Linux-UI-x64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./publish/linux-ui-x64/PixelGraph
+          asset_name: PixelGraph-UI-linux-x64
+          asset_content_type: application/exe
+      - name: Upload OSX-UI-x64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./publish/osx-ui-x64/PixelGraph
+          asset_name: PixelGraph-UI-osx-x64
           asset_content_type: application/exe
       - name: Publish Dockerfile
         uses: docker/build-push-action@v1
         with:
-          repository: null511/mcpbrp
+          repository: null511/pixelgraph
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           tags: latest,${{ github.event.inputs.version }}
