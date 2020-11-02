@@ -1,14 +1,16 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1 as build
 WORKDIR /src
-COPY ./MC-PBR-Pipeline.sln ./
-COPY ./MC-PBR-Pipeline/MC-PBR-Pipeline.csproj ./MC-PBR-Pipeline/
-COPY ./MC-PBR-Pipeline.Tests/MC-PBR-Pipeline.Tests.csproj ./MC-PBR-Pipeline.Tests/
+COPY ./PixelGraph.sln ./
+COPY ./PixelGraph.Common/PixelGraph.Common.csproj ./PixelGraph.Common/
+COPY ./PixelGraph.CLI/PixelGraph.CLI.csproj ./PixelGraph.CLI/
+COPY ./PixelGraph.UI/PixelGraph.UI.csproj ./PixelGraph.UI/
+COPY ./PixelGraph.Tests/PixelGraph.Tests.csproj ./PixelGraph.Tests/
 RUN dotnet restore
-COPY ./MC-PBR-Pipeline ./MC-PBR-Pipeline/
-WORKDIR /src/MC-PBR-Pipeline
+COPY ./PixelGraph ./PixelGraph/
+WORKDIR /src/PixelGraph.CLI
 RUN dotnet publish -c Release -o /publish
 
 FROM mcr.microsoft.com/dotnet/core/runtime:3.1
 WORKDIR /app
 COPY --from=build /publish ./
-ENTRYPOINT ["./MCPBRP"]
+ENTRYPOINT ["./PixelGraph"]

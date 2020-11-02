@@ -1,6 +1,6 @@
-# MC-PBR-Pipeline [![Actions Status](https://github.com/null511/MC-PBR-Pipeline/workflows/Release/badge.svg)](https://github.com/null511/MC-PBR-Pipeline/actions)
+# PixelGraph [![Actions Status](https://github.com/null511/MC-PBR-Pipeline/workflows/Release/badge.svg)](https://github.com/null511/MC-PBR-Pipeline/actions)
 
-MCPBRP is a command-line application for publishing Minecraft resource packs, with special tooling for post-processing PBR materials. Automate the workload of modifying and distributing your resource packs through simple property files. Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
+PixelGraph (formerly MCPBRP) is an application for publishing Minecraft resource packs, with special tooling for post-processing PBR materials. Automate the workload of modifying and distributing your resource packs through simple property files. Supports a WPF-based desktop application as well as a command-line version for remote/server usage. Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
 
 <img src="https://github.com/null511/MC-PBR-Pipeline/raw/master/media/LAB11.png" alt="PBR Workflow" />
 
@@ -10,7 +10,7 @@ MCPBRP is a command-line application for publishing Minecraft resource packs, wi
 
  - **Support more users** by publishing multiple packs with varying quality. The resolution and included textures can be altered using either the command-line or Publishing Profiles to create multiple distributions.
 
- - **Automate** normal-map creation, resizing, and channel-swapping so that you can spend more time designing and less time repeating yourself.
+ - **Automate** Normal & AO generation, resizing, and channel-swapping so that you can spend more time designing and less time repeating yourself.
  
 ### Normal-Map Generation
 
