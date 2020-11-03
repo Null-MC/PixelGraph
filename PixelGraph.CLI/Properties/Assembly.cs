@@ -1,3 +1,3 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("MCPBRP.Tests")]
+[assembly:InternalsVisibleTo("PixelGraph.Tests")]

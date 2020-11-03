@@ -1,8 +1,8 @@
-# PixelGraph [![Actions Status](https://github.com/null511/MC-PBR-Pipeline/workflows/Release/badge.svg)](https://github.com/null511/MC-PBR-Pipeline/actions)
+# PixelGraph [![Actions Status](https://github.com/null511/PixelGraph/workflows/Release/badge.svg)](https://github.com/null511/PixelGraph/actions)
 
 PixelGraph (formerly MCPBRP) is an application for publishing Minecraft resource packs, with special tooling for post-processing PBR materials. Automate the workload of modifying and distributing your resource packs through simple property files. Supports a WPF-based desktop application as well as a command-line version for remote/server usage. Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
 
-<img src="https://github.com/null511/MC-PBR-Pipeline/raw/master/media/LAB11.png" alt="PBR Workflow" />
+<img src="https://github.com/null511/PixelGraph/raw/master/media/LAB11.png" alt="PBR Workflow" />
 
  - **Simplify your workflow** by adjusting text instead of pixels. Getting image-based material values just right can be tedious, time consuming, and destructive.
 
@@ -14,19 +14,19 @@ PixelGraph (formerly MCPBRP) is an application for publishing Minecraft resource
  
 ### Normal-Map Generation
 
-<img src="https://github.com/null511/MC-PBR-Pipeline/raw/master/media/NormalGeneration.png" alt="Normal-Map from Height-Map" height="140px"/>
+<img src="https://github.com/null511/PixelGraph/raw/master/media/NormalGeneration.png" alt="Normal-Map from Height-Map" height="140px"/>
 
 Allows normal-map textures to be created from height-maps as needed during publishing, or by prerendering them beforehand. Strength, blur, and wrapping can be managed using the textures matching pbr-properties file.
  
 ### Occlusion-Map Generation
 
-<img src="https://github.com/null511/MC-PBR-Pipeline/raw/master/media/OcclusionGeneration.png" alt="Occlusion-Map from Height-Map" height="140px"/>
+<img src="https://github.com/null511/PixelGraph/raw/master/media/OcclusionGeneration.png" alt="Occlusion-Map from Height-Map" height="140px"/>
 
 Allows ambient-occlusion textures to be created from height-maps as needed during publishing, or by prerendering them beforehand. Quality, Z-scale, step-count, and wrapping can be managed using the textures matching pbr-properties file.
 
 ## Installation
 
-For manual installation, download the latest standalone executable from the [Releases](https://github.com/null511/MC-PBR-Pipeline/releases) page. For automated usage see [Docker Usage](https://github.com/null511/MC-PBR-Pipeline/wiki/Installation#docker). Visit the [wiki](https://github.com/null511/MC-PBR-Pipeline/wiki/Installation) for more information.
+For manual installation, download the latest standalone executable from the [Releases](https://github.com/null511/PixelGraph/releases) page. For automated usage see [Docker Usage](https://github.com/null511/PixelGraph/wiki/Installation#docker). Visit the [wiki](https://github.com/null511/PixelGraph/wiki/Installation) for more information.
 
 ## Usage
 
@@ -38,7 +38,7 @@ input.format = default
 output.format = lab-1.3
 ```
 
-Each item-texture requires a matching `*.pbr.properties` file to enable filtering. For more details, see the [Wiki](https://github.com/null511/MC-PBR-Pipeline/wiki/File-Loading).
+Each item-texture requires a matching `*.pbr.properties` file to enable filtering. For more details, see the [Wiki](https://github.com/null511/PixelGraph/wiki/File-Loading).
 ```ini
 # ~/assets/minecraft/textures/block/lantern.pbr.properties
 smooth.scale = 1.2
