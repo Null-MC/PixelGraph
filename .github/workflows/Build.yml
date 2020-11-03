@@ -9,8 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build
-        run: |
-          dotnet restore
-          dotnet build -c Test
+        run: dotnet build -c Test
       - name: Test
         run: dotnet test -c Test
