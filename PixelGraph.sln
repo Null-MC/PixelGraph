@@ -5,9 +5,9 @@ VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelGraph.CLI", "PixelGraph.CLI\PixelGraph.CLI.csproj", "{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixelGraph.Common", "PixelGraph.Common\PixelGraph.Common.csproj", "{DCA6D37D-161D-4997-B8F0-CC7D1BEDA25D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelGraph.Common", "PixelGraph.Common\PixelGraph.Common.csproj", "{DCA6D37D-161D-4997-B8F0-CC7D1BEDA25D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixelGraph.UI", "PixelGraph.UI\PixelGraph.UI.csproj", "{58FC91C8-5100-40C2-9E16-5863E93E18B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelGraph.UI", "PixelGraph.UI\PixelGraph.UI.csproj", "{58FC91C8-5100-40C2-9E16-5863E93E18B0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelGraph.Tests", "PixelGraph.Tests\PixelGraph.Tests.csproj", "{F890D8CF-90E6-4806-A631-782EEA7C8AFC}"
 EndProject
@@ -15,24 +15,32 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Test|Any CPU = Test|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}.Test|Any CPU.ActiveCfg = Release|Any CPU
+		{0D1C35BD-3FA2-427A-A84E-FDE3201B14E4}.Test|Any CPU.Build.0 = Release|Any CPU
 		{DCA6D37D-161D-4997-B8F0-CC7D1BEDA25D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DCA6D37D-161D-4997-B8F0-CC7D1BEDA25D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCA6D37D-161D-4997-B8F0-CC7D1BEDA25D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCA6D37D-161D-4997-B8F0-CC7D1BEDA25D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCA6D37D-161D-4997-B8F0-CC7D1BEDA25D}.Test|Any CPU.ActiveCfg = Release|Any CPU
+		{DCA6D37D-161D-4997-B8F0-CC7D1BEDA25D}.Test|Any CPU.Build.0 = Release|Any CPU
 		{58FC91C8-5100-40C2-9E16-5863E93E18B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{58FC91C8-5100-40C2-9E16-5863E93E18B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58FC91C8-5100-40C2-9E16-5863E93E18B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58FC91C8-5100-40C2-9E16-5863E93E18B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58FC91C8-5100-40C2-9E16-5863E93E18B0}.Test|Any CPU.ActiveCfg = Release|Any CPU
+		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Test|Any CPU.ActiveCfg = Release|Any CPU
+		{F890D8CF-90E6-4806-A631-782EEA7C8AFC}.Test|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
