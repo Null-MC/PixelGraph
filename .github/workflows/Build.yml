@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build
         run: |
-          dotnet restore -c Test
+          dotnet restore
           dotnet build -c Test
       - name: Test
         run: dotnet test -c Test
