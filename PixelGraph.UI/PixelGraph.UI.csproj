@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
+    <Version>0.5.0</Version>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <UseWPF>true</UseWPF>
     <AssemblyName>PixelGraph</AssemblyName>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
 
 </Project>
