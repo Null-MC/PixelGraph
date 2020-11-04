@@ -9,7 +9,7 @@ namespace PixelGraph.Common
         public DateTime WriteTime {get; set;}
 
         public string PackEdition => Get("pack.edition", "java");
-        public int PackFormat => Get<int>("pack.format");
+        public int PackFormat => Get("pack.format", 5);
         public string PackDescription => Get<string>("pack.description");
         public string PackTags => Get<string>("pack.tags");
 
