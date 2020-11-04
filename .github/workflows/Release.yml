@@ -57,18 +57,22 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: Windows-CLI-x64
+          path: win-cli-x64/PixelGraph.exe
       - name: Download Linux-CLI-x64 Binary
         uses: actions/download-artifact@v2
         with:
           name: Linux-CLI-x64
+          path: linux-cli-x64/PixelGraph
       - name: Download OSX-CLI-x64 Binary
         uses: actions/download-artifact@v2
         with:
           name: OSX-CLI-x64
+          path: osx-cli-x64/PixelGraph
       - name: Download Windows-UI-x64 Binary
         uses: actions/download-artifact@v2
         with:
           name: Windows-UI-x64
+          path: win-ui-x64/PixelGraph.exe
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -84,7 +88,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./publish/win-cli-x64/PixelGraph.exe
+          asset_path: ./win-cli-x64/PixelGraph.exe
           asset_name: PixelGraph-CLI-win-x64.exe
           asset_content_type: application/exe
       - name: Release Linux-CLI-x64 Binary
@@ -93,7 +97,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./publish/linux-cli-x64/PixelGraph
+          asset_path: ./linux-cli-x64/PixelGraph
           asset_name: PixelGraph-CLI-linux-x64
           asset_content_type: application/exe
       - name: Release OSX-CLI-x64 Binary
@@ -102,7 +106,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./publish/osx-cli-x64/PixelGraph
+          asset_path: ./osx-cli-x64/PixelGraph
           asset_name: PixelGraph-CLI-osx-x64
           asset_content_type: application/exe
       - name: Release Windows-UI-x64 Binary
@@ -111,7 +115,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./publish/win-ui-x64/PixelGraph.exe
+          asset_path: ./win-ui-x64/PixelGraph.exe
           asset_name: PixelGraph-UI-win-x64.exe
           asset_content_type: application/exe
       - name: Publish Dockerfile
