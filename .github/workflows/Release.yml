@@ -57,22 +57,22 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: Windows-CLI-x64
-          path: win-cli-x64/PixelGraph.exe
+          path: win-cli-x64
       - name: Download Linux-CLI-x64 Binary
         uses: actions/download-artifact@v2
         with:
           name: Linux-CLI-x64
-          path: linux-cli-x64/PixelGraph
+          path: linux-cli-x64
       - name: Download OSX-CLI-x64 Binary
         uses: actions/download-artifact@v2
         with:
           name: OSX-CLI-x64
-          path: osx-cli-x64/PixelGraph
+          path: osx-cli-x64
       - name: Download Windows-UI-x64 Binary
         uses: actions/download-artifact@v2
         with:
           name: Windows-UI-x64
-          path: win-ui-x64/PixelGraph.exe
+          path: win-ui-x64
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
