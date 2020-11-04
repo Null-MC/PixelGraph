@@ -88,7 +88,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./win-cli-x64/PixelGraph.exe
+          asset_path: win-cli-x64/PixelGraph.exe
           asset_name: PixelGraph-CLI-win-x64.exe
           asset_content_type: application/exe
       - name: Release Linux-CLI-x64 Binary
@@ -97,7 +97,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./linux-cli-x64/PixelGraph
+          asset_path: linux-cli-x64/PixelGraph
           asset_name: PixelGraph-CLI-linux-x64
           asset_content_type: application/exe
       - name: Release OSX-CLI-x64 Binary
@@ -106,7 +106,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./osx-cli-x64/PixelGraph
+          asset_path: osx-cli-x64/PixelGraph
           asset_name: PixelGraph-CLI-osx-x64
           asset_content_type: application/exe
       - name: Release Windows-UI-x64 Binary
@@ -115,7 +115,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./win-ui-x64/PixelGraph.exe
+          asset_path: win-ui-x64/PixelGraph.exe
           asset_name: PixelGraph-UI-win-x64.exe
           asset_content_type: application/exe
       - name: Publish Dockerfile
