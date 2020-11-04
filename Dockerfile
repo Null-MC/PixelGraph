@@ -3,7 +3,8 @@ WORKDIR /src
 COPY ./PixelGraph.sln ./
 COPY ./PixelGraph.Common/PixelGraph.Common.csproj ./PixelGraph.Common/
 COPY ./PixelGraph.CLI/PixelGraph.CLI.csproj ./PixelGraph.CLI/
-RUN dotnet restore
+RUN dotnet restore ./PixelGraph.Common/PixelGraph.Common.csproj && \
+	dotnet restore ./PixelGraph.CLI/PixelGraph.CLI.csproj
 COPY ./PixelGraph.Common ./PixelGraph.Common/
 COPY ./PixelGraph.CLI ./PixelGraph.CLI/
 WORKDIR /src/PixelGraph.CLI
