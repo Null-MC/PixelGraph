@@ -56,10 +56,10 @@ namespace PixelGraph.Common.Textures
         }
 
         private static readonly Dictionary<string, Func<PbrProperties, byte?>> valueMap = new Dictionary<string, Func<PbrProperties, byte?>>(StringComparer.InvariantCultureIgnoreCase) {
-            [EncodingChannel.AlbedoR] = tex => tex.AlbedoValueR,
-            [EncodingChannel.AlbedoG] = tex => tex.AlbedoValueG,
-            [EncodingChannel.AlbedoB] = tex => tex.AlbedoValueB,
-            [EncodingChannel.AlbedoA] = tex => tex.AlbedoValueA,
+            [EncodingChannel.Red] = tex => tex.AlbedoValueR,
+            [EncodingChannel.Green] = tex => tex.AlbedoValueG,
+            [EncodingChannel.Blue] = tex => tex.AlbedoValueB,
+            [EncodingChannel.Alpha] = tex => tex.AlbedoValueA,
             [EncodingChannel.Height] = tex => tex.HeightValue,
             [EncodingChannel.NormalX] = tex => tex.NormalValueX,
             [EncodingChannel.NormalY] = tex => tex.NormalValueY,
@@ -78,10 +78,10 @@ namespace PixelGraph.Common.Textures
         };
 
         private static readonly Dictionary<string, Func<PbrProperties, float>> scaleMap = new Dictionary<string, Func<PbrProperties, float>>(StringComparer.InvariantCultureIgnoreCase) {
-            [EncodingChannel.AlbedoR] = t => t.AlbedoScaleR ?? 1f,
-            [EncodingChannel.AlbedoG] = t => t.AlbedoScaleG ?? 1f,
-            [EncodingChannel.AlbedoB] = t => t.AlbedoScaleB ?? 1f,
-            [EncodingChannel.AlbedoA] = t => t.AlbedoScaleA ?? 1f,
+            [EncodingChannel.Red] = t => t.AlbedoScaleR ?? 1f,
+            [EncodingChannel.Green] = t => t.AlbedoScaleG ?? 1f,
+            [EncodingChannel.Blue] = t => t.AlbedoScaleB ?? 1f,
+            [EncodingChannel.Alpha] = t => t.AlbedoScaleA ?? 1f,
             [EncodingChannel.Height] = t => t.HeightScale ?? 1f,
             [EncodingChannel.Occlusion] = t => t.OcclusionScale ?? 1f,
             [EncodingChannel.Smooth] = t => t.SmoothScale ?? 1f,

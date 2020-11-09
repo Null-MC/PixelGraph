@@ -2,7 +2,6 @@
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Textures;
 using System;
-using System.Collections.Generic;
 
 namespace PixelGraph.Common.Encoding
 {
@@ -10,6 +9,7 @@ namespace PixelGraph.Common.Encoding
     {
         public const string Raw = "raw";
         public const string Default = "default";
+        public const string Legacy = "legacy";
         public const string Lab11 = "lab-1.1";
         public const string Lab13 = "lab-1.3";
 
@@ -127,6 +127,8 @@ namespace PixelGraph.Common.Encoding
 
         public void Build(PackProperties pack, PbrProperties texture = null)
         {
+            Properties.Clear();
+
             var hasPackInputFormat = !string.IsNullOrWhiteSpace(pack.InputFormat);
             var hasPackOutputFormat = !string.IsNullOrWhiteSpace(pack.OutputFormat);
             var hasTextureInputFormat = !string.IsNullOrWhiteSpace(texture?.InputFormat);
@@ -149,31 +151,17 @@ namespace PixelGraph.Common.Encoding
         private void ApplyInputFormat(string format)
         {
             if (string.Equals(Raw, format, StringComparison.InvariantCultureIgnoreCase)) {
-                Properties.Update(new Dictionary<string, string> {
-                    ["albedo.input.r"] = EncodingChannel.Red,
-                    ["albedo.input.g"] = EncodingChannel.Green,
-                    ["albedo.input.b"] = EncodingChannel.Blue,
-                    ["albedo.input.a"] = EncodingChannel.Alpha,
-
-                    ["height.input.r"] = EncodingChannel.Height,
-                    ["normal.input.r"] = EncodingChannel.NormalX,
-                    ["normal.input.g"] = EncodingChannel.NormalY,
-                    ["normal.input.b"] = EncodingChannel.NormalZ,
-                    ["occlusion.input.r"] = EncodingChannel.Occlusion,
-
-                    ["specular.input.r"] = EncodingChannel.Specular,
-                    ["smooth.input.r"] = EncodingChannel.Smooth,
-                    ["rough.input.r"] = EncodingChannel.Rough,
-                    ["metal.input.r"] = EncodingChannel.Metal,
-                    ["porosity.input.r"] = EncodingChannel.Porosity,
-                    ["sss.input.r"] = EncodingChannel.SubSurfaceScattering,
-                    ["emissive.input.r"] = EncodingChannel.Emissive,
-                });
+                Properties.Update(RawEncoding.InputProperties);
                 return;
             }
 
             if (string.Equals(Default, format, StringComparison.InvariantCultureIgnoreCase)) {
                 Properties.Update(DefaultEncoding.InputProperties);
+                return;
+            }
+
+            if (string.Equals(Legacy, format, StringComparison.InvariantCultureIgnoreCase)) {
+                Properties.Update(LegacyEncoding.InputProperties);
                 return;
             }
 
@@ -192,13 +180,18 @@ namespace PixelGraph.Common.Encoding
 
         private void ApplyOutputFormat(string format)
         {
+            if (string.Equals(Raw, format, StringComparison.InvariantCultureIgnoreCase)) {
+                Properties.Update(RawEncoding.OutputProperties);
+                return;
+            }
+
             if (string.Equals(Default, format, StringComparison.InvariantCultureIgnoreCase)) {
                 Properties.Update(DefaultEncoding.OutputProperties);
                 return;
             }
 
-            if (string.Equals(Raw, format, StringComparison.InvariantCultureIgnoreCase)) {
-                Properties.Update(RawEncoding.OutputProperties);
+            if (string.Equals(Legacy, format, StringComparison.InvariantCultureIgnoreCase)) {
+                Properties.Update(LegacyEncoding.OutputProperties);
                 return;
             }
 

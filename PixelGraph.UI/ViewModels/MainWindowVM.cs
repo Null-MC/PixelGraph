@@ -1,20 +1,30 @@
 ﻿using PixelGraph.Common;
 using PixelGraph.Common.Encoding;
-using PixelGraph.Common.Textures;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
 using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class MainWindowVM : ViewModelBase
     {
-        private EncodingProperties _encoding;
+        //private readonly CollectionViewSource textureView;
+        private string _packFilename;
+        private string _textureSearch;
 
         public event EventHandler Changed;
 
+        public PackEncodingVM Encoding {get;}
         public PackProperties Pack {get; private set;}
+        public ObservableCollection<TextureVM> TextureList {get;}
+        public IEnumerable<TextureVM> TextureView => FilterTextures();
+        public Visibility EditVisibility => GetVisibility(Pack != null);
 
-        private string _packFilename;
         public string PackFilename {
             get => _packFilename;
             set {
@@ -22,8 +32,6 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged();
             }
         }
-
-        public Visibility EditVisibility => GetVisibility(Pack != null);
 
         public string GameEdition {
             get => Pack?.PackEdition;
@@ -65,163 +73,76 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public string InputFormat {
-            get => Pack?.InputFormat;
+        public string TextureSearch {
+            get => _textureSearch;
             set {
-                if (Pack == null) return;
-                Pack.InputFormat = value;
+                _textureSearch = value;
                 OnPropertyChanged();
-                OnChanged();
+                OnPropertyChanged(nameof(TextureView));
             }
         }
 
-        public string OutputFormat {
-            get => Pack?.OutputFormat;
+        private TextureVM _currentTexture;
+        public TextureVM CurrentTexture {
+            get => _currentTexture;
             set {
-                if (Pack == null) return;
-                Pack.OutputFormat = value;
+                _currentTexture = value;
+                TexturePreviewImage = value?.AlbedoSource;
                 OnPropertyChanged();
-                OnChanged();
             }
         }
 
-        private string _encodingTag = TextureTags.Albedo;
-        public string EncodingTag {
-            get => _encodingTag;
+        private ImageSource _texturePreviewImage;
+        public ImageSource TexturePreviewImage {
+            get => _texturePreviewImage;
             set {
-                _encodingTag = value;
+                _texturePreviewImage = value;
                 OnPropertyChanged();
-                UpdateInputOutputProperties();
             }
         }
 
-        public bool ExportTexture {
-            get => _encoding?.GetExported(_encodingTag) ?? false;
-            set {
-                if (Pack == null) return;
-                Pack.SetExported(_encodingTag, value);
-                _encoding.Build(Pack);
-                OnPropertyChanged();
-                OnChanged();
-            }
+
+        public MainWindowVM()
+        {
+            Encoding = new PackEncodingVM();
+            Encoding.Changed += (o, e) => OnChanged();
+
+            TextureList = new ObservableCollection<TextureVM>();
+            TextureList.CollectionChanged += TextureList_OnCollectionChanged;
+
+            //textureView = new CollectionViewSource {
+            //    Source = TextureList,
+            //};
+
+            //textureView.Filter += TextureView_OnFilter;
         }
 
-        public string InputRed {
-            get => _encoding?.GetInput(_encodingTag, ColorChannel.Red);
-            set {
-                if (Pack == null) return;
-                Pack.SetInput(_encodingTag, ColorChannel.Red, value);
-                _encoding.Build(Pack);
-                OnPropertyChanged();
-                OnChanged();
-            }
-        }
+        //private void TextureView_OnFilter(object sender, FilterEventArgs e)
+        //{
+        //    //
+        //}
 
-        public string InputGreen {
-            get => _encoding?.GetInput(_encodingTag, ColorChannel.Green);
-            set {
-                if (Pack == null) return;
-                Pack.SetInput(_encodingTag, ColorChannel.Green, value);
-                _encoding.Build(Pack);
-                OnPropertyChanged();
-                OnChanged();
-            }
-        }
-
-        public string InputBlue {
-            get => _encoding?.GetInput(_encodingTag, ColorChannel.Blue);
-            set {
-                if (Pack == null) return;
-                Pack.SetInput(_encodingTag, ColorChannel.Blue, value);
-                _encoding.Build(Pack);
-                OnPropertyChanged();
-                OnChanged();
-            }
-        }
-
-        public string InputAlpha {
-            get => _encoding?.GetInput(_encodingTag, ColorChannel.Alpha);
-            set {
-                if (Pack == null) return;
-                Pack.SetInput(_encodingTag, ColorChannel.Alpha, value);
-                _encoding.Build(Pack);
-                OnPropertyChanged();
-                OnChanged();
-            }
-        }
-
-        public string OutputRed {
-            get => _encoding?.GetOutput(_encodingTag, ColorChannel.Red);
-            set {
-                if (Pack == null) return;
-                Pack.SetOutput(_encodingTag, ColorChannel.Red, value);
-                _encoding.Build(Pack);
-                OnPropertyChanged();
-                OnChanged();
-            }
-        }
-
-        public string OutputGreen {
-            get => _encoding?.GetOutput(_encodingTag, ColorChannel.Green);
-            set {
-                if (Pack == null) return;
-                Pack.SetOutput(_encodingTag, ColorChannel.Green, value);
-                _encoding.Build(Pack);
-                OnPropertyChanged();
-                OnChanged();
-            }
-        }
-
-        public string OutputBlue {
-            get => _encoding?.GetOutput(_encodingTag, ColorChannel.Blue);
-            set {
-                if (Pack == null) return;
-                Pack.SetOutput(_encodingTag, ColorChannel.Blue, value);
-                _encoding.Build(Pack);
-                OnPropertyChanged();
-                OnChanged();
-            }
-        }
-
-        public string OutputAlpha {
-            get => _encoding?.GetOutput(_encodingTag, ColorChannel.Alpha);
-            set {
-                if (Pack == null) return;
-                Pack.SetOutput(_encodingTag, ColorChannel.Alpha, value);
-                _encoding.Build(Pack);
-                OnPropertyChanged();
-                OnChanged();
-            }
+        private IEnumerable<TextureVM> FilterTextures()
+        {
+            return string.IsNullOrWhiteSpace(TextureSearch) ? TextureList
+                : TextureList.Where(x => x.Name.Contains(TextureSearch, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public void Initialize(PackProperties pack)
         {
             Pack = pack;
-            _encoding = new EncodingProperties();
-            _encoding.Build(pack);
+            Encoding.Pack = pack;
 
             OnPropertyChanged(nameof(EditVisibility));
             OnPropertyChanged(nameof(GameEdition));
             OnPropertyChanged(nameof(PackFormat));
             OnPropertyChanged(nameof(PackDescription));
             OnPropertyChanged(nameof(PackTags));
-            OnPropertyChanged(nameof(InputFormat));
-            OnPropertyChanged(nameof(OutputFormat));
-
-            UpdateInputOutputProperties();
         }
 
-        private void UpdateInputOutputProperties()
+        private void TextureList_OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            OnPropertyChanged(nameof(ExportTexture));
-            OnPropertyChanged(nameof(InputRed));
-            OnPropertyChanged(nameof(InputGreen));
-            OnPropertyChanged(nameof(InputBlue));
-            OnPropertyChanged(nameof(InputAlpha));
-            OnPropertyChanged(nameof(OutputRed));
-            OnPropertyChanged(nameof(OutputGreen));
-            OnPropertyChanged(nameof(OutputBlue));
-            OnPropertyChanged(nameof(OutputAlpha));
+            OnPropertyChanged(nameof(TextureView));
         }
 
         private void OnChanged()
@@ -236,12 +157,18 @@ namespace PixelGraph.UI.ViewModels
         {
             var pack = new PackProperties {
                 Properties = {
-                    ["input.format"] = "default",
-                    ["output.format"] = "default",
+                    ["input.format"] = EncodingProperties.Raw,
+                    ["output.format"] = EncodingProperties.Lab13,
                 }
             };
 
             Initialize(pack);
+
+            TextureSearch = "as";
+            TextureList.Add(new TextureVM(new PbrProperties {Name = "Dirt"}));
+            TextureList.Add(new TextureVM(new PbrProperties {Name = "Grass"}));
+            TextureList.Add(new TextureVM(new PbrProperties {Name = "Glass"}));
+            TextureList.Add(new TextureVM(new PbrProperties {Name = "Stone"}));
         }
     }
 }

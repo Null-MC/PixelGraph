@@ -5,11 +5,6 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO
 {
-    //public interface IPropertyReader
-    //{
-    //    Task ReadAsync(Stream stream, PropertiesFile properties, CancellationToken token = default);
-    //}
-
     public interface IPropertyWriter
     {
         Task WriteAsync(Stream stream, PropertiesFile properties, CancellationToken token = default);
@@ -39,6 +34,7 @@ namespace PixelGraph.Common.IO
             var keys = properties.Properties.Keys;
             foreach (var key in keys.OrderBy(x => x)) {
                 var value = properties.Properties[key];
+                if (string.IsNullOrEmpty(value)) continue;
 
                 await writer.WriteAsync(key);
                 await writer.WriteAsync(" = ");

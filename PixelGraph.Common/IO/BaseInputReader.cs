@@ -18,6 +18,7 @@ namespace PixelGraph.Common.IO
         }
 
         public abstract void SetRoot(string absolutePath);
+        public abstract string GetFullPath(string localPath);
         public abstract IEnumerable<string> EnumerateDirectories(string localPath, string pattern);
         public abstract IEnumerable<string> EnumerateFiles(string localPath, string pattern);
         public abstract bool FileExists(string localFile);

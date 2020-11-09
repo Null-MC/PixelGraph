@@ -15,10 +15,10 @@ namespace PixelGraph.Common.IO
         public async Task<PackProperties> ReadAsync(string filename, string[] additionalProperties = null, CancellationToken token = default)
         {
             var pack = new PackProperties {
-                Properties = {
-                    ["input.format"] = EncodingProperties.Default,
-                    ["output.format"] = EncodingProperties.Default,
-                },
+                //Properties = {
+                //    ["input.format"] = EncodingProperties.Default,
+                //    ["output.format"] = EncodingProperties.Default,
+                //},
             };
 
             await using var stream = File.Open(filename, FileMode.Open, FileAccess.Read);

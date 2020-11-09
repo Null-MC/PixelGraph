@@ -15,7 +15,11 @@ namespace PixelGraph.UI
         public App()
         {
             builder = new ServiceBuilder();
+            builder.AddFileInput();
+            builder.AddFileOutput();
+
             builder.Services.AddTransient<MainWindowVM>();
+            builder.Services.AddTransient<SettingsWindowVM>();
             builder.Services.AddTransient<PublishWindowVM>();
         }
 

@@ -6,7 +6,12 @@ using PixelGraph.Common.IO;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media.Imaging;
+using PixelGraph.Common.Textures;
 
 namespace PixelGraph.UI.Windows
 {
@@ -29,7 +34,35 @@ namespace PixelGraph.UI.Windows
             InitializeComponent();
         }
 
-        private void NewPackButton_OnClick(object sender, RoutedEventArgs e)
+        private async Task LoadPackContentAsync(string root, CancellationToken token)
+        {
+            var reader = provider.GetRequiredService<IInputReader>();
+            var loader = provider.GetRequiredService<IFileLoader>();
+
+            reader.SetRoot(root);
+
+            await foreach (var item in loader.LoadAsync(token)) {
+                if (item is PbrProperties texture) {
+                    var textureVM = new TextureVM(texture) {
+                        Name = texture.DisplayName,
+                    };
+
+                    var albedoFilename = reader.EnumerateTextures(texture, TextureTags.Albedo).FirstOrDefault();
+
+                    if (albedoFilename != null) {
+                        var filename = reader.GetFullPath(albedoFilename);
+                        textureVM.AlbedoSource = new BitmapImage(new Uri(filename));
+                    }
+
+                    vm.TextureList.Add(textureVM);
+                }
+                else if (item is string localFile) {
+                    //
+                }
+            }
+        }
+
+        private async void NewPackButton_OnClick(object sender, RoutedEventArgs e)
         {
             // TODO: close if open?
 
@@ -43,8 +76,8 @@ namespace PixelGraph.UI.Windows
             if (result != true) return;
 
             var pack = new PackProperties {
-                InputFormat = EncodingProperties.Default,
-                OutputFormat = EncodingProperties.Default,
+                InputFormat = EncodingProperties.Raw,
+                OutputFormat = EncodingProperties.Lab13,
             };
 
             // TODO: create file
@@ -52,6 +85,8 @@ namespace PixelGraph.UI.Windows
             vm.Initialize(pack);
 
             // TODO: further processing
+            var root = Path.GetDirectoryName(vm.PackFilename);
+            await LoadPackContentAsync(root, CancellationToken.None);
         }
 
         private async void OpenPackButton_OnClick(object sender, RoutedEventArgs e)
@@ -75,6 +110,16 @@ namespace PixelGraph.UI.Windows
             vm.Initialize(pack);
 
             // TODO: further processing
+            var root = Path.GetDirectoryName(vm.PackFilename);
+            await LoadPackContentAsync(root, CancellationToken.None);
+        }
+
+        private void SettingsButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            var settings = new SettingsWindow(provider);
+            //...
+
+            settings.ShowDialog();
         }
 
         private void PublishPackButton_OnClick(object sender, RoutedEventArgs e)

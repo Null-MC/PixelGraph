@@ -7,6 +7,7 @@ namespace PixelGraph.Common.IO
     public interface IInputReader
     {
         void SetRoot(string absolutePath);
+        string GetFullPath(string localPath);
         IEnumerable<string> EnumerateDirectories(string localPath, string pattern);
         IEnumerable<string> EnumerateFiles(string localPath, string pattern);
         IEnumerable<string> EnumerateTextures(PbrProperties texture, string tag);

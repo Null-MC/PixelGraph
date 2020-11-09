@@ -25,4 +25,8 @@
     <ProjectReference Include="..\PixelGraph.Common\PixelGraph.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+
 </Project>

@@ -46,10 +46,11 @@ namespace PixelGraph.Common
         public string OutputEncoding => Get("output.encoding", ImageExtensions.Default);
 
 
-        public void SetExported(string textureTag, bool value)
+        public string GetInput(string textureTag, ColorChannel colorChannel)
         {
             var texture = GetTexturePart(textureTag);
-            Properties[$"output.{texture}"] = value.ToString();
+            var channel = GetChannelPart(colorChannel);
+            return Get<string>($"{texture}.input.{channel}");
         }
 
         public void SetInput(string textureTag, ColorChannel colorChannel, string value)
@@ -59,11 +60,30 @@ namespace PixelGraph.Common
             Properties[$"{texture}.input.{channel}"] = value;
         }
 
+        public string GetOutput(string textureTag, ColorChannel colorChannel)
+        {
+            var texture = GetTexturePart(textureTag);
+            var channel = GetChannelPart(colorChannel);
+            return Get<string>($"output.{texture}.{channel}");
+        }
+
         public void SetOutput(string textureTag, ColorChannel colorChannel, string value)
         {
             var texture = GetTexturePart(textureTag);
             var channel = GetChannelPart(colorChannel);
             Properties[$"output.{texture}.{channel}"] = value;
+        }
+
+        public bool GetExported(string textureTag)
+        {
+            var texture = GetTexturePart(textureTag);
+            return Get($"output.{texture}", false);
+        }
+
+        public void SetExported(string textureTag, bool value)
+        {
+            var texture = GetTexturePart(textureTag);
+            Properties[$"output.{texture}"] = value.ToString();
         }
 
         // TODO: DUPLICATE CODE

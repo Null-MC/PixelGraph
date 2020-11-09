@@ -42,6 +42,9 @@
                         <TextBlock Text="Publish" VerticalAlignment="Center" Margin="4,0,0,0" />
                     </StackPanel>
                 </Button>
+                <Button Name="SettingsButton" DockPanel.Dock="Right" Margin="4" ToolTip="manage application settings" Click="SettingsButton_OnClick">
+                    <md:PackIcon Kind="Settings" />
+                </Button>
             </DockPanel>
         </StackPanel>
         <StatusBar DockPanel.Dock="Bottom">
@@ -85,7 +88,7 @@
                     <TextBox Grid.Column="1" Grid.Row="2" Margin="4" Grid.ColumnSpan="3" Text="{Binding PackTags}" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Encoding">
+            <TabItem Header="Encoding" DataContext="{Binding Path=Encoding}">
                 <StackPanel Orientation="Vertical" Margin="6,24,6,6">
                     <Grid MinWidth="320" MaxWidth="600" Margin="6">
                         <Grid.ColumnDefinitions>
@@ -94,7 +97,7 @@
                         </Grid.ColumnDefinitions>
                         <DockPanel>
                             <TextBlock DockPanel.Dock="Left" Margin="8,0" Text="Input Format" Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Center"/>
-                            <ComboBox DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding InputFormat}" Foreground="{DynamicResource SecondaryHueMidBrush}" MaxWidth="140" HorizontalContentAlignment="Center">
+                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" SelectedValue="{Binding InputFormat}" Foreground="{DynamicResource SecondaryHueMidBrush}" MaxWidth="140" HorizontalContentAlignment="Center">
                                 <ComboBox.ItemsSource>
                                     <vm:EncodingFormatValues/>
                                 </ComboBox.ItemsSource>
@@ -102,7 +105,7 @@
                         </DockPanel>
                         <DockPanel Grid.Column="1">
                             <TextBlock DockPanel.Dock="Left" Margin="8,0" Text="Output Format" Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Center"/>
-                            <ComboBox DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding OutputFormat}" Foreground="{DynamicResource SecondaryHueMidBrush}" MaxWidth="140" HorizontalContentAlignment="Center">
+                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" SelectedValue="{Binding OutputFormat}" Foreground="{DynamicResource SecondaryHueMidBrush}" MaxWidth="140" HorizontalContentAlignment="Center">
                                 <ComboBox.ItemsSource>
                                     <vm:EncodingFormatValues/>
                                 </ComboBox.ItemsSource>
@@ -126,12 +129,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.Resources>
-                            <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignComboBox}">
-                                <Setter Property="SelectedValuePath" Value="Key"/>
-                                <Setter Property="DisplayMemberPath" Value="Value"/>
-                                <Setter Property="Margin" Value="4"/>
-                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                <Setter Property="Foreground" Value="{DynamicResource SecondaryHueMidBrush}"/>
+                            <Style TargetType="controls:ComboBoxEx">
                                 <Setter Property="ItemsSource">
                                     <Setter.Value>
                                         <vm:EncodingChannelValues/>
@@ -148,7 +146,7 @@
                             </Border.Background>
                         </Border>
                         <Border Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" Grid.RowSpan="5" Background="#FF232323"/>
-                        <ComboBox Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding EncodingTag}" Foreground="{DynamicResource SecondaryHueMidBrush}" HorizontalContentAlignment="Center">
+                        <ComboBox Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" DisplayMemberPath="Text" SelectedValuePath="Value" SelectedValue="{Binding EncodingTag}" Foreground="{DynamicResource SecondaryHueMidBrush}" HorizontalContentAlignment="Center">
                             <ComboBox.ItemsSource>
                                 <vm:TextureTagValues/>
                             </ComboBox.ItemsSource>
@@ -159,31 +157,63 @@
                             <md:PackIcon Kind="Circle" VerticalAlignment="Center" Foreground="Red"/>
                             <TextBlock Margin="4,0" Text="Red" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                         </StackPanel>
-                        <controls:ComboBoxEx Grid.Column="2" Grid.Row="1" SelectedValue="{Binding InputRed}"/>
-                        <controls:ComboBoxEx Grid.Column="3" Grid.Row="1" SelectedValue="{Binding OutputRed}"/>
+                        <controls:ComboBoxEx Grid.Column="2" Grid.Row="1" SelectedValue="{Binding InputRed}" Placeholder="{Binding InputRedDefault, Mode=OneWay}"/>
+                        <controls:ComboBoxEx Grid.Column="3" Grid.Row="1" SelectedValue="{Binding OutputRed}" Placeholder="{Binding OutputRedDefault, Mode=OneWay}"/>
                         <StackPanel Grid.Column="1" Grid.Row="2" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
                             <md:PackIcon Kind="Circle" VerticalAlignment="Center" Foreground="Green"/>
                             <TextBlock Margin="4,0" Text="Green" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" HorizontalAlignment="Center"/>
                         </StackPanel>
-                        <controls:ComboBoxEx Grid.Column="2" Grid.Row="2" SelectedValue="{Binding InputGreen}"/>
-                        <controls:ComboBoxEx Grid.Column="3" Grid.Row="2" SelectedValue="{Binding OutputGreen}"/>
+                        <controls:ComboBoxEx Grid.Column="2" Grid.Row="2" SelectedValue="{Binding InputGreen}" Placeholder="{Binding InputGreenDefault, Mode=OneWay}"/>
+                        <controls:ComboBoxEx Grid.Column="3" Grid.Row="2" SelectedValue="{Binding OutputGreen}" Placeholder="{Binding OutputGreenDefault, Mode=OneWay}"/>
                         <StackPanel Grid.Column="1" Grid.Row="3" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
                             <md:PackIcon Kind="Circle" VerticalAlignment="Center" Foreground="Blue"/>
                             <TextBlock Margin="4,0" Text="Blue" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" HorizontalAlignment="Center"/>
                         </StackPanel>
-                        <controls:ComboBoxEx Grid.Column="2" Grid.Row="3" SelectedValue="{Binding InputBlue}"/>
-                        <controls:ComboBoxEx Grid.Column="3" Grid.Row="3" SelectedValue="{Binding OutputBlue}"/>
+                        <controls:ComboBoxEx Grid.Column="2" Grid.Row="3" SelectedValue="{Binding InputBlue}" Placeholder="{Binding InputBlueDefault, Mode=OneWay}"/>
+                        <controls:ComboBoxEx Grid.Column="3" Grid.Row="3" SelectedValue="{Binding OutputBlue}" Placeholder="{Binding OutputBlueDefault, Mode=OneWay}"/>
                         <StackPanel Grid.Column="1" Grid.Row="4" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
                             <md:PackIcon Kind="CircleOutline" VerticalAlignment="Center" Foreground="White"/>
                             <TextBlock Margin="4,0" Text="Alpha" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" HorizontalAlignment="Center"/>
                         </StackPanel>
-                        <controls:ComboBoxEx Grid.Column="2" Grid.Row="4" SelectedValue="{Binding InputAlpha}"/>
-                        <controls:ComboBoxEx Grid.Column="3" Grid.Row="4" SelectedValue="{Binding OutputAlpha}"/>
-                        <CheckBox Grid.Column="3" Grid.Row="5" Content="Export Texture" HorizontalAlignment="Center" Margin="8" IsChecked="{Binding ExportTexture}" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                        <controls:ComboBoxEx Grid.Column="2" Grid.Row="4"
+                                             SelectedValue="{Binding InputAlpha}"
+                                             Placeholder="{Binding InputAlphaDefault, Mode=OneWay}"/>
+                        <controls:ComboBoxEx Grid.Column="3" Grid.Row="4"
+                                             SelectedValue="{Binding OutputAlpha}"
+                                             Placeholder="{Binding OutputAlphaDefault, Mode=OneWay}"/>
+                        <CheckBox Grid.Column="3" Grid.Row="5" Content="Export Texture" HorizontalAlignment="Center" Margin="8"
+                                  IsChecked="{Binding ExportTexture}"
+                                  Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                     </Grid>
                 </StackPanel>
             </TabItem>
-            <TabItem Header="Content">
+            <TabItem Header="Textures">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="3"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <DockPanel Grid.Column="0" Background="#FF1B1B1B">
+                        <Grid DockPanel.Dock="Top">
+                            <TextBox Padding="4,0,12,0"
+                                     Text="{Binding TextureSearch, UpdateSourceTrigger=PropertyChanged}"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                            <md:PackIcon Kind="Search" Margin="2,0" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False"
+                                         Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                        </Grid>
+                        <ListBox IsTextSearchEnabled="True" DisplayMemberPath="Name"
+                                 TextSearch.Text="{Binding TextureSearch, Mode=OneWay}"
+                                 ItemsSource="{Binding TextureView, Mode=OneWay}"
+                                 SelectedItem="{Binding CurrentTexture, Mode=OneWayToSource}"/>
+                    </DockPanel>
+                    <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
+                    <TextBlock Grid.Column="2" Text="Stuff goes here..." HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Image Grid.Column="2" MaxWidth="640" MaxHeight="480"
+                           Source="{Binding TexturePreviewImage}"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Files">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="200"/>
@@ -191,7 +221,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TreeView Grid.Column="0" Background="#FF1B1B1B"/>
-                    <GridSplitter Grid.Column="1" Background="White" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
+                    <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
                     <TextBlock Grid.Column="2" Text="Stuff goes here..." HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
             </TabItem>

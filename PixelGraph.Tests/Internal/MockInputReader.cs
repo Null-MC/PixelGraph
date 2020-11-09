@@ -22,9 +22,14 @@ namespace PixelGraph.Tests.Internal
             Root = absolutePath;
         }
 
+        public override string GetFullPath(string localPath)
+        {
+            return PathEx.Join(Root, localPath);
+        }
+
         public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = default)
         {
-            var fullPath = PathEx.Join(Root, localPath);
+            var fullPath = GetFullPath(localPath);
 
             foreach (var directory in Content.EnumerateDirectories(fullPath, pattern)) {
                 var directoryName = Path.GetFileName(directory);
@@ -34,7 +39,7 @@ namespace PixelGraph.Tests.Internal
 
         public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = default)
         {
-            var fullPath = PathEx.Join(Root, localPath);
+            var fullPath = GetFullPath(localPath);
 
             foreach (var file in Content.EnumerateFiles(fullPath, pattern)) {
                 var fileName = Path.GetFileName(file.Filename) ?? string.Empty;
@@ -44,13 +49,13 @@ namespace PixelGraph.Tests.Internal
 
         public override bool FileExists(string localFile)
         {
-            var fullFile = PathEx.Join(Root, localFile);
+            var fullFile = GetFullPath(localFile);
             return Content.FileExists(fullFile);
         }
 
         public override Stream Open(string localFile)
         {
-            var fullFile = PathEx.Join(Root, localFile);
+            var fullFile = GetFullPath(localFile);
             return Content.OpenRead(fullFile);
         }
 

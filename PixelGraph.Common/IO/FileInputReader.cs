@@ -1,7 +1,7 @@
-﻿using System;
+﻿using PixelGraph.Common.Extensions;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.Common.IO
 {
@@ -17,9 +17,14 @@ namespace PixelGraph.Common.IO
             root = absolutePath;
         }
 
+        public override string GetFullPath(string localPath)
+        {
+            return PathEx.Join(root, localPath);
+        }
+
         public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = "*")
         {
-            var fullPath = PathEx.Join(root, localPath);
+            var fullPath = GetFullPath(localPath);
 
             foreach (var directory in Directory.EnumerateDirectories(fullPath, pattern, SearchOption.TopDirectoryOnly)) {
                 var directoryName = Path.GetFileName(directory);
@@ -29,7 +34,7 @@ namespace PixelGraph.Common.IO
 
         public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = "*")
         {
-            var fullPath = PathEx.Join(root, localPath);
+            var fullPath = GetFullPath(localPath);
 
             foreach (var file in Directory.EnumerateFiles(fullPath, pattern, SearchOption.TopDirectoryOnly)) {
                 var fileName = Path.GetFileName(file);
@@ -39,13 +44,13 @@ namespace PixelGraph.Common.IO
 
         public override Stream Open(string localFile)
         {
-            var fullFile = PathEx.Join(root, localFile);
+            var fullFile = GetFullPath(localFile);
             return File.Open(fullFile, FileMode.Open, FileAccess.Read);
         }
 
         public override bool FileExists(string localFile)
         {
-            var fullFile = PathEx.Join(root, localFile);
+            var fullFile = GetFullPath(localFile);
             return File.Exists(fullFile);
         }
 
