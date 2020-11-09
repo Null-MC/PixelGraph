@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
 
@@ -7,8 +8,9 @@ namespace PixelGraph.Common.Encoding
 {
     public class EncodingProperties : PropertiesFile
     {
+        public const string Raw = "raw";
         public const string Default = "default";
-        public const string Legacy = "legacy";
+        public const string Lab11 = "lab-1.1";
         public const string Lab13 = "lab-1.3";
 
 
@@ -123,11 +125,11 @@ namespace PixelGraph.Common.Encoding
         public string OutputEmissiveA => Get<string>("output.emissive.a");
 
 
-        public void Build(PackProperties pack, PbrProperties texture)
+        public void Build(PackProperties pack, PbrProperties texture = null)
         {
             var hasPackInputFormat = !string.IsNullOrWhiteSpace(pack.InputFormat);
             var hasPackOutputFormat = !string.IsNullOrWhiteSpace(pack.OutputFormat);
-            var hasTextureInputFormat = !string.IsNullOrWhiteSpace(texture.InputFormat);
+            var hasTextureInputFormat = !string.IsNullOrWhiteSpace(texture?.InputFormat);
 
             if (hasTextureInputFormat)
                 ApplyInputFormat(texture.InputFormat);
@@ -140,77 +142,48 @@ namespace PixelGraph.Common.Encoding
             if (!hasTextureInputFormat)
                 Properties.Update(pack.Properties);
 
-            Properties.Update(texture.Properties);
+            if (texture != null)
+                Properties.Update(texture.Properties);
         }
 
         private void ApplyInputFormat(string format)
         {
-            if (string.Equals(Default, format, StringComparison.InvariantCultureIgnoreCase)) {
+            if (string.Equals(Raw, format, StringComparison.InvariantCultureIgnoreCase)) {
                 Properties.Update(new Dictionary<string, string> {
-                    ["albedo.input.r"] = EncodingChannel.AlbedoR,
-                    ["albedo.input.g"] = EncodingChannel.AlbedoG,
-                    ["albedo.input.b"] = EncodingChannel.AlbedoB,
-                    ["albedo.input.a"] = EncodingChannel.AlbedoA,
+                    ["albedo.input.r"] = EncodingChannel.Red,
+                    ["albedo.input.g"] = EncodingChannel.Green,
+                    ["albedo.input.b"] = EncodingChannel.Blue,
+                    ["albedo.input.a"] = EncodingChannel.Alpha,
 
                     ["height.input.r"] = EncodingChannel.Height,
-
                     ["normal.input.r"] = EncodingChannel.NormalX,
                     ["normal.input.g"] = EncodingChannel.NormalY,
                     ["normal.input.b"] = EncodingChannel.NormalZ,
-
                     ["occlusion.input.r"] = EncodingChannel.Occlusion,
 
+                    ["specular.input.r"] = EncodingChannel.Specular,
                     ["smooth.input.r"] = EncodingChannel.Smooth,
-
                     ["rough.input.r"] = EncodingChannel.Rough,
-
                     ["metal.input.r"] = EncodingChannel.Metal,
-
                     ["porosity.input.r"] = EncodingChannel.Porosity,
-
                     ["sss.input.r"] = EncodingChannel.SubSurfaceScattering,
-
                     ["emissive.input.r"] = EncodingChannel.Emissive,
                 });
                 return;
             }
 
-            if (string.Equals(Legacy, format, StringComparison.InvariantCultureIgnoreCase)) {
-                Properties.Update(new Dictionary<string, string> {
-                    ["albedo.input.r"] = EncodingChannel.AlbedoR,
-                    ["albedo.input.g"] = EncodingChannel.AlbedoG,
-                    ["albedo.input.b"] = EncodingChannel.AlbedoB,
-                    ["albedo.input.a"] = EncodingChannel.AlbedoA,
+            if (string.Equals(Default, format, StringComparison.InvariantCultureIgnoreCase)) {
+                Properties.Update(DefaultEncoding.InputProperties);
+                return;
+            }
 
-                    ["normal.input.r"] = EncodingChannel.NormalX,
-                    ["normal.input.g"] = EncodingChannel.NormalY,
-                    ["normal.input.b"] = EncodingChannel.NormalZ,
-                    ["normal.input.a"] = EncodingChannel.Height,
-
-                    ["specular.input.r"] = EncodingChannel.PerceptualSmooth,
-                    ["specular.input.g"] = EncodingChannel.Metal,
-                    ["specular.input.b"] = EncodingChannel.Emissive,
-                });
+            if (string.Equals(Lab11, format, StringComparison.InvariantCultureIgnoreCase)) {
+                Properties.Update(Lab11Encoding.InputProperties);
                 return;
             }
 
             if (string.Equals(Lab13, format, StringComparison.InvariantCultureIgnoreCase)) {
-                Properties.Update(new Dictionary<string, string> {
-                    ["albedo.input.r"] = EncodingChannel.AlbedoR,
-                    ["albedo.input.g"] = EncodingChannel.AlbedoG,
-                    ["albedo.input.b"] = EncodingChannel.AlbedoB,
-                    ["albedo.input.a"] = EncodingChannel.AlbedoA,
-
-                    ["normal.input.r"] = EncodingChannel.NormalX,
-                    ["normal.input.g"] = EncodingChannel.NormalY,
-                    ["normal.input.b"] = EncodingChannel.Occlusion,
-                    ["normal.input.a"] = EncodingChannel.Height,
-
-                    ["specular.input.r"] = EncodingChannel.PerceptualSmooth,
-                    ["specular.input.g"] = EncodingChannel.Metal,
-                    ["specular.input.b"] = EncodingChannel.Porosity_SSS,
-                    ["specular.input.a"] = EncodingChannel.EmissiveClipped,
-                });
+                Properties.Update(Lab13Encoding.InputProperties);
                 return;
             }
 
@@ -220,100 +193,78 @@ namespace PixelGraph.Common.Encoding
         private void ApplyOutputFormat(string format)
         {
             if (string.Equals(Default, format, StringComparison.InvariantCultureIgnoreCase)) {
-                Properties.Update(new Dictionary<string, string> {
-                    ["output.albedo"] = bool.TrueString,
-                    ["output.albedo.r"] = EncodingChannel.AlbedoR,
-                    ["output.albedo.g"] = EncodingChannel.AlbedoG,
-                    ["output.albedo.b"] = EncodingChannel.AlbedoB,
-                    ["output.albedo.a"] = EncodingChannel.AlbedoA,
-
-                    ["output.height"] = bool.TrueString,
-                    ["output.height.r"] = EncodingChannel.Height,
-                    ["output.height.a"] = EncodingChannel.White,
-
-                    ["output.normal"] = bool.TrueString,
-                    ["output.normal.r"] = EncodingChannel.NormalX,
-                    ["output.normal.g"] = EncodingChannel.NormalY,
-                    ["output.normal.b"] = EncodingChannel.NormalZ,
-                    ["output.normal.a"] = EncodingChannel.White,
-
-                    ["output.occlusion"] = bool.TrueString,
-                    ["output.occlusion.r"] = EncodingChannel.Occlusion,
-                    ["output.occlusion.a"] = EncodingChannel.White,
-
-                    ["output.smooth"] = bool.TrueString,
-                    ["output.smooth.r"] = EncodingChannel.Smooth,
-                    ["output.smooth.a"] = EncodingChannel.White,
-
-                    ["output.rough"] = bool.TrueString,
-                    ["output.rough.r"] = EncodingChannel.Rough,
-                    ["output.rough.a"] = EncodingChannel.White,
-
-                    ["output.metal"] = bool.TrueString,
-                    ["output.metal.r"] = EncodingChannel.Metal,
-                    ["output.metal.a"] = EncodingChannel.White,
-
-                    ["output.porosity"] = bool.TrueString,
-                    ["output.porosity.r"] = EncodingChannel.Porosity,
-                    ["output.porosity.a"] = EncodingChannel.White,
-
-                    ["output.sss"] = bool.TrueString,
-                    ["output.sss.r"] = EncodingChannel.SubSurfaceScattering,
-                    ["output.sss.a"] = EncodingChannel.White,
-
-                    ["output.emissive"] = bool.TrueString,
-                    ["output.emissive.r"] = EncodingChannel.Emissive,
-                    ["output.emissive.a"] = EncodingChannel.White,
-                });
+                Properties.Update(DefaultEncoding.OutputProperties);
                 return;
             }
 
-            if (string.Equals(Legacy, format, StringComparison.InvariantCultureIgnoreCase)) {
-                Properties.Update(new Dictionary<string, string> {
-                    ["output.albedo"] = bool.TrueString,
-                    ["output.albedo.r"] = EncodingChannel.AlbedoR,
-                    ["output.albedo.g"] = EncodingChannel.AlbedoG,
-                    ["output.albedo.b"] = EncodingChannel.AlbedoB,
-                    ["output.albedo.a"] = EncodingChannel.AlbedoA,
+            if (string.Equals(Raw, format, StringComparison.InvariantCultureIgnoreCase)) {
+                Properties.Update(RawEncoding.OutputProperties);
+                return;
+            }
 
-                    ["output.normal"] = bool.TrueString,
-                    ["output.normal.r"] = EncodingChannel.NormalX,
-                    ["output.normal.g"] = EncodingChannel.NormalY,
-                    ["output.normal.b"] = EncodingChannel.NormalZ,
-                    ["output.normal.a"] = EncodingChannel.Height,
-
-                    ["output.specular"] = bool.TrueString,
-                    ["output.specular.r"] = EncodingChannel.Smooth,
-                    ["output.specular.g"] = EncodingChannel.Metal,
-                    ["output.specular.b"] = EncodingChannel.Emissive,
-                });
+            if (string.Equals(Lab11, format, StringComparison.InvariantCultureIgnoreCase)) {
+                Properties.Update(Lab11Encoding.OutputProperties);
                 return;
             }
 
             if (string.Equals(Lab13, format, StringComparison.InvariantCultureIgnoreCase)) {
-                Properties.Update(new Dictionary<string, string> {
-                    ["output.albedo"] = bool.TrueString,
-                    ["output.albedo.r"] = EncodingChannel.AlbedoR,
-                    ["output.albedo.g"] = EncodingChannel.AlbedoG,
-                    ["output.albedo.b"] = EncodingChannel.AlbedoB,
-                    ["output.albedo.a"] = EncodingChannel.AlbedoA,
-
-                    ["output.normal"] = bool.TrueString,
-                    ["output.normal.r"] = EncodingChannel.NormalX,
-                    ["output.normal.g"] = EncodingChannel.NormalY,
-                    ["output.normal.b"] = EncodingChannel.Occlusion,
-                    ["output.normal.a"] = EncodingChannel.Height,
-
-                    ["output.specular"] = bool.TrueString,
-                    ["output.specular.r"] = EncodingChannel.PerceptualSmooth,
-                    ["output.specular.g"] = EncodingChannel.Metal,
-                    ["output.specular.b"] = EncodingChannel.Porosity_SSS,
-                    ["output.specular.a"] = EncodingChannel.EmissiveClipped,
-                });
+                Properties.Update(Lab13Encoding.OutputProperties);
                 return;
             }
 
             throw new ApplicationException($"Unknown output format '{format}'!");
+        }
+
+        public string GetInput(string textureTag, ColorChannel colorChannel)
+        {
+            var texture = GetTexturePart(textureTag);
+            var channel = GetChannelPart(colorChannel);
+            return Get<string>($"{texture}.input.{channel}");
+        }
+
+        public string GetOutput(string textureTag, ColorChannel colorChannel)
+        {
+            var texture = GetTexturePart(textureTag);
+            var channel = GetChannelPart(colorChannel);
+            return Get<string>($"output.{texture}.{channel}");
+        }
+
+        public bool GetExported(string textureTag)
+        {
+            var texture = GetTexturePart(textureTag);
+            return Get($"output.{texture}", false);
+        }
+
+        // TODO: DUPLICATE CODE
+        private static string GetTexturePart(string textureTag)
+        {
+            return textureTag switch {
+                TextureTags.Albedo => "albedo",
+                TextureTags.Height => "height",
+                TextureTags.Normal => "normal",
+                TextureTags.Occlusion => "occlusion",
+                TextureTags.Specular => "specular",
+                TextureTags.Rough => "rough",
+                TextureTags.Smooth => "smooth",
+                TextureTags.Metal => "metal",
+                TextureTags.Porosity => "porosity",
+                TextureTags.SubSurfaceScattering => "sss",
+                TextureTags.Emissive => "emissive",
+                // TODO: ...
+                _ => null,
+            };
+        }
+
+        // TODO: DUPLICATE CODE
+        private static string GetChannelPart(ColorChannel colorChannel)
+        {
+            return colorChannel switch {
+                ColorChannel.Red => "r",
+                ColorChannel.Green => "g",
+                ColorChannel.Blue => "b",
+                ColorChannel.Alpha => "a",
+                _ => null,
+            };
         }
     }
 }

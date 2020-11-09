@@ -73,6 +73,9 @@ namespace PixelGraph.CLI.CommandLine
                 var destPath = zip?.FullName ?? destination.FullName;
 
                 var executor = provider.GetRequiredService<Executor>();
+                executor.CleanDestination = clean;
+                executor.Properties = property;
+
                 await executor.ExecuteAsync(profile.FullName, destPath, lifetime.Token);
 
                 return 0;

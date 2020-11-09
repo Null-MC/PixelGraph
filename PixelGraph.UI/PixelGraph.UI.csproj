@@ -9,7 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.1" />
+    <Compile Remove="ViewModels\InputEncodingVM.cs" />
+    <Compile Remove="ViewModels\OutputEncodingVM.cs" />
+    <Compile Remove="ViewModels\PackPropertiesVM.cs" />
+    <Compile Remove="ViewModels\PackPropertyItem.cs" />
+    <Compile Remove="ViewModels\PropertyGridGroup.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MaterialDesignExtensions" Version="3.2.0" />
     <PackageReference Include="MaterialDesignThemes" Version="3.2.0" />
   </ItemGroup>
 

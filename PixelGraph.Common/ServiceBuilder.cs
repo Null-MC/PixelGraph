@@ -29,6 +29,7 @@ namespace PixelGraph.Common
             Services.AddSingleton<ITextureGraphBuilder, TextureGraphBuilder>();
             Services.AddSingleton<IPackReader, PackReader>();
             Services.AddSingleton<IPbrReader, PbrReader>();
+            Services.AddSingleton<IPropertyWriter, PropertySerializer>();
             Services.AddSingleton<IPublisher, Publisher>();
 
             Services.AddTransient<IFileLoader, FileLoader>();

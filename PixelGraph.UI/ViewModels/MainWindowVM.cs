@@ -1,19 +1,18 @@
 ﻿using PixelGraph.Common;
-using PixelGraph.UI.Internal;
+using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Textures;
+using System;
 using System.Windows;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class MainWindowVM : ViewModelBase
     {
-        private PackPropertiesEditor _profile;
-        public PackPropertiesEditor Profile {
-            get => _profile;
-            set {
-                _profile = value;
-                OnPropertyChanged();
-            }
-        }
+        private EncodingProperties _encoding;
+
+        public event EventHandler Changed;
+
+        public PackProperties Pack {get; private set;}
 
         private string _packFilename;
         public string PackFilename {
@@ -24,52 +23,225 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        private bool _isEditingProfile = true;
-        public bool IsEditingProfile {
-            get => _isEditingProfile;
+        public Visibility EditVisibility => GetVisibility(Pack != null);
+
+        public string GameEdition {
+            get => Pack?.PackEdition;
             set {
-                _isEditingProfile = value;
+                if (Pack == null) return;
+                Pack.PackEdition = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(ProfileVisibility));
+                OnChanged();
             }
         }
 
-        private bool _isEditingContent;
-        public bool IsEditingContent {
-            get => _isEditingContent;
+        public int PackFormat {
+            get => Pack?.PackFormat ?? 0;
             set {
-                _isEditingContent = value;
+                if (Pack == null) return;
+                Pack.PackFormat = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(ContentVisibility));
+                OnChanged();
             }
         }
 
-        public virtual Visibility EditVisibility => GetVisibility(_profile != null);
-        public virtual Visibility ProfileVisibility => GetVisibility(_profile != null && _isEditingProfile);
-        public virtual Visibility ContentVisibility => GetVisibility(_profile != null && _isEditingContent);
+        public string PackDescription {
+            get => Pack?.PackDescription;
+            set {
+                if (Pack == null) return;
+                Pack.PackDescription = value;
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string PackTags {
+            get => Pack?.PackTags;
+            set {
+                if (Pack == null) return;
+                Pack.PackTags = value;
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string InputFormat {
+            get => Pack?.InputFormat;
+            set {
+                if (Pack == null) return;
+                Pack.InputFormat = value;
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string OutputFormat {
+            get => Pack?.OutputFormat;
+            set {
+                if (Pack == null) return;
+                Pack.OutputFormat = value;
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        private string _encodingTag = TextureTags.Albedo;
+        public string EncodingTag {
+            get => _encodingTag;
+            set {
+                _encodingTag = value;
+                OnPropertyChanged();
+                UpdateInputOutputProperties();
+            }
+        }
+
+        public bool ExportTexture {
+            get => _encoding?.GetExported(_encodingTag) ?? false;
+            set {
+                if (Pack == null) return;
+                Pack.SetExported(_encodingTag, value);
+                _encoding.Build(Pack);
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string InputRed {
+            get => _encoding?.GetInput(_encodingTag, ColorChannel.Red);
+            set {
+                if (Pack == null) return;
+                Pack.SetInput(_encodingTag, ColorChannel.Red, value);
+                _encoding.Build(Pack);
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string InputGreen {
+            get => _encoding?.GetInput(_encodingTag, ColorChannel.Green);
+            set {
+                if (Pack == null) return;
+                Pack.SetInput(_encodingTag, ColorChannel.Green, value);
+                _encoding.Build(Pack);
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string InputBlue {
+            get => _encoding?.GetInput(_encodingTag, ColorChannel.Blue);
+            set {
+                if (Pack == null) return;
+                Pack.SetInput(_encodingTag, ColorChannel.Blue, value);
+                _encoding.Build(Pack);
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string InputAlpha {
+            get => _encoding?.GetInput(_encodingTag, ColorChannel.Alpha);
+            set {
+                if (Pack == null) return;
+                Pack.SetInput(_encodingTag, ColorChannel.Alpha, value);
+                _encoding.Build(Pack);
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string OutputRed {
+            get => _encoding?.GetOutput(_encodingTag, ColorChannel.Red);
+            set {
+                if (Pack == null) return;
+                Pack.SetOutput(_encodingTag, ColorChannel.Red, value);
+                _encoding.Build(Pack);
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string OutputGreen {
+            get => _encoding?.GetOutput(_encodingTag, ColorChannel.Green);
+            set {
+                if (Pack == null) return;
+                Pack.SetOutput(_encodingTag, ColorChannel.Green, value);
+                _encoding.Build(Pack);
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string OutputBlue {
+            get => _encoding?.GetOutput(_encodingTag, ColorChannel.Blue);
+            set {
+                if (Pack == null) return;
+                Pack.SetOutput(_encodingTag, ColorChannel.Blue, value);
+                _encoding.Build(Pack);
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
+
+        public string OutputAlpha {
+            get => _encoding?.GetOutput(_encodingTag, ColorChannel.Alpha);
+            set {
+                if (Pack == null) return;
+                Pack.SetOutput(_encodingTag, ColorChannel.Alpha, value);
+                _encoding.Build(Pack);
+                OnPropertyChanged();
+                OnChanged();
+            }
+        }
 
         public void Initialize(PackProperties pack)
         {
-            _profile = new PackPropertiesEditor(pack);
-            _isEditingProfile = true;
-            _isEditingContent = false;
+            Pack = pack;
+            _encoding = new EncodingProperties();
+            _encoding.Build(pack);
 
-            OnPropertyChanged(nameof(Profile));
             OnPropertyChanged(nameof(EditVisibility));
-            OnPropertyChanged(nameof(ProfileVisibility));
-            OnPropertyChanged(nameof(ContentVisibility));
+            OnPropertyChanged(nameof(GameEdition));
+            OnPropertyChanged(nameof(PackFormat));
+            OnPropertyChanged(nameof(PackDescription));
+            OnPropertyChanged(nameof(PackTags));
+            OnPropertyChanged(nameof(InputFormat));
+            OnPropertyChanged(nameof(OutputFormat));
+
+            UpdateInputOutputProperties();
+        }
+
+        private void UpdateInputOutputProperties()
+        {
+            OnPropertyChanged(nameof(ExportTexture));
+            OnPropertyChanged(nameof(InputRed));
+            OnPropertyChanged(nameof(InputGreen));
+            OnPropertyChanged(nameof(InputBlue));
+            OnPropertyChanged(nameof(InputAlpha));
+            OnPropertyChanged(nameof(OutputRed));
+            OnPropertyChanged(nameof(OutputGreen));
+            OnPropertyChanged(nameof(OutputBlue));
+            OnPropertyChanged(nameof(OutputAlpha));
+        }
+
+        private void OnChanged()
+        {
+            Changed?.Invoke(this, EventArgs.Empty);
         }
     }
 
     internal class MainWindowDVM : MainWindowVM
     {
-        public override Visibility EditVisibility => Visibility.Visible;
-        public override Visibility ProfileVisibility => Visibility.Visible;
-        public override Visibility ContentVisibility => Visibility.Visible;
-
         public MainWindowDVM()
         {
-            Profile = new PackPropertiesEditor();
+            var pack = new PackProperties {
+                Properties = {
+                    ["input.format"] = "default",
+                    ["output.format"] = "default",
+                }
+            };
+
+            Initialize(pack);
         }
     }
 }

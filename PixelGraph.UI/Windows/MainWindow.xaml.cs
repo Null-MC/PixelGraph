@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 using PixelGraph.Common;
+using PixelGraph.Common.Encoding;
 using PixelGraph.Common.IO;
 using PixelGraph.UI.ViewModels;
 using System;
+using System.IO;
 using System.Windows;
 
 namespace PixelGraph.UI.Windows
@@ -13,14 +15,17 @@ namespace PixelGraph.UI.Windows
         private const string FileFilters = "Property Files|*.properties|All Files|*.*";
 
         private readonly IServiceProvider provider;
+        private readonly MainWindowVM vm;
 
 
         public MainWindow(IServiceProvider provider)
         {
             this.provider = provider;
 
-            DataContext = provider.GetRequiredService<MainWindowVM>();
+            vm = provider.GetRequiredService<MainWindowVM>();
+            vm.Changed += VM_OnChanged;
 
+            DataContext = vm;
             InitializeComponent();
         }
 
@@ -37,9 +42,14 @@ namespace PixelGraph.UI.Windows
             var result = dialog.ShowDialog(this);
             if (result != true) return;
 
+            var pack = new PackProperties {
+                InputFormat = EncodingProperties.Default,
+                OutputFormat = EncodingProperties.Default,
+            };
+
             // TODO: create file
-            VM.PackFilename = dialog.FileName;
-            VM.Initialize(new PackProperties());
+            vm.PackFilename = dialog.FileName;
+            vm.Initialize(pack);
 
             // TODO: further processing
         }
@@ -50,7 +60,7 @@ namespace PixelGraph.UI.Windows
 
             var dialog = new OpenFileDialog {
                 Title = "Open existing pack.properties file",
-                FileName = VM.PackFilename,
+                FileName = vm.PackFilename,
                 Filter = FileFilters,
                 Multiselect = false,
             };
@@ -61,8 +71,8 @@ namespace PixelGraph.UI.Windows
             var packReader = provider.GetRequiredService<IPackReader>();
             var pack = await packReader.ReadAsync(dialog.FileName);
 
-            VM.PackFilename = dialog.FileName;
-            VM.Initialize(pack);
+            vm.PackFilename = dialog.FileName;
+            vm.Initialize(pack);
 
             // TODO: further processing
         }
@@ -73,6 +83,13 @@ namespace PixelGraph.UI.Windows
             //...
 
             publish.ShowDialog();
+        }
+
+        private async void VM_OnChanged(object sender, EventArgs e)
+        {
+            var packWriter = provider.GetRequiredService<IPropertyWriter>();
+            await using var stream = File.Open(vm.PackFilename, FileMode.Create, FileAccess.Write);
+            await packWriter.WriteAsync(stream, vm.Pack);
         }
     }
 }

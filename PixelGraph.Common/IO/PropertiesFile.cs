@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO
 {
@@ -26,21 +23,6 @@ namespace PixelGraph.Common.IO
                 valueType = Nullable.GetUnderlyingType(valueType) ?? valueType;
 
             return (T)Convert.ChangeType(stringValue, valueType);
-        }
-
-        public async Task ReadAsync(Stream stream, CancellationToken token = default)
-        {
-            using var reader = new StreamReader(stream, null, true, -1, true);
-
-            string line;
-            while ((line = await reader.ReadLineAsync()) != null) {
-                token.ThrowIfCancellationRequested();
-
-                line = line.Trim();
-                if (line.StartsWith('#') || string.IsNullOrEmpty(line)) continue;
-
-                TrySet(line);
-            }
         }
 
         public bool TrySet(string property)

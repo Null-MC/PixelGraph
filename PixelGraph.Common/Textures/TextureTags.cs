@@ -5,19 +5,19 @@ namespace PixelGraph.Common.Textures
 {
     public static class TextureTags
     {
-        public const string Albedo = "#albedo";
-        public const string Height = "#height";
-        public const string Normal = "#normal";
-        public const string NormalGenerated = "#normal-generated";
-        public const string Occlusion = "#occlusion";
-        public const string OcclusionGenerated = "#occlusion-generated";
-        public const string Specular = "#specular";
-        public const string Rough = "#rough";
-        public const string Smooth = "#smooth";
-        public const string Metal = "#metal";
-        public const string Porosity = "#porosity";
-        public const string SubSurfaceScattering = "#sss";
-        public const string Emissive = "#emissive";
+        public const string Albedo = "albedo";
+        public const string Height = "height";
+        public const string Normal = "normal";
+        public const string NormalGenerated = "normal-generated";
+        public const string Occlusion = "occlusion";
+        public const string OcclusionGenerated = "occlusion-generated";
+        public const string Specular = "specular";
+        public const string Rough = "rough";
+        public const string Smooth = "smooth";
+        public const string Metal = "metal";
+        public const string Porosity = "porosity";
+        public const string SubSurfaceScattering = "sss";
+        public const string Emissive = "emissive";
 
         public static string[] All {get;} = {Albedo, Height, Normal, Occlusion, Specular, Smooth, Rough, Metal, Porosity, SubSurfaceScattering, Emissive};
 

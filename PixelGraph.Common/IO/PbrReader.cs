@@ -14,7 +14,7 @@ namespace PixelGraph.Common.IO
         bool TryExpandRange(PbrProperties texture, out PbrProperties[] results);
     }
 
-    internal class PbrReader : IPbrReader
+    internal class PbrReader : PropertySerializer, IPbrReader
     {
         private readonly IInputReader reader;
 
@@ -93,10 +93,10 @@ namespace PixelGraph.Common.IO
             return true;
         }
 
-        private async Task PopulateAsync(PropertiesFile texture, string filename, CancellationToken token)
+        private async Task PopulateAsync(PbrProperties texture, string filename, CancellationToken token)
         {
             await using var stream = reader.Open(filename);
-            await texture.ReadAsync(stream, token);
+            await ReadAsync(stream, texture, token);
         }
     }
 }

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace PixelGraph.Common.Extensions
 {
-    internal static class DictionaryExtensions
+    public static class DictionaryExtensions
     {
-        //public static TValue Get<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default)
-        //{
-        //    return dictionary.TryGetValue(key, out var value) ? value : defaultValue;
-        //}
+        public static TValue Get<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default)
+        {
+            return dictionary.TryGetValue(key, out var value) ? value : defaultValue;
+        }
 
         public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> createFunc)
         {
