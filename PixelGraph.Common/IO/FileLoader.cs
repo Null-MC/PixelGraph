@@ -11,6 +11,8 @@ namespace PixelGraph.Common.IO
 {
     public interface IFileLoader
     {
+        bool Expand {get; set;}
+
         IAsyncEnumerable<object> LoadAsync(CancellationToken token = default);
     }
 
@@ -18,16 +20,21 @@ namespace PixelGraph.Common.IO
     {
         private readonly IInputReader reader;
         private readonly IPbrReader pbrReader;
+        //private readonly INamingStructure naming;
         private readonly ILogger logger;
+
+        public bool Expand {get; set;} = true;
 
 
         public FileLoader(
             IInputReader reader,
             IPbrReader pbrReader,
+            //INamingStructure naming,
             ILogger<FileLoader> logger)
         {
             this.reader = reader;
             this.pbrReader = pbrReader;
+            //this.naming = naming;
             this.logger = logger;
         }
 
@@ -70,7 +77,7 @@ namespace PixelGraph.Common.IO
                         var texture = await pbrReader.LoadGlobalAsync(filename, token);
                         ignoreList.Add(filename);
 
-                        if (pbrReader.TryExpandRange(texture, out var subTextureList)) {
+                        if (Expand && pbrReader.TryExpandRange(texture, out var subTextureList)) {
                             foreach (var subTexture in subTextureList) {
                                 textureList.Add(subTexture);
                                 ignoreList.AddRange(subTexture.GetAllTextures(reader));

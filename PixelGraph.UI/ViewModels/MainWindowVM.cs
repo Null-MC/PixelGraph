@@ -1,28 +1,21 @@
 ﻿using PixelGraph.Common;
 using PixelGraph.Common.Encoding;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using PixelGraph.Common.Textures;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class MainWindowVM : ViewModelBase
     {
-        //private readonly CollectionViewSource textureView;
         private string _packFilename;
-        private string _textureSearch;
 
         public event EventHandler Changed;
 
         public PackEncodingVM Encoding {get;}
+        public TextureVM Texture {get;}
         public PackProperties Pack {get; private set;}
-        public ObservableCollection<TextureVM> TextureList {get;}
-        public IEnumerable<TextureVM> TextureView => FilterTextures();
         public Visibility EditVisibility => GetVisibility(Pack != null);
 
         public string PackFilename {
@@ -73,33 +66,23 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public string TextureSearch {
-            get => _textureSearch;
-            set {
-                _textureSearch = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(TextureView));
-            }
-        }
+        //private TextureTreeTexture _selectedTexture;
+        //public TextureTreeTexture SelectedTexture {
+        //    get => _selectedTexture;
+        //    set {
+        //        _selectedTexture = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
-        private TextureVM _currentTexture;
-        public TextureVM CurrentTexture {
-            get => _currentTexture;
-            set {
-                _currentTexture = value;
-                TexturePreviewImage = value?.AlbedoSource;
-                OnPropertyChanged();
-            }
-        }
-
-        private ImageSource _texturePreviewImage;
-        public ImageSource TexturePreviewImage {
-            get => _texturePreviewImage;
-            set {
-                _texturePreviewImage = value;
-                OnPropertyChanged();
-            }
-        }
+        //private ImageSource _texturePreviewImage;
+        //public ImageSource TexturePreviewImage {
+        //    get => _texturePreviewImage;
+        //    set {
+        //        _texturePreviewImage = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
 
         public MainWindowVM()
@@ -107,25 +90,7 @@ namespace PixelGraph.UI.ViewModels
             Encoding = new PackEncodingVM();
             Encoding.Changed += (o, e) => OnChanged();
 
-            TextureList = new ObservableCollection<TextureVM>();
-            TextureList.CollectionChanged += TextureList_OnCollectionChanged;
-
-            //textureView = new CollectionViewSource {
-            //    Source = TextureList,
-            //};
-
-            //textureView.Filter += TextureView_OnFilter;
-        }
-
-        //private void TextureView_OnFilter(object sender, FilterEventArgs e)
-        //{
-        //    //
-        //}
-
-        private IEnumerable<TextureVM> FilterTextures()
-        {
-            return string.IsNullOrWhiteSpace(TextureSearch) ? TextureList
-                : TextureList.Where(x => x.Name.Contains(TextureSearch, StringComparison.InvariantCultureIgnoreCase));
+            Texture = new TextureVM();
         }
 
         public void Initialize(PackProperties pack)
@@ -138,11 +103,6 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(PackFormat));
             OnPropertyChanged(nameof(PackDescription));
             OnPropertyChanged(nameof(PackTags));
-        }
-
-        private void TextureList_OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            OnPropertyChanged(nameof(TextureView));
         }
 
         private void OnChanged()
@@ -164,11 +124,41 @@ namespace PixelGraph.UI.ViewModels
 
             Initialize(pack);
 
-            TextureSearch = "as";
-            TextureList.Add(new TextureVM(new PbrProperties {Name = "Dirt"}));
-            TextureList.Add(new TextureVM(new PbrProperties {Name = "Grass"}));
-            TextureList.Add(new TextureVM(new PbrProperties {Name = "Glass"}));
-            TextureList.Add(new TextureVM(new PbrProperties {Name = "Stone"}));
+            Texture.Search = "as";
+            Texture.TreeRoot.Nodes.Add(new TextureTreeDirectory {
+                Name = "assets",
+                Nodes = {
+                    new TextureTreeDirectory {
+                        Name = "minecraft",
+                        Nodes = {
+                            new TextureTreeTexture {
+                                Name = "Dirt",
+                            },
+                            new TextureTreeTexture {
+                                Name = "Grass",
+                            },
+                            new TextureTreeTexture {
+                                Name = "Glass",
+                            },
+                            new TextureTreeTexture {
+                                Name = "Stone",
+                            },
+                        },
+                    },
+                },
+            });
+
+            Texture.Textures.Add(new TextureSource {
+                Tag = TextureTags.Albedo,
+                Name = "albedo.png",
+                Image = null,
+            });
+
+            Texture.Textures.Add(new TextureSource {
+                Tag = TextureTags.Normal,
+                Name = "normal.png",
+                Image = null,
+            });
         }
     }
 }

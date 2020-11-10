@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using PixelGraph.Common;
 using PixelGraph.Common.Encoding;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.Textures;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
@@ -11,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
-using PixelGraph.Common.Textures;
 
 namespace PixelGraph.UI.Windows
 {
@@ -40,24 +40,39 @@ namespace PixelGraph.UI.Windows
             var loader = provider.GetRequiredService<IFileLoader>();
 
             reader.SetRoot(root);
+            loader.Expand = false;
+
+            TextureTreeNode GetNode(string path) {
+                var parts = path.Split('/', '\\');
+                var parent = vm.Texture.TreeRoot;
+
+                foreach (var part in parts) {
+                    var node = parent.Nodes.FirstOrDefault(x => string.Equals(x.Name, part, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (node == null) {
+                        node = new TextureTreeDirectory {
+                            Name = part,
+                        };
+
+                        parent.Nodes.Add(node);
+                    }
+
+                    parent = node;
+                }
+
+                return parent;
+            }
 
             await foreach (var item in loader.LoadAsync(token)) {
                 if (item is PbrProperties texture) {
-                    var textureVM = new TextureVM(texture) {
+                    var parentNode = GetNode(texture.Path);
+
+                    var textureNode = new TextureTreeTexture {
                         Name = texture.DisplayName,
+                        Texture = texture,
                     };
 
-                    var albedoFilename = reader.EnumerateTextures(texture, TextureTags.Albedo).FirstOrDefault();
-
-                    if (albedoFilename != null) {
-                        var filename = reader.GetFullPath(albedoFilename);
-                        textureVM.AlbedoSource = new BitmapImage(new Uri(filename));
-                    }
-
-                    vm.TextureList.Add(textureVM);
-                }
-                else if (item is string localFile) {
-                    //
+                    parentNode.Nodes.Add(textureNode);
                 }
             }
         }
@@ -135,6 +150,46 @@ namespace PixelGraph.UI.Windows
             var packWriter = provider.GetRequiredService<IPropertyWriter>();
             await using var stream = File.Open(vm.PackFilename, FileMode.Create, FileAccess.Write);
             await packWriter.WriteAsync(stream, vm.Pack);
+        }
+
+        private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var textureNode = e.NewValue as TextureTreeTexture;
+
+            var texture = textureNode?.Texture;
+            if (texture == null) return;
+
+            var reader = provider.GetRequiredService<IInputReader>();
+
+            vm.Texture.Textures.Clear();
+            foreach (var tag in TextureTags.All) {
+                foreach (var file in reader.EnumerateTextures(texture, tag)) {
+                    var fullFile = reader.GetFullPath(file);
+
+                    var thumbnailImage = new BitmapImage();
+                    thumbnailImage.BeginInit();
+                    thumbnailImage.UriSource = new Uri(fullFile);
+                    thumbnailImage.DecodePixelHeight = 64;
+                    thumbnailImage.EndInit();
+
+                    var fullImage = new BitmapImage();
+                    fullImage.BeginInit();
+                    fullImage.UriSource = new Uri(fullFile);
+                    fullImage.EndInit();
+
+                    vm.Texture.Textures.Add(new TextureSource {
+                        Name = Path.GetFileNameWithoutExtension(file),
+                        Filename = file,
+                        Thumbnail = thumbnailImage,
+                        Image = fullImage,
+                        Tag = tag,
+                    });
+                }
+            }
+
+            vm.Texture.Selected = vm.Texture.Textures
+                .FirstOrDefault(x => TextureTags.Is(x.Tag, TextureTags.Albedo))
+                ?? vm.Texture.Textures.FirstOrDefault();
         }
     }
 }
