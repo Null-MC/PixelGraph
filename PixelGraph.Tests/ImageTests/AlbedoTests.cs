@@ -3,6 +3,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using System.Threading.Tasks;
+using PixelGraph.Common.Encoding;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,11 +18,11 @@ namespace PixelGraph.Tests.ImageTests
         {
             pack = new PackProperties {
                 Properties = {
-                    ["output.albedo.r"] = "albedo-r",
-                    ["output.albedo.g"] = "albedo-g",
-                    ["output.albedo.b"] = "albedo-b",
-                    ["output.albedo.a"] = "albedo-a",
-                    ["output.albedo"] = "true",
+                    ["output.albedo.r"] = EncodingChannel.Red,
+                    ["output.albedo.g"] = EncodingChannel.Green,
+                    ["output.albedo.b"] = EncodingChannel.Blue,
+                    ["output.albedo.a"] = EncodingChannel.Alpha,
+                    ["output.albedo"] = bool.TrueString,
                 }
             };
         }
@@ -65,9 +66,9 @@ namespace PixelGraph.Tests.ImageTests
                 Name = "test",
                 Path = "assets",
                 Properties = {
-                    ["albedo.input.r"] = "albedo-b",
-                    ["albedo.input.g"] = "albedo-r",
-                    ["albedo.input.b"] = "albedo-g",
+                    ["albedo.input.r"] = EncodingChannel.Blue,
+                    ["albedo.input.g"] = EncodingChannel.Red,
+                    ["albedo.input.b"] = EncodingChannel.Green,
                 }
             });
 

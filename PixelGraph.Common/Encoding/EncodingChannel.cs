@@ -8,11 +8,6 @@ namespace PixelGraph.Common.Encoding
         public const string Black = "0";
         public const string White = "255";
 
-        [Obsolete] public const string AlbedoR = "albedo-r";
-        [Obsolete] public const string AlbedoG = "albedo-g";
-        [Obsolete] public const string AlbedoB = "albedo-b";
-        [Obsolete] public const string AlbedoA = "albedo-a";
-
         public const string Red = "red";
         public const string Green = "green";
         public const string Blue = "blue";
