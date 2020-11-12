@@ -8,31 +8,33 @@ namespace PixelGraph.UI.ViewModels
 {
     internal class PackEncodingVM : ViewModelBase
     {
-        public PackProperties _pack;
         private readonly EncodingProperties _encoding;
-        private string _encodingTag;
+        private PackProperties _pack;
+        private string _selectedTag;
 
         public event EventHandler Changed;
+
+        public string InputRedDefault => GetInputDefault(_selectedTag, ColorChannel.Red);
+        public string InputGreenDefault => GetInputDefault(_selectedTag, ColorChannel.Green);
+        public string InputBlueDefault => GetInputDefault(_selectedTag, ColorChannel.Blue);
+        public string InputAlphaDefault => GetInputDefault(_selectedTag, ColorChannel.Alpha);
+        public string OutputRedDefault => GetOutputDefault(_selectedTag, ColorChannel.Red);
+        public string OutputGreenDefault => GetOutputDefault(_selectedTag, ColorChannel.Green);
+        public string OutputBlueDefault => GetOutputDefault(_selectedTag, ColorChannel.Blue);
+        public string OutputAlphaDefault => GetOutputDefault(_selectedTag, ColorChannel.Alpha);
 
         public PackProperties Pack {
             get => _pack;
             set {
                 _pack = value;
+                OnPropertyChanged();
+
                 UpdateEncodingDefaults();
                 UpdateInputOutputProperties();
                 OnPropertyChanged(nameof(InputFormat));
                 OnPropertyChanged(nameof(OutputFormat));
             }
         }
-
-        public string InputRedDefault => GetInputDefault(_encodingTag, ColorChannel.Red);
-        public string InputGreenDefault => GetInputDefault(_encodingTag, ColorChannel.Green);
-        public string InputBlueDefault => GetInputDefault(_encodingTag, ColorChannel.Blue);
-        public string InputAlphaDefault => GetInputDefault(_encodingTag, ColorChannel.Alpha);
-        public string OutputRedDefault => GetOutputDefault(_encodingTag, ColorChannel.Red);
-        public string OutputGreenDefault => GetOutputDefault(_encodingTag, ColorChannel.Green);
-        public string OutputBlueDefault => GetOutputDefault(_encodingTag, ColorChannel.Blue);
-        public string OutputAlphaDefault => GetOutputDefault(_encodingTag, ColorChannel.Alpha);
 
         public string InputFormat {
             get => Pack?.InputFormat;
@@ -41,6 +43,7 @@ namespace PixelGraph.UI.ViewModels
                 Pack.InputFormat = value;
                 UpdateEncodingDefaults();
                 OnPropertyChanged();
+
                 UpdateInputOutputProperties();
                 OnChanged();
             }
@@ -52,27 +55,29 @@ namespace PixelGraph.UI.ViewModels
                 if (Pack == null) return;
                 Pack.OutputFormat = value;
                 OnPropertyChanged();
+
                 UpdateInputOutputProperties();
                 UpdateEncodingDefaults();
                 OnChanged();
             }
         }
 
-        public string EncodingTag {
-            get => _encodingTag;
+        public string SelectedTag {
+            get => _selectedTag;
             set {
-                _encodingTag = value;
+                _selectedTag = value;
                 OnPropertyChanged();
+
                 UpdateInputOutputProperties();
                 UpdateEncodingProperties();
             }
         }
 
         public string InputRed {
-            get => Pack?.GetInput(_encodingTag, ColorChannel.Red);
+            get => Pack?.GetInput(_selectedTag, ColorChannel.Red);
             set {
                 if (Pack == null) return;
-                Pack.SetInput(_encodingTag, ColorChannel.Red, value);
+                Pack.SetInput(_selectedTag, ColorChannel.Red, value);
                 OnPropertyChanged(nameof(InputRed));
                 OnPropertyChanged(nameof(InputRedDefault));
                 OnChanged();
@@ -80,10 +85,10 @@ namespace PixelGraph.UI.ViewModels
         }
 
         public string InputGreen {
-            get => Pack?.GetInput(_encodingTag, ColorChannel.Green);
+            get => Pack?.GetInput(_selectedTag, ColorChannel.Green);
             set {
                 if (Pack == null) return;
-                Pack.SetInput(_encodingTag, ColorChannel.Green, value);
+                Pack.SetInput(_selectedTag, ColorChannel.Green, value);
                 OnPropertyChanged(nameof(InputGreen));
                 OnPropertyChanged(nameof(InputGreenDefault));
                 OnChanged();
@@ -91,10 +96,10 @@ namespace PixelGraph.UI.ViewModels
         }
 
         public string InputBlue {
-            get => Pack?.GetInput(_encodingTag, ColorChannel.Blue);
+            get => Pack?.GetInput(_selectedTag, ColorChannel.Blue);
             set {
                 if (Pack == null) return;
-                Pack.SetInput(_encodingTag, ColorChannel.Blue, value);
+                Pack.SetInput(_selectedTag, ColorChannel.Blue, value);
                 OnPropertyChanged(nameof(InputBlue));
                 OnPropertyChanged(nameof(InputBlueDefault));
                 OnChanged();
@@ -102,10 +107,10 @@ namespace PixelGraph.UI.ViewModels
         }
 
         public string InputAlpha {
-            get => Pack?.GetInput(_encodingTag, ColorChannel.Alpha);
+            get => Pack?.GetInput(_selectedTag, ColorChannel.Alpha);
             set {
                 if (Pack == null) return;
-                Pack.SetInput(_encodingTag, ColorChannel.Alpha, value);
+                Pack.SetInput(_selectedTag, ColorChannel.Alpha, value);
                 OnPropertyChanged(nameof(InputAlpha));
                 OnPropertyChanged(nameof(InputAlphaDefault));
                 OnChanged();
@@ -113,10 +118,10 @@ namespace PixelGraph.UI.ViewModels
         }
 
         public string OutputRed {
-            get => Pack?.GetOutput(_encodingTag, ColorChannel.Red);
+            get => Pack?.GetOutput(_selectedTag, ColorChannel.Red);
             set {
                 if (Pack == null) return;
-                Pack.SetOutput(_encodingTag, ColorChannel.Red, value);
+                Pack.SetOutput(_selectedTag, ColorChannel.Red, value);
                 OnPropertyChanged(nameof(OutputRed));
                 OnPropertyChanged(nameof(OutputRedDefault));
                 OnChanged();
@@ -124,10 +129,10 @@ namespace PixelGraph.UI.ViewModels
         }
 
         public string OutputGreen {
-            get => Pack?.GetOutput(_encodingTag, ColorChannel.Green);
+            get => Pack?.GetOutput(_selectedTag, ColorChannel.Green);
             set {
                 if (Pack == null) return;
-                Pack.SetOutput(_encodingTag, ColorChannel.Green, value);
+                Pack.SetOutput(_selectedTag, ColorChannel.Green, value);
                 OnPropertyChanged(nameof(OutputGreen));
                 OnPropertyChanged(nameof(OutputGreenDefault));
                 OnChanged();
@@ -135,10 +140,10 @@ namespace PixelGraph.UI.ViewModels
         }
 
         public string OutputBlue {
-            get => Pack?.GetOutput(_encodingTag, ColorChannel.Blue);
+            get => Pack?.GetOutput(_selectedTag, ColorChannel.Blue);
             set {
                 if (Pack == null) return;
-                Pack.SetOutput(_encodingTag, ColorChannel.Blue, value);
+                Pack.SetOutput(_selectedTag, ColorChannel.Blue, value);
                 OnPropertyChanged(nameof(OutputBlue));
                 OnPropertyChanged(nameof(OutputBlueDefault));
                 OnChanged();
@@ -146,10 +151,10 @@ namespace PixelGraph.UI.ViewModels
         }
 
         public string OutputAlpha {
-            get => Pack?.GetOutput(_encodingTag, ColorChannel.Alpha);
+            get => Pack?.GetOutput(_selectedTag, ColorChannel.Alpha);
             set {
                 if (Pack == null) return;
-                Pack.SetOutput(_encodingTag, ColorChannel.Alpha, value);
+                Pack.SetOutput(_selectedTag, ColorChannel.Alpha, value);
                 OnPropertyChanged(nameof(OutputAlpha));
                 OnPropertyChanged(nameof(OutputAlphaDefault));
                 OnChanged();
@@ -157,10 +162,10 @@ namespace PixelGraph.UI.ViewModels
         }
 
         public bool ExportTexture {
-            get => _encoding?.GetExported(_encodingTag) ?? false;
+            get => _encoding?.GetExported(_selectedTag) ?? false;
             set {
                 if (Pack == null) return;
-                Pack.SetExported(_encodingTag, value);
+                Pack.SetExported(_selectedTag, value);
                 _encoding.Build(Pack);
                 OnPropertyChanged();
                 OnChanged();
@@ -171,7 +176,7 @@ namespace PixelGraph.UI.ViewModels
         public PackEncodingVM()
         {
             _encoding = new EncodingProperties();
-            _encodingTag = TextureTags.Albedo;
+            _selectedTag = TextureTags.Albedo;
         }
 
         private void UpdateEncodingDefaults()

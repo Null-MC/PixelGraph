@@ -1,113 +1,140 @@
 ﻿using PixelGraph.Common;
 using PixelGraph.Common.Encoding;
-using System;
-using System.Windows;
-using System.Windows.Media;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
+using System;
+using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class MainWindowVM : ViewModelBase
     {
-        private string _packFilename;
+        private string _loadedPackFilename;
+        private string _rootDirectory;
+        private ProfileItem _selectedProfile;
+        private PackProperties _loadedPack;
 
-        public event EventHandler Changed;
+        public event EventHandler ProfileChanged;
+        public event EventHandler DataChanged;
 
+        public ObservableCollection<ProfileItem> Profiles {get;}
         public PackEncodingVM Encoding {get;}
         public TextureVM Texture {get;}
-        public PackProperties Pack {get; private set;}
-        public Visibility EditVisibility => GetVisibility(Pack != null);
 
-        public string PackFilename {
-            get => _packFilename;
+        public bool HasRootDirectory => _rootDirectory != null;
+        public Visibility PackEditVisibility => GetVisibility(_selectedProfile != null);
+
+        public string CurrentContext => _rootDirectory == null ? null
+            : PathEx.Join(_rootDirectory, SelectedProfile?.Name ?? "*");
+
+        public bool HasSelectedProfile => _selectedProfile != null;
+
+        public string RootDirectory {
+            get => _rootDirectory;
             set {
-                _packFilename = value;
+                _rootDirectory = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(HasRootDirectory));
+                OnPropertyChanged(nameof(CurrentContext));
+            }
+        }
+
+        public ProfileItem SelectedProfile {
+            get => _selectedProfile;
+            set {
+                _selectedProfile = value;
+                OnPropertyChanged();
+
+                OnProfileChanged();
+                OnPropertyChanged(nameof(CurrentContext));
+                OnPropertyChanged(nameof(HasSelectedProfile));
+            }
+        }
+
+        public PackProperties LoadedPack {
+            get => _loadedPack;
+            set {
+                _loadedPack = value;
+                OnPropertyChanged();
+
+                Encoding.Pack = value;
+                OnPropertyChanged(nameof(PackEditVisibility));
+                OnPropertyChanged(nameof(GameEdition));
+                OnPropertyChanged(nameof(PackFormat));
+                OnPropertyChanged(nameof(PackDescription));
+                OnPropertyChanged(nameof(PackTags));
+            }
+        }
+
+        public string LoadedPackFilename {
+            get => _loadedPackFilename;
+            set {
+                _loadedPackFilename = value;
                 OnPropertyChanged();
             }
         }
 
         public string GameEdition {
-            get => Pack?.PackEdition;
+            get => LoadedPack?.PackEdition;
             set {
-                if (Pack == null) return;
-                Pack.PackEdition = value;
+                if (LoadedPack == null) return;
+                LoadedPack.PackEdition = value;
                 OnPropertyChanged();
-                OnChanged();
+                OnDataChanged();
             }
         }
 
         public int PackFormat {
-            get => Pack?.PackFormat ?? 0;
+            get => LoadedPack?.PackFormat ?? 0;
             set {
-                if (Pack == null) return;
-                Pack.PackFormat = value;
+                if (LoadedPack == null) return;
+                LoadedPack.PackFormat = value;
                 OnPropertyChanged();
-                OnChanged();
+                OnDataChanged();
             }
         }
 
         public string PackDescription {
-            get => Pack?.PackDescription;
+            get => LoadedPack?.PackDescription;
             set {
-                if (Pack == null) return;
-                Pack.PackDescription = value;
+                if (LoadedPack == null) return;
+                LoadedPack.PackDescription = value;
                 OnPropertyChanged();
-                OnChanged();
+                OnDataChanged();
             }
         }
 
         public string PackTags {
-            get => Pack?.PackTags;
+            get => LoadedPack?.PackTags;
             set {
-                if (Pack == null) return;
-                Pack.PackTags = value;
+                if (LoadedPack == null) return;
+                LoadedPack.PackTags = value;
                 OnPropertyChanged();
-                OnChanged();
+                OnDataChanged();
             }
         }
-
-        //private TextureTreeTexture _selectedTexture;
-        //public TextureTreeTexture SelectedTexture {
-        //    get => _selectedTexture;
-        //    set {
-        //        _selectedTexture = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
-        //private ImageSource _texturePreviewImage;
-        //public ImageSource TexturePreviewImage {
-        //    get => _texturePreviewImage;
-        //    set {
-        //        _texturePreviewImage = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
 
         public MainWindowVM()
         {
+            Profiles = new ObservableCollection<ProfileItem>();
+
             Encoding = new PackEncodingVM();
-            Encoding.Changed += (o, e) => OnChanged();
+            Encoding.Changed += (o, e) => OnDataChanged();
 
             Texture = new TextureVM();
         }
 
-        public void Initialize(PackProperties pack)
+        private void OnProfileChanged()
         {
-            Pack = pack;
-            Encoding.Pack = pack;
-
-            OnPropertyChanged(nameof(EditVisibility));
-            OnPropertyChanged(nameof(GameEdition));
-            OnPropertyChanged(nameof(PackFormat));
-            OnPropertyChanged(nameof(PackDescription));
-            OnPropertyChanged(nameof(PackTags));
+            ProfileChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void OnChanged()
+        private void OnDataChanged()
         {
-            Changed?.Invoke(this, EventArgs.Empty);
+            DataChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -115,14 +142,23 @@ namespace PixelGraph.UI.ViewModels
     {
         public MainWindowDVM()
         {
-            var pack = new PackProperties {
+            RootDirectory = "x:\\dev\\test-rp";
+
+            Profiles.Add(SelectedProfile = new ProfileItem {
+                Name = "Test Profile #1",
+                Filename = "Test_Profile_#1.pack.properties",
+            });
+            Profiles.Add(new ProfileItem {
+                Name = "Test Profile #2",
+                Filename = "Test_Profile_#2.pack.properties",
+            });
+
+            LoadedPack = new PackProperties {
                 Properties = {
                     ["input.format"] = EncodingProperties.Raw,
                     ["output.format"] = EncodingProperties.Lab13,
                 }
             };
-
-            Initialize(pack);
 
             Texture.Search = "as";
             Texture.TreeRoot.Nodes.Add(new TextureTreeDirectory {

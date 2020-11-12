@@ -3,14 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
-             d:DesignHeight="28" d:DesignWidth="64" mc:Ignorable="d" Content="{Binding ItemsSource, RelativeSource={RelativeSource Self}}">
+             xmlns:local="clr-namespace:PixelGraph.UI.Controls"
+             d:DesignHeight="28" d:DesignWidth="64" mc:Ignorable="d" d:DataContext="{x:Null}"
+             Content="{Binding ItemsSource, RelativeSource={RelativeSource Self}}">
     <UserControl.Template>
         <ControlTemplate>
             <Grid>
                 <ComboBox x:Name="list"
-                          ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=controls:ComboBoxEx}}"
-                          SelectedValue="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=controls:ComboBoxEx}}">
+                          ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=local:ComboBoxEx}}"
+                          SelectedValue="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=local:ComboBoxEx}}">
                     <ComboBox.Style>
                         <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}">
                             <Setter Property="DisplayMemberPath" Value="Text"/>
@@ -22,7 +23,8 @@
                     </ComboBox.Style>
                 </ComboBox>
                 <TextBlock x:Name="overlay" IsHitTestVisible="False" Visibility="Hidden" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,8,0" Opacity="0.6" FontStyle="Italic"
-                           Foreground="{DynamicResource SecondaryHueDarkBrush}" Text="{Binding Placeholder, RelativeSource={RelativeSource AncestorType=controls:ComboBoxEx}}"/>
+                           Foreground="{DynamicResource SecondaryHueDarkBrush}"
+                           Text="{Binding Placeholder, RelativeSource={RelativeSource AncestorType=local:ComboBoxEx}}"/>
             </Grid>
             <ControlTemplate.Triggers>
                 <Trigger SourceName="list" Property="SelectedIndex" Value="-1">

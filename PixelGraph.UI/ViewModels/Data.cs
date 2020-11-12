@@ -4,6 +4,12 @@ using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewModels
 {
+    internal class ProfileItem
+    {
+        public string Name {get; set;}
+        public string Filename {get; set;}
+    }
+
     internal class EncodingFormatValues : List<EncodingFormatValues.Format>
     {
         public EncodingFormatValues()
