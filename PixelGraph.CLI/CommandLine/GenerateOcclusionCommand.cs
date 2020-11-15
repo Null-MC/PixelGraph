@@ -124,25 +124,29 @@ namespace PixelGraph.CLI.CommandLine
                     }
                 }
 
+                var created = false;
                 var timer = Stopwatch.StartNew();
-
                 foreach (var texture in textureList) {
+                    var outputName = occlusionFilename ?? naming.GetOutputTextureName(pack, texture, TextureTags.Occlusion, texture.UseGlobalMatching);
                     logger.LogDebug("Generating ambient occlusion for texture {DisplayName}.", texture.DisplayName);
-                    var finalName = occlusionFilename ?? naming.GetOutputTextureName(pack, texture, TextureTags.Occlusion, texture.UseGlobalMatching);
 
                     try {
                         using var graph = graphBuilder.CreateGraph(pack, texture);
-                        using var image = await graph.GetGeneratedOcclusionAsync(token);
+                        using var occlusionImage = await graph.GenerateOcclusionAsync(token);
 
-                        await image.SaveAsync(finalName, token);
-                        logger.LogInformation("Ambient Occlusion texture {finalName} generated successfully.", finalName);
+                        await occlusionImage.SaveAsync(outputName, token);
+                        logger.LogInformation("Ambient Occlusion texture {outputName} generated successfully.", outputName);
+                        created = true;
+                        break;
                     }
-                    catch (SourceEmptyException error) {
-                        logger.LogError($"Failed to generate Ambient Occlusion texture {{finalName}}! {error.Message}", finalName);
-                    }
+                    catch (SourceEmptyException) {}
                     catch (Exception error) {
-                        logger.LogError(error, "Failed to generate Ambient Occlusion texture {finalName}!", finalName);
+                        logger.LogError(error, "Failed to generate Ambient Occlusion texture {outputName}!", outputName);
                     }
+                }
+
+                if (!created) {
+                    logger.LogError("Unable to locate valid height source for ambient occlusion generation!");
                 }
 
                 timer.Stop();

@@ -42,8 +42,12 @@ namespace PixelGraph.Common.IO
 
         public async Task<PbrProperties> LoadGlobalAsync(string localFile, CancellationToken token = default)
         {
+            if (localFile == null) throw new ArgumentNullException(nameof(localFile));
+
             var name = Path.GetFileName(localFile);
-            name = name[..^15];
+
+            if (name.EndsWith(".pbr.properties", StringComparison.InvariantCultureIgnoreCase))
+                name = name[..^15];
 
             var properties = new PbrProperties {
                 FileName = localFile,

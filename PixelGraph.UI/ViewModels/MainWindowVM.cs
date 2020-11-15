@@ -1,34 +1,21 @@
-﻿using PixelGraph.Common;
-using PixelGraph.Common.Encoding;
-using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
 using System;
-using System.Collections.ObjectModel;
-using System.Windows;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class MainWindowVM : ViewModelBase
     {
-        private string _loadedPackFilename;
-        private string _rootDirectory;
-        private ProfileItem _selectedProfile;
-        private PackProperties _loadedPack;
-
-        public event EventHandler ProfileChanged;
-        public event EventHandler DataChanged;
-
-        public ObservableCollection<ProfileItem> Profiles {get;}
-        public PackEncodingVM Encoding {get;}
+        private readonly object busyLock;
+        public ProfileVM Profile {get;}
         public TextureVM Texture {get;}
+        private string _rootDirectory;
+        private volatile bool _isBusy;
 
         public bool HasRootDirectory => _rootDirectory != null;
-        public Visibility PackEditVisibility => GetVisibility(_selectedProfile != null);
 
         public string CurrentContext => _rootDirectory == null ? null
-            : PathEx.Join(_rootDirectory, SelectedProfile?.Name ?? "*");
-
-        public bool HasSelectedProfile => _selectedProfile != null;
+            : PathEx.Join(_rootDirectory, Profile.Selected?.Name ?? "*");
 
         public string RootDirectory {
             get => _rootDirectory;
@@ -41,126 +28,55 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public ProfileItem SelectedProfile {
-            get => _selectedProfile;
+        public bool IsBusy {
+            get => _isBusy;
             set {
-                _selectedProfile = value;
-                OnPropertyChanged();
-
-                OnProfileChanged();
-                OnPropertyChanged(nameof(CurrentContext));
-                OnPropertyChanged(nameof(HasSelectedProfile));
-            }
-        }
-
-        public PackProperties LoadedPack {
-            get => _loadedPack;
-            set {
-                _loadedPack = value;
-                OnPropertyChanged();
-
-                Encoding.Pack = value;
-                OnPropertyChanged(nameof(PackEditVisibility));
-                OnPropertyChanged(nameof(GameEdition));
-                OnPropertyChanged(nameof(PackFormat));
-                OnPropertyChanged(nameof(PackDescription));
-                OnPropertyChanged(nameof(PackTags));
-            }
-        }
-
-        public string LoadedPackFilename {
-            get => _loadedPackFilename;
-            set {
-                _loadedPackFilename = value;
+                _isBusy = value;
                 OnPropertyChanged();
             }
         }
 
-        public string GameEdition {
-            get => LoadedPack?.PackEdition;
-            set {
-                if (LoadedPack == null) return;
-                LoadedPack.PackEdition = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
 
-        public int PackFormat {
-            get => LoadedPack?.PackFormat ?? 0;
-            set {
-                if (LoadedPack == null) return;
-                LoadedPack.PackFormat = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public string PackDescription {
-            get => LoadedPack?.PackDescription;
-            set {
-                if (LoadedPack == null) return;
-                LoadedPack.PackDescription = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public string PackTags {
-            get => LoadedPack?.PackTags;
-            set {
-                if (LoadedPack == null) return;
-                LoadedPack.PackTags = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-
-        public MainWindowVM()
+        public MainWindowVM(ProfileVM profile = null, TextureVM texture = null)
         {
-            Profiles = new ObservableCollection<ProfileItem>();
+            Profile = profile ?? new ProfileVM();
+            Profile.SelectionChanged += Profile_OnSelectionChanged;
 
-            Encoding = new PackEncodingVM();
-            Encoding.Changed += (o, e) => OnDataChanged();
+            Texture = texture ?? new TextureVM();
 
-            Texture = new TextureVM();
+            busyLock = new object();
         }
 
-        private void OnProfileChanged()
+        public bool TryStartBusy()
         {
-            ProfileChanged?.Invoke(this, EventArgs.Empty);
+            lock (busyLock) {
+                if (IsBusy) return false;
+                IsBusy = true;
+                return true;
+            }
         }
 
-        private void OnDataChanged()
+        public void EndBusy()
         {
-            DataChanged?.Invoke(this, EventArgs.Empty);
+            lock (busyLock) {
+                IsBusy = false;
+            }
+        }
+
+        private void Profile_OnSelectionChanged(object sender, EventArgs e)
+        {
+            OnPropertyChanged(nameof(CurrentContext));
         }
     }
 
-    internal class MainWindowDVM : MainWindowVM
+    internal class MainWindowDesignVM : MainWindowVM
     {
-        public MainWindowDVM()
+        public MainWindowDesignVM() : base(new ProfileDesignVM())
         {
             RootDirectory = "x:\\dev\\test-rp";
+            IsBusy = true;
 
-            Profiles.Add(SelectedProfile = new ProfileItem {
-                Name = "Test Profile #1",
-                Filename = "Test_Profile_#1.pack.properties",
-            });
-            Profiles.Add(new ProfileItem {
-                Name = "Test Profile #2",
-                Filename = "Test_Profile_#2.pack.properties",
-            });
-
-            LoadedPack = new PackProperties {
-                Properties = {
-                    ["input.format"] = EncodingProperties.Raw,
-                    ["output.format"] = EncodingProperties.Lab13,
-                }
-            };
-
-            Texture.Search = "as";
+            Texture.TreeSearch = "as";
             Texture.TreeRoot.Nodes.Add(new TextureTreeDirectory {
                 Name = "assets",
                 Nodes = {

@@ -3,7 +3,7 @@ using System.IO;
 
 namespace PixelGraph.Common.IO
 {
-    public interface IOutputWriter : IAsyncDisposable
+    public interface IOutputWriter : IAsyncDisposable, IDisposable
     {
         void SetRoot(string absolutePath);
         void Prepare();

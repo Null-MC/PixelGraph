@@ -33,6 +33,12 @@ namespace PixelGraph.Common.IO
 
         public void Clean() {}
 
+        public void Dispose()
+        {
+            archive?.Dispose();
+            fileStream?.Dispose();
+        }
+
         public async ValueTask DisposeAsync()
         {
             archive?.Dispose();

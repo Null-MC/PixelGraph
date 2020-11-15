@@ -22,6 +22,7 @@ namespace PixelGraph.UI.ViewModels
 
     internal class TextureTreeTexture : TextureTreeNode
     {
+        public string TextureFilename {get; set;}
         public PbrProperties Texture {get; set;}
         //public ImageSource AlbedoSource {get; set;}
     }

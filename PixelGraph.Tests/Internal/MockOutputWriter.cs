@@ -44,6 +44,7 @@ namespace PixelGraph.Tests.Internal
             Content.Files.Clear();
         }
 
+        public void Dispose() {}
         public ValueTask DisposeAsync() => default;
     }
 

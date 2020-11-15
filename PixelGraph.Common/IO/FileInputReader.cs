@@ -45,7 +45,7 @@ namespace PixelGraph.Common.IO
         public override Stream Open(string localFile)
         {
             var fullFile = GetFullPath(localFile);
-            return File.Open(fullFile, FileMode.Open, FileAccess.Read);
+            return File.Open(fullFile, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         public override bool FileExists(string localFile)

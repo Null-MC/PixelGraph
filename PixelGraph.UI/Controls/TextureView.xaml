@@ -6,19 +6,50 @@
               xmlns:local="clr-namespace:PixelGraph.UI.Controls"
               d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" d:DataContext="{x:Null}"
               HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-    <Border MouseWheel="OnTextureViewCanvasMouseWheel">
-        <Border.Background>
-            <ImageBrush ImageSource="pack://application:,,,/PixelGraph;component/Resources/tiled_bg.png" Stretch="None" TileMode="Tile" Viewport="0,0,8,8" ViewportUnits="Absolute"/>
-        </Border.Background>
-        <Image RenderOptions.BitmapScalingMode="NearestNeighbor" Stretch="Uniform"
-               Source="{Binding Texture, Mode=OneWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:TextureView}}"
-               Width="{Binding Source.PixelWidth, Mode=OneWay, RelativeSource={RelativeSource Self}}"
-               Height="{Binding Source.PixelHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}">
-            <Image.LayoutTransform>
-                <ScaleTransform CenterX="0.5" CenterY="0.5"
-                                ScaleX="{Binding Zoom, Mode=OneWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:TextureView}}"
-                                ScaleY="{Binding Zoom, Mode=OneWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:TextureView}}"/>
-            </Image.LayoutTransform>
-        </Image>
+    <Border Background="#222" MouseWheel="OnMouseWheel">
+        <Border HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
+                DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:TextureView}}">
+            <Border.Background>
+                <ImageBrush ImageSource="pack://application:,,,/PixelGraph;component/Resources/tiled_bg.png" Stretch="None" TileMode="Tile" Viewport="0,0,8,8" ViewportUnits="Absolute"/>
+            </Border.Background>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.Resources>
+                    <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
+                    <Style TargetType="Image">
+                        <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor"/>
+                        <Setter Property="Stretch" Value="Uniform"/>
+                        <Setter Property="Source" Value="{Binding Texture, Mode=OneWay}"/>
+                        <Setter Property="Width" Value="{Binding Texture.PixelWidth, Mode=OneWay}"/>
+                        <Setter Property="Height" Value="{Binding Texture.PixelHeight, Mode=OneWay}"/>
+                        <Setter Property="LayoutTransform">
+                            <Setter.Value>
+                                <ScaleTransform CenterX="0.5" CenterY="0.5"
+                                                ScaleX="{Binding Zoom, Mode=OneWay}"
+                                                ScaleY="{Binding Zoom, Mode=OneWay}"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Grid.Resources>
+                <Image Grid.Column="0" Grid.Row="0" Visibility="{Binding EnableTiling, Converter={StaticResource VisibilityConverter}}"/>
+                <Image Grid.Column="1" Grid.Row="0" Visibility="{Binding EnableTiling, Converter={StaticResource VisibilityConverter}}"/>
+                <Image Grid.Column="2" Grid.Row="0" Visibility="{Binding EnableTiling, Converter={StaticResource VisibilityConverter}}"/>
+                <Image Grid.Column="0" Grid.Row="1" Visibility="{Binding EnableTiling, Converter={StaticResource VisibilityConverter}}"/>
+                <Image Grid.Column="1" Grid.Row="1"/>
+                <Image Grid.Column="2" Grid.Row="1" Visibility="{Binding EnableTiling, Converter={StaticResource VisibilityConverter}}"/>
+                <Image Grid.Column="0" Grid.Row="2" Visibility="{Binding EnableTiling, Converter={StaticResource VisibilityConverter}}"/>
+                <Image Grid.Column="1" Grid.Row="2" Visibility="{Binding EnableTiling, Converter={StaticResource VisibilityConverter}}"/>
+                <Image Grid.Column="2" Grid.Row="2" Visibility="{Binding EnableTiling, Converter={StaticResource VisibilityConverter}}"/>
+            </Grid>
+        </Border>
     </Border>
 </ScrollViewer>

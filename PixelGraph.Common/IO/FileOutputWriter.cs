@@ -49,6 +49,7 @@ namespace PixelGraph.Common.IO
             return File.GetLastWriteTime(fullFile);
         }
 
+        public void Dispose() {}
         public ValueTask DisposeAsync() => default;
     }
 }

@@ -8,6 +8,7 @@ namespace PixelGraph.Common
 {
     public class PbrProperties : PropertiesFile
     {
+
         public string FileName {get; set;}
         public string Name {get; set;}
         public string Alias {get; set;}
@@ -16,9 +17,26 @@ namespace PixelGraph.Common
 
         public string DisplayName => Alias != null ? $"{Alias}:{Name}" : Name;
 
-        public bool Wrap => Get("wrap", true);
+        public const string Key_Wrap = "wrap";
+
+        public bool Wrap {
+            get => Get(Key_Wrap, true);
+            set {
+                Set(Key_Wrap, value);
+                OnPropertyChanged();
+            }
+        }
+
         public bool ResizeEnabled => Get("resize.enabled", true);
-        public string InputFormat => Get<string>("input.format");
+
+        public string InputFormat {
+            get => Get<string>("input.format");
+            set {
+                Set("input.format", value);
+                OnPropertyChanged();
+            }
+        }
+
         public int? RangeMin => Get<int?>("range.min");
         public int? RangeMax => Get<int?>("range.max");
 
@@ -32,24 +50,140 @@ namespace PixelGraph.Common
         public float? AlbedoScaleB => Get<float?>("albedo.scale.b");
         public float? AlbedoScaleA => Get<float?>("albedo.scale.a");
 
-        public string HeightTexture => Get<string>("height.texture");
-        public byte? HeightValue => Get<byte?>("height.value");
-        public float? HeightScale => Get<float?>("height.scale");
+        public const string Key_HeightTexture = "height.texture";
 
-        public string NormalTexture => Get<string>("normal.texture");
+        public string HeightTexture {
+            get => Get<string>(Key_HeightTexture);
+            set {
+                Set(Key_HeightTexture, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_HeightValue = "height.value";
+
+        public byte? HeightValue {
+            get => Get<byte?>(Key_HeightValue);
+            set {
+                Set(Key_HeightValue, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_HeightScale = "height.scale";
+
+        public float? HeightScale {
+            get => Get<float?>(Key_HeightScale);
+            set {
+                Set(Key_HeightScale, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_NormalTexture = "normal.texture";
+
+        public string NormalTexture {
+            get => Get<string>(Key_NormalTexture);
+            set {
+                Set(Key_NormalTexture, value);
+                OnPropertyChanged();
+            }
+        }
+
         public byte? NormalValueX => Get<byte?>("normal.value.x");
         public byte? NormalValueY => Get<byte?>("normal.value.y");
         public byte? NormalValueZ => Get<byte?>("normal.value.z");
-        public float? NormalStrength => Get<float?>("normal.strength");
-        public float? NormalNoise => Get<float?>("normal.noise");
 
-        public string OcclusionTexture => Get<string>("occlusion.texture");
-        public byte? OcclusionValue => Get<byte?>("occlusion.value");
-        public float? OcclusionScale => Get<float?>("occlusion.scale");
-        public float OcclusionZScale => Get("occlusion.z-scale", 16f);
-        public float OcclusionZBias => Get("occlusion.z-bias", 0.1f);
-        public float OcclusionQuality => Get("occlusion.quality", 0.1f);
-        public int OcclusionSteps => Get("occlusion.steps", 32);
+        public const string Key_NormalStrength = "normal.strength";
+
+        public float? NormalStrength {
+            get => Get<float?>(Key_NormalStrength);
+            set {
+                Set(Key_NormalStrength, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_NormalNoise = "normal.noise";
+
+        public float? NormalNoise {
+            get => Get<float?>(Key_NormalNoise);
+            set {
+                Set(Key_NormalNoise, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_OcclusionTexture = "occlusion.texture";
+
+        public string OcclusionTexture {
+            get => Get<string>(Key_OcclusionTexture);
+            set {
+                Set(Key_OcclusionTexture, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_OcclusionValue = "occlusion.value";
+
+        public byte? OcclusionValue {
+            get => Get<byte?>(Key_OcclusionValue);
+            set {
+                Set(Key_OcclusionValue, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_OcclusionScale = "occlusion.scale";
+
+        public float? OcclusionScale {
+            get => Get<float?>(Key_OcclusionScale);
+            set {
+                Set(Key_OcclusionScale, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_OcclusionZScale = "occlusion.z-scale";
+
+        public float OcclusionZScale {
+            get => Get(Key_OcclusionZScale, 16f);
+            set {
+                Set(Key_OcclusionZScale, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_OcclusionZBias = "occlusion.z-bias";
+
+        public float OcclusionZBias {
+            get => Get(Key_OcclusionZBias, 0.1f);
+            set {
+                Set(Key_OcclusionZBias, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_OcclusionQuality = "occlusion.quality";
+
+        public float OcclusionQuality {
+            get => Get(Key_OcclusionQuality, 0.1f);
+            set {
+                Set(Key_OcclusionQuality, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_OcclusionSteps = "occlusion.steps";
+
+        public int OcclusionSteps {
+            get => Get(Key_OcclusionSteps, 32);
+            set {
+                Set(Key_OcclusionSteps, value);
+                OnPropertyChanged();
+            }
+        }
+
         public bool? OcclusionClipEmissive => Get<bool?>("occlusion.clip-emissive");
 
         public string SpecularTexture => Get<string>("specular.texture");

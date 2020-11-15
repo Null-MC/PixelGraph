@@ -10,15 +10,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controls\PropertyGrid.xaml.cs" />
+    <Compile Remove="Controls\TexturePreview.xaml.cs" />
+    <Compile Remove="Converters\ZoomConverter.cs" />
     <Compile Remove="ViewModels\InputEncodingVM.cs" />
     <Compile Remove="ViewModels\OutputEncodingVM.cs" />
     <Compile Remove="ViewModels\PackPropertiesVM.cs" />
     <Compile Remove="ViewModels\PackPropertyItem.cs" />
+    <Compile Remove="ViewModels\PbrPropertiesVM.cs" />
     <Compile Remove="ViewModels\PropertyGridGroup.cs" />
+    <Compile Remove="ViewModels\TextureViewVM.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="Resources\tiled_bg.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="Controls\PropertyGrid.xaml" />
+    <Page Remove="Controls\TexturePreview.xaml" />
   </ItemGroup>
 
   <ItemGroup>

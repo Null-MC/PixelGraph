@@ -1,0 +1,61 @@
+﻿<ItemsControl x:Class="PixelGraph.UI.Controls.PropertyGrid"
+              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+              xmlns:local="clr-namespace:PixelGraph.UI.Controls"
+              d:DesignWidth="300" d:DesignHeight="500" mc:Ignorable="d"
+              Foreground="{DynamicResource PrimaryHueMidBrush}" Background="Black">
+    <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="{x:Type local:PropertyGridItem}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="6*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.ColumnSpan="2" Background="Black" BorderThickness="0,0,0,1" BorderBrush="#111"/>
+                <TextBlock Grid.Column="0" Margin="4,2" Foreground="White" VerticalAlignment="Center"
+                           Text="{Binding Header, Mode=OneTime}"/>
+                <ContentControl Grid.Column="1" Content="{Binding Content}"/>
+            </Grid>
+        </DataTemplate>
+    </ItemsControl.ItemTemplate>
+              <!--<ItemsControl.Resources>
+        <DataTemplate DataType="{x:Type local:BoolPropertyRow}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="6*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.ColumnSpan="2" Background="Black" BorderThickness="0,0,0,1" BorderBrush="#111"/>
+                <TextBlock Grid.Column="0" Margin="4,2" Foreground="White" VerticalAlignment="Center"
+                           Text="{Binding Label, Mode=OneTime}"/>
+                <CheckBox Grid.Column="1" Margin="4,2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Foreground="{DynamicResource SecondaryHueMidBrush}"
+                          IsChecked="{Binding Value, Mode=TwoWay}"/>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:TextPropertyRow}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="6*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.ColumnSpan="2" Background="Black" BorderThickness="0,0,0,1" BorderBrush="#111"/>
+                <TextBlock Grid.Column="0" Margin="4,2" Foreground="White" VerticalAlignment="Center"
+                           Text="{Binding Label, Mode=OneTime}"/>
+                <TextBox Grid.Column="1" Margin="4,2" IsReadOnly="True" VerticalAlignment="Center"
+                         Foreground="{DynamicResource SecondaryHueMidBrush}"
+                         Text="{Binding Value, Mode=TwoWay}"/>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type local:ButtonPropertyRow}">
+            <Border Background="Black" BorderThickness="0,0,0,1" BorderBrush="#111">
+                <Button Margin="8" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Height="24"
+                        Command="{Binding Command, Mode=OneTime}"
+                        Content="{Binding Label, Mode=OneTime}"
+                        Style="{DynamicResource MaterialDesignOutlinedButton}"/>
+            </Border>
+        </DataTemplate>
+    </ItemsControl.Resources>-->
+</ItemsControl>

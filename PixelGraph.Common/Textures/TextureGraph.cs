@@ -25,6 +25,7 @@ namespace PixelGraph.Common.Textures
         Task<Image<Rgba32>> GetGeneratedNormalAsync(CancellationToken token = default);
         Task<Image<Rgba32>> GetGeneratedOcclusionAsync(CancellationToken token = default);
         Task<Image<Rgba32>> BuildFinalImageAsync(string tag, CancellationToken token = default);
+        Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default);
         bool ContainsSource(string encodingChannel);
     }
 
@@ -75,8 +76,9 @@ namespace PixelGraph.Common.Textures
 
         public async Task<Image<Rgba32>> GetGeneratedOcclusionAsync(CancellationToken token = default)
         {
-            if (occlusionTexture == null)
-                await GenerateOcclusionAsync(token);
+            if (occlusionTexture == null) {
+                occlusionTexture = await GenerateOcclusionAsync(token);
+            }
             
             return occlusionTexture;
         }
@@ -246,10 +248,8 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task GenerateOcclusionAsync(CancellationToken token)
+        public async Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default)
         {
-            if (occlusionTexture != null) throw new ApplicationException("Occlusion texture has already been generated!");
-
             logger.LogInformation("Generating occlusion map for texture {DisplayName}.", Texture.DisplayName);
 
             if (!sourceMap.ContainsKey(EncodingChannel.Height))
@@ -279,8 +279,9 @@ namespace PixelGraph.Common.Textures
                 };
 
                 var processor = new OcclusionProcessor(options);
-                occlusionTexture = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
-                occlusionTexture.Mutate(c => c.ApplyProcessor(processor));
+                var image = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
+                image.Mutate(c => c.ApplyProcessor(processor));
+                return image;
             }
             finally {
                 heightTexture?.Dispose();
