@@ -25,6 +25,7 @@ namespace PixelGraph.Common.Textures
         Task<Image<Rgba32>> GetGeneratedNormalAsync(CancellationToken token = default);
         Task<Image<Rgba32>> GetGeneratedOcclusionAsync(CancellationToken token = default);
         Task<Image<Rgba32>> BuildFinalImageAsync(string tag, CancellationToken token = default);
+        Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token = default);
         Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default);
         bool ContainsSource(string encodingChannel);
     }
@@ -68,8 +69,9 @@ namespace PixelGraph.Common.Textures
 
         public async Task<Image<Rgba32>> GetGeneratedNormalAsync(CancellationToken token = default)
         {
-            if (normalTexture == null)
-                await GenerateNormalAsync(token);
+            if (normalTexture == null) {
+                normalTexture = await GenerateNormalAsync(token);
+            }
             
             return normalTexture;
         }
@@ -212,10 +214,8 @@ namespace PixelGraph.Common.Textures
                 .Add(new ChannelSource(tag, channel));
         }
 
-        private async Task GenerateNormalAsync(CancellationToken token)
+        public async Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token)
         {
-            if (normalTexture != null) throw new ApplicationException("Normal texture has already been generated!");
-
             logger.LogInformation("Generating normal map for texture {DisplayName}.", Texture.DisplayName);
 
             if (!sourceMap.ContainsKey(EncodingChannel.Height))
@@ -225,11 +225,7 @@ namespace PixelGraph.Common.Textures
             try {
                 ColorChannel heightChannel;
                 (heightTexture, heightChannel) = await GetSourceImageAsync(EncodingChannel.Height, token);
-
-                if (heightTexture == null) {
-                    logger.LogWarning("Failed to generated normal map for {DisplayName}; no height textures found.", Texture.DisplayName);
-                    return;
-                }
+                if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
                 var options = new NormalMapProcessor.Options {
                     Source = heightTexture,
@@ -240,8 +236,9 @@ namespace PixelGraph.Common.Textures
                 };
 
                 var processor = new NormalMapProcessor(options);
-                normalTexture = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
-                normalTexture.Mutate(c => c.ApplyProcessor(processor));
+                var image = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
+                image.Mutate(c => c.ApplyProcessor(processor));
+                return image;
             }
             finally {
                 heightTexture?.Dispose();
@@ -271,10 +268,10 @@ namespace PixelGraph.Common.Textures
                     HeightChannel = heightChannel,
                     EmissiveSource = emissiveImage,
                     EmissiveChannel = emissiveChannel,
-                    StepCount = Texture.OcclusionSteps,
-                    Quality = Texture.OcclusionQuality,
-                    ZScale = Texture.OcclusionZScale,
-                    ZBias = Texture.OcclusionZBias,
+                    StepCount = Texture.OcclusionSteps ?? PbrProperties.Default_OcclusionSteps,
+                    Quality = Texture.OcclusionQuality ?? PbrProperties.Default_OcclusionQuality,
+                    ZScale = Texture.OcclusionZScale ?? PbrProperties.Default_OcclusionZScale,
+                    ZBias = Texture.OcclusionZBias ?? PbrProperties.Default_OcclusionZBias,
                     Wrap = Texture.Wrap,
                 };
 

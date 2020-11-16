@@ -205,6 +205,44 @@ namespace PixelGraph.UI.Windows
             vm.Texture.SelectFirstTexture();
         }
 
+        private async Task GenerateNormalAsync(PackProperties pack, PbrProperties texture, CancellationToken token)
+        {
+            var naming = provider.GetRequiredService<INamingStructure>();
+            var outputName = naming.GetOutputTextureName(pack, texture, TextureTags.Normal, texture.UseGlobalMatching);
+
+            var path = PathEx.Join(vm.RootDirectory, texture.Path);
+            if (!texture.UseGlobalMatching) path = PathEx.Join(path, texture.Name);
+            var fullName = PathEx.Join(path, outputName);
+
+            if (File.Exists(fullName)) {
+                var result = MessageBox.Show(this, "A normal texture already exists! Would you like to overwrite it?", "Warning", MessageBoxButton.OKCancel);
+                if (result != MessageBoxResult.OK) return;
+            }
+
+            if (!vm.TryStartBusy()) return;
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+
+            try {
+                await Task.Factory.StartNew(async () => {
+                    using var graph = graphBuilder.CreateGraph(pack, texture);
+                    using var normalImage = await graph.GenerateNormalAsync(token);
+
+                    await normalImage.SaveAsync(fullName, token);
+                }, token);
+
+                // TODO: update texture sources
+                Application.Current.Dispatcher.Invoke(() => {
+                    PopulateTextureViewer(vm.Texture.SelectedNode as TextureTreeTexture);
+                });
+            }
+            catch (Exception error) {
+                ShowError($"Failed to generate normal texture! {error.Message}");
+            }
+            finally {
+                vm.EndBusy();
+            }
+        }
+
         private async Task GenerateOcclusionAsync(PackProperties pack, PbrProperties texture, CancellationToken token)
         {
             var naming = provider.GetRequiredService<INamingStructure>();
@@ -231,18 +269,23 @@ namespace PixelGraph.UI.Windows
                 }, token);
 
                 // TODO: update texture sources
-                //var textureNode = vm.Texture.SelectedNode as TextureTreeTexture;
-                //await PopulateTextureViewerAsync(textureNode, CancellationToken.None);
                 Application.Current.Dispatcher.Invoke(() => {
                     PopulateTextureViewer(vm.Texture.SelectedNode as TextureTreeTexture);
                 });
             }
             catch (Exception error) {
-                MessageBox.Show(this, error.Message, "Error!");
+                ShowError($"Failed to generate occlusion texture! {error.Message}");
             }
             finally {
                 vm.EndBusy();
             }
+        }
+
+        private void ShowError(string message)
+        {
+            Application.Current.Dispatcher.Invoke(() => {
+                MessageBox.Show(this, message, "Error!");
+            });
         }
 
         #region Events
@@ -300,12 +343,22 @@ namespace PixelGraph.UI.Windows
 
         private async void OnPackDataChanged(object sender, EventArgs e)
         {
-            await SavePropertiesAsync(vm.Profile.Loaded, vm.Profile.LoadedFilename, CancellationToken.None);
+            try {
+                await SavePropertiesAsync(vm.Profile.Loaded, vm.Profile.LoadedFilename, CancellationToken.None);
+            }
+            catch (Exception error) {
+                ShowError($"Failed to save pack profile '{vm.Profile.LoadedFilename}'! {error.Message}");
+            }
         }
 
         private async void OnTextureDataChanged(object sender, EventArgs e)
         {
-            await SavePropertiesAsync(vm.Texture.Loaded, vm.Texture.LoadedFilename, CancellationToken.None);
+            try {
+                await SavePropertiesAsync(vm.Texture.Loaded, vm.Texture.LoadedFilename, CancellationToken.None);
+            }
+            catch (Exception error) {
+                ShowError($"Failed to save texture '{vm.Texture.LoadedFilename}'! {error.Message}");
+            }
         }
 
         private void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -322,21 +375,36 @@ namespace PixelGraph.UI.Windows
 
         private async void OnGenerateNormal(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
-        }
+            if (vm.Texture.Loaded == null) return;
 
-        private async void OnGenerateOcclusion(object sender, EventArgs e)
-        {
-            var pack = vm.Profile.Loaded;
-            var texture = vm.Texture.Loaded;
-            if (texture == null) return;
-
-            if (pack == null) {
+            if (vm.Profile.Loaded == null) {
                 MessageBox.Show("A pack profile must be selected first!", "Warning");
                 return;
             }
 
-            await GenerateOcclusionAsync(pack, texture, CancellationToken.None);
+            try {
+                await GenerateNormalAsync(vm.Profile.Loaded, vm.Texture.Loaded, CancellationToken.None);
+            }
+            catch (Exception error) {
+                ShowError($"Failed to generate normal texture! {error.Message}");
+            }
+        }
+
+        private async void OnGenerateOcclusion(object sender, EventArgs e)
+        {
+            if (vm.Texture.Loaded == null) return;
+
+            if (vm.Profile.Loaded == null) {
+                MessageBox.Show("A pack profile must be selected first!", "Warning");
+                return;
+            }
+
+            try {
+                await GenerateOcclusionAsync(vm.Profile.Loaded, vm.Texture.Loaded, CancellationToken.None);
+            }
+            catch (Exception error) {
+                ShowError($"Failed to generate occlusion texture! {error.Message}");
+            }
         }
 
         #endregion

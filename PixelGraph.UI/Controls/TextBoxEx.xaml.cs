@@ -2,7 +2,7 @@
 
 namespace PixelGraph.UI.Controls
 {
-    public partial class ComboBoxEx
+    public partial class TextBoxEx
     {
         public object Placeholder {
             get => GetValue(PlaceholderProperty);
@@ -10,11 +10,12 @@ namespace PixelGraph.UI.Controls
         }
 
 
-        public ComboBoxEx()
+        public TextBoxEx()
         {
             InitializeComponent();
         }
 
-        public static readonly DependencyProperty PlaceholderProperty = DependencyProperty.Register("Placeholder", typeof(object), typeof(ComboBoxEx));
+        public static readonly DependencyProperty PlaceholderProperty =
+            DependencyProperty.Register("Placeholder", typeof(object), typeof(TextBoxEx));
     }
 }

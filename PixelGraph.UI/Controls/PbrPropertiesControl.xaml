@@ -4,100 +4,175 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:PixelGraph.UI.Controls"
-             d:DesignWidth="280" d:DesignHeight="500" mc:Ignorable="d"
-             x:Name="PbrPropertiesRoot">
-    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                  DataContext="{Binding Texture, Mode=OneWay, RelativeSource={RelativeSource AncestorType=UserControl}}">
-        <StackPanel Orientation="Vertical">
-            <Expander Header="General" IsExpanded="True" Foreground="{DynamicResource PrimaryHueMidBrush}">
-                <StackPanel Orientation="Vertical">
-                    <local:PropertyGridItem Header="Enable Wrapping">
-                        <CheckBox Margin="4,2" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                  Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                  IsChecked="{Binding Wrap, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                </StackPanel>
-            </Expander>
-            <Expander Header="Height" IsExpanded="True" Foreground="{DynamicResource PrimaryHueMidBrush}">
-                <StackPanel Orientation="Vertical">
-                    <local:PropertyGridItem Header="Texture">
-                        <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding HeightTexture, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem Header="Value">
-                        <TextBox Margin="4,2" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding HeightValue, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem Header="Scale">
-                        <TextBox Margin="4,2" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding HeightScale, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                </StackPanel>
-            </Expander>
-            <Expander Header="Normals" IsExpanded="True" Foreground="{DynamicResource PrimaryHueMidBrush}">
-                <StackPanel Orientation="Vertical">
-                    <local:PropertyGridItem Header="Texture">
-                        <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding NormalTexture, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem Header="Strength">
-                        <TextBox Margin="4,2" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding NormalStrength, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem>
-                        <Button Margin="8" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Height="24"
-                                Content="Generate" Style="{DynamicResource MaterialDesignOutlinedButton}" Click="OnGenerateNormalClick"/>
-                    </local:PropertyGridItem>
-                </StackPanel>
-            </Expander>
-            <Expander Header="Ambient Occlusion" IsExpanded="True" Foreground="{DynamicResource PrimaryHueMidBrush}">
-                <StackPanel Orientation="Vertical">
-                    <local:PropertyGridItem Header="Texture">
-                        <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding OcclusionTexture, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem Header="Value">
-                        <TextBox Margin="4,2" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding OcclusionValue, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem Header="Quality">
-                        <TextBox Margin="4,2" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding OcclusionQuality, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem Header="Step Count">
-                        <TextBox Margin="4,2" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding OcclusionSteps, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem Header="Scale">
-                        <TextBox Margin="4,2" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding OcclusionScale, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem Header="Z-Bias">
-                        <TextBox Margin="4,2" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding OcclusionZBias, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem Header="Z-Scale">
-                        <TextBox Margin="4,2" VerticalAlignment="Center"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                 Text="{Binding OcclusionZScale, Mode=TwoWay}"/>
-                    </local:PropertyGridItem>
-                    <local:PropertyGridItem>
-                        <Button Margin="8" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Height="24"
-                                Content="Generate" Style="{DynamicResource MaterialDesignOutlinedButton}" Click="OnGenerateOcclusionClick"/>
-                    </local:PropertyGridItem>
-                </StackPanel>
-            </Expander>
-        </StackPanel>
-    </ScrollViewer>
+             xmlns:common="clr-namespace:PixelGraph.Common;assembly=PixelGraph.Common"
+             d:DesignWidth="280" d:DesignHeight="500" mc:Ignorable="d" Background="#FF060606">
+    <UserControl.Resources>
+        <local:TextureItemList x:Key="TextureList"/>
+        <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
+    </UserControl.Resources>
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="#222">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Texture Properties" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" Margin="6,2,6,0" FontSize="16" FontWeight="Bold"/>
+                <ComboBox DisplayMemberPath="Name" SelectedValuePath="Key" Padding="4" Margin="4,2,4,4"
+                          ItemsSource="{StaticResource TextureList}" Foreground="{DynamicResource SecondaryHueMidBrush}"
+                          SelectedValue="{Binding Selected, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+            </StackPanel>
+        </Border>
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      DataContext="{Binding Mode=OneWay, RelativeSource={RelativeSource AncestorType=UserControl}}">
+            <Grid>
+                <Grid Visibility="{Binding IsGeneralSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                    <StackPanel Orientation="Vertical">
+                        <local:PropertyGridItem Header="Enable Wrapping">
+                            <CheckBox Margin="4,2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                      IsChecked="{Binding Texture.Wrap, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                    </StackPanel>
+                </Grid>
+                <Grid Visibility="{Binding IsAlbedoSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
+                    <StackPanel Orientation="Vertical">
+                        <local:PropertyGridItem Header="Texture">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.AlbedoTexture, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                    </StackPanel>
+                </Grid>
+                <Grid Visibility="{Binding IsHeightSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
+                    <StackPanel Orientation="Vertical">
+                        <local:PropertyGridItem Header="Texture">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.HeightTexture, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Value">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.HeightValue, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Scale">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.HeightScale, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                    </StackPanel>
+                </Grid>
+                <Grid Visibility="{Binding IsNormalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
+                    <StackPanel Orientation="Vertical">
+                        <local:PropertyGridItem Header="Texture">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.NormalTexture, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Strength">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.NormalStrength, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Noise">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="0.0"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.NormalNoise, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem>
+                            <Button Margin="8" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Height="24"
+                                    Content="Generate" Style="{DynamicResource MaterialDesignOutlinedButton}" Click="OnGenerateNormalClick"/>
+                        </local:PropertyGridItem>
+                    </StackPanel>
+                </Grid>
+                <Grid Visibility="{Binding IsOcclusionSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
+                    <StackPanel Orientation="Vertical">
+                        <local:PropertyGridItem Header="Texture">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.OcclusionTexture, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Value">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.OcclusionValue, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Scale">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.OcclusionScale, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Quality">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="{x:Static common:PbrProperties.Default_OcclusionQuality}"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.OcclusionQuality, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Step Count">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="{x:Static common:PbrProperties.Default_OcclusionSteps}"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.OcclusionSteps, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Z-Bias">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="{x:Static common:PbrProperties.Default_OcclusionZBias}"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.OcclusionZBias, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Z-Scale">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="{x:Static common:PbrProperties.Default_OcclusionZScale}"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.OcclusionZScale, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem>
+                            <Button Margin="8" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Height="24"
+                                    Content="Generate" Style="{DynamicResource MaterialDesignOutlinedButton}" Click="OnGenerateOcclusionClick"/>
+                        </local:PropertyGridItem>
+                    </StackPanel>
+                </Grid>
+                <Grid Visibility="{Binding IsSpecularSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
+                    <StackPanel Orientation="Vertical">
+                        <local:PropertyGridItem Header="Texture">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.SpecularTexture, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                    </StackPanel>
+                </Grid>
+                <Grid Visibility="{Binding IsSmoothSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
+                    <StackPanel Orientation="Vertical">
+                        <local:PropertyGridItem Header="Texture">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.SmoothTexture, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Value">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.SmoothValue, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Scale">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.SmoothScale, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                    </StackPanel>
+                </Grid>
+                <Grid Visibility="{Binding IsRoughSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
+                    <StackPanel Orientation="Vertical">
+                        <local:PropertyGridItem Header="Texture">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.RoughTexture, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Value">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.RoughValue, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Scale">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding Texture.RoughScale, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+    </DockPanel>
 </UserControl>

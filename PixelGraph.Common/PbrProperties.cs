@@ -40,7 +40,16 @@ namespace PixelGraph.Common
         public int? RangeMin => Get<int?>("range.min");
         public int? RangeMax => Get<int?>("range.max");
 
-        public string AlbedoTexture => Get<string>("albedo.texture");
+        public const string Key_AlbedoTexture = "albedo.texture";
+
+        public string AlbedoTexture {
+            get => Get<string>(Key_AlbedoTexture);
+            set {
+                Set(Key_AlbedoTexture, value);
+                OnPropertyChanged();
+            }
+        }
+
         public byte? AlbedoValueR => Get<byte?>("albedo.value.r");
         public byte? AlbedoValueG => Get<byte?>("albedo.value.g");
         public byte? AlbedoValueB => Get<byte?>("albedo.value.b");
@@ -145,9 +154,10 @@ namespace PixelGraph.Common
         }
 
         public const string Key_OcclusionZScale = "occlusion.z-scale";
+        public const float Default_OcclusionZScale = 25f;
 
-        public float OcclusionZScale {
-            get => Get(Key_OcclusionZScale, 16f);
+        public float? OcclusionZScale {
+            get => Get<float?>(Key_OcclusionZScale);
             set {
                 Set(Key_OcclusionZScale, value);
                 OnPropertyChanged();
@@ -155,9 +165,10 @@ namespace PixelGraph.Common
         }
 
         public const string Key_OcclusionZBias = "occlusion.z-bias";
+        public const float Default_OcclusionZBias = 1.0f;
 
-        public float OcclusionZBias {
-            get => Get(Key_OcclusionZBias, 0.1f);
+        public float? OcclusionZBias {
+            get => Get<float?>(Key_OcclusionZBias);
             set {
                 Set(Key_OcclusionZBias, value);
                 OnPropertyChanged();
@@ -165,9 +176,10 @@ namespace PixelGraph.Common
         }
 
         public const string Key_OcclusionQuality = "occlusion.quality";
+        public const float Default_OcclusionQuality = 0.1f;
 
-        public float OcclusionQuality {
-            get => Get(Key_OcclusionQuality, 0.1f);
+        public float? OcclusionQuality {
+            get => Get<float?>(Key_OcclusionQuality);
             set {
                 Set(Key_OcclusionQuality, value);
                 OnPropertyChanged();
@@ -175,9 +187,10 @@ namespace PixelGraph.Common
         }
 
         public const string Key_OcclusionSteps = "occlusion.steps";
+        public const int Default_OcclusionSteps = 32;
 
-        public int OcclusionSteps {
-            get => Get(Key_OcclusionSteps, 32);
+        public int? OcclusionSteps {
+            get => Get<int?>(Key_OcclusionSteps);
             set {
                 Set(Key_OcclusionSteps, value);
                 OnPropertyChanged();
@@ -186,15 +199,75 @@ namespace PixelGraph.Common
 
         public bool? OcclusionClipEmissive => Get<bool?>("occlusion.clip-emissive");
 
-        public string SpecularTexture => Get<string>("specular.texture");
+        public const string Key_SpecularTexture = "specular.texture";
 
-        public string SmoothTexture => Get<string>("smooth.texture");
-        public byte? SmoothValue => Get<byte?>("smooth.value");
-        public float? SmoothScale => Get<float?>("smooth.scale");
+        public string SpecularTexture {
+            get => Get<string>(Key_SpecularTexture);
+            set {
+                Set(Key_SpecularTexture, value);
+                OnPropertyChanged();
+            }
+        }
 
-        public string RoughTexture => Get<string>("rough.texture");
-        public byte? RoughValue => Get<byte?>("rough.value");
-        public float? RoughScale => Get<float?>("rough.scale");
+        public const string Key_SmoothTexture = "smooth.texture";
+
+        public string SmoothTexture {
+            get => Get<string>(Key_SmoothTexture);
+            set {
+                Set(Key_SmoothTexture, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_SmoothValue = "smooth.value";
+
+        public byte? SmoothValue {
+            get => Get<byte?>(Key_SmoothValue);
+            set {
+                Set(Key_SmoothValue, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_SmoothScale = "smooth.scale";
+
+        public float? SmoothScale {
+            get => Get<float?>(Key_SmoothScale);
+            set {
+                Set(Key_SmoothScale, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_RoughTexture = "rough.texture";
+
+        public string RoughTexture {
+            get => Get<string>(Key_RoughTexture);
+            set {
+                Set(Key_RoughTexture, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_RoughValue = "rough.value";
+
+        public byte? RoughValue {
+            get => Get<byte?>(Key_RoughValue);
+            set {
+                Set(Key_RoughValue, value);
+                OnPropertyChanged();
+            }
+        }
+
+        public const string Key_RoughScale = "rough.scale";
+
+        public float? RoughScale {
+            get => Get<float?>(Key_RoughScale);
+            set {
+                Set(Key_RoughScale, value);
+                OnPropertyChanged();
+            }
+        }
 
         public string MetalTexture => Get<string>("metal.texture");
         public byte? MetalValue => Get<byte?>("metal.value");

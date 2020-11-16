@@ -12,13 +12,9 @@ namespace PixelGraph.UI.ViewModels
         private string _treeSearch;
         private TextureTreeNode _selectedNode;
         private TextureSource _selectedSource;
-        //private DiffuseMaterial _albedoMaterial;
         private PbrProperties _loaded;
         private string _loadedFilename;
 
-        //public event EventHandler DataChanged;
-
-        //public string Name {get; set;}
         public ObservableCollection<TextureSource> Textures {get;}
         public TextureTreeNode TreeRoot {get;}
 
@@ -50,14 +46,6 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        //public DiffuseMaterial AlbedoMaterial {
-        //    get => _albedoMaterial;
-        //    set {
-        //        _albedoMaterial = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
         public string LoadedFilename {
             get => _loadedFilename;
             set {
@@ -71,20 +59,8 @@ namespace PixelGraph.UI.ViewModels
             set {
                 _loaded = value;
                 OnPropertyChanged();
-
-                //OnPropertyChanged(nameof(Wrap));
             }
         }
-
-        //public bool Wrap {
-        //    get => _loaded?.Wrap ?? true;
-        //    set {
-        //        if (_loaded == null) return;
-        //        _loaded.Wrap = value;
-        //        OnPropertyChanged();
-        //        OnDataChanged();
-        //    }
-        //}
 
 
         public TextureVM()
@@ -117,11 +93,6 @@ namespace PixelGraph.UI.ViewModels
             var albedo = Textures.FirstOrDefault(x => TextureTags.Is(x.Tag, TextureTags.Albedo));
             SelectedSource = albedo ?? Textures.FirstOrDefault();
         }
-
-        //private void OnDataChanged()
-        //{
-        //    DataChanged?.Invoke(this, EventArgs.Empty);
-        //}
     }
 
     internal class TextureSource

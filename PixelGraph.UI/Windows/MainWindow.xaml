@@ -351,13 +351,8 @@
                                                       Texture="{Binding SelectedSource.Image, Mode=OneWay}"/>
                             </DockPanel>
                             <GridSplitter Grid.Column="1" Grid.Row="0" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
-                            <DockPanel Grid.Column="2">
-                                <Border DockPanel.Dock="Top" Background="#222">
-                                    <TextBlock Text="Texture Properties" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" Margin="8,4,8,4"/>
-                                </Border>
-                                <controls:PbrPropertiesControl DataChanged="OnTextureDataChanged" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
-                                    Texture="{Binding Loaded, Mode=OneWay}"/>
-                            </DockPanel>
+                            <controls:PbrPropertiesControl Grid.Column="2" DataChanged="OnTextureDataChanged" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
+                                                           Texture="{Binding Loaded, Mode=OneWay}"/>
                         </Grid>
                     </Grid>
                 </TabItem>
