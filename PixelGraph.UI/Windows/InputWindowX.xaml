@@ -1,0 +1,244 @@
+﻿<Window x:Class="PixelGraph.UI.Windows.InputWindowX"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
+        xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+        Title="Edit Input Encoding" Width="480" Height="480" mc:Ignorable="d"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal" 
+        TextOptions.TextRenderingMode="Auto"        
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}" WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <vm:EncodingFormatValues x:Key="Formats"/>
+        <vm:TextureTagValues x:Key="TextureTags"/>
+        <vm:ColorChannelValues x:Key="ColorChannels"/>
+        <Style x:Key="ColumnLabel" TargetType="TextBlock">
+            <Setter Property="Margin" Value="6,2"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryHueLightBrush}"/>
+        </Style>
+        <Style x:Key="RowLabel" TargetType="TextBlock">
+            <Setter Property="Margin" Value="6,2"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+        </Style>
+        <Style x:Key="RowValue" TargetType="controls:ComboBoxEx">
+            <Setter Property="Margin" Value="2,1"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="6,0,5,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="SeparatorThinStyle" TargetType="Rectangle">
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Fill" Value="#333"/>
+            <Setter Property="VerticalAlignment" Value="Bottom"/>
+            <Setter Property="Grid.ColumnSpan" Value="3"/>
+        </Style>
+        <!--<Style x:Key="SeparatorThickStyle" TargetType="Rectangle">
+            <Setter Property="Height" Value="3"/>
+            <Setter Property="Fill" Value="#333"/>
+            <Setter Property="Grid.ColumnSpan" Value="3"/>
+        </Style>-->
+    </Window.Resources>
+    <Window.DataContext>
+        <vm:InputVM x:Name="vm"/>
+    </Window.DataContext>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+            <TextBlock Text="Format:" Margin="6,6,4,6" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+            <ComboBox Width="120" ItemsSource="{StaticResource Formats}" Padding="0,1,0,1" Margin="2,6,6,6"/>
+        </StackPanel>
+        <ScrollViewer>
+            <Grid Background="#222">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Rectangle Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Fill="#111"/>
+                <TextBlock Grid.Column="0" Grid.Row="0" Text="Channel" HorizontalAlignment="Left" Style="{StaticResource ColumnLabel}"/>
+                <TextBlock Grid.Column="1" Grid.Row="0" Text="Texture" HorizontalAlignment="Center" Style="{StaticResource ColumnLabel}"/>
+                <TextBlock Grid.Column="2" Grid.Row="0" Text="Color" HorizontalAlignment="Center" Style="{StaticResource ColumnLabel}"/>
+                <TextBlock Grid.Column="0" Grid.Row="1" Text="Red" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="1" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Red.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="1" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Red.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="1" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="2" Text="Green" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="2" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Green.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="2" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Green.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="2" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="3" Text="Blue" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="3" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Blue.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="3" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Blue.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="3" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="4" Text="Alpha" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="4" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Alpha.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="4" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Alpha.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="4" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="5" Text="Height" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="5" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Height.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="5" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Height.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="5" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="6" Text="Normal X" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="6" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding NormalX.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="6" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding NormalX.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="6" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="7" Text="Normal Y" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="7" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding NormalY.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="7" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding NormalY.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="7" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="8" Text="Normal Z" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="8" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding NormalZ.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="8" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding NormalZ.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="8" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="9" Text="Occlusion" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="9" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Occlusion.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="9" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Occlusion.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="9" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="10" Text="Specular" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="10" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Specular.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="10" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Specular.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="10" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="11" Text="Smoothness" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="11" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Smooth.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="11" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Smooth.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="11" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="12" Text="Perceptual Smoothness" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="12" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding PerceptualSmooth.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="12" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding PerceptualSmooth.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="12" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="13" Text="Roughness" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="13" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Rough.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="13" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Rough.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="13" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="14" Text="Perceptual Roughness" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="14" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding PerceptualRough.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="14" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding PerceptualRough.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="14" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="15" Text="Metalness" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="15" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Metal.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="15" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Metal.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="15" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="16" Text="Porosity" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="16" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Porosity.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="16" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Porosity.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="16" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="17" Text="Porosity" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="17" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Porosity.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="17" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Porosity.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="17" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="18" Text="Sub-Surface Scattering" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="18" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding SSS.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="18" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding SSS.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="18" Style="{StaticResource SeparatorThinStyle}"/>
+                <TextBlock Grid.Column="0" Grid.Row="19" Text="Emissive" Style="{StaticResource RowLabel}"/>
+                <controls:ComboBoxEx Grid.Column="1" Grid.Row="19" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource TextureTags}"
+                                     SelectedValue="{Binding Emissive.Texture, Mode=TwoWay}"/>
+                <controls:ComboBoxEx Grid.Column="2" Grid.Row="19" Style="{StaticResource RowValue}"
+                                     ItemsSource="{StaticResource ColorChannels}"
+                                     SelectedValue="{Binding Emissive.Color, Mode=TwoWay}"/>
+                <Rectangle Grid.Column="0" Grid.Row="18" Style="{StaticResource SeparatorThinStyle}"/>
+            </Grid>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

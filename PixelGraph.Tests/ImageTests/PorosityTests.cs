@@ -1,7 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
+using PixelGraph.Common.Encoding;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -10,42 +14,24 @@ namespace PixelGraph.Tests.ImageTests
 {
     public class PorosityTests : TestBase
     {
-        private readonly PackProperties pack;
+        private readonly ResourcePackInputProperties packInput;
+        private readonly ResourcePackProfileProperties packProfile;
 
 
         public PorosityTests(ITestOutputHelper output) : base(output)
         {
-            pack = new PackProperties {
-                Properties = {
-                    ["output.porosity.r"] = "porosity",
-                    ["output.porosity"] = "true",
-                }
+            packInput = new ResourcePackInputProperties {
+                Format = TextureEncoding.Format_Raw,
             };
-        }
 
-        [InlineData(  0,  0.0f,   0)]
-        [InlineData(100,  1.0f, 100)]
-        [InlineData(100,  0.5f,  50)]
-        [InlineData(100,  2.0f, 200)]
-        [InlineData(100,  3.0f, 255)]
-        [InlineData(200, 0.01f,   2)]
-        [Theory] public async Task Scale(byte value, float scale, byte expected)
-        {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            graphBuilder.UseGlobalOutput = true;
-
-            await graphBuilder.BuildAsync(pack, new PbrProperties {
-                Name = "test",
-                Path = "assets",
-                Properties = {
-                    ["porosity.value"] = value.ToString(),
-                    ["porosity.scale"] = scale.ToString("F"),
-                }
-            });
-
-            using var image = await Content.OpenImageAsync("assets/test_p.png");
-            PixelAssert.RedEquals(expected, image);
+            packProfile = new ResourcePackProfileProperties {
+                Output = {
+                    Porosity = {
+                        Red = EncodingChannel.Porosity,
+                        Include = true,
+                    },
+                },
+            };
         }
 
         [InlineData(  0)]
@@ -59,18 +45,55 @@ namespace PixelGraph.Tests.ImageTests
             graphBuilder.UseGlobalOutput = true;
 
             using var heightImage = CreateImageR(value);
-            await Content.AddAsync("assets/test/porosity.png", heightImage);
+            Content.Add("assets/test/porosity.png", heightImage);
 
-            await graphBuilder.BuildAsync(pack, new PbrProperties {
-                Name = "test",
-                Path = "assets",
-                Properties = {
-                    ["porosity.input.r"] = "porosity",
-                }
-            });
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = {
+                    Name = "test",
+                    LocalPath = "assets",
+                    Porosity = {
+                        Input = {
+                            Red = EncodingChannel.Porosity,
+                        },
+                    },
+                },
+            };
 
-            using var image = await Content.OpenImageAsync("assets/test_p.png");
+            await graphBuilder.ProcessOutputGraphAsync(context);
+            var image = Content.Get<Image<Rgba32>>("assets/test_p.png");
             PixelAssert.RedEquals(value, image);
+        }
+
+        [InlineData(  0,  0.0,   0)]
+        [InlineData(100,  1.0, 100)]
+        [InlineData(100,  0.5,  50)]
+        [InlineData(100,  2.0, 200)]
+        [InlineData(100,  3.0, 255)]
+        [InlineData(200, 0.01,   2)]
+        [Theory] public async Task Scale(byte value, decimal scale, byte expected)
+        {
+            await using var provider = Builder.Build();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            graphBuilder.UseGlobalOutput = true;
+
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = {
+                    Name = "test",
+                    LocalPath = "assets",
+                    Porosity = {
+                        Value = value,
+                        Scale = scale,
+                    },
+                },
+            };
+
+            await graphBuilder.ProcessOutputGraphAsync(context);
+            var image = Content.Get<Image<Rgba32>>("assets/test_p.png");
+            PixelAssert.RedEquals(expected, image);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
@@ -9,18 +10,19 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Publishing
 {
     internal class GenericTexturePublisher
     {
-        protected PackProperties Pack {get;}
+        protected ResourcePackProfileProperties Pack {get;}
         protected IInputReader Reader {get;}
         protected IOutputWriter Writer {get;}
 
 
         public GenericTexturePublisher(
-            PackProperties pack,
+            ResourcePackProfileProperties pack,
             IInputReader reader,
             IOutputWriter writer)
         {
@@ -56,13 +58,13 @@ namespace PixelGraph.Common.Publishing
 
             Writer.Prepare();
 
-            await using var stream = Writer.WriteFile(destinationFile);
+            await using var stream = Writer.Open(destinationFile);
             await targetImage.SaveAsPngAsync(stream, token);
         }
 
-        protected void Resize(IImageProcessingContext context, PbrProperties texture)
+        protected void Resize(IImageProcessingContext context, MaterialProperties material)
         {
-            if (!(texture?.ResizeEnabled ?? true)) return;
+            if (!(material?.ResizeEnabled ?? true)) return;
             if (!Pack.TextureSize.HasValue && !Pack.TextureScale.HasValue) return;
 
             var (width, height) = context.GetCurrentSize();

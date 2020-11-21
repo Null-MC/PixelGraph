@@ -1,7 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
+using PixelGraph.Common.Encoding;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -10,16 +14,23 @@ namespace PixelGraph.Tests.ImageTests
 {
     public class PorositySSSTests : TestBase
     {
-        private readonly PackProperties pack;
+        private readonly ResourcePackInputProperties packInput;
+        private readonly ResourcePackProfileProperties packProfile;
 
 
         public PorositySSSTests(ITestOutputHelper output) : base(output)
         {
-            pack = new PackProperties {
-                Properties = {
-                    ["output.specular.r"] = "porosity-sss",
-                    ["output.specular"] = "true",
-                }
+            packInput = new ResourcePackInputProperties {
+                Format = TextureEncoding.Format_Raw,
+            };
+
+            packProfile = new ResourcePackProfileProperties {
+                Output = {
+                    Specular = {
+                        Red = EncodingChannel.Porosity_SSS,
+                        Include = true,
+                    },
+                },
             };
         }
 
@@ -34,17 +45,25 @@ namespace PixelGraph.Tests.ImageTests
             graphBuilder.UseGlobalOutput = true;
 
             using var heightImage = CreateImageR(value);
-            await Content.AddAsync("assets/test/specular.png", heightImage);
+            Content.Add("assets/test/specular.png", heightImage);
 
-            await graphBuilder.BuildAsync(pack, new PbrProperties {
-                Name = "test",
-                Path = "assets",
-                Properties = {
-                    ["specular.input.r"] = "porosity-sss",
-                }
-            });
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = {
+                    Name = "test",
+                    LocalPath = "assets",
+                    Specular = {
+                        Input = {
+                            Red = EncodingChannel.Porosity_SSS,
+                        },
+                    },
+                },
+            };
 
-            using var image = await Content.OpenImageAsync("assets/test_s.png");
+            await graphBuilder.ProcessOutputGraphAsync(context);
+
+            var image = Content.Get<Image<Rgba32>>("assets/test_s.png");
             PixelAssert.RedEquals(value, image);
         }
 
@@ -59,17 +78,24 @@ namespace PixelGraph.Tests.ImageTests
             graphBuilder.UseGlobalOutput = true;
 
             using var porosityImage = CreateImageR(value);
-            await Content.AddAsync("assets/test/porosity.png", porosityImage);
+            Content.Add("assets/test/porosity.png", porosityImage);
 
-            await graphBuilder.BuildAsync(pack, new PbrProperties {
-                Name = "test",
-                Path = "assets",
-                Properties = {
-                    ["porosity.input.r"] = "porosity",
-                }
-            });
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = {
+                    Name = "test",
+                    LocalPath = "assets",
+                    Porosity = {
+                        Input = {
+                            Red = EncodingChannel.Porosity,
+                        },
+                    },
+                },
+            };
 
-            using var image = await Content.OpenImageAsync("assets/test_s.png");
+            await graphBuilder.ProcessOutputGraphAsync(context);
+            var image = Content.Get<Image<Rgba32>>("assets/test_s.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -85,17 +111,24 @@ namespace PixelGraph.Tests.ImageTests
             graphBuilder.UseGlobalOutput = true;
 
             using var porosityImage = CreateImageR(value);
-            await Content.AddAsync("assets/test/sss.png", porosityImage);
+            Content.Add("assets/test/sss.png", porosityImage);
 
-            await graphBuilder.BuildAsync(pack, new PbrProperties {
-                Name = "test",
-                Path = "assets",
-                Properties = {
-                    ["sss.input.r"] = "sss",
-                }
-            });
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = {
+                    Name = "test",
+                    LocalPath = "assets",
+                    SSS = {
+                        Input = {
+                            Red = EncodingChannel.SubSurfaceScattering,
+                        },
+                    },
+                },
+            };
 
-            using var image = await Content.OpenImageAsync("assets/test_s.png");
+            await graphBuilder.ProcessOutputGraphAsync(context);
+            var image = Content.Get<Image<Rgba32>>("assets/test_s.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

@@ -34,7 +34,7 @@ namespace PixelGraph.CLI.CommandLine
             this.logger = logger;
 
             Command = new Command("publish", "Publishes the specified profile.") {
-                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, FileInfo, bool, string[]>(RunAsync),
+                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, FileInfo, bool>(RunAsync),
             };
 
             Command.AddOption(new Option<FileInfo>(
@@ -55,12 +55,12 @@ namespace PixelGraph.CLI.CommandLine
                 () => false,
                 "Generates a compressed ZIP archive of the published contents."));
 
-            Command.AddOption(new Option<string[]>(
-                new[] {"--property" },
-                "Override a pack property."));
+            //Command.AddOption(new Option<string[]>(
+            //    new[] {"--property" },
+            //    "Override a pack property."));
         }
 
-        private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, FileInfo zip, bool clean, string[] property)
+        private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, FileInfo zip, bool clean)
         {
             factory.AddFileInput();
             if (zip != null) factory.AddArchiveOutput();
@@ -74,7 +74,7 @@ namespace PixelGraph.CLI.CommandLine
 
                 var executor = provider.GetRequiredService<Executor>();
                 executor.CleanDestination = clean;
-                executor.Properties = property;
+                //executor.Properties = property;
 
                 await executor.ExecuteAsync(profile.FullName, destPath, lifetime.Token);
 
@@ -95,17 +95,17 @@ namespace PixelGraph.CLI.CommandLine
         {
             private readonly IInputReader reader;
             private readonly IOutputWriter writer;
-            private readonly IPackReader packReader;
+            private readonly IResourcePackReader packReader;
             private readonly ITextureGraphBuilder graphBuilder;
             private readonly IPublisher publisher;
 
-            public string[] Properties {get; set;}
+            //public string[] Properties {get; set;}
             public bool CleanDestination {get; set;}
 
 
             public Executor(
                 ITextureGraphBuilder graphBuilder,
-                IPackReader packReader,
+                IResourcePackReader packReader,
                 IInputReader reader,
                 IOutputWriter writer,
                 IPublisher publisher)
@@ -129,18 +129,31 @@ namespace PixelGraph.CLI.CommandLine
                 ConsoleEx.WriteLine(destFilename, ConsoleColor.Cyan);
                 ConsoleEx.WriteLine();
 
-                var pack = await packReader.ReadAsync(packFilename, Properties, token);
+                var root = Path.GetDirectoryName(packFilename);
+                var localFile = Path.GetFileName(packFilename);
 
-                graphBuilder.UseGlobalOutput = true;
-                reader.SetRoot(pack.Source);
+                reader.SetRoot(root);
                 writer.SetRoot(destFilename);
+                graphBuilder.UseGlobalOutput = true;
 
                 var timer = Stopwatch.StartNew();
 
                 try {
                     writer.Prepare();
 
-                    await publisher.PublishAsync(pack, destFilename, CleanDestination, token);
+                    var packProfile = await packReader.ReadProfileAsync(localFile);
+                    var packInput = await packReader.ReadInputAsync("input.yml");
+
+                    //foreach (var property in Properties) {
+                    //    // TODO
+                    //}
+
+                    var context = new ResourcePackContext {
+                        Input = packInput,
+                        Profile = packProfile,
+                    };
+
+                    await publisher.PublishAsync(context, CleanDestination, token);
                 }
                 finally {
                     timer.Stop();

@@ -2,8 +2,9 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.CLI.Extensions;
 using PixelGraph.Common;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
 using System.CommandLine;
@@ -90,19 +91,22 @@ namespace PixelGraph.CLI.CommandLine
             private readonly ITextureGraphBuilder graphBuilder;
             private readonly IInputReader reader;
             private readonly IOutputWriter writer;
-            private readonly IPackReader packReader;
+            //private readonly IResourcePackReader packReader;
+            private readonly IResourcePackWriter packWriter;
 
 
             public Executor(
                 ITextureGraphBuilder graphBuilder,
                 IInputReader reader,
                 IOutputWriter writer,
-                IPackReader packReader)
+                //IResourcePackReader packReader,
+                IResourcePackWriter packWriter)
             {
                 this.graphBuilder = graphBuilder;
                 this.reader = reader;
                 this.writer = writer;
-                this.packReader = packReader;
+                //this.packReader = packReader;
+                this.packWriter = packWriter;
             }
 
             public async Task ExecuteAsync(string textureFilename, string destinationPath, string inputFormat, string outputFormat, string[] properties, CancellationToken token)
@@ -124,23 +128,41 @@ namespace PixelGraph.CLI.CommandLine
                 var timer = Stopwatch.StartNew();
 
                 try {
-                    var packPath = Path.GetDirectoryName(textureFilename);
-                    var pack = await packReader.ReadAsync(packPath, properties, token);
-                    pack.Properties["input.format"] = inputFormat;
-                    pack.Properties["output.format"] = outputFormat;
-
-                    var pbrTexture = new PbrProperties {
-                        UseGlobalMatching = true,
-                        Name = Path.GetFileName(textureFilename),
-                        Path = ".",
-                    };
-
-                    reader.SetRoot(pack.Source);
+                    var root = Path.GetDirectoryName(textureFilename);
+                    reader.SetRoot(root);
                     writer.SetRoot(destinationPath);
 
-                    await graphBuilder.BuildAsync(pack, pbrTexture, token);
+                    // ERROR: Load actual pack-input file!
+                    //var packPath = Path.GetDirectoryName(textureFilename);
+                    //var packInput = await packReader.ReadInputAsync(?);
+                    //var packProfile = await packReader.ReadProfileAsync(packPath);
 
-                    await CreatePbrPropertiesAsync(writer, pbrTexture, outputFormat);
+                    var packInput = new ResourcePackInputProperties {
+                        Format = inputFormat,
+                    };
+
+                    var packProfile = new ResourcePackProfileProperties {
+                        Output = {
+                            Format = outputFormat,
+                        }
+                    };
+
+                    var material = new MaterialProperties {
+                        UseGlobalMatching = true,
+                        Name = Path.GetFileName(textureFilename),
+                        LocalPath = ".",
+                    };
+
+                    var context = new MaterialContext {
+                        Input = packInput,
+                        Profile = packProfile,
+                        Material = material,
+                    };
+
+                    await graphBuilder.ProcessOutputGraphAsync(context, token);
+
+                    var localFile = "pbr.yml";
+                    await packWriter.WriteAsync(localFile, packProfile);
                 }
                 finally {
                     timer.Stop();
@@ -148,14 +170,6 @@ namespace PixelGraph.CLI.CommandLine
                     ConsoleEx.Write("\nImport Duration: ", ConsoleColor.Gray);
                     ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
                 }
-            }
-
-            private static async Task CreatePbrPropertiesAsync(IOutputWriter writer, PbrProperties texture, string outputFormat)
-            {
-                var file = PathEx.Join(texture.Path, "pbr.properties");
-                await using var stream = writer.WriteFile(file);
-                await using var streamWriter = new StreamWriter(stream);
-                await streamWriter.WriteLineAsync($"input.format = {outputFormat}");
             }
         }
     }

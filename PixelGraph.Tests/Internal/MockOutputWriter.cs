@@ -1,8 +1,8 @@
-﻿using System;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO;
+using System;
 using System.IO;
 using System.Threading.Tasks;
-using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO;
 
 namespace PixelGraph.Tests.Internal
 {
@@ -24,7 +24,7 @@ namespace PixelGraph.Tests.Internal
 
         public void Prepare() {}
 
-        public Stream WriteFile(string localFilename)
+        public Stream Open(string localFilename)
         {
             var mockStream = new MockStream();
             Content.Add(localFilename, mockStream.BaseStream);
@@ -38,6 +38,11 @@ namespace PixelGraph.Tests.Internal
         }
 
         public DateTime? GetWriteTime(string localFile) => null;
+
+        public void Delete(string localFile)
+        {
+            throw new NotImplementedException();
+        }
 
         public void Clean()
         {

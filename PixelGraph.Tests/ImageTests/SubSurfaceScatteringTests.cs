@@ -1,7 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
+using PixelGraph.Common.Encoding;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -10,41 +14,50 @@ namespace PixelGraph.Tests.ImageTests
 {
     public class SubSurfaceScatteringTests : TestBase
     {
-        private readonly PackProperties pack;
+        private readonly ResourcePackProfileProperties packProfile;
 
 
         public SubSurfaceScatteringTests(ITestOutputHelper output) : base(output)
         {
-            pack = new PackProperties {
-                Properties = {
-                    ["output.sss.r"] = "sss",
-                    ["output.sss"] = "true",
-                }
+            packProfile = new ResourcePackProfileProperties {
+                Output = {
+                    SSS = {
+                        Red = EncodingChannel.SubSurfaceScattering,
+                        Include = true,
+                    },
+                },
             };
         }
 
-        [InlineData(  0,  0.0f,   0)]
-        [InlineData(100,  1.0f, 100)]
-        [InlineData(100,  0.5f,  50)]
-        [InlineData(100,  2.0f, 200)]
-        [InlineData(100,  3.0f, 255)]
-        [InlineData(200, 0.01f,   2)]
-        [Theory] public async Task Scale(byte value, float scale, byte expected)
+        [InlineData(  0,  0.0,   0)]
+        [InlineData(100,  1.0, 100)]
+        [InlineData(100,  0.5,  50)]
+        [InlineData(100,  2.0, 200)]
+        [InlineData(100,  3.0, 255)]
+        [InlineData(200, 0.01,   2)]
+        [Theory] public async Task Scale(byte value, decimal scale, byte expected)
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
             graphBuilder.UseGlobalOutput = true;
 
-            await graphBuilder.BuildAsync(pack, new PbrProperties {
-                Name = "test",
-                Path = "assets",
-                Properties = {
-                    ["sss.value"] = value.ToString(),
-                    ["sss.scale"] = scale.ToString("F"),
-                }
-            });
+            var context = new MaterialContext {
+                Input = new ResourcePackInputProperties {
+                    Format = TextureEncoding.Format_Raw,
+                },
+                Profile = packProfile,
+                Material = {
+                    Name = "test",
+                    LocalPath = "assets",
+                    SSS = {
+                        Value = value,
+                        Scale = scale,
+                    },
+                },
+            };
 
-            using var image = await Content.OpenImageAsync("assets/test_sss.png");
+            await graphBuilder.ProcessOutputGraphAsync(context);
+            var image = Content.Get<Image<Rgba32>>("assets/test_sss.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -59,17 +72,26 @@ namespace PixelGraph.Tests.ImageTests
             graphBuilder.UseGlobalOutput = true;
 
             using var heightImage = CreateImageR(value);
-            await Content.AddAsync("assets/test/sss.png", heightImage);
+            Content.Add("assets/test/sss.png", heightImage);
 
-            await graphBuilder.BuildAsync(pack, new PbrProperties {
-                Name = "test",
-                Path = "assets",
-                Properties = {
-                    ["sss.input.r"] = "sss",
-                }
-            });
+            var context = new MaterialContext {
+                Input = new ResourcePackInputProperties {
+                    Format = TextureEncoding.Format_Raw,
+                },
+                Profile = packProfile,
+                Material = {
+                    Name = "test",
+                    LocalPath = "assets",
+                    SSS = {
+                        Input = {
+                            Red = EncodingChannel.SubSurfaceScattering,
+                        },
+                    },
+                },
+            };
 
-            using var image = await Content.OpenImageAsync("assets/test_sss.png");
+            await graphBuilder.ProcessOutputGraphAsync(context);
+            var image = Content.Get<Image<Rgba32>>("assets/test_sss.png");
             PixelAssert.RedEquals(value, image);
         }
     }

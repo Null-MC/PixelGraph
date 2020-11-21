@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.Common;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.ViewModels;
 using SixLabors.ImageSharp;
@@ -14,9 +14,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace PixelGraph.UI.Windows
@@ -35,12 +32,6 @@ namespace PixelGraph.UI.Windows
 
             if (!DesignerProperties.GetIsInDesignMode(this)) {
                 vm = new MainWindowVM();
-
-                vm.Profile.SelectionChanged += OnProfileChanged;
-                vm.Profile.DataChanged += OnPackDataChanged;
-
-                //vm.Texture.DataChanged += OnTextureDataChanged;
-
                 DataContext = vm;
             }
 
@@ -55,126 +46,88 @@ namespace PixelGraph.UI.Windows
             };
 
             if (dialog.ShowDialog(this) != true) return;
+            if (!vm.TryStartBusy()) return;
 
-            vm.RootDirectory = dialog.SelectedPath;
-            vm.Profile.Profiles.Clear();
+            try {
+                vm.RootDirectory = dialog.SelectedPath;
+                vm.Profiles.Clear();
 
-            await Task.Factory.StartNew(() => LoadDirectoryAsync(dialog.SelectedPath, token), token);
+                var reader = provider.GetRequiredService<IInputReader>();
+                reader.SetRoot(vm.RootDirectory);
+
+                var writer = provider.GetRequiredService<IOutputWriter>();
+                writer.SetRoot(vm.RootDirectory);
+
+                await Task.Factory.StartNew(() =>
+                    LoadDirectoryAsync(token), token);
+            }
+            finally {
+                vm.EndBusy();
+            }
         }
 
-        private async Task LoadDirectoryAsync(string path, CancellationToken token)
+        private async Task LoadDirectoryAsync(CancellationToken token)
         {
-            var reader = provider.GetRequiredService<IInputReader>();
+            var packReader = provider.GetRequiredService<IResourcePackReader>();
             var loader = provider.GetRequiredService<IFileLoader>();
 
-            reader.SetRoot(path);
             loader.Expand = false;
 
-            foreach (var file in Directory.EnumerateFiles(vm.RootDirectory, "*.pack.properties", SearchOption.TopDirectoryOnly)) {
-                var profile = CreateProfileItem(file);
+            var packInput = await packReader.ReadInputAsync("input.yml")
+                ?? new ResourcePackInputProperties {
+                    Format = TextureEncoding.Format_Raw,
+                };
+
+            Application.Current.Dispatcher.Invoke(() => {
+                vm.PackInput = packInput;
+            });
+
+            foreach (var file in Directory.EnumerateFiles(vm.RootDirectory, "*.pack.yml", SearchOption.TopDirectoryOnly)) {
+                var localFile = Path.GetFileName(file);
+
+                var profileItem = new ProfileItem {
+                    Name = localFile[..^9],
+                    LocalFile = localFile,
+                };
 
                 Application.Current.Dispatcher.Invoke(() => {
-                    vm.Profile.Profiles.Add(profile);
+                    vm.Profiles.Add(profileItem);
                 });
             }
 
             await foreach (var item in loader.LoadAsync(token)) {
-                if (!(item is PbrProperties texture)) continue;
+                if (!(item is MaterialProperties material)) continue;
 
                 var textureNode = new TextureTreeTexture {
-                    Name = texture.DisplayName,
-                    TextureFilename = reader.GetFullPath(texture.FileName),
-                    Texture = texture,
+                    Name = material.DisplayName,
+                    MaterialFilename = material.LocalFilename,
+                    Material = material,
                 };
 
                 Application.Current.Dispatcher.Invoke(() => {
-                    var parentNode = vm.Texture.GetTreeNode(texture.Path);
+                    var parentNode = vm.GetTreeNode(material.LocalPath);
                     parentNode.Nodes.Add(textureNode);
                 });
             }
         }
 
-        private async Task CreateNewProfile(CancellationToken token)
-        {
-            var dialog = new SaveFileDialog {
-                Title = "Create a new pack properties file",
-                Filter = "Pack Properties|*.pack.properties|All Files|*.*",
-                AddExtension = true,
-                FileName = "default",
-            };
-
-            var result = dialog.ShowDialog(this);
-            if (result != true) return;
-
-            var pack = new PackProperties {
-                InputFormat = EncodingProperties.Raw,
-                OutputFormat = EncodingProperties.Lab13,
-            };
-
-            var writer = provider.GetRequiredService<IPropertyWriter>();
-
-            await using (var stream = File.Create(dialog.FileName)) {
-                await writer.WriteAsync(stream, pack, token);
-            }
-
-            var profile = CreateProfileItem(dialog.FileName);
-            Application.Current.Dispatcher.Invoke(() => {
-                vm.Profile.Profiles.Add(profile);
-                vm.Profile.Selected = profile;
-            });
-        }
-
-        private void DeleteSelectedProfile()
-        {
-            var profile = vm.Profile.Selected;
-            if (profile?.Filename == null) return;
-
-            File.Delete(profile.Filename);
-            vm.Profile.Profiles.Remove(profile);
-        }
-
-        private static ProfileItem CreateProfileItem(string filename)
-        {
-            var fileName = Path.GetFileName(filename);
-
-            var item = new ProfileItem {
-                Name = fileName[..^16],
-                Filename = filename,
-            };
-
-            return item;
-        }
-
-        private async Task<PackProperties> LoadProfileAsync(string filename, CancellationToken token)
-        {
-            var packReader = provider.GetRequiredService<IPackReader>();
-            await using var stream = File.Open(filename, FileMode.Open, FileAccess.Read);
-            return await packReader.ReadAsync(stream, token: token);
-        }
-
-        private async Task SavePropertiesAsync(PropertiesFile pack, string filename, CancellationToken token)
-        {
-            var writer = provider.GetRequiredService<IPropertyWriter>();
-            await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
-            await writer.WriteAsync(stream, pack, token);
-        }
-
         private void PopulateTextureViewer(TextureTreeTexture textureNode)
         {
-            vm.Texture.Textures.Clear();
+            vm.Textures.Clear();
 
-            var texture = textureNode?.Texture;
+            var texture = textureNode?.Material;
             if (texture == null) return;
 
             // TODO: wait for texture busy
 
-            vm.Texture.LoadedFilename = textureNode.TextureFilename;
-            vm.Texture.Loaded = texture;
+            vm.LoadedMaterialFilename = textureNode.MaterialFilename;
+            vm.LoadedMaterial = texture;
 
             var reader = provider.GetRequiredService<IInputReader>();
 
             foreach (var tag in TextureTags.All) {
                 foreach (var file in reader.EnumerateTextures(texture, tag)) {
+                    if (!reader.FileExists(file)) continue;
                     var fullFile = reader.GetFullPath(file);
 
                     var thumbnailImage = new BitmapImage();
@@ -192,26 +145,30 @@ namespace PixelGraph.UI.Windows
                     fullImage.EndInit();
                     thumbnailImage.Freeze();
 
-                    vm.Texture.Textures.Add(new TextureSource {
+                    vm.Textures.Add(new TextureSource {
                         Name = Path.GetFileNameWithoutExtension(file),
                         Thumbnail = thumbnailImage,
                         Image = fullImage,
-                        Filename = file,
                         Tag = tag,
                     });
                 }
             }
 
-            vm.Texture.SelectFirstTexture();
+            vm.SelectFirstTexture();
         }
 
-        private async Task GenerateNormalAsync(PackProperties pack, PbrProperties texture, CancellationToken token)
+        private async Task GenerateNormalAsync(CancellationToken token)
         {
-            var naming = provider.GetRequiredService<INamingStructure>();
-            var outputName = naming.GetOutputTextureName(pack, texture, TextureTags.Normal, texture.UseGlobalMatching);
+            var material = vm.LoadedMaterial;
+            var outputName = TextureTags.Get(material, TextureTags.Normal);
 
-            var path = PathEx.Join(vm.RootDirectory, texture.Path);
-            if (!texture.UseGlobalMatching) path = PathEx.Join(path, texture.Name);
+            if (string.IsNullOrWhiteSpace(outputName)) {
+                var naming = provider.GetRequiredService<INamingStructure>();
+                outputName = naming.Get(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
+            }
+
+            var path = PathEx.Join(vm.RootDirectory, material.LocalPath);
+            if (!material.UseGlobalMatching) path = PathEx.Join(path, material.Name);
             var fullName = PathEx.Join(path, outputName);
 
             if (File.Exists(fullName)) {
@@ -220,19 +177,25 @@ namespace PixelGraph.UI.Windows
             }
 
             if (!vm.TryStartBusy()) return;
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
 
             try {
-                await Task.Factory.StartNew(async () => {
-                    using var graph = graphBuilder.CreateGraph(pack, texture);
-                    using var normalImage = await graph.GenerateNormalAsync(token);
+                var context = new MaterialContext {
+                    Input = vm.PackInput,
+                    //Profile = vm.LoadedProfile,
+                    Material = material,
+                };
 
+                await Task.Factory.StartNew(async () => {
+                    var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+                    using var graph = graphBuilder.BuildInputGraph(context);
+
+                    using var normalImage = await graph.GenerateNormalAsync(token);
                     await normalImage.SaveAsync(fullName, token);
                 }, token);
 
                 // TODO: update texture sources
                 Application.Current.Dispatcher.Invoke(() => {
-                    PopulateTextureViewer(vm.Texture.SelectedNode as TextureTreeTexture);
+                    PopulateTextureViewer(vm.SelectedNode as TextureTreeTexture);
                 });
             }
             catch (Exception error) {
@@ -243,13 +206,18 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private async Task GenerateOcclusionAsync(PackProperties pack, PbrProperties texture, CancellationToken token)
+        private async Task GenerateOcclusionAsync(CancellationToken token)
         {
-            var naming = provider.GetRequiredService<INamingStructure>();
-            var outputName = naming.GetOutputTextureName(pack, texture, TextureTags.Occlusion, texture.UseGlobalMatching);
+            var material = vm.LoadedMaterial;
+            var outputName = TextureTags.Get(material, TextureTags.Occlusion);
 
-            var path = PathEx.Join(vm.RootDirectory, texture.Path);
-            if (!texture.UseGlobalMatching) path = PathEx.Join(path, texture.Name);
+            if (string.IsNullOrWhiteSpace(outputName)) {
+                var naming = provider.GetRequiredService<INamingStructure>();
+                outputName = naming.Get(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
+            }
+
+            var path = PathEx.Join(vm.RootDirectory, material.LocalPath);
+            if (!material.UseGlobalMatching) path = PathEx.Join(path, material.Name);
             var fullName = PathEx.Join(path, outputName);
 
             if (File.Exists(fullName)) {
@@ -258,19 +226,25 @@ namespace PixelGraph.UI.Windows
             }
 
             if (!vm.TryStartBusy()) return;
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
 
             try {
-                await Task.Factory.StartNew(async () => {
-                    using var graph = graphBuilder.CreateGraph(pack, texture);
-                    using var occlusionImage = await graph.GenerateOcclusionAsync(token);
+                var context = new MaterialContext {
+                    Input = vm.PackInput,
+                    //Profile = vm.LoadedProfile,
+                    Material = material,
+                };
 
+                await Task.Factory.StartNew(async () => {
+                    var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+                    using var graph = graphBuilder.BuildInputGraph(context);
+
+                    using var occlusionImage = await graph.GenerateOcclusionAsync(token);
                     await occlusionImage.SaveAsync(fullName, token);
                 }, token);
 
                 // TODO: update texture sources
                 Application.Current.Dispatcher.Invoke(() => {
-                    PopulateTextureViewer(vm.Texture.SelectedNode as TextureTreeTexture);
+                    PopulateTextureViewer(vm.SelectedNode as TextureTreeTexture);
                 });
             }
             catch (Exception error) {
@@ -278,6 +252,17 @@ namespace PixelGraph.UI.Windows
             }
             finally {
                 vm.EndBusy();
+            }
+        }
+
+        private async Task SaveMaterialAsync()
+        {
+            try {
+                var writer = provider.GetRequiredService<IMaterialWriter>();
+                await writer.WriteAsync(vm.LoadedMaterial, vm.LoadedMaterialFilename);
+            }
+            catch (Exception error) {
+                ShowError($"Failed to save material '{vm.LoadedMaterialFilename}'! {error.Message}");
             }
         }
 
@@ -290,100 +275,73 @@ namespace PixelGraph.UI.Windows
 
         #region Events
 
-        private async void OnNewProfileClick(object sender, RoutedEventArgs e)
-        {
-            await CreateNewProfile(CancellationToken.None);
-        }
-
-        private void OnDuplicateProfileClick(object sender, RoutedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void OnDeleteProfileClick(object sender, RoutedEventArgs e)
-        {
-            DeleteSelectedProfile();
-        }
-
-        private void OnSettingsClick(object sender, RoutedEventArgs e)
-        {
-            var settings = new SettingsWindow(provider) {
-                Owner = this,
-            };
-            //...
-
-            settings.ShowDialog();
-        }
-
-        private void OnPublishClick(object sender, RoutedEventArgs e)
-        {
-            var settings = new PublishWindow(provider) {
-                Owner = this,
-            };
-            //...
-
-            settings.ShowDialog();
-        }
-
-        private async void OnProfileChanged(object sender, EventArgs e)
-        {
-            var profile = vm.Profile.Selected;
-            if (profile == null) return;
-
-            // TODO: Wait for existing save!
-
-            vm.Profile.LoadedFilename = profile.Filename;
-            vm.Profile.Loaded = await LoadProfileAsync(profile.Filename, CancellationToken.None);
-        }
-
         private void OnOpenFolderClick(object sender, RoutedEventArgs e)
         {
             SelectRootDirectory(CancellationToken.None);
         }
 
-        private async void OnPackDataChanged(object sender, EventArgs e)
+        private void OnEditPackInputClick(object sender, RoutedEventArgs e)
         {
-            try {
-                await SavePropertiesAsync(vm.Profile.Loaded, vm.Profile.LoadedFilename, CancellationToken.None);
-            }
-            catch (Exception error) {
-                ShowError($"Failed to save pack profile '{vm.Profile.LoadedFilename}'! {error.Message}");
-            }
+            var window = new PackInputWindow(provider) {
+                Owner = this,
+                VM = {
+                    PackInput = vm.PackInput,
+                },
+            };
+
+            window.ShowDialog();
         }
 
-        private async void OnTextureDataChanged(object sender, EventArgs e)
+        private void OnEditPackProfilesClick(object sender, RoutedEventArgs e)
         {
-            try {
-                await SavePropertiesAsync(vm.Texture.Loaded, vm.Texture.LoadedFilename, CancellationToken.None);
-            }
-            catch (Exception error) {
-                ShowError($"Failed to save texture '{vm.Texture.LoadedFilename}'! {error.Message}");
-            }
+            var window = new PackProfilesWindow(provider) {
+                Owner = this,
+                VM = {
+                    RootDirectory = vm.RootDirectory,
+                    Profiles = vm.Profiles,
+                },
+            };
+
+            window.ShowDialog();
+        }
+
+        //private void OnSettingsClick(object sender, RoutedEventArgs e)
+        //{
+        //    var window = new SettingsWindow(provider) {
+        //        Owner = this,
+        //    };
+        //    //...
+
+        //    window.ShowDialog();
+        //}
+
+        private void OnPublishClick(object sender, RoutedEventArgs e)
+        {
+            var window = new PublishWindow(provider) {
+                Owner = this,
+            };
+            //...
+
+            window.ShowDialog();
+        }
+
+        private async void OnMaterialChanged(object sender, EventArgs e)
+        {
+            await SaveMaterialAsync();
         }
 
         private void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            vm.Texture.SelectedNode = e.NewValue as TextureTreeNode;
+            vm.SelectedNode = e.NewValue as TextureTreeNode;
             PopulateTextureViewer(e.NewValue as TextureTreeTexture);
-        }
-
-        private void OnProfileListBoxMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            var r = VisualTreeHelper.HitTest(ProfileListBox, e.GetPosition(ProfileListBox));
-            if (r.VisualHit.GetType() != typeof(ListBoxItem)) ProfileListBox.UnselectAll();
         }
 
         private async void OnGenerateNormal(object sender, EventArgs e)
         {
-            if (vm.Texture.Loaded == null) return;
-
-            if (vm.Profile.Loaded == null) {
-                MessageBox.Show("A pack profile must be selected first!", "Warning");
-                return;
-            }
+            if (vm.LoadedMaterial == null) return;
 
             try {
-                await GenerateNormalAsync(vm.Profile.Loaded, vm.Texture.Loaded, CancellationToken.None);
+                await GenerateNormalAsync(CancellationToken.None);
             }
             catch (Exception error) {
                 ShowError($"Failed to generate normal texture! {error.Message}");
@@ -392,15 +350,10 @@ namespace PixelGraph.UI.Windows
 
         private async void OnGenerateOcclusion(object sender, EventArgs e)
         {
-            if (vm.Texture.Loaded == null) return;
-
-            if (vm.Profile.Loaded == null) {
-                MessageBox.Show("A pack profile must be selected first!", "Warning");
-                return;
-            }
+            if (vm.LoadedMaterial == null) return;
 
             try {
-                await GenerateOcclusionAsync(vm.Profile.Loaded, vm.Texture.Loaded, CancellationToken.None);
+                await GenerateOcclusionAsync(CancellationToken.None);
             }
             catch (Exception error) {
                 ShowError($"Failed to generate occlusion texture! {error.Message}");

@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
@@ -25,25 +26,34 @@ namespace PixelGraph.Common.IO
         public abstract Stream Open(string localFile);
         public abstract DateTime? GetWriteTime(string localFile);
 
-        public IEnumerable<string> EnumerateTextures(PbrProperties texture, string tag)
+        public IEnumerable<string> EnumerateTextures(MaterialProperties material, string tag)
         {
-            var filename = TextureTags.Get(texture, tag);
+            var srcPath = material.UseGlobalMatching
+                ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
 
-            while (filename != null) {
-                var linkedFilename = TextureTags.Get(texture, filename);
+            var localName = TextureTags.Get(material, tag);
+
+            while (localName != null) {
+                //var localFile = PathEx.Join(srcPath, localName);
+
+                //if (FileExists(localFile)) {
+                //    yield return localFile;
+                //    yield break;
+                //}
+
+                var linkedFilename = TextureTags.Get(material, localName);
                 if (string.IsNullOrEmpty(linkedFilename)) break;
 
-                tag = filename;
-                filename = linkedFilename;
+                tag = localName;
+                localName = linkedFilename;
             }
 
-            var srcPath = texture.UseGlobalMatching
-                ? texture.Path : PathEx.Join(texture.Path, texture.Name);
+            if (!string.IsNullOrEmpty(localName)) {
+                localName = PathEx.Normalize(localName);
+                yield return PathEx.Join(srcPath, localName);
+            }
 
-            if (!string.IsNullOrEmpty(filename))
-                yield return PathEx.Join(srcPath, filename);
-
-            var matchName = naming.GetInputTextureName(texture, tag);
+            var matchName = naming.GetInputTextureName(material, tag);
 
             foreach (var file in EnumerateFiles(srcPath, matchName)) {
                 var ext = Path.GetExtension(file);
@@ -51,6 +61,13 @@ namespace PixelGraph.Common.IO
                 if (ImageExtensions.Supported.Contains(ext, StringComparer.InvariantCultureIgnoreCase))
                     yield return file;
             }
+        }
+
+        public IEnumerable<string> EnumerateAllTextures(MaterialProperties material)
+        {
+            return TextureTags.All
+                .SelectMany(tag => EnumerateTextures(material, tag))
+                .Where(file => file != null).Distinct();
         }
     }
 }

@@ -1,22 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal static class DefaultEncoding
+    internal class DefaultEncoding : TextureFormatBase
     {
-        public static Dictionary<string, string> InputProperties = new Dictionary<string, string> {
-            ["albedo.input.r"] = EncodingChannel.Red,
-            ["albedo.input.g"] = EncodingChannel.Green,
-            ["albedo.input.b"] = EncodingChannel.Blue,
-            ["albedo.input.a"] = EncodingChannel.Alpha,
-        };
-
-        public static Dictionary<string, string> OutputProperties = new Dictionary<string, string> {
-            ["output.albedo"] = bool.TrueString,
-            ["output.albedo.r"] = EncodingChannel.Red,
-            ["output.albedo.g"] = EncodingChannel.Green,
-            ["output.albedo.b"] = EncodingChannel.Blue,
-            ["output.albedo.a"] = EncodingChannel.Alpha,
-        };
+        public DefaultEncoding()
+        {
+            Map[TextureTags.Albedo] = new TextureOutputEncoding {
+                Red = EncodingChannel.Red,
+                Green = EncodingChannel.Green,
+                Blue = EncodingChannel.Blue,
+                Alpha = EncodingChannel.Alpha,
+                Include = true,
+            };
+        }
     }
 }

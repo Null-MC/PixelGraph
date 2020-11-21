@@ -1,86 +1,80 @@
-﻿using System.Collections.Generic;
+﻿using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal static class RawEncoding
+    internal class RawEncoding : TextureFormatBase
     {
-        public static Dictionary<string, string> InputProperties = new Dictionary<string, string> {
-            ["albedo.input.r"] = EncodingChannel.Red,
-            ["albedo.input.g"] = EncodingChannel.Green,
-            ["albedo.input.b"] = EncodingChannel.Blue,
-            ["albedo.input.a"] = EncodingChannel.Alpha,
+        public RawEncoding()
+        {
+            Map[TextureTags.Albedo] = new TextureOutputEncoding {
+                Red = EncodingChannel.Red,
+                Green = EncodingChannel.Green,
+                Blue = EncodingChannel.Blue,
+                Alpha = EncodingChannel.Alpha,
+                Include = true,
+            };
 
-            ["height.input.r"] = EncodingChannel.Height,
+            Map[TextureTags.Height] = new TextureOutputEncoding {
+                Red = EncodingChannel.Height,
+                Alpha = EncodingChannel.White,
+                Include = true,
+            };
 
-            ["normal.input.r"] = EncodingChannel.NormalX,
-            ["normal.input.g"] = EncodingChannel.NormalY,
-            ["normal.input.b"] = EncodingChannel.NormalZ,
+            Map[TextureTags.Normal] = new TextureOutputEncoding {
+                Red = EncodingChannel.NormalX,
+                Green = EncodingChannel.NormalY,
+                Blue = EncodingChannel.NormalZ,
+                Alpha = EncodingChannel.White,
+                Include = true,
+            };
 
-            ["occlusion.input.r"] = EncodingChannel.Occlusion,
+            Map[TextureTags.Occlusion] = new TextureOutputEncoding {
+                Red = EncodingChannel.Occlusion,
+                Alpha = EncodingChannel.White,
+                Include = true,
+            };
 
-            ["specular.input.r"] = EncodingChannel.Specular,
+            Map[TextureTags.Specular] = new TextureOutputEncoding {
+                Red = EncodingChannel.Specular,
+                Alpha = EncodingChannel.White,
+                Include = true,
+            };
 
-            ["rough.input.r"] = EncodingChannel.Rough,
+            Map[TextureTags.Smooth] = new TextureOutputEncoding {
+                Red = EncodingChannel.Smooth,
+                Alpha = EncodingChannel.White,
+                Include = true,
+            };
 
-            ["smooth.input.r"] = EncodingChannel.Smooth,
+            Map[TextureTags.Rough] = new TextureOutputEncoding {
+                Red = EncodingChannel.Rough,
+                Alpha = EncodingChannel.White,
+                Include = true,
+            };
 
-            ["metal.input.r"] = EncodingChannel.Metal,
+            Map[TextureTags.Metal] = new TextureOutputEncoding {
+                Red = EncodingChannel.Metal,
+                Alpha = EncodingChannel.White,
+                Include = true,
+            };
 
-            ["porosity.input.r"] = EncodingChannel.Porosity,
+            Map[TextureTags.Porosity] = new TextureOutputEncoding {
+                Red = EncodingChannel.Porosity,
+                Alpha = EncodingChannel.White,
+                Include = true,
+            };
 
-            ["sss.input.r"] = EncodingChannel.SubSurfaceScattering,
+            Map[TextureTags.SubSurfaceScattering] = new TextureOutputEncoding {
+                Red = EncodingChannel.SubSurfaceScattering,
+                Alpha = EncodingChannel.White,
+                Include = true,
+            };
 
-            ["emissive.input.r"] = EncodingChannel.Emissive,
-        };
-
-        public static Dictionary<string, string> OutputProperties = new Dictionary<string, string> {
-            ["output.albedo"] = bool.TrueString,
-            ["output.albedo.r"] = EncodingChannel.Red,
-            ["output.albedo.g"] = EncodingChannel.Green,
-            ["output.albedo.b"] = EncodingChannel.Blue,
-            ["output.albedo.a"] = EncodingChannel.Alpha,
-
-            ["output.height"] = bool.TrueString,
-            ["output.height.r"] = EncodingChannel.Height,
-            ["output.height.a"] = EncodingChannel.White,
-
-            ["output.normal"] = bool.TrueString,
-            ["output.normal.r"] = EncodingChannel.NormalX,
-            ["output.normal.g"] = EncodingChannel.NormalY,
-            ["output.normal.b"] = EncodingChannel.NormalZ,
-            ["output.normal.a"] = EncodingChannel.White,
-
-            ["output.occlusion"] = bool.TrueString,
-            ["output.occlusion.r"] = EncodingChannel.Occlusion,
-            ["output.occlusion.a"] = EncodingChannel.White,
-
-            ["output.specular"] = bool.TrueString,
-            ["output.specular.r"] = EncodingChannel.Specular,
-            ["output.specular.a"] = EncodingChannel.White,
-
-            ["output.rough"] = bool.TrueString,
-            ["output.rough.r"] = EncodingChannel.Rough,
-            ["output.rough.a"] = EncodingChannel.White,
-
-            ["output.smooth"] = bool.TrueString,
-            ["output.smooth.r"] = EncodingChannel.Smooth,
-            ["output.smooth.a"] = EncodingChannel.White,
-
-            ["output.metal"] = bool.TrueString,
-            ["output.metal.r"] = EncodingChannel.Metal,
-            ["output.metal.a"] = EncodingChannel.White,
-
-            ["output.porosity"] = bool.TrueString,
-            ["output.porosity.r"] = EncodingChannel.Porosity,
-            ["output.porosity.a"] = EncodingChannel.White,
-
-            ["output.sss"] = bool.TrueString,
-            ["output.sss.r"] = EncodingChannel.SubSurfaceScattering,
-            ["output.sss.a"] = EncodingChannel.White,
-
-            ["output.emissive"] = bool.TrueString,
-            ["output.emissive.r"] = EncodingChannel.Emissive,
-            ["output.emissive.a"] = EncodingChannel.White,
-        };
+            Map[TextureTags.Emissive] = new TextureOutputEncoding {
+                Red = EncodingChannel.Emissive,
+                Alpha = EncodingChannel.White,
+                Include = true,
+            };
+        }
     }
 }

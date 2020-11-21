@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PixelGraph.Common.Material;
+using System;
 using System.Collections.Generic;
 
 namespace PixelGraph.Common.Textures
@@ -22,7 +23,7 @@ namespace PixelGraph.Common.Textures
         public static string[] All {get;} = {Albedo, Height, Normal, Occlusion, Specular, Smooth, Rough, Metal, Porosity, SubSurfaceScattering, Emissive};
 
 
-        public static string Get(PbrProperties material, string tag)
+        public static string Get(MaterialProperties material, string tag)
         {
             return map.TryGetValue(tag, out var fileFunc)
                 ? fileFunc(material) : null;
@@ -31,19 +32,19 @@ namespace PixelGraph.Common.Textures
 
         public static bool Is(string tagActual, string tagExpected) => string.Equals(tagActual, tagExpected, StringComparison.InvariantCultureIgnoreCase);
 
-        private static readonly Dictionary<string, Func<PbrProperties, string>> map = new Dictionary<string, Func<PbrProperties, string>>(StringComparer.InvariantCultureIgnoreCase)
+        private static readonly Dictionary<string, Func<MaterialProperties, string>> map = new Dictionary<string, Func<MaterialProperties, string>>(StringComparer.InvariantCultureIgnoreCase)
         {
-            [Albedo] = t => t.AlbedoTexture,
-            [Height] = t => t.HeightTexture,
-            [Normal] = t => t.NormalTexture,
-            [Occlusion] = t => t.OcclusionTexture,
-            [Specular] = t => t.SpecularTexture,
-            [Smooth] = t => t.SmoothTexture,
-            [Rough] = t => t.RoughTexture,
-            [Metal] = t => t.MetalTexture,
-            [Porosity] = t => t.PorosityTexture,
-            [SubSurfaceScattering] = t => t.SubSurfaceScatteringTexture,
-            [Emissive] = t => t.EmissiveTexture,
+            [Albedo] = mat => mat.Albedo?.Texture,
+            [Height] = mat => mat.Height?.Texture,
+            [Normal] = mat => mat.Normal?.Texture,
+            [Occlusion] = mat => mat.Occlusion?.Texture,
+            [Specular] = mat => mat.Specular?.Texture,
+            [Smooth] = mat => mat.Smooth?.Texture,
+            [Rough] = mat => mat.Rough?.Texture,
+            [Metal] = mat => mat.Metal?.Texture,
+            [Porosity] = mat => mat.Porosity?.Texture,
+            [SubSurfaceScattering] = mat => mat.SSS?.Texture,
+            [Emissive] = mat => mat.Emissive?.Texture,
         };
     }
 }

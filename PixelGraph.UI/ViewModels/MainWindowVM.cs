@@ -1,21 +1,49 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class MainWindowVM : ViewModelBase
     {
+        //public event EventHandler PackInputChanged;
+        //public event EventHandler PackProfileChanged;
+        //public event EventHandler MaterialChanged;
+
+        #region Properties
+
         private readonly object busyLock;
-        public ProfileVM Profile {get;}
-        public TextureVM Texture {get;}
+        private ResourcePackInputProperties _packInput;
+        //private ProfileItem _selectedProfileItem;
+        //private TextureEncoding _inputEncoding;
+        //private TextureOutputEncoding _outputEncoding;
+        //private ResourcePackProfileProperties _loadedProfile;
+        //private string _selectedTextureTag;
         private string _rootDirectory;
+        private string _treeSearch;
+        private TextureTreeNode _selectedNode;
+        private TextureSource _selectedSource;
+        private MaterialProperties _loadedMaterial;
+        private string _loadedMaterialFilename;
         private volatile bool _isBusy;
 
-        public bool HasRootDirectory => _rootDirectory != null;
+        //private MaterialVM _materialVM;
 
-        public string CurrentContext => _rootDirectory == null ? null
-            : PathEx.Join(_rootDirectory, Profile.Selected?.Name ?? "*");
+        public ObservableCollection<ProfileItem> Profiles {get;}
+        public ObservableCollection<TextureSource> Textures {get;}
+        public TextureTreeNode TreeRoot {get;}
+        //public ProfileVM Profile {get;}
+
+        public bool HasRootDirectory => _rootDirectory != null;
+        //public bool HasSelectedProfile => _selectedProfileItem != null;
+        //public bool HasLoadedProfile => _loadedProfile != null;
+        public bool HasTreeSelection => _selectedNode is TextureTreeTexture;
+
+        //public string CurrentContext => _rootDirectory == null ? null
+        //    : PathEx.Join(_rootDirectory, _selectedProfileItem?.Name ?? "*");
 
         public string RootDirectory {
             get => _rootDirectory;
@@ -24,7 +52,106 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged();
 
                 OnPropertyChanged(nameof(HasRootDirectory));
-                OnPropertyChanged(nameof(CurrentContext));
+                //OnPropertyChanged(nameof(CurrentContext));
+            }
+        }
+
+        public ResourcePackInputProperties PackInput {
+            get => _packInput;
+            set {
+                _packInput = value;
+                OnPropertyChanged();
+
+                //UpdateInput();
+                //UpdateDefaultProperties();
+            }
+        }
+
+        //public ResourcePackProfileProperties LoadedProfile {
+        //    get => _loadedProfile;
+        //    set {
+        //        _loadedProfile = value;
+        //        OnPropertyChanged();
+
+        //        OnPropertyChanged(nameof(HasLoadedProfile));
+        //    }
+        //}
+
+        //public string SelectedTextureTag {
+        //    get => _selectedTextureTag;
+        //    set {
+        //        _selectedTextureTag = value;
+        //        OnPropertyChanged();
+
+        //        //UpdateInput();
+        //        //UpdateOutput();
+        //        //UpdateDefaultProperties();
+        //    }
+        //}
+
+        //public TextureEncoding InputEncoding {
+        //    get => _inputEncoding;
+        //    set {
+        //        _inputEncoding = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
+
+        //public TextureOutputEncoding OutputEncoding {
+        //    get => _outputEncoding;
+        //    set {
+        //        _outputEncoding = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
+
+        //public MaterialVM Material {
+        //    get => _materialVM;
+        //    set {
+        //        _materialVM = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
+
+        public string TreeSearch {
+            get => _treeSearch;
+            set {
+                _treeSearch = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public TextureTreeNode SelectedNode {
+            get => _selectedNode;
+            set {
+                _selectedNode = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(HasTreeSelection));
+            }
+        }
+
+        public TextureSource SelectedSource {
+            get => _selectedSource;
+            set {
+                _selectedSource = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string LoadedMaterialFilename {
+            get => _loadedMaterialFilename;
+            set {
+                _loadedMaterialFilename = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public MaterialProperties LoadedMaterial {
+            get => _loadedMaterial;
+            set {
+                _loadedMaterial = value;
+                OnPropertyChanged();
             }
         }
 
@@ -36,14 +163,19 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        #endregion
 
-        public MainWindowVM(ProfileVM profile = null, TextureVM texture = null)
+
+        public MainWindowVM()
         {
-            Profile = profile ?? new ProfileVM();
-            Profile.SelectionChanged += Profile_OnSelectionChanged;
+            //Profile = profile ?? new ProfileVM();
+            //Profile.SelectionChanged += Profile_OnSelectionChanged;
 
-            Texture = texture ?? new TextureVM();
+            //LoadedMaterial = material;
 
+            Profiles = new ObservableCollection<ProfileItem>();
+            Textures = new ObservableCollection<TextureSource>();
+            TreeRoot = new TextureTreeNode();
             busyLock = new object();
         }
 
@@ -63,21 +195,51 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        private void Profile_OnSelectionChanged(object sender, EventArgs e)
+        internal TextureTreeNode GetTreeNode(string path)
         {
-            OnPropertyChanged(nameof(CurrentContext));
+            var parts = path.Split('/', '\\');
+            var parent = TreeRoot;
+
+            foreach (var part in parts) {
+                var node = parent.Nodes.FirstOrDefault(x => string.Equals(x.Name, part, StringComparison.InvariantCultureIgnoreCase));
+
+                if (node == null) {
+                    node = new TextureTreeDirectory {Name = part};
+                    parent.Nodes.Add(node);
+                }
+
+                parent = node;
+            }
+
+            return parent;
         }
+
+        public void SelectFirstTexture()
+        {
+            var albedo = Textures.FirstOrDefault(x => TextureTags.Is(x.Tag, TextureTags.Albedo));
+            SelectedSource = albedo ?? Textures.FirstOrDefault();
+        }
+
+        //private void Profile_OnSelectionChanged(object sender, EventArgs e)
+        //{
+        //    OnPropertyChanged(nameof(CurrentContext));
+        //}
+
+        //private void OnLoadedPropertyChanged(object sender, PropertyChangedEventArgs e)
+        //{
+        //    DataChanged?.Invoke(this, EventArgs.Empty);
+        //}
     }
 
     internal class MainWindowDesignVM : MainWindowVM
     {
-        public MainWindowDesignVM() : base(new ProfileDesignVM())
+        public MainWindowDesignVM()
         {
             RootDirectory = "x:\\dev\\test-rp";
             IsBusy = true;
 
-            Texture.TreeSearch = "as";
-            Texture.TreeRoot.Nodes.Add(new TextureTreeDirectory {
+            TreeSearch = "as";
+            TreeRoot.Nodes.Add(new TextureTreeDirectory {
                 Name = "assets",
                 Nodes = {
                     new TextureTreeDirectory {
@@ -100,13 +262,13 @@ namespace PixelGraph.UI.ViewModels
                 },
             });
 
-            Texture.Textures.Add(new TextureSource {
+            Textures.Add(new TextureSource {
                 Tag = TextureTags.Albedo,
                 Name = "albedo.png",
                 Image = null,
             });
 
-            Texture.Textures.Add(new TextureSource {
+            Textures.Add(new TextureSource {
                 Tag = TextureTags.Normal,
                 Name = "normal.png",
                 Image = null,

@@ -15,7 +15,7 @@
         TextOptions.TextFormattingMode="Ideal" 
         TextOptions.TextRenderingMode="Auto"        
         Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{DynamicResource MaterialDesignFont}">
+        FontFamily="{DynamicResource MaterialDesignFont}" WindowState="Maximized">
     <Window.Resources>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
@@ -29,21 +29,46 @@
                 </LinearGradientBrush>
             </StackPanel.Background>
             <DockPanel Margin="0,2,0,2">
-                <Button DockPanel.Dock="Left" Margin="4" ToolTip="Select a Resource Pack directory" Click="OnOpenFolderClick" Padding="6,0,6,0" Height="24"
+                <Button DockPanel.Dock="Left" Margin="4" ToolTip="Select Root Directory" Click="OnOpenFolderClick" Padding="6,0,6,0" Height="24"
                         Style="{DynamicResource MaterialDesignFlatAccentButton}">
-                    <md:PackIcon Kind="FolderOpen" />
+                    <StackPanel Orientation="Horizontal">
+                        <md:PackIcon Kind="FolderOpen" />
+                        <TextBlock Text="Open" Margin="4,0,0,0"/>
+                    </StackPanel>
                 </Button>
-                <Button DockPanel.Dock="Right" Margin="4" ToolTip="Publish current profile" Click="OnPublishClick" Padding="6,0,6,0" Height="24"
+                <Button DockPanel.Dock="Left" Margin="4" ToolTip="Input Encoding" Click="OnEditPackInputClick"  Padding="6,0,6,0" Height="24"
                         Style="{DynamicResource MaterialDesignFlatAccentButton}"
-                        IsEnabled="{Binding Profile.HasSelection, Mode=OneWay}">
-                    <md:PackIcon Kind="FileExport" />
+                        IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal">
+                        <md:PackIcon Kind="Import" />
+                        <TextBlock Text="Input Encoding" Margin="4,0,0,0"/>
+                    </StackPanel>
                 </Button>
-                <Button DockPanel.Dock="Right" Margin="4" ToolTip="Manage application settings" Click="OnSettingsClick" Padding="6,0,6,0" Height="24"
+                <Button DockPanel.Dock="Left" Margin="4" ToolTip="Pack Profiles" Click="OnEditPackProfilesClick"  Padding="6,0,6,0" Height="24"
+                        Style="{DynamicResource MaterialDesignFlatAccentButton}"
+                        IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal">
+                        <md:PackIcon Kind="Import" />
+                        <TextBlock Text="Pack Profiles" Margin="4,0,0,0"/>
+                    </StackPanel>
+                </Button>
+                <Button DockPanel.Dock="Right" Margin="4" ToolTip="Publish" Click="OnPublishClick" Padding="6,0,6,0" Height="24"
+                        Style="{DynamicResource MaterialDesignFlatAccentButton}"
+                        IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal">
+                        <md:PackIcon Kind="FileExport" />
+                        <TextBlock Text="Publish" Margin="4,0,0,0"/>
+                    </StackPanel>
+                </Button>
+                <!--<Button DockPanel.Dock="Right" Margin="4" ToolTip="Manage Application Settings" Click="OnSettingsClick" Padding="6,0,6,0" Height="24"
                         Style="{DynamicResource MaterialDesignFlatAccentButton}">
-                    <md:PackIcon Kind="Settings" />
-                </Button>
+                    <StackPanel Orientation="Horizontal">
+                        <md:PackIcon Kind="Settings" />
+                        <TextBlock Text="Settings" Margin="4,0,0,0"/>
+                    </StackPanel>
+                </Button>-->
                 <TextBlock VerticalAlignment="Center" FontSize="16" Margin="4,0" Foreground="{DynamicResource PrimaryHueDarkBrush}"
-                    Text="{Binding CurrentContext}"/>
+                    Text="{Binding RootDirectory, Mode=OneWay}"/>
             </DockPanel>
         </StackPanel>
         <StatusBar DockPanel.Dock="Bottom">
@@ -54,7 +79,7 @@
                 </LinearGradientBrush>
             </StatusBar.Background>
             <StatusBarItem>
-                <TextBlock Text="{Binding Profile.Selected.Name, Mode=OneWay}" Foreground="{DynamicResource SecondaryHueDarkBrush}"/>
+                <TextBlock Text="{Binding RootDirectory, Mode=OneWay}" Foreground="{DynamicResource SecondaryHueDarkBrush}"/>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <ProgressBar Width="90" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}"/>
@@ -67,308 +92,94 @@
                     <TextBlock Text="Select the root directory of a resource pack to continue..." Foreground="#FF767676"/>
                 </StackPanel>
             </Grid>
-            <TabControl Style="{StaticResource MaterialDesignTabControl}"
-                        Visibility="{Binding HasRootDirectory, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                <TabItem Header="Profile" IsSelected="True">
-                    <Grid DataContext="{Binding Profile, Mode=OneTime}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="320"/>
-                            <ColumnDefinition Width="3"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <DockPanel>
-                            <ToolBar DockPanel.Dock="Top" ToolBarTray.IsLocked="True">
-                                <Button ToolTip="New Profile" Width="32" Height="28" Padding="0" Click="OnNewProfileClick" Foreground="LawnGreen">
-                                    <md:PackIcon Kind="Plus" Height="20"/>
-                                </Button>
-                                <Button ToolTip="Duplicate Profile" Width="32" Height="28" Padding="0" Click="OnDuplicateProfileClick" Foreground="DeepSkyBlue"
-                                        IsEnabled="{Binding HasSelection, Mode=OneWay}">
-                                    <md:PackIcon Kind="ContentCopy" Height="18"/>
-                                </Button>
-                                <Button ToolTip="Delete Profile" Width="32" Height="28" Padding="0" Click="OnDeleteProfileClick" Foreground="Red"
-                                        IsEnabled="{Binding HasSelection, Mode=OneWay}">
-                                    <md:PackIcon Kind="Trash" Height="20"/>
-                                </Button>
-                            </ToolBar>
-                            <ListBox x:Name="ProfileListBox" DisplayMemberPath="Name" Width="320" Background="Black" MouseDown="OnProfileListBoxMouseDown"
-                                     ItemsSource="{Binding Profiles, Mode=OneWay}"
-                                     SelectedItem="{Binding Selected}"/>
+            <Grid Visibility="{Binding HasRootDirectory, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="320"/>
+                    <ColumnDefinition Width="3"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <DockPanel Grid.Column="0" Background="#FF1B1B1B">
+                    <Grid DockPanel.Dock="Top">
+                        <TextBox Padding="4,0,12,0"
+                                 Text="{Binding TreeSearch, UpdateSourceTrigger=PropertyChanged}"
+                                 Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                        <md:PackIcon Kind="Search" Margin="2,0" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False"
+                                     Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                    </Grid>
+                    <TreeView SelectedItemChanged="OnTextureTreeSelectedItemChanged"
+                             TextSearch.Text="{Binding TreeSearch, Mode=OneWay}"
+                             ItemsSource="{Binding TreeRoot.Nodes, Mode=OneWay}">
+                        <TreeView.Resources>
+                            <DataTemplate DataType="{x:Type vm:TextureTreeTexture}">
+                                <StackPanel Orientation="Horizontal">
+                                    <md:PackIcon Kind="Image" Margin="0,0,4,0" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type vm:TextureTreeDirectory}" ItemsSource="{Binding Nodes}">
+                                <StackPanel Orientation="Horizontal">
+                                    <md:PackIcon Kind="Folder" Margin="0,0,4,0" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.Resources>
+                    </TreeView>
+                </DockPanel>
+                <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
+                <Grid Grid.Column="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="3"/>
+                        <ColumnDefinition Width="320"/>
+                    </Grid.ColumnDefinitions>
+                    <DockPanel Grid.Column="0">
+                        <DockPanel DockPanel.Dock="Top" Margin="4,2" LastChildFill="False">
+                            <CheckBox DockPanel.Dock="Left" Content="Tile" Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                      IsChecked="{Binding EnableTiling, ElementName=TextureViewer}"/>
+                            <ComboBox IsEditable="True" DockPanel.Dock="Right"
+                                      Style="{StaticResource MaterialDesignComboBox}"
+                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                      Text="{Binding ZoomText, Mode=TwoWay, ElementName=TextureViewer}">
+                                <ComboBoxItem Content="10%"/>
+                                <ComboBoxItem Content="25%"/>
+                                <ComboBoxItem Content="50%"/>
+                                <ComboBoxItem Content="100%" IsSelected="True"/>
+                                <ComboBoxItem Content="200%"/>
+                                <ComboBoxItem Content="400%"/>
+                                <ComboBoxItem Content="800%"/>
+                            </ComboBox>
                         </DockPanel>
-                        <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
-                        <ScrollViewer Grid.Column="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#222"
-                                      Visibility="{Binding HasSelection, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                            <StackPanel Orientation="Vertical" MinWidth="320" MaxWidth="600">
-                                <Grid Margin="12,12,12,12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="1*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Grid.Column="0" Grid.Row="0" Margin="4" VerticalAlignment="Center" Text="Game Edition" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                                    <ComboBox Grid.Column="1" Grid.Row="0" SelectedValuePath="Content" Margin="4" TextBlock.FontSize="14" HorizontalContentAlignment="Center"
-                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                              SelectedValue="{Binding GameEdition}">
-                                        <ComboBoxItem Content="Java"/>
-                                        <ComboBoxItem Content="Bedrock"/>
-                                    </ComboBox>
-                                    <TextBlock Grid.Column="2" Grid.Row="0" VerticalAlignment="Center" Text="Pack Version" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}" Margin="4,4,4,4" HorizontalAlignment="Right"/>
-                                    <TextBox Grid.Column="3" Grid.Row="0" Margin="4" HorizontalContentAlignment="Center" Width="64" HorizontalAlignment="Right"
-                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                             Text="{Binding PackFormat}"/>
-                                    <TextBlock Grid.Column="0" Grid.Row="1" Margin="4" VerticalAlignment="Center" Text="Description" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                                    <TextBox Grid.Column="1" Grid.Row="1" Margin="4" Grid.ColumnSpan="3"
-                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                             Text="{Binding PackDescription}"/>
-                                    <TextBlock Grid.Column="0" Grid.Row="2" Margin="4" VerticalAlignment="Center" Text="Tags" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                                    <TextBox Grid.Column="1" Grid.Row="2" Margin="4" Grid.ColumnSpan="3"
-                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                             Text="{Binding PackTags}"/>
-                                </Grid>
-                                <Grid Margin="12,12,12,12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="1*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <DockPanel>
-                                        <TextBlock DockPanel.Dock="Left" Margin="8,0" Text="Input Format" Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Center"/>
-                                        <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" Foreground="{DynamicResource SecondaryHueMidBrush}" MaxWidth="140" HorizontalContentAlignment="Center"
-                                                  SelectedValue="{Binding Encoding.InputFormat}">
-                                            <ComboBox.ItemsSource>
-                                                <vm:EncodingFormatValues/>
-                                            </ComboBox.ItemsSource>
-                                        </ComboBox>
+                        <ListBox DockPanel.Dock="Bottom" Background="Black" VerticalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                 ItemsSource="{Binding Textures}"
+                                 SelectedItem="{Binding SelectedSource}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="vm:TextureSource">
+                                    <DockPanel MinWidth="12" MaxWidth="86">
+                                        <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center"
+                                                   Text="{Binding Name}"/>
+                                        <Border BorderThickness="1" BorderBrush="#666" Width="64" Height="64">
+                                            <Border.Background>
+                                                <ImageBrush ImageSource="/Resources/tiled_bg.png" Stretch="None" TileMode="Tile" Viewport="0,0,8,8" ViewportUnits="Absolute"/>
+                                            </Border.Background>
+                                            <Image Stretch="Uniform" Source="{Binding Thumbnail}"/>
+                                        </Border>
                                     </DockPanel>
-                                    <DockPanel Grid.Column="1">
-                                        <TextBlock DockPanel.Dock="Left" Margin="8,0" Text="Output Format" Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Center"/>
-                                        <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" Foreground="{DynamicResource SecondaryHueMidBrush}" MaxWidth="140" HorizontalContentAlignment="Center"
-                                                  SelectedValue="{Binding Encoding.OutputFormat}">
-                                            <ComboBox.ItemsSource>
-                                                <vm:EncodingFormatValues/>
-                                            </ComboBox.ItemsSource>
-                                        </ComboBox>
-                                    </DockPanel>
-                                </Grid>
-                                <GroupBox Margin="0,20,0,12" md:ColorZoneAssist.Mode="Dark"
-                                          Background="#111"
-                                          Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                          Style="{DynamicResource MaterialDesignCardGroupBox}"
-                                          DataContext="{Binding Encoding, Mode=OneWay}">
-                                    <GroupBox.Header>
-                                        <DockPanel>
-                                            <ComboBox DockPanel.Dock="Right" DisplayMemberPath="Text" SelectedValuePath="Value" HorizontalContentAlignment="Center"
-                                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                                      SelectedValue="{Binding SelectedTag}" Width="200">
-                                                <ComboBox.ItemsSource>
-                                                    <vm:TextureTagValues/>
-                                                </ComboBox.ItemsSource>
-                                            </ComboBox>
-                                            <TextBlock Text="Texture Encoding" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
-                                        </DockPanel>
-                                    </GroupBox.Header>
-                                    <StackPanel Orientation="Vertical">
-                                        <!--<Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="1*"/>
-                                                <ColumnDefinition Width="1*"/>
-                                                <ColumnDefinition Width="1*"/>
-                                                <ColumnDefinition Width="1*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-                                            <TextBlock Grid.Column="0" Grid.Row="0" Text="Channel"/>
-                                            <TextBlock Grid.Column="1" Grid.Row="0" Text="Texture IN"/>
-                                            <TextBlock Grid.Column="2" Grid.Row="0" Text="Texture OUT"/>
-                                            <TextBlock Grid.Column="3" Grid.Row="0" Text="Export"/>
-                                            <TextBlock Grid.Column="0" Grid.Row="1" Text="Albedo Red"/>
-                                            <controls:ComboBoxEx Grid.Column="1" Grid.Row="1"
-                                                                 SelectedValue="{Binding InputAlbedoRed}"
-                                                                 Placeholder="{Binding InputAlbedoRedDefault, Mode=OneWay}"/>
-                                            <controls:ComboBoxEx Grid.Column="2" Grid.Row="1"
-                                                                 SelectedValue="{Binding OutputAlbedoRed}"
-                                                                 Placeholder="{Binding OutputAlbedoRedDefault, Mode=OneWay}"/>
-                                        </Grid>-->
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="1*"/>
-                                                <ColumnDefinition Width="2*"/>
-                                                <ColumnDefinition Width="2*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-                                            <Grid.Resources>
-                                                <Style TargetType="controls:ComboBoxEx">
-                                                    <Setter Property="ItemsSource">
-                                                        <Setter.Value>
-                                                            <vm:EncodingChannelValues/>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Style>
-                                            </Grid.Resources>
-                                            <TextBlock Grid.Column="1" Grid.Row="0" Margin="6" Text="Input" HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Center"/>
-                                            <TextBlock Grid.Column="2" Grid.Row="0" Margin="6" Text="Output" HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Center"/>
-                                            <StackPanel Grid.Column="0" Grid.Row="1" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
-                                                <md:PackIcon Kind="Circle" VerticalAlignment="Center" Foreground="Red"/>
-                                                <TextBlock Margin="4,0" Text="Red" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                                            </StackPanel>
-                                            <controls:ComboBoxEx Grid.Column="1" Grid.Row="1" SelectedValue="{Binding InputRed}" Placeholder="{Binding InputRedDefault, Mode=OneWay}"/>
-                                            <controls:ComboBoxEx Grid.Column="2" Grid.Row="1" SelectedValue="{Binding OutputRed}" Placeholder="{Binding OutputRedDefault, Mode=OneWay}"/>
-                                            <StackPanel Grid.Column="0" Grid.Row="2" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
-                                                <md:PackIcon Kind="Circle" VerticalAlignment="Center" Foreground="Green"/>
-                                                <TextBlock Margin="4,0" Text="Green" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" HorizontalAlignment="Center"/>
-                                            </StackPanel>
-                                            <controls:ComboBoxEx Grid.Column="1" Grid.Row="2" SelectedValue="{Binding InputGreen}" Placeholder="{Binding InputGreenDefault, Mode=OneWay}"/>
-                                            <controls:ComboBoxEx Grid.Column="2" Grid.Row="2" SelectedValue="{Binding OutputGreen}" Placeholder="{Binding OutputGreenDefault, Mode=OneWay}"/>
-                                            <StackPanel Grid.Column="0" Grid.Row="3" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
-                                                <md:PackIcon Kind="Circle" VerticalAlignment="Center" Foreground="Blue"/>
-                                                <TextBlock Margin="4,0" Text="Blue" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" HorizontalAlignment="Center"/>
-                                            </StackPanel>
-                                            <controls:ComboBoxEx Grid.Column="1" Grid.Row="3" SelectedValue="{Binding InputBlue}" Placeholder="{Binding InputBlueDefault, Mode=OneWay}"/>
-                                            <controls:ComboBoxEx Grid.Column="2" Grid.Row="3" SelectedValue="{Binding OutputBlue}" Placeholder="{Binding OutputBlueDefault, Mode=OneWay}"/>
-                                            <StackPanel Grid.Column="0" Grid.Row="4" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
-                                                <md:PackIcon Kind="CircleOutline" VerticalAlignment="Center" Foreground="White"/>
-                                                <TextBlock Margin="4,0" Text="Alpha" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" HorizontalAlignment="Center"/>
-                                            </StackPanel>
-                                            <controls:ComboBoxEx Grid.Column="1" Grid.Row="4"
-                                                                 SelectedValue="{Binding InputAlpha}"
-                                                                 Placeholder="{Binding InputAlphaDefault, Mode=OneWay}"/>
-                                            <controls:ComboBoxEx Grid.Column="2" Grid.Row="4"
-                                                                 SelectedValue="{Binding OutputAlpha}"
-                                                                 Placeholder="{Binding OutputAlphaDefault, Mode=OneWay}"/>
-                                            <CheckBox Grid.Column="2" Grid.Row="5" Content="Export Texture" HorizontalAlignment="Center" Margin="8"
-                                                      IsChecked="{Binding ExportTexture}"
-                                                      Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                                        </Grid>
-                                        <Grid>
-
-                                        </Grid>
-                                    </StackPanel>
-                                </GroupBox>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Textures">
-                    <Grid DataContext="{Binding Texture, Mode=OneTime}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="320"/>
-                            <ColumnDefinition Width="3"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <DockPanel Grid.Column="0" Background="#FF1B1B1B">
-                            <Grid DockPanel.Dock="Top">
-                                <TextBox Padding="4,0,12,0"
-                                         Text="{Binding TreeSearch, UpdateSourceTrigger=PropertyChanged}"
-                                         Foreground="{DynamicResource SecondaryHueMidBrush}"/>
-                                <md:PackIcon Kind="Search" Margin="2,0" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False"
-                                             Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                            </Grid>
-                            <TreeView SelectedItemChanged="OnTextureTreeSelectedItemChanged"
-                                     TextSearch.Text="{Binding TreeSearch, Mode=OneWay}"
-                                     ItemsSource="{Binding TreeRoot.Nodes, Mode=OneWay}">
-                                <TreeView.Resources>
-                                    <DataTemplate DataType="{x:Type vm:TextureTreeTexture}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <md:PackIcon Kind="Image" Margin="0,0,4,0" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
-                                            <TextBlock Text="{Binding Name}"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                    <HierarchicalDataTemplate DataType="{x:Type vm:TextureTreeDirectory}" ItemsSource="{Binding Nodes}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <md:PackIcon Kind="Folder" Margin="0,0,4,0" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                                            <TextBlock Text="{Binding Name}"/>
-                                        </StackPanel>
-                                    </HierarchicalDataTemplate>
-                                </TreeView.Resources>
-                            </TreeView>
-                        </DockPanel>
-                        <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
-                        <Grid Grid.Column="2" IsEnabled="{Binding HasTreeSelection}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1*"/>
-                                <ColumnDefinition Width="3"/>
-                                <ColumnDefinition Width="320"/>
-                            </Grid.ColumnDefinitions>
-                            <DockPanel Grid.Column="0">
-                                <DockPanel DockPanel.Dock="Top" Margin="4,2" LastChildFill="False">
-                                    <CheckBox DockPanel.Dock="Left" Content="Tile" Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                              IsChecked="{Binding EnableTiling, ElementName=TextureViewer}"/>
-                                    <ComboBox IsEditable="True" DockPanel.Dock="Right"
-                                              Style="{StaticResource MaterialDesignComboBox}"
-                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                              Text="{Binding ZoomText, Mode=TwoWay, ElementName=TextureViewer}">
-                                        <ComboBoxItem Content="10%"/>
-                                        <ComboBoxItem Content="25%"/>
-                                        <ComboBoxItem Content="50%"/>
-                                        <ComboBoxItem Content="100%" IsSelected="True"/>
-                                        <ComboBoxItem Content="200%"/>
-                                        <ComboBoxItem Content="400%"/>
-                                        <ComboBoxItem Content="800%"/>
-                                    </ComboBox>
-                                </DockPanel>
-                                <ListBox DockPanel.Dock="Bottom" Background="Black" VerticalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                         ItemsSource="{Binding Textures}"
-                                         SelectedItem="{Binding SelectedSource}">
-                                    <ListBox.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Orientation="Horizontal"/>
-                                        </ItemsPanelTemplate>
-                                    </ListBox.ItemsPanel>
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate DataType="vm:TextureSource">
-                                            <DockPanel MinWidth="12" MaxWidth="86">
-                                                <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center"
-                                                           Text="{Binding Name}"/>
-                                                <Border BorderThickness="1" BorderBrush="#666" Width="64" Height="64">
-                                                    <Border.Background>
-                                                        <ImageBrush ImageSource="/Resources/tiled_bg.png" Stretch="None" TileMode="Tile" Viewport="0,0,8,8" ViewportUnits="Absolute"/>
-                                                    </Border.Background>
-                                                    <Image Stretch="Uniform" Source="{Binding Thumbnail}"/>
-                                                </Border>
-                                            </DockPanel>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                                <controls:TextureView x:Name="TextureViewer" Background="#222"
-                                                      Texture="{Binding SelectedSource.Image, Mode=OneWay}"/>
-                            </DockPanel>
-                            <GridSplitter Grid.Column="1" Grid.Row="0" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
-                            <controls:PbrPropertiesControl Grid.Column="2" DataChanged="OnTextureDataChanged" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
-                                                           Texture="{Binding Loaded, Mode=OneWay}"/>
-                        </Grid>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Files">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="3"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TreeView Grid.Column="0" Background="#FF1B1B1B"/>
-                        <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
-                        <TextBlock Grid.Column="2" Text="Stuff goes here..." HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Grid>
-                </TabItem>
-            </TabControl>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <controls:TextureView x:Name="TextureViewer" Background="#222"
+                                              Texture="{Binding SelectedSource.Image, Mode=OneWay}"/>
+                    </DockPanel>
+                    <GridSplitter Grid.Column="1" Grid.Row="0" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
+                    <controls:MaterialPropertiesControl Grid.Column="2" DataChanged="OnMaterialChanged" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
+                                                   Material="{Binding LoadedMaterial, Mode=OneWay}"/>
+                </Grid>
+            </Grid>
         </Grid>
     </DockPanel>
 </Window>

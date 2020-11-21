@@ -1,64 +1,51 @@
-﻿using PixelGraph.Common;
-using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.Encoding;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
+using System.ComponentModel;
 using System.Linq;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class PackEncodingVM : ViewModelBase
     {
-        private readonly EncodingProperties _encoding;
-        private PackProperties _pack;
+        private ResourcePackInputProperties _packInput;
+        private ResourcePackProfileProperties _packProfile;
+        private TextureEncoding _inputEncoding;
+        private TextureOutputEncoding _outputEncoding;
         private string _selectedTag;
 
         public event EventHandler Changed;
 
-        public string InputRedDefault => GetInputDefault(_selectedTag, ColorChannel.Red);
-        public string InputGreenDefault => GetInputDefault(_selectedTag, ColorChannel.Green);
-        public string InputBlueDefault => GetInputDefault(_selectedTag, ColorChannel.Blue);
-        public string InputAlphaDefault => GetInputDefault(_selectedTag, ColorChannel.Alpha);
-        public string OutputRedDefault => GetOutputDefault(_selectedTag, ColorChannel.Red);
-        public string OutputGreenDefault => GetOutputDefault(_selectedTag, ColorChannel.Green);
-        public string OutputBlueDefault => GetOutputDefault(_selectedTag, ColorChannel.Blue);
-        public string OutputAlphaDefault => GetOutputDefault(_selectedTag, ColorChannel.Alpha);
+        public string InputRedDefault => GetInputDefaultText(ColorChannel.Red);
+        public string InputGreenDefault => GetInputDefaultText(ColorChannel.Green);
+        public string InputBlueDefault => GetInputDefaultText(ColorChannel.Blue);
+        public string InputAlphaDefault => GetInputDefaultText(ColorChannel.Alpha);
 
-        public PackProperties Pack {
-            get => _pack;
+        public string OutputRedDefault => GetOutputDefaultText(ColorChannel.Red);
+        public string OutputGreenDefault => GetOutputDefaultText(ColorChannel.Green);
+        public string OutputBlueDefault => GetOutputDefaultText(ColorChannel.Blue);
+        public string OutputAlphaDefault => GetOutputDefaultText(ColorChannel.Alpha);
+
+        public ResourcePackInputProperties PackInput {
+            get => _packInput;
             set {
-                _pack = value;
+                _packInput = value;
                 OnPropertyChanged();
 
-                UpdateEncodingDefaults();
-                UpdateInputOutputProperties();
-                OnPropertyChanged(nameof(InputFormat));
-                OnPropertyChanged(nameof(OutputFormat));
+                UpdateInput();
+                UpdateDefaultProperties();
             }
         }
 
-        public string InputFormat {
-            get => Pack?.InputFormat;
+        public ResourcePackProfileProperties PackProfile {
+            get => _packProfile;
             set {
-                if (Pack == null) return;
-                Pack.InputFormat = value;
-                UpdateEncodingDefaults();
+                _packProfile = value;
                 OnPropertyChanged();
 
-                UpdateInputOutputProperties();
-                OnChanged();
-            }
-        }
-
-        public string OutputFormat {
-            get => Pack?.OutputFormat;
-            set {
-                if (Pack == null) return;
-                Pack.OutputFormat = value;
-                OnPropertyChanged();
-
-                UpdateInputOutputProperties();
-                UpdateEncodingDefaults();
-                OnChanged();
+                UpdateOutput();
+                UpdateDefaultProperties();
             }
         }
 
@@ -68,162 +55,79 @@ namespace PixelGraph.UI.ViewModels
                 _selectedTag = value;
                 OnPropertyChanged();
 
-                UpdateInputOutputProperties();
-                UpdateEncodingProperties();
+                UpdateInput();
+                UpdateOutput();
+                UpdateDefaultProperties();
             }
         }
 
-        public string InputRed {
-            get => Pack?.GetInput(_selectedTag, ColorChannel.Red);
+        public TextureEncoding SelectedInput {
+            get => _inputEncoding;
             set {
-                if (Pack == null) return;
-                Pack.SetInput(_selectedTag, ColorChannel.Red, value);
-                OnPropertyChanged(nameof(InputRed));
-                OnPropertyChanged(nameof(InputRedDefault));
-                OnChanged();
-            }
-        }
-
-        public string InputGreen {
-            get => Pack?.GetInput(_selectedTag, ColorChannel.Green);
-            set {
-                if (Pack == null) return;
-                Pack.SetInput(_selectedTag, ColorChannel.Green, value);
-                OnPropertyChanged(nameof(InputGreen));
-                OnPropertyChanged(nameof(InputGreenDefault));
-                OnChanged();
-            }
-        }
-
-        public string InputBlue {
-            get => Pack?.GetInput(_selectedTag, ColorChannel.Blue);
-            set {
-                if (Pack == null) return;
-                Pack.SetInput(_selectedTag, ColorChannel.Blue, value);
-                OnPropertyChanged(nameof(InputBlue));
-                OnPropertyChanged(nameof(InputBlueDefault));
-                OnChanged();
-            }
-        }
-
-        public string InputAlpha {
-            get => Pack?.GetInput(_selectedTag, ColorChannel.Alpha);
-            set {
-                if (Pack == null) return;
-                Pack.SetInput(_selectedTag, ColorChannel.Alpha, value);
-                OnPropertyChanged(nameof(InputAlpha));
-                OnPropertyChanged(nameof(InputAlphaDefault));
-                OnChanged();
-            }
-        }
-
-        public string OutputRed {
-            get => Pack?.GetOutput(_selectedTag, ColorChannel.Red);
-            set {
-                if (Pack == null) return;
-                Pack.SetOutput(_selectedTag, ColorChannel.Red, value);
-                OnPropertyChanged(nameof(OutputRed));
-                OnPropertyChanged(nameof(OutputRedDefault));
-                OnChanged();
-            }
-        }
-
-        public string OutputGreen {
-            get => Pack?.GetOutput(_selectedTag, ColorChannel.Green);
-            set {
-                if (Pack == null) return;
-                Pack.SetOutput(_selectedTag, ColorChannel.Green, value);
-                OnPropertyChanged(nameof(OutputGreen));
-                OnPropertyChanged(nameof(OutputGreenDefault));
-                OnChanged();
-            }
-        }
-
-        public string OutputBlue {
-            get => Pack?.GetOutput(_selectedTag, ColorChannel.Blue);
-            set {
-                if (Pack == null) return;
-                Pack.SetOutput(_selectedTag, ColorChannel.Blue, value);
-                OnPropertyChanged(nameof(OutputBlue));
-                OnPropertyChanged(nameof(OutputBlueDefault));
-                OnChanged();
-            }
-        }
-
-        public string OutputAlpha {
-            get => Pack?.GetOutput(_selectedTag, ColorChannel.Alpha);
-            set {
-                if (Pack == null) return;
-                Pack.SetOutput(_selectedTag, ColorChannel.Alpha, value);
-                OnPropertyChanged(nameof(OutputAlpha));
-                OnPropertyChanged(nameof(OutputAlphaDefault));
-                OnChanged();
-            }
-        }
-
-        public bool ExportTexture {
-            get => _encoding?.GetExported(_selectedTag) ?? false;
-            set {
-                if (Pack == null) return;
-                Pack.SetExported(_selectedTag, value);
-                _encoding.Build(Pack);
+                _inputEncoding = value;
                 OnPropertyChanged();
-                OnChanged();
+            }
+        }
+
+        public TextureOutputEncoding SelectedOutput {
+            get => _outputEncoding;
+            set {
+                _outputEncoding = value;
+                OnPropertyChanged();
             }
         }
 
 
         public PackEncodingVM()
         {
-            _encoding = new EncodingProperties();
             _selectedTag = TextureTags.Albedo;
         }
 
-        private void UpdateEncodingDefaults()
+        private void UpdateInput()
         {
-            _encoding.Build(new PackProperties {
-                Properties = {
-                    ["input.format"] = Pack.InputFormat,
-                    ["output.format"] = Pack.OutputFormat,
-                }
-            });
+            var newInput = _packInput.GetRawEncoding(_selectedTag);
 
-            UpdateEncodingProperties();
+            if (newInput != _inputEncoding) {
+                if (_inputEncoding != null) _inputEncoding.PropertyChanged -= OnEncodingPropertyChanged;
+                if (newInput != null) newInput.PropertyChanged += OnEncodingPropertyChanged;
+                SelectedInput = newInput;
+            }
         }
 
-        private string GetInputDefault(string textureTag, ColorChannel colorChannel)
+        private void UpdateOutput()
         {
-            var key = _encoding?.GetInput(textureTag, colorChannel);
-            if (key == null) return null;
+            var newOutput = _packProfile.Output.GetRawTextureEncoding(_selectedTag);
 
-            return new EncodingChannelValues()
-                .FirstOrDefault(x => string.Equals(x.Value, key, StringComparison.InvariantCultureIgnoreCase))?.Text;
+            if (newOutput != _outputEncoding) {
+                if (_outputEncoding != null) _outputEncoding.PropertyChanged -= OnEncodingPropertyChanged;
+                if (newOutput != null) newOutput.PropertyChanged += OnEncodingPropertyChanged;
+                SelectedOutput = newOutput;
+            }
         }
 
-        private string GetOutputDefault(string textureTag, ColorChannel colorChannel)
+        private string GetInputDefaultText(ColorChannel colorChannel)
         {
-            var key = _encoding?.GetOutput(textureTag, colorChannel);
-            if (key == null) return null;
+            string defaultValue = null;
 
-            return new EncodingChannelValues()
-                .FirstOrDefault(x => string.Equals(x.Value, key, StringComparison.InvariantCultureIgnoreCase))?.Text;
+            var encoding = _packInput.GetRawEncoding(_selectedTag);
+            var channel = encoding.GetEncodingChannel(colorChannel)
+                ?? defaultValue; // TODO: Get format default
+
+            return channel != null ? GetLabelText(channel) : null;
         }
 
-        private void UpdateInputOutputProperties()
+        private string GetOutputDefaultText(ColorChannel colorChannel)
         {
-            OnPropertyChanged(nameof(InputRed));
-            OnPropertyChanged(nameof(InputGreen));
-            OnPropertyChanged(nameof(InputBlue));
-            OnPropertyChanged(nameof(InputAlpha));
-            OnPropertyChanged(nameof(OutputRed));
-            OnPropertyChanged(nameof(OutputGreen));
-            OnPropertyChanged(nameof(OutputBlue));
-            OnPropertyChanged(nameof(OutputAlpha));
+            string defaultValue = null;
 
-            OnPropertyChanged(nameof(ExportTexture));
+            var encoding = _packInput.GetRawEncoding(_selectedTag);
+            var channel = encoding?.GetEncodingChannel(colorChannel)
+                ?? defaultValue; // TODO: Get format default
+
+            return channel != null ? GetLabelText(channel) : null;
         }
 
-        private void UpdateEncodingProperties()
+        private void UpdateDefaultProperties()
         {
             OnPropertyChanged(nameof(InputRedDefault));
             OnPropertyChanged(nameof(InputGreenDefault));
@@ -235,9 +139,14 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(OutputAlphaDefault));
         }
 
-        private void OnChanged()
+        private void OnEncodingPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             Changed?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static string GetLabelText(string encodingChannel)
+        {
+            return new EncodingChannelValues().FirstOrDefault(x => EncodingChannel.Is(x.Value, encodingChannel))?.Text;
         }
     }
 }

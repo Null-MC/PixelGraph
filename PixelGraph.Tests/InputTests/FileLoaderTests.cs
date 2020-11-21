@@ -34,7 +34,7 @@ namespace PixelGraph.Tests.InputTests
         [Fact]
         public async Task LocalTextureTest()
         {
-            await Content.AddAsync("assets/gold_block/pbr.properties", string.Empty);
+            Content.Add("assets/gold_block/pbr.properties", string.Empty);
             Content.Add("assets/gold_block/albedo.png");
             Content.Add("assets/gold_block/normal.png");
 

@@ -7,22 +7,22 @@ namespace PixelGraph.UI.ViewModels
     internal class ProfileItem
     {
         public string Name {get; set;}
-        public string Filename {get; set;}
+        public string LocalFile {get; set;}
     }
 
-    internal class EncodingFormatValues : List<EncodingFormatValues.Format>
+    internal class EncodingFormatValues : List<EncodingFormatValues.Item>
     {
         public EncodingFormatValues()
         {
-            Add(new Format {Text = "None"});
-            Add(new Format {Text = "Raw", Value = EncodingProperties.Raw, Hint = "All texture channel mappings."});
-            Add(new Format {Text = "Default", Value = EncodingProperties.Default});
-            Add(new Format {Text = "Legacy", Value = EncodingProperties.Legacy});
-            Add(new Format {Text = "LAB 1.1", Value = EncodingProperties.Lab11});
-            Add(new Format {Text = "LAB 1.3", Value = EncodingProperties.Lab13});
+            Add(new Item {Text = "None"});
+            Add(new Item {Text = "Raw", Value = TextureEncoding.Format_Raw, Hint = "All texture channel mappings."});
+            Add(new Item {Text = "Default", Value = TextureEncoding.Format_Default});
+            Add(new Item {Text = "Legacy", Value = TextureEncoding.Format_Legacy});
+            Add(new Item {Text = "LAB 1.1", Value = TextureEncoding.Format_Lab11});
+            Add(new Item {Text = "LAB 1.3", Value = TextureEncoding.Format_Lab13});
         }
 
-        public class Format
+        public class Item
         {
             public string Text {get; set;}
             public string Value {get; set;}
@@ -30,27 +30,70 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    internal class TextureTagValues : List<TextureTagValues.Texture>
+    internal class TextureTagValues : List<TextureTagValues.Item>
     {
         public TextureTagValues()
         {
-            Add(new Texture {Text = "Albedo", Value = TextureTags.Albedo});
-            Add(new Texture {Text = "Height", Value = TextureTags.Height});
-            Add(new Texture {Text = "Normal", Value = TextureTags.Normal});
-            Add(new Texture {Text = "Occlusion", Value = TextureTags.Occlusion});
-            Add(new Texture {Text = "Specular", Value = TextureTags.Specular});
-            Add(new Texture {Text = "Rough", Value = TextureTags.Rough});
-            Add(new Texture {Text = "Smooth", Value = TextureTags.Smooth});
-            Add(new Texture {Text = "Metal", Value = TextureTags.Metal});
-            Add(new Texture {Text = "Porosity", Value = TextureTags.Porosity});
-            Add(new Texture {Text = "SubSurface Scattering", Value = TextureTags.SubSurfaceScattering});
-            Add(new Texture {Text = "Emissive", Value = TextureTags.Emissive});
+            Add(new Item {Text = "Albedo", Value = TextureTags.Albedo});
+            Add(new Item {Text = "Height", Value = TextureTags.Height});
+            Add(new Item {Text = "Normal", Value = TextureTags.Normal});
+            Add(new Item {Text = "Occlusion", Value = TextureTags.Occlusion});
+            Add(new Item {Text = "Specular", Value = TextureTags.Specular});
+            Add(new Item {Text = "Rough", Value = TextureTags.Rough});
+            Add(new Item {Text = "Smooth", Value = TextureTags.Smooth});
+            Add(new Item {Text = "Metal", Value = TextureTags.Metal});
+            Add(new Item {Text = "Porosity", Value = TextureTags.Porosity});
+            Add(new Item {Text = "SubSurface Scattering", Value = TextureTags.SubSurfaceScattering});
+            Add(new Item {Text = "Emissive", Value = TextureTags.Emissive});
         }
 
-        public class Texture
+        public class Item
         {
             public string Text {get; set;}
             public string Value {get; set;}
+        }
+    }
+
+    internal class OptionalTextureTagValues : List<OptionalTextureTagValues.Item>
+    {
+        public OptionalTextureTagValues()
+        {
+            Add(new Item {Text = string.Empty});
+            Add(new Item {Text = "Albedo", Value = TextureTags.Albedo});
+            Add(new Item {Text = "Height", Value = TextureTags.Height});
+            Add(new Item {Text = "Normal", Value = TextureTags.Normal});
+            Add(new Item {Text = "Occlusion", Value = TextureTags.Occlusion});
+            Add(new Item {Text = "Specular", Value = TextureTags.Specular});
+            Add(new Item {Text = "Rough", Value = TextureTags.Rough});
+            Add(new Item {Text = "Smooth", Value = TextureTags.Smooth});
+            Add(new Item {Text = "Metal", Value = TextureTags.Metal});
+            Add(new Item {Text = "Porosity", Value = TextureTags.Porosity});
+            Add(new Item {Text = "SubSurface Scattering", Value = TextureTags.SubSurfaceScattering});
+            Add(new Item {Text = "Emissive", Value = TextureTags.Emissive});
+        }
+
+        public class Item
+        {
+            public string Text {get; set;}
+            public string Value {get; set;}
+        }
+    }
+
+    internal class ColorChannelValues : List<ColorChannelValues.Item>
+    {
+        public ColorChannelValues()
+        {
+            Add(new Item {Text = string.Empty});
+            Add(new Item {Text = "Red", Value = ColorChannel.Red});
+            Add(new Item {Text = "Green", Value = ColorChannel.Green});
+            Add(new Item {Text = "Blue", Value = ColorChannel.Blue});
+            Add(new Item {Text = "Alpha", Value = ColorChannel.Alpha});
+        }
+
+        public class Item
+        {
+            public string Text {get; set;}
+            public ColorChannel? Value {get; set;}
         }
     }
 

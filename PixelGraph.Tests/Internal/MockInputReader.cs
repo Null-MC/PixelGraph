@@ -55,8 +55,9 @@ namespace PixelGraph.Tests.Internal
 
         public override Stream Open(string localFile)
         {
-            var fullFile = GetFullPath(localFile);
-            return Content.OpenRead(fullFile);
+            //var fullFile = GetFullPath(localFile);
+            //return Content.OpenRead(fullFile);
+            throw new NotImplementedException();
         }
 
         public override DateTime? GetWriteTime(string localFile) => null;

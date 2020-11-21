@@ -19,7 +19,7 @@ namespace PixelGraph.Common.IO
 
         public void Prepare() {}
 
-        public Stream WriteFile(string localFilename)
+        public Stream Open(string localFilename)
         {
             if (Path.DirectorySeparatorChar != '/')
                 localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
@@ -30,6 +30,11 @@ namespace PixelGraph.Common.IO
 
         public bool FileExists(string localFile) => false;
         public DateTime? GetWriteTime(string localFile) => null;
+
+        public void Delete(string localFile)
+        {
+            throw new NotImplementedException();
+        }
 
         public void Clean() {}
 

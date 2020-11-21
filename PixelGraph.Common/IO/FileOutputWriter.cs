@@ -1,7 +1,7 @@
-﻿using System;
+﻿using PixelGraph.Common.Extensions;
+using System;
 using System.IO;
 using System.Threading.Tasks;
-using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.Common.IO
 {
@@ -21,7 +21,7 @@ namespace PixelGraph.Common.IO
                 Directory.CreateDirectory(destinationPath);
         }
 
-        public Stream WriteFile(string localFilename)
+        public Stream Open(string localFilename)
         {
             var filename = PathEx.Join(destinationPath, localFilename);
 
@@ -35,6 +35,12 @@ namespace PixelGraph.Common.IO
         {
             var fullFile = PathEx.Join(destinationPath, localFile);
             return File.Exists(fullFile);
+        }
+
+        public void Delete(string localFile)
+        {
+            var fullFile = PathEx.Join(destinationPath, localFile);
+            File.Delete(fullFile);
         }
 
         public void Clean()

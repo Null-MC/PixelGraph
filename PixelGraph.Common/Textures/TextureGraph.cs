@@ -4,6 +4,7 @@ using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.Material;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -18,52 +19,77 @@ namespace PixelGraph.Common.Textures
 {
     public interface ITextureGraph : IDisposable
     {
-        PackProperties Pack {get;}
-        PbrProperties Texture {get;}
-        EncodingProperties Encoding {get;}
+        MaterialContext Context {get;}
 
-        Task<Image<Rgba32>> GetGeneratedNormalAsync(CancellationToken token = default);
-        Task<Image<Rgba32>> GetGeneratedOcclusionAsync(CancellationToken token = default);
         Task<Image<Rgba32>> BuildFinalImageAsync(string tag, CancellationToken token = default);
         Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token = default);
         Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default);
-        bool ContainsSource(string encodingChannel);
     }
 
     internal class TextureGraph : ITextureGraph
     {
+        private readonly Dictionary<string, List<ChannelSource>> sourceMap;
         private readonly IServiceProvider provider;
         private readonly IInputReader reader;
-        private readonly Dictionary<string, List<ChannelSource>> sourceMap;
         private readonly ILogger logger;
         private Image<Rgba32> normalTexture;
         private Image<Rgba32> occlusionTexture;
 
-        public PackProperties Pack {get;}
-        public PbrProperties Texture {get;}
-        public EncodingProperties Encoding {get;}
+        public MaterialContext Context {get;}
 
 
-        public TextureGraph(IServiceProvider provider, IInputReader reader, PackProperties pack, PbrProperties texture)
+        public TextureGraph(IServiceProvider provider, IInputReader reader, MaterialContext context)
         {
             this.provider = provider;
             this.reader = reader;
-            Pack = pack;
-            Texture = texture;
+            Context = context;
 
             logger = provider.GetRequiredService<ILogger<TextureGraph>>();
             sourceMap = new Dictionary<string, List<ChannelSource>>();
-            Encoding = new EncodingProperties();
-
-            Build();
         }
+
+        public void BuildFromInput()
+        {
+            foreach (var tag in TextureTags.All) {
+                var packEncoding = Context.Input.GetRawEncoding(tag);
+                var materialEncoding = Context.Material.GetInputEncoding(tag);
+
+                var defaultEncoding = new Lazy<TextureEncoding>(() =>
+                    TextureEncoding.GetDefault(Context.Input.Format, tag));
+
+                MapSource(tag, ColorChannel.Red, materialEncoding?.Red ?? packEncoding.Red ?? defaultEncoding.Value.Red);
+                MapSource(tag, ColorChannel.Green, materialEncoding?.Green ?? packEncoding.Green ?? defaultEncoding.Value.Green);
+                MapSource(tag, ColorChannel.Blue, materialEncoding?.Blue ?? packEncoding.Blue ?? defaultEncoding.Value.Blue);
+                MapSource(tag, ColorChannel.Alpha, materialEncoding?.Alpha ?? packEncoding.Alpha ?? defaultEncoding.Value.Alpha);
+            }
+
+            if (ContainsSource(EncodingChannel.Height))
+                AddHeightGeneratedInputs();
+        }
+
+        //public void BuildFromOutput()
+        //{
+        //    //var format = Context.Profile.Output?.Format
+        //    //             ?? TextureEncoding.Format_Default;
+
+        //    foreach (var tag in TextureTags.All) {
+        //        var packEncoding = Context.Profile.Output?.GetFinalTextureEncoding(tag);
+        //        //var defaultEncoding = TextureEncoding.GetDefault(format, tag);
+
+        //        MapSource(tag, ColorChannel.Red, packEncoding?.Red);
+        //        MapSource(tag, ColorChannel.Green, packEncoding?.Green);
+        //        MapSource(tag, ColorChannel.Blue, packEncoding?.Blue);
+        //        MapSource(tag, ColorChannel.Alpha, packEncoding?.Alpha);
+        //    }
+
+        //    if (ContainsSource(EncodingChannel.Height))
+        //        AddHeightGeneratedInputs();
+        //}
 
         public async Task<Image<Rgba32>> BuildFinalImageAsync(string tag, CancellationToken token = default)
         {
-            var textureEncoding = TextureEncoding.CreateOutput(Encoding, tag);
-            if (textureEncoding == null) return null;
-
-            var op = new TextureBuilder(provider, this, textureEncoding);
+            var op = new TextureBuilder(provider);
+            op.Build(this, tag);
             return await op.CreateImageAsync(token);
         }
 
@@ -99,7 +125,7 @@ namespace PixelGraph.Common.Textures
 
         public Stream OpenTexture(string tag)
         {
-            var file = reader.EnumerateTextures(Texture, tag).FirstOrDefault();
+            var file = reader.EnumerateTextures(Context.Material, tag).FirstOrDefault();
             return file == null ? null : reader.Open(file);
         }
 
@@ -107,7 +133,7 @@ namespace PixelGraph.Common.Textures
         {
             if (sourceMap.TryGetValue(encodingChannel, out var sourceList)) {
                 foreach (var source in sourceList) {
-                    var file = reader.EnumerateTextures(Texture, source.Tag).FirstOrDefault();
+                    var file = reader.EnumerateTextures(Context.Material, source.Tag).FirstOrDefault();
                     if (file == null) continue;
 
                     await using var stream = reader.Open(file);
@@ -131,92 +157,30 @@ namespace PixelGraph.Common.Textures
             occlusionTexture?.Dispose();
         }
 
-        private void Build()
+        private void AddHeightGeneratedInputs()
         {
-            Encoding.Build(Pack, Texture);
+            sourceMap.GetOrCreate(EncodingChannel.NormalX, NewSourceMap)
+                .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Red));
 
-            MapSource(TextureTags.Albedo, ColorChannel.Red, Encoding.AlbedoInputR);
-            MapSource(TextureTags.Albedo, ColorChannel.Green, Encoding.AlbedoInputG);
-            MapSource(TextureTags.Albedo, ColorChannel.Blue, Encoding.AlbedoInputB);
-            MapSource(TextureTags.Albedo, ColorChannel.Alpha, Encoding.AlbedoInputA);
+            sourceMap.GetOrCreate(EncodingChannel.NormalY, NewSourceMap)
+                .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Green));
 
-            MapSource(TextureTags.Height, ColorChannel.Red, Encoding.HeightInputR);
-            MapSource(TextureTags.Height, ColorChannel.Green, Encoding.HeightInputG);
-            MapSource(TextureTags.Height, ColorChannel.Blue, Encoding.HeightInputB);
-            MapSource(TextureTags.Height, ColorChannel.Alpha, Encoding.HeightInputA);
+            sourceMap.GetOrCreate(EncodingChannel.NormalZ, NewSourceMap)
+                .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Blue));
 
-            MapSource(TextureTags.Normal, ColorChannel.Red, Encoding.NormalInputR);
-            MapSource(TextureTags.Normal, ColorChannel.Green, Encoding.NormalInputG);
-            MapSource(TextureTags.Normal, ColorChannel.Blue, Encoding.NormalInputB);
-            MapSource(TextureTags.Normal, ColorChannel.Alpha, Encoding.NormalInputA);
-
-            MapSource(TextureTags.Occlusion, ColorChannel.Red, Encoding.OcclusionInputR);
-            MapSource(TextureTags.Occlusion, ColorChannel.Green, Encoding.OcclusionInputG);
-            MapSource(TextureTags.Occlusion, ColorChannel.Blue, Encoding.OcclusionInputB);
-            MapSource(TextureTags.Occlusion, ColorChannel.Alpha, Encoding.OcclusionInputA);
-
-            MapSource(TextureTags.Specular, ColorChannel.Red, Encoding.SpecularInputR);
-            MapSource(TextureTags.Specular, ColorChannel.Green, Encoding.SpecularInputG);
-            MapSource(TextureTags.Specular, ColorChannel.Blue, Encoding.SpecularInputB);
-            MapSource(TextureTags.Specular, ColorChannel.Alpha, Encoding.SpecularInputA);
-
-            MapSource(TextureTags.Rough, ColorChannel.Red, Encoding.RoughInputR);
-            MapSource(TextureTags.Rough, ColorChannel.Green, Encoding.RoughInputG);
-            MapSource(TextureTags.Rough, ColorChannel.Blue, Encoding.RoughInputB);
-            MapSource(TextureTags.Rough, ColorChannel.Alpha, Encoding.RoughInputA);
-
-            MapSource(TextureTags.Smooth, ColorChannel.Red, Encoding.SmoothInputR);
-            MapSource(TextureTags.Smooth, ColorChannel.Green, Encoding.SmoothInputG);
-            MapSource(TextureTags.Smooth, ColorChannel.Blue, Encoding.SmoothInputB);
-            MapSource(TextureTags.Smooth, ColorChannel.Alpha, Encoding.SmoothInputA);
-
-            MapSource(TextureTags.Metal, ColorChannel.Red, Encoding.MetalInputR);
-            MapSource(TextureTags.Metal, ColorChannel.Green, Encoding.MetalInputG);
-            MapSource(TextureTags.Metal, ColorChannel.Blue, Encoding.MetalInputB);
-            MapSource(TextureTags.Metal, ColorChannel.Alpha, Encoding.MetalInputA);
-
-            MapSource(TextureTags.Porosity, ColorChannel.Red, Encoding.PorosityInputR);
-            MapSource(TextureTags.Porosity, ColorChannel.Green, Encoding.PorosityInputG);
-            MapSource(TextureTags.Porosity, ColorChannel.Blue, Encoding.PorosityInputB);
-            MapSource(TextureTags.Porosity, ColorChannel.Alpha, Encoding.PorosityInputA);
-
-            MapSource(TextureTags.SubSurfaceScattering, ColorChannel.Red, Encoding.SubSurfaceScatteringInputR);
-            MapSource(TextureTags.SubSurfaceScattering, ColorChannel.Green, Encoding.SubSurfaceScatteringInputG);
-            MapSource(TextureTags.SubSurfaceScattering, ColorChannel.Blue, Encoding.SubSurfaceScatteringInputB);
-            MapSource(TextureTags.SubSurfaceScattering, ColorChannel.Alpha, Encoding.SubSurfaceScatteringInputA);
-
-            MapSource(TextureTags.Emissive, ColorChannel.Red, Encoding.EmissiveInputR);
-            MapSource(TextureTags.Emissive, ColorChannel.Green, Encoding.EmissiveInputG);
-            MapSource(TextureTags.Emissive, ColorChannel.Blue, Encoding.EmissiveInputB);
-            MapSource(TextureTags.Emissive, ColorChannel.Alpha, Encoding.EmissiveInputA);
-
-            if (ContainsSource(EncodingChannel.Height)) {
-                sourceMap.GetOrCreate(EncodingChannel.NormalX, NewSourceMap)
-                    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Red));
-
-                sourceMap.GetOrCreate(EncodingChannel.NormalY, NewSourceMap)
-                    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Green));
-
-                sourceMap.GetOrCreate(EncodingChannel.NormalZ, NewSourceMap)
-                    .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Blue));
-
-                sourceMap.GetOrCreate(EncodingChannel.Occlusion, NewSourceMap)
-                    .Add(new ChannelSource(TextureTags.OcclusionGenerated, ColorChannel.Red));
-            }
+            sourceMap.GetOrCreate(EncodingChannel.Occlusion, NewSourceMap)
+                .Add(new ChannelSource(TextureTags.OcclusionGenerated, ColorChannel.Red));
         }
 
         private void MapSource(string tag, ColorChannel channel, string input)
         {
-            if (string.IsNullOrEmpty(input)) return;
-            if (string.Equals(input, EncodingChannel.None, StringComparison.InvariantCultureIgnoreCase)) return;
-
-            sourceMap.GetOrCreate(input, NewSourceMap)
-                .Add(new ChannelSource(tag, channel));
+            if (string.IsNullOrEmpty(input) || EncodingChannel.Is(input, EncodingChannel.None)) return;
+            sourceMap.GetOrCreate(input, NewSourceMap).Add(new ChannelSource(tag, channel));
         }
 
         public async Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token)
         {
-            logger.LogInformation("Generating normal map for texture {DisplayName}.", Texture.DisplayName);
+            logger.LogInformation("Generating normal map for texture {DisplayName}.", Context.Material.DisplayName);
 
             if (!sourceMap.ContainsKey(EncodingChannel.Height))
                 throw new ApplicationException("No height source textures found!");
@@ -230,9 +194,9 @@ namespace PixelGraph.Common.Textures
                 var options = new NormalMapProcessor.Options {
                     Source = heightTexture,
                     HeightChannel = heightChannel,
-                    Strength = Texture.NormalStrength ?? 1f,
-                    Noise = Texture.NormalNoise ?? 0f,
-                    Wrap = Texture.Wrap,
+                    Strength = (float?)Context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
+                    Noise = (float?)Context.Material.Normal?.Noise ?? MaterialNormalProperties.DefaultNoise,
+                    Wrap = Context.Material.Wrap ?? MaterialProperties.DefaultWrap,
                 };
 
                 var processor = new NormalMapProcessor(options);
@@ -247,7 +211,7 @@ namespace PixelGraph.Common.Textures
 
         public async Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default)
         {
-            logger.LogInformation("Generating occlusion map for texture {DisplayName}.", Texture.DisplayName);
+            logger.LogInformation("Generating occlusion map for texture {DisplayName}.", Context.Material.DisplayName);
 
             if (!sourceMap.ContainsKey(EncodingChannel.Height))
                 throw new SourceEmptyException("No height source textures found!");
@@ -259,7 +223,7 @@ namespace PixelGraph.Common.Textures
                 (heightTexture, heightChannel) = await GetSourceImageAsync(EncodingChannel.Height, token);
                 if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
-                if (Texture.OcclusionClipEmissive ?? false) {
+                if (Context.Material.Occlusion?.ClipEmissive ?? false) {
                     (emissiveImage, emissiveChannel) = await GetSourceImageAsync(EncodingChannel.Emissive, token);
                 }
 
@@ -268,11 +232,11 @@ namespace PixelGraph.Common.Textures
                     HeightChannel = heightChannel,
                     EmissiveSource = emissiveImage,
                     EmissiveChannel = emissiveChannel,
-                    StepCount = Texture.OcclusionSteps ?? PbrProperties.Default_OcclusionSteps,
-                    Quality = Texture.OcclusionQuality ?? PbrProperties.Default_OcclusionQuality,
-                    ZScale = Texture.OcclusionZScale ?? PbrProperties.Default_OcclusionZScale,
-                    ZBias = Texture.OcclusionZBias ?? PbrProperties.Default_OcclusionZBias,
-                    Wrap = Texture.Wrap,
+                    StepCount = Context.Material.Occlusion?.Steps ?? MaterialOcclusionProperties.DefaultSteps,
+                    Quality = (float?)Context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
+                    ZScale = (float?)Context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
+                    ZBias = (float?)Context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias,
+                    Wrap = Context.Material.Wrap ?? MaterialProperties.DefaultWrap,
                 };
 
                 var processor = new OcclusionProcessor(options);

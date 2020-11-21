@@ -17,26 +17,31 @@ namespace PixelGraph.Common.Textures
 {
     internal class TextureBuilder
     {
-        private readonly TextureGraph graph;
-        private readonly TextureEncoding encoding;
         private readonly Dictionary<string, OverlayProcessor.Options> optionsMap;
         private readonly ChannelOptions filterOptions;
-        private readonly TextureFilter filter;
         private readonly ILogger logger;
+        private TextureFilter filter;
+        private TextureGraph graph;
+        private TextureEncoding encoding;
         private Rgba32 sourceColor;
         private bool restoreNormalZ;
 
 
-        public TextureBuilder(IServiceProvider provider, TextureGraph graph, TextureEncoding encoding)
+        public TextureBuilder(IServiceProvider provider)
         {
-            this.graph = graph;
-            this.encoding = encoding;
             logger = provider.GetRequiredService<ILogger<TextureBuilder>>();
 
             optionsMap = new Dictionary<string, OverlayProcessor.Options>(StringComparer.InvariantCultureIgnoreCase);
             filterOptions = new ChannelOptions();
-            filter = new TextureFilter(graph.Texture);
             sourceColor = new Rgba32();
+        }
+
+        public void Build(TextureGraph textureGraph, string tag)
+        {
+            graph = textureGraph;
+
+            filter = new TextureFilter(graph.Context.Material);
+            encoding = graph.Context.Profile.Output.GetFinalTextureEncoding(tag);
 
             MapColor(ColorChannel.Red);
             MapColor(ColorChannel.Green);
@@ -46,7 +51,7 @@ namespace PixelGraph.Common.Textures
 
         private void MapColor(ColorChannel color)
         {
-            var outputChannel = encoding.Get(color);
+            var outputChannel = encoding.GetEncodingChannel(color);
             if (outputChannel == null) return;
 
             var isOutputHeight = EncodingChannel.Is(outputChannel, EncodingChannel.Height);
@@ -202,19 +207,19 @@ namespace PixelGraph.Common.Textures
             try {
                 image = await CreateSourceImageAsync(token);
 
-                var redScale = filter.GetScale(encoding.R);
+                var redScale = filter.GetScale(encoding.Red);
                 if (Math.Abs(redScale - 1f) > float.Epsilon)
                     filterOptions.Append(ColorChannel.Red, (ref byte v) => filter.GenericScaleFilter(ref v, in redScale));
 
-                var greenScale = filter.GetScale(encoding.G);
+                var greenScale = filter.GetScale(encoding.Green);
                 if (Math.Abs(greenScale - 1f) > float.Epsilon)
                     filterOptions.Append(ColorChannel.Green, (ref byte v) => filter.GenericScaleFilter(ref v, in greenScale));
 
-                var blueScale = filter.GetScale(encoding.B);
+                var blueScale = filter.GetScale(encoding.Blue);
                 if (Math.Abs(blueScale - 1f) > float.Epsilon)
                     filterOptions.Append(ColorChannel.Blue, (ref byte v) => filter.GenericScaleFilter(ref v, in blueScale));
 
-                var alphaScale = filter.GetScale(encoding.A);
+                var alphaScale = filter.GetScale(encoding.Alpha);
                 if (Math.Abs(alphaScale - 1f) > float.Epsilon)
                     filterOptions.Append(ColorChannel.Alpha, (ref byte v) => filter.GenericScaleFilter(ref v, in alphaScale));
 
@@ -235,13 +240,13 @@ namespace PixelGraph.Common.Textures
             Image<Rgba32> targetImage = null;
 
             try {
-                foreach (var tag in optionsMap.Keys.Reverse()) {
-                    if (TextureTags.Is(tag, TextureTags.NormalGenerated)) continue;
-                    if (TextureTags.Is(tag, TextureTags.OcclusionGenerated)) continue;
+                foreach (var sourceTag in optionsMap.Keys.Reverse()) {
+                    if (TextureTags.Is(sourceTag, TextureTags.NormalGenerated)) continue;
+                    if (TextureTags.Is(sourceTag, TextureTags.OcclusionGenerated)) continue;
 
-                    var options = optionsMap[tag];
+                    var options = optionsMap[sourceTag];
 
-                    await using var sourceStream = graph.OpenTexture(tag);
+                    await using var sourceStream = graph.OpenTexture(sourceTag);
                     Image<Rgba32> sourceImage = null;
                     var disposeSource = false;
 
@@ -250,11 +255,16 @@ namespace PixelGraph.Common.Textures
                             disposeSource = true;
                             sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
                         }
-                        else if (TextureTags.Is(tag, TextureTags.Normal) && optionsMap.ContainsKey(TextureTags.NormalGenerated)) {
-                            sourceImage = await graph.GetGeneratedNormalAsync(token);
-                            options = optionsMap[TextureTags.NormalGenerated];
+                        else if (TextureTags.Is(sourceTag, TextureTags.Normal) && optionsMap.ContainsKey(TextureTags.NormalGenerated)) {
+                            try {
+                                sourceImage = await graph.GetGeneratedNormalAsync(token);
+                                options = optionsMap[TextureTags.NormalGenerated];
+                            }
+                            catch {
+                                sourceImage = null;
+                            }
                         }
-                        else if (TextureTags.Is(tag, TextureTags.Occlusion) && optionsMap.ContainsKey(TextureTags.OcclusionGenerated)) {
+                        else if (TextureTags.Is(sourceTag, TextureTags.Occlusion) && optionsMap.ContainsKey(TextureTags.OcclusionGenerated)) {
                             try {
                                 sourceImage = await graph.GetGeneratedOcclusionAsync(token);
                                 options = optionsMap[TextureTags.OcclusionGenerated];
@@ -265,7 +275,7 @@ namespace PixelGraph.Common.Textures
                         }
 
                         if (sourceImage == null) {
-                            logger.LogDebug("No source found for texture {DisplayName} tag {tag}.", graph.Texture.DisplayName, tag);
+                            logger.LogDebug("No source found for texture {DisplayName} tag {tag}.", graph.Context.Material.DisplayName, sourceTag);
                             continue;
                         }
 
@@ -296,9 +306,9 @@ namespace PixelGraph.Common.Textures
         private void RestoreNormalZ(Image<Rgba32> image)
         {
             var options = new NormalRestoreProcessor.Options {
-                NormalX = encoding.GetChannel(EncodingChannel.NormalX),
-                NormalY = encoding.GetChannel(EncodingChannel.NormalY),
-                NormalZ = encoding.GetChannel(EncodingChannel.NormalZ),
+                NormalX = encoding.GetColorChannel(EncodingChannel.NormalX),
+                NormalY = encoding.GetColorChannel(EncodingChannel.NormalY),
+                NormalZ = encoding.GetColorChannel(EncodingChannel.NormalZ),
             };
 
             if (options.HasAllMappings()) {
@@ -307,7 +317,7 @@ namespace PixelGraph.Common.Textures
             }
             else {
                 // TODO: use custom exception instead
-                logger.LogWarning("Unable to restore normal-z for texture {DisplayName}.", graph.Texture.DisplayName);
+                logger.LogWarning("Unable to restore normal-z for texture {DisplayName}.", graph.Context.Material.DisplayName);
             }
         }
 

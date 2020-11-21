@@ -27,10 +27,12 @@ namespace PixelGraph.Common
             Services.AddLogging(builder => builder.AddSerilog());
             Services.AddSingleton<INamingStructure, JavaNamingStructure>();
             Services.AddSingleton<ITextureGraphBuilder, TextureGraphBuilder>();
-            Services.AddSingleton<IPackReader, PackReader>();
-            Services.AddSingleton<IPbrReader, PbrReader>();
-            Services.AddSingleton<IPropertyWriter, PropertySerializer>();
+            Services.AddSingleton<IResourcePackReader, ResourcePackReader>();
+            Services.AddSingleton<IResourcePackWriter, ResourcePackWriter>();
+            Services.AddSingleton<IMaterialReader, MaterialReader>();
+            Services.AddSingleton<IMaterialWriter, MaterialWriter>();
             Services.AddSingleton<IPublisher, Publisher>();
+            Services.AddSingleton<IImageWriter, ImageWriter>();
 
             Services.AddTransient<IFileLoader, FileLoader>();
         }

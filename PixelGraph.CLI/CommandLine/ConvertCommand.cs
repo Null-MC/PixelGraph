@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using PixelGraph.CLI.Extensions;
 using PixelGraph.Common;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
 using System.CommandLine;
@@ -80,14 +82,14 @@ namespace PixelGraph.CLI.CommandLine
         private class Executor
         {
             private readonly ITextureGraphBuilder graphBuilder;
-            private readonly IPackReader packReader;
+            private readonly IResourcePackReader packReader;
             private readonly IInputReader reader;
             private readonly IOutputWriter writer;
 
 
             public Executor(
                 ITextureGraphBuilder graphBuilder,
-                IPackReader packReader,
+                IResourcePackReader packReader,
                 IInputReader reader,
                 IOutputWriter writer)
             {
@@ -113,24 +115,35 @@ namespace PixelGraph.CLI.CommandLine
                 ConsoleEx.WriteLine(outputFormat, ConsoleColor.Cyan);
                 ConsoleEx.WriteLine();
 
-                var fullFile = Path.GetFullPath(textureFilename);
-                var pack = await packReader.ReadAsync(fullFile, token: token);
-                pack.Properties["input.format"] = inputFormat;
-                pack.Properties["output.format"] = outputFormat;
-
-                reader.SetRoot(pack.Source);
+                var root = Path.GetDirectoryName(textureFilename);
+                reader.SetRoot(root);
                 writer.SetRoot(destinationPath);
 
-                var pbrTexture = new PbrProperties {
+                var fullFile = Path.GetFullPath(textureFilename);
+                var packProfile = await packReader.ReadProfileAsync(fullFile);
+                //pack.Properties["input.format"] = inputFormat;
+                packProfile.Output.Format = outputFormat;
+
+                var packInput = new ResourcePackInputProperties {
+                    Format = TextureEncoding.Format_Raw,
+                };
+
+                var material = new MaterialProperties {
                     UseGlobalMatching = true,
                     Name = Path.GetFileName(textureFilename),
-                    Path = ".",
+                    LocalPath = ".",
+                };
+
+                var context = new MaterialContext {
+                    Input = packInput,
+                    Profile = packProfile,
+                    Material = material,
                 };
 
                 var timer = Stopwatch.StartNew();
 
                 try {
-                    await graphBuilder.BuildAsync(pack, pbrTexture, token);
+                    await graphBuilder.ProcessOutputGraphAsync(context, token);
                 }
                 finally {
                     timer.Stop();

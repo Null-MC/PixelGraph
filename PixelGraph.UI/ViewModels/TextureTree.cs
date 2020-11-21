@@ -1,4 +1,4 @@
-﻿using PixelGraph.Common;
+﻿using PixelGraph.Common.Material;
 using System.Collections.ObjectModel;
 
 namespace PixelGraph.UI.ViewModels
@@ -22,8 +22,8 @@ namespace PixelGraph.UI.ViewModels
 
     internal class TextureTreeTexture : TextureTreeNode
     {
-        public string TextureFilename {get; set;}
-        public PbrProperties Texture {get; set;}
+        public string MaterialFilename {get; set;}
+        public MaterialProperties Material {get; set;}
         //public ImageSource AlbedoSource {get; set;}
     }
 }

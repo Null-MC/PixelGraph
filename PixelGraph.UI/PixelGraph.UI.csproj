@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <Version>0.5.0</Version>
+    <Version>0.6.0</Version>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>PixelGraph</AssemblyName>
@@ -10,16 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Controls\PropertyGrid.xaml.cs" />
-    <Compile Remove="Controls\TexturePreview.xaml.cs" />
-    <Compile Remove="Converters\ZoomConverter.cs" />
-    <Compile Remove="ViewModels\InputEncodingVM.cs" />
-    <Compile Remove="ViewModels\OutputEncodingVM.cs" />
-    <Compile Remove="ViewModels\PackPropertiesVM.cs" />
-    <Compile Remove="ViewModels\PackPropertyItem.cs" />
-    <Compile Remove="ViewModels\PbrPropertiesVM.cs" />
-    <Compile Remove="ViewModels\PropertyGridGroup.cs" />
-    <Compile Remove="ViewModels\TextureViewVM.cs" />
+    <Compile Remove="ViewModels\InputVMX.cs" />
+    <Compile Remove="ViewModels\PackEncodingVM.cs" />
+    <Compile Remove="Windows\InputWindowX.xaml.cs" />
+    <Compile Remove="Windows\SettingsWindow.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Remove="Controls\PropertyGrid.xaml" />
-    <Page Remove="Controls\TexturePreview.xaml" />
+    <Page Remove="Windows\InputWindowX.xaml" />
+    <Page Remove="Windows\SettingsWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>

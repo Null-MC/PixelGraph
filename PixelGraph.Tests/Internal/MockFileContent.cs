@@ -1,12 +1,8 @@
-﻿using PixelGraph.Common;
-using PixelGraph.Common.Extensions;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+﻿using PixelGraph.Common.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -22,12 +18,19 @@ namespace PixelGraph.Tests.Internal
             Files = new List<MockFile>();
         }
 
-        public void Add(string filename, Stream content = null)
+        public void Add(string filename, object content = null)
         {
             Files.Add(new MockFile {
                 Filename = PathEx.Normalize(filename),
                 Content = content,
             });
+        }
+
+        public T Get<T>(string filename)
+        {
+            var file = PathEx.Normalize(filename);
+            bool Match(MockFile f) => string.Equals(f.Filename, file, StringComparison.InvariantCultureIgnoreCase);
+            return (T)Files.FirstOrDefault(Match)?.Content;
         }
 
         public IEnumerable<string> EnumerateDirectories(string path, string pattern)
@@ -55,20 +58,20 @@ namespace PixelGraph.Tests.Internal
             return Files.Select(f => f.Filename).Contains(filename, StringComparer.InvariantCultureIgnoreCase);
         }
 
-        public Stream OpenRead(string filename)
-        {
-            var file = PathEx.Normalize(filename);
-            bool Match(MockFile f) => string.Equals(f.Filename, file, StringComparison.InvariantCultureIgnoreCase);
-            var content = Files.FirstOrDefault(Match)?.Content;
-            content?.Seek(0, SeekOrigin.Begin);
-            return content;
-        }
+        //public Stream OpenRead(string filename)
+        //{
+        //    var file = PathEx.Normalize(filename);
+        //    bool Match(MockFile f) => string.Equals(f.Filename, file, StringComparison.InvariantCultureIgnoreCase);
+        //    var content = Files.FirstOrDefault(Match)?.Content;
+        //    content?.Seek(0, SeekOrigin.Begin);
+        //    return content;
+        //}
 
-        public async Task<Image<Rgba32>> OpenImageAsync(string filename)
-        {
-            await using var stream = OpenRead(filename);
-            return await Image.LoadAsync<Rgba32>(Configuration.Default, stream);
-        }
+        //public async Task<Image<Rgba32>> OpenImageAsync(string filename)
+        //{
+        //    await using var stream = OpenRead(filename);
+        //    return await Image.LoadAsync<Rgba32>(Configuration.Default, stream);
+        //}
 
         private static bool MatchPattern(string name, string pattern)
         {
@@ -93,64 +96,67 @@ namespace PixelGraph.Tests.Internal
                 await file.DisposeAsync();
         }
 
-        public async Task AddAsync(string filename, string text = "")
-        {
-            var stream = new MemoryStream();
+        //public async Task AddAsync(string filename, string text = "")
+        //{
+        //    var stream = new MemoryStream();
 
-            try {
-                var writer = new StreamWriter(stream, leaveOpen: true);
-                await writer.WriteAsync(text);
-                Add(filename, stream);
-            }
-            catch {
-                await stream.DisposeAsync();
-                throw;
-            }
-        }
+        //    try {
+        //        var writer = new StreamWriter(stream, leaveOpen: true);
+        //        await writer.WriteAsync(text);
+        //        Add(filename, stream);
+        //    }
+        //    catch {
+        //        await stream.DisposeAsync();
+        //        throw;
+        //    }
+        //}
 
-        public Task AddAsync(string filename, PbrProperties texture)
-        {
-            var builder = new StringBuilder();
+        //public Task AddAsync(string filename, MaterialProperties material)
+        //{
+        //    var builder = new StringBuilder();
 
-            foreach (var key in texture.Properties.Keys) {
-                builder.Append(key);
-                builder.Append(" = ");
-                builder.AppendLine(texture.Properties[key]);
-            }
+        //    foreach (var key in material.Properties.Keys) {
+        //        builder.Append(key);
+        //        builder.Append(" = ");
+        //        builder.AppendLine(material.Properties[key]);
+        //    }
 
-            return AddAsync(filename, builder.ToString());
-        }
+        //    return AddAsync(filename, builder.ToString());
+        //}
 
-        public async Task AddAsync(string filename, Image image)
-        {
-            var stream = new MemoryStream();
+        //public async Task AddAsync(string filename, Image image)
+        //{
+        //    var stream = new MemoryStream();
 
-            try {
-                await image.SaveAsPngAsync(stream);
-                await stream.FlushAsync();
-                Add(filename, stream);
-            }
-            catch {
-                await stream.DisposeAsync();
-                throw;
-            }
-        }
+        //    try {
+        //        await image.SaveAsPngAsync(stream);
+        //        await stream.FlushAsync();
+        //        Add(filename, stream);
+        //    }
+        //    catch {
+        //        await stream.DisposeAsync();
+        //        throw;
+        //    }
+        //}
     }
 
     public class MockFile : IDisposable, IAsyncDisposable
     {
         public string Filename {get; set;}
-        public Stream Content {get; set;}
+        public object Content {get; set;}
 
 
         public void Dispose()
         {
-            Content?.Dispose();
+            (Content as IDisposable)?.Dispose();
         }
 
         public async ValueTask DisposeAsync()
         {
-            if (Content != null) await Content.DisposeAsync();
+            if (Content is IAsyncDisposable asyncDisposable)
+                await asyncDisposable.DisposeAsync();
+            else if (Content is IDisposable disposable)
+                disposable.Dispose();
         }
     }
 }

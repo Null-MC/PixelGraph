@@ -3,6 +3,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
 using System.IO;
@@ -14,13 +16,14 @@ namespace PixelGraph.Common.Publishing
 {
     public interface IPublisher
     {
-        Task PublishAsync(PackProperties pack, string destination, bool clean, CancellationToken token = default);
+        Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default);
     }
 
     internal class Publisher : IPublisher
     {
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
+        private readonly INamingStructure naming;
         private readonly ILogger logger;
         private readonly ITextureGraphBuilder graphBuilder;
         private readonly IFileLoader loader;
@@ -31,19 +34,20 @@ namespace PixelGraph.Common.Publishing
             IFileLoader loader,
             IInputReader reader,
             IOutputWriter writer,
+            INamingStructure naming,
             ILogger<Publisher> logger)
         {
             this.graphBuilder = graphBuilder;
             this.loader = loader;
             this.reader = reader;
             this.writer = writer;
+            this.naming = naming;
             this.logger = logger;
         }
 
-        public async Task PublishAsync(PackProperties pack, string destination, bool clean, CancellationToken token = default)
+        public async Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default)
         {
-            if (pack == null) throw new ArgumentNullException(nameof(pack));
-            if (destination == null) throw new ArgumentNullException(nameof(destination));
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             if (clean) {
                 logger.LogDebug("Cleaning destination...");
@@ -59,40 +63,52 @@ namespace PixelGraph.Common.Publishing
                 }
             }
 
-            await PublishPackMetaAsync(pack, token);
+            await PublishPackMetaAsync(context.Profile, token);
 
-            await PublishContentAsync(pack, token);
+            await PublishContentAsync(context, token);
         }
 
-        public async Task PublishContentAsync(PackProperties pack, CancellationToken token = default)
+        private async Task PublishContentAsync(ResourcePackContext context, CancellationToken token = default)
         {
-            var genericPublisher = new GenericTexturePublisher(pack, reader, writer);
+            var genericPublisher = new GenericTexturePublisher(context.Profile, reader, writer);
+
+            var packWriteTime = reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
 
             await foreach (var fileObj in loader.LoadAsync(token)) {
                 token.ThrowIfCancellationRequested();
                 DateTime? sourceTime, destinationTime;
 
                 switch (fileObj) {
-                    case PbrProperties texture:
-                        sourceTime = reader.GetWriteTime(texture.FileName);
-                        foreach (var texFile in texture.GetAllTextures(reader)) {
+                    case MaterialProperties material:
+                        sourceTime = reader.GetWriteTime(material.LocalFilename);
+                        foreach (var texFile in reader.EnumerateAllTextures(material)) {
                             var z = reader.GetWriteTime(texFile);
                             if (!z.HasValue) continue;
-                            if (!sourceTime.HasValue || z.Value > sourceTime.Value) sourceTime = z.Value;
+
+                            if (!sourceTime.HasValue || z.Value > sourceTime.Value)
+                                sourceTime = z.Value;
                         }
 
-                        var albedoOutputName = PathEx.Join(texture.Path, $"{texture.Name}.png");
-                        destinationTime = writer.FileExists(albedoOutputName)
-                            ? writer.GetWriteTime(albedoOutputName) : null;
+                        var albedoOutputName = naming.GetOutputTextureName(context.Profile, material.Name, TextureTags.Albedo, true);
+                        var albedoFile = PathEx.Join(material.LocalPath, albedoOutputName);
+                        destinationTime = writer.GetWriteTime(albedoFile);
 
-                        if (IsUpToDate(pack.WriteTime, sourceTime, destinationTime)) {
-                            logger.LogDebug("Skipping up-to-date texture {DisplayName}.", texture.DisplayName);
+                        // TODO: get latest date of all parts if multipart
+
+                        if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
+                            logger.LogDebug("Skipping up-to-date texture {DisplayName}.", material.DisplayName);
                             continue;
                         }
 
-                        logger.LogDebug("Publishing texture {DisplayName}.", texture.DisplayName);
+                        logger.LogDebug("Publishing texture {DisplayName}.", material.DisplayName);
 
-                        await graphBuilder.BuildAsync(pack, texture, token);
+                        var materialContext = new MaterialContext {
+                            Input = context.Input,
+                            Profile = context.Profile,
+                            Material = material,
+                        };
+
+                        await graphBuilder.ProcessOutputGraphAsync(materialContext, token);
 
                         // TODO: Publish mcmeta files
 
@@ -101,7 +117,7 @@ namespace PixelGraph.Common.Publishing
                         sourceTime = reader.GetWriteTime(localName);
                         destinationTime = writer.GetWriteTime(localName);
 
-                        if (IsUpToDate(pack.WriteTime, sourceTime, destinationTime)) {
+                        if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
                             logger.LogDebug("Skipping up-to-date untracked file {localName}.", localName);
                             continue;
                         }
@@ -115,7 +131,7 @@ namespace PixelGraph.Common.Publishing
                         }
                         else {
                             await using var srcStream = reader.Open(localName);
-                            await using var destStream = writer.WriteFile(localName);
+                            await using var destStream = writer.Open(localName);
                             await srcStream.CopyToAsync(destStream, token);
                         }
 
@@ -125,19 +141,19 @@ namespace PixelGraph.Common.Publishing
             }
         }
 
-        private Task PublishPackMetaAsync(PackProperties pack, CancellationToken token)
+        private Task PublishPackMetaAsync(ResourcePackProfileProperties pack, CancellationToken token)
         {
             var packMeta = new PackMetadata {
-                PackFormat = pack.PackFormat,
-                Description = pack.PackDescription ?? string.Empty,
+                PackFormat = pack.Format ?? ResourcePackProfileProperties.DefaultFormat,
+                Description = pack.Description ?? string.Empty,
             };
 
-            if (pack.PackTags != null) {
-                packMeta.Description += $"\n{string.Join(' ', pack.PackTags)}";
+            if (pack.Tags != null) {
+                packMeta.Description += $"\n{string.Join(' ', pack.Tags)}";
             }
 
             var data = new {pack = packMeta};
-            using var stream = writer.WriteFile("pack.mcmeta");
+            using var stream = writer.Open("pack.mcmeta");
             return WriteAsync(stream, data, Formatting.Indented, token);
         }
 

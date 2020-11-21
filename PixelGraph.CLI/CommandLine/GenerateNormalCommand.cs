@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.CLI.Extensions;
 using PixelGraph.Common;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
@@ -85,8 +86,8 @@ namespace PixelGraph.CLI.CommandLine
             private readonly ITextureGraphBuilder graphBuilder;
             private readonly INamingStructure naming;
             private readonly IInputReader reader;
-            private readonly IPackReader packReader;
-            private readonly IPbrReader pbrReader;
+            private readonly IResourcePackReader packReader;
+            private readonly IMaterialReader materialReader;
             private readonly ILogger logger;
 
 
@@ -95,55 +96,64 @@ namespace PixelGraph.CLI.CommandLine
                 ITextureGraphBuilder graphBuilder,
                 INamingStructure naming,
                 IInputReader reader,
-                IPackReader packReader,
-                IPbrReader pbrReader)
+                IResourcePackReader packReader,
+                IMaterialReader materialReader)
             {
                 this.graphBuilder = graphBuilder;
                 this.naming = naming;
                 this.reader = reader;
                 this.packReader = packReader;
-                this.pbrReader = pbrReader;
+                this.materialReader = materialReader;
                 this.logger = logger;
             }
 
             public async Task ExecuteAsync(string pbrFilename, string heightFilename, string normalFilename, string[] properties, CancellationToken token = default)
             {
-                var root = Path.GetDirectoryName(pbrFilename);
-                var name = Path.GetFileName(pbrFilename);
+                var root = Path.GetDirectoryName(pbrFilename) ?? ".";
+                var packName = Path.GetFileName(pbrFilename);
+                var inputName = PathEx.Join(root, "input.yml");
 
                 reader.SetRoot(root);
 
-                var pack = await packReader.ReadAsync(pbrFilename, properties, token);
-                var textureList = await pbrReader.LoadAsync(name, token);
+                var packInput = await packReader.ReadInputAsync(inputName);
+                var packProfile = await packReader.ReadProfileAsync(pbrFilename);
+
+                if (properties != null) {
+                    // TODO: apply properties?
+                }
+
+                var material = await materialReader.LoadAsync(packName, token);
 
                 if (heightFilename != null && File.Exists(heightFilename)) {
                     var heightName = Path.GetFileName(heightFilename);
 
-                    foreach (var texture in textureList) {
-                        texture.Name = heightName;
-                        texture.Properties["height.texture"] = heightFilename;
-                    }
+                    material.Name = heightName;
+                    material.Height.Texture = heightFilename;
                 }
 
                 var timer = Stopwatch.StartNew();
 
-                foreach (var texture in textureList) {
-                    logger.LogDebug("Generating normals for texture {DisplayName}.", texture.DisplayName);
-                    var finalName = normalFilename ?? naming.GetOutputTextureName(pack, texture, TextureTags.Normal, texture.UseGlobalMatching);
+                logger.LogDebug("Generating normals for texture {DisplayName}.", material.DisplayName);
+                var finalName = normalFilename ?? naming.GetOutputTextureName(packProfile, material.Name, TextureTags.Normal, material.UseGlobalMatching);
 
-                    try {
-                        using var graph = graphBuilder.CreateGraph(pack, texture);
-                        using var image = await graph.GetGeneratedNormalAsync(token);
+                try {
+                    var context = new MaterialContext {
+                        Input = packInput,
+                        Profile = packProfile,
+                        Material = material,
+                    };
 
-                        await image.SaveAsync(finalName, token);
-                        logger.LogInformation("Normal texture {finalName} generated successfully.", finalName);
-                    }
-                    catch (SourceEmptyException error) {
-                        logger.LogError($"Failed to generate Normal texture {{finalName}}! {error.Message}", finalName);
-                    }
-                    catch (Exception error) {
-                        logger.LogError(error, "Failed to generate Normal texture {finalName}!", finalName);
-                    }
+                    using var graph = graphBuilder.BuildInputGraph(context);
+                    using var image = await graph.GenerateNormalAsync(token);
+
+                    await image.SaveAsync(finalName, token);
+                    logger.LogInformation("Normal texture {finalName} generated successfully.", finalName);
+                }
+                catch (SourceEmptyException error) {
+                    logger.LogError($"Failed to generate Normal texture {{finalName}}! {error.Message}", finalName);
+                }
+                catch (Exception error) {
+                    logger.LogError(error, "Failed to generate Normal texture {finalName}!", finalName);
                 }
 
                 timer.Stop();
