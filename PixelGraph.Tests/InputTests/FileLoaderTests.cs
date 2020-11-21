@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.IO;
 using PixelGraph.Tests.Internal;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
@@ -15,36 +16,42 @@ namespace PixelGraph.Tests.InputTests
         [InlineData("assets/junk.zip")]
         [Theory] public async Task IgnoresFiles(string filename)
         {
-            Content.Add(filename);
+            await using var provider = Builder.Build();
+            var content = provider.GetRequiredService<MockFileContent>();
+            content.Add(filename);
 
-            var items = await LoadFilesAsync();
+            var items = await LoadFilesAsync(provider);
             Assert.Empty(items);
         }
 
         [Fact]
         public async Task UntrackedTest()
         {
-            Content.Add("assets/1.png");
-            Content.Add("assets/2.png");
+            await using var provider = Builder.Build();
+            var content = provider.GetRequiredService<MockFileContent>();
+            content.Add("assets/1.png");
+            content.Add("assets/2.png");
 
-            var items = await LoadFilesAsync();
+            var items = await LoadFilesAsync(provider);
             Assert.Equal(2, items.Length);
         }
 
         [Fact]
         public async Task LocalTextureTest()
         {
-            Content.Add("assets/gold_block/pbr.properties", string.Empty);
-            Content.Add("assets/gold_block/albedo.png");
-            Content.Add("assets/gold_block/normal.png");
+            await using var provider = Builder.Build();
+            var content = provider.GetRequiredService<MockFileContent>();
+            await content.AddAsync("assets/gold_block/pbr.yml", string.Empty);
+            content.Add("assets/gold_block/albedo.png");
+            content.Add("assets/gold_block/normal.png");
 
-            var items = await LoadFilesAsync();
+            var items = await LoadFilesAsync(provider);
             Assert.Single(items);
         }
 
-        private async Task<object[]> LoadFilesAsync()
+        private async Task<object[]> LoadFilesAsync(IServiceProvider provider)
         {
-            await using var provider = Builder.Build();
+            //await using var provider = Builder.Build();
 
             var items = new List<object>();
             var loader = provider.GetRequiredService<IFileLoader>();

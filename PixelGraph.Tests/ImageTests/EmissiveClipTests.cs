@@ -4,9 +4,8 @@ using PixelGraph.Common.Encoding;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
+using PixelGraph.Common.Material;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,7 +25,7 @@ namespace PixelGraph.Tests.ImageTests
 
             packProfile = new ResourcePackProfileProperties {
                 Output = {
-                    Emissive = {
+                    Emissive = new TextureOutputEncoding {
                         Red = EncodingChannel.EmissiveClipped,
                         Include = true,
                     },
@@ -44,15 +43,16 @@ namespace PixelGraph.Tests.ImageTests
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
-                Material = {
+                Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Emissive = {
+                    Emissive = new MaterialEmissiveProperties {
                         Value = value,
                         Scale = scale,
                     },
@@ -60,7 +60,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context);
-            var image = Content.Get<Image<Rgba32>>("assets/test_e.png");
+            var image = await content.OpenImageAsync("assets/test_e.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -72,19 +72,20 @@ namespace PixelGraph.Tests.ImageTests
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
             using var emissiveImage = CreateImageR(value);
-            Content.Add("assets/test/emissive.png", emissiveImage);
+            await content.AddAsync("assets/test/emissive.png", emissiveImage);
 
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
-                Material = {
+                Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Emissive = {
-                        Input = {
+                    Emissive = new MaterialEmissiveProperties {
+                        Input = new TextureEncoding {
                             Red = EncodingChannel.EmissiveClipped,
                         },
                     },
@@ -92,7 +93,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context);
-            var image = Content.Get<Image<Rgba32>>("assets/test_e.png");
+            var image = await content.OpenImageAsync("assets/test_e.png");
             PixelAssert.RedEquals(value, image);
         }
 
@@ -104,19 +105,20 @@ namespace PixelGraph.Tests.ImageTests
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
             
             using var emissiveImage = CreateImageR(value);
-            Content.Add("assets/test/emissive.png", emissiveImage);
+            await content.AddAsync("assets/test/emissive.png", emissiveImage);
 
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
-                Material = {
+                Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Emissive = {
-                        Input = {
+                    Emissive = new MaterialEmissiveProperties {
+                        Input = new TextureEncoding {
                             Red = EncodingChannel.Emissive,
                         },
                     },
@@ -124,7 +126,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context);
-            var image = Content.Get<Image<Rgba32>>("assets/test_e.png");
+            var image = await content.OpenImageAsync("assets/test_e.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

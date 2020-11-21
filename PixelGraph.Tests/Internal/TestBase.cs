@@ -11,20 +11,21 @@ namespace PixelGraph.Tests.Internal
     public abstract class TestBase
     {
         protected IServiceBuilder Builder {get;}
-        protected MockFileContent Content {get;}
+        //protected MockFileContent Content {get;}
 
 
         protected TestBase(ITestOutputHelper output)
         {
-            Content = new MockFileContent();
+            //Content = new MockFileContent();
             Builder = new ServiceBuilder();
 
             Builder.Services.AddSingleton(output);
-            Builder.Services.AddSingleton(Content);
+            //Builder.Services.AddSingleton(Content);
             Builder.Services.AddSingleton(typeof(ILogger<>), typeof(TestLogger<>));
             Builder.Services.AddSingleton<ILogger, TestLogger>();
             Builder.Services.AddSingleton<IInputReader, MockInputReader>();
             Builder.Services.AddSingleton<IOutputWriter, MockOutputWriter>();
+            Builder.Services.AddSingleton<MockFileContent>();
         }
 
         protected Image CreateImageR(byte value)

@@ -51,16 +51,13 @@ namespace PixelGraph.Common.Textures
         public void BuildFromInput()
         {
             foreach (var tag in TextureTags.All) {
-                var packEncoding = Context.Input.GetRawEncoding(tag);
+                var packEncoding = Context.Input.GetFormatEncoding(tag);
                 var materialEncoding = Context.Material.GetInputEncoding(tag);
 
-                var defaultEncoding = new Lazy<TextureEncoding>(() =>
-                    TextureEncoding.GetDefault(Context.Input.Format, tag));
-
-                MapSource(tag, ColorChannel.Red, materialEncoding?.Red ?? packEncoding.Red ?? defaultEncoding.Value.Red);
-                MapSource(tag, ColorChannel.Green, materialEncoding?.Green ?? packEncoding.Green ?? defaultEncoding.Value.Green);
-                MapSource(tag, ColorChannel.Blue, materialEncoding?.Blue ?? packEncoding.Blue ?? defaultEncoding.Value.Blue);
-                MapSource(tag, ColorChannel.Alpha, materialEncoding?.Alpha ?? packEncoding.Alpha ?? defaultEncoding.Value.Alpha);
+                MapSource(tag, ColorChannel.Red, materialEncoding?.Red ?? packEncoding?.Red);
+                MapSource(tag, ColorChannel.Green, materialEncoding?.Green ?? packEncoding?.Green);
+                MapSource(tag, ColorChannel.Blue, materialEncoding?.Blue ?? packEncoding?.Blue);
+                MapSource(tag, ColorChannel.Alpha, materialEncoding?.Alpha ?? packEncoding?.Alpha);
             }
 
             if (ContainsSource(EncodingChannel.Height))

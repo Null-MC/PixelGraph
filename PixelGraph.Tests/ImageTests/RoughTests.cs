@@ -4,9 +4,8 @@ using PixelGraph.Common.Encoding;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
+using PixelGraph.Common.Material;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,12 +20,12 @@ namespace PixelGraph.Tests.ImageTests
         public RoughTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Format = TextureEncoding.Format_Raw,
+                //Format = TextureEncoding.Format_Raw,
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Output = {
-                    Rough = {
+                    Rough = new TextureOutputEncoding {
                         Red = EncodingChannel.Rough,
                         Include = true,
                     },
@@ -44,15 +43,16 @@ namespace PixelGraph.Tests.ImageTests
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
-                Material = {
+                Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Rough = {
+                    Rough = new MaterialRoughProperties {
                         Value = value,
                         Scale = scale,
                     },
@@ -60,7 +60,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context);
-            var image = Content.Get<Image<Rgba32>>("assets/test_rough.png");
+            var image = await content.OpenImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -72,19 +72,20 @@ namespace PixelGraph.Tests.ImageTests
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
             using var roughImage = CreateImageR(value);
-            Content.Add("assets/test/rough.png", roughImage);
+            await content.AddAsync("assets/test/rough.png", roughImage);
 
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
-                Material = {
+                Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Rough = {
-                        Input = {
+                    Rough = new MaterialRoughProperties {
+                        Input = new TextureEncoding {
                             Red = EncodingChannel.Rough,
                         },
                     },
@@ -92,7 +93,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context);
-            var image = Content.Get<Image<Rgba32>>("assets/test_rough.png");
+            var image = await content.OpenImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(value, image);
         }
 
@@ -104,19 +105,20 @@ namespace PixelGraph.Tests.ImageTests
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
             using var smoothImage = CreateImageR(value);
-            Content.Add("assets/test/smooth.png", smoothImage);
+            await content.AddAsync("assets/test/smooth.png", smoothImage);
 
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
-                Material = {
+                Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Smooth = {
-                        Input = {
+                    Smooth = new MaterialSmoothProperties {
+                        Input = new TextureEncoding {
                             Red = EncodingChannel.Smooth,
                         },
                     },
@@ -124,7 +126,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context);
-            var image = Content.Get<Image<Rgba32>>("assets/test_rough.png");
+            var image = await content.OpenImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

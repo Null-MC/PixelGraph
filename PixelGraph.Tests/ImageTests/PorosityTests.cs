@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
 using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,12 +20,12 @@ namespace PixelGraph.Tests.ImageTests
         public PorosityTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Format = TextureEncoding.Format_Raw,
+                //Format = TextureEncoding.Format_Raw,
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Output = {
-                    Porosity = {
+                    Porosity = new TextureOutputEncoding {
                         Red = EncodingChannel.Porosity,
                         Include = true,
                     },
@@ -42,19 +41,20 @@ namespace PixelGraph.Tests.ImageTests
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
             using var heightImage = CreateImageR(value);
-            Content.Add("assets/test/porosity.png", heightImage);
+            await content.AddAsync("assets/test/porosity.png", heightImage);
 
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
-                Material = {
+                Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Porosity = {
-                        Input = {
+                    Porosity = new MaterialPorosityProperties {
+                        Input = new TextureEncoding {
                             Red = EncodingChannel.Porosity,
                         },
                     },
@@ -62,7 +62,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context);
-            var image = Content.Get<Image<Rgba32>>("assets/test_p.png");
+            var image = await content.OpenImageAsync("assets/test_p.png");
             PixelAssert.RedEquals(value, image);
         }
 
@@ -76,15 +76,16 @@ namespace PixelGraph.Tests.ImageTests
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
-                Material = {
+                Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Porosity = {
+                    Porosity = new MaterialPorosityProperties {
                         Value = value,
                         Scale = scale,
                     },
@@ -92,7 +93,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context);
-            var image = Content.Get<Image<Rgba32>>("assets/test_p.png");
+            var image = await content.OpenImageAsync("assets/test_p.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

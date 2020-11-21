@@ -1,13 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
 using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
-using PixelGraph.Common.Material;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,7 +25,7 @@ namespace PixelGraph.Tests.ImageTests
 
             packProfile = new ResourcePackProfileProperties {
                 Output = {
-                    Albedo = {
+                    Albedo = new TextureOutputEncoding {
                         Red = EncodingChannel.Red,
                         Green = EncodingChannel.Green,
                         Blue = EncodingChannel.Blue,
@@ -48,6 +46,7 @@ namespace PixelGraph.Tests.ImageTests
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
             var context = new MaterialContext {
@@ -56,7 +55,7 @@ namespace PixelGraph.Tests.ImageTests
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Albedo = {
+                    Albedo = new MaterialAlbedoProperties {
                         ValueRed = value,
                         ScaleRed = scale,
                     },
@@ -64,7 +63,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context);
-            var image = Content.Get<Image<Rgba32>>("assets/test.png");
+            var image = await content.OpenImageAsync("assets/test.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -73,10 +72,11 @@ namespace PixelGraph.Tests.ImageTests
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
             using var image = CreateImage(60, 120, 180);
-            Content.Add("assets/test/albedo.png", image);
+            await content.AddAsync("assets/test/albedo.png", image);
 
             var context = new MaterialContext {
                 Input = packInput,
@@ -84,8 +84,8 @@ namespace PixelGraph.Tests.ImageTests
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Albedo = {
-                        Input = {
+                    Albedo = new MaterialAlbedoProperties {
+                        Input = new TextureEncoding {
                             Red = EncodingChannel.Blue,
                             Green = EncodingChannel.Red,
                             Blue = EncodingChannel.Green,
@@ -95,7 +95,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context);
-            var outputImage = Content.Get<Image<Rgba32>>("assets/test.png");
+            var outputImage = await content.OpenImageAsync("assets/test.png");
             PixelAssert.RedEquals(120, outputImage);
             PixelAssert.GreenEquals(180, outputImage);
             PixelAssert.BlueEquals(60, outputImage);

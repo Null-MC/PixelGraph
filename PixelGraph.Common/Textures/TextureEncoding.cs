@@ -85,6 +85,7 @@ namespace PixelGraph.Common.Textures
 
         private static TextureFormatBase GetFormat(string format)
         {
+            if (format == null) return null;
             return formatMap.TryGetValue(format, out var textureFormat) ? textureFormat : null;
         }
 
