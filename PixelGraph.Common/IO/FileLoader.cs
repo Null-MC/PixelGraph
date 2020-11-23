@@ -60,6 +60,8 @@ namespace PixelGraph.Common.IO
             foreach (var directory in reader.EnumerateDirectories(searchPath, "*")) {
                 token.ThrowIfCancellationRequested();
 
+                if (directory.EndsWith(".ignore", StringComparison.InvariantCultureIgnoreCase)) continue;
+
                 var localMapFile = PathEx.Join(directory, "pbr.yml");
 
                 if (reader.FileExists(localMapFile)) {
@@ -127,6 +129,6 @@ namespace PixelGraph.Common.IO
             }
         }
 
-        private static readonly string[] IgnoredExtensions = {".pack.properties", ".pbr.yml", ".zip", ".db", ".cmd", ".sh", ".xcf", ".psd", ".bak"};
+        private static readonly string[] IgnoredExtensions = {".pack.yml", ".pbr.yml", ".zip", ".db", ".cmd", ".sh", ".xcf", ".psd", ".bak"};
     }
 }

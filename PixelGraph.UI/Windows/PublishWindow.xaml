@@ -1,12 +1,13 @@
-﻿<Window x:Class="PixelGraph.UI.Windows.PublishWindow"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+﻿<mde:MaterialWindow x:Class="PixelGraph.UI.Windows.PublishWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
-        mc:Ignorable="d"
-        Title="Publish Resource Pack" Height="240" Width="480"
+        xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime"
+        d:DataContext="{d:DesignInstance vm:PublishWindowDesignVM, IsDesignTimeCreatable=True}"
+        Title="Publish Resource Pack" Width="640" Height="360" mc:Ignorable="d"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
@@ -14,10 +15,65 @@
         TextOptions.TextRenderingMode="Auto"        
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
+    </Window.Resources>
     <Window.DataContext>
         <vm:PublishWindowVM x:Name="VM" />
     </Window.DataContext>
-    <Grid>
-        
-    </Grid>
-</Window>
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
+            <Grid Margin="4,4,4,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="Cancel" Margin="4,4,4,4" HorizontalAlignment="Left" Click="OnCancelButtonClick"/>
+                <Button Grid.Column="1" Content="Publish" Margin="4,4,4,4" HorizontalAlignment="Right" Click="OnPublishButtonClick"
+                        IsEnabled="{Binding IsNotBusy, Mode=OneWay}"/>
+            </Grid>
+        </Border>
+        <Grid IsEnabled="{Binding IsNotBusy, Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <ListBox DisplayMemberPath="Name" SelectedValuePath="LocalFile" VerticalContentAlignment="Top" SelectedIndex="0"
+                     Background="{DynamicResource MaterialDesignToolBarBackground}"
+                     ItemsSource="{Binding Profiles, Mode=OneWay}"
+                     SelectedItem="{Binding SelectedItem, Mode=TwoWay}"/>
+            <Grid Grid.Column="1" Margin="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="260"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.ColumnSpan="2" Orientation="Vertical" Margin="2,2,2,2">
+                    <TextBlock Text="Options" Margin="6,2" FontSize="20" HorizontalAlignment="Left" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                    <Rectangle Height="1" Margin="0,0,0,12" Fill="{DynamicResource MaterialDesignDarkSeparatorBackground}"/>
+                    <CheckBox Content="Archive" Margin="2" Foreground="{DynamicResource SecondaryHueMidBrush}" FontSize="14" FontWeight="Bold"
+                              IsChecked="{Binding Archive, Mode=TwoWay}"/>
+                    <TextBlock Text="Publishes the resource pack as a single compressed ZIP archive." TextWrapping="Wrap" Margin="24,0,6,0"/>
+                    <Rectangle Height="1" Margin="0,12" Fill="{DynamicResource MaterialDesignDarkSeparatorBackground}"/>
+                    <CheckBox Content="Clean" Margin="2" ToolTip="" Foreground="{DynamicResource SecondaryHueMidBrush}" FontSize="14" FontWeight="Bold"
+                              IsChecked="{Binding Clean, Mode=TwoWay}"/>
+                    <TextBlock Text="Removes all content from destination before publishing." Margin="24,0,6,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Grid>
+            <ItemsControl Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Padding="6,4"
+                       ItemsSource="{Binding OutputLog, Mode=OneWay}" Background="{DynamicResource MaterialDesignPaper}"
+                       Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Vertical"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type system:String}">
+                        <TextBlock Text="{Binding Mode=OneTime}"
+                                   FontFamily="Consolas" TextWrapping="Wrap"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </DockPanel>
+</mde:MaterialWindow>

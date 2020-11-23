@@ -1,21 +1,10 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Markup;
-
-namespace PixelGraph.UI.Windows
+﻿namespace PixelGraph.UI.Windows
 {
-    public partial class SettingsWindow : Window
+    public partial class SettingsWindow
     {
-        public SettingsWindow(IServiceProvider provider)
+        public SettingsWindow()
         {
             InitializeComponent();
         }
-    }
-
-    [ContentProperty(nameof(Content))]
-    public class TestRow
-    {
-        public string Header {get; set;}
-        public object Content {get; set;}
     }
 }

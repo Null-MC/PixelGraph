@@ -9,8 +9,10 @@ using PixelGraph.Common.Textures;
 using PixelGraph.UI.ViewModels;
 using SixLabors.ImageSharp;
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -275,12 +277,12 @@ namespace PixelGraph.UI.Windows
 
         #region Events
 
-        private void OnOpenFolderClick(object sender, RoutedEventArgs e)
+        private void OnOpenMenuItemClick(object sender, RoutedEventArgs e)
         {
             SelectRootDirectory(CancellationToken.None);
         }
 
-        private void OnEditPackInputClick(object sender, RoutedEventArgs e)
+        private void OnContentEncodingMenuItemClick(object sender, RoutedEventArgs e)
         {
             var window = new PackInputWindow(provider) {
                 Owner = this,
@@ -292,7 +294,7 @@ namespace PixelGraph.UI.Windows
             window.ShowDialog();
         }
 
-        private void OnEditPackProfilesClick(object sender, RoutedEventArgs e)
+        private void OnManageProfilesMenuItemClick(object sender, RoutedEventArgs e)
         {
             var window = new PackProfilesWindow(provider) {
                 Owner = this,
@@ -305,24 +307,31 @@ namespace PixelGraph.UI.Windows
             window.ShowDialog();
         }
 
-        //private void OnSettingsClick(object sender, RoutedEventArgs e)
-        //{
-        //    var window = new SettingsWindow(provider) {
-        //        Owner = this,
-        //    };
-        //    //...
+        private void OnAppSettingsMenuItemClick(object sender, RoutedEventArgs e)
+        {
+            var window = new SettingsWindow {
+                Owner = this,
+            };
 
-        //    window.ShowDialog();
-        //}
+            window.ShowDialog();
+        }
 
-        private void OnPublishClick(object sender, RoutedEventArgs e)
+        private void OnPublishMenuItemClick(object sender, RoutedEventArgs e)
         {
             var window = new PublishWindow(provider) {
                 Owner = this,
+                VM = {
+                    RootDirectory = vm.RootDirectory,
+                    Profiles = vm.Profiles.ToList(),
+                },
             };
-            //...
 
             window.ShowDialog();
+        }
+
+        private void OnExitMenuItemClick(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
 
         private async void OnMaterialChanged(object sender, EventArgs e)

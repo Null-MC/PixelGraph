@@ -13,6 +13,9 @@ namespace PixelGraph.Common.Material
         public const string DefaultInputFormat = TextureEncoding.Format_Raw;
 
         [YamlIgnore]
+        public string Name {get; set;}
+
+        [YamlIgnore]
         public bool UseGlobalMatching {get; set;}
 
         [YamlIgnore]
@@ -30,10 +33,7 @@ namespace PixelGraph.Common.Material
         [YamlIgnore]
         public bool IsMultiPart => Parts?.Any() ?? false;
 
-        public List<MaterialPart> Parts {get; set;}
-
-        public string Name {get; set;}
-
+        [YamlMember(Order = 0)]
         public string InputFormat {get; set;}
 
         public bool? Wrap {get; set;}
@@ -66,6 +66,9 @@ namespace PixelGraph.Common.Material
         public MaterialSssProperties SSS {get; set;}
 
         public MaterialEmissiveProperties Emissive {get; set;}
+
+        [YamlMember(Order = 99)]
+        public List<MaterialPart> Parts {get; set;}
 
 
         //public MaterialProperties()

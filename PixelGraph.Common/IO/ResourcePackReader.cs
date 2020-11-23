@@ -29,14 +29,16 @@ namespace PixelGraph.Common.IO
 
         public async Task<ResourcePackInputProperties> ReadInputAsync(string localFile)
         {
-            await using var stream = reader.Open(localFile);
-            using var streamReader = new StreamReader(stream);
-            var pack = deserializer.Deserialize<ResourcePackInputProperties>(streamReader)
-                       ?? new ResourcePackInputProperties();
+            ResourcePackInputProperties packInput = null;
+            if (reader.FileExists(localFile)) {
+                await using var stream = reader.Open(localFile);
+                using var streamReader = new StreamReader(stream);
+                packInput = deserializer.Deserialize<ResourcePackInputProperties>(streamReader);
+            }
 
             //pack.Filename = Path.GetDirectoryName(localFile);
             //pack.WriteTime = File.GetLastWriteTime(localFile);
-            return pack;
+            return packInput ?? new ResourcePackInputProperties();
         }
 
         public async Task<ResourcePackProfileProperties> ReadProfileAsync(string localFile)

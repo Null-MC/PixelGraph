@@ -21,6 +21,8 @@ namespace PixelGraph.UI
             builder.Services.AddTransient<MainWindowVM>();
             builder.Services.AddTransient<SettingsWindowVM>();
             builder.Services.AddTransient<PublishWindowVM>();
+
+            builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
         }
 
         private void App_OnStartup(object sender, StartupEventArgs e)

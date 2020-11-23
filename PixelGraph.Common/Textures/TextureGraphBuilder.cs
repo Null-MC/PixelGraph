@@ -81,7 +81,7 @@ namespace PixelGraph.Common.Textures
                             await imageWriter.WriteAsync(image, destFile, imageFormat, token);
                         }
                         else {
-                            using var regionImage = GetImageRegion(image, region.Bounds);
+                            using var regionImage = GetImageRegion(image, region.GetRectangle());
 
                             // TODO: move resize before regions; then scale regions to match
                             Resize(graph.Context, regionImage, tag);

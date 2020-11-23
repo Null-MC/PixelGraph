@@ -1,76 +1,48 @@
-﻿<Window x:Class="PixelGraph.UI.Windows.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
-        xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
-        xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
-        d:DataContext="{d:DesignInstance vm:MainWindowDesignVM, IsDesignTimeCreatable=True}"
-        Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
-        TextElement.FontSize="13"
-        TextOptions.TextFormattingMode="Ideal" 
-        TextOptions.TextRenderingMode="Auto"        
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{DynamicResource MaterialDesignFont}" WindowState="Maximized">
+﻿<mde:MaterialWindow x:Class="PixelGraph.UI.Windows.MainWindow"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+                    xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+                    xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
+                    xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
+                    xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
+                    d:DataContext="{d:DesignInstance vm:MainWindowDesignVM, IsDesignTimeCreatable=True}"
+                    Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d"
+                    TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+                    TextElement.FontWeight="Regular"
+                    TextElement.FontSize="13"
+                    TextOptions.TextFormattingMode="Ideal" 
+                    TextOptions.TextRenderingMode="Auto"        
+                    Background="{DynamicResource MaterialDesignPaper}"
+                    FontFamily="{DynamicResource MaterialDesignFont}" WindowState="Maximized">
     <Window.Resources>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
     </Window.Resources>
     <DockPanel>
-        <StackPanel DockPanel.Dock="Top">
-            <StackPanel.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <GradientStop Color="#222"/>
-                    <GradientStop Color="Black" Offset="1"/>
-                </LinearGradientBrush>
-            </StackPanel.Background>
-            <DockPanel Margin="0,2,0,2">
-                <Button DockPanel.Dock="Left" Margin="4" ToolTip="Select Root Directory" Click="OnOpenFolderClick" Padding="6,0,6,0" Height="24"
-                        Style="{DynamicResource MaterialDesignFlatAccentButton}">
-                    <StackPanel Orientation="Horizontal">
-                        <md:PackIcon Kind="FolderOpen" />
-                        <TextBlock Text="Open" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button DockPanel.Dock="Left" Margin="4" ToolTip="Input Encoding" Click="OnEditPackInputClick"  Padding="6,0,6,0" Height="24"
-                        Style="{DynamicResource MaterialDesignFlatAccentButton}"
-                        IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
-                    <StackPanel Orientation="Horizontal">
-                        <md:PackIcon Kind="Import" />
-                        <TextBlock Text="Input Encoding" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button DockPanel.Dock="Left" Margin="4" ToolTip="Pack Profiles" Click="OnEditPackProfilesClick"  Padding="6,0,6,0" Height="24"
-                        Style="{DynamicResource MaterialDesignFlatAccentButton}"
-                        IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
-                    <StackPanel Orientation="Horizontal">
-                        <md:PackIcon Kind="Import" />
-                        <TextBlock Text="Pack Profiles" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button DockPanel.Dock="Right" Margin="4" ToolTip="Publish" Click="OnPublishClick" Padding="6,0,6,0" Height="24"
-                        Style="{DynamicResource MaterialDesignFlatAccentButton}"
-                        IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
-                    <StackPanel Orientation="Horizontal">
-                        <md:PackIcon Kind="FileExport" />
-                        <TextBlock Text="Publish" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <!--<Button DockPanel.Dock="Right" Margin="4" ToolTip="Manage Application Settings" Click="OnSettingsClick" Padding="6,0,6,0" Height="24"
-                        Style="{DynamicResource MaterialDesignFlatAccentButton}">
-                    <StackPanel Orientation="Horizontal">
-                        <md:PackIcon Kind="Settings" />
-                        <TextBlock Text="Settings" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>-->
-                <TextBlock VerticalAlignment="Center" FontSize="16" Margin="4,0" Foreground="{DynamicResource PrimaryHueDarkBrush}"
-                    Text="{Binding RootDirectory, Mode=OneWay}"/>
-            </DockPanel>
-        </StackPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_App">
+                <MenuItem Header="Settings" Icon="{md:PackIcon Settings}" Click="OnAppSettingsMenuItemClick" IsEnabled="False"/>
+                <Separator/>
+                <MenuItem Header="Exit" Icon="{md:PackIcon ExitRun}" Click="OnExitMenuItemClick"/>
+            </MenuItem>
+            <MenuItem Header="Content">
+                <MenuItem Header="_Set Directory" Icon="{md:PackIcon FolderOpen}" Click="OnOpenMenuItemClick"/>
+                <Separator/>
+                <MenuItem Header="Encoding" Icon="{md:PackIcon Palette}" Click="OnContentEncodingMenuItemClick"
+                          IsEnabled="{Binding HasRootDirectory, Mode=OneWay}"/>
+                <MenuItem Header="Profiles" Icon="{md:PackIcon BookMultiple}" Click="OnManageProfilesMenuItemClick"
+                          IsEnabled="{Binding HasRootDirectory, Mode=OneWay}"/>
+                <Separator/>
+                <MenuItem Header="_Publish" Click="OnPublishMenuItemClick" Icon="{md:PackIcon Export}"
+                          IsEnabled="{Binding HasRootDirectory, Mode=OneWay}"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="Documentation" Icon="{md:PackIcon Information}"/>
+            </MenuItem>
+        </Menu>
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBar.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -94,7 +66,7 @@
             </Grid>
             <Grid Visibility="{Binding HasRootDirectory, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="320"/>
+                    <ColumnDefinition Width="280"/>
                     <ColumnDefinition Width="3"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
@@ -130,7 +102,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="3"/>
-                        <ColumnDefinition Width="320"/>
+                        <ColumnDefinition Width="280"/>
                     </Grid.ColumnDefinitions>
                     <DockPanel Grid.Column="0">
                         <DockPanel DockPanel.Dock="Top" Margin="4,2" LastChildFill="False">
@@ -182,4 +154,4 @@
             </Grid>
         </Grid>
     </DockPanel>
-</Window>
+</mde:MaterialWindow>

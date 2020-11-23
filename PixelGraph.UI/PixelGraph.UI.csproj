@@ -13,7 +13,6 @@
     <Compile Remove="ViewModels\InputVMX.cs" />
     <Compile Remove="ViewModels\PackEncodingVM.cs" />
     <Compile Remove="Windows\InputWindowX.xaml.cs" />
-    <Compile Remove="Windows\SettingsWindow.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,7 +21,6 @@
 
   <ItemGroup>
     <Page Remove="Windows\InputWindowX.xaml" />
-    <Page Remove="Windows\SettingsWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>
