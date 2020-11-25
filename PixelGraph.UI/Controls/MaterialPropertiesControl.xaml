@@ -22,7 +22,7 @@
                 <TextBlock Text="Material Properties" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" Margin="6,2,6,0" FontSize="16" FontWeight="Bold"/>
                 <ComboBox DisplayMemberPath="Name" SelectedValuePath="Key" Padding="4" Margin="4,2,4,4"
                           ItemsSource="{StaticResource TextureList}" Foreground="{DynamicResource SecondaryHueMidBrush}"
-                          SelectedValue="{Binding SelectedTag, Mode=TwoWay}"/>
+                          SelectedValue="{Binding SelectedTag, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
             </StackPanel>
         </Border>
         <ScrollViewer VerticalScrollBarVisibility="Auto">

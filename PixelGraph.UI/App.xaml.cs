@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using PixelGraph.UI.Windows;
 using System.Windows;
@@ -22,6 +23,7 @@ namespace PixelGraph.UI
             builder.Services.AddTransient<SettingsWindowVM>();
             builder.Services.AddTransient<PublishWindowVM>();
 
+            builder.Services.AddSingleton<IRecentPathManager, RecentPathManager>();
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
         }
 

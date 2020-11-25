@@ -52,6 +52,12 @@ namespace PixelGraph.Common
             Services.AddSingleton<IOutputWriter, ArchiveOutputWriter>();
         }
 
+        //public void AddLogging<T, TT>() where T : class, ILogger
+        //{
+        //    Services.AddSingleton(typeof(ILogger<>), typeof(TT));
+        //    Services.AddSingleton<ILogger, T>();
+        //}
+
         public ServiceProvider Build() => Services.BuildServiceProvider();
     }
 }

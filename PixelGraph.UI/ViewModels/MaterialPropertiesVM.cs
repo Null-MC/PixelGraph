@@ -1,7 +1,7 @@
 ﻿using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
-using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.UI.ViewModels
 {

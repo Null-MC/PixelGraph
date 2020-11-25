@@ -1,6 +1,7 @@
 ﻿using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Textures;
 using System.Collections.Generic;
+using System.Windows.Media;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -8,6 +9,12 @@ namespace PixelGraph.UI.ViewModels
     {
         public string Name {get; set;}
         public string LocalFile {get; set;}
+    }
+
+    internal class LogMessageItem
+    {
+        public string Message {get; set;}
+        public Brush Color {get; set;}
     }
 
     internal class EncodingFormatValues : List<EncodingFormatValues.Item>

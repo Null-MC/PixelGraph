@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
         xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
-        xmlns:system="clr-namespace:System;assembly=System.Runtime"
+        xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
         d:DataContext="{d:DesignInstance vm:PublishWindowDesignVM, IsDesignTimeCreatable=True}"
         Title="Publish Resource Pack" Width="640" Height="360" mc:Ignorable="d"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -14,9 +14,10 @@
         TextOptions.TextFormattingMode="Ideal" 
         TextOptions.TextRenderingMode="Auto"        
         Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{DynamicResource MaterialDesignFont}" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow">
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
+        <converters:InverseBooleanConverter x:Key="invBoolConverter"/>
     </Window.Resources>
     <Window.DataContext>
         <vm:PublishWindowVM x:Name="VM" />
@@ -28,12 +29,20 @@
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Content="Cancel" Margin="4,4,4,4" HorizontalAlignment="Left" Click="OnCancelButtonClick"/>
-                <Button Grid.Column="1" Content="Publish" Margin="4,4,4,4" HorizontalAlignment="Right" Click="OnPublishButtonClick"
-                        IsEnabled="{Binding IsNotBusy, Mode=OneWay}"/>
+                <Button Grid.Column="0" Content="Close" Margin="4" HorizontalAlignment="Left" Click="OnCloseButtonClick"
+                        Visibility="{Binding ShowOutput, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}"/>
+                <Button Grid.Column="0" Content="Cancel" Margin="4" HorizontalAlignment="Left" Click="OnCancelButtonClick"
+                        IsEnabled="{Binding IsActive, Mode=OneWay}"
+                        Visibility="{Binding ShowOutput, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <Button Grid.Column="1" Content="Publish" Margin="4" HorizontalAlignment="Right" Click="OnPublishButtonClick"
+                        IsEnabled="{Binding SelectedItem, Mode=OneWay, Converter={StaticResource notNullBooleanConverter}}"
+                        Visibility="{Binding ShowOutput, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}"/>
+                <Button Grid.Column="1" Content="Ok" Margin="4" HorizontalAlignment="Right" Click="OnOkButtonClick"
+                        IsEnabled="{Binding IsActive, Mode=OneWay, Converter={StaticResource invBoolConverter}}"
+                        Visibility="{Binding ShowOutput, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </Grid>
         </Border>
-        <Grid IsEnabled="{Binding IsNotBusy, Mode=OneWay}">
+        <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220"/>
                 <ColumnDefinition Width="*"/>
@@ -59,21 +68,32 @@
                     <TextBlock Text="Removes all content from destination before publishing." Margin="24,0,6,0" TextWrapping="Wrap"/>
                 </StackPanel>
             </Grid>
-            <ItemsControl Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Padding="6,4"
-                       ItemsSource="{Binding OutputLog, Mode=OneWay}" Background="{DynamicResource MaterialDesignPaper}"
-                       Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Vertical"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type system:String}">
-                        <TextBlock Text="{Binding Mode=OneTime}"
-                                   FontFamily="Consolas" TextWrapping="Wrap"/>
+            <ListBox x:Name="LogListBox" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Padding="6,4,6,4"
+                     VirtualizingStackPanel.IsVirtualizing="True"
+                     VirtualizingStackPanel.VirtualizationMode="Recycling"
+                     ItemsSource="{Binding OutputLog, Mode=OneWay}" Background="#FF0A0A0A"
+                     Visibility="{Binding ShowOutput, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="Focusable" Value="False"/>
+                        <Setter Property="IsHitTestVisible" Value="False"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                    <ContentPresenter/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:LogMessageItem}">
+                        <TextBox FontFamily="Consolas" TextWrapping="Wrap" IsReadOnly="True" BorderThickness="0" BorderBrush="{x:Null}" Padding="0,-2" TextAlignment="Left"
+                                   Foreground="{Binding Color, Mode=OneTime}"
+                                   Text="{Binding Message, Mode=OneTime}"/>
                     </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Grid>
     </DockPanel>
 </mde:MaterialWindow>

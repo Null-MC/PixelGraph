@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
+using System.Windows.Media;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -12,11 +13,25 @@ namespace PixelGraph.UI.ViewModels
         private ProfileItem _selectedItem;
         private string _rootDirectory;
         private bool _archive, _clean;
-        private volatile bool _isBusy;
+        private volatile bool _showOutput, _isActive;
 
-        public bool IsBusy => _isBusy;
-        public bool IsNotBusy => !_isBusy;
-        public ObservableCollection<string> OutputLog {get;}
+        public ObservableCollection<LogMessageItem> OutputLog {get;}
+
+        public bool ShowOutput {
+            get => _showOutput;
+            set {
+                _showOutput = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsActive {
+            get => _isActive;
+            set {
+                _isActive = value;
+                OnPropertyChanged();
+            }
+        }
 
         public string RootDirectory {
             get => _rootDirectory;
@@ -61,27 +76,28 @@ namespace PixelGraph.UI.ViewModels
 
         public PublishWindowVM()
         {
-            OutputLog = new ObservableCollection<string>();
+            OutputLog = new ObservableCollection<LogMessageItem>();
         }
 
-        public bool PublishBegin()
+        public bool PublishBegin(out CancellationToken token)
         {
-            if (_isBusy) return false;
+            if (_isActive) {
+                token = default;
+                return false;
+            }
+
             tokenSource?.Dispose();
 
             OutputLog.Clear();
             tokenSource = new CancellationTokenSource();
-            _isBusy = true;
-            OnPropertyChanged(nameof(IsBusy));
-            OnPropertyChanged(nameof(IsNotBusy));
+            ShowOutput = IsActive = true;
+            token = tokenSource.Token;
             return true;
         }
 
         public void PublishEnd()
         {
-            _isBusy = false;
-            OnPropertyChanged(nameof(IsBusy));
-            OnPropertyChanged(nameof(IsNotBusy));
+            IsActive = false;
             tokenSource?.Dispose();
             tokenSource = null;
         }
@@ -110,10 +126,16 @@ namespace PixelGraph.UI.ViewModels
                 },
             };
 
-            PublishBegin();
+            PublishBegin(out _);
 
-            OutputLog.Add("Hello World!");
-            OutputLog.Add("This is the second line...");
+            OutputLog.Add(new LogMessageItem {
+                Message = "Hello World!",
+                Color = new SolidColorBrush(Colors.Red),
+            });
+            OutputLog.Add(new LogMessageItem {
+                Message = "This is the second line...",
+                Color = new SolidColorBrush(Colors.Blue),
+            });
         }
     }
 }

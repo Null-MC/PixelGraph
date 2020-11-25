@@ -76,7 +76,7 @@ namespace PixelGraph.Common.Publishing
 
             await foreach (var fileObj in loader.LoadAsync(token)) {
                 token.ThrowIfCancellationRequested();
-                DateTime? sourceTime, destinationTime;
+                DateTime? sourceTime, destinationTime = null;
 
                 switch (fileObj) {
                     case MaterialProperties material:
@@ -89,11 +89,22 @@ namespace PixelGraph.Common.Publishing
                                 sourceTime = z.Value;
                         }
 
-                        var albedoOutputName = naming.GetOutputTextureName(context.Profile, material.Name, TextureTags.Albedo, true);
-                        var albedoFile = PathEx.Join(material.LocalPath, albedoOutputName);
-                        destinationTime = writer.GetWriteTime(albedoFile);
+                        if (material.IsMultiPart) {
+                            foreach (var part in material.Parts) {
+                                var albedoOutputName = naming.GetOutputTextureName(context.Profile, part.Name, TextureTags.Albedo, true);
+                                var albedoFile = PathEx.Join(material.LocalPath, albedoOutputName);
+                                var writeTime = writer.GetWriteTime(albedoFile);
+                                if (!writeTime.HasValue) continue;
 
-                        // TODO: get latest date of all parts if multipart
+                                if (!destinationTime.HasValue || writeTime.Value > destinationTime.Value)
+                                    destinationTime = writeTime;
+                            }
+                        }
+                        else {
+                            var albedoOutputName = naming.GetOutputTextureName(context.Profile, material.Name, TextureTags.Albedo, true);
+                            var albedoFile = PathEx.Join(material.LocalPath, albedoOutputName);
+                            destinationTime = writer.GetWriteTime(albedoFile);
+                        }
 
                         if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
                             logger.LogDebug("Skipping up-to-date texture {DisplayName}.", material.DisplayName);

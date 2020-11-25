@@ -6,16 +6,18 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using SixLabors.ImageSharp;
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
 namespace PixelGraph.UI.Windows
@@ -37,10 +39,13 @@ namespace PixelGraph.UI.Windows
                 DataContext = vm;
             }
 
+            var recent = provider.GetRequiredService<IRecentPathManager>();
+            vm.RecentDirectories = recent.List;
+
             InitializeComponent();
         }
 
-        private async void SelectRootDirectory(CancellationToken token)
+        private async Task SelectRootDirectoryAsync(CancellationToken token)
         {
             var dialog = new VistaFolderBrowserDialog {
                 Description = "Please select a folder.",
@@ -48,20 +53,30 @@ namespace PixelGraph.UI.Windows
             };
 
             if (dialog.ShowDialog(this) != true) return;
+            await LoadRootDirectoryAsync(dialog.SelectedPath, token);
+        }
+
+        private async Task LoadRootDirectoryAsync(string path, CancellationToken token)
+        {
             if (!vm.TryStartBusy()) return;
 
+            var recent = provider.GetRequiredService<IRecentPathManager>();
+            var reader = provider.GetRequiredService<IInputReader>();
+            var writer = provider.GetRequiredService<IOutputWriter>();
+
             try {
-                vm.RootDirectory = dialog.SelectedPath;
+                vm.RootDirectory = path;
+                vm.TreeRoot.Nodes.Clear();
                 vm.Profiles.Clear();
 
-                var reader = provider.GetRequiredService<IInputReader>();
                 reader.SetRoot(vm.RootDirectory);
-
-                var writer = provider.GetRequiredService<IOutputWriter>();
                 writer.SetRoot(vm.RootDirectory);
 
-                await Task.Factory.StartNew(() =>
-                    LoadDirectoryAsync(token), token);
+                await Task.Factory.StartNew(async () => {
+                    await recent.InsertAsync(path, token);
+
+                    await LoadDirectoryAsync(token);
+                }, token);
             }
             finally {
                 vm.EndBusy();
@@ -113,50 +128,58 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private void PopulateTextureViewer(TextureTreeTexture textureNode)
+        private void PopulateTextureViewer()
         {
-            vm.Textures.Clear();
+            vm.IsUpdatingSources = true;
 
-            var texture = textureNode?.Material;
-            if (texture == null) return;
+            try {
+                vm.Textures.Clear();
 
-            // TODO: wait for texture busy
+                var textureNode = vm.SelectedNode as TextureTreeTexture;
+                if (textureNode?.Material == null) return;
 
-            vm.LoadedMaterialFilename = textureNode.MaterialFilename;
-            vm.LoadedMaterial = texture;
+                // TODO: wait for texture busy
 
-            var reader = provider.GetRequiredService<IInputReader>();
+                vm.LoadedMaterialFilename = textureNode.MaterialFilename;
+                vm.LoadedMaterial = textureNode.Material;
 
-            foreach (var tag in TextureTags.All) {
-                foreach (var file in reader.EnumerateTextures(texture, tag)) {
-                    if (!reader.FileExists(file)) continue;
-                    var fullFile = reader.GetFullPath(file);
+                var reader = provider.GetRequiredService<IInputReader>();
 
-                    var thumbnailImage = new BitmapImage();
-                    thumbnailImage.BeginInit();
-                    thumbnailImage.CacheOption = BitmapCacheOption.OnLoad;
-                    thumbnailImage.DecodePixelHeight = ThumbnailSize;
-                    thumbnailImage.UriSource = new Uri(fullFile);
-                    thumbnailImage.EndInit();
-                    thumbnailImage.Freeze();
+                foreach (var tag in TextureTags.All) {
+                    foreach (var file in reader.EnumerateTextures(textureNode.Material, tag)) {
+                        if (!reader.FileExists(file)) continue;
+                        var fullFile = reader.GetFullPath(file);
 
-                    var fullImage = new BitmapImage();
-                    fullImage.BeginInit();
-                    fullImage.CacheOption = BitmapCacheOption.OnLoad;
-                    fullImage.UriSource = new Uri(fullFile);
-                    fullImage.EndInit();
-                    thumbnailImage.Freeze();
+                        var thumbnailImage = new BitmapImage();
+                        thumbnailImage.BeginInit();
+                        thumbnailImage.CacheOption = BitmapCacheOption.OnLoad;
+                        thumbnailImage.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                        thumbnailImage.DecodePixelHeight = ThumbnailSize;
+                        thumbnailImage.UriSource = new Uri(fullFile);
+                        thumbnailImage.EndInit();
+                        thumbnailImage.Freeze();
 
-                    vm.Textures.Add(new TextureSource {
-                        Name = Path.GetFileNameWithoutExtension(file),
-                        Thumbnail = thumbnailImage,
-                        Image = fullImage,
-                        Tag = tag,
-                    });
+                        var fullImage = new BitmapImage();
+                        fullImage.BeginInit();
+                        fullImage.CacheOption = BitmapCacheOption.OnLoad;
+                        fullImage.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                        fullImage.UriSource = new Uri(fullFile);
+                        fullImage.EndInit();
+                        fullImage.Freeze();
+
+                        vm.Textures.Add(new TextureSource {
+                            Name = Path.GetFileNameWithoutExtension(file),
+                            Thumbnail = thumbnailImage,
+                            Image = fullImage,
+                            Tag = tag,
+                        });
+                    }
                 }
             }
-
-            vm.SelectFirstTexture();
+            finally {
+                vm.IsUpdatingSources = false;
+                vm.SelectFirstTexture();
+            }
         }
 
         private async Task GenerateNormalAsync(CancellationToken token)
@@ -196,9 +219,7 @@ namespace PixelGraph.UI.Windows
                 }, token);
 
                 // TODO: update texture sources
-                Application.Current.Dispatcher.Invoke(() => {
-                    PopulateTextureViewer(vm.SelectedNode as TextureTreeTexture);
-                });
+                Application.Current.Dispatcher.Invoke(PopulateTextureViewer);
             }
             catch (Exception error) {
                 ShowError($"Failed to generate normal texture! {error.Message}");
@@ -245,9 +266,7 @@ namespace PixelGraph.UI.Windows
                 }, token);
 
                 // TODO: update texture sources
-                Application.Current.Dispatcher.Invoke(() => {
-                    PopulateTextureViewer(vm.SelectedNode as TextureTreeTexture);
-                });
+                Application.Current.Dispatcher.Invoke(PopulateTextureViewer);
             }
             catch (Exception error) {
                 ShowError($"Failed to generate occlusion texture! {error.Message}");
@@ -277,9 +296,21 @@ namespace PixelGraph.UI.Windows
 
         #region Events
 
-        private void OnOpenMenuItemClick(object sender, RoutedEventArgs e)
+        private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-            SelectRootDirectory(CancellationToken.None);
+            var recent = provider.GetRequiredService<IRecentPathManager>();
+            await recent.InitializeAsync();
+        }
+
+        private async void OnRecentSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!(RecentList.SelectedItem is string item)) return;
+            await LoadRootDirectoryAsync(item, CancellationToken.None);
+        }
+
+        private async void OnOpenButtonClick(object sender, RoutedEventArgs e)
+        {
+            await SelectRootDirectoryAsync(CancellationToken.None);
         }
 
         private void OnContentEncodingMenuItemClick(object sender, RoutedEventArgs e)
@@ -342,7 +373,7 @@ namespace PixelGraph.UI.Windows
         private void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             vm.SelectedNode = e.NewValue as TextureTreeNode;
-            PopulateTextureViewer(e.NewValue as TextureTreeTexture);
+            PopulateTextureViewer();
         }
 
         private async void OnGenerateNormal(object sender, EventArgs e)
@@ -367,6 +398,16 @@ namespace PixelGraph.UI.Windows
             catch (Exception error) {
                 ShowError($"Failed to generate occlusion texture! {error.Message}");
             }
+        }
+
+        private void OnDocumentationButtonClick(object sender, RoutedEventArgs e)
+        {
+            var info = new ProcessStartInfo {
+                FileName = @"https://github.com/null511/PixelGraph/wiki",
+                UseShellExecute = true,
+            };
+
+            Process.Start(info);
         }
 
         #endregion

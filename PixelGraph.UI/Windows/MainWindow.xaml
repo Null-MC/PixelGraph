@@ -9,7 +9,7 @@
                     xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
                     xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
                     d:DataContext="{d:DesignInstance vm:MainWindowDesignVM, IsDesignTimeCreatable=True}"
-                    Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d"
+                    Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" Loaded="OnWindowLoaded"
                     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
                     TextElement.FontWeight="Regular"
                     TextElement.FontSize="13"
@@ -23,15 +23,15 @@
     </Window.Resources>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_App">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open" Icon="{md:PackIcon FolderOpen}" Click="OnOpenButtonClick"/>
+                <Separator/>
                 <MenuItem Header="Settings" Icon="{md:PackIcon Settings}" Click="OnAppSettingsMenuItemClick" IsEnabled="False"/>
                 <Separator/>
-                <MenuItem Header="Exit" Icon="{md:PackIcon ExitRun}" Click="OnExitMenuItemClick"/>
+                <MenuItem Header="E_xit" Icon="{md:PackIcon ExitRun}" Click="OnExitMenuItemClick"/>
             </MenuItem>
-            <MenuItem Header="Content">
-                <MenuItem Header="_Set Directory" Icon="{md:PackIcon FolderOpen}" Click="OnOpenMenuItemClick"/>
-                <Separator/>
-                <MenuItem Header="Encoding" Icon="{md:PackIcon Palette}" Click="OnContentEncodingMenuItemClick"
+            <MenuItem Header="Pack">
+                <MenuItem Header="Input" Icon="{md:PackIcon Palette}" Click="OnContentEncodingMenuItemClick"
                           IsEnabled="{Binding HasRootDirectory, Mode=OneWay}"/>
                 <MenuItem Header="Profiles" Icon="{md:PackIcon BookMultiple}" Click="OnManageProfilesMenuItemClick"
                           IsEnabled="{Binding HasRootDirectory, Mode=OneWay}"/>
@@ -40,7 +40,7 @@
                           IsEnabled="{Binding HasRootDirectory, Mode=OneWay}"/>
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="Documentation" Icon="{md:PackIcon Information}"/>
+                <MenuItem Header="Documentation" Icon="{md:PackIcon Information}" Click="OnDocumentationButtonClick"/>
             </MenuItem>
         </Menu>
         <StatusBar DockPanel.Dock="Bottom">
@@ -59,10 +59,22 @@
         </StatusBar>
         <Grid>
             <Grid Visibility="{Binding HasRootDirectory, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <md:PackIcon Kind="FolderOpenOutline" Foreground="#FF767676" Margin="0,0,6,0"/>
-                    <TextBlock Text="Select the root directory of a resource pack to continue..." Foreground="#FF767676"/>
-                </StackPanel>
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="800">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Button Margin="2" Style="{DynamicResource MaterialDesignFloatingActionAccentButton}" Padding="0,0,0,0" Click="OnOpenButtonClick" Height="40" Width="40">
+                        <md:PackIcon Kind="FolderOpen" Height="24" Width="24"/>
+                    </Button>
+                    <TextBlock Grid.Column="1" Grid.Row="0" Margin="6,2,2,2" Text="Open a Resource Pack directory" Foreground="#FF767676" VerticalAlignment="Center" FontSize="16"/>
+                    <ListView Grid.Column="1" Grid.Row="1" x:Name="RecentList" SelectionChanged="OnRecentSelectionChanged"
+                             ItemsSource="{Binding RecentDirectories, Mode=OneWay}"/>
+                </Grid>
             </Grid>
             <Grid Visibility="{Binding HasRootDirectory, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                 <Grid.ColumnDefinitions>
@@ -122,8 +134,8 @@
                             </ComboBox>
                         </DockPanel>
                         <ListBox DockPanel.Dock="Bottom" Background="Black" VerticalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                 ItemsSource="{Binding Textures}"
-                                 SelectedItem="{Binding SelectedSource}">
+                                 ItemsSource="{Binding Textures, Mode=OneWay}"
+                                 SelectedItem="{Binding SelectedSource, Mode=TwoWay}">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Orientation="Horizontal"/>
@@ -149,7 +161,8 @@
                     </DockPanel>
                     <GridSplitter Grid.Column="1" Grid.Row="0" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
                     <controls:MaterialPropertiesControl Grid.Column="2" DataChanged="OnMaterialChanged" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
-                                                   Material="{Binding LoadedMaterial, Mode=OneWay}"/>
+                                                   Material="{Binding LoadedMaterial, Mode=OneWay}"
+                                                   SelectedTag="{Binding SelectedTag, Mode=TwoWay}"/>
                 </Grid>
             </Grid>
         </Grid>

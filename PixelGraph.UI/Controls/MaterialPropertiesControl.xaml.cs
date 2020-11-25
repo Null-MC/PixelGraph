@@ -21,6 +21,11 @@ namespace PixelGraph.UI.Controls
             set => SetValue(MaterialProperty, value);
         }
 
+        public string SelectedTag {
+            get => (string)GetValue(SelectedTagProperty);
+            set => SetValue(SelectedTagProperty, value);
+        }
+
         //public ResourcePackInputProperties PackInput {
         //    get => (ResourcePackInputProperties)GetValue(PackInputProperty);
         //    set => SetValue(PackInputProperty, value);
@@ -82,8 +87,18 @@ namespace PixelGraph.UI.Controls
             control.vm.Material = e.NewValue as MaterialProperties;
         }
 
+        private static void OnSelectedTagPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!(sender is MaterialPropertiesControl control)) return;
+
+            control.vm.SelectedTag = e.NewValue as string;
+        }
+
         public static readonly DependencyProperty MaterialProperty = DependencyProperty
             .Register("Material", typeof(MaterialProperties), typeof(MaterialPropertiesControl), new PropertyMetadata(OnMaterialPropertyChanged));
+
+        public static readonly DependencyProperty SelectedTagProperty = DependencyProperty
+            .Register("SelectedTag", typeof(string), typeof(MaterialPropertiesControl), new PropertyMetadata(OnSelectedTagPropertyChanged));
 
         public class TextureItem
         {

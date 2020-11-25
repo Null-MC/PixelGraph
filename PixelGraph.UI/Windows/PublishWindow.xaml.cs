@@ -1,13 +1,21 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.Common;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Publishing;
 using PixelGraph.Common.Textures;
+using PixelGraph.UI.Internal;
+using PixelGraph.UI.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
@@ -23,44 +31,12 @@ namespace PixelGraph.UI.Windows
             InitializeComponent();
         }
 
-        private async void OnPublishButtonClick(object sender, RoutedEventArgs e)
-        {
-            var destination = VM.Archive
-                ? GetArchiveFilename()
-                : GetDirectoryName();
-
-            if (destination == null || !VM.PublishBegin()) return;
-
-            try {
-                // TODO: Wire-up cancellation token to cancel button
-                await Task.Run(() => PublishAsync(destination, CancellationToken.None));
-
-                Application.Current.Dispatcher.Invoke(() => {
-                    VM.OutputLog.Add("Publish completed successfully.");
-                });
-            }
-            catch (Exception error) {
-                Application.Current.Dispatcher.Invoke(() => {
-                    VM.OutputLog.Add($"Publish Failed! {error.Message}");
-                });
-            }
-            finally {
-                VM.PublishEnd();
-            }
-        }
-
-        private void OnCancelButtonClick(object sender, RoutedEventArgs e)
-        {
-            if (VM.IsBusy) VM.Cancel();
-            else Close();
-        }
-
         private string GetArchiveFilename()
         {
             var saveFileDialog = new VistaSaveFileDialog {
                 Title = "Save published archive",
                 Filter = "ZIP Archive|*.zip|All Files|*.*",
-                FileName = VM.SelectedItem?.Name,
+                FileName = $"{VM.SelectedItem?.Name}.zip",
                 AddExtension = true,
             };
 
@@ -86,10 +62,16 @@ namespace PixelGraph.UI.Windows
 
             var builder = provider.GetRequiredService<IServiceBuilder>();
             builder.AddFileInput();
-            //builder.AddLoggingRedirect();
 
             if (VM.Archive) builder.AddArchiveOutput();
             else builder.AddFileOutput();
+
+            var logReceiver = new LogReceiver();
+            logReceiver.LogMessage += OnLogMessage;
+
+            builder.Services.AddSingleton<ILogReceiver>(logReceiver);
+            builder.Services.AddSingleton(typeof(ILogger<>), typeof(RedirectLogger<>));
+            builder.Services.AddSingleton<ILogger, RedirectLogger>();
 
             await using var scope = builder.Build();
             var reader = scope.GetRequiredService<IInputReader>();
@@ -102,10 +84,7 @@ namespace PixelGraph.UI.Windows
             writer.SetRoot(destination);
             graphBuilder.UseGlobalOutput = true;
 
-            Application.Current.Dispatcher.Invoke(() => {
-                VM.OutputLog.Add("Preparing output directory...");
-            });
-
+            AppendLog(LogLevel.None, "Preparing output directory...");
             writer.Prepare();
 
             var context = new ResourcePackContext {
@@ -113,11 +92,80 @@ namespace PixelGraph.UI.Windows
                 Profile = await packReader.ReadProfileAsync(VM.SelectedItem.LocalFile),
             };
 
-            Application.Current.Dispatcher.Invoke(() => {
-                VM.OutputLog.Add("Publishing content...");
-            });
-
+            AppendLog(LogLevel.None, "Publishing content...");
             await publisher.PublishAsync(context, VM.Clean, token);
         }
+
+        private void AppendLog(LogLevel level, string message)
+        {
+            var item = new LogMessageItem {
+                Message = message,
+                Color = logBrushMap.Get(level, Brushes.LightSlateGray),
+            };
+
+            Application.Current.Dispatcher.BeginInvoke(() => {
+                VM.OutputLog.Add(item);
+
+                var border = (Border)VisualTreeHelper.GetChild(LogListBox, 0);
+                var scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
+                scrollViewer.ScrollToBottom();
+            });
+        }
+
+        private async void OnPublishButtonClick(object sender, RoutedEventArgs e)
+        {
+            var destination = VM.Archive
+                ? GetArchiveFilename()
+                : GetDirectoryName();
+
+            if (destination == null) return;
+
+            if (!VM.PublishBegin(out var token)) return;
+
+            try {
+                // TODO: Wire-up cancellation token to cancel button
+                await Task.Run(() => PublishAsync(destination, token));
+
+                AppendLog(LogLevel.None, "Publish completed successfully.");
+            }
+            catch (TaskCanceledException) {
+                AppendLog(LogLevel.Warning, "Publish Cancelled!");
+            }
+            catch (Exception error) {
+                AppendLog(LogLevel.Error, $"Publish Failed! {error.Message}");
+            }
+            finally {
+                VM.PublishEnd();
+            }
+        }
+
+        private void OnCancelButtonClick(object sender, RoutedEventArgs e)
+        {
+            VM.Cancel();
+        }
+
+        private void OnCloseButtonClick(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void OnOkButtonClick(object sender, RoutedEventArgs e)
+        {
+            VM.ShowOutput = false;
+        }
+
+        private void OnLogMessage(object sender, LogEventArgs e)
+        {
+            AppendLog(e.Level, e.Message);
+        }
+
+        private static readonly Dictionary<LogLevel, Brush> logBrushMap = new Dictionary<LogLevel, Brush> {
+            [LogLevel.Debug] = Brushes.LimeGreen,
+            [LogLevel.Information] = Brushes.LightSkyBlue,
+            [LogLevel.Warning] = Brushes.Yellow,
+            [LogLevel.Error] = Brushes.OrangeRed,
+            [LogLevel.Critical] = Brushes.Red,
+            [LogLevel.Trace] = Brushes.Purple,
+        };
     }
 }
