@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace PixelGraph.Common.IO
+namespace PixelGraph.Common.IO.Serialization
 {
     public interface IMaterialWriter
     {

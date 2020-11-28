@@ -1,4 +1,7 @@
-﻿namespace PixelGraph.Common.IO
+﻿using System;
+using System.Linq;
+
+namespace PixelGraph.Common.IO
 {
     public static class ImageExtensions
     {
@@ -12,5 +15,11 @@
             ".jpg",
             ".jpeg",
         };
+
+
+        public static bool Supports(string extension)
+        {
+            return Supported.Contains(extension, StringComparer.InvariantCultureIgnoreCase);
+        }
     }
 }

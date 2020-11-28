@@ -27,8 +27,10 @@ namespace PixelGraph.Common.ResourcePack
 
         public string Sampler {get; set;}
 
+        [YamlMember(Alias = "texture-size")]
         public int? TextureSize {get; set;}
 
+        [YamlMember(Alias = "texture-scale")]
         public float? TextureScale {get; set;}
 
 

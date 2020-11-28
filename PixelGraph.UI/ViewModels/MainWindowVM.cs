@@ -1,20 +1,21 @@
-﻿using PixelGraph.Common.Material;
+﻿using MaterialDesignThemes.Wpf;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
-using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class MainWindowVM : ViewModelBase
+    internal class MainWindowVM : ViewModelBase, ISearchParameters
     {
         #region Properties
 
         private readonly object busyLock;
         private ResourcePackInputProperties _packInput;
         private string _rootDirectory;
-        private string _treeSearch;
+        private string _searchText;
+        private bool _showAllFiles;
         private string _selectedTag;
         private TextureTreeNode _selectedNode;
         private TextureSource _selectedSource;
@@ -29,7 +30,8 @@ namespace PixelGraph.UI.ViewModels
         public bool IsUpdatingSources {get; set;}
 
         public bool HasRootDirectory => _rootDirectory != null;
-        public bool HasTreeSelection => _selectedNode is TextureTreeTexture;
+        public bool HasTreeSelection => _selectedNode is TextureTreeFile;
+        public bool IsMaterialSelected => _selectedNode is TextureTreeFile _file && _file.Type == NodeType.Material;
 
         public string RootDirectory {
             get => _rootDirectory;
@@ -49,11 +51,23 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public string TreeSearch {
-            get => _treeSearch;
+        public string SearchText {
+            get => _searchText;
             set {
-                _treeSearch = value;
+                _searchText = value;
                 OnPropertyChanged();
+
+                TreeRoot.UpdateVisibility(this);
+            }
+        }
+
+        public bool ShowAllFiles {
+            get => _showAllFiles;
+            set {
+                _showAllFiles = value;
+                OnPropertyChanged();
+
+                TreeRoot.UpdateVisibility(this);
             }
         }
 
@@ -76,6 +90,7 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged();
 
                 OnPropertyChanged(nameof(HasTreeSelection));
+                OnPropertyChanged(nameof(IsMaterialSelected));
             }
         }
 
@@ -144,30 +159,28 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        internal TextureTreeNode GetTreeNode(string path)
-        {
-            var parts = path.Split('/', '\\');
-            var parent = TreeRoot;
+        //internal TextureTreeNode GetTreeNode(string path)
+        //{
+        //    var parts = path.Split('/', '\\');
+        //    var parent = TreeRoot;
 
-            foreach (var part in parts) {
-                var node = parent.Nodes.FirstOrDefault(x => string.Equals(x.Name, part, StringComparison.InvariantCultureIgnoreCase));
+        //    foreach (var part in parts) {
+        //        var node = parent.Nodes.FirstOrDefault(x => string.Equals(x.Name, part, StringComparison.InvariantCultureIgnoreCase));
 
-                if (node == null) {
-                    node = new TextureTreeDirectory {Name = part};
-                    parent.Nodes.Add(node);
-                }
+        //        if (node == null) {
+        //            node = new TextureTreeDirectory {Name = part};
+        //            parent.Nodes.Add(node);
+        //        }
 
-                parent = node;
-            }
+        //        parent = node;
+        //    }
 
-            return parent;
-        }
+        //    return parent;
+        //}
 
         public void SelectFirstTexture()
         {
-            //var tag = _selectedTag ?? TextureTags.Albedo;
             SelectedSource = Textures.FirstOrDefault(x => TextureTags.Is(x.Tag, _selectedTag));
-            //SelectedSource = texture; // ?? Textures.FirstOrDefault();
         }
     }
 
@@ -175,7 +188,7 @@ namespace PixelGraph.UI.ViewModels
     {
         public MainWindowDesignVM()
         {
-            //AddRecentItems();
+            AddRecentItems();
 
             AddTreeItems();
 
@@ -183,15 +196,13 @@ namespace PixelGraph.UI.ViewModels
             IsBusy = true;
 
 
-            Textures.Add(new TextureSource
-            {
+            Textures.Add(new TextureSource {
                 Tag = TextureTags.Albedo,
                 Name = "albedo.png",
                 Image = null,
             });
 
-            Textures.Add(new TextureSource
-            {
+            Textures.Add(new TextureSource {
                 Tag = TextureTags.Normal,
                 Name = "normal.png",
                 Image = null,
@@ -206,24 +217,34 @@ namespace PixelGraph.UI.ViewModels
 
         private void AddTreeItems()
         {
-            TreeSearch = "as";
+            SearchText = "as";
+            ShowAllFiles = true;
+
             TreeRoot.Nodes.Add(new TextureTreeDirectory {
                 Name = "assets",
                 Nodes = {
                     new TextureTreeDirectory {
                         Name = "minecraft",
                         Nodes = {
-                            new TextureTreeTexture {
+                            new TextureTreeFile {
                                 Name = "Dirt",
+                                Type = NodeType.Texture,
+                                Icon = PackIconKind.Image,
                             },
-                            new TextureTreeTexture {
+                            new TextureTreeFile {
                                 Name = "Grass",
+                                Type = NodeType.Texture,
+                                Icon = PackIconKind.Image,
                             },
-                            new TextureTreeTexture {
+                            new TextureTreeFile {
                                 Name = "Glass",
+                                Type = NodeType.Texture,
+                                Icon = PackIconKind.Image,
                             },
-                            new TextureTreeTexture {
+                            new TextureTreeFile {
                                 Name = "Stone",
+                                Type = NodeType.Texture,
+                                Icon = PackIconKind.Image,
                             },
                         },
                     },

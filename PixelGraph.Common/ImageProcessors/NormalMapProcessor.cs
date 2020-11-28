@@ -3,7 +3,6 @@ using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
@@ -11,14 +10,11 @@ namespace PixelGraph.Common.ImageProcessors
     internal class NormalMapProcessor : PixelComposeProcessor
     {
         private readonly Options options;
-        private readonly Lazy<Random> random;
 
 
         public NormalMapProcessor(Options options)
         {
             this.options = options;
-
-            random = new Lazy<Random>();
         }
 
         protected override void ProcessPixel(ref Rgba32 pixel, in PixelContext context)
@@ -33,8 +29,9 @@ namespace PixelGraph.Common.ImageProcessors
             normal.Z = 1f / options.Strength;
 
             if (options.Noise > float.Epsilon) {
-                normal.X += ((float)random.Value.NextDouble()*2f - 1f) * options.Noise;
-                normal.Y += ((float)random.Value.NextDouble()*2f - 1f) * options.Noise;
+                context.GetNoise(in context.X, out var noiseX, out var noiseY);
+                normal.X += (noiseX / 128f - 1f) * options.Noise;
+                normal.Y += (noiseY / 128f - 1f) * options.Noise;
             }
 
             MathEx.Normalize(ref normal);

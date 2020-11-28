@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Serialization;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
@@ -39,6 +39,11 @@ namespace PixelGraph.UI.Windows
         private async void OnDataChanged(object sender, EventArgs e)
         {
             await SaveAsync();
+        }
+
+        private void OnOkClick(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

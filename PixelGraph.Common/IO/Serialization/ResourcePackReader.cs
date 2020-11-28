@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace PixelGraph.Common.IO
+namespace PixelGraph.Common.IO.Serialization
 {
     public interface IResourcePackReader
     {
@@ -36,8 +36,6 @@ namespace PixelGraph.Common.IO
                 packInput = deserializer.Deserialize<ResourcePackInputProperties>(streamReader);
             }
 
-            //pack.Filename = Path.GetDirectoryName(localFile);
-            //pack.WriteTime = File.GetLastWriteTime(localFile);
             return packInput ?? new ResourcePackInputProperties();
         }
 
@@ -49,7 +47,6 @@ namespace PixelGraph.Common.IO
                    ?? new ResourcePackProfileProperties();
 
             pack.LocalFile = localFile;
-            //pack.WriteTime = File.GetLastWriteTime(localFile);
             return pack;
         }
     }

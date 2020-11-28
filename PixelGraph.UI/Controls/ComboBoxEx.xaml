@@ -8,15 +8,11 @@
     <ComboBox.Template>
         <ControlTemplate TargetType="ComboBox">
             <Grid>
-                <ComboBox x:Name="list"
-                          HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
-                          VerticalAlignment="{TemplateBinding VerticalAlignment}"
-                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                          Margin="{TemplateBinding Margin}"
-                          Padding="{TemplateBinding Padding}"
-                          ItemsSource="{TemplateBinding ItemsSource}"
-                          SelectedValue="{Binding SelectedValue, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=local:ComboBoxEx}}">
+                <ComboBox x:Name="list" Margin="0" Padding="0"
+                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                      ItemsSource="{TemplateBinding ItemsSource}"
+                      SelectedValue="{Binding SelectedValue, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=local:ComboBoxEx}}">
                     <ComboBox.Style>
                         <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}">
                             <Setter Property="DisplayMemberPath" Value="Text"/>

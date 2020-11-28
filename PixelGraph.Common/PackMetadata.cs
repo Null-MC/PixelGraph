@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace PixelGraph.Common.Publishing
+namespace PixelGraph.Common
 {
     internal class PackMetadata
     {

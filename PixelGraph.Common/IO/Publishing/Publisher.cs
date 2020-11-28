@@ -2,8 +2,8 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Publishing;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
@@ -12,7 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.Common.Publishing
+namespace PixelGraph.Common.IO.Publishing
 {
     public interface IPublisher
     {
@@ -134,7 +134,7 @@ namespace PixelGraph.Common.Publishing
                         }
 
                         var extension = Path.GetExtension(localName);
-                        var filterImage = ImageExtensions.Supported.Contains(extension, StringComparer.InvariantCultureIgnoreCase)
+                        var filterImage = ImageExtensions.Supports(extension)
                             && !pathIgnoreList.Any(x => localName.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
 
                         if (filterImage) {

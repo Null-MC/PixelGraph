@@ -17,6 +17,12 @@ namespace PixelGraph.UI.ViewModels
         public Brush Color {get; set;}
     }
 
+    internal interface ISearchParameters
+    {
+        string SearchText {get;}
+        bool ShowAllFiles {get;}
+    }
+
     internal class EncodingFormatValues : List<EncodingFormatValues.Item>
     {
         public EncodingFormatValues()

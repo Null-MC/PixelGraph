@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.IO;
-using PixelGraph.Common.Publishing;
+using PixelGraph.Common.IO.Importing;
+using PixelGraph.Common.IO.Publishing;
+using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Textures;
 using Serilog;
 
@@ -25,6 +27,7 @@ namespace PixelGraph.Common
         {
             Services = new ServiceCollection();
             Services.AddLogging(builder => builder.AddSerilog());
+
             Services.AddSingleton<INamingStructure, JavaNamingStructure>();
             Services.AddSingleton<ITextureGraphBuilder, TextureGraphBuilder>();
             Services.AddSingleton<IResourcePackReader, ResourcePackReader>();
@@ -35,6 +38,8 @@ namespace PixelGraph.Common
             Services.AddSingleton<IImageWriter, ImageWriter>();
 
             Services.AddTransient<IFileLoader, FileLoader>();
+            Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
+            Services.AddTransient<IMaterialImporter, MaterialImporter>();
         }
 
         public void AddFileInput()

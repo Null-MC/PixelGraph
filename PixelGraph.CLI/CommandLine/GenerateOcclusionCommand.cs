@@ -4,6 +4,7 @@ using PixelGraph.CLI.Extensions;
 using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using System;

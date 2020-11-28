@@ -58,7 +58,7 @@ namespace PixelGraph.Common.IO
             foreach (var file in EnumerateFiles(srcPath, matchName)) {
                 var ext = Path.GetExtension(file);
 
-                if (ImageExtensions.Supported.Contains(ext, StringComparer.InvariantCultureIgnoreCase))
+                if (ImageExtensions.Supports(ext))
                     yield return file;
             }
         }

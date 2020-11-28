@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 
 namespace PixelGraph.Tests.Internal

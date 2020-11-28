@@ -4,7 +4,8 @@ using Ookii.Dialogs.Wpf;
 using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
-using PixelGraph.Common.Publishing;
+using PixelGraph.Common.IO.Publishing;
+using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
@@ -44,7 +45,7 @@ namespace PixelGraph.UI.Windows
                 ? saveFileDialog.FileName : null;
         }
 
-        private string GetDirectoryName()
+        private static string GetDirectoryName()
         {
             var folderDialog = new VistaFolderBrowserDialog {
                 Description = "Destination for published resource pack content.",
