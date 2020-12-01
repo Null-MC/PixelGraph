@@ -1,8 +1,7 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading;
-using System.Windows.Media;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -15,7 +14,7 @@ namespace PixelGraph.UI.ViewModels
         private bool _archive, _clean;
         private volatile bool _showOutput, _isActive;
 
-        public ObservableCollection<LogMessageItem> OutputLog {get;}
+        public LogListVM LogList {get;}
 
         public bool ShowOutput {
             get => _showOutput;
@@ -76,7 +75,7 @@ namespace PixelGraph.UI.ViewModels
 
         public PublishWindowVM()
         {
-            OutputLog = new ObservableCollection<LogMessageItem>();
+            LogList = new LogListVM();
         }
 
         public bool PublishBegin(out CancellationToken token)
@@ -88,7 +87,7 @@ namespace PixelGraph.UI.ViewModels
 
             tokenSource?.Dispose();
 
-            OutputLog.Clear();
+            //OutputLog.Clear();
             tokenSource = new CancellationTokenSource();
             ShowOutput = IsActive = true;
             token = tokenSource.Token;
@@ -128,14 +127,9 @@ namespace PixelGraph.UI.ViewModels
 
             PublishBegin(out _);
 
-            OutputLog.Add(new LogMessageItem {
-                Message = "Hello World!",
-                Color = new SolidColorBrush(Colors.Red),
-            });
-            OutputLog.Add(new LogMessageItem {
-                Message = "This is the second line...",
-                Color = new SolidColorBrush(Colors.Blue),
-            });
+            LogList.Append(LogLevel.Debug, "Hello World!");
+            LogList.Append(LogLevel.Warning, "Something is wrong...");
+            LogList.Append(LogLevel.Error, "DANGER Will Robinson");
         }
     }
 }

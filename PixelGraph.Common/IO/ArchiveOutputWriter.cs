@@ -33,7 +33,7 @@ namespace PixelGraph.Common.IO
 
         public void Delete(string localFile)
         {
-            throw new NotImplementedException();
+            archive.GetEntry(localFile)?.Delete();
         }
 
         public void Clean() {}

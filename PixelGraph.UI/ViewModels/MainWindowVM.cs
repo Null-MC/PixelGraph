@@ -4,6 +4,7 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Media;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -17,21 +18,24 @@ namespace PixelGraph.UI.ViewModels
         private string _searchText;
         private bool _showAllFiles;
         private string _selectedTag;
-        private TextureTreeNode _selectedNode;
+        private ContentTreeNode _selectedNode;
         private TextureSource _selectedSource;
         private MaterialProperties _loadedMaterial;
+        private ImageSource _loadedTexture;
         private string _loadedMaterialFilename;
         private volatile bool _isBusy;
 
         public ObservableCollection<string> RecentDirectories {get; set;}
         public ObservableCollection<ProfileItem> Profiles {get;}
         public ObservableCollection<TextureSource> Textures {get;}
-        public TextureTreeNode TreeRoot {get;}
         public bool IsUpdatingSources {get; set;}
 
         public bool HasRootDirectory => _rootDirectory != null;
-        public bool HasTreeSelection => _selectedNode is TextureTreeFile;
-        public bool IsMaterialSelected => _selectedNode is TextureTreeFile _file && _file.Type == NodeType.Material;
+        public bool HasTreeSelection => _selectedNode is ContentTreeFile;
+        //public bool IsMaterialSelected => _selectedNode is TextureTreeFile _file && _file.Type == NodeType.Material;
+        public bool HasLoadedMaterial => _loadedMaterial != null;
+        public bool HasLoadedTexture => _loadedTexture != null;
+        public bool HasPreviewImage => HasLoadedMaterial || HasLoadedTexture;
 
         public string RootDirectory {
             get => _rootDirectory;
@@ -40,6 +44,15 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged();
 
                 OnPropertyChanged(nameof(HasRootDirectory));
+            }
+        }
+
+        private ContentTreeNode _treeRoot;
+        public ContentTreeNode TreeRoot {
+            get => _treeRoot;
+            set {
+                _treeRoot = value;
+                OnPropertyChanged();
             }
         }
 
@@ -83,14 +96,14 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public TextureTreeNode SelectedNode {
+        public ContentTreeNode SelectedNode {
             get => _selectedNode;
             set {
                 _selectedNode = value;
                 OnPropertyChanged();
 
+                SelectedSource = null;
                 OnPropertyChanged(nameof(HasTreeSelection));
-                OnPropertyChanged(nameof(IsMaterialSelected));
             }
         }
 
@@ -115,11 +128,25 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public ImageSource LoadedTexture {
+            get => _loadedTexture;
+            set {
+                _loadedTexture = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(HasLoadedTexture));
+                OnPropertyChanged(nameof(HasPreviewImage));
+            }
+        }
+
         public MaterialProperties LoadedMaterial {
             get => _loadedMaterial;
             set {
                 _loadedMaterial = value;
                 OnPropertyChanged();
+
+                OnPropertyChanged(nameof(HasLoadedMaterial));
+                OnPropertyChanged(nameof(HasPreviewImage));
             }
         }
 
@@ -139,7 +166,7 @@ namespace PixelGraph.UI.ViewModels
             RecentDirectories = new ObservableCollection<string>();
             Profiles = new ObservableCollection<ProfileItem>();
             Textures = new ObservableCollection<TextureSource>();
-            TreeRoot = new TextureTreeNode();
+            _treeRoot = new ContentTreeNode();
             busyLock = new object();
         }
 
@@ -220,30 +247,30 @@ namespace PixelGraph.UI.ViewModels
             SearchText = "as";
             ShowAllFiles = true;
 
-            TreeRoot.Nodes.Add(new TextureTreeDirectory {
+            TreeRoot.Nodes.Add(new ContentTreeDirectory {
                 Name = "assets",
                 Nodes = {
-                    new TextureTreeDirectory {
+                    new ContentTreeDirectory {
                         Name = "minecraft",
                         Nodes = {
-                            new TextureTreeFile {
+                            new ContentTreeFile {
                                 Name = "Dirt",
-                                Type = NodeType.Texture,
+                                Type = ContentNodeType.Texture,
                                 Icon = PackIconKind.Image,
                             },
-                            new TextureTreeFile {
+                            new ContentTreeFile {
                                 Name = "Grass",
-                                Type = NodeType.Texture,
+                                Type = ContentNodeType.Texture,
                                 Icon = PackIconKind.Image,
                             },
-                            new TextureTreeFile {
+                            new ContentTreeFile {
                                 Name = "Glass",
-                                Type = NodeType.Texture,
+                                Type = ContentNodeType.Texture,
                                 Icon = PackIconKind.Image,
                             },
-                            new TextureTreeFile {
+                            new ContentTreeFile {
                                 Name = "Stone",
-                                Type = NodeType.Texture,
+                                Type = ContentNodeType.Texture,
                                 Icon = PackIconKind.Image,
                             },
                         },

@@ -1,5 +1,4 @@
-﻿using MaterialDesignThemes.Wpf;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
@@ -11,7 +10,6 @@ using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using SixLabors.ImageSharp;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -21,7 +19,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
-using ImageExtensions = PixelGraph.Common.IO.ImageExtensions;
 
 namespace PixelGraph.UI.Windows
 {
@@ -65,21 +62,19 @@ namespace PixelGraph.UI.Windows
 
             var recent = provider.GetRequiredService<IRecentPathManager>();
             var reader = provider.GetRequiredService<IInputReader>();
-            //var writer = provider.GetRequiredService<IOutputWriter>();
+            var treeReader = provider.GetRequiredService<IContentTreeReader>();
 
             try {
-                reader.SetRoot(path);
-                //writer.SetRoot(path);
-
                 vm.RootDirectory = path;
-                vm.TreeRoot.Nodes.Clear();
-                vm.Profiles.Clear();
+                reader.SetRoot(path);
 
+                //vm.TreeRoot.Nodes.Clear();
+                vm.Profiles.Clear();
                 LoadProfiles();
 
                 await LoadPackInputAsync();
 
-                LoadDirectory(vm.TreeRoot.Nodes, ".");
+                vm.TreeRoot = treeReader.GetRootNode();
                 vm.TreeRoot.UpdateVisibility(vm);
             }
             finally {
@@ -87,71 +82,6 @@ namespace PixelGraph.UI.Windows
             }
 
             await recent.InsertAsync(path, token);
-        }
-
-        private void LoadDirectory(ICollection<TextureTreeNode> collection, string path)
-        {
-            collection.Clear();
-
-            var reader = provider.GetRequiredService<IInputReader>();
-            reader.SetRoot(vm.RootDirectory);
-
-            foreach (var childPath in reader.EnumerateDirectories(path, "*")) {
-                var childNode = new TextureTreeDirectory {
-                    Name = Path.GetFileName(childPath),
-                    Path = childPath,
-                };
-
-                LoadDirectory(childNode.Nodes, childPath);
-                collection.Add(childNode);
-            }
-
-            foreach (var file in reader.EnumerateFiles(path, "*.*")) {
-                var fileName = Path.GetFileName(file);
-
-                var childNode = new TextureTreeFile {
-                    Name = fileName,
-                    Filename = file,
-                    Type = GetNodeType(fileName),
-                    Icon = GetNodeIcon(fileName),
-                };
-
-                collection.Add(childNode);
-            }
-        }
-
-        private static NodeType GetNodeType(string fileName)
-        {
-            if (string.Equals("input.yml", fileName, StringComparison.InvariantCultureIgnoreCase))
-                return NodeType.PackInput;
-
-            if (fileName.EndsWith(".pack.yml", StringComparison.InvariantCultureIgnoreCase))
-                return NodeType.PackProfile;
-
-            if (string.Equals("pbr.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
-                || fileName.EndsWith(".pbr.yml", StringComparison.InvariantCultureIgnoreCase))
-                return NodeType.Material;
-
-            return NodeType.Unknown;
-        }
-
-        private static PackIconKind GetNodeIcon(string fileName)
-        {
-            if (string.Equals("input.yml", fileName, StringComparison.InvariantCultureIgnoreCase))
-                return PackIconKind.Palette;
-
-            if (fileName.EndsWith(".pack.yml", StringComparison.InvariantCultureIgnoreCase))
-                return PackIconKind.Export;
-
-            if (string.Equals("pbr.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
-                || fileName.EndsWith(".pbr.yml", StringComparison.InvariantCultureIgnoreCase))
-                return PackIconKind.FileChart;
-
-            var ext = Path.GetExtension(fileName);
-            if (ImageExtensions.Supports(ext))
-                return PackIconKind.Image;
-
-            return PackIconKind.File;
         }
 
         private async Task LoadPackInputAsync()
@@ -182,46 +112,51 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        //private async Task LoadDirectoryXAsync(CancellationToken token)
-        //{
-        //    var packReader = provider.GetRequiredService<IResourcePackReader>();
-        //    var loader = provider.GetRequiredService<IFileLoader>();
-
-        //    loader.Expand = false;
-
-        //    await foreach (var item in loader.LoadAsync(token)) {
-        //        if (!(item is MaterialProperties material)) continue;
-
-        //        var textureNode = new TextureTreeTexture {
-        //            Name = material.DisplayName,
-        //            MaterialFilename = material.LocalFilename,
-        //            Material = material,
-        //        };
-
-        //        Application.Current.Dispatcher.Invoke(() => {
-        //            var parentNode = vm.GetTreeNode(material.LocalPath);
-        //            parentNode.Nodes.Add(textureNode);
-        //        });
-        //    }
-        //}
-
         private async Task PopulateTextureViewerAsync(CancellationToken token)
         {
+            if (vm.SelectedNode is ContentTreeFile texFile && texFile.Type == ContentNodeType.Texture) {
+                var fullFile = PathEx.Join(vm.RootDirectory, texFile.Filename);
+
+                var texImage = new BitmapImage();
+                texImage.BeginInit();
+                texImage.CacheOption = BitmapCacheOption.OnLoad;
+                texImage.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                texImage.UriSource = new Uri(fullFile);
+                texImage.EndInit();
+                texImage.Freeze();
+
+                vm.LoadedTexture = texImage;
+                vm.LoadedMaterial = null;
+                return;
+            }
+
+            vm.LoadedTexture = null;
             vm.IsUpdatingSources = true;
 
             try {
                 Application.Current.Dispatcher.Invoke(vm.Textures.Clear);
 
-                var textureNode = vm.SelectedNode as TextureTreeFile;
-                if (textureNode?.Type != NodeType.Material) return;
+                bool isMat;
+                string matFile;
+                if (vm.SelectedNode is ContentTreeMaterialDirectory matFolder) {
+                    isMat = true;
+                    matFile = matFolder.MaterialFilename;
+                }
+                else {
+                    var fileNode = vm.SelectedNode as ContentTreeFile;
+                    isMat = fileNode?.Type == ContentNodeType.Material;
+                    matFile = fileNode?.Filename;
+                }
+
+                if (!isMat) return;
 
                 // TODO: wait for texture busy
                 var reader = provider.GetRequiredService<IInputReader>();
                 var matReader = provider.GetRequiredService<IMaterialReader>();
 
                 reader.SetRoot(vm.RootDirectory);
-                vm.LoadedMaterialFilename = textureNode.Filename;
-                vm.LoadedMaterial = await matReader.LoadAsync(textureNode.Filename, token);
+                vm.LoadedMaterialFilename = matFile;
+                vm.LoadedMaterial = await matReader.LoadAsync(matFile, token);
 
                 //vm.LoadedMaterialFilename = textureNode.MaterialFilename;
                 //vm.LoadedMaterial = textureNode.Material;
@@ -229,7 +164,7 @@ namespace PixelGraph.UI.Windows
                 foreach (var tag in TextureTags.All) {
                     foreach (var file in reader.EnumerateTextures(vm.LoadedMaterial, tag)) {
                         if (!reader.FileExists(file)) continue;
-                        var fullFile = reader.GetFullPath(file);
+                        var fullFile = PathEx.Join(vm.RootDirectory, file);
 
                         var thumbnailImage = new BitmapImage();
                         thumbnailImage.BeginInit();
@@ -263,6 +198,16 @@ namespace PixelGraph.UI.Windows
                 vm.IsUpdatingSources = false;
                 vm.SelectFirstTexture();
             }
+        }
+
+        private void LoadTexture()
+        {
+            // TODO
+        }
+
+        private void LoadMaterial()
+        {
+            // TODO
         }
 
         private async Task GenerateNormalAsync(CancellationToken token)
@@ -360,9 +305,12 @@ namespace PixelGraph.UI.Windows
 
         private async Task SaveMaterialAsync()
         {
+            var writer = provider.GetRequiredService<IOutputWriter>();
+            var matWriter = provider.GetRequiredService<IMaterialWriter>();
+
             try {
-                var writer = provider.GetRequiredService<IMaterialWriter>();
-                await writer.WriteAsync(vm.LoadedMaterial, vm.LoadedMaterialFilename);
+                writer.SetRoot(vm.RootDirectory);
+                await matWriter.WriteAsync(vm.LoadedMaterial, vm.LoadedMaterialFilename);
             }
             catch (Exception error) {
                 ShowError($"Failed to save material '{vm.LoadedMaterialFilename}'! {error.Message}");
@@ -406,7 +354,9 @@ namespace PixelGraph.UI.Windows
             var window = new ImportPackWindow(provider) {
                 Owner = this,
                 VM = {
-                    SourcePath = dialog.SelectedPath,
+                    RootDirectory = vm.RootDirectory,
+                    ImportSource = dialog.SelectedPath,
+                    PackInput = vm.PackInput,
                 },
             };
 
@@ -426,7 +376,10 @@ namespace PixelGraph.UI.Windows
             var window = new ImportPackWindow(provider) {
                 Owner = this,
                 VM = {
-                    SourceFile = dialog.FileName,
+                    RootDirectory = vm.RootDirectory,
+                    ImportSource = dialog.FileName,
+                    PackInput = vm.PackInput,
+                    IsArchive = true,
                 },
             };
 
@@ -438,6 +391,7 @@ namespace PixelGraph.UI.Windows
             var window = new PackInputWindow(provider) {
                 Owner = this,
                 VM = {
+                    RootDirectory = vm.RootDirectory,
                     PackInput = vm.PackInput,
                 },
             };
@@ -487,7 +441,7 @@ namespace PixelGraph.UI.Windows
 
         private async void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            vm.SelectedNode = e.NewValue as TextureTreeNode;
+            vm.SelectedNode = e.NewValue as ContentTreeNode;
             await PopulateTextureViewerAsync(CancellationToken.None);
         }
 
@@ -525,12 +479,10 @@ namespace PixelGraph.UI.Windows
             Process.Start(info);
         }
 
-        //private void OnTreeViewItemExpanded(object sender, RoutedEventArgs e)
-        //{
-        //    if (!(e.OriginalSource is TreeViewItem item)) return;
-        //    if (item.DataContext is TextureTreeDirectory node)
-        //        LoadDirectory(node.Nodes, node.Path);
-        //}
+        private void OnMaterialSourceSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            vm.LoadedTexture = vm.SelectedSource?.Image;
+        }
 
         #endregion
     }

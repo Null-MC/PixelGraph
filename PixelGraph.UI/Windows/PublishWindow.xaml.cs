@@ -2,21 +2,15 @@
 using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.Common;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.ViewModels;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
@@ -85,7 +79,7 @@ namespace PixelGraph.UI.Windows
             writer.SetRoot(destination);
             graphBuilder.UseGlobalOutput = true;
 
-            AppendLog(LogLevel.None, "Preparing output directory...");
+            VM.LogList.BeginAppend(LogLevel.None, "Preparing output directory...");
             writer.Prepare();
 
             var context = new ResourcePackContext {
@@ -93,24 +87,8 @@ namespace PixelGraph.UI.Windows
                 Profile = await packReader.ReadProfileAsync(VM.SelectedItem.LocalFile),
             };
 
-            AppendLog(LogLevel.None, "Publishing content...");
+            VM.LogList.BeginAppend(LogLevel.None, "Publishing content...");
             await publisher.PublishAsync(context, VM.Clean, token);
-        }
-
-        private void AppendLog(LogLevel level, string message)
-        {
-            var item = new LogMessageItem {
-                Message = message,
-                Color = logBrushMap.Get(level, Brushes.LightSlateGray),
-            };
-
-            Application.Current.Dispatcher.BeginInvoke(() => {
-                VM.OutputLog.Add(item);
-
-                var border = (Border)VisualTreeHelper.GetChild(LogListBox, 0);
-                var scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
-                scrollViewer.ScrollToBottom();
-            });
         }
 
         private async void OnPublishButtonClick(object sender, RoutedEventArgs e)
@@ -121,19 +99,20 @@ namespace PixelGraph.UI.Windows
 
             if (destination == null) return;
 
+            VM.LogList.Clear();
             if (!VM.PublishBegin(out var token)) return;
 
             try {
                 // TODO: Wire-up cancellation token to cancel button
                 await Task.Run(() => PublishAsync(destination, token));
 
-                AppendLog(LogLevel.None, "Publish completed successfully.");
+                VM.LogList.BeginAppend(LogLevel.None, "Publish completed successfully.");
             }
             catch (TaskCanceledException) {
-                AppendLog(LogLevel.Warning, "Publish Cancelled!");
+                VM.LogList.BeginAppend(LogLevel.Warning, "Publish Cancelled!");
             }
             catch (Exception error) {
-                AppendLog(LogLevel.Error, $"Publish Failed! {error.Message}");
+                VM.LogList.BeginAppend(LogLevel.Error, $"Publish Failed! {error.Message}");
             }
             finally {
                 VM.PublishEnd();
@@ -157,16 +136,7 @@ namespace PixelGraph.UI.Windows
 
         private void OnLogMessage(object sender, LogEventArgs e)
         {
-            AppendLog(e.Level, e.Message);
+            VM.LogList.BeginAppend(e.Level, e.Message);
         }
-
-        private static readonly Dictionary<LogLevel, Brush> logBrushMap = new Dictionary<LogLevel, Brush> {
-            [LogLevel.Debug] = Brushes.LimeGreen,
-            [LogLevel.Information] = Brushes.LightSkyBlue,
-            [LogLevel.Warning] = Brushes.Yellow,
-            [LogLevel.Error] = Brushes.OrangeRed,
-            [LogLevel.Critical] = Brushes.Red,
-            [LogLevel.Trace] = Brushes.Purple,
-        };
     }
 }

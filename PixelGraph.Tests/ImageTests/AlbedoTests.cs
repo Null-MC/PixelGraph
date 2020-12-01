@@ -62,7 +62,7 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessOutputGraphAsync(context);
+            await graphBuilder.ProcessInputGraphAsync(context);
             var image = await content.OpenImageAsync("assets/test.png");
             PixelAssert.RedEquals(expected, image);
         }
@@ -94,7 +94,7 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessOutputGraphAsync(context);
+            await graphBuilder.ProcessInputGraphAsync(context);
             var outputImage = await content.OpenImageAsync("assets/test.png");
             PixelAssert.RedEquals(120, outputImage);
             PixelAssert.GreenEquals(180, outputImage);

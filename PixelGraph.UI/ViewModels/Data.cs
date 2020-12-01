@@ -11,7 +11,7 @@ namespace PixelGraph.UI.ViewModels
         public string LocalFile {get; set;}
     }
 
-    internal class LogMessageItem
+    public class LogMessageItem
     {
         public string Message {get; set;}
         public Brush Color {get; set;}

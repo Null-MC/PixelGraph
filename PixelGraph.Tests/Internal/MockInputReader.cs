@@ -22,11 +22,6 @@ namespace PixelGraph.Tests.Internal
             Root = absolutePath;
         }
 
-        public override string GetFullPath(string localPath)
-        {
-            return PathEx.Join(Root, localPath);
-        }
-
         public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = default)
         {
             var fullPath = GetFullPath(localPath);
@@ -60,5 +55,10 @@ namespace PixelGraph.Tests.Internal
         }
 
         public override DateTime? GetWriteTime(string localFile) => null;
+
+        private string GetFullPath(string localPath)
+        {
+            return PathEx.Join(Root, localPath);
+        }
     }
 }

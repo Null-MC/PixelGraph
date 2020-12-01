@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
         xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
         xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
+        xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
         d:DataContext="{d:DesignInstance vm:PublishWindowDesignVM, IsDesignTimeCreatable=True}"
         Title="Publish Resource Pack" Width="640" Height="360" mc:Ignorable="d"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -68,32 +69,10 @@
                     <TextBlock Text="Removes all content from destination before publishing." Margin="24,0,6,0" TextWrapping="Wrap"/>
                 </StackPanel>
             </Grid>
-            <ListBox x:Name="LogListBox" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Padding="6,4,6,4"
-                     VirtualizingStackPanel.IsVirtualizing="True"
-                     VirtualizingStackPanel.VirtualizationMode="Recycling"
-                     ItemsSource="{Binding OutputLog, Mode=OneWay}" Background="#FF0A0A0A"
-                     Visibility="{Binding ShowOutput, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="{x:Type ListBoxItem}">
-                        <Setter Property="Focusable" Value="False"/>
-                        <Setter Property="IsHitTestVisible" Value="False"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                                    <ContentPresenter/>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-                <ListBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type vm:LogMessageItem}">
-                        <TextBox FontFamily="Consolas" TextWrapping="Wrap" IsReadOnly="True" BorderThickness="0" BorderBrush="{x:Null}" Padding="0,-2" TextAlignment="Left"
-                                   Foreground="{Binding Color, Mode=OneTime}"
-                                   Text="{Binding Message, Mode=OneTime}"/>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
+                  Visibility="{Binding ShowOutput, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <controls:LogListControl x:Name="LogList" DataContext="{Binding LogList, Mode=OneWay}"/>
+            </Grid>
         </Grid>
     </DockPanel>
 </mde:MaterialWindow>

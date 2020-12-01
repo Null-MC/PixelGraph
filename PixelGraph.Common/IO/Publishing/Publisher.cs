@@ -119,7 +119,7 @@ namespace PixelGraph.Common.IO.Publishing
                             Material = material,
                         };
 
-                        await graphBuilder.ProcessOutputGraphAsync(materialContext, token);
+                        await graphBuilder.ProcessInputGraphAsync(materialContext, token);
 
                         // TODO: Publish mcmeta files
 

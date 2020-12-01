@@ -1,0 +1,39 @@
+﻿<UserControl x:Class="PixelGraph.UI.Controls.LogListControl"
+         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+         xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+         d:DesignWidth="420" d:DesignHeight="420" mc:Ignorable="d"
+         d:DataContext="{d:DesignInstance vm:LogListVM, IsDesignTimeCreatable=True}"
+         Background="#FF0A0A0A">
+    <UserControl.Template>
+        <ControlTemplate>
+            <ListBox Background="{TemplateBinding Background}"
+                     VirtualizingStackPanel.IsVirtualizing="True"
+                     VirtualizingStackPanel.VirtualizationMode="Recycling"
+                     ItemsSource="{Binding Items, Mode=OneWay}">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="Focusable" Value="False"/>
+                        <Setter Property="IsHitTestVisible" Value="False"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                    <ContentPresenter/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:LogMessageItem}">
+                        <TextBox FontFamily="Consolas" TextWrapping="Wrap" IsReadOnly="True" BorderThickness="0" BorderBrush="{x:Null}" Padding="0,-2" TextAlignment="Left"
+                                 Foreground="{Binding Color, Mode=OneTime}"
+                                 Text="{Binding Message, Mode=OneTime}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </ControlTemplate>
+    </UserControl.Template>
+</UserControl>

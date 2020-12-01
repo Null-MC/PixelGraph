@@ -1,16 +1,14 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.Material;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.IO;
-using PixelGraph.Common.IO.Serialization;
-using PixelGraph.Common.Material;
 
 namespace PixelGraph.Tests.Internal
 {
@@ -36,13 +34,13 @@ namespace PixelGraph.Tests.Internal
             });
         }
 
-        public IEnumerable<string> EnumerateDirectories(string path, string pattern)
+        public IEnumerable<string> EnumerateDirectories(string localPath, string pattern)
         {
             var subdirectories = Files.Select(f => Path.GetDirectoryName(f.Filename) ?? string.Empty)
-                .Where(d => d.StartsWith(path, StringComparison.InvariantCultureIgnoreCase)).Distinct();
+                .Where(d => d.StartsWith(localPath, StringComparison.InvariantCultureIgnoreCase)).Distinct();
 
             foreach (var subdirectory in subdirectories) {
-                var subPath = subdirectory[path.Length..].TrimStart(Path.DirectorySeparatorChar);
+                var subPath = subdirectory[localPath.Length..].TrimStart(Path.DirectorySeparatorChar);
                 if (string.IsNullOrEmpty(subPath)) continue;
 
                 var i = subPath.IndexOf(Path.DirectorySeparatorChar);
@@ -50,10 +48,10 @@ namespace PixelGraph.Tests.Internal
             }
         }
 
-        public IEnumerable<MockFile> EnumerateFiles(string path, string pattern)
+        public IEnumerable<MockFile> EnumerateFiles(string localPath, string pattern)
         {
-            return Files.Where(f => string.Equals(Path.GetDirectoryName(f.Filename), path, StringComparison.InvariantCultureIgnoreCase))
-                .Where(d => MatchPattern(Path.GetFileName(d.Filename), pattern));
+            return Files.Where(f => string.Equals(Path.GetDirectoryName(f.Filename), localPath, StringComparison.InvariantCultureIgnoreCase))
+                .Where(d => PathEx.MatchPattern(Path.GetFileName(d.Filename), pattern));
         }
 
         public bool FileExists(string filename)
@@ -74,17 +72,6 @@ namespace PixelGraph.Tests.Internal
         {
             await using var stream = OpenRead(filename);
             return await Image.LoadAsync<Rgba32>(Configuration.Default, stream);
-        }
-
-        private static bool MatchPattern(string name, string pattern)
-        {
-            if (pattern == null || pattern == "*") return true;
-
-            var regexPattern = Regex.Escape(pattern)
-                .Replace("\\?", ".")
-                .Replace("\\*", ".+");
-
-            return Regex.IsMatch(name, regexPattern);
         }
 
         public void Dispose()

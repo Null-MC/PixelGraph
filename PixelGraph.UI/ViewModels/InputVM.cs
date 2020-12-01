@@ -13,6 +13,7 @@ namespace PixelGraph.UI.ViewModels
 
         public event EventHandler DataChanged;
 
+        public string RootDirectory {get; set;}
         public TextureEncoding DefaultEncoding {get; private set;}
 
         public ResourcePackInputProperties PackInput {

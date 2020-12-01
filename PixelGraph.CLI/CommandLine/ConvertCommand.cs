@@ -144,7 +144,7 @@ namespace PixelGraph.CLI.CommandLine
                 var timer = Stopwatch.StartNew();
 
                 try {
-                    await graphBuilder.ProcessOutputGraphAsync(context, token);
+                    await graphBuilder.ProcessInputGraphAsync(context, token);
                 }
                 finally {
                     timer.Stop();

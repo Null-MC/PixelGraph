@@ -17,12 +17,7 @@ namespace PixelGraph.Common.IO
             root = absolutePath;
         }
 
-        public override string GetFullPath(string localPath)
-        {
-            return PathEx.Join(root, localPath);
-        }
-
-        public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = "*")
+        public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern)
         {
             var fullPath = GetFullPath(localPath);
 
@@ -32,7 +27,7 @@ namespace PixelGraph.Common.IO
             }
         }
 
-        public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = "*")
+        public override IEnumerable<string> EnumerateFiles(string localPath, string pattern)
         {
             var fullPath = GetFullPath(localPath);
 
@@ -59,6 +54,11 @@ namespace PixelGraph.Common.IO
             var fullFile = PathEx.Join(root, localFile);
             if (!File.Exists(fullFile)) return null;
             return File.GetLastWriteTime(fullFile);
+        }
+
+        private string GetFullPath(string localPath)
+        {
+            return PathEx.Join(root, localPath);
         }
     }
 }

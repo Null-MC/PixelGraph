@@ -5,6 +5,8 @@
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
                     xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
+                    xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
+                    xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
                     Title="Import Resource Pack" Width="800" Height="450" mc:Ignorable="d"
                     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
                     TextElement.FontWeight="Regular"
@@ -14,11 +16,60 @@
                     Background="{DynamicResource MaterialDesignPaper}"
                     FontFamily="{DynamicResource MaterialDesignFont}"
                     d:DataContext="{d:DesignInstance vm:ImportPackDesignVM, IsDesignTimeCreatable=True}"
-                    WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow">
+                    WindowStartupLocation="CenterOwner" Loaded="OnWindowLoaded">
+    <Window.Resources>
+        <vm:EncodingFormatValues x:Key="Formats"/>
+    </Window.Resources>
     <Window.DataContext>
         <vm:ImportPackVM x:Name="VM"/>
     </Window.DataContext>
-    <Grid>
-        
-    </Grid>
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
+            <Grid Margin="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="Cancel" Margin="4" HorizontalAlignment="Left" Click="OnCancelClick"/>
+                <Button Grid.Column="1" Content="Import" Margin="4" HorizontalAlignment="Right" Click="OnImportClick"/>
+            </Grid>
+        </Border>
+        <Grid>
+            <DockPanel>
+                <TextBox DockPanel.Dock="Top" IsReadOnly="True" Text="{Binding ImportSource, Mode=OneWay}" Padding="2,0" FontFamily="Consolas" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="3"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Vertical" Margin="4">
+                        <TextBlock Text="Format" FontSize="10" Padding="4,6,4,0" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                        <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" Foreground="{DynamicResource SecondaryHueMidBrush}"
+                            ItemsSource="{StaticResource Formats}"
+                            SelectedValue="{Binding SourceFormat, Mode=TwoWay}" Padding="4,2"/>
+                    </StackPanel>
+                    <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
+                    <TreeView Grid.Column="2" ItemsSource="{Binding RootNode.Nodes, Mode=OneWay}">
+                        <TreeView.Resources>
+                            <DataTemplate DataType="{x:Type vm:ImportTreeFile}">
+                                <StackPanel Orientation="Horizontal">
+                                    <md:PackIcon Kind="File" Margin="0,0,4,0" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                                    <TextBlock Text="{Binding Name, Mode=OneWay}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type vm:ImportTreeDirectory}" ItemsSource="{Binding Nodes}">
+                                <StackPanel Orientation="Horizontal">
+                                    <md:PackIcon Kind="Folder" Margin="0,0,4,0" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.Resources>
+                    </TreeView>
+                </Grid>
+            </DockPanel>
+            <controls:LogListControl Visibility="Collapsed"
+                DataContext="{Binding LogList, Mode=OneWay}"/>
+        </Grid>
+    </DockPanel>
 </mde:MaterialWindow>

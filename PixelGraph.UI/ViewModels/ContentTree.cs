@@ -6,12 +6,12 @@ using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class TextureTreeNode : INotifyPropertyChanged
+    internal class ContentTreeNode : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
         public string Name {get; set;}
-        public ObservableCollection<TextureTreeNode> Nodes {get; set;}
+        public ObservableCollection<ContentTreeNode> Nodes {get; set;}
 
         private bool _visible;
         public bool Visible {
@@ -23,9 +23,9 @@ namespace PixelGraph.UI.ViewModels
         }
 
 
-        public TextureTreeNode()
+        public ContentTreeNode()
         {
-            Nodes = new ObservableCollection<TextureTreeNode>();
+            Nodes = new ObservableCollection<ContentTreeNode>();
             Visible = true;
         }
 
@@ -37,15 +37,24 @@ namespace PixelGraph.UI.ViewModels
                 node.UpdateVisibility(search);
         }
 
+        public virtual void SetVisibility(bool visible)
+        {
+            Visible = visible;
+
+            foreach (var node in Nodes)
+                node.SetVisibility(visible);
+        }
+
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 
-    internal class TextureTreeDirectory : TextureTreeNode
+    internal class ContentTreeDirectory : ContentTreeNode
     {
         public string Path {get; set;}
+
 
         public override void UpdateVisibility(ISearchParameters search)
         {
@@ -62,14 +71,36 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    internal class TextureTreeFile : TextureTreeNode
+    internal class ContentTreeMaterialDirectory : ContentTreeDirectory
+    {
+        public string MaterialFilename {get; set;}
+
+
+        public override void UpdateVisibility(ISearchParameters search)
+        {
+            Visible = true;
+
+            if (!string.IsNullOrEmpty(search.SearchText)) {
+                Visible = Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            foreach (var node in Nodes) {
+                if (!search.ShowAllFiles)
+                    node.SetVisibility(false);
+                else
+                    node.UpdateVisibility(search);
+            }
+        }
+    }
+
+    internal class ContentTreeFile : ContentTreeNode
     {
         public string Filename {get; set;}
-        public NodeType Type {get; set;}
+        public ContentNodeType Type {get; set;}
         public PackIconKind Icon {get; set;}
 
 
-        public TextureTreeFile()
+        public ContentTreeFile()
         {
             Icon = PackIconKind.File;
         }
@@ -77,7 +108,7 @@ namespace PixelGraph.UI.ViewModels
         public override void UpdateVisibility(ISearchParameters search)
         {
             if (search.ShowAllFiles) Visible = true;
-            else Visible = Type == NodeType.Material;
+            else Visible = Type == ContentNodeType.Material;
             if (!Visible) return;
 
             if (!string.IsNullOrEmpty(search.SearchText)) {
@@ -86,14 +117,7 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    //internal class TextureTreeMaterial : TextureTreeFile
-    //{
-    //    //public string MaterialFilename {get; set;}
-    //    public MaterialProperties Material {get; set;}
-    //    //public ImageSource AlbedoSource {get; set;}
-    //}
-
-    internal enum NodeType
+    public enum ContentNodeType
     {
         Unknown,
         PackInput,

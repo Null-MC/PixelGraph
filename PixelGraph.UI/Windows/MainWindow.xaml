@@ -167,15 +167,31 @@
                     <TreeView SelectedItemChanged="OnTextureTreeSelectedItemChanged"
                              ItemsSource="{Binding TreeRoot.Nodes, Mode=OneWay}">
                         <TreeView.Resources>
-                            <DataTemplate DataType="{x:Type vm:TextureTreeFile}">
+                            <DataTemplate DataType="{x:Type vm:ContentTreeFile}">
                                 <StackPanel Orientation="Horizontal">
                                     <md:PackIcon Margin="0,0,4,0"
                                                  Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                                 Kind="{Binding Icon, Mode=OneWay}"/>
+                                                 Kind="{Binding Icon, Mode=OneWay}">
+                                        <md:PackIcon.Style>
+                                            <Style TargetType="md:PackIcon">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Type, Mode=OneWay}" Value="{x:Static vm:ContentNodeType.Texture}">
+                                                        <Setter Property="Foreground" Value="#F00"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </md:PackIcon.Style>
+                                    </md:PackIcon>
                                     <TextBlock Text="{Binding Name, Mode=OneWay}"/>
                                 </StackPanel>
                             </DataTemplate>
-                            <HierarchicalDataTemplate DataType="{x:Type vm:TextureTreeDirectory}" ItemsSource="{Binding Nodes}">
+                            <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeMaterialDirectory}" ItemsSource="{Binding Nodes}">
+                                <StackPanel Orientation="Horizontal">
+                                    <md:PackIcon Kind="PaletteSwatch" Margin="0,0,4,0" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeDirectory}" ItemsSource="{Binding Nodes}">
                                 <StackPanel Orientation="Horizontal">
                                     <md:PackIcon Kind="Folder" Margin="0,0,4,0" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                                     <TextBlock Text="{Binding Name}"/>
@@ -194,13 +210,13 @@
                     </TreeView>
                 </DockPanel>
                 <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
-                <Grid Grid.Column="2" Visibility="{Binding IsMaterialSelected, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
+                <Grid Grid.Column="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="3"/>
                         <ColumnDefinition Width="280"/>
                     </Grid.ColumnDefinitions>
-                    <DockPanel Grid.Column="0">
+                    <DockPanel Grid.Column="0" Visibility="{Binding HasPreviewImage, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
                         <DockPanel DockPanel.Dock="Top" Margin="4,2" LastChildFill="False">
                             <CheckBox DockPanel.Dock="Left" Content="Tile" Foreground="{DynamicResource SecondaryHueMidBrush}"
                                       IsChecked="{Binding EnableTiling, ElementName=TextureViewer}"/>
@@ -218,8 +234,10 @@
                             </ComboBox>
                         </DockPanel>
                         <ListBox DockPanel.Dock="Bottom" Background="Black" VerticalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                 SelectionChanged="OnMaterialSourceSelectionChanged"
                                  ItemsSource="{Binding Textures, Mode=OneWay}"
-                                 SelectedItem="{Binding SelectedSource, Mode=TwoWay}">
+                                 SelectedItem="{Binding SelectedSource, Mode=TwoWay}"
+                                 Visibility="{Binding HasLoadedMaterial, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Orientation="Horizontal"/>
@@ -241,12 +259,13 @@
                             </ListBox.ItemTemplate>
                         </ListBox>
                         <controls:TextureView x:Name="TextureViewer" Background="#222"
-                                              Texture="{Binding SelectedSource.Image, Mode=OneWay}"/>
+                                              Texture="{Binding LoadedTexture, Mode=OneWay}"/>
                     </DockPanel>
                     <GridSplitter Grid.Column="1" Grid.Row="0" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
                     <controls:MaterialPropertiesControl Grid.Column="2" DataChanged="OnMaterialChanged" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
                                                    Material="{Binding LoadedMaterial, Mode=OneWay}"
-                                                   SelectedTag="{Binding SelectedTag, Mode=TwoWay}"/>
+                                                   SelectedTag="{Binding SelectedTag, Mode=TwoWay}"
+                                                   Visibility="{Binding HasLoadedMaterial, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"/>
                 </Grid>
             </Grid>
         </Grid>

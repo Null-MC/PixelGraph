@@ -14,6 +14,7 @@ namespace PixelGraph.Common
 
         void AddFileInput();
         void AddFileOutput();
+        void AddArchiveInput();
         void AddArchiveOutput();
         ServiceProvider Build();
     }
@@ -50,6 +51,11 @@ namespace PixelGraph.Common
         public void AddFileOutput()
         {
             Services.AddSingleton<IOutputWriter, FileOutputWriter>();
+        }
+
+        public void AddArchiveInput()
+        {
+            Services.AddSingleton<IInputReader, ArchiveInputReader>();
         }
 
         public void AddArchiveOutput()

@@ -52,7 +52,7 @@ namespace PixelGraph.Common.IO.Importing
             var files = reader.EnumerateFiles(localPath, "*.*")
                 .ToHashSet(StringComparer.InvariantCultureIgnoreCase);
 
-            var names = GetMaterialNames(files).Distinct();
+            var names = GetMaterialNames(files).Distinct().ToArray();
 
             foreach (var name in names) {
                 token.ThrowIfCancellationRequested();

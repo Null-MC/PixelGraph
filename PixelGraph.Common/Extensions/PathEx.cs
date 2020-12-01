@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace PixelGraph.Common.Extensions
 {
@@ -15,6 +16,17 @@ namespace PixelGraph.Common.Extensions
         {
             if (Path.DirectorySeparatorChar == '/') return filename;
             return filename.Replace('/', Path.DirectorySeparatorChar);
+        }
+
+        public static bool MatchPattern(string name, string pattern)
+        {
+            if (pattern == null || pattern == "*") return true;
+
+            var regexPattern = Regex.Escape(pattern)
+                .Replace("\\?", ".")
+                .Replace("\\*", ".+");
+
+            return Regex.IsMatch(name, regexPattern);
         }
     }
 }

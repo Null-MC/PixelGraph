@@ -57,7 +57,7 @@ namespace PixelGraph.Common.IO.Importing
                 Name = name,
                 LocalPath = LocalPath,
                 LocalFilename = matFile,
-                UseGlobalMatching = AsGlobal,
+                UseGlobalMatching = true,
             };
 
             await writer.WriteAsync(material, matFile);
@@ -68,7 +68,8 @@ namespace PixelGraph.Common.IO.Importing
                 Material = material,
             };
 
-            await graphBuilder.ProcessOutputGraphAsync(context, token);
+            graphBuilder.UseGlobalOutput = AsGlobal;
+            await graphBuilder.ProcessInputGraphAsync(context, token);
         }
     }
 }

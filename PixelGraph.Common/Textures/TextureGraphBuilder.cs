@@ -18,7 +18,7 @@ namespace PixelGraph.Common.Textures
         bool UseGlobalOutput {get; set;}
 
         ITextureGraph BuildInputGraph(MaterialContext context);
-        Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default);
+        Task ProcessInputGraphAsync(MaterialContext context, CancellationToken token = default);
     }
 
     internal class TextureGraphBuilder : ITextureGraphBuilder
@@ -51,10 +51,9 @@ namespace PixelGraph.Common.Textures
             return graph;
         }
 
-        public async Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default)
+        public async Task ProcessInputGraphAsync(MaterialContext context, CancellationToken token = default)
         {
-            using var graph = new TextureGraph(provider, reader, context);
-            graph.BuildFromInput();
+            using var graph = BuildInputGraph(context);
 
             foreach (var tag in TextureTags.All) {
                 var encoding = context.Profile.Output.GetFinalTextureEncoding(tag);

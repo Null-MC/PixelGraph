@@ -24,6 +24,7 @@ namespace PixelGraph.UI
             builder.Services.AddTransient<PublishWindowVM>();
 
             builder.Services.AddSingleton<IRecentPathManager, RecentPathManager>();
+            builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
         }
 

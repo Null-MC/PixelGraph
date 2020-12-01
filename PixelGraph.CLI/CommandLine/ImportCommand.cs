@@ -160,7 +160,7 @@ namespace PixelGraph.CLI.CommandLine
                         Material = material,
                     };
 
-                    await graphBuilder.ProcessOutputGraphAsync(context, token);
+                    await graphBuilder.ProcessInputGraphAsync(context, token);
 
                     var localFile = "pbr.yml";
                     await packWriter.WriteAsync(localFile, packProfile);
