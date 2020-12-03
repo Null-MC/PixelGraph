@@ -36,7 +36,7 @@ A single Pack-Input file lives in the root of the workspace (`~/input.yml`) whic
 # ~/input.yml
 format = raw
 smooth:
-	red: smooth2
+  red: smooth2
 ```
 
 One or more Pack-Profiles are used to describe a publishing routine; they also live in the project root and should match the naming convention `~/<name>.pack.yml`. Each profile can specify pack details, encoding, format, resizing, etc; this allows a single set of content to be published for multiple resolutions and encodings, ie `pbr-lab1.3-64x` or `default-128x`
@@ -44,7 +44,7 @@ One or more Pack-Profiles are used to describe a publishing routine; they also l
 ```yml
 # ~/pbr-lab13-x64.yml
 output:
-	format: default
+  format: default
 texture-scale = 0.5
 ```
 
@@ -52,11 +52,11 @@ Material files are used to desribe a collection of textures that compose a singl
 ```yml
 # ~/assets/minecraft/textures/block/lantern.pbr.yml
 smooth:
-	scale: 1.2
+  scale: 1.2
 metal:
-	scale: 0.8
+  scale: 0.8
 emissive:
-	scale: 0.2
+  scale: 0.2
 ```
 
 ## Sample Repository
