@@ -11,6 +11,7 @@ namespace PixelGraph.Common.Encoding
                 Green = EncodingChannel.Green,
                 Blue = EncodingChannel.Blue,
                 Alpha = EncodingChannel.Alpha,
+                Sampler = Samplers.Cubic,
                 Include = true,
             };
 
@@ -19,6 +20,7 @@ namespace PixelGraph.Common.Encoding
                 Green = EncodingChannel.NormalY,
                 Blue = EncodingChannel.NormalZ,
                 Alpha = EncodingChannel.White,
+                Sampler = Samplers.Cubic,
                 Include = true,
             };
 
@@ -27,6 +29,7 @@ namespace PixelGraph.Common.Encoding
                 Green = EncodingChannel.Specular,
                 Blue = EncodingChannel.Specular,
                 Alpha = EncodingChannel.White,
+                Sampler = Samplers.Cubic,
                 Include = true,
             };
         }

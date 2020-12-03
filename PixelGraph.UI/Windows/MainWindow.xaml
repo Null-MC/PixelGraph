@@ -39,7 +39,7 @@
                         </Style>
                     </Button.Style>
                 </Button>
-                <Button Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0,0,0,0"
+                <Button Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0"
                         IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
                     <Button.ContextMenu>
                         <ContextMenu PlacementRectangle="{Binding RelativeSource={RelativeSource Self}}">
@@ -67,15 +67,15 @@
                     </Button.Style>
                 </Button>
             </StackPanel>
-            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignRaisedButton}" Height="24" Padding="8,0" Margin="2" IsEnabled="False" Click="OnSettingsClick"
+            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignFlatButton}" Height="24" Padding="8,0" Margin="2" IsEnabled="False" Click="OnSettingsClick"
                     ToolTip="Edit Application Settings">
                 <md:PackIcon Kind="Settings"/>
             </Button>
-            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignRaisedButton}" Height="24" Padding="8,0" Margin="2" Click="OnDocumentationButtonClick"
+            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignFlatButton}" Height="24" Padding="8,0" Margin="2" Click="OnDocumentationButtonClick"
                     ToolTip="View Online Documentation">
                 <md:PackIcon Kind="Help"/>
             </Button>
-            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignRaisedButton}" Height="24" Padding="8,0" Margin="12,2,2,2" Click="OnContentEncodingMenuItemClick"
+            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignFlatButton}" Height="24" Padding="8,0" Margin="12,2,2,2" Click="OnContentEncodingMenuItemClick"
                     ToolTip="Edit Input Encoding"
                     IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
                 <StackPanel Orientation="Horizontal">
@@ -85,10 +85,10 @@
             </Button>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
                         IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
+                <Button Content="{md:PackIcon Edit}" ToolTip="Manage Profiles" Width="28" Height="24" Padding="0" Margin="2" Click="OnProfilesClick"
+                        Style="{DynamicResource MaterialDesignFlatButton}"/>
                 <ComboBox Width="180" Margin="6,0,2,2" DisplayMemberPath="Name"
                           ItemsSource="{Binding Profiles, Mode=OneWay}"/>
-                <Button Content="{md:PackIcon Edit}" ToolTip="Manage Profiles" Width="28" Height="24" Padding="0" Margin="2" Click="OnProfilesClick"
-                        Style="{DynamicResource MaterialDesignOutlinedButton}"/>
                 <StackPanel Orientation="Horizontal" Margin="2,2,6,2">
                     <Button Content="Publish" Height="24" Padding="8,0" Click="OnPublishMenuItemClick">
                         <Button.Style>
@@ -97,13 +97,12 @@
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0,0,0,0">
-                        <Button.ContextMenu>
-                            <ContextMenu PlacementRectangle="{Binding RelativeSource={RelativeSource Self}}">
-                                <MenuItem Header="Import Folder"/>
-                                <MenuItem Header="Import ZIP"/>
-                            </ContextMenu>
-                        </Button.ContextMenu>
+                    <Button Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0">
+                        <Button.Resources>
+                            <Popup x:Key="PublishPopup">
+                                <TextBlock Text="Hello World!"/>
+                            </Popup>
+                        </Button.Resources>
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
                                 <Setter Property="md:ButtonAssist.CornerRadius" Value="0,3,3,0"/>

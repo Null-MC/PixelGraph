@@ -155,7 +155,9 @@ namespace PixelGraph.UI.ViewModels
                 Description = "Designer Data",
                 Format = 99,
                 ImageEncoding = "tga",
-                Sampler = "point",
+                Output = {
+                    Sampler = "point",
+                },
             };
         }
     }

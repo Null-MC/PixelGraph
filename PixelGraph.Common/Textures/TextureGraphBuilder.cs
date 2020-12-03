@@ -19,6 +19,7 @@ namespace PixelGraph.Common.Textures
 
         ITextureGraph BuildInputGraph(MaterialContext context);
         Task ProcessInputGraphAsync(MaterialContext context, CancellationToken token = default);
+        Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default);
     }
 
     internal class TextureGraphBuilder : ITextureGraphBuilder
@@ -51,6 +52,9 @@ namespace PixelGraph.Common.Textures
             return graph;
         }
 
+        /// <summary>
+        /// Input -> Output; for publishing textures
+        /// </summary>
         public async Task ProcessInputGraphAsync(MaterialContext context, CancellationToken token = default)
         {
             using var graph = BuildInputGraph(context);
@@ -59,22 +63,43 @@ namespace PixelGraph.Common.Textures
                 var encoding = context.Profile.Output.GetFinalTextureEncoding(tag);
 
                 if (encoding?.Include ?? false)
-                    await ProcessTextureAsync(graph, tag, token);
+                    await ProcessTextureAsync(graph, encoding, tag, token);
             }
         }
 
-        private async Task ProcessTextureAsync(ITextureGraph graph, string tag, CancellationToken token)
+        /// <summary>
+        /// Output -> Input; for importing textures
+        /// </summary>
+        public async Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default)
         {
-            using var image = await graph.BuildFinalImageAsync(tag, token);
+            //using var graph = BuildOutputGraph(context);
+            using var graph = new TextureGraph(provider, reader, context);
+            graph.BuildFromOutput();
+            graph.CreateEmpty = false;
+
+            foreach (var tag in TextureTags.All) {
+                var encoding = context.Input.GetFormatEncoding(tag);
+
+                //if (encoding?.Include ?? false)
+                await ProcessTextureAsync(graph, encoding, tag, token);
+            }
+        }
+
+        private async Task ProcessTextureAsync(ITextureGraph graph, TextureEncoding encoding, string tag, CancellationToken token)
+        {
+            using var image = await graph.BuildFinalImageAsync(encoding, token);
 
             var imageFormat = graph.Context.Profile.ImageEncoding
                 ?? ResourcePackProfileProperties.DefaultImageEncoding;
 
             if (image != null) {
+                var p = graph.Context.Material.LocalPath;
+                if (!UseGlobalOutput) p = PathEx.Join(p, graph.Context.Material.Name);
+
                 if (graph.Context.Material.IsMultiPart) {
                     foreach (var region in graph.Context.Material.Parts) {
                         var name = naming.GetOutputTextureName(graph.Context.Profile, region.Name, tag, UseGlobalOutput);
-                        var destFile = PathEx.Join(graph.Context.Material.LocalPath, name);
+                        var destFile = PathEx.Join(p, name);
 
                         if (image.Width == 1 && image.Height == 1) {
                             await imageWriter.WriteAsync(image, destFile, imageFormat, token);
@@ -93,7 +118,7 @@ namespace PixelGraph.Common.Textures
                 }
                 else {
                     var name = naming.GetOutputTextureName(graph.Context.Profile, graph.Context.Material.Name, tag, UseGlobalOutput);
-                    var destFile = PathEx.Join(graph.Context.Material.LocalPath, name);
+                    var destFile = PathEx.Join(p, name);
 
                     Resize(graph.Context, image, tag);
 
@@ -114,7 +139,7 @@ namespace PixelGraph.Common.Textures
             var (width, height) = image.Size();
 
             var encoding = context.Profile.Output.GetFinalTextureEncoding(tag);
-            var samplerName = context.Profile.Sampler ?? encoding.Sampler;
+            var samplerName = encoding.Sampler;
 
             var resampler = KnownResamplers.Bicubic;
             if (samplerName != null && Samplers.TryParse(samplerName, out var _resampler))

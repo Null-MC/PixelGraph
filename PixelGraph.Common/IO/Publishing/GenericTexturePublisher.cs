@@ -70,7 +70,7 @@ namespace PixelGraph.Common.Publishing
             var (width, height) = context.GetCurrentSize();
 
             var resampler = KnownResamplers.Bicubic;
-            if (Pack.Sampler != null && Samplers.TryParse(Pack.Sampler, out var _resampler))
+            if (Pack.Output.Sampler != null && Samplers.TryParse(Pack.Output.Sampler, out var _resampler))
                 resampler = _resampler;
 
             if (Pack.TextureSize.HasValue) {

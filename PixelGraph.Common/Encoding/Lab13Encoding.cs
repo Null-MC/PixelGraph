@@ -11,6 +11,7 @@ namespace PixelGraph.Common.Encoding
                 Green = EncodingChannel.Green,
                 Blue = EncodingChannel.Blue,
                 Alpha = EncodingChannel.Alpha,
+                Sampler = Samplers.Cubic,
                 Include = true,
             };
 
@@ -19,6 +20,7 @@ namespace PixelGraph.Common.Encoding
                 Green = EncodingChannel.NormalY,
                 Blue = EncodingChannel.Occlusion,
                 Alpha = EncodingChannel.Height,
+                Sampler = Samplers.Bilinear,
                 Include = true,
             };
 
@@ -27,6 +29,7 @@ namespace PixelGraph.Common.Encoding
                 Green = EncodingChannel.Metal,
                 Blue = EncodingChannel.Porosity_SSS,
                 Alpha = EncodingChannel.EmissiveClipped,
+                Sampler = Samplers.Nearest,
                 Include = true,
             };
         }

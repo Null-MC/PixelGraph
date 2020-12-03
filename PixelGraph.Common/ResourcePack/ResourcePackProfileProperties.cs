@@ -25,7 +25,7 @@ namespace PixelGraph.Common.ResourcePack
 
         public ResourcePackOutputProperties Output {get; set;}
 
-        public string Sampler {get; set;}
+        //public string Sampler {get; set;}
 
         [YamlMember(Alias = "texture-size")]
         public int? TextureSize {get; set;}

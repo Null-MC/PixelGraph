@@ -9,7 +9,7 @@ using System.Windows.Threading;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class LogListVM : ViewModelBase
+    public class LogListVM : ViewModelBase
     {
         public event EventHandler Appended;
 
@@ -30,9 +30,6 @@ namespace PixelGraph.UI.ViewModels
 
             Items.Add(item);
 
-            //var border = (Border)VisualTreeHelper.GetChild(this, 0);
-            //var scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
-            //scrollViewer.ScrollToBottom();
             Appended?.Invoke(this, EventArgs.Empty);
         }
 
@@ -46,10 +43,10 @@ namespace PixelGraph.UI.ViewModels
             Items.Clear();
         }
 
-        public void BeginClear()
-        {
-            Application.Current.Dispatcher.BeginInvoke(Clear);
-        }
+        //public void BeginClear()
+        //{
+        //    Application.Current.Dispatcher.BeginInvoke(Clear);
+        //}
 
         private static readonly Dictionary<LogLevel, Brush> logBrushMap = new Dictionary<LogLevel, Brush> {
             [LogLevel.Debug] = Brushes.LimeGreen,

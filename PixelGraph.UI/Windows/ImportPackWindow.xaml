@@ -16,7 +16,7 @@
                     Background="{DynamicResource MaterialDesignPaper}"
                     FontFamily="{DynamicResource MaterialDesignFont}"
                     d:DataContext="{d:DesignInstance vm:ImportPackDesignVM, IsDesignTimeCreatable=True}"
-                    WindowStartupLocation="CenterOwner" Loaded="OnWindowLoaded">
+                    WindowStartupLocation="CenterOwner" Loaded="OnWindowLoaded" Closed="OnWindowClosed">
     <Window.Resources>
         <vm:EncodingFormatValues x:Key="Formats"/>
     </Window.Resources>
@@ -30,24 +30,33 @@
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Content="Cancel" Margin="4" HorizontalAlignment="Left" Click="OnCancelClick"/>
-                <Button Grid.Column="1" Content="Import" Margin="4" HorizontalAlignment="Right" Click="OnImportClick"/>
+                <Button Grid.Column="1" Content="Import" Margin="4" HorizontalAlignment="Right" Click="OnImportClick"
+                        IsEnabled="{Binding IsReady, Mode=OneWay}"
+                        Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}"/>
+                <Button Grid.Column="1" Content="Cancel" Margin="4" HorizontalAlignment="Right" Click="OnCancelClick"
+                        IsEnabled="{Binding IsActive, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"
+                        Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"/>
             </Grid>
         </Border>
         <Grid>
-            <DockPanel>
+            <DockPanel
+                Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}">
                 <TextBox DockPanel.Dock="Top" IsReadOnly="True" Text="{Binding ImportSource, Mode=OneWay}" Padding="2,0" FontFamily="Consolas" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="240"/>
                         <ColumnDefinition Width="3"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Orientation="Vertical" Margin="4">
-                        <TextBlock Text="Format" FontSize="10" Padding="4,6,4,0" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
-                        <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" Foreground="{DynamicResource SecondaryHueMidBrush}"
-                            ItemsSource="{StaticResource Formats}"
-                            SelectedValue="{Binding SourceFormat, Mode=TwoWay}" Padding="4,2"/>
+                        <TextBlock Text="Source Format" FontSize="10" Padding="4,6,4,0" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="{md:PackIcon Edit}" Padding="2,0,2,0" ToolTip="Edit Encoding" Height="20"
+                                    Style="{StaticResource MaterialDesignFlatButton}"/>
+                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                      ItemsSource="{StaticResource Formats}"
+                                      SelectedValue="{Binding SourceFormat, Mode=TwoWay}" Padding="4,2" Margin="0,0,4,0"/>
+                        </DockPanel>
                     </StackPanel>
                     <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
                     <TreeView Grid.Column="2" ItemsSource="{Binding RootNode.Nodes, Mode=OneWay}">
@@ -68,8 +77,9 @@
                     </TreeView>
                 </Grid>
             </DockPanel>
-            <controls:LogListControl Visibility="Collapsed"
-                DataContext="{Binding LogList, Mode=OneWay}"/>
+            <controls:LogListControl x:Name="LogList"
+                Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"
+                Log="{Binding LogList, Mode=OneWay}"/>
         </Grid>
     </DockPanel>
 </mde:MaterialWindow>

@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
-using PixelGraph.Common.IO;
 
 namespace PixelGraph.UI.Windows
 {
@@ -48,6 +48,7 @@ namespace PixelGraph.UI.Windows
 
         private void OnOkClick(object sender, RoutedEventArgs e)
         {
+            DialogResult = true;
             Close();
         }
     }

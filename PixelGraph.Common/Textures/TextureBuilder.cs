@@ -18,13 +18,15 @@ namespace PixelGraph.Common.Textures
     internal class TextureBuilder
     {
         private readonly Dictionary<string, OverlayProcessor.Options> optionsMap;
+        private readonly Dictionary<ColorChannel, string> encoding;
         private readonly ChannelOptions filterOptions;
         private readonly ILogger logger;
         private TextureFilter filter;
         private TextureGraph graph;
-        private TextureEncoding encoding;
         private Rgba32 sourceColor;
         private bool restoreNormalZ;
+
+        public bool CreateEmpty {get; set;}
 
 
         public TextureBuilder(IServiceProvider provider)
@@ -32,27 +34,30 @@ namespace PixelGraph.Common.Textures
             logger = provider.GetRequiredService<ILogger<TextureBuilder>>();
 
             optionsMap = new Dictionary<string, OverlayProcessor.Options>(StringComparer.InvariantCultureIgnoreCase);
+            encoding = new Dictionary<ColorChannel, string>();
             filterOptions = new ChannelOptions();
             sourceColor = new Rgba32();
         }
 
-        public void Build(TextureGraph textureGraph, string tag)
+        public void Initialize(TextureGraph textureGraph)
         {
             graph = textureGraph;
 
             filter = new TextureFilter(graph.Context.Material);
-            encoding = graph.Context.Profile.Output.GetFinalTextureEncoding(tag);
+        }
 
-            MapColor(ColorChannel.Red);
-            MapColor(ColorChannel.Green);
-            MapColor(ColorChannel.Blue);
-            MapColor(ColorChannel.Alpha);
+        public void MapChannel(ColorChannel color, string encodingChannel)
+        {
+            if (color == ColorChannel.None) throw new ArgumentOutOfRangeException(nameof(color), "Cannot map to empty color!");
+            if (encodingChannel == null) throw new ArgumentNullException(nameof(encodingChannel));
+
+            encoding[color] = encodingChannel;
+            MapColor(color);
         }
 
         private void MapColor(ColorChannel color)
         {
-            var outputChannel = encoding.GetEncodingChannel(color);
-            if (outputChannel == null) return;
+            if (!encoding.TryGetValue(color, out var outputChannel)) return;
 
             var isOutputHeight = EncodingChannel.Is(outputChannel, EncodingChannel.Height);
             var isOutputNormalZ = EncodingChannel.Is(outputChannel, EncodingChannel.NormalZ);
@@ -197,6 +202,8 @@ namespace PixelGraph.Common.Textures
 
         private bool GetSourceValue(in string channel, out byte value)
         {
+            if (channel == null) throw new ArgumentNullException(nameof(channel));
+
             return byte.TryParse(channel, out value) || filter.TryGetChannelValue(channel, out value);
         }
 
@@ -206,22 +213,12 @@ namespace PixelGraph.Common.Textures
 
             try {
                 image = await CreateSourceImageAsync(token);
+                if (image == null) return null;
 
-                var redScale = filter.GetScale(encoding.Red);
-                if (Math.Abs(redScale - 1f) > float.Epsilon)
-                    filterOptions.Append(ColorChannel.Red, (ref byte v) => filter.GenericScaleFilter(ref v, in redScale));
-
-                var greenScale = filter.GetScale(encoding.Green);
-                if (Math.Abs(greenScale - 1f) > float.Epsilon)
-                    filterOptions.Append(ColorChannel.Green, (ref byte v) => filter.GenericScaleFilter(ref v, in greenScale));
-
-                var blueScale = filter.GetScale(encoding.Blue);
-                if (Math.Abs(blueScale - 1f) > float.Epsilon)
-                    filterOptions.Append(ColorChannel.Blue, (ref byte v) => filter.GenericScaleFilter(ref v, in blueScale));
-
-                var alphaScale = filter.GetScale(encoding.Alpha);
-                if (Math.Abs(alphaScale - 1f) > float.Epsilon)
-                    filterOptions.Append(ColorChannel.Alpha, (ref byte v) => filter.GenericScaleFilter(ref v, in alphaScale));
+                ScaleColor(ColorChannel.Red);
+                ScaleColor(ColorChannel.Green);
+                ScaleColor(ColorChannel.Blue);
+                ScaleColor(ColorChannel.Alpha);
 
                 // TODO: additional filtering operations
 
@@ -233,6 +230,15 @@ namespace PixelGraph.Common.Textures
                 image?.Dispose();
                 throw;
             }
+        }
+
+        private void ScaleColor(ColorChannel color)
+        {
+            var channel = encoding.Get(color);
+            var scale = filter.GetScale(channel);
+
+            if (Math.Abs(scale - 1f) > float.Epsilon)
+                filterOptions.Append(color, (ref byte v) => filter.GenericScaleFilter(ref v, in scale));
         }
 
         private async Task<Image<Rgba32>> CreateSourceImageAsync(CancellationToken token)
@@ -295,7 +301,10 @@ namespace PixelGraph.Common.Textures
 
                 if (targetImage != null && restoreNormalZ) RestoreNormalZ(targetImage);
 
-                return targetImage ?? new Image<Rgba32>(1, 1, sourceColor);
+                if (targetImage == null && CreateEmpty)
+                    targetImage = new Image<Rgba32>(1, 1, sourceColor);
+
+                return targetImage;
             }
             catch {
                 targetImage?.Dispose();
@@ -303,12 +312,22 @@ namespace PixelGraph.Common.Textures
             }
         }
 
+        private ColorChannel GetChannelColor(string channel)
+        {
+            foreach (var color in encoding.Keys) {
+                if (EncodingChannel.Is(encoding[color], channel))
+                    return color;
+            }
+
+            return ColorChannel.None;
+        }
+
         private void RestoreNormalZ(Image<Rgba32> image)
         {
             var options = new NormalRestoreProcessor.Options {
-                NormalX = encoding.GetColorChannel(EncodingChannel.NormalX),
-                NormalY = encoding.GetColorChannel(EncodingChannel.NormalY),
-                NormalZ = encoding.GetColorChannel(EncodingChannel.NormalZ),
+                NormalX = GetChannelColor(EncodingChannel.NormalX),
+                NormalY = GetChannelColor(EncodingChannel.NormalY),
+                NormalZ = GetChannelColor(EncodingChannel.NormalZ),
             };
 
             if (options.HasAllMappings()) {

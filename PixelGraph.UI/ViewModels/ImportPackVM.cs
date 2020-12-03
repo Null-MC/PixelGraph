@@ -9,6 +9,9 @@ namespace PixelGraph.UI.ViewModels
         private ImportTreeNode _rootNode;
         private string _rootDirectory;
         private string _importSource;
+        private volatile bool _isReady;
+        private volatile bool _isActive;
+        private volatile bool _showLog;
 
         public bool IsArchive {get; set;}
         public bool AsGlobal {get; set;}
@@ -17,6 +20,14 @@ namespace PixelGraph.UI.ViewModels
         //public ResourcePackOutputProperties SourceEncoding {get; set;}
         public ResourcePackInputProperties PackInput {get; set;}
         public LogListVM LogList {get;}
+
+        public bool IsReady {
+            get => _isReady;
+            set {
+                _isReady = value;
+                OnPropertyChanged();
+            }
+        }
 
         public string RootDirectory {
             get => _rootDirectory;
@@ -42,6 +53,22 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public bool IsActive {
+            get => _isActive;
+            set {
+                _isActive = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool ShowLog {
+            get => _showLog;
+            set {
+                _showLog = value;
+                OnPropertyChanged();
+            }
+        }
+
 
         public ImportPackVM()
         {
@@ -61,6 +88,8 @@ namespace PixelGraph.UI.ViewModels
             IsArchive = true;
 
             LogList.Append(LogLevel.Information, "Hello World!");
+
+            ShowLog = true;
         }
     }
 }

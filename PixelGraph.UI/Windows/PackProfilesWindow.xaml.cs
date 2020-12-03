@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using PixelGraph.Common;
 
 namespace PixelGraph.UI.Windows
 {
@@ -89,8 +90,15 @@ namespace PixelGraph.UI.Windows
 
         private async Task SaveAsync(ResourcePackProfileProperties packProfile)
         {
+            var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
+            scopeBuilder.AddFileOutput();
+
             try {
-                var packWriter = provider.GetRequiredService<IResourcePackWriter>();
+                await using var scope = scopeBuilder.Build();
+                var writer = scope.GetRequiredService<IOutputWriter>();
+                var packWriter = scope.GetRequiredService<IResourcePackWriter>();
+
+                writer.SetRoot(VM.RootDirectory);
                 await packWriter.WriteAsync(packProfile.LocalFile, packProfile);
             }
             catch (Exception error) {

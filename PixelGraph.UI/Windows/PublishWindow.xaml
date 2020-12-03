@@ -71,7 +71,7 @@
             </Grid>
             <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
                   Visibility="{Binding ShowOutput, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <controls:LogListControl x:Name="LogList" DataContext="{Binding LogList, Mode=OneWay}"/>
+                <controls:LogListControl x:Name="LogList" Log="{Binding LogList, Mode=OneWay}"/>
             </Grid>
         </Grid>
     </DockPanel>

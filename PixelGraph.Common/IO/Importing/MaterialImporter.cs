@@ -69,7 +69,7 @@ namespace PixelGraph.Common.IO.Importing
             };
 
             graphBuilder.UseGlobalOutput = AsGlobal;
-            await graphBuilder.ProcessInputGraphAsync(context, token);
+            await graphBuilder.ProcessOutputGraphAsync(context, token);
         }
     }
 }

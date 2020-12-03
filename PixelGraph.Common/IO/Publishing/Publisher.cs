@@ -107,11 +107,11 @@ namespace PixelGraph.Common.IO.Publishing
                         }
 
                         if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
-                            logger.LogDebug("Skipping up-to-date texture {DisplayName}.", material.DisplayName);
+                            logger.LogDebug($"Skipping up-to-date texture {material.LocalPath}:{{DisplayName}}.", material.DisplayName);
                             continue;
                         }
 
-                        logger.LogDebug("Publishing texture {DisplayName}.", material.DisplayName);
+                        logger.LogDebug($"Publishing texture {material.LocalPath}:{{DisplayName}}.", material.DisplayName);
 
                         var materialContext = new MaterialContext {
                             Input = context.Input,

@@ -20,8 +20,9 @@ namespace PixelGraph.Common.Textures
     public interface ITextureGraph : IDisposable
     {
         MaterialContext Context {get;}
+        //bool CreateEmpty {get; set;}
 
-        Task<Image<Rgba32>> BuildFinalImageAsync(string tag, CancellationToken token = default);
+        Task<Image<Rgba32>> BuildFinalImageAsync(TextureEncoding encoding, CancellationToken token = default);
         Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token = default);
         Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default);
     }
@@ -36,6 +37,7 @@ namespace PixelGraph.Common.Textures
         private Image<Rgba32> occlusionTexture;
 
         public MaterialContext Context {get;}
+        public bool CreateEmpty {get; set;}
 
 
         public TextureGraph(IServiceProvider provider, IInputReader reader, MaterialContext context)
@@ -46,6 +48,7 @@ namespace PixelGraph.Common.Textures
 
             logger = provider.GetRequiredService<ILogger<TextureGraph>>();
             sourceMap = new Dictionary<string, List<ChannelSource>>();
+            CreateEmpty = true;
         }
 
         public void BuildFromInput()
@@ -64,30 +67,41 @@ namespace PixelGraph.Common.Textures
                 AddHeightGeneratedInputs();
         }
 
-        //public void BuildFromOutput()
-        //{
-        //    //var format = Context.Profile.Output?.Format
-        //    //             ?? TextureEncoding.Format_Default;
+        public void BuildFromOutput()
+        {
+            foreach (var tag in TextureTags.All) {
+                var packEncoding = Context.Profile.Output?.GetFinalTextureEncoding(tag);
 
-        //    foreach (var tag in TextureTags.All) {
-        //        var packEncoding = Context.Profile.Output?.GetFinalTextureEncoding(tag);
-        //        //var defaultEncoding = TextureEncoding.GetDefault(format, tag);
+                MapSource(tag, ColorChannel.Red, packEncoding?.Red);
+                MapSource(tag, ColorChannel.Green, packEncoding?.Green);
+                MapSource(tag, ColorChannel.Blue, packEncoding?.Blue);
+                MapSource(tag, ColorChannel.Alpha, packEncoding?.Alpha);
+            }
 
-        //        MapSource(tag, ColorChannel.Red, packEncoding?.Red);
-        //        MapSource(tag, ColorChannel.Green, packEncoding?.Green);
-        //        MapSource(tag, ColorChannel.Blue, packEncoding?.Blue);
-        //        MapSource(tag, ColorChannel.Alpha, packEncoding?.Alpha);
-        //    }
+            //if (ContainsSource(EncodingChannel.Height))
+            //    AddHeightGeneratedInputs();
+        }
 
-        //    if (ContainsSource(EncodingChannel.Height))
-        //        AddHeightGeneratedInputs();
-        //}
-
-        public async Task<Image<Rgba32>> BuildFinalImageAsync(string tag, CancellationToken token = default)
+        public Task<Image<Rgba32>> BuildFinalImageAsync(TextureEncoding encoding, CancellationToken token = default)
         {
             var op = new TextureBuilder(provider);
-            op.Build(this, tag);
-            return await op.CreateImageAsync(token);
+            op.CreateEmpty = CreateEmpty;
+
+            op.Initialize(this);
+
+            if (encoding.Red != null)
+                op.MapChannel(ColorChannel.Red, encoding.Red);
+
+            if (encoding.Green != null)
+                op.MapChannel(ColorChannel.Green, encoding.Green);
+
+            if (encoding.Blue != null)
+                op.MapChannel(ColorChannel.Blue, encoding.Blue);
+
+            if (encoding.Alpha != null)
+                op.MapChannel(ColorChannel.Alpha, encoding.Alpha);
+
+            return op.CreateImageAsync(token);
         }
 
         public async Task<Image<Rgba32>> GetGeneratedNormalAsync(CancellationToken token = default)

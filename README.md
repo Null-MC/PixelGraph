@@ -1,6 +1,6 @@
 # PixelGraph [![Actions Status](https://github.com/null511/PixelGraph/workflows/Release/badge.svg)](https://github.com/null511/PixelGraph/actions)
 
-PixelGraph (formerly MCPBRP) is an application for publishing Minecraft resource packs, with special tooling for post-processing PBR materials. Automate the workload of modifying and distributing your resource packs through simple property files. Supports a WPF-based desktop application as well as a command-line version for remote/server usage. Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
+PixelGraph (formerly MCPBRP) is an application for publishing Minecraft resource packs, with special tooling for post-processing PBR materials. Automate the workload of modifying and distributing your resource packs through yaml text files. Supports a WPF-based desktop application as well as a command-line version for remote/server usage. Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
 
 <img src="https://github.com/null511/PixelGraph/raw/master/media/LAB11.png" alt="PBR Workflow" />
 
@@ -22,7 +22,7 @@ Allows normal-map textures to be created from height-maps as needed during publi
 
 <img src="https://github.com/null511/PixelGraph/raw/master/media/OcclusionGeneration.png" alt="Occlusion-Map from Height-Map" height="140px"/>
 
-Allows ambient-occlusion textures to be created from height-maps as needed during publishing, or by prerendering them beforehand. Quality, Z-scale, step-count, and wrapping can be managed using the textures matching pbr-properties file.
+Allows ambient-occlusion textures to be created from height-maps as needed during publishing, or by prerendering them beforehand. Quality, Z-scale, step-count, and wrapping can be managed using the materials properties.
 
 ## Installation
 
@@ -30,20 +30,33 @@ For manual installation, download the latest standalone executable from the [Rel
 
 ## Usage
 
-Pack property files describe how the resource pack should be published, as well as an global properties affecting all textures. Multiple pack property files can be defined allowing packs with different descriptions, tags, resolution, channel-mappings, and more. Pre-defined input/output encoding have also been provided, including `lab-1.1` and `lab-1.3`.
+A single Pack-Input file lives in the root of the workspace (`~/input.yml`) which specifies the default formatting of all content. The example below uses a 'raw' encoding which manages each channel in a different texture; The 'smooth' texture has been set to use 'Perceptual-Smoothness' rather than the default linear smoothness.
 
-```ini
-# ~/pack.properties
-input.format = default
-output.format = lab-1.3
+```yml
+# ~/input.yml
+format = raw
+smooth:
+	red: smooth2
 ```
 
-Each item-texture requires a matching `*.pbr.properties` file to enable filtering. For more details, see the [Wiki](https://github.com/null511/PixelGraph/wiki/File-Loading).
-```ini
-# ~/assets/minecraft/textures/block/lantern.pbr.properties
-smooth.scale = 1.2
-metal.scale = 0.8
-emissive.scale = 0.2
+One or more Pack-Profiles are used to describe a publishing routine; they also live in the project root and should match the naming convention `~/<name>.pack.yml`. Each profile can specify pack details, encoding, format, resizing, etc; this allows a single set of content to be published for multiple resolutions and encodings, ie `pbr-lab1.3-64x` or `default-128x`
+
+```yml
+# ~/pbr-lab13-x64.yml
+output:
+	format: default
+texture-scale = 0.5
+```
+
+Material files are used to desribe a collection of textures that compose a single game "item". For more details, see the [Wiki](https://github.com/null511/PixelGraph/wiki/File-Loading).
+```yml
+# ~/assets/minecraft/textures/block/lantern.pbr.yml
+smooth:
+	scale: 1.2
+metal:
+	scale: 0.8
+emissive:
+	scale: 0.2
 ```
 
 ## Sample Repository

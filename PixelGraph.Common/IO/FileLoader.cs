@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using PixelGraph.Common.IO.Serialization;
 
 namespace PixelGraph.Common.IO
 {

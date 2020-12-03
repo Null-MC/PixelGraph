@@ -52,23 +52,29 @@ namespace PixelGraph.UI.Windows
                 UseDescriptionForTitle = true,
             };
 
-            if (dialog.ShowDialog(this) != true) return;
-            await LoadRootDirectoryAsync(dialog.SelectedPath, token);
+            if (dialog.ShowDialog(this) == true)
+                await SetRootDirectoryAsync(dialog.SelectedPath, token);
         }
 
-        private async Task LoadRootDirectoryAsync(string path, CancellationToken token)
+        private async Task SetRootDirectoryAsync(string path, CancellationToken token)
+        {
+            vm.RootDirectory = path;
+            await LoadRootDirectoryAsync();
+
+            var recent = provider.GetRequiredService<IRecentPathManager>();
+            await recent.InsertAsync(path, token);
+        }
+
+        private async Task LoadRootDirectoryAsync()
         {
             if (!vm.TryStartBusy()) return;
 
-            var recent = provider.GetRequiredService<IRecentPathManager>();
             var reader = provider.GetRequiredService<IInputReader>();
             var treeReader = provider.GetRequiredService<IContentTreeReader>();
 
             try {
-                vm.RootDirectory = path;
-                reader.SetRoot(path);
+                reader.SetRoot(vm.RootDirectory);
 
-                //vm.TreeRoot.Nodes.Clear();
                 vm.Profiles.Clear();
                 LoadProfiles();
 
@@ -80,8 +86,6 @@ namespace PixelGraph.UI.Windows
             finally {
                 vm.EndBusy();
             }
-
-            await recent.InsertAsync(path, token);
         }
 
         private async Task LoadPackInputAsync()
@@ -158,9 +162,6 @@ namespace PixelGraph.UI.Windows
                 vm.LoadedMaterialFilename = matFile;
                 vm.LoadedMaterial = await matReader.LoadAsync(matFile, token);
 
-                //vm.LoadedMaterialFilename = textureNode.MaterialFilename;
-                //vm.LoadedMaterial = textureNode.Material;
-
                 foreach (var tag in TextureTags.All) {
                     foreach (var file in reader.EnumerateTextures(vm.LoadedMaterial, tag)) {
                         if (!reader.FileExists(file)) continue;
@@ -198,16 +199,6 @@ namespace PixelGraph.UI.Windows
                 vm.IsUpdatingSources = false;
                 vm.SelectFirstTexture();
             }
-        }
-
-        private void LoadTexture()
-        {
-            // TODO
-        }
-
-        private void LoadMaterial()
-        {
-            // TODO
         }
 
         private async Task GenerateNormalAsync(CancellationToken token)
@@ -317,6 +308,22 @@ namespace PixelGraph.UI.Windows
             }
         }
 
+        private async Task ImportPackAsync(string source, bool isArchive)
+        {
+            using var window = new ImportPackWindow(provider) {
+                Owner = this,
+                VM = {
+                    RootDirectory = vm.RootDirectory,
+                    PackInput = vm.PackInput,
+                    ImportSource = source,
+                    IsArchive = isArchive,
+                },
+            };
+
+            if (window.ShowDialog() != null)
+                await LoadRootDirectoryAsync();
+        }
+
         private void ShowError(string message)
         {
             Application.Current.Dispatcher.Invoke(() => {
@@ -335,7 +342,7 @@ namespace PixelGraph.UI.Windows
         private async void OnRecentSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!(RecentList.SelectedItem is string item)) return;
-            await LoadRootDirectoryAsync(item, CancellationToken.None);
+            await SetRootDirectoryAsync(item, CancellationToken.None);
         }
 
         private async void OnOpenClick(object sender, RoutedEventArgs e)
@@ -343,27 +350,17 @@ namespace PixelGraph.UI.Windows
             await SelectRootDirectoryAsync(CancellationToken.None);
         }
 
-        private void OnImportFolderClick(object sender, RoutedEventArgs e)
+        private async void OnImportFolderClick(object sender, RoutedEventArgs e)
         {
             var dialog = new VistaFolderBrowserDialog {
                 Description = "Select the root folder of a resource pack.",
             };
 
-            if (dialog.ShowDialog(this) != true) return;
-
-            var window = new ImportPackWindow(provider) {
-                Owner = this,
-                VM = {
-                    RootDirectory = vm.RootDirectory,
-                    ImportSource = dialog.SelectedPath,
-                    PackInput = vm.PackInput,
-                },
-            };
-
-            window.ShowDialog();
+            if (dialog.ShowDialog(this) == true)
+                await ImportPackAsync(dialog.SelectedPath, false);
         }
 
-        private void OnImportZipClick(object sender, RoutedEventArgs e)
+        private async void OnImportZipClick(object sender, RoutedEventArgs e)
         {
             var dialog = new VistaOpenFileDialog {
                 Title = "Import Zip Archive",
@@ -371,19 +368,8 @@ namespace PixelGraph.UI.Windows
                 CheckFileExists = true,
             };
 
-            if (dialog.ShowDialog(this) != true) return;
-
-            var window = new ImportPackWindow(provider) {
-                Owner = this,
-                VM = {
-                    RootDirectory = vm.RootDirectory,
-                    ImportSource = dialog.FileName,
-                    PackInput = vm.PackInput,
-                    IsArchive = true,
-                },
-            };
-
-            window.ShowDialog();
+            if (dialog.ShowDialog(this) == true)
+                await ImportPackAsync(dialog.FileName, true);
         }
 
         private void OnContentEncodingMenuItemClick(object sender, RoutedEventArgs e)

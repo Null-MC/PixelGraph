@@ -24,6 +24,8 @@ namespace PixelGraph.UI.Windows
             this.provider = provider;
 
             InitializeComponent();
+
+            VM.LogList.Appended += OnLogListAppended;
         }
 
         private string GetArchiveFilename()
@@ -61,12 +63,8 @@ namespace PixelGraph.UI.Windows
             if (VM.Archive) builder.AddArchiveOutput();
             else builder.AddFileOutput();
 
-            var logReceiver = new LogReceiver();
+            var logReceiver = builder.AddLoggingRedirect();
             logReceiver.LogMessage += OnLogMessage;
-
-            builder.Services.AddSingleton<ILogReceiver>(logReceiver);
-            builder.Services.AddSingleton(typeof(ILogger<>), typeof(RedirectLogger<>));
-            builder.Services.AddSingleton<ILogger, RedirectLogger>();
 
             await using var scope = builder.Build();
             var reader = scope.GetRequiredService<IInputReader>();
@@ -103,7 +101,6 @@ namespace PixelGraph.UI.Windows
             if (!VM.PublishBegin(out var token)) return;
 
             try {
-                // TODO: Wire-up cancellation token to cancel button
                 await Task.Run(() => PublishAsync(destination, token));
 
                 VM.LogList.BeginAppend(LogLevel.None, "Publish completed successfully.");
@@ -137,6 +134,11 @@ namespace PixelGraph.UI.Windows
         private void OnLogMessage(object sender, LogEventArgs e)
         {
             VM.LogList.BeginAppend(e.Level, e.Message);
+        }
+
+        private void OnLogListAppended(object sender, EventArgs e)
+        {
+            LogList.ScrollToEnd();
         }
     }
 }

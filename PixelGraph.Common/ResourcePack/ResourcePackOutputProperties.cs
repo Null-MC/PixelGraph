@@ -8,6 +8,8 @@ namespace PixelGraph.Common.ResourcePack
     {
         public string Format {get; set;}
 
+        public string Sampler {get; set;}
+
         public TextureOutputEncoding Albedo {get; set;}
 
         public TextureOutputEncoding Height {get; set;}
@@ -59,18 +61,27 @@ namespace PixelGraph.Common.ResourcePack
             if (!textureMap.TryGetValue(tag, out var encoding)) return defaultEncoding;
 
             var rawEncoding = encoding(this);
-            if (rawEncoding == null) return defaultEncoding;
-            if (defaultEncoding == null) return rawEncoding;
+            //if (rawEncoding == null) return defaultEncoding;
+            //if (defaultEncoding == null) return rawEncoding;
 
             return new TextureOutputEncoding {
-                Red = rawEncoding.Red ?? defaultEncoding.Red,
-                Green = rawEncoding.Green ?? defaultEncoding.Green,
-                Blue = rawEncoding.Blue ?? defaultEncoding.Blue,
-                Alpha = rawEncoding.Alpha ?? defaultEncoding.Alpha,
-                Include = rawEncoding.Include ?? defaultEncoding.Include,
-                Sampler = rawEncoding.Sampler ?? defaultEncoding.Sampler,
+                Red = rawEncoding?.Red ?? defaultEncoding?.Red,
+                Green = rawEncoding?.Green ?? defaultEncoding?.Green,
+                Blue = rawEncoding?.Blue ?? defaultEncoding?.Blue,
+                Alpha = rawEncoding?.Alpha ?? defaultEncoding?.Alpha,
+                Include = rawEncoding?.Include ?? defaultEncoding?.Include,
+                Sampler = rawEncoding?.Sampler ?? Sampler ?? defaultEncoding?.Sampler,
             };
         }
+
+        //public string GetFinalSampler(string tag)
+        //{
+        //    var kind = 
+
+        //    var resampler = KnownResamplers.Bicubic;
+        //    if (Pack.Sampler != null && Samplers.TryParse(Pack.Sampler, out var _resampler))
+        //        resampler = _resampler;
+        //}
 
         //public string GetEncodingChannel(string tag, ColorChannel color)
         //{
