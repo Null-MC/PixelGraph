@@ -13,7 +13,6 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -27,12 +26,15 @@ namespace PixelGraph.UI.Windows
         private const int ThumbnailSize = 64;
 
         private readonly IServiceProvider provider;
+        private readonly IAppSettings settings;
         private readonly MainWindowVM vm;
 
 
         public MainWindow(IServiceProvider provider)
         {
             this.provider = provider;
+
+            settings = provider.GetRequiredService<IAppSettings>();
 
             if (!DesignerProperties.GetIsInDesignMode(this)) {
                 vm = new MainWindowVM();
@@ -407,13 +409,48 @@ namespace PixelGraph.UI.Windows
             window.ShowDialog();
         }
 
+        private string GetArchiveFilename()
+        {
+            var saveFileDialog = new VistaSaveFileDialog {
+                Title = "Save published archive",
+                Filter = "ZIP Archive|*.zip|All Files|*.*",
+                FileName = $"{vm.SelectedProfile?.Name}.zip",
+                AddExtension = true,
+            };
+
+            return saveFileDialog.ShowDialog() == true
+                ? saveFileDialog.FileName : null;
+        }
+
+        private static string GetDirectoryName()
+        {
+            var folderDialog = new VistaFolderBrowserDialog {
+                Description = "Destination for published resource pack content.",
+                UseDescriptionForTitle = true,
+                ShowNewFolderButton = true,
+            };
+
+            return folderDialog.ShowDialog() == true
+                ? folderDialog.SelectedPath : null;
+        }
+
         private void OnPublishMenuItemClick(object sender, RoutedEventArgs e)
         {
-            var window = new PublishWindow(provider) {
+            if (vm.SelectedProfile == null) return;
+
+            var destination = vm.PublishArchive
+                ? GetArchiveFilename() : GetDirectoryName();
+
+            if (destination == null) return;
+
+            using var window = new PublishWindow(provider) {
                 Owner = this,
                 VM = {
                     RootDirectory = vm.RootDirectory,
-                    Profiles = vm.Profiles.ToList(),
+                    Destination = destination,
+                    Profile = vm.SelectedProfile,
+                    Archive = vm.PublishArchive,
+                    Clean = vm.PublishClean,
                 },
             };
 

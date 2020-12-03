@@ -19,13 +19,15 @@ namespace PixelGraph.UI
             builder.AddFileInput();
             builder.AddFileOutput();
 
+            builder.Services.AddSingleton<IAppSettings, AppSettings>();
+            builder.Services.AddSingleton<IRecentPathManager, RecentPathManager>();
+            builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
+
+            builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
+
             builder.Services.AddTransient<MainWindowVM>();
             builder.Services.AddTransient<SettingsWindowVM>();
             builder.Services.AddTransient<PublishWindowVM>();
-
-            builder.Services.AddSingleton<IRecentPathManager, RecentPathManager>();
-            builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
-            builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
         }
 
         private void App_OnStartup(object sender, StartupEventArgs e)

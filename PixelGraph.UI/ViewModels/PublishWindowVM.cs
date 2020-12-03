@@ -1,28 +1,23 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class PublishWindowVM : ViewModelBase, IDisposable
     {
-        private CancellationTokenSource tokenSource;
-        private List<ProfileItem> _profiles;
-        private ProfileItem _selectedItem;
-        private string _rootDirectory;
-        private bool _archive, _clean;
-        private volatile bool _showOutput, _isActive;
+        private readonly CancellationTokenSource tokenSource;
+        private volatile bool _isActive;
+        private bool _closeOnComplete;
 
+        public ProfileItem Profile {get; set;}
+        public string RootDirectory {get; set;}
+        public string Destination {get; set;}
+        public bool Archive {get; set;}
+        public bool Clean {get; set;}
         public LogListVM LogList {get;}
 
-        public bool ShowOutput {
-            get => _showOutput;
-            set {
-                _showOutput = value;
-                OnPropertyChanged();
-            }
-        }
+        public CancellationToken Token => tokenSource.Token;
 
         public bool IsActive {
             get => _isActive;
@@ -32,42 +27,10 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public string RootDirectory {
-            get => _rootDirectory;
+        public bool CloseOnComplete {
+            get => _closeOnComplete;
             set {
-                _rootDirectory = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public List<ProfileItem> Profiles {
-            get => _profiles;
-            set {
-                _profiles = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public ProfileItem SelectedItem {
-            get => _selectedItem;
-            set {
-                _selectedItem = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool Archive {
-            get => _archive;
-            set {
-                _archive = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool Clean {
-            get => _clean;
-            set {
-                _clean = value;
+                _closeOnComplete = value;
                 OnPropertyChanged();
             }
         }
@@ -76,29 +39,7 @@ namespace PixelGraph.UI.ViewModels
         public PublishWindowVM()
         {
             LogList = new LogListVM();
-        }
-
-        public bool PublishBegin(out CancellationToken token)
-        {
-            if (_isActive) {
-                token = default;
-                return false;
-            }
-
-            tokenSource?.Dispose();
-
-            //OutputLog.Clear();
             tokenSource = new CancellationTokenSource();
-            ShowOutput = IsActive = true;
-            token = tokenSource.Token;
-            return true;
-        }
-
-        public void PublishEnd()
-        {
-            IsActive = false;
-            tokenSource?.Dispose();
-            tokenSource = null;
         }
 
         public void Cancel()
@@ -116,17 +57,7 @@ namespace PixelGraph.UI.ViewModels
     {
         public PublishWindowDesignVM()
         {
-            Profiles = new List<ProfileItem> {
-                new ProfileItem {
-                    Name = "Profile A",
-                },
-                new ProfileItem {
-                    Name = "Profile B",
-                },
-            };
-
-            PublishBegin(out _);
-
+            IsActive = true;
             LogList.Append(LogLevel.Debug, "Hello World!");
             LogList.Append(LogLevel.Warning, "Something is wrong...");
             LogList.Append(LogLevel.Error, "DANGER Will Robinson");

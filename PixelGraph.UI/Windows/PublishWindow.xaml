@@ -5,10 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
         xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
-        xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
         xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
         d:DataContext="{d:DesignInstance vm:PublishWindowDesignVM, IsDesignTimeCreatable=True}"
-        Title="Publish Resource Pack" Width="640" Height="360" mc:Ignorable="d"
+        Title="Publishing Resource Pack" Width="640" Height="360" mc:Ignorable="d"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
@@ -16,63 +15,22 @@
         TextOptions.TextRenderingMode="Auto"        
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
-        ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
-    <Window.Resources>
-        <converters:InverseBooleanConverter x:Key="invBoolConverter"/>
-    </Window.Resources>
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="OnWindowLoaded">
     <Window.DataContext>
         <vm:PublishWindowVM x:Name="VM" />
     </Window.DataContext>
     <DockPanel>
-        <Border DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
-            <Grid Margin="4,4,4,4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Content="Close" Margin="4" HorizontalAlignment="Left" Click="OnCloseButtonClick"
-                        Visibility="{Binding ShowOutput, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}"/>
-                <Button Grid.Column="0" Content="Cancel" Margin="4" HorizontalAlignment="Left" Click="OnCancelButtonClick"
-                        IsEnabled="{Binding IsActive, Mode=OneWay}"
-                        Visibility="{Binding ShowOutput, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                <Button Grid.Column="1" Content="Publish" Margin="4" HorizontalAlignment="Right" Click="OnPublishButtonClick"
-                        IsEnabled="{Binding SelectedItem, Mode=OneWay, Converter={StaticResource notNullBooleanConverter}}"
-                        Visibility="{Binding ShowOutput, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}"/>
-                <Button Grid.Column="1" Content="Ok" Margin="4" HorizontalAlignment="Right" Click="OnOkButtonClick"
-                        IsEnabled="{Binding IsActive, Mode=OneWay, Converter={StaticResource invBoolConverter}}"
-                        Visibility="{Binding ShowOutput, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-            </Grid>
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignCardBackground}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="4,4,4,4">
+                <CheckBox Content="Close when complete" Margin="4,4,12,4" FontSize="12" Checked="OnCloseCheckBoxChecked"
+                          IsEnabled="{Binding IsActive, Mode=OneWay}"
+                          IsChecked="{Binding CloseOnComplete, Mode=TwoWay}"/>
+                <Button Content="Cancel" Margin="4" Click="OnCancelButtonClick"
+                        Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <Button Content="Close" Margin="4" Click="OnCloseButtonClick"
+                        Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}"/>
+            </StackPanel>
         </Border>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <ListBox DisplayMemberPath="Name" SelectedValuePath="LocalFile" VerticalContentAlignment="Top" SelectedIndex="0"
-                     Background="{DynamicResource MaterialDesignToolBarBackground}"
-                     ItemsSource="{Binding Profiles, Mode=OneWay}"
-                     SelectedItem="{Binding SelectedItem, Mode=TwoWay}"/>
-            <Grid Grid.Column="1" Margin="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="260"/>
-                    <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.ColumnSpan="2" Orientation="Vertical" Margin="2,2,2,2">
-                    <TextBlock Text="Options" Margin="6,2" FontSize="20" HorizontalAlignment="Left" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
-                    <Rectangle Height="1" Margin="0,0,0,12" Fill="{DynamicResource MaterialDesignDarkSeparatorBackground}"/>
-                    <CheckBox Content="Archive" Margin="2" Foreground="{DynamicResource SecondaryHueMidBrush}" FontSize="14" FontWeight="Bold"
-                              IsChecked="{Binding Archive, Mode=TwoWay}"/>
-                    <TextBlock Text="Publishes the resource pack as a single compressed ZIP archive." TextWrapping="Wrap" Margin="24,0,6,0"/>
-                    <Rectangle Height="1" Margin="0,12" Fill="{DynamicResource MaterialDesignDarkSeparatorBackground}"/>
-                    <CheckBox Content="Clean" Margin="2" ToolTip="" Foreground="{DynamicResource SecondaryHueMidBrush}" FontSize="14" FontWeight="Bold"
-                              IsChecked="{Binding Clean, Mode=TwoWay}"/>
-                    <TextBlock Text="Removes all content from destination before publishing." Margin="24,0,6,0" TextWrapping="Wrap"/>
-                </StackPanel>
-            </Grid>
-            <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
-                  Visibility="{Binding ShowOutput, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <controls:LogListControl x:Name="LogList" Log="{Binding LogList, Mode=OneWay}"/>
-            </Grid>
-        </Grid>
+        <controls:LogListControl x:Name="LogList" Log="{Binding LogList, Mode=OneWay}"/>
     </DockPanel>
 </mde:MaterialWindow>

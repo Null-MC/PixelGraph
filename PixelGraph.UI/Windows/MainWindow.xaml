@@ -88,28 +88,41 @@
                 <Button Content="{md:PackIcon Edit}" ToolTip="Manage Profiles" Width="28" Height="24" Padding="0" Margin="2" Click="OnProfilesClick"
                         Style="{DynamicResource MaterialDesignFlatButton}"/>
                 <ComboBox Width="180" Margin="6,0,2,2" DisplayMemberPath="Name"
-                          ItemsSource="{Binding Profiles, Mode=OneWay}"/>
-                <StackPanel Orientation="Horizontal" Margin="2,2,6,2">
-                    <Button Content="Publish" Height="24" Padding="8,0" Click="OnPublishMenuItemClick">
+                          ItemsSource="{Binding Profiles, Mode=OneWay}"
+                          SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
+                <StackPanel x:Name="PublishButtonLayout" Orientation="Horizontal" Margin="2,2,6,2">
+                    <Button Content="Publish" Height="24" Padding="8,0" Click="OnPublishMenuItemClick"
+                            IsEnabled="{Binding HasProfileSelection, Mode=OneWay}">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
                                 <Setter Property="md:ButtonAssist.CornerRadius" Value="3,0,0,3"/>
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0">
-                        <Button.Resources>
-                            <Popup x:Key="PublishPopup">
-                                <TextBlock Text="Hello World!"/>
-                            </Popup>
-                        </Button.Resources>
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                    <ToggleButton x:Name="PublishDropDownButton" Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton" BasedOn="{StaticResource MaterialDesignRaisedButton}">
                                 <Setter Property="md:ButtonAssist.CornerRadius" Value="0,3,3,0"/>
                             </Style>
-                        </Button.Style>
-                    </Button>
+                        </ToggleButton.Style>
+                    </ToggleButton>
                 </StackPanel>
+                <Popup StaysOpen="False" Placement="Bottom" PopupAnimation="Fade" AllowsTransparency="True"
+                       PlacementTarget="{Binding ElementName=PublishButtonLayout, Mode=OneTime}"
+                       IsOpen="{Binding IsChecked, Mode=TwoWay, ElementName=PublishDropDownButton}">
+                    <Border CornerRadius="4" Background="{StaticResource MaterialDesignCardBackground}">
+                        <StackPanel Orientation="Vertical" Margin="4,4,8,4">
+                            <CheckBox Content="Create ZIP Archive" Margin="4" FontSize="14" FontWeight="Bold"
+                                      Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                      IsChecked="{Binding PublishArchive, Mode=TwoWay}"
+                                      ToolTip="Publishes the resource pack as a single compressed ZIP archive."/>
+                            <CheckBox Content="Clean Destination" Margin="4" FontSize="14" FontWeight="Bold"
+                                      Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                      IsChecked="{Binding PublishClean, Mode=TwoWay}"
+                                      ToolTip="Removes all content from destination before publishing."/>
+                        </StackPanel>
+                    </Border>
+                </Popup>
             </StackPanel>
         </DockPanel>
         <StatusBar DockPanel.Dock="Bottom">
@@ -169,7 +182,7 @@
                             <DataTemplate DataType="{x:Type vm:ContentTreeFile}">
                                 <StackPanel Orientation="Horizontal">
                                     <md:PackIcon Margin="0,0,4,0"
-                                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                 Foreground="{DynamicResource PrimaryHueDarkBrush}"
                                                  Kind="{Binding Icon, Mode=OneWay}">
                                         <md:PackIcon.Style>
                                             <Style TargetType="md:PackIcon">
@@ -192,7 +205,7 @@
                             </HierarchicalDataTemplate>
                             <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeDirectory}" ItemsSource="{Binding Nodes}">
                                 <StackPanel Orientation="Horizontal">
-                                    <md:PackIcon Kind="Folder" Margin="0,0,4,0" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                                    <md:PackIcon Kind="Folder" Margin="0,0,4,0" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
                                     <TextBlock Text="{Binding Name}"/>
                                 </StackPanel>
                             </HierarchicalDataTemplate>

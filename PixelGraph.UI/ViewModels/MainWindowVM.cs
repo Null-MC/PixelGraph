@@ -22,7 +22,9 @@ namespace PixelGraph.UI.ViewModels
         private TextureSource _selectedSource;
         private MaterialProperties _loadedMaterial;
         private ImageSource _loadedTexture;
+        private ProfileItem _selectedProfile;
         private string _loadedMaterialFilename;
+        private bool _publishArchive, _publishClean;
         private volatile bool _isBusy;
 
         public ObservableCollection<string> RecentDirectories {get; set;}
@@ -36,6 +38,7 @@ namespace PixelGraph.UI.ViewModels
         public bool HasLoadedMaterial => _loadedMaterial != null;
         public bool HasLoadedTexture => _loadedTexture != null;
         public bool HasPreviewImage => HasLoadedMaterial || HasLoadedTexture;
+        public bool HasProfileSelection => _selectedProfile != null;
 
         public string RootDirectory {
             get => _rootDirectory;
@@ -120,6 +123,16 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public ProfileItem SelectedProfile {
+            get => _selectedProfile;
+            set {
+                _selectedProfile = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(HasProfileSelection));
+            }
+        }
+
         public string LoadedMaterialFilename {
             get => _loadedMaterialFilename;
             set {
@@ -147,6 +160,22 @@ namespace PixelGraph.UI.ViewModels
 
                 OnPropertyChanged(nameof(HasLoadedMaterial));
                 OnPropertyChanged(nameof(HasPreviewImage));
+            }
+        }
+
+        public bool PublishArchive {
+            get => _publishArchive;
+            set {
+                _publishArchive = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool PublishClean {
+            get => _publishClean;
+            set {
+                _publishClean = value;
+                OnPropertyChanged();
             }
         }
 
@@ -185,25 +214,6 @@ namespace PixelGraph.UI.ViewModels
                 IsBusy = false;
             }
         }
-
-        //internal TextureTreeNode GetTreeNode(string path)
-        //{
-        //    var parts = path.Split('/', '\\');
-        //    var parent = TreeRoot;
-
-        //    foreach (var part in parts) {
-        //        var node = parent.Nodes.FirstOrDefault(x => string.Equals(x.Name, part, StringComparison.InvariantCultureIgnoreCase));
-
-        //        if (node == null) {
-        //            node = new TextureTreeDirectory {Name = part};
-        //            parent.Nodes.Add(node);
-        //        }
-
-        //        parent = node;
-        //    }
-
-        //    return parent;
-        //}
 
         public void SelectFirstTexture()
         {
