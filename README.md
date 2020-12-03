@@ -34,7 +34,7 @@ A single Pack-Input file lives in the root of the workspace (`~/input.yml`) whic
 
 ```yml
 # ~/input.yml
-format = raw
+format: raw
 smooth:
   red: smooth2
 ```
@@ -45,7 +45,7 @@ One or more Pack-Profiles are used to describe a publishing routine; they also l
 # ~/pbr-lab13-x64.yml
 output:
   format: default
-texture-scale = 0.5
+texture-scale: 0.5
 ```
 
 Material files are used to desribe a collection of textures that compose a single game "item". For more details, see the [Wiki](https://github.com/null511/PixelGraph/wiki/File-Loading).
