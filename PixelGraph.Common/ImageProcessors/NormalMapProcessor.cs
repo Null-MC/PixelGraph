@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class NormalMapProcessor : PixelComposeProcessor
+    internal class NormalMapProcessor : PixelProcessor
     {
         private readonly Options options;
 
@@ -27,13 +27,6 @@ namespace PixelGraph.Common.ImageProcessors
             normal.X = derivative.X;
             normal.Y = derivative.Y;
             normal.Z = 1f / options.Strength;
-
-            if (options.Noise > float.Epsilon) {
-                context.GetNoise(in context.X, out var noiseX, out var noiseY);
-                normal.X += (noiseX / 128f - 1f) * options.Noise;
-                normal.Y += (noiseY / 128f - 1f) * options.Noise;
-            }
-
             MathEx.Normalize(ref normal);
 
             MathEx.Saturate(normal.X * 0.5f + 0.5f, out pixel.R);
@@ -77,10 +70,7 @@ namespace PixelGraph.Common.ImageProcessors
         {
             public Image<Rgba32> Source;
             public ColorChannel HeightChannel;
-            //public int DownSample {get; set;} = 1;
             public float Strength = 1f;
-            public float Noise = 0f;
-            //public float Blur {get; set;} = 0f;
             public bool Wrap = true;
         }
     }

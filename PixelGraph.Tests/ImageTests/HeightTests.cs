@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -20,14 +19,17 @@ namespace PixelGraph.Tests.ImageTests
         public HeightTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Format = TextureEncoding.Format_Raw,
+                Height = {
+                    Texture = TextureTags.Height,
+                    Color = ColorChannel.Red,
+                },
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Output = {
-                    Height = new TextureOutputEncoding {
-                        Red = EncodingChannel.Height,
-                        Include = true,
+                    Height = {
+                        Texture = TextureTags.Height,
+                        Color = ColorChannel.Red,
                     },
                 },
             };
@@ -53,11 +55,6 @@ namespace PixelGraph.Tests.ImageTests
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Height = new MaterialHeightProperties {
-                        Input = new TextureEncoding {
-                            Red = EncodingChannel.Height,
-                        },
-                    },
                 },
             };
 

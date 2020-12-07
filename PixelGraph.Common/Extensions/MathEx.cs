@@ -29,7 +29,13 @@ namespace PixelGraph.Common.Extensions
             return (byte)Math.Clamp(value + 0.5f, 0f, 255f);
         }
 
-        public static void Saturate(float value, out byte result)
+        public static void Clamp(ref float value, in float min, in float max)
+        {
+            if (value < min) value = min;
+            else if (value > max) value = max;
+        }
+
+        public static void Saturate(in float value, out byte result)
         {
             result = (byte)Math.Clamp(value * 255f + 0.5f, 0f, 255f);
         }
@@ -47,6 +53,15 @@ namespace PixelGraph.Common.Extensions
         public static void Lerp(in float min, in float max, in float mix, out float result)
         {
             result = min * (1f - mix) + max * mix;
+        }
+
+        public static void Cycle(ref byte value, in int offset)
+        {
+            if (offset == 0) return;
+            var x = value + offset;
+            while (x > 255) x -= 256;
+            while (x < 0) x += 256;
+            value = (byte)x;
         }
     }
 }

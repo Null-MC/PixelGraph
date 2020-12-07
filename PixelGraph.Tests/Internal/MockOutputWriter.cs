@@ -27,7 +27,7 @@ namespace PixelGraph.Tests.Internal
         public Stream Open(string localFilename)
         {
             var mockStream = new MockStream();
-            Content.Add(localFilename, mockStream.BaseStream);
+            Content.Add(localFilename, mockStream);
             return mockStream;
         }
 
@@ -53,7 +53,7 @@ namespace PixelGraph.Tests.Internal
         public ValueTask DisposeAsync() => default;
     }
 
-    internal class MockStream : Stream
+    public class MockStream : Stream
     {
         public MemoryStream BaseStream {get;}
 
@@ -86,7 +86,11 @@ namespace PixelGraph.Tests.Internal
         protected override void Dispose(bool disposing)
         {
             Flush();
-            Seek(0, SeekOrigin.Begin);
+        }
+
+        public override async ValueTask DisposeAsync()
+        {
+            await FlushAsync();
         }
     }
 }

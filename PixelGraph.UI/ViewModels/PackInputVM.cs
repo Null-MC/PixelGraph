@@ -5,7 +5,7 @@ using System;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class InputVM : ViewModelBase
+    internal class PackInputVM : ViewModelBase
     {
         private ResourcePackInputProperties _packInput;
         private TextureEncoding _selectedEncoding;
@@ -90,7 +90,7 @@ namespace PixelGraph.UI.ViewModels
         }
 
 
-        public InputVM()
+        public PackInputVM()
         {
             _selectedTag = TextureTags.Albedo;
         }
@@ -113,15 +113,15 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    internal class InputDesignVM : InputVM
+    internal class InputDesignVM : PackInputVM
     {
         public InputDesignVM()
         {
             PackInput = new ResourcePackInputProperties {
                 Format = TextureEncoding.Format_Default,
-                Albedo = {
-                    Red = EncodingChannel.Blue,
-                }
+                //AlbedoRed = {
+                //    Red = EncodingChannel.AlbedoBlue,
+                //}
             };
         }
     }

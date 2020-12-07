@@ -34,6 +34,7 @@ namespace PixelGraph.UI.ViewModels
 
         public bool HasRootDirectory => _rootDirectory != null;
         public bool HasTreeSelection => _selectedNode is ContentTreeFile;
+        public bool HasTreeTextureSelection => _selectedNode is ContentTreeFile _file && _file.Type == ContentNodeType.Texture;
         //public bool IsMaterialSelected => _selectedNode is TextureTreeFile _file && _file.Type == NodeType.Material;
         public bool HasLoadedMaterial => _loadedMaterial != null;
         public bool HasLoadedTexture => _loadedTexture != null;
@@ -107,6 +108,7 @@ namespace PixelGraph.UI.ViewModels
 
                 SelectedSource = null;
                 OnPropertyChanged(nameof(HasTreeSelection));
+                OnPropertyChanged(nameof(HasTreeTextureSelection));
             }
         }
 

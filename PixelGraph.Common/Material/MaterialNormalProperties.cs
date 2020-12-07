@@ -22,5 +22,7 @@ namespace PixelGraph.Common.Material
 
         public decimal? Strength {get; set;}
         public decimal? Noise {get; set;}
+        public decimal? CurveX {get; set;}
+        public decimal? CurveY {get; set;}
     }
 }

@@ -4,26 +4,31 @@
           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
           xmlns:local="clr-namespace:PixelGraph.UI.Controls"
-          d:DesignWidth="200" d:DesignHeight="32" mc:Ignorable="d">
+          d:DesignWidth="200" d:DesignHeight="32" mc:Ignorable="d"
+          Margin="4">
     <ComboBox.Template>
         <ControlTemplate TargetType="ComboBox">
-            <Grid>
-                <ComboBox x:Name="list" Margin="0" Padding="0"
-                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                      ItemsSource="{TemplateBinding ItemsSource}"
-                      SelectedValue="{Binding SelectedValue, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=local:ComboBoxEx}}">
+            <Grid
+                Margin="{TemplateBinding Margin}">
+                <ComboBox x:Name="list"
+                          Padding="{TemplateBinding Padding}"
+                          Foreground="{TemplateBinding Foreground}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                          ItemsSource="{TemplateBinding ItemsSource}"
+                          SelectedValue="{Binding SelectedValue, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=local:ComboBoxEx}}">
                     <ComboBox.Style>
                         <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}">
                             <Setter Property="DisplayMemberPath" Value="Text"/>
                             <Setter Property="SelectedValuePath" Value="Value"/>
                             <Setter Property="Margin" Value="4"/>
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                            <Setter Property="Foreground" Value="{DynamicResource SecondaryHueMidBrush}"/>
                         </Style>
                     </ComboBox.Style>
                 </ComboBox>
-                <TextBlock x:Name="overlay" IsHitTestVisible="False" Visibility="Hidden" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,8,0" Opacity="0.6" FontStyle="Italic"
+                <TextBlock x:Name="overlay" IsHitTestVisible="False" Visibility="Hidden" VerticalAlignment="Center" Margin="0,0,8,0" Opacity="0.6" FontStyle="Italic"
+                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                           Padding="{TemplateBinding Padding}"
                            Foreground="{DynamicResource SecondaryHueDarkBrush}"
                            Text="{Binding Placeholder, Mode=OneWay, RelativeSource={RelativeSource AncestorType=local:ComboBoxEx}}"/>
             </Grid>

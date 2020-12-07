@@ -10,28 +10,46 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImageTests
 {
-    public class PerceptualSmoothTests : TestBase
+    public class NormalTests : TestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public PerceptualSmoothTests(ITestOutputHelper output) : base(output)
+        public NormalTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Smooth = {
-                    Texture = TextureTags.Smooth,
+                Height = {
+                    Texture = TextureTags.Height,
                     Color = ColorChannel.Red,
-                    Power = 0.5f,
-                }
+                },
+                NormalX = {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Red,
+                },
+                NormalY = {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Green,
+                },
+                //NormalZ = {
+                //    Texture = TextureTags.Normal,
+                //    Color = ColorChannel.Blue,
+                //},
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Output = {
-                    Smooth = {
-                        Texture = TextureTags.Smooth,
+                    NormalX = {
+                        Texture = TextureTags.Normal,
                         Color = ColorChannel.Red,
-                        Power = 0.5f,
+                    },
+                    NormalY = {
+                        Texture = TextureTags.Normal,
+                        Color = ColorChannel.Green,
+                    },
+                    NormalZ = {
+                        Texture = TextureTags.Normal,
+                        Color = ColorChannel.Blue,
                     },
                 },
             };
@@ -41,15 +59,42 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(100)]
         [InlineData(155)]
         [InlineData(255)]
-        [Theory] public async Task Passthrough(byte value)
+        [Theory] public async Task PassthroughX(byte value)
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
             var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
-            using var smoothImage = CreateImageR(value);
-            await content.AddAsync("assets/test/smooth.png", smoothImage);
+            using var sourceImage = CreateImageR(value);
+            await content.AddAsync("assets/test/normal.png", sourceImage);
+            
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = new MaterialProperties {
+                    Name = "test",
+                    LocalPath = "assets",
+                },
+            };
+
+            await graphBuilder.ProcessInputGraphAsync(context);
+            var resultImage = await content.OpenImageAsync("assets/test_n.png");
+            PixelAssert.RedEquals(value, resultImage);
+        }
+
+        [InlineData(127, 127, 255)]
+        [InlineData(  0, 127,   0)]
+        [InlineData(127,   0,   0)]
+        [Theory] public async Task RestoreZ(byte valueX, byte valueY, byte expectedZ)
+        {
+            await using var provider = Builder.Build();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
+            graphBuilder.UseGlobalOutput = true;
+
+            using var sourceImage = CreateImage(valueX, valueY, 0);
+            await content.AddAsync("assets/test/normal.png", sourceImage);
 
             var context = new MaterialContext {
                 Input = packInput,
@@ -61,41 +106,10 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_smooth.png");
-            PixelAssert.RedEquals(value, image);
-        }
-
-        [InlineData(  0,   0)]
-        [InlineData(100, 160)]
-        [InlineData(200, 226)]
-        [InlineData(255, 255)]
-        [Theory] public async Task ConvertsSmoothToPerceptualSmooth(byte value, byte expected)
-        {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var smoothImage = CreateImageR(value);
-            await content.AddAsync("assets/test/smooth.png", smoothImage);
-
-            var context = new MaterialContext {
-                Input = new ResourcePackInputProperties {
-                    Smooth = {
-                        Texture = TextureTags.Smooth,
-                        Color = ColorChannel.Red,
-                    },
-                },
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
-            };
-
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_smooth.png");
-            PixelAssert.RedEquals(expected, image);
+            var image = await content.OpenImageAsync("assets/test_n.png");
+            PixelAssert.RedEquals(valueX, image);
+            PixelAssert.GreenEquals(valueY, image);
+            PixelAssert.BlueEquals(expectedZ, image);
         }
     }
 }

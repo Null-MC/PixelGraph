@@ -18,7 +18,7 @@
                     d:DataContext="{d:DesignInstance vm:ImportPackDesignVM, IsDesignTimeCreatable=True}"
                     WindowStartupLocation="CenterOwner" Loaded="OnWindowLoaded" Closed="OnWindowClosed">
     <Window.Resources>
-        <vm:EncodingFormatValues x:Key="Formats"/>
+        <vm:OptionalEncodingFormatValues x:Key="Formats"/>
     </Window.Resources>
     <Window.DataContext>
         <vm:ImportPackVM x:Name="VM"/>

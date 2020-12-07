@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace PixelGraph.Common.Textures
@@ -52,45 +51,45 @@ namespace PixelGraph.Common.Textures
         }
 
         
-        public string GetEncodingChannel(ColorChannel color)
-        {
-            return color switch {
-                ColorChannel.Red => _red,
-                ColorChannel.Green => _green,
-                ColorChannel.Blue => _blue,
-                ColorChannel.Alpha => _alpha,
-                _ => null,
-            };
-        }
+        //public string GetEncodingChannel(ColorChannel color)
+        //{
+        //    return color switch {
+        //        ColorChannel.Red => _red,
+        //        ColorChannel.Green => _green,
+        //        ColorChannel.Blue => _blue,
+        //        ColorChannel.Alpha => _alpha,
+        //        _ => null,
+        //    };
+        //}
 
-        public ColorChannel GetColorChannel(string encodingChannel) => GetColorChannels(encodingChannel).FirstOrDefault();
+        //public ColorChannel GetColorChannel(string encodingChannel) => GetColorChannels(encodingChannel).FirstOrDefault();
 
-        public IEnumerable<ColorChannel> GetColorChannels(string encodingChannel)
-        {
-            if (string.Equals(Red, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) yield return ColorChannel.Red;
-            if (string.Equals(Green, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) yield return ColorChannel.Green;
-            if (string.Equals(Blue, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) yield return ColorChannel.Blue;
-            if (string.Equals(Alpha, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) yield return ColorChannel.Alpha;
-        }
+        //public IEnumerable<ColorChannel> GetColorChannels(string encodingChannel)
+        //{
+        //    if (string.Equals(Red, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) yield return ColorChannel.Red;
+        //    if (string.Equals(Green, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) yield return ColorChannel.Green;
+        //    if (string.Equals(Blue, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) yield return ColorChannel.Blue;
+        //    if (string.Equals(Alpha, encodingChannel, StringComparison.InvariantCultureIgnoreCase)) yield return ColorChannel.Alpha;
+        //}
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public static TextureOutputEncoding GetDefault(string format, string tag)
-        {
-            return GetFormat(format)?.Get(tag);
-        }
+        //public static TextureOutputEncoding GetDefault(string format, string tag)
+        //{
+        //    return GetFormat(format)?.Get(tag);
+        //}
 
-        private static TextureFormatBase GetFormat(string format)
+        public static IResourcePackEncoding GetFormat(string format)
         {
             if (format == null) return null;
             return formatMap.TryGetValue(format, out var textureFormat) ? textureFormat : null;
         }
 
-        private static readonly Dictionary<string, TextureFormatBase> formatMap =
-            new Dictionary<string, TextureFormatBase>(StringComparer.InvariantCultureIgnoreCase) {
+        private static readonly Dictionary<string, IResourcePackEncoding> formatMap =
+            new Dictionary<string, IResourcePackEncoding>(StringComparer.InvariantCultureIgnoreCase) {
                 [Format_Raw] = new RawEncoding(),
                 [Format_Default] = new DefaultEncoding(),
                 [Format_Legacy] = new LegacyEncoding(),

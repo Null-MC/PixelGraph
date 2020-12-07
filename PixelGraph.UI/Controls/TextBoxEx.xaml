@@ -7,11 +7,17 @@
          d:DesignWidth="320" d:DesignHeight="32" mc:Ignorable="d">
     <TextBox.Template>
         <ControlTemplate TargetType="TextBox">
-            <Grid>
+            <Grid
+                  HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                  VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                  Margin="{TemplateBinding Margin}">
                 <TextBox x:Name="text"
+                         Padding="{TemplateBinding Padding}"
                          Text="{Binding Text, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:TextBoxEx}}"
+                         HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                          TextAlignment="{TemplateBinding TextAlignment}"/>
                 <TextBlock x:Name="overlay" IsHitTestVisible="False" VerticalAlignment="Center" Visibility="Hidden" Opacity="0.6" FontStyle="Italic"
+                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                            Foreground="{DynamicResource SecondaryHueDarkBrush}"
                            Text="{Binding Placeholder, Mode=OneWay, RelativeSource={RelativeSource AncestorType=controls:TextBoxEx}}"
                            TextAlignment="{TemplateBinding TextAlignment}"/>

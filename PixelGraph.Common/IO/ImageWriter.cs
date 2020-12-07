@@ -13,7 +13,6 @@ namespace PixelGraph.Common.IO
 {
     public interface IImageWriter
     {
-        //IImageEncoder GetEncoder(string format);
         Task WriteAsync(Image image, string localFile, string format, CancellationToken token);
     }
 
@@ -21,8 +20,6 @@ namespace PixelGraph.Common.IO
     {
         private readonly Dictionary<string, Lazy<IImageEncoder>> map;
         private readonly IOutputWriter writer;
-
-        //public ResourcePackOutputProperties Output {get; set;}
 
 
         public ImageWriter(IOutputWriter writer)
@@ -39,6 +36,8 @@ namespace PixelGraph.Common.IO
 
         public async Task WriteAsync(Image image, string localFile, string format, CancellationToken token)
         {
+            if (image == null) throw new ArgumentNullException(nameof(image));
+
             var encoder = GetEncoder(format);
             await using var stream = writer.Open(localFile);
             await image.SaveAsync(stream, encoder, token);

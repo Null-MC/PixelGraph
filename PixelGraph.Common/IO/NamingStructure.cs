@@ -26,6 +26,7 @@ namespace PixelGraph.Common.IO
         {
             LocalMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase) {
                 [TextureTags.Albedo] = ext => $"albedo.{ext}",
+                [TextureTags.Diffuse] = ext => $"diffuse.{ext}",
                 [TextureTags.Height] = ext => $"height.{ext}",
                 [TextureTags.Normal] = ext => $"normal.{ext}",
                 [TextureTags.Occlusion] = ext => $"occlusion.{ext}",

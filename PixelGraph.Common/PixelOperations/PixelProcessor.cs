@@ -5,7 +5,7 @@ using SixLabors.ImageSharp.Processing.Processors;
 
 namespace PixelGraph.Common.PixelOperations
 {
-    internal abstract class PixelComposeProcessor : IImageProcessor
+    internal abstract class PixelProcessor : IImageProcessor
     {
         public IImageProcessor<TPixel> CreatePixelSpecificProcessor<TPixel>(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle) where TPixel : unmanaged, IPixel<TPixel>
         {

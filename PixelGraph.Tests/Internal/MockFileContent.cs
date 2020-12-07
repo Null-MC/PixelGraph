@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO.Serialization;
-using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.Extensions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -14,24 +11,22 @@ namespace PixelGraph.Tests.Internal
 {
     public class MockFileContent : IDisposable, IAsyncDisposable
     {
-        private readonly IServiceProvider provider;
-
         public List<MockFile> Files {get; set;}
 
 
-        public MockFileContent(IServiceProvider provider)
+        public MockFileContent()
         {
-            this.provider = provider;
-
             Files = new List<MockFile>();
         }
 
-        public void Add(string filename, Stream content = null)
+        public void Add(string filename, MockStream content = null)
         {
-            Files.Add(new MockFile {
+            var f = new MockFile {
                 Filename = PathEx.Normalize(filename),
-                Content = content,
-            });
+                Content = content?.BaseStream,
+            };
+
+            Files.Add(f);
         }
 
         public IEnumerable<string> EnumerateDirectories(string localPath, string pattern)
@@ -64,13 +59,28 @@ namespace PixelGraph.Tests.Internal
             var file = PathEx.Normalize(filename);
             bool Match(MockFile f) => string.Equals(f.Filename, file, StringComparison.InvariantCultureIgnoreCase);
             var content = Files.FirstOrDefault(Match)?.Content;
-            content?.Seek(0, SeekOrigin.Begin);
-            return content;
+            if (content == null) return null;
+
+            var resultStream = new MemoryStream();
+
+            try {
+                content.Seek(0, SeekOrigin.Begin);
+                content.CopyToAsync(resultStream);
+
+                resultStream.Seek(0, SeekOrigin.Begin);
+                return resultStream;
+            }
+            catch {
+                resultStream.Dispose();
+                throw;
+            }
         }
 
         public async Task<Image<Rgba32>> OpenImageAsync(string filename)
         {
             await using var stream = OpenRead(filename);
+            if (stream == null) throw new FileNotFoundException("Image not found!", filename);
+
             return await Image.LoadAsync<Rgba32>(Configuration.Default, stream);
         }
 
@@ -88,47 +98,19 @@ namespace PixelGraph.Tests.Internal
 
         public async Task AddAsync(string filename, string text = "")
         {
-            var stream = new MemoryStream();
+            await using var stream = new MockStream();
+            Add(filename, stream);
 
-            try {
-                var writer = new StreamWriter(stream, leaveOpen: true);
-                await writer.WriteAsync(text);
-                Add(filename, stream);
-            }
-            catch {
-                await stream.DisposeAsync();
-                throw;
-            }
-        }
-
-        public async Task AddAsync(string filename, MaterialProperties material)
-        {
-            var stream = new MemoryStream();
-
-            try {
-                var writer = provider.GetRequiredService<IMaterialWriter>();
-                await writer.WriteAsync(material, filename);
-                Add(filename, stream);
-            }
-            catch {
-                await stream.DisposeAsync();
-                throw;
-            }
+            await using var writer = new StreamWriter(stream);
+            await writer.WriteAsync(text);
         }
 
         public async Task AddAsync(string filename, Image image)
         {
-            var stream = new MemoryStream();
+            await using var stream = new MockStream();
+            Add(filename, stream);
 
-            try {
-                await image.SaveAsPngAsync(stream);
-                await stream.FlushAsync();
-                Add(filename, stream);
-            }
-            catch {
-                await stream.DisposeAsync();
-                throw;
-            }
+            await image.SaveAsPngAsync(stream);
         }
     }
 

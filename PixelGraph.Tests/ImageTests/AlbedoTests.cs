@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -20,20 +19,100 @@ namespace PixelGraph.Tests.ImageTests
         public AlbedoTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Format = TextureEncoding.Format_Raw,
+                AlbedoRed = {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Red,
+                },
+                AlbedoGreen = {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Green,
+                },
+                AlbedoBlue = {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Blue,
+                },
+                Alpha = {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Alpha,
+                },
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Output = {
-                    Albedo = new TextureOutputEncoding {
-                        Red = EncodingChannel.Red,
-                        Green = EncodingChannel.Green,
-                        Blue = EncodingChannel.Blue,
-                        Alpha = EncodingChannel.Alpha,
-                        Include = true,
+                    AlbedoRed = {
+                        Texture = TextureTags.Albedo,
+                        Color = ColorChannel.Red,
+                    },
+                    AlbedoGreen = {
+                        Texture = TextureTags.Albedo,
+                        Color = ColorChannel.Green,
+                    },
+                    AlbedoBlue = {
+                        Texture = TextureTags.Albedo,
+                        Color = ColorChannel.Blue,
+                    },
+                    Alpha = {
+                        Texture = TextureTags.Albedo,
+                        Color = ColorChannel.Alpha,
                     },
                 },
             };
+        }
+
+        [InlineData(  0)]
+        [InlineData(100)]
+        [InlineData(155)]
+        [InlineData(255)]
+        [Theory] public async Task RedPassthrough(byte value)
+        {
+            await using var provider = Builder.Build();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
+            graphBuilder.UseGlobalOutput = true;
+
+            using var sourceImage = CreateImage(value, 0, 0);
+            await content.AddAsync("assets/test/albedo.png", sourceImage);
+
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = new MaterialProperties {
+                    Name = "test",
+                    LocalPath = "assets",
+                },
+            };
+
+            await graphBuilder.ProcessInputGraphAsync(context);
+            using var resultImage = await content.OpenImageAsync("assets/test.png");
+            PixelAssert.RedEquals(value, resultImage);
+        }
+
+        [InlineData(  0)]
+        [InlineData(100)]
+        [InlineData(155)]
+        [InlineData(255)]
+        [Theory] public async Task GreenPassthrough(byte value)
+        {
+            await using var provider = Builder.Build();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
+            graphBuilder.UseGlobalOutput = true;
+
+            using var sourceImage = CreateImage(0, value, 0);
+            await content.AddAsync("assets/test/albedo.png", sourceImage);
+
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = new MaterialProperties {
+                    Name = "test",
+                    LocalPath = "assets",
+                },
+            };
+
+            await graphBuilder.ProcessInputGraphAsync(context);
+            using var resultImage = await content.OpenImageAsync("assets/test.png");
+            PixelAssert.GreenEquals(value, resultImage);
         }
 
         [InlineData(  0,  0.0,   0)]
@@ -63,7 +142,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test.png");
+            using var image = await content.OpenImageAsync("assets/test.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -79,23 +158,29 @@ namespace PixelGraph.Tests.ImageTests
             await content.AddAsync("assets/test/albedo.png", image);
 
             var context = new MaterialContext {
-                Input = packInput,
+                Input = new ResourcePackInputProperties {
+                    AlbedoRed = {
+                        Texture = TextureTags.Albedo,
+                        Color = ColorChannel.Green,
+                    },
+                    AlbedoGreen = {
+                        Texture = TextureTags.Albedo,
+                        Color = ColorChannel.Blue,
+                    },
+                    AlbedoBlue = {
+                        Texture = TextureTags.Albedo,
+                        Color = ColorChannel.Red,
+                    },
+                },
                 Profile = packProfile,
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Albedo = new MaterialAlbedoProperties {
-                        Input = new TextureEncoding {
-                            Red = EncodingChannel.Blue,
-                            Green = EncodingChannel.Red,
-                            Blue = EncodingChannel.Green,
-                        },
-                    },
                 },
             };
 
             await graphBuilder.ProcessInputGraphAsync(context);
-            var outputImage = await content.OpenImageAsync("assets/test.png");
+            using var outputImage = await content.OpenImageAsync("assets/test.png");
             PixelAssert.RedEquals(120, outputImage);
             PixelAssert.GreenEquals(180, outputImage);
             PixelAssert.BlueEquals(60, outputImage);

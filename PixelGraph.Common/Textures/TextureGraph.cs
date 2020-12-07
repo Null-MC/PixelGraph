@@ -5,6 +5,7 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -20,9 +21,9 @@ namespace PixelGraph.Common.Textures
     public interface ITextureGraph : IDisposable
     {
         MaterialContext Context {get;}
-        //bool CreateEmpty {get; set;}
+        //bool UseGlobalOutput {get; set;}
 
-        Task<Image<Rgba32>> BuildFinalImageAsync(TextureEncoding encoding, CancellationToken token = default);
+        Task BuildFinalImageAsync(string textureTag, ResourcePackChannelProperties[] encoding, CancellationToken token = default);
         Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token = default);
         Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default);
     }
@@ -32,35 +33,34 @@ namespace PixelGraph.Common.Textures
         private readonly Dictionary<string, List<ChannelSource>> sourceMap;
         private readonly IServiceProvider provider;
         private readonly IInputReader reader;
+        private readonly INamingStructure naming;
+        private readonly IImageWriter imageWriter;
         private readonly ILogger logger;
         private Image<Rgba32> normalTexture;
         private Image<Rgba32> occlusionTexture;
 
         public MaterialContext Context {get;}
-        public bool CreateEmpty {get; set;}
+        public bool UseGlobalOutput {get; set;}
 
 
-        public TextureGraph(IServiceProvider provider, IInputReader reader, MaterialContext context)
+        public TextureGraph(IServiceProvider provider, MaterialContext context)
         {
             this.provider = provider;
-            this.reader = reader;
             Context = context;
 
+            reader = provider.GetRequiredService<IInputReader>();
+            naming = provider.GetRequiredService<INamingStructure>();
+            imageWriter = provider.GetRequiredService<IImageWriter>();
             logger = provider.GetRequiredService<ILogger<TextureGraph>>();
             sourceMap = new Dictionary<string, List<ChannelSource>>();
-            CreateEmpty = true;
         }
 
         public void BuildFromInput()
         {
-            foreach (var tag in TextureTags.All) {
-                var packEncoding = Context.Input.GetFormatEncoding(tag);
-                var materialEncoding = Context.Material.GetInputEncoding(tag);
-
-                MapSource(tag, ColorChannel.Red, materialEncoding?.Red ?? packEncoding?.Red);
-                MapSource(tag, ColorChannel.Green, materialEncoding?.Green ?? packEncoding?.Green);
-                MapSource(tag, ColorChannel.Blue, materialEncoding?.Blue ?? packEncoding?.Blue);
-                MapSource(tag, ColorChannel.Alpha, materialEncoding?.Alpha ?? packEncoding?.Alpha);
+            foreach (var tag in Context.Input.GetAllTags()) {
+                foreach (var channel in Context.Input.GetByTag(tag)) {
+                    MapSource(tag, channel);
+                }
             }
 
             if (ContainsSource(EncodingChannel.Height))
@@ -69,39 +69,145 @@ namespace PixelGraph.Common.Textures
 
         public void BuildFromOutput()
         {
-            foreach (var tag in TextureTags.All) {
-                var packEncoding = Context.Profile.Output?.GetFinalTextureEncoding(tag);
+            foreach (var tag in Context.Profile.Output.GetAllTags()) {
+                foreach (var channel in Context.Profile.Output.GetByTag(tag)) {
+                    if (!channel.Color.HasValue) continue;
 
-                MapSource(tag, ColorChannel.Red, packEncoding?.Red);
-                MapSource(tag, ColorChannel.Green, packEncoding?.Green);
-                MapSource(tag, ColorChannel.Blue, packEncoding?.Blue);
-                MapSource(tag, ColorChannel.Alpha, packEncoding?.Alpha);
+                    MapSource(tag, channel);
+                }
             }
 
             //if (ContainsSource(EncodingChannel.Height))
             //    AddHeightGeneratedInputs();
         }
 
-        public Task<Image<Rgba32>> BuildFinalImageAsync(TextureEncoding encoding, CancellationToken token = default)
+        public async Task BuildFinalImageAsync(string textureTag, ResourcePackChannelProperties[] encoding, CancellationToken token = default)
         {
-            var op = new TextureBuilder(provider);
-            op.CreateEmpty = CreateEmpty;
+            using var builder = provider.GetRequiredService<ITextureBuilder>();
 
-            op.Initialize(this);
+            builder.Material = Context.Material;
+            builder.InputChannels = Context.Input.All;
+            builder.OutputChannels = Context.Profile.Output.GetByTag(textureTag).ToArray();
 
-            if (encoding.Red != null)
-                op.MapChannel(ColorChannel.Red, encoding.Red);
+            await builder.BuildAsync(token);
 
-            if (encoding.Green != null)
-                op.MapChannel(ColorChannel.Green, encoding.Green);
+            if (builder.ImageResult == null) {
+                // TODO: log
+                logger.LogWarning("No texture sources found for item {DisplayName} texture {textureTag}.", Context.Material.DisplayName, textureTag);
+                return;
+            }
 
-            if (encoding.Blue != null)
-                op.MapChannel(ColorChannel.Blue, encoding.Blue);
+            var imageFormat = Context.Profile.ImageEncoding
+                ?? ResourcePackProfileProperties.DefaultImageEncoding;
 
-            if (encoding.Alpha != null)
-                op.MapChannel(ColorChannel.Alpha, encoding.Alpha);
+            var p = Context.Material.LocalPath;
+            if (!UseGlobalOutput) p = PathEx.Join(p, Context.Material.Name);
 
-            return op.CreateImageAsync(token);
+            if (Context.Material.IsMultiPart) {
+                foreach (var region in Context.Material.Parts) {
+                    var name = naming.GetOutputTextureName(Context.Profile, region.Name, textureTag, UseGlobalOutput);
+                    var destFile = PathEx.Join(p, name);
+
+                    if (builder.ImageResult.Width == 1 && builder.ImageResult.Height == 1) {
+                        await imageWriter.WriteAsync(builder.ImageResult, destFile, imageFormat, token);
+                    }
+                    else {
+                        using var regionImage = GetImageRegion(builder.ImageResult, region.GetRectangle());
+
+                        // TODO: move resize before regions; then scale regions to match
+                        using var resizedRegionImage = Resize(Context, regionImage, encoding);
+
+                        await imageWriter.WriteAsync(resizedRegionImage ?? builder.ImageResult, destFile, imageFormat, token);
+                    }
+
+                    logger.LogInformation("Published texture region {Name} tag {textureTag}.", region.Name, textureTag);
+                }
+            }
+            else {
+                var name = naming.GetOutputTextureName(Context.Profile, Context.Material.Name, textureTag, UseGlobalOutput);
+                var destFile = PathEx.Join(p, name);
+
+                using var resizedImage = Resize(Context, builder.ImageResult, encoding);
+
+                await imageWriter.WriteAsync(resizedImage ?? builder.ImageResult, destFile, imageFormat, token);
+
+                logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", Context.Material.DisplayName, textureTag);
+            }
+
+            //await CopyMetaAsync(graph.Context, tag, token);
+        }
+
+        private static Image<Rgba32> Resize(MaterialContext context, Image<Rgba32> image, ResourcePackChannelProperties[] encoding)
+        {
+            if (context == null) throw new ArgumentNullException(nameof(context));
+            if (image == null) throw new ArgumentNullException(nameof(image));
+
+            if (!(context.Material?.ResizeEnabled ?? true)) return null;
+            if (!context.Profile.TextureSize.HasValue && !context.Profile.TextureScale.HasValue) return null;
+
+            var options = new ResizeProcessor.Options {
+                Source = image,
+                TargetWidth = context.Profile.TextureSize ?? 0,
+                Channels = encoding,
+            };
+
+            var (width, height) = image.Size();
+
+            //var encoding = context.Profile.Output.GetFinalTextureEncoding(tag);
+            //var samplerName = encoding.Sampler;
+
+            //var resampler = KnownResamplers.Bicubic;
+            //if (samplerName != null && Samplers.TryParse(samplerName, out var _resampler))
+            //    resampler = _resampler;
+
+            if (context.Profile.TextureSize.HasValue) {
+                if (width == context.Profile.TextureSize) return null;
+
+                var aspect = height / (float) width;
+                options.TargetWidth = context.Profile.TextureSize.Value;
+                options.TargetHeight = (int)(context.Profile.TextureSize.Value * aspect);
+            }
+            else {
+                options.TargetWidth = (int)Math.Max(width * context.Profile.TextureScale.Value, 1f);
+                options.TargetHeight = (int)Math.Max(height * context.Profile.TextureScale.Value, 1f);
+            }
+
+            var processor = new ResizeProcessor(options);
+            var resizedImage = new Image<Rgba32>(Configuration.Default, options.TargetWidth, options.TargetHeight);
+
+            try {
+                resizedImage.Mutate(c => c.ApplyProcessor(processor));
+                return resizedImage;
+            }
+            catch {
+                resizedImage.Dispose();
+                throw;
+            }
+        }
+
+        private Image<Rgba32> GetImageRegion(Image<Rgba32> sourceImage, Rectangle bounds)
+        {
+            Image<Rgba32> regionImage = null;
+            try {
+                regionImage = new Image<Rgba32>(Configuration.Default, bounds.Width, bounds.Height);
+
+                // TODO: copy region from source
+                var options = new RegionProcessor.Options {
+                    Source = sourceImage,
+                    Offset = bounds.Location,
+                };
+
+                regionImage.Mutate(context => {
+                    var processor = new RegionProcessor(options);
+                    context.ApplyProcessor(processor);
+                });
+
+                return regionImage;
+            }
+            catch {
+                regionImage?.Dispose();
+                throw;
+            }
         }
 
         public async Task<Image<Rgba32>> GetGeneratedNormalAsync(CancellationToken token = default)
@@ -183,10 +289,18 @@ namespace PixelGraph.Common.Textures
                 .Add(new ChannelSource(TextureTags.OcclusionGenerated, ColorChannel.Red));
         }
 
-        private void MapSource(string tag, ColorChannel channel, string input)
+        //private void MapSource(string tag, ColorChannel channel, string input)
+        //{
+        //    if (string.IsNullOrEmpty(input) || EncodingChannel.Is(input, EncodingChannel.None)) return;
+        //    sourceMap.GetOrCreate(input, NewSourceMap).Add(new ChannelSource(tag, channel));
+        //}
+
+        private void MapSource(string tag, ResourcePackChannelProperties channel)
         {
-            if (string.IsNullOrEmpty(input) || EncodingChannel.Is(input, EncodingChannel.None)) return;
-            sourceMap.GetOrCreate(input, NewSourceMap).Add(new ChannelSource(tag, channel));
+            if (!channel.Color.HasValue) return;
+            if (string.IsNullOrEmpty(channel.Texture) || EncodingChannel.Is(channel.Texture, EncodingChannel.None)) return;
+
+            sourceMap.GetOrCreate(channel.Texture, NewSourceMap).Add(new ChannelSource(tag, channel.Color.Value));
         }
 
         public async Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token)
@@ -206,7 +320,6 @@ namespace PixelGraph.Common.Textures
                     Source = heightTexture,
                     HeightChannel = heightChannel,
                     Strength = (float?)Context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
-                    Noise = (float?)Context.Material.Normal?.Noise ?? MaterialNormalProperties.DefaultNoise,
                     Wrap = Context.Material.Wrap ?? MaterialProperties.DefaultWrap,
                 };
 

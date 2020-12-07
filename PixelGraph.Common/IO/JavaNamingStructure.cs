@@ -13,6 +13,7 @@ namespace PixelGraph.Common.IO
         {
             globalMap = new Dictionary<string, Func<string, string, string>>(StringComparer.InvariantCultureIgnoreCase) {
                 [TextureTags.Albedo] = (name, ext) => $"{name}.{ext}",
+                [TextureTags.Diffuse] = (name, ext) => $"{name}_d.{ext}",
                 [TextureTags.Height] = (name, ext) => $"{name}_h.{ext}",
                 [TextureTags.Normal] = (name, ext) => $"{name}_n.{ext}",
                 [TextureTags.Occlusion] = (name, ext) => $"{name}_ao.{ext}",
@@ -28,9 +29,16 @@ namespace PixelGraph.Common.IO
 
         public override string Get(string tag, string textureName, string extension, bool global)
         {
-            return global
-                ? globalMap[tag](textureName, extension)
-                : LocalMap[tag](extension);
+            if (global) {
+                if (globalMap.TryGetValue(tag, out var func))
+                    return func(textureName, extension);
+            }
+            else {
+                if (LocalMap.TryGetValue(tag, out var func2))
+                    return func2(extension);
+            }
+
+            throw new ApplicationException($"Unknown texture tag '{tag}'!");
         }
     }
 }

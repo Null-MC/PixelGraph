@@ -9,7 +9,7 @@ namespace PixelGraph.Common.Material
     public class MaterialProperties
     {
         public const bool DefaultWrap = true;
-        public const bool DefaultResizeEnabled = true;
+        //public const bool DefaultResizeEnabled = true;
         public const string DefaultInputFormat = TextureEncoding.Format_Raw;
 
         [YamlIgnore]
@@ -45,6 +45,8 @@ namespace PixelGraph.Common.Material
         public int? RangeMax {get; set;}
 
         public MaterialAlbedoProperties Albedo {get; set;}
+
+        public MaterialDiffuseProperties Diffuse {get; set;}
 
         public MaterialHeightProperties Height {get; set;}
 

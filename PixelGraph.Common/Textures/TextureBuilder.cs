@@ -12,13 +12,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Textures
 {
     internal class TextureBuilder
     {
         private readonly Dictionary<string, OverlayProcessor.Options> optionsMap;
-        private readonly Dictionary<ColorChannel, string> encoding;
+        //private readonly Dictionary<ColorChannel, string> encoding;
+        private readonly ResourcePackChannelProperties[] encoding;
         private readonly ChannelOptions filterOptions;
         private readonly ILogger logger;
         private TextureFilter filter;
@@ -34,7 +36,7 @@ namespace PixelGraph.Common.Textures
             logger = provider.GetRequiredService<ILogger<TextureBuilder>>();
 
             optionsMap = new Dictionary<string, OverlayProcessor.Options>(StringComparer.InvariantCultureIgnoreCase);
-            encoding = new Dictionary<ColorChannel, string>();
+            //encoding = new Dictionary<ColorChannel, string>();
             filterOptions = new ChannelOptions();
             sourceColor = new Rgba32();
         }
@@ -51,30 +53,30 @@ namespace PixelGraph.Common.Textures
             if (color == ColorChannel.None) throw new ArgumentOutOfRangeException(nameof(color), "Cannot map to empty color!");
             if (encodingChannel == null) throw new ArgumentNullException(nameof(encodingChannel));
 
-            encoding[color] = encodingChannel;
-            MapColor(color);
+            //encoding[color] = encodingChannel;
+            MapColor(color, encodingChannel);
         }
 
-        private void MapColor(ColorChannel color)
+        private void MapColor(ResourcePackChannelProperties channel)
         {
-            if (!encoding.TryGetValue(color, out var outputChannel)) return;
+            //if (!encoding.TryGetValue(color, out var outputChannel)) return;
 
-            var isOutputHeight = EncodingChannel.Is(outputChannel, EncodingChannel.Height);
-            var isOutputNormalZ = EncodingChannel.Is(outputChannel, EncodingChannel.NormalZ);
-            var isOutputSmooth = EncodingChannel.Is(outputChannel, EncodingChannel.Smooth);
-            var isOutputSmooth2 = EncodingChannel.Is(outputChannel, EncodingChannel.PerceptualSmooth);
-            var isOutputRough = EncodingChannel.Is(outputChannel, EncodingChannel.Rough);
-            var isOutputOcclusion = EncodingChannel.Is(outputChannel, EncodingChannel.Occlusion);
-            var isOutputPorositySSS = EncodingChannel.Is(outputChannel, EncodingChannel.Porosity_SSS);
-            var isOutputEmissive = EncodingChannel.Is(outputChannel, EncodingChannel.Emissive);
-            var isOutputEmissiveClipped = EncodingChannel.Is(outputChannel, EncodingChannel.EmissiveClipped);
-            var isOutputEmissiveInverse = EncodingChannel.Is(outputChannel, EncodingChannel.EmissiveInverse);
+            var isOutputHeight = EncodingChannel.Is(channel.ID, EncodingChannel.Height);
+            var isOutputNormalZ = EncodingChannel.Is(channel.ID, EncodingChannel.NormalZ);
+            var isOutputSmooth = EncodingChannel.Is(channel.ID, EncodingChannel.Smooth);
+            //var isOutputSmooth2 = EncodingChannel.Is(channel.ID, EncodingChannel.PerceptualSmooth);
+            var isOutputRough = EncodingChannel.Is(channel.ID, EncodingChannel.Rough);
+            var isOutputOcclusion = EncodingChannel.Is(channel.ID, EncodingChannel.Occlusion);
+            //var isOutputPorositySSS = EncodingChannel.Is(channel.ID, EncodingChannel.Porosity_SSS);
+            var isOutputEmissive = EncodingChannel.Is(channel.ID, EncodingChannel.Emissive);
+            //var isOutputEmissiveClipped = EncodingChannel.Is(channel.ID, EncodingChannel.EmissiveClipped);
+            //var isOutputEmissiveInverse = EncodingChannel.Is(channel.ID, EncodingChannel.EmissiveInverse);
 
             if (isOutputHeight) filterOptions.SetPost(color, filter.Invert);
             if (isOutputOcclusion) filterOptions.SetPost(color, filter.Invert);
-            if (isOutputSmooth2) filterOptions.SetPost(color, filter.SmoothToPerceptualSmooth);
-            if (isOutputEmissiveClipped) filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
-            if (isOutputEmissiveInverse) filterOptions.SetPost(color, filter.Invert);
+            //if (isOutputSmooth2) filterOptions.SetPost(color, filter.SmoothToPerceptualSmooth);
+            //if (isOutputEmissiveClipped) filterOptions.SetPost(color, filter.EmissiveToEmissiveClipped);
+            //if (isOutputEmissiveInverse) filterOptions.SetPost(color, filter.Invert);
 
             if (GetSourceValue(outputChannel, out var value)) {
                 sourceColor.SetChannelValue(in color, in value);
@@ -299,7 +301,7 @@ namespace PixelGraph.Common.Textures
                     }
                 }
 
-                if (targetImage != null && restoreNormalZ) RestoreNormalZ(targetImage);
+                if (targetImage != null && HasAnyNormals()) FilterNormals(targetImage);
 
                 if (targetImage == null && CreateEmpty)
                     targetImage = new Image<Rgba32>(1, 1, sourceColor);
@@ -322,22 +324,39 @@ namespace PixelGraph.Common.Textures
             return ColorChannel.None;
         }
 
-        private void RestoreNormalZ(Image<Rgba32> image)
+        private bool HasAnyNormals()
         {
-            var options = new NormalRestoreProcessor.Options {
+            foreach (var channel in encoding) {
+                if (EncodingChannel.Is(channel.ID, EncodingChannel.NormalX)) return true;
+                if (EncodingChannel.Is(channel.ID, EncodingChannel.NormalY)) return true;
+                if (EncodingChannel.Is(channel.ID, EncodingChannel.NormalZ)) return true;
+            }
+
+            return false;
+        }
+
+        private void FilterNormals(Image<Rgba32> image)
+        {
+            var options = new NormalRotateProcessor.Options {
                 NormalX = GetChannelColor(EncodingChannel.NormalX),
                 NormalY = GetChannelColor(EncodingChannel.NormalY),
                 NormalZ = GetChannelColor(EncodingChannel.NormalZ),
+                CurveX = (float?)graph.Context.Material.Normal?.CurveX ?? 0f,
+                CurveY = (float?)graph.Context.Material.Normal?.CurveY ?? 0f,
+                Noise = (float?)graph.Context.Material.Normal?.Noise ?? 0f,
             };
 
-            if (options.HasAllMappings()) {
-                var processor = new NormalRestoreProcessor(options);
-                image.Mutate(c => c.ApplyProcessor(processor));
+            if (restoreNormalZ) {
+                if (!options.HasAllMappings()) {
+                    // TODO: use custom exception instead
+                    logger.LogWarning("Unable to restore normal-z for texture {DisplayName}.", graph.Context.Material.DisplayName);
+                    return;
+                }
             }
-            else {
-                // TODO: use custom exception instead
-                logger.LogWarning("Unable to restore normal-z for texture {DisplayName}.", graph.Context.Material.DisplayName);
-            }
+            else if (!options.HasRotations()) return;
+
+            var processor = new NormalRotateProcessor(options);
+            image.Mutate(c => c.ApplyProcessor(processor));
         }
 
         private static OverlayProcessor.Options NewOptions() => new OverlayProcessor.Options();

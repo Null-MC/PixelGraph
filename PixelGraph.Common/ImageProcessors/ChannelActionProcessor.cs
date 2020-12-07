@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class ChannelActionProcessor : PixelFilterProcessor
+    internal class ChannelActionProcessor : PixelProcessor
     {
         public ChannelOptions Options {get;}
 

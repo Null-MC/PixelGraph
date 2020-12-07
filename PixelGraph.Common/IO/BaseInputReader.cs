@@ -27,19 +27,15 @@ namespace PixelGraph.Common.IO
 
         public IEnumerable<string> EnumerateTextures(MaterialProperties material, string tag)
         {
+            if (material == null) throw new ArgumentNullException(nameof(material));
+            if (tag == null) throw new ArgumentNullException(nameof(tag));
+
             var srcPath = material.UseGlobalMatching
                 ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
 
             var localName = TextureTags.Get(material, tag);
 
             while (localName != null) {
-                //var localFile = PathEx.Join(srcPath, localName);
-
-                //if (FileExists(localFile)) {
-                //    yield return localFile;
-                //    yield break;
-                //}
-
                 var linkedFilename = TextureTags.Get(material, localName);
                 if (string.IsNullOrEmpty(linkedFilename)) break;
 

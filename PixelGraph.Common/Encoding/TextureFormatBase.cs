@@ -1,29 +1,9 @@
-﻿using PixelGraph.Common.Textures;
-using System;
-using System.Collections.Generic;
+﻿using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Encoding
 {
-    public class TextureFormatBase
+    public interface IResourcePackEncoding
     {
-        protected readonly Dictionary<string, TextureOutputEncoding> Map;
-
-
-        protected TextureFormatBase()
-        {
-            Map = new Dictionary<string, TextureOutputEncoding>(StringComparer.InvariantCultureIgnoreCase);
-        }
-
-        //protected void Map(string tag, ColorChannel color, string encoding)
-        //{
-        //    map.GetOrCreate(tag, NewKey).Set(color, encoding);
-        //}
-
-        public TextureOutputEncoding Get(string tag)
-        {
-            return Map.TryGetValue(tag, out var data) ? data : null;
-        }
-
-        //private static TextureOutputEncoding NewKey() => new TextureOutputEncoding();
+        void Apply(ResourcePackEncoding encoding);
     }
 }

@@ -94,7 +94,7 @@
                         <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" Foreground="{DynamicResource SecondaryHueMidBrush}" MaxWidth="140" HorizontalContentAlignment="Center"
                                   SelectedValue="{Binding OutputFormat}">
                             <ComboBox.ItemsSource>
-                                <vm:EncodingFormatValues/>
+                                <vm:OptionalEncodingFormatValues/>
                             </ComboBox.ItemsSource>
                         </ComboBox>
                     </DockPanel>

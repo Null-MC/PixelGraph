@@ -4,7 +4,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class RegionProcessor : PixelComposeProcessor
+    internal class RegionProcessor : PixelProcessor
     {
         private readonly Options options;
 

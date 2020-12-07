@@ -18,12 +18,12 @@
         d:DataContext="{d:DesignInstance vm:InputDesignVM, IsDesignTimeCreatable=True}"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <vm:EncodingFormatValues x:Key="Formats"/>
+        <vm:OptionalEncodingFormatValues x:Key="Formats"/>
         <vm:TextureTagValues x:Key="TextureTags"/>
         <vm:EncodingChannelValues x:Key="EncodingChannels"/>
     </Window.Resources>
     <Window.DataContext>
-        <vm:InputVM x:Name="VM" DataChanged="OnDataChanged"/>
+        <vm:PackInputVM x:Name="VM" DataChanged="OnDataChanged"/>
     </Window.DataContext>
     <DockPanel>
         <Grid DockPanel.Dock="Top" Margin="12">

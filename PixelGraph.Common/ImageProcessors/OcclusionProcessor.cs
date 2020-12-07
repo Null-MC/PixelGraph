@@ -10,7 +10,7 @@ using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class OcclusionProcessor : PixelComposeProcessor
+    internal class OcclusionProcessor : PixelProcessor
     {
         private const bool UseLinear = true;
 

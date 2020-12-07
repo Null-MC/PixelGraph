@@ -12,8 +12,9 @@
   <ItemGroup>
     <Compile Remove="ViewModels\InputVMX.cs" />
     <Compile Remove="ViewModels\PackEncodingVM.cs" />
+    <Compile Remove="ViewModels\PackInputVM.cs" />
     <Compile Remove="ViewModels\TreeSearchFilter.cs" />
-    <Compile Remove="Windows\InputWindowX.xaml.cs" />
+    <Compile Remove="Windows\PackInputWindow.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,13 +22,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Remove="Windows\InputWindowX.xaml" />
+    <Page Remove="Windows\PackInputWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MaterialDesignExtensions" Version="3.2.0" />
     <PackageReference Include="MaterialDesignThemes" Version="3.2.0" />
-    <PackageReference Include="Ookii.Dialogs.Wpf.NETCore" Version="2.2.1" />
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>

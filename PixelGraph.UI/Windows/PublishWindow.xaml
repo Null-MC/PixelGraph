@@ -23,7 +23,6 @@
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignCardBackground}">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="4,4,4,4">
                 <CheckBox Content="Close when complete" Margin="4,4,12,4" FontSize="12" Checked="OnCloseCheckBoxChecked"
-                          IsEnabled="{Binding IsActive, Mode=OneWay}"
                           IsChecked="{Binding CloseOnComplete, Mode=TwoWay}"/>
                 <Button Content="Cancel" Margin="4" Click="OnCancelButtonClick"
                         Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>

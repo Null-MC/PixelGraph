@@ -1,11 +1,13 @@
-﻿using PixelGraph.Common.PixelOperations;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class OverlayProcessor : PixelComposeProcessor
+    internal class OverlayProcessor : PixelProcessor
     {
         private readonly Options options;
 
@@ -17,61 +19,72 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
         {
-            var pixelIn = options.Source[context.X, context.Y];
+            byte value;
+            if (options.InputValue.HasValue) {
+                value = options.InputValue.Value;
+            }
+            else {
+                var pixelIn = options.Source[context.X, context.Y];
+                pixelIn.GetChannelValue(in options.InputColor, out var rawValue);
 
-            if (options.RedSource != ColorChannel.None)
-                GetValue(in pixelIn, in options.RedSource, options.RedAction, out pixelOut.R);
+                // Discard operation if source value outside bounds
+                if (rawValue < options.InputMin || rawValue > options.InputMax) return;
 
-            if (options.GreenSource != ColorChannel.None)
-                GetValue(in pixelIn, in options.GreenSource, options.GreenAction, out pixelOut.G);
+                var offset = rawValue - options.InputMin;
+                var range = options.InputMax - options.InputMin;
+                MathEx.Saturate(offset / (float)range, out value);
 
-            if (options.BlueSource != ColorChannel.None)
-                GetValue(in pixelIn, in options.BlueSource, options.BlueAction, out pixelOut.B);
+                // Input Processing
 
-            if (options.AlphaSource != ColorChannel.None)
-                GetValue(in pixelIn, in options.AlphaSource, options.AlphaAction, out pixelOut.A);
-        }
+                MathEx.Cycle(ref value, -options.InputShift);
 
-        private static void GetValue(in Rgba32 sourcePixel, in ColorChannel color, ChannelAction action, out byte value)
-        {
-            sourcePixel.GetChannelValue(in color, out value);
-            action?.Invoke(ref value);
+                if (options.InvertInput) value = (byte)(255 - value);
+
+                if (MathF.Abs(options.InputPower - 1f) > float.Epsilon) {
+                    var x = MathF.Pow(value / 255f, 1f / options.InputPower);
+                    MathEx.Saturate(in x, out value);
+                }
+            }
+
+            // Common Processing
+
+            if (MathF.Abs(options.Scale - 1f) > float.Epsilon)
+                MathEx.Saturate(value / 255f * options.Scale, out value);
+
+            // Output Processing
+
+            if (MathF.Abs(options.OutputPower - 1f) > float.Epsilon) {
+                var x = MathF.Pow(value / 255f, options.OutputPower);
+                MathEx.Saturate(in x, out value);
+            }
+
+            if (options.InvertOutput) value = (byte)(255 - value);
+
+            MathEx.Cycle(ref value, options.OutputShift);
+
+            pixelOut.SetChannelValue(options.OutputColor, value);
         }
 
         public class Options
         {
-            public Image<Rgba32> Source {get; set;}
-            public ColorChannel RedSource;
-            public ChannelAction RedAction;
-            public ColorChannel GreenSource;
-            public ChannelAction GreenAction;
-            public ColorChannel BlueSource;
-            public ChannelAction BlueAction;
-            public ColorChannel AlphaSource;
-            public ChannelAction AlphaAction;
+            public Image<Rgba32> Source;
 
+            public bool InvertInput;
+            public ColorChannel InputColor;
+            public byte? InputValue;
+            public byte InputMin;
+            public byte InputMax;
+            public short InputShift;
+            public float InputPower;
 
-            public void Set(ColorChannel source, ColorChannel destination, ChannelAction action = null)
-            {
-                switch (destination) {
-                    case ColorChannel.Red:
-                        RedSource = source;
-                        RedAction = action;
-                        break;
-                    case ColorChannel.Green:
-                        GreenSource = source;
-                        GreenAction = action;
-                        break;
-                    case ColorChannel.Blue:
-                        BlueSource = source;
-                        BlueAction = action;
-                        break;
-                    case ColorChannel.Alpha:
-                        AlphaSource = source;
-                        AlphaAction = action;
-                        break;
-                }
-            }
+            public bool InvertOutput;
+            public ColorChannel OutputColor;
+            public byte OutputMin;
+            public byte OutputMax;
+            public short OutputShift;
+            public float OutputPower;
+
+            public float Scale = 1f;
         }
     }
 }

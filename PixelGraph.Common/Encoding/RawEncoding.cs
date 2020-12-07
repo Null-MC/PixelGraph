@@ -1,79 +1,143 @@
-﻿using PixelGraph.Common.Textures;
+﻿using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class RawEncoding : TextureFormatBase
+    internal class RawEncoding : IResourcePackEncoding
     {
-        public RawEncoding()
+        public void Apply(ResourcePackEncoding encoding)
         {
-            Map[TextureTags.Albedo] = new TextureOutputEncoding {
-                Red = EncodingChannel.Red,
-                Green = EncodingChannel.Green,
-                Blue = EncodingChannel.Blue,
-                Alpha = EncodingChannel.Alpha,
-                Include = true,
+            encoding.Alpha = new ResourcePackChannelProperties(EncodingChannel.Alpha) {
+                Texture = TextureTags.Albedo,
+                Color = ColorChannel.Alpha,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Height] = new TextureOutputEncoding {
-                Red = EncodingChannel.Height,
-                Alpha = EncodingChannel.White,
-                Include = true,
+            encoding.AlbedoRed = new ResourcePackChannelProperties(EncodingChannel.AlbedoRed) {
+                Texture = TextureTags.Albedo,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Normal] = new TextureOutputEncoding {
-                Red = EncodingChannel.NormalX,
-                Green = EncodingChannel.NormalY,
-                Blue = EncodingChannel.NormalZ,
-                Alpha = EncodingChannel.White,
-                Include = true,
+            encoding.AlbedoGreen = new ResourcePackChannelProperties(EncodingChannel.AlbedoGreen) {
+                Texture = TextureTags.Albedo,
+                Color = ColorChannel.Green,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Occlusion] = new TextureOutputEncoding {
-                Red = EncodingChannel.Occlusion,
-                Alpha = EncodingChannel.White,
-                Include = true,
+            encoding.AlbedoBlue = new ResourcePackChannelProperties(EncodingChannel.AlbedoBlue) {
+                Texture = TextureTags.Albedo,
+                Color = ColorChannel.Blue,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Specular] = new TextureOutputEncoding {
-                Red = EncodingChannel.Specular,
-                Alpha = EncodingChannel.White,
-                Include = true,
+            encoding.DiffuseRed = new ResourcePackChannelProperties(EncodingChannel.DiffuseRed) {
+                Texture = TextureTags.Diffuse,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Smooth] = new TextureOutputEncoding {
-                Red = EncodingChannel.Smooth,
-                Alpha = EncodingChannel.White,
-                Include = true,
+            encoding.DiffuseGreen = new ResourcePackChannelProperties(EncodingChannel.DiffuseGreen) {
+                Texture = TextureTags.Diffuse,
+                Color = ColorChannel.Green,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Rough] = new TextureOutputEncoding {
-                Red = EncodingChannel.Rough,
-                Alpha = EncodingChannel.White,
-                Include = true,
+            encoding.DiffuseBlue = new ResourcePackChannelProperties(EncodingChannel.DiffuseBlue) {
+                Texture = TextureTags.Diffuse,
+                Color = ColorChannel.Blue,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Metal] = new TextureOutputEncoding {
-                Red = EncodingChannel.Metal,
-                Alpha = EncodingChannel.White,
-                Include = true,
+            encoding.Height = new ResourcePackChannelProperties(EncodingChannel.Height) {
+                Texture = TextureTags.Height,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Porosity] = new TextureOutputEncoding {
-                Red = EncodingChannel.Porosity,
-                Alpha = EncodingChannel.White,
-                Include = true,
+            encoding.Occlusion = new ResourcePackChannelProperties(EncodingChannel.Occlusion) {
+                Texture = TextureTags.Occlusion,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.SubSurfaceScattering] = new TextureOutputEncoding {
-                Red = EncodingChannel.SubSurfaceScattering,
-                Alpha = EncodingChannel.White,
-                Include = true,
+            encoding.NormalX = new ResourcePackChannelProperties(EncodingChannel.NormalX) {
+                Texture = TextureTags.Normal,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Emissive] = new TextureOutputEncoding {
-                Red = EncodingChannel.Emissive,
-                Alpha = EncodingChannel.White,
-                Include = true,
+            encoding.NormalY = new ResourcePackChannelProperties(EncodingChannel.NormalY) {
+                Texture = TextureTags.Normal,
+                Color = ColorChannel.Green,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.NormalZ = new ResourcePackChannelProperties(EncodingChannel.NormalZ) {
+                Texture = TextureTags.Normal,
+                Color = ColorChannel.Blue,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.Specular = new ResourcePackChannelProperties(EncodingChannel.Specular) {
+                Texture = TextureTags.Specular,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.Smooth = new ResourcePackChannelProperties(EncodingChannel.Smooth) {
+                Texture = TextureTags.Smooth,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.Rough = new ResourcePackChannelProperties(EncodingChannel.Rough) {
+                Texture = TextureTags.Rough,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.Metal = new ResourcePackChannelProperties(EncodingChannel.Metal) {
+                Texture = TextureTags.Metal,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.Porosity = new ResourcePackChannelProperties(EncodingChannel.Porosity) {
+                Texture = TextureTags.Porosity,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.SSS = new ResourcePackChannelProperties(EncodingChannel.SubSurfaceScattering) {
+                Texture = TextureTags.SubSurfaceScattering,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.Emissive = new ResourcePackChannelProperties(EncodingChannel.Emissive) {
+                Texture = TextureTags.Emissive,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
             };
         }
     }

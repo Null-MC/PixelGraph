@@ -4,6 +4,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
@@ -17,6 +18,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace PixelGraph.UI.Windows
@@ -26,7 +29,7 @@ namespace PixelGraph.UI.Windows
         private const int ThumbnailSize = 64;
 
         private readonly IServiceProvider provider;
-        private readonly IAppSettings settings;
+        //private readonly IAppSettings settings;
         private readonly MainWindowVM vm;
 
 
@@ -34,7 +37,7 @@ namespace PixelGraph.UI.Windows
         {
             this.provider = provider;
 
-            settings = provider.GetRequiredService<IAppSettings>();
+            //settings = provider.GetRequiredService<IAppSettings>();
 
             if (!DesignerProperties.GetIsInDesignMode(this)) {
                 vm = new MainWindowVM();
@@ -326,6 +329,41 @@ namespace PixelGraph.UI.Windows
                 await LoadRootDirectoryAsync();
         }
 
+        private string GetArchiveFilename()
+        {
+            var saveFileDialog = new VistaSaveFileDialog {
+                Title = "Save published archive",
+                Filter = "ZIP Archive|*.zip|All Files|*.*",
+                FileName = $"{vm.SelectedProfile?.Name}.zip",
+                AddExtension = true,
+            };
+
+            return saveFileDialog.ShowDialog() == true
+                ? saveFileDialog.FileName : null;
+        }
+
+        private static string GetDirectoryName()
+        {
+            var folderDialog = new VistaFolderBrowserDialog {
+                Description = "Destination for published resource pack content.",
+                UseDescriptionForTitle = true,
+                ShowNewFolderButton = true,
+            };
+
+            return folderDialog.ShowDialog() == true
+                ? folderDialog.SelectedPath : null;
+        }
+
+        private void OpenDocumentation()
+        {
+            var info = new ProcessStartInfo {
+                FileName = @"https://github.com/null511/PixelGraph/wiki",
+                UseShellExecute = true,
+            };
+
+            Process.Start(info);
+        }
+
         private void ShowError(string message)
         {
             Application.Current.Dispatcher.Invoke(() => {
@@ -376,7 +414,7 @@ namespace PixelGraph.UI.Windows
 
         private void OnContentEncodingMenuItemClick(object sender, RoutedEventArgs e)
         {
-            var window = new PackInputWindow(provider) {
+            var window = new PackInputWindow2(provider) {
                 Owner = this,
                 VM = {
                     RootDirectory = vm.RootDirectory,
@@ -407,31 +445,6 @@ namespace PixelGraph.UI.Windows
             };
 
             window.ShowDialog();
-        }
-
-        private string GetArchiveFilename()
-        {
-            var saveFileDialog = new VistaSaveFileDialog {
-                Title = "Save published archive",
-                Filter = "ZIP Archive|*.zip|All Files|*.*",
-                FileName = $"{vm.SelectedProfile?.Name}.zip",
-                AddExtension = true,
-            };
-
-            return saveFileDialog.ShowDialog() == true
-                ? saveFileDialog.FileName : null;
-        }
-
-        private static string GetDirectoryName()
-        {
-            var folderDialog = new VistaFolderBrowserDialog {
-                Description = "Destination for published resource pack content.",
-                UseDescriptionForTitle = true,
-                ShowNewFolderButton = true,
-            };
-
-            return folderDialog.ShowDialog() == true
-                ? folderDialog.SelectedPath : null;
         }
 
         private void OnPublishMenuItemClick(object sender, RoutedEventArgs e)
@@ -494,17 +507,68 @@ namespace PixelGraph.UI.Windows
 
         private void OnDocumentationButtonClick(object sender, RoutedEventArgs e)
         {
-            var info = new ProcessStartInfo {
-                FileName = @"https://github.com/null511/PixelGraph/wiki",
-                UseShellExecute = true,
-            };
-
-            Process.Start(info);
+            OpenDocumentation();
         }
 
         private void OnMaterialSourceSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             vm.LoadedTexture = vm.SelectedSource?.Image;
+        }
+
+        private async void OnImportMaterialClick(object sender, RoutedEventArgs e)
+        {
+            if (!(vm.SelectedNode is ContentTreeFile file) || file.Type != ContentNodeType.Texture) return;
+
+            await Task.Run(() => ImportTextureAsync(file.Filename, CancellationToken.None));
+
+            // TODO: refresh parent folder instead of whole tree
+            await LoadRootDirectoryAsync();
+        }
+
+        private async Task ImportTextureAsync(string filename, CancellationToken token)
+        {
+            var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
+            scopeBuilder.AddFileInput();
+            scopeBuilder.AddFileOutput();
+            //...
+
+            await using var scope = scopeBuilder.Build();
+
+            var reader = scope.GetRequiredService<IInputReader>();
+            var writer = scope.GetRequiredService<IOutputWriter>();
+            var matWriter = scope.GetRequiredService<IMaterialWriter>();
+
+            reader.SetRoot(vm.RootDirectory);
+            writer.SetRoot(vm.RootDirectory);
+
+            var itemName = Path.GetFileNameWithoutExtension(filename);
+            var localPath = Path.GetDirectoryName(filename);
+
+            var material = new MaterialProperties();
+            //...
+
+            var ext = Path.GetExtension(filename);
+            var destFile = PathEx.Join(localPath, itemName, $"albedo{ext}");
+
+            var matFile = PathEx.Join(localPath, itemName, "pbr.yml");
+            await matWriter.WriteAsync(material, matFile);
+
+            await using (var sourceStream = reader.Open(filename)) {
+                await using var destStream = writer.Open(destFile);
+                await sourceStream.CopyToAsync(destStream, token);
+            }
+
+            writer.Delete(filename);
+        }
+
+        private void OnContentTreePreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var source = e.OriginalSource as DependencyObject;
+
+            while (source != null && !(source is TreeViewItem))
+                source = VisualTreeHelper.GetParent(source);
+
+            (source as TreeViewItem)?.Focus();
         }
 
         #endregion

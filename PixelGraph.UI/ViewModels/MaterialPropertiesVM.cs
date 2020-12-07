@@ -16,6 +16,7 @@ namespace PixelGraph.UI.ViewModels
         public bool HasMaterial => _material != null;
         public bool IsGeneralSelected => _selectedTag == null;
         public bool IsAlbedoSelected => TextureTags.Is(_selectedTag, TextureTags.Albedo);
+        public bool IsDiffuseSelected => TextureTags.Is(_selectedTag, TextureTags.Diffuse);
         public bool IsHeightSelected => TextureTags.Is(_selectedTag, TextureTags.Height);
         public bool IsNormalSelected => TextureTags.Is(_selectedTag, TextureTags.Normal);
         public bool IsOcclusionSelected => TextureTags.Is(_selectedTag, TextureTags.Occlusion);
@@ -50,6 +51,7 @@ namespace PixelGraph.UI.ViewModels
 
                 UpdateGeneralProperties();
                 UpdateAlbedoProperties();
+                UpdateDiffuseProperties();
                 UpdateHeightProperties();
                 UpdateNormalProperties();
                 UpdateOcclusionProperties();
@@ -71,6 +73,7 @@ namespace PixelGraph.UI.ViewModels
 
                 OnPropertyChanged(nameof(IsGeneralSelected));
                 OnPropertyChanged(nameof(IsAlbedoSelected));
+                OnPropertyChanged(nameof(IsDiffuseSelected));
                 OnPropertyChanged(nameof(IsHeightSelected));
                 OnPropertyChanged(nameof(IsNormalSelected));
                 OnPropertyChanged(nameof(IsOcclusionSelected));
@@ -219,6 +222,113 @@ namespace PixelGraph.UI.ViewModels
 
         #endregion
 
+        #region Diffuse
+
+        public string DiffuseTexture {
+            get => _material?.Diffuse?.Texture;
+            set {
+                _material.Diffuse ??= new MaterialDiffuseProperties();
+                _material.Diffuse.Texture = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public byte? DiffuseValueRed {
+            get => _material?.Diffuse?.ValueRed;
+            set {
+                _material.Diffuse ??= new MaterialDiffuseProperties();
+                _material.Diffuse.ValueRed = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? DiffuseScaleRed {
+            get => _material?.Diffuse?.ScaleRed;
+            set {
+                _material.Diffuse ??= new MaterialDiffuseProperties();
+                _material.Diffuse.ScaleRed = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public byte? DiffuseValueGreen {
+            get => _material?.Diffuse?.ValueGreen;
+            set {
+                _material.Diffuse ??= new MaterialDiffuseProperties();
+                _material.Diffuse.ValueGreen = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? DiffuseScaleGreen {
+            get => _material?.Diffuse?.ScaleGreen;
+            set {
+                _material.Diffuse ??= new MaterialDiffuseProperties();
+                _material.Diffuse.ScaleGreen = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public byte? DiffuseValueBlue {
+            get => _material?.Diffuse?.ValueBlue;
+            set {
+                _material.Diffuse ??= new MaterialDiffuseProperties();
+                _material.Diffuse.ValueBlue = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? DiffuseScaleBlue {
+            get => _material?.Diffuse?.ScaleBlue;
+            set {
+                _material.Diffuse ??= new MaterialDiffuseProperties();
+                _material.Diffuse.ScaleBlue = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public byte? DiffuseValueAlpha {
+            get => _material?.Diffuse?.ValueAlpha;
+            set {
+                _material.Diffuse ??= new MaterialDiffuseProperties();
+                _material.Diffuse.ValueAlpha = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? DiffuseScaleAlpha {
+            get => _material?.Diffuse?.ScaleAlpha;
+            set {
+                _material.Diffuse ??= new MaterialDiffuseProperties();
+                _material.Diffuse.ScaleAlpha = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        private void UpdateDiffuseProperties()
+        {
+            OnPropertyChanged(nameof(DiffuseTexture));
+            OnPropertyChanged(nameof(DiffuseValueRed));
+            OnPropertyChanged(nameof(DiffuseValueGreen));
+            OnPropertyChanged(nameof(DiffuseValueBlue));
+            OnPropertyChanged(nameof(DiffuseValueAlpha));
+            OnPropertyChanged(nameof(DiffuseScaleRed));
+            OnPropertyChanged(nameof(DiffuseScaleGreen));
+            OnPropertyChanged(nameof(DiffuseScaleBlue));
+            OnPropertyChanged(nameof(DiffuseScaleAlpha));
+        }
+
+        #endregion
+
         #region Height
 
         public string HeightTexture {
@@ -322,6 +432,26 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public decimal? NormalCurveX {
+            get => _material?.Normal?.CurveX;
+            set {
+                _material.Normal ??= new MaterialNormalProperties();
+                _material.Normal.CurveX = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? NormalCurveY {
+            get => _material?.Normal?.CurveY;
+            set {
+                _material.Normal ??= new MaterialNormalProperties();
+                _material.Normal.CurveY = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
         private void UpdateNormalProperties()
         {
             OnPropertyChanged(nameof(NormalTexture));
@@ -330,6 +460,8 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(NormalValueZ));
             OnPropertyChanged(nameof(NormalStrength));
             OnPropertyChanged(nameof(NormalNoise));
+            OnPropertyChanged(nameof(NormalCurveX));
+            OnPropertyChanged(nameof(NormalCurveY));
         }
 
         #endregion

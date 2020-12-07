@@ -48,9 +48,11 @@ namespace PixelGraph.Common.PixelOperations
                 {
                     var context = new PixelContext(frame.Width, frame.Height, y);
                     var row = frame.GetPixelRowSpan(y);
-
                     var pixel = new Rgba32();
+
                     for (var x = 0; x < frame.Width; x++) {
+                        context.X = x;
+
                         row[x].ToRgba32(ref pixel);
                         action.Invoke(ref pixel, in context);
                         row[x].FromRgba32(pixel);

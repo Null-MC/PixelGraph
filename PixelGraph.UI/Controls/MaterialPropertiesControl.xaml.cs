@@ -113,6 +113,7 @@ namespace PixelGraph.UI.Controls
         {
             Add(new MaterialPropertiesControl.TextureItem {Name = "General"});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Albedo", Key = TextureTags.Albedo});
+            Add(new MaterialPropertiesControl.TextureItem {Name = "Diffuse", Key = TextureTags.Diffuse});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Height", Key = TextureTags.Height});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Normal", Key = TextureTags.Normal});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Occlusion", Key = TextureTags.Occlusion});

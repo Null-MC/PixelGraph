@@ -1,36 +1,66 @@
-﻿using PixelGraph.Common.Textures;
+﻿using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class LegacyEncoding : TextureFormatBase
+    internal class LegacyEncoding : IResourcePackEncoding
     {
-        public LegacyEncoding()
+        public void Apply(ResourcePackEncoding encoding)
         {
-            Map[TextureTags.Albedo] = new TextureOutputEncoding {
-                Red = EncodingChannel.Red,
-                Green = EncodingChannel.Green,
-                Blue = EncodingChannel.Blue,
-                Alpha = EncodingChannel.Alpha,
-                Sampler = Samplers.Cubic,
-                Include = true,
+            encoding.Alpha = new ResourcePackChannelProperties(EncodingChannel.Alpha) {
+                Texture = TextureTags.Diffuse,
+                Color = ColorChannel.Alpha,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Normal] = new TextureOutputEncoding {
-                Red = EncodingChannel.NormalX,
-                Green = EncodingChannel.NormalY,
-                Blue = EncodingChannel.NormalZ,
-                Alpha = EncodingChannel.White,
-                Sampler = Samplers.Cubic,
-                Include = true,
+            encoding.DiffuseRed = new ResourcePackChannelProperties(EncodingChannel.DiffuseRed) {
+                Texture = TextureTags.Diffuse,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
             };
 
-            Map[TextureTags.Specular] = new TextureOutputEncoding {
-                Red = EncodingChannel.Specular,
-                Green = EncodingChannel.Specular,
-                Blue = EncodingChannel.Specular,
-                Alpha = EncodingChannel.White,
-                Sampler = Samplers.Cubic,
-                Include = true,
+            encoding.DiffuseGreen = new ResourcePackChannelProperties(EncodingChannel.DiffuseGreen) {
+                Texture = TextureTags.Diffuse,
+                Color = ColorChannel.Green,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.DiffuseBlue = new ResourcePackChannelProperties(EncodingChannel.DiffuseBlue) {
+                Texture = TextureTags.Diffuse,
+                Color = ColorChannel.Blue,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.NormalX = new ResourcePackChannelProperties(EncodingChannel.NormalX) {
+                Texture = TextureTags.Normal,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.NormalY = new ResourcePackChannelProperties(EncodingChannel.NormalY) {
+                Texture = TextureTags.Normal,
+                Color = ColorChannel.Green,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.NormalZ = new ResourcePackChannelProperties(EncodingChannel.NormalZ) {
+                Texture = TextureTags.Normal,
+                Color = ColorChannel.Blue,
+                MinValue = 0,
+                MaxValue = 255,
+            };
+
+            encoding.Specular = new ResourcePackChannelProperties(EncodingChannel.Specular) {
+                Texture = TextureTags.Specular,
+                Color = ColorChannel.Red,
+                MinValue = 0,
+                MaxValue = 255,
             };
         }
     }

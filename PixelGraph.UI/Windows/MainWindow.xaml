@@ -176,7 +176,7 @@
                                          Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                         </Grid>
                     </DockPanel>
-                    <TreeView SelectedItemChanged="OnTextureTreeSelectedItemChanged"
+                    <TreeView SelectedItemChanged="OnTextureTreeSelectedItemChanged" PreviewMouseRightButtonDown="OnContentTreePreviewMouseRightButtonDown"
                              ItemsSource="{Binding TreeRoot.Nodes, Mode=OneWay}">
                         <TreeView.Resources>
                             <DataTemplate DataType="{x:Type vm:ContentTreeFile}">
@@ -219,6 +219,12 @@
                                 </Style.Triggers>
                             </Style>
                         </TreeView.ItemContainerStyle>
+                        <TreeView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Create Material" Icon="{md:PackIcon Palette}" Click="OnImportMaterialClick"
+                                          Visibility="{Binding HasTreeTextureSelection, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"/>
+                            </ContextMenu>
+                        </TreeView.ContextMenu>
                     </TreeView>
                 </DockPanel>
                 <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>

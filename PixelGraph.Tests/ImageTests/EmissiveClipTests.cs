@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
-using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using System.Threading.Tasks;
-using PixelGraph.Common.Material;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -20,17 +19,50 @@ namespace PixelGraph.Tests.ImageTests
         public EmissiveClipTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Format = TextureEncoding.Format_Raw,
+                Emissive = {
+                    Texture = TextureTags.Emissive,
+                    Color = ColorChannel.Red,
+                    Shift = -1,
+                }
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Output = {
-                    Emissive = new TextureOutputEncoding {
-                        Red = EncodingChannel.EmissiveClipped,
-                        Include = true,
+                    Emissive = {
+                        Texture = TextureTags.Emissive,
+                        Color = ColorChannel.Red,
+                        Shift = -1,
                     },
                 },
             };
+        }
+
+        [InlineData(  0)]
+        [InlineData(100)]
+        [InlineData(155)]
+        [InlineData(255)]
+        [Theory] public async Task Passthrough(byte value)
+        {
+            await using var provider = Builder.Build();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
+            graphBuilder.UseGlobalOutput = true;
+
+            using var emissiveImage = CreateImageR(value);
+            await content.AddAsync("assets/test/emissive.png", emissiveImage);
+
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = new MaterialProperties {
+                    Name = "test",
+                    LocalPath = "assets",
+                },
+            };
+
+            await graphBuilder.ProcessInputGraphAsync(context);
+            var image = await content.OpenImageAsync("assets/test_e.png");
+            PixelAssert.RedEquals(value, image);
         }
 
         [InlineData(  0,  0.0, 255)]
@@ -64,39 +96,6 @@ namespace PixelGraph.Tests.ImageTests
             PixelAssert.RedEquals(expected, image);
         }
 
-        [InlineData(  0)]
-        [InlineData(100)]
-        [InlineData(155)]
-        [InlineData(255)]
-        [Theory] public async Task Passthrough(byte value)
-        {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var emissiveImage = CreateImageR(value);
-            await content.AddAsync("assets/test/emissive.png", emissiveImage);
-
-            var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                    Emissive = new MaterialEmissiveProperties {
-                        Input = new TextureEncoding {
-                            Red = EncodingChannel.EmissiveClipped,
-                        },
-                    },
-                },
-            };
-
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_e.png");
-            PixelAssert.RedEquals(value, image);
-        }
-
         [InlineData(  0, 255)]
         [InlineData(  1,   0)]
         [InlineData(128, 127)]
@@ -112,16 +111,16 @@ namespace PixelGraph.Tests.ImageTests
             await content.AddAsync("assets/test/emissive.png", emissiveImage);
 
             var context = new MaterialContext {
-                Input = packInput,
+                Input = new ResourcePackInputProperties {
+                    Emissive = {
+                        Texture = TextureTags.Emissive,
+                        Color = ColorChannel.Red,
+                    },
+                },
                 Profile = packProfile,
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Emissive = new MaterialEmissiveProperties {
-                        Input = new TextureEncoding {
-                            Red = EncodingChannel.Emissive,
-                        },
-                    },
                 },
             };
 
