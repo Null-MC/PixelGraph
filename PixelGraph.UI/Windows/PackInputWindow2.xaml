@@ -6,12 +6,12 @@
         xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
         xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
         d:DataContext="{d:DesignInstance vm:PackInput2DesignVM, IsDesignTimeCreatable=True}"
-        Title="Edit Input Encoding" Width="640" Height="480" mc:Ignorable="d"
+        Title="Edit Input Encoding" Width="800" Height="480" mc:Ignorable="d"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
         TextOptions.TextFormattingMode="Ideal" 
-        TextOptions.TextRenderingMode="Auto"        
+        TextOptions.TextRenderingMode="Auto"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}" WindowStartupLocation="CenterOwner">
     <Window.DataContext>
@@ -44,13 +44,13 @@
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
             <TextBlock Text="Format:" Margin="6,6,4,6" VerticalAlignment="Center"
-                       Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-            <ComboBox Width="120" Padding="0,1" Margin="2,6,6,6" DisplayMemberPath="Text" SelectedValuePath="Value"
+                       Foreground="{DynamicResource PrimaryHueMidBrush}" FontSize="16"/>
+            <ComboBox Width="180" Padding="0,1" Margin="2,6,6,6" DisplayMemberPath="Text" SelectedValuePath="Value"
                       ItemsSource="{StaticResource Formats}"
-                      SelectedValue="{Binding Format, Mode=TwoWay}"/>
+                      SelectedValue="{Binding Format, Mode=TwoWay}" HorizontalContentAlignment="Center" FontSize="14"/>
         </StackPanel>
         <ScrollViewer>
-            <ListBox HorizontalContentAlignment="Stretch"
+            <ListBox HorizontalContentAlignment="Stretch" Background="#222"
                 ItemsSource="{Binding Channels, Mode=OneTime}">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:EncodingChannelMapping}">
@@ -59,6 +59,9 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="180"/>
                                 <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="80"/>
                                 <ColumnDefinition Width="80"/>
                                 <ColumnDefinition Width="80"/>
                             </Grid.ColumnDefinitions>
@@ -77,6 +80,14 @@
                             <controls:TextBoxEx Grid.Column="4" Style="{StaticResource RowTextValue}"
                                                 Placeholder="{Binding MaxDefault}"
                                                 Text="{Binding MaxValue, Mode=TwoWay}"/>
+                            <controls:TextBoxEx Grid.Column="5" Style="{StaticResource RowTextValue}"
+                                                Placeholder="{Binding ShiftDefault}"
+                                                Text="{Binding Shift, Mode=TwoWay}"/>
+                            <controls:TextBoxEx Grid.Column="6" Style="{StaticResource RowTextValue}"
+                                                Placeholder="{Binding PowerDefault}"
+                                                Text="{Binding Power, Mode=TwoWay}"/>
+                            <CheckBox Grid.Column="7"
+                                                IsChecked="{Binding Invert, Mode=TwoWay}" HorizontalAlignment="Center"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

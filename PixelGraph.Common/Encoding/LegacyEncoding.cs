@@ -3,64 +3,66 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class LegacyEncoding : IResourcePackEncoding
+    internal class LegacyEncoding : ITextureEncodingFactory
     {
-        public void Apply(ResourcePackEncoding encoding)
+        public ResourcePackEncoding Create()
         {
-            encoding.Alpha = new ResourcePackChannelProperties(EncodingChannel.Alpha) {
-                Texture = TextureTags.Diffuse,
-                Color = ColorChannel.Alpha,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+            return new ResourcePackEncoding {
+                Alpha = new ResourcePackAlphaChannelProperties {
+                    Texture = TextureTags.Diffuse,
+                    Color = ColorChannel.Alpha,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.DiffuseRed = new ResourcePackChannelProperties(EncodingChannel.DiffuseRed) {
-                Texture = TextureTags.Diffuse,
-                Color = ColorChannel.Red,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                DiffuseRed = new ResourcePackDiffuseRedChannelProperties {
+                    Texture = TextureTags.Diffuse,
+                    Color = ColorChannel.Red,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.DiffuseGreen = new ResourcePackChannelProperties(EncodingChannel.DiffuseGreen) {
-                Texture = TextureTags.Diffuse,
-                Color = ColorChannel.Green,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                DiffuseGreen = new ResourcePackDiffuseGreenChannelProperties {
+                    Texture = TextureTags.Diffuse,
+                    Color = ColorChannel.Green,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.DiffuseBlue = new ResourcePackChannelProperties(EncodingChannel.DiffuseBlue) {
-                Texture = TextureTags.Diffuse,
-                Color = ColorChannel.Blue,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                DiffuseBlue = new ResourcePackDiffuseBlueChannelProperties {
+                    Texture = TextureTags.Diffuse,
+                    Color = ColorChannel.Blue,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.NormalX = new ResourcePackChannelProperties(EncodingChannel.NormalX) {
-                Texture = TextureTags.Normal,
-                Color = ColorChannel.Red,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                NormalX = new ResourcePackNormalXChannelProperties {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Red,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.NormalY = new ResourcePackChannelProperties(EncodingChannel.NormalY) {
-                Texture = TextureTags.Normal,
-                Color = ColorChannel.Green,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                NormalY = new ResourcePackNormalYChannelProperties {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Green,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.NormalZ = new ResourcePackChannelProperties(EncodingChannel.NormalZ) {
-                Texture = TextureTags.Normal,
-                Color = ColorChannel.Blue,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                NormalZ = new ResourcePackNormalZChannelProperties {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Blue,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.Specular = new ResourcePackChannelProperties(EncodingChannel.Specular) {
-                Texture = TextureTags.Specular,
-                Color = ColorChannel.Red,
-                MinValue = 0,
-                MaxValue = 255,
+                Specular = new ResourcePackSpecularChannelProperties {
+                    Texture = TextureTags.Specular,
+                    Color = ColorChannel.Red,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
             };
         }
     }

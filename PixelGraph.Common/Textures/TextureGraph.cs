@@ -20,74 +20,81 @@ namespace PixelGraph.Common.Textures
 {
     public interface ITextureGraph : IDisposable
     {
-        MaterialContext Context {get;}
-        //bool UseGlobalOutput {get; set;}
+        MaterialContext Context {get; set;}
+        List<ResourcePackChannelProperties> InputEncoding {get; set;}
+        List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        Image<Rgba32> NormalTexture {get;}
+        bool UseGlobalOutput {get; set;}
 
-        Task BuildFinalImageAsync(string textureTag, ResourcePackChannelProperties[] encoding, CancellationToken token = default);
+        Task BuildNormalTextureAsync(CancellationToken token = default);
+        Task BuildFinalImageAsync(string textureTag, CancellationToken token = default);
+
         Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token = default);
         Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default);
+        Task<Image<Rgba32>> GetGeneratedOcclusionAsync(CancellationToken token = default);
     }
 
     internal class TextureGraph : ITextureGraph
     {
-        private readonly Dictionary<string, List<ChannelSource>> sourceMap;
         private readonly IServiceProvider provider;
         private readonly IInputReader reader;
         private readonly INamingStructure naming;
         private readonly IImageWriter imageWriter;
         private readonly ILogger logger;
-        private Image<Rgba32> normalTexture;
         private Image<Rgba32> occlusionTexture;
 
-        public MaterialContext Context {get;}
+        public MaterialContext Context {get; set;}
+        public List<ResourcePackChannelProperties> InputEncoding {get; set;}
+        public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        public Image<Rgba32> NormalTexture {get; private set;}
         public bool UseGlobalOutput {get; set;}
 
 
-        public TextureGraph(IServiceProvider provider, MaterialContext context)
+        public TextureGraph(IServiceProvider provider)
         {
             this.provider = provider;
-            Context = context;
 
             reader = provider.GetRequiredService<IInputReader>();
             naming = provider.GetRequiredService<INamingStructure>();
             imageWriter = provider.GetRequiredService<IImageWriter>();
             logger = provider.GetRequiredService<ILogger<TextureGraph>>();
-            sourceMap = new Dictionary<string, List<ChannelSource>>();
+
+            InputEncoding = new List<ResourcePackChannelProperties>();
+            OutputEncoding = new List<ResourcePackChannelProperties>();
         }
 
-        public void BuildFromInput()
+        public async Task BuildNormalTextureAsync(CancellationToken token = default)
         {
-            foreach (var tag in Context.Input.GetAllTags()) {
-                foreach (var channel in Context.Input.GetByTag(tag)) {
-                    MapSource(tag, channel);
-                }
-            }
+            if (await TryBuildNormalMapAsync(token)) {
+                InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
+                InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
+                InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalZ));
 
-            if (ContainsSource(EncodingChannel.Height))
-                AddHeightGeneratedInputs();
+                InputEncoding.Add(new ResourcePackNormalXChannelProperties {
+                    Texture = TextureTags.NormalGenerated,
+                    Color = ColorChannel.Red,
+                });
+
+                InputEncoding.Add(new ResourcePackNormalYChannelProperties {
+                    Texture = TextureTags.NormalGenerated,
+                    Color = ColorChannel.Green,
+                });
+
+                InputEncoding.Add(new ResourcePackNormalZChannelProperties {
+                    Texture = TextureTags.NormalGenerated,
+                    Color = ColorChannel.Blue,
+                });
+            }
         }
 
-        public void BuildFromOutput()
-        {
-            foreach (var tag in Context.Profile.Output.GetAllTags()) {
-                foreach (var channel in Context.Profile.Output.GetByTag(tag)) {
-                    if (!channel.Color.HasValue) continue;
-
-                    MapSource(tag, channel);
-                }
-            }
-
-            //if (ContainsSource(EncodingChannel.Height))
-            //    AddHeightGeneratedInputs();
-        }
-
-        public async Task BuildFinalImageAsync(string textureTag, ResourcePackChannelProperties[] encoding, CancellationToken token = default)
+        public async Task BuildFinalImageAsync(string textureTag, CancellationToken token = default)
         {
             using var builder = provider.GetRequiredService<ITextureBuilder>();
 
+            builder.Graph = this;
             builder.Material = Context.Material;
-            builder.InputChannels = Context.Input.All;
-            builder.OutputChannels = Context.Profile.Output.GetByTag(textureTag).ToArray();
+            builder.InputChannels = InputEncoding.ToArray();
+            builder.OutputChannels = OutputEncoding.Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
 
             await builder.BuildAsync(token);
 
@@ -115,7 +122,7 @@ namespace PixelGraph.Common.Textures
                         using var regionImage = GetImageRegion(builder.ImageResult, region.GetRectangle());
 
                         // TODO: move resize before regions; then scale regions to match
-                        using var resizedRegionImage = Resize(Context, regionImage, encoding);
+                        using var resizedRegionImage = Resize(regionImage);
 
                         await imageWriter.WriteAsync(resizedRegionImage ?? builder.ImageResult, destFile, imageFormat, token);
                     }
@@ -127,7 +134,7 @@ namespace PixelGraph.Common.Textures
                 var name = naming.GetOutputTextureName(Context.Profile, Context.Material.Name, textureTag, UseGlobalOutput);
                 var destFile = PathEx.Join(p, name);
 
-                using var resizedImage = Resize(Context, builder.ImageResult, encoding);
+                using var resizedImage = Resize(builder.ImageResult);
 
                 await imageWriter.WriteAsync(resizedImage ?? builder.ImageResult, destFile, imageFormat, token);
 
@@ -137,18 +144,17 @@ namespace PixelGraph.Common.Textures
             //await CopyMetaAsync(graph.Context, tag, token);
         }
 
-        private static Image<Rgba32> Resize(MaterialContext context, Image<Rgba32> image, ResourcePackChannelProperties[] encoding)
+        private Image<Rgba32> Resize(Image<Rgba32> image)
         {
-            if (context == null) throw new ArgumentNullException(nameof(context));
             if (image == null) throw new ArgumentNullException(nameof(image));
 
-            if (!(context.Material?.ResizeEnabled ?? true)) return null;
-            if (!context.Profile.TextureSize.HasValue && !context.Profile.TextureScale.HasValue) return null;
+            if (!(Context.Material?.ResizeEnabled ?? true)) return null;
+            if (!Context.Profile.TextureSize.HasValue && !Context.Profile.TextureScale.HasValue) return null;
 
             var options = new ResizeProcessor.Options {
                 Source = image,
-                TargetWidth = context.Profile.TextureSize ?? 0,
-                Channels = encoding,
+                TargetWidth = Context.Profile.TextureSize ?? 0,
+                Channels = OutputEncoding.ToArray(),
             };
 
             var (width, height) = image.Size();
@@ -160,16 +166,16 @@ namespace PixelGraph.Common.Textures
             //if (samplerName != null && Samplers.TryParse(samplerName, out var _resampler))
             //    resampler = _resampler;
 
-            if (context.Profile.TextureSize.HasValue) {
-                if (width == context.Profile.TextureSize) return null;
+            if (Context.Profile.TextureSize.HasValue) {
+                if (width == Context.Profile.TextureSize) return null;
 
                 var aspect = height / (float) width;
-                options.TargetWidth = context.Profile.TextureSize.Value;
-                options.TargetHeight = (int)(context.Profile.TextureSize.Value * aspect);
+                options.TargetWidth = Context.Profile.TextureSize.Value;
+                options.TargetHeight = (int)(Context.Profile.TextureSize.Value * aspect);
             }
             else {
-                options.TargetWidth = (int)Math.Max(width * context.Profile.TextureScale.Value, 1f);
-                options.TargetHeight = (int)Math.Max(height * context.Profile.TextureScale.Value, 1f);
+                options.TargetWidth = (int)Math.Max(width * Context.Profile.TextureScale.Value, 1f);
+                options.TargetHeight = (int)Math.Max(height * Context.Profile.TextureScale.Value, 1f);
             }
 
             var processor = new ResizeProcessor(options);
@@ -210,115 +216,112 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        public async Task<Image<Rgba32>> GetGeneratedNormalAsync(CancellationToken token = default)
-        {
-            if (normalTexture == null) {
-                normalTexture = await GenerateNormalAsync(token);
-            }
-            
-            return normalTexture;
-        }
-
         public async Task<Image<Rgba32>> GetGeneratedOcclusionAsync(CancellationToken token = default)
         {
             if (occlusionTexture == null) {
-                occlusionTexture = await GenerateOcclusionAsync(token);
+                try {
+                    occlusionTexture = await GenerateOcclusionAsync(token);
+                }
+                catch (FileNotFoundException) {}
             }
             
             return occlusionTexture;
         }
 
-        public bool ContainsSource(string encodingChannel)
-        {
-            return sourceMap.Keys.Contains(encodingChannel, StringComparer.InvariantCultureIgnoreCase);
-        }
-
-        public bool TryGetSources(string outputChannel, out ChannelSource[] sources)
-        {
-            var result = sourceMap.TryGetValue(outputChannel, out var sourceList);
-            sources = result ? sourceList.ToArray() : null;
-            return result;
-        }
-
-        public Stream OpenTexture(string tag)
-        {
-            var file = reader.EnumerateTextures(Context.Material, tag).FirstOrDefault();
-            return file == null ? null : reader.Open(file);
-        }
-
-        public async Task<(Image<Rgba32>, ColorChannel)> GetSourceImageAsync(string encodingChannel, CancellationToken token = default)
-        {
-            if (sourceMap.TryGetValue(encodingChannel, out var sourceList)) {
-                foreach (var source in sourceList) {
-                    var file = reader.EnumerateTextures(Context.Material, source.Tag).FirstOrDefault();
-                    if (file == null) continue;
-
-                    await using var stream = reader.Open(file);
-
-                    try {
-                        var image = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
-                        return (image, source.Channel);
-                    }
-                    catch {
-                        logger.LogWarning("Failed to load texture {file}!", file);
-                    }
-                }
-            }
-
-            return (null, ColorChannel.None);
-        }
-
         public void Dispose()
         {
-            normalTexture?.Dispose();
+            NormalTexture?.Dispose();
             occlusionTexture?.Dispose();
         }
 
-        private void AddHeightGeneratedInputs()
+        private async Task<bool> TryBuildNormalMapAsync(CancellationToken token)
         {
-            sourceMap.GetOrCreate(EncodingChannel.NormalX, NewSourceMap)
-                .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Red));
+            // TODO: Try to compose from existing channels first
+            var normalXChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
+            var normalYChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
+            var normalZChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalZ));
 
-            sourceMap.GetOrCreate(EncodingChannel.NormalY, NewSourceMap)
-                .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Green));
+            var hasNormalX = normalXChannel?.HasMapping ?? false;
+            var hasNormalY = normalYChannel?.HasMapping ?? false;
 
-            sourceMap.GetOrCreate(EncodingChannel.NormalZ, NewSourceMap)
-                .Add(new ChannelSource(TextureTags.NormalGenerated, ColorChannel.Blue));
+            if (hasNormalX && hasNormalY) {
+                // TODO: make image from normal X & Y; z if found
+                using var builder = provider.GetRequiredService<ITextureBuilder>();
 
-            sourceMap.GetOrCreate(EncodingChannel.Occlusion, NewSourceMap)
-                .Add(new ChannelSource(TextureTags.OcclusionGenerated, ColorChannel.Red));
-        }
+                builder.Graph = this;
+                builder.Material = Context.Material;
+                builder.InputChannels = new [] {
+                    normalXChannel, normalYChannel, normalZChannel
+                };
 
-        //private void MapSource(string tag, ColorChannel channel, string input)
-        //{
-        //    if (string.IsNullOrEmpty(input) || EncodingChannel.Is(input, EncodingChannel.None)) return;
-        //    sourceMap.GetOrCreate(input, NewSourceMap).Add(new ChannelSource(tag, channel));
-        //}
+                builder.OutputChannels = new ResourcePackChannelProperties[] {
+                    new ResourcePackNormalXChannelProperties {
+                        Texture = TextureTags.Normal,
+                        Color = ColorChannel.Red,
+                    },
+                    new ResourcePackNormalYChannelProperties {
+                        Texture = TextureTags.Normal,
+                        Color = ColorChannel.Green,
+                    },
+                    new ResourcePackNormalZChannelProperties {
+                        Texture = TextureTags.Normal,
+                        Color = ColorChannel.Blue,
+                    },
+                };
 
-        private void MapSource(string tag, ResourcePackChannelProperties channel)
-        {
-            if (!channel.Color.HasValue) return;
-            if (string.IsNullOrEmpty(channel.Texture) || EncodingChannel.Is(channel.Texture, EncodingChannel.None)) return;
+                await builder.BuildAsync(token);
 
-            sourceMap.GetOrCreate(channel.Texture, NewSourceMap).Add(new ChannelSource(tag, channel.Color.Value));
+                NormalTexture = builder.ImageResult?.Clone();
+            }
+            else {
+                // generate
+                NormalTexture = await GenerateNormalAsync(token);
+            }
+
+            if (NormalTexture == null) return false;
+
+            var options = new NormalRotateProcessor.Options {
+                NormalX = ColorChannel.Red,
+                NormalY = ColorChannel.Green,
+                NormalZ = ColorChannel.Blue,
+                CurveX = (float?)Context.Material.Normal?.CurveX ?? 0f,
+                CurveY = (float?)Context.Material.Normal?.CurveY ?? 0f,
+                Noise = (float?)Context.Material.Normal?.Noise ?? 0f,
+            };
+
+            var processor = new NormalRotateProcessor(options);
+            NormalTexture.Mutate(c => c.ApplyProcessor(processor));
+            return true;
         }
 
         public async Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token)
         {
             logger.LogInformation("Generating normal map for texture {DisplayName}.", Context.Material.DisplayName);
 
-            if (!sourceMap.ContainsKey(EncodingChannel.Height))
-                throw new ApplicationException("No height source textures found!");
+            var heightChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
+
+            if (heightChannel == null || !heightChannel.HasMapping)
+                throw new FileNotFoundException("No height sources mapped!");
 
             Image<Rgba32> heightTexture = null;
             try {
-                ColorChannel heightChannel;
-                (heightTexture, heightChannel) = await GetSourceImageAsync(EncodingChannel.Height, token);
-                if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
+                var file = reader.EnumerateTextures(Context.Material, heightChannel.Texture).FirstOrDefault();
+                if (file == null) throw new FileNotFoundException("No height textures found!");
 
+                await using var stream = reader.Open(file);
+
+                try {
+                    heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
+                }
+                catch {
+                    logger.LogWarning("Failed to load texture {file}!", file);
+                }
+                
+                if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
+                
                 var options = new NormalMapProcessor.Options {
                     Source = heightTexture,
-                    HeightChannel = heightChannel,
+                    HeightChannel = heightChannel.Color ?? ColorChannel.None,
                     Strength = (float?)Context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
                     Wrap = Context.Material.Wrap ?? MaterialProperties.DefaultWrap,
                 };
@@ -337,25 +340,38 @@ namespace PixelGraph.Common.Textures
         {
             logger.LogInformation("Generating occlusion map for texture {DisplayName}.", Context.Material.DisplayName);
 
-            if (!sourceMap.ContainsKey(EncodingChannel.Height))
-                throw new SourceEmptyException("No height source textures found!");
+            var heightChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
+
+            if (heightChannel?.Color == null || heightChannel.Color.Value == ColorChannel.None)
+                throw new FileNotFoundException("No height sources mapped!");
 
             Image<Rgba32> heightTexture = null;
-            Image<Rgba32> emissiveImage = null;
+            //Image<Rgba32> emissiveImage = null;
             try {
-                ColorChannel heightChannel, emissiveChannel = ColorChannel.None;
-                (heightTexture, heightChannel) = await GetSourceImageAsync(EncodingChannel.Height, token);
-                if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
+                var file = reader.EnumerateTextures(Context.Material, heightChannel.Texture).FirstOrDefault();
+                if (file == null) throw new FileNotFoundException("No height textures found!");
 
-                if (Context.Material.Occlusion?.ClipEmissive ?? false) {
-                    (emissiveImage, emissiveChannel) = await GetSourceImageAsync(EncodingChannel.Emissive, token);
+                //ColorChannel emissiveChannel = ColorChannel.None;
+                //if (Context.Material.Occlusion?.ClipEmissive ?? false) {
+                //    (emissiveImage, emissiveChannel) = await GetSourceImageAsync(EncodingChannel.Emissive, token);
+                //}
+
+                await using var stream = reader.Open(file);
+
+                try {
+                    heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
                 }
+                catch {
+                    logger.LogWarning("Failed to load texture {file}!", file);
+                }
+                
+                if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
                 var options = new OcclusionProcessor.Options {
                     HeightSource = heightTexture,
-                    HeightChannel = heightChannel,
-                    EmissiveSource = emissiveImage,
-                    EmissiveChannel = emissiveChannel,
+                    HeightChannel = heightChannel.Color.Value,
+                    //EmissiveSource = emissiveImage,
+                    //EmissiveChannel = emissiveChannel,
                     StepCount = Context.Material.Occlusion?.Steps ?? MaterialOcclusionProperties.DefaultSteps,
                     Quality = (float?)Context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
                     ZScale = (float?)Context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
@@ -370,22 +386,7 @@ namespace PixelGraph.Common.Textures
             }
             finally {
                 heightTexture?.Dispose();
-                emissiveImage?.Dispose();
-            }
-        }
-
-        private static List<ChannelSource> NewSourceMap() => new List<ChannelSource>();
-
-        internal class ChannelSource
-        {
-            public string Tag {get;}
-            public ColorChannel Channel {get;}
-
-
-            public ChannelSource(string tag, ColorChannel channel)
-            {
-                Tag = tag;
-                Channel = channel;
+                //emissiveImage?.Dispose();
             }
         }
     }

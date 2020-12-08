@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
+using PixelGraph.Common;
+using PixelGraph.Common.Encoding;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Textures;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
@@ -12,7 +13,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PixelGraph.Common;
 
 namespace PixelGraph.UI.Windows
 {

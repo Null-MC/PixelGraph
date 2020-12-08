@@ -10,17 +10,17 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImageTests
 {
-    public class HeightTests : TestBase
+    public class OcclusionTests : TestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public HeightTests(ITestOutputHelper output) : base(output)
+        public OcclusionTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Height = {
-                    Texture = TextureTags.Height,
+                Occlusion = {
+                    Texture = TextureTags.Occlusion,
                     Color = ColorChannel.Red,
                     Invert = true,
                 },
@@ -28,8 +28,8 @@ namespace PixelGraph.Tests.ImageTests
 
             packProfile = new ResourcePackProfileProperties {
                 Output = {
-                    Height = {
-                        Texture = TextureTags.Height,
+                    Occlusion = {
+                        Texture = TextureTags.Occlusion,
                         Color = ColorChannel.Red,
                         Invert = true,
                     },
@@ -48,8 +48,8 @@ namespace PixelGraph.Tests.ImageTests
             var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
-            using var heightImage = CreateImageR(value);
-            await content.AddAsync("assets/test/height.png", heightImage);
+            using var sourceImage = CreateImageR(value);
+            await content.AddAsync("assets/test/occlusion.png", sourceImage);
             
             var context = new MaterialContext {
                 Input = packInput,
@@ -61,8 +61,8 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_h.png");
-            PixelAssert.RedEquals(value, image);
+            var resultImage = await content.OpenImageAsync("assets/test_ao.png");
+            PixelAssert.RedEquals(value, resultImage);
         }
 
         [InlineData(  0,  0.0f, 255)]
@@ -72,7 +72,7 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(100,  2.0f,  55)]
         [InlineData(100,  3.0f,   0)]
         [InlineData(200, 0.01f, 253)]
-        [Theory] public async Task ValueScale(byte value, decimal scale, byte expected)
+        [Theory] public async Task ScaleValue(byte value, decimal scale, byte expected)
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
@@ -85,7 +85,7 @@ namespace PixelGraph.Tests.ImageTests
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Height = new MaterialHeightProperties {
+                    Occlusion = new MaterialOcclusionProperties {
                         Value = value,
                         Scale = scale,
                     },
@@ -93,7 +93,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_h.png");
+            var image = await content.OpenImageAsync("assets/test_ao.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -104,15 +104,15 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(155,  2.0f,  55)]
         [InlineData(155,  3.0f,   0)]
         [InlineData( 55, 0.01f, 253)]
-        [Theory] public async Task TextureScale(byte value, decimal scale, byte expected)
+        [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
             var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
-            using var heightImage = CreateImageR(value);
-            await content.AddAsync("assets/test/height.png", heightImage);
+            using var sourceImage = CreateImageR(value);
+            await content.AddAsync("assets/test/occlusion.png", sourceImage);
 
             var context = new MaterialContext {
                 Input = packInput,
@@ -120,14 +120,14 @@ namespace PixelGraph.Tests.ImageTests
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Height = new MaterialHeightProperties {
+                    Occlusion = new MaterialOcclusionProperties {
                         Scale = scale,
                     },
                 },
             };
 
             await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_h.png");
+            var image = await content.OpenImageAsync("assets/test_ao.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

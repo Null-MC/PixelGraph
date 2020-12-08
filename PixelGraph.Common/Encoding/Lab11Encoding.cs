@@ -3,86 +3,89 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class Lab11Encoding : IResourcePackEncoding
+    internal class Lab11Encoding : ITextureEncodingFactory
     {
-        public void Apply(ResourcePackEncoding encoding)
+        public ResourcePackEncoding Create()
         {
-            encoding.Alpha = new ResourcePackChannelProperties(EncodingChannel.Alpha) {
-                Texture = TextureTags.Albedo,
-                Color = ColorChannel.Alpha,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+            return new ResourcePackEncoding {
+                Alpha = new ResourcePackAlphaChannelProperties {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Alpha,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.AlbedoRed = new ResourcePackChannelProperties(EncodingChannel.AlbedoRed) {
-                Texture = TextureTags.Albedo,
-                Color = ColorChannel.Red,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                AlbedoRed = new ResourcePackAlbedoRedChannelProperties {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Red,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.AlbedoGreen = new ResourcePackChannelProperties(EncodingChannel.AlbedoGreen) {
-                Texture = TextureTags.Albedo,
-                Color = ColorChannel.Green,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                AlbedoGreen = new ResourcePackAlbedoGreenChannelProperties {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Green,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.AlbedoBlue = new ResourcePackChannelProperties(EncodingChannel.AlbedoBlue) {
-                Texture = TextureTags.Albedo,
-                Color = ColorChannel.Blue,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                AlbedoBlue = new ResourcePackAlbedoBlueChannelProperties {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Blue,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.NormalX = new ResourcePackChannelProperties(EncodingChannel.NormalX) {
-                Texture = TextureTags.Normal,
-                Color = ColorChannel.Red,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                NormalX = new ResourcePackNormalXChannelProperties {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Red,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.NormalY = new ResourcePackChannelProperties(EncodingChannel.NormalY) {
-                Texture = TextureTags.Normal,
-                Color = ColorChannel.Green,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                NormalY = new ResourcePackNormalYChannelProperties {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Green,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.NormalZ = new ResourcePackChannelProperties(EncodingChannel.NormalZ) {
-                Texture = TextureTags.Normal,
-                Color = ColorChannel.Blue,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                NormalZ = new ResourcePackNormalZChannelProperties {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Blue,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.Height = new ResourcePackChannelProperties(EncodingChannel.Height) {
-                Texture = TextureTags.Normal,
-                Color = ColorChannel.Alpha,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                Height = new ResourcePackHeightChannelProperties {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Alpha,
+                    MinValue = 0,
+                    MaxValue = 255,
+                    Invert = true,
+                },
 
-            encoding.Smooth = new ResourcePackChannelProperties(EncodingChannel.Smooth) {
-                Texture = TextureTags.Specular,
-                Color = ColorChannel.Red,
-                MinValue = 0,
-                MaxValue = 255,
-                Power = 0.5f,
-            };
+                Smooth = new ResourcePackSmoothChannelProperties {
+                    Texture = TextureTags.Specular,
+                    Color = ColorChannel.Red,
+                    MinValue = 0,
+                    MaxValue = 255,
+                    Power = 0.5m,
+                },
 
-            encoding.Metal = new ResourcePackChannelProperties(EncodingChannel.Metal) {
-                Texture = TextureTags.Specular,
-                Color = ColorChannel.Green,
-                MinValue = 0,
-                MaxValue = 255,
-            };
+                Metal = new ResourcePackMetalChannelProperties {
+                    Texture = TextureTags.Specular,
+                    Color = ColorChannel.Green,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
 
-            encoding.Emissive = new ResourcePackChannelProperties(EncodingChannel.Emissive) {
-                Texture = TextureTags.Specular,
-                Color = ColorChannel.Blue,
-                MinValue = 0,
-                MaxValue = 255,
+                Emissive = new ResourcePackEmissiveChannelProperties {
+                    Texture = TextureTags.Specular,
+                    Color = ColorChannel.Blue,
+                    MinValue = 0,
+                    MaxValue = 255,
+                },
             };
         }
     }

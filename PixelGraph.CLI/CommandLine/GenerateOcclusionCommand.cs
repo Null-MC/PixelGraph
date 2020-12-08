@@ -83,7 +83,7 @@ namespace PixelGraph.CLI.CommandLine
 
         private class Executor
         {
-            private readonly ITextureGraphBuilder graphBuilder;
+            private readonly IServiceProvider provider;
             private readonly INamingStructure naming;
             private readonly IInputReader reader;
             private readonly IResourcePackReader packReader;
@@ -92,14 +92,14 @@ namespace PixelGraph.CLI.CommandLine
 
 
             public Executor(
-                ILogger<Executor> logger,
-                ITextureGraphBuilder graphBuilder,
+                IServiceProvider provider,
                 INamingStructure naming,
                 IInputReader reader,
                 IResourcePackReader packReader,
-                IMaterialReader materialReader)
+                IMaterialReader materialReader,
+                ILogger<Executor> logger)
             {
-                this.graphBuilder = graphBuilder;
+                this.provider = provider;
                 this.naming = naming;
                 this.reader = reader;
                 this.packReader = packReader;
@@ -142,7 +142,11 @@ namespace PixelGraph.CLI.CommandLine
                         Material = material,
                     };
 
-                    using var graph = graphBuilder.BuildInputGraph(context);
+                    using var graph = provider.GetRequiredService<ITextureGraph>();
+                    graph.InputEncoding.AddRange(context.Input.GetMapped());
+                    graph.OutputEncoding.AddRange(context.Input.GetMapped());
+                    graph.Context = context;
+
                     using var occlusionImage = await graph.GenerateOcclusionAsync(token);
 
                     await occlusionImage.SaveAsync(outputName, token);

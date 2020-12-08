@@ -1,6 +1,4 @@
 ﻿using PixelGraph.Common.Encoding;
-using PixelGraph.Common.Textures;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using YamlDotNet.Serialization;
@@ -9,114 +7,236 @@ namespace PixelGraph.Common.ResourcePack
 {
     public class ResourcePackEncoding
     {
-        [YamlIgnore]
-        public ResourcePackChannelProperties[] All {get;}
+        public ResourcePackAlphaChannelProperties Alpha {get; set;}
 
-        public ResourcePackChannelProperties Alpha {get; set;}
+        public ResourcePackDiffuseRedChannelProperties DiffuseRed {get; set;}
+        public ResourcePackDiffuseGreenChannelProperties DiffuseGreen {get; set;}
+        public ResourcePackDiffuseBlueChannelProperties DiffuseBlue {get; set;}
 
-        public ResourcePackChannelProperties DiffuseRed {get; set;}
-        public ResourcePackChannelProperties DiffuseGreen {get; set;}
-        public ResourcePackChannelProperties DiffuseBlue {get; set;}
+        public ResourcePackAlbedoRedChannelProperties AlbedoRed {get; set;}
+        public ResourcePackAlbedoGreenChannelProperties AlbedoGreen {get; set;}
+        public ResourcePackAlbedoBlueChannelProperties AlbedoBlue {get; set;}
 
-        public ResourcePackChannelProperties AlbedoRed {get; set;}
-        public ResourcePackChannelProperties AlbedoGreen {get; set;}
-        public ResourcePackChannelProperties AlbedoBlue {get; set;}
+        public ResourcePackHeightChannelProperties Height {get; set;}
+        public ResourcePackOcclusionChannelProperties Occlusion {get; set;}
 
-        public ResourcePackChannelProperties Height {get; set;}
-        public ResourcePackChannelProperties Occlusion {get; set;}
+        public ResourcePackNormalXChannelProperties NormalX {get; set;}
+        public ResourcePackNormalYChannelProperties NormalY {get; set;}
+        public ResourcePackNormalZChannelProperties NormalZ {get; set;}
 
-        public ResourcePackChannelProperties NormalX {get; set;}
-        public ResourcePackChannelProperties NormalY {get; set;}
-        public ResourcePackChannelProperties NormalZ {get; set;}
+        public ResourcePackSpecularChannelProperties Specular {get; set;}
 
-        public ResourcePackChannelProperties Specular {get; set;}
+        public ResourcePackSmoothChannelProperties Smooth {get; set;}
+        public ResourcePackRoughChannelProperties Rough {get; set;}
 
-        public ResourcePackChannelProperties Smooth {get; set;}
-        public ResourcePackChannelProperties Rough {get; set;}
+        public ResourcePackMetalChannelProperties Metal {get; set;}
 
-        public ResourcePackChannelProperties Metal {get; set;}
-
-        public ResourcePackChannelProperties Porosity {get; set;}
+        public ResourcePackPorosityChannelProperties Porosity {get; set;}
 
         [YamlMember(Alias = "sss")]
-        public ResourcePackChannelProperties SSS {get; set;}
+        public ResourcePackSssChannelProperties SSS {get; set;}
 
-        public ResourcePackChannelProperties Emissive {get; set;}
+        public ResourcePackEmissiveChannelProperties Emissive {get; set;}
 
 
         public ResourcePackEncoding()
         {
-            All = new [] {
-                Alpha = new ResourcePackChannelProperties(EncodingChannel.Alpha),
+            Alpha = new ResourcePackAlphaChannelProperties();
 
-                DiffuseRed = new ResourcePackChannelProperties(EncodingChannel.DiffuseRed),
-                DiffuseGreen = new ResourcePackChannelProperties(EncodingChannel.DiffuseGreen),
-                DiffuseBlue = new ResourcePackChannelProperties(EncodingChannel.DiffuseBlue),
+            DiffuseRed = new ResourcePackDiffuseRedChannelProperties();
+            DiffuseGreen = new ResourcePackDiffuseGreenChannelProperties();
+            DiffuseBlue = new ResourcePackDiffuseBlueChannelProperties();
 
-                AlbedoRed = new ResourcePackChannelProperties(EncodingChannel.AlbedoRed),
-                AlbedoGreen = new ResourcePackChannelProperties(EncodingChannel.AlbedoGreen),
-                AlbedoBlue = new ResourcePackChannelProperties(EncodingChannel.AlbedoBlue),
+            AlbedoRed = new ResourcePackAlbedoRedChannelProperties();
+            AlbedoGreen = new ResourcePackAlbedoGreenChannelProperties();
+            AlbedoBlue = new ResourcePackAlbedoBlueChannelProperties();
 
-                Height = new ResourcePackChannelProperties(EncodingChannel.Height),
+            Height = new ResourcePackHeightChannelProperties();
 
-                Occlusion = new ResourcePackChannelProperties(EncodingChannel.Occlusion),
+            Occlusion = new ResourcePackOcclusionChannelProperties();
 
-                NormalX = new ResourcePackChannelProperties(EncodingChannel.NormalX),
-                NormalY = new ResourcePackChannelProperties(EncodingChannel.NormalY),
-                NormalZ = new ResourcePackChannelProperties(EncodingChannel.NormalZ),
+            NormalX = new ResourcePackNormalXChannelProperties();
+            NormalY = new ResourcePackNormalYChannelProperties();
+            NormalZ = new ResourcePackNormalZChannelProperties();
 
-                Specular = new ResourcePackChannelProperties(EncodingChannel.Specular),
+            Specular = new ResourcePackSpecularChannelProperties();
 
-                Smooth = new ResourcePackChannelProperties(EncodingChannel.Smooth),
-                Rough = new ResourcePackChannelProperties(EncodingChannel.Rough),
+            Smooth = new ResourcePackSmoothChannelProperties();
+            Rough = new ResourcePackRoughChannelProperties();
 
-                Metal = new ResourcePackChannelProperties(EncodingChannel.Metal),
+            Metal = new ResourcePackMetalChannelProperties();
 
-                Porosity = new ResourcePackChannelProperties(EncodingChannel.Porosity),
+            Porosity = new ResourcePackPorosityChannelProperties();
 
-                SSS = new ResourcePackChannelProperties(EncodingChannel.SubSurfaceScattering),
+            SSS = new ResourcePackSssChannelProperties();
 
-                Emissive = new ResourcePackChannelProperties(EncodingChannel.Emissive),
-            };
+            Emissive = new ResourcePackEmissiveChannelProperties();
         }
 
-        public IEnumerable<string> GetAllTags()
+        public IEnumerable<ResourcePackChannelProperties> GetMapped()
         {
-            return All
-                .Select(i => i.Texture)
-                .Where(i => i != null).Distinct();
+            return GetAll().Where(e => e.HasMapping);
         }
 
-        public IEnumerable<ResourcePackChannelProperties> GetByTag(string tag)
+        public void Merge(ResourcePackEncoding encoding)
         {
-            if (tag == null) throw new ArgumentNullException(nameof(tag));
+            if (encoding.Alpha.HasMapping) Alpha = encoding.Alpha;
 
-            return All.Where(i => TextureTags.Is(i.Texture, tag));
+            if (encoding.DiffuseRed.HasMapping) DiffuseRed = encoding.DiffuseRed;
+            if (encoding.DiffuseGreen.HasMapping) DiffuseGreen = encoding.DiffuseGreen;
+            if (encoding.DiffuseBlue.HasMapping) DiffuseBlue = encoding.DiffuseBlue;
 
-            //return textureMap.TryGetValue(tag, out var encoding) ? encoding(this) : null;
+            if (encoding.AlbedoRed.HasMapping) AlbedoRed = encoding.AlbedoRed;
+            if (encoding.AlbedoGreen.HasMapping) AlbedoGreen = encoding.AlbedoGreen;
+            if (encoding.AlbedoBlue.HasMapping) AlbedoBlue = encoding.AlbedoBlue;
+
+            if (encoding.Height.HasMapping) Height = encoding.Height;
+            if (encoding.Occlusion.HasMapping) Occlusion = encoding.Occlusion;
+
+            if (encoding.NormalX.HasMapping) NormalX = encoding.NormalX;
+            if (encoding.NormalY.HasMapping) NormalY = encoding.NormalY;
+            if (encoding.NormalZ.HasMapping) NormalZ = encoding.NormalZ;
+
+            if (encoding.Specular.HasMapping) Specular = encoding.Specular;
+
+            if (encoding.Smooth.HasMapping) Smooth = encoding.Smooth;
+            if (encoding.Rough.HasMapping) Rough = encoding.Rough;
+
+            if (encoding.Metal.HasMapping) Metal = encoding.Metal;
+
+            if (encoding.Porosity.HasMapping) Porosity = encoding.Porosity;
+
+            if (encoding.SSS.HasMapping) SSS = encoding.SSS;
+
+            if (encoding.Emissive.HasMapping) Emissive = encoding.Emissive;
         }
 
-        public bool HasAnyChannels(string tag)
+        private IEnumerable<ResourcePackChannelProperties> GetAll()
         {
-            return All.Any(i => TextureTags.Is(i.Texture, tag));
+            yield return Alpha;
+
+            yield return AlbedoRed;
+            yield return AlbedoGreen;
+            yield return AlbedoBlue;
+
+            yield return DiffuseRed;
+            yield return DiffuseGreen;
+            yield return DiffuseBlue;
+
+            yield return Height;
+            yield return Occlusion;
+
+            yield return NormalX;
+            yield return NormalY;
+            yield return NormalZ;
+
+            yield return Specular;
+
+            yield return Smooth;
+            yield return Rough;
+
+            yield return Metal;
+
+            yield return Porosity;
+
+            yield return SSS;
+
+            yield return Emissive;
         }
+    }
 
-        //public TextureEncoding GetFormatEncoding(string tag)
-        //{
-        //    var defaultEncoding = TextureEncoding.GetDefault(Format, tag);
+    public class ResourcePackAlphaChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackAlphaChannelProperties() : base(EncodingChannel.Alpha) {}
+    }
 
-        //    if (!textureMap.TryGetValue(tag, out var encoding)) return defaultEncoding;
+    public class ResourcePackDiffuseRedChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackDiffuseRedChannelProperties() : base(EncodingChannel.DiffuseRed) {}
+    }
 
-        //    var rawEncoding = encoding(this);
-        //    if (rawEncoding == null) return defaultEncoding;
-        //    if (defaultEncoding == null) return rawEncoding;
+    public class ResourcePackDiffuseGreenChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackDiffuseGreenChannelProperties() : base(EncodingChannel.DiffuseGreen) {}
+    }
 
-        //    return new TextureEncoding {
-        //        Red = rawEncoding.Red ?? defaultEncoding.Red,
-        //        Green = rawEncoding.Green ?? defaultEncoding.Green,
-        //        Blue = rawEncoding.Blue ?? defaultEncoding.Blue,
-        //        Alpha = rawEncoding.Alpha ?? defaultEncoding.Alpha,
-        //    };
-        //}
+    public class ResourcePackDiffuseBlueChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackDiffuseBlueChannelProperties() : base(EncodingChannel.DiffuseBlue) {}
+    }
+
+    public class ResourcePackAlbedoRedChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackAlbedoRedChannelProperties() : base(EncodingChannel.AlbedoRed) {}
+    }
+
+    public class ResourcePackAlbedoGreenChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackAlbedoGreenChannelProperties() : base(EncodingChannel.AlbedoGreen) {}
+    }
+
+    public class ResourcePackAlbedoBlueChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackAlbedoBlueChannelProperties() : base(EncodingChannel.AlbedoBlue) {}
+    }
+
+    public class ResourcePackHeightChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackHeightChannelProperties() : base(EncodingChannel.Height) {}
+    }
+
+    public class ResourcePackOcclusionChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackOcclusionChannelProperties() : base(EncodingChannel.Occlusion) {}
+    }
+
+    public class ResourcePackNormalXChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackNormalXChannelProperties() : base(EncodingChannel.NormalX) {}
+    }
+
+    public class ResourcePackNormalYChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackNormalYChannelProperties() : base(EncodingChannel.NormalY) {}
+    }
+
+    public class ResourcePackNormalZChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackNormalZChannelProperties() : base(EncodingChannel.NormalZ) {}
+    }
+
+    public class ResourcePackSpecularChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackSpecularChannelProperties() : base(EncodingChannel.Specular) {}
+    }
+
+    public class ResourcePackSmoothChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackSmoothChannelProperties() : base(EncodingChannel.Smooth) {}
+    }
+
+    public class ResourcePackRoughChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackRoughChannelProperties() : base(EncodingChannel.Rough) {}
+    }
+
+    public class ResourcePackMetalChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackMetalChannelProperties() : base(EncodingChannel.Metal) {}
+    }
+
+    public class ResourcePackPorosityChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackPorosityChannelProperties() : base(EncodingChannel.Porosity) {}
+    }
+
+    public class ResourcePackSssChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackSssChannelProperties() : base(EncodingChannel.SubSurfaceScattering) {}
+    }
+
+    public class ResourcePackEmissiveChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackEmissiveChannelProperties() : base(EncodingChannel.Emissive) {}
     }
 }

@@ -42,6 +42,7 @@ namespace PixelGraph.Common
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
             Services.AddTransient<IMaterialImporter, MaterialImporter>();
             Services.AddTransient<ITextureBuilder, TextureBuilder>();
+            Services.AddTransient<ITextureGraph, TextureGraph>();
         }
 
         public void AddFileInput()

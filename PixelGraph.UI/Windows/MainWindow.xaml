@@ -75,7 +75,7 @@
                     ToolTip="View Online Documentation">
                 <md:PackIcon Kind="Help"/>
             </Button>
-            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignFlatButton}" Height="24" Padding="8,0" Margin="12,2,2,2" Click="OnContentEncodingMenuItemClick"
+            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignFlatButton}" Height="24" Padding="8,0" Margin="12,2,2,2" Click="OnInputEncodingClick"
                     ToolTip="Edit Input Encoding"
                     IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
                 <StackPanel Orientation="Horizontal">

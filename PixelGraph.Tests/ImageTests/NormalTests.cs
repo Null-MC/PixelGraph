@@ -19,10 +19,6 @@ namespace PixelGraph.Tests.ImageTests
         public NormalTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Height = {
-                    Texture = TextureTags.Height,
-                    Color = ColorChannel.Red,
-                },
                 NormalX = {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Red,
@@ -31,10 +27,10 @@ namespace PixelGraph.Tests.ImageTests
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Green,
                 },
-                //NormalZ = {
-                //    Texture = TextureTags.Normal,
-                //    Color = ColorChannel.Blue,
-                //},
+                NormalZ = {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Blue,
+                },
             };
 
             packProfile = new ResourcePackProfileProperties {
@@ -55,18 +51,19 @@ namespace PixelGraph.Tests.ImageTests
             };
         }
 
-        [InlineData(  0)]
-        [InlineData(100)]
-        [InlineData(155)]
-        [InlineData(255)]
-        [Theory] public async Task PassthroughX(byte value)
+        [InlineData(127, 127, 255)]
+        [InlineData(  0, 127,   0)]
+        [InlineData(255, 127,   0)]
+        [InlineData(127,   0,   0)]
+        [InlineData(127, 255,   0)]
+        [Theory] public async Task PassthroughX(byte valueX, byte valueY, byte valueZ)
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
             var content = provider.GetRequiredService<MockFileContent>();
             graphBuilder.UseGlobalOutput = true;
 
-            using var sourceImage = CreateImageR(value);
+            using var sourceImage = CreateImage(valueX, valueY, valueZ);
             await content.AddAsync("assets/test/normal.png", sourceImage);
             
             var context = new MaterialContext {
@@ -80,7 +77,9 @@ namespace PixelGraph.Tests.ImageTests
 
             await graphBuilder.ProcessInputGraphAsync(context);
             var resultImage = await content.OpenImageAsync("assets/test_n.png");
-            PixelAssert.RedEquals(value, resultImage);
+            PixelAssert.RedEquals(valueX, resultImage);
+            PixelAssert.GreenEquals(valueY, resultImage);
+            PixelAssert.BlueEquals(valueZ, resultImage);
         }
 
         [InlineData(127, 127, 255)]

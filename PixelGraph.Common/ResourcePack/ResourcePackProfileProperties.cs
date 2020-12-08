@@ -10,9 +10,6 @@ namespace PixelGraph.Common.ResourcePack
         [YamlIgnore]
         public string LocalFile {get; set;}
 
-        //[YamlIgnore]
-        //public string LocalPath {get; set;}
-
         public string Edition {get; set;}
 
         public int? Format {get; set;}
@@ -24,8 +21,6 @@ namespace PixelGraph.Common.ResourcePack
         public string ImageEncoding {get; set;}
 
         public ResourcePackOutputProperties Output {get; set;}
-
-        //public string Sampler {get; set;}
 
         [YamlMember(Alias = "texture-size")]
         public int? TextureSize {get; set;}

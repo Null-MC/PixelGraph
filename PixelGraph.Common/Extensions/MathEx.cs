@@ -5,7 +5,8 @@ namespace PixelGraph.Common.Extensions
 {
     internal static class MathEx
     {
-        public const float Deg2Rad = (float)(Math.PI / 180);
+        public const double Deg2Rad = Math.PI / 180;
+        public const float Deg2RadF = (float)Deg2Rad;
 
 
         public static void Normalize(ref Vector3 value)
@@ -35,9 +36,20 @@ namespace PixelGraph.Common.Extensions
             else if (value > max) value = max;
         }
 
+        public static void Clamp(ref double value, in double min, in double max)
+        {
+            if (value < min) value = min;
+            else if (value > max) value = max;
+        }
+
         public static void Saturate(in float value, out byte result)
         {
             result = (byte)Math.Clamp(value * 255f + 0.5f, 0f, 255f);
+        }
+
+        public static void SaturateFloor(in float value, out byte result)
+        {
+            result = (byte)Math.Clamp(value * 255f, 0f, 255f);
         }
 
         public static byte Saturate(float value)

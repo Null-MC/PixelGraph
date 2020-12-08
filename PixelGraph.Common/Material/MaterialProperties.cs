@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.Textures;
+﻿using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
 using System.Linq;

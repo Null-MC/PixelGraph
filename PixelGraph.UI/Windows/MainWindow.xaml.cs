@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.Common;
+using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
@@ -235,8 +236,16 @@ namespace PixelGraph.UI.Windows
                 };
 
                 await Task.Factory.StartNew(async () => {
-                    var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-                    using var graph = graphBuilder.BuildInputGraph(context);
+                    var inputFormat = TextureEncoding.GetFactory(context.Input.Format);
+                    var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+                    inputEncoding.Merge(context.Input);
+
+                    // TODO: apply material properties?
+
+                    using var graph = provider.GetRequiredService<ITextureGraph>();
+                    graph.InputEncoding.AddRange(inputEncoding.GetMapped());
+                    graph.OutputEncoding.AddRange(inputEncoding.GetMapped());
+                    graph.Context = context;
 
                     using var normalImage = await graph.GenerateNormalAsync(token);
                     await normalImage.SaveAsync(fullName, token);
@@ -281,8 +290,16 @@ namespace PixelGraph.UI.Windows
                 };
 
                 await Task.Factory.StartNew(async () => {
-                    var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-                    using var graph = graphBuilder.BuildInputGraph(context);
+                    var inputFormat = TextureEncoding.GetFactory(context.Input.Format);
+                    var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+                    inputEncoding.Merge(context.Input);
+
+                    // TODO: apply material properties?
+
+                    using var graph = provider.GetRequiredService<ITextureGraph>();
+                    graph.InputEncoding.AddRange(inputEncoding.GetMapped());
+                    graph.OutputEncoding.AddRange(inputEncoding.GetMapped());
+                    graph.Context = context;
 
                     using var occlusionImage = await graph.GenerateOcclusionAsync(token);
                     await occlusionImage.SaveAsync(fullName, token);
@@ -412,7 +429,7 @@ namespace PixelGraph.UI.Windows
                 await ImportPackAsync(dialog.FileName, true);
         }
 
-        private void OnContentEncodingMenuItemClick(object sender, RoutedEventArgs e)
+        private void OnInputEncodingClick(object sender, RoutedEventArgs e)
         {
             var window = new PackInputWindow2(provider) {
                 Owner = this,

@@ -1,4 +1,4 @@
-﻿using PixelGraph.Common.Textures;
+﻿using PixelGraph.Common.Encoding;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material

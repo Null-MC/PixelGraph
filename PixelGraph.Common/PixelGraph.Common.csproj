@@ -13,7 +13,6 @@
     <Compile Remove="ResourcePack\ResourcePackInputDiffuseBlueProperties.cs" />
     <Compile Remove="ResourcePack\ResourcePackInputDiffuseGreenProperties.cs" />
     <Compile Remove="ResourcePack\ResourcePackInputDiffuseRedProperties.cs" />
-    <Compile Remove="Textures\TextureBuilder.cs" />
   </ItemGroup>
 
   <ItemGroup>

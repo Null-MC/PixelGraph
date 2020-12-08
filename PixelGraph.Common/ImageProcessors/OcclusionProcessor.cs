@@ -160,8 +160,8 @@ namespace PixelGraph.Common.ImageProcessors
         public class Options
         {
             public Image<Rgba32> HeightSource;
-            public Image<Rgba32> EmissiveSource;
-            public ColorChannel EmissiveChannel;
+            //public Image<Rgba32> EmissiveSource;
+            //public ColorChannel EmissiveChannel;
             public ColorChannel HeightChannel;
             public int StepCount;
             public float ZScale;

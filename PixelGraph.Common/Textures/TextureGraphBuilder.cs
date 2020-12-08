@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Encoding;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.ResourcePack;
 using System;
@@ -12,7 +13,6 @@ namespace PixelGraph.Common.Textures
     {
         bool UseGlobalOutput {get; set;}
 
-        ITextureGraph BuildInputGraph(MaterialContext context);
         Task ProcessInputGraphAsync(MaterialContext context, CancellationToken token = default);
         Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default);
     }
@@ -36,35 +36,27 @@ namespace PixelGraph.Common.Textures
             naming = provider.GetRequiredService<INamingStructure>();
         }
 
-        public ITextureGraph BuildInputGraph(MaterialContext context)
-        {
-            var graph = new TextureGraph(provider, context) {
-                UseGlobalOutput = UseGlobalOutput,
-            };
-
-            try {
-                graph.BuildFromInput();
-                return graph;
-            }
-            catch {
-                graph.Dispose();
-                throw;
-            }
-        }
-
         /// <summary>
         /// Input -> Output; for publishing textures
         /// </summary>
         public async Task ProcessInputGraphAsync(MaterialContext context, CancellationToken token = default)
         {
-            using var graph = BuildInputGraph(context);
+            var inputFormat = TextureEncoding.GetFactory(context.Input.Format);
+            var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+            inputEncoding.Merge(context.Input);
+            // TODO: layer material properties on top of pack encoding?
 
-            foreach (var tag in context.Profile.Output.GetAllTags()) {
-                var encoding = context.Profile.Output.GetByTag(tag).ToArray();
-                if (encoding.Any()) {
-                    await ProcessTextureAsync(graph, encoding, tag, token);
-                }
-            }
+            var outputFormat = TextureEncoding.GetFactory(context.Profile.Output.Format);
+            var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
+            outputEncoding.Merge(context.Profile.Output);
+
+            using var graph = provider.GetRequiredService<ITextureGraph>();
+            graph.InputEncoding = inputEncoding.GetMapped().ToList();
+            graph.OutputEncoding = outputEncoding.GetMapped().ToList();
+            graph.UseGlobalOutput = UseGlobalOutput;
+            graph.Context = context;
+
+            await ProcessAllTexturesAsync(graph, token);
         }
 
         /// <summary>
@@ -72,23 +64,51 @@ namespace PixelGraph.Common.Textures
         /// </summary>
         public async Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default)
         {
-            using var graph = new TextureGraph(provider, context) {
-                UseGlobalOutput = UseGlobalOutput,
-            };
+            var inputFormat = TextureEncoding.GetFactory(context.Profile.Output.Format);
+            var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+            inputEncoding.Merge(context.Profile.Output);
 
-            graph.BuildFromOutput();
+            var outputFormat = TextureEncoding.GetFactory(context.Input.Format);
+            var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
+            outputEncoding.Merge(context.Input);
+            // TODO: layer material properties on top of pack encoding?
 
-            foreach (var tag in TextureTags.All) {
-                var encoding = context.Input.GetByTag(tag).ToArray();
-                if (encoding.Any()) await ProcessTextureAsync(graph, encoding, tag, token);
-            }
+            using var graph = provider.GetRequiredService<ITextureGraph>();
+            graph.InputEncoding = context.Profile.Output.GetMapped().ToList();
+            graph.OutputEncoding = context.Input.GetMapped().ToList();
+            graph.UseGlobalOutput = UseGlobalOutput;
+            graph.Context = context;
+
+            await ProcessAllTexturesAsync(graph, token);
         }
 
-        private async Task ProcessTextureAsync(ITextureGraph graph, ResourcePackChannelProperties[] encoding, string tag, CancellationToken token)
+        private async Task ProcessAllTexturesAsync(ITextureGraph graph, CancellationToken token)
         {
-            await graph.BuildFinalImageAsync(tag, encoding, token);
+            var hasOutputNormals = graph.OutputEncoding
+                .Where(e => e.HasMapping)
+                .Any(e => {
+                    if (EncodingChannel.Is(e.ID, EncodingChannel.NormalX)) return true;
+                    if (EncodingChannel.Is(e.ID, EncodingChannel.NormalY)) return true;
+                    if (EncodingChannel.Is(e.ID, EncodingChannel.NormalZ)) return true;
+                    return false;
+                });
 
-            await CopyMetaAsync(graph.Context, tag, token);
+            if (hasOutputNormals) {
+                await graph.BuildNormalTextureAsync(token);
+            }
+
+            var allOutputTags = graph.OutputEncoding
+                .Select(e => e.Texture).Distinct();
+
+            foreach (var tag in allOutputTags) {
+                var tagOutputEncoding = graph.OutputEncoding
+                    .Where(e => TextureTags.Is(e.Texture, tag)).ToArray();
+
+                if (tagOutputEncoding.Any())
+                    await graph.BuildFinalImageAsync(tag, token);
+
+                await CopyMetaAsync(graph.Context, tag, token);
+            }
         }
 
         private async Task CopyMetaAsync(MaterialContext context, string tag, CancellationToken token)

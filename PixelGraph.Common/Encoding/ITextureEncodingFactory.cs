@@ -2,8 +2,8 @@
 
 namespace PixelGraph.Common.Encoding
 {
-    public interface IResourcePackEncoding
+    public interface ITextureEncodingFactory
     {
-        void Apply(ResourcePackEncoding encoding);
+        ResourcePackEncoding Create();
     }
 }

@@ -146,7 +146,7 @@ namespace PixelGraph.Tests.ImageTests
                     Smooth = {
                         Texture = TextureTags.Smooth,
                         Color = ColorChannel.Red,
-                        Power = 0.5f,
+                        Power = 0.5m,
                     },
                 },
                 Profile = packProfile,

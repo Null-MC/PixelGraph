@@ -3,7 +3,7 @@ using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
 {
-    public class ResourcePackChannelProperties
+    public abstract class ResourcePackChannelProperties
     {
         [YamlIgnore]
         public string ID {get;}
@@ -14,13 +14,21 @@ namespace PixelGraph.Common.ResourcePack
         public byte? MinValue {get; set;}
         public byte? MaxValue {get; set;}
         public short? Shift {get; set;}
-        public float? Power {get; set;}
+        public decimal? Power {get; set;}
         public bool? Invert {get; set;}
 
+        public bool HasMapping => Texture != null && (Color.HasValue && Color.Value != ColorChannel.None);
 
-        public ResourcePackChannelProperties(string id)
+
+        protected ResourcePackChannelProperties(string id)
         {
             ID = id;
+        }
+
+        public override string ToString()
+        {
+            // TODO: use StringBuilder and show all options
+            return $"{{{ID} {Texture}:{Color}}}";
         }
     }
 }

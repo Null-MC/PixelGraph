@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using PixelGraph.Common.Encoding;
 using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Textures;
 
 namespace PixelGraph.UI.ViewModels
 {

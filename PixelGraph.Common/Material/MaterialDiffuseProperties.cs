@@ -1,4 +1,4 @@
-﻿using PixelGraph.Common.Textures;
+﻿using PixelGraph.Common.Encoding;
 
 namespace PixelGraph.Common.Material
 {
