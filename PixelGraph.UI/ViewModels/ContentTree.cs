@@ -8,10 +8,21 @@ namespace PixelGraph.UI.ViewModels
 {
     internal class ContentTreeNode : INotifyPropertyChanged
     {
+        protected ObservableCollection<ContentTreeNode> _nodes;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public string Name {get; set;}
-        public ObservableCollection<ContentTreeNode> Nodes {get; set;}
+        public string LocalPath {get; set;}
+        public ContentTreeNode Parent {get;}
+
+        public ObservableCollection<ContentTreeNode> Nodes {
+            get => _nodes;
+            set {
+                _nodes = value;
+                OnPropertyChanged();
+            }
+        }
 
         private bool _visible;
         public bool Visible {
@@ -23,9 +34,11 @@ namespace PixelGraph.UI.ViewModels
         }
 
 
-        public ContentTreeNode()
+        public ContentTreeNode(ContentTreeNode parent)
         {
-            Nodes = new ObservableCollection<ContentTreeNode>();
+            Parent = parent;
+
+            _nodes = new ObservableCollection<ContentTreeNode>();
             Visible = true;
         }
 
@@ -33,7 +46,7 @@ namespace PixelGraph.UI.ViewModels
         {
             Visible = true;
 
-            foreach (var node in Nodes)
+            foreach (var node in _nodes)
                 node.UpdateVisibility(search);
         }
 
@@ -41,7 +54,7 @@ namespace PixelGraph.UI.ViewModels
         {
             Visible = visible;
 
-            foreach (var node in Nodes)
+            foreach (var node in _nodes)
                 node.SetVisibility(visible);
         }
 
@@ -53,17 +66,24 @@ namespace PixelGraph.UI.ViewModels
 
     internal class ContentTreeDirectory : ContentTreeNode
     {
-        public string Path {get; set;}
+        //public string Path {get; set;}
 
+
+        public ContentTreeDirectory(ContentTreeNode parent) : base(parent) {}
 
         public override void UpdateVisibility(ISearchParameters search)
         {
             var anyVisible = false;
 
-            foreach (var node in Nodes) {
-                node.UpdateVisibility(search);
+            if (!string.IsNullOrEmpty(search.SearchText)) {
+                if (Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase)) {
+                    SetVisibility(true);
+                    return;
+                }
+            }
 
-                //if (node.Visible) anyVisible = true;
+            foreach (var node in _nodes) {
+                node.UpdateVisibility(search);
                 anyVisible |= node.Visible;
             }
 
@@ -76,6 +96,8 @@ namespace PixelGraph.UI.ViewModels
         public string MaterialFilename {get; set;}
 
 
+        public ContentTreeMaterialDirectory(ContentTreeNode parent) : base(parent) {}
+
         public override void UpdateVisibility(ISearchParameters search)
         {
             Visible = true;
@@ -84,7 +106,7 @@ namespace PixelGraph.UI.ViewModels
                 Visible = Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase);
             }
 
-            foreach (var node in Nodes) {
+            foreach (var node in _nodes) {
                 if (!search.ShowAllFiles)
                     node.SetVisibility(false);
                 else
@@ -100,7 +122,7 @@ namespace PixelGraph.UI.ViewModels
         public PackIconKind Icon {get; set;}
 
 
-        public ContentTreeFile()
+        public ContentTreeFile(ContentTreeNode parent) : base(parent)
         {
             Icon = PackIconKind.File;
         }

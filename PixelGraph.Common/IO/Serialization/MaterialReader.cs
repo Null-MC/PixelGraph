@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.Material;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,6 +29,7 @@ namespace PixelGraph.Common.IO.Serialization
             this.reader = reader;
 
             deserializer = new DeserializerBuilder()
+                .WithTypeConverter(new YamlStringEnumConverter())
                 .WithNamingConvention(HyphenatedNamingConvention.Instance)
                 .Build();
         }

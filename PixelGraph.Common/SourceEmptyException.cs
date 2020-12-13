@@ -6,4 +6,11 @@ namespace PixelGraph.Common
     {
         public SourceEmptyException(string message) : base(message) {}
     }
+
+    public class HeightSourceEmptyException : SourceEmptyException
+    {
+        public HeightSourceEmptyException(string message) : base(message) {}
+
+        public HeightSourceEmptyException() : base("No height sources found!") {}
+    }
 }

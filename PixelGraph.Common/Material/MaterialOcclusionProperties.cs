@@ -1,4 +1,4 @@
-﻿using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Material
 {
@@ -9,7 +9,7 @@ namespace PixelGraph.Common.Material
         public const float DefaultZBias = 1.0f;
         public const int DefaultSteps = 32;
 
-        public TextureEncoding Input {get; set;}
+        public ResourcePackOcclusionChannelProperties Input {get; set;}
         public string Texture {get; set;}
         public byte? Value {get; set;}
         public decimal? Scale {get; set;}

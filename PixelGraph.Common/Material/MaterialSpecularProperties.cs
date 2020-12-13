@@ -1,10 +1,10 @@
-﻿using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Material
 {
     public class MaterialSpecularProperties
     {
-        public TextureEncoding Input {get; set;}
+        public ResourcePackSpecularChannelProperties Input {get; set;}
         public string Texture {get; set;}
     }
 }

@@ -12,20 +12,25 @@
                   VerticalAlignment="{TemplateBinding VerticalAlignment}"
                   Margin="{TemplateBinding Margin}">
                 <TextBox x:Name="text"
+                         Foreground="{TemplateBinding Foreground}"
                          Padding="{TemplateBinding Padding}"
                          Text="{Binding Text, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:TextBoxEx}}"
                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                          TextAlignment="{TemplateBinding TextAlignment}"/>
                 <TextBlock x:Name="overlay" IsHitTestVisible="False" VerticalAlignment="Center" Visibility="Hidden" Opacity="0.6" FontStyle="Italic"
                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                           Foreground="{DynamicResource SecondaryHueDarkBrush}"
+                           Foreground="{Binding PlaceholderForeground, Mode=OneWay, RelativeSource={RelativeSource AncestorType=controls:TextBoxEx}}"
                            Text="{Binding Placeholder, Mode=OneWay, RelativeSource={RelativeSource AncestorType=controls:TextBoxEx}}"
                            TextAlignment="{TemplateBinding TextAlignment}"/>
             </Grid>
             <ControlTemplate.Triggers>
-                <Trigger SourceName="text" Property="Text" Value="">
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition SourceName="text" Property="IsKeyboardFocused" Value="False"/>
+                        <Condition SourceName="text" Property="Text" Value=""/>
+                    </MultiTrigger.Conditions>
                     <Setter TargetName="overlay" Property="Visibility" Value="Visible"/>
-                </Trigger>
+                </MultiTrigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
     </TextBox.Template>

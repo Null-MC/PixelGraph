@@ -17,12 +17,18 @@ namespace PixelGraph.Common.ResourcePack
         public decimal? Power {get; set;}
         public bool? Invert {get; set;}
 
+        [YamlIgnore]
         public bool HasMapping => Texture != null && (Color.HasValue && Color.Value != ColorChannel.None);
 
 
         protected ResourcePackChannelProperties(string id)
         {
             ID = id;
+        }
+
+        public virtual object Clone()
+        {
+            return MemberwiseClone();
         }
 
         public override string ToString()

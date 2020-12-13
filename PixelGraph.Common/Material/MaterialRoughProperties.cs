@@ -1,10 +1,10 @@
-﻿using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Material
 {
     public class MaterialRoughProperties
     {
-        public TextureEncoding Input {get; set;}
+        public ResourcePackRoughChannelProperties Input {get; set;}
         public string Texture {get; set;}
         public byte? Value {get; set;}
         public decimal? Scale {get; set;}

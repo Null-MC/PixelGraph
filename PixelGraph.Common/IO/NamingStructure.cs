@@ -25,6 +25,7 @@ namespace PixelGraph.Common.IO
         static NamingStructureBase()
         {
             LocalMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase) {
+                [TextureTags.Alpha] = ext => $"alpha.{ext}",
                 [TextureTags.Albedo] = ext => $"albedo.{ext}",
                 [TextureTags.Diffuse] = ext => $"diffuse.{ext}",
                 [TextureTags.Height] = ext => $"height.{ext}",
@@ -75,14 +76,12 @@ namespace PixelGraph.Common.IO
 
         private static string GetExtension(ResourcePackProfileProperties pack)
         {
-            var encoding = pack.ImageEncoding ?? "png";
+            var encoding = pack.ImageEncoding ?? ImageExtensions.Default;
 
-            if (!supportedExtensions.Contains(encoding))
+            if (!ImageExtensions.Supports(encoding))
                 throw new ApplicationException($"Unsupported image encoding '{encoding}'!");
 
             return encoding;
         }
-
-        private static readonly string[] supportedExtensions = {"bmp", "jpg", "jpeg", "gif", "png", "tga"};
     }
 }

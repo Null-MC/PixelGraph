@@ -10,6 +10,7 @@ namespace PixelGraph.UI.Internal
     internal interface IContentTreeReader
     {
         ContentTreeNode GetRootNode();
+        ContentTreeNode GetPathNode(ContentTreeNode parent, string localPath);
     }
 
     internal class ContentTreeReader : IContentTreeReader
@@ -22,22 +23,22 @@ namespace PixelGraph.UI.Internal
             this.reader = reader;
         }
 
-        public ContentTreeNode GetRootNode() => GetPathNode(".");
+        public ContentTreeNode GetRootNode() => GetPathNode(null, ".");
 
-        public ContentTreeNode GetPathNode(string localPath)
+        public ContentTreeNode GetPathNode(ContentTreeNode parent, string localPath)
         {
             var matFile = PathEx.Join(localPath, "pbr.yml");
             var isMat = reader.FileExists(matFile);
 
             var node = isMat
-                ? new ContentTreeMaterialDirectory {MaterialFilename = matFile}
-                : new ContentTreeDirectory();
+                ? new ContentTreeMaterialDirectory(parent) {MaterialFilename = matFile}
+                : new ContentTreeDirectory(parent);
 
             node.Name = Path.GetFileName(localPath);
-            node.Path = localPath;
+            node.LocalPath = localPath;
 
             foreach (var childPath in reader.EnumerateDirectories(localPath, "*")) {
-                var childNode = GetPathNode(childPath);
+                var childNode = GetPathNode(node, childPath);
                 node.Nodes.Add(childNode);
             }
 
@@ -46,7 +47,7 @@ namespace PixelGraph.UI.Internal
 
                 if (isMat && string.Equals(fileName, "pbr.yml", StringComparison.InvariantCultureIgnoreCase)) continue;
 
-                var childNode = new ContentTreeFile {
+                var childNode = new ContentTreeFile(node) {
                     Name = fileName,
                     Filename = file,
                     Type = GetNodeType(fileName),

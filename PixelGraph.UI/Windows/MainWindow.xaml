@@ -21,110 +21,124 @@
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
     </Window.Resources>
+    <Window.DataContext>
+        <vm:MainWindowVM x:Name="vm"/>
+    </Window.DataContext>
     <DockPanel>
-        <DockPanel DockPanel.Dock="Top" LastChildFill="False">
-            <DockPanel.Background>
+        <Border DockPanel.Dock="Top" Margin="2">
+            <Border.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <GradientStop Color="#FF272727"/>
                     <GradientStop Color="#FF343434" Offset="1"/>
                 </LinearGradientBrush>
-            </DockPanel.Background>
-            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="2">
-                <Button Padding="8,0" Height="24" Click="OnOpenClick"
-                        ToolTip="Open a Directory">
-                    <md:PackIcon Kind="FolderOpen"/>
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-                            <Setter Property="md:ButtonAssist.CornerRadius" Value="3,0,0,3"/>
-                        </Style>
-                    </Button.Style>
-                </Button>
-                <Button Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0"
-                        IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
-                    <Button.ContextMenu>
-                        <ContextMenu PlacementRectangle="{Binding RelativeSource={RelativeSource Self}}">
-                            <MenuItem Header="Import Folder" Click="OnImportFolderClick"/>
-                            <MenuItem Header="Import ZIP" Click="OnImportZipClick"/>
-                        </ContextMenu>
-                    </Button.ContextMenu>
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-                            <Setter Property="md:ButtonAssist.CornerRadius" Value="0,3,3,0"/>
-                            <Style.Triggers>
-                                <EventTrigger RoutedEvent="Click">
-                                    <EventTrigger.Actions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-                                                <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="ContextMenu.IsOpen">
-                                                    <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="True"/>
-                                                </BooleanAnimationUsingKeyFrames>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger.Actions>
-                                </EventTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
-            </StackPanel>
-            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignFlatButton}" Height="24" Padding="8,0" Margin="2" IsEnabled="False" Click="OnSettingsClick"
-                    ToolTip="Edit Application Settings">
-                <md:PackIcon Kind="Settings"/>
-            </Button>
-            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignFlatButton}" Height="24" Padding="8,0" Margin="2" Click="OnDocumentationButtonClick"
-                    ToolTip="View Online Documentation">
-                <md:PackIcon Kind="Help"/>
-            </Button>
-            <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignFlatButton}" Height="24" Padding="8,0" Margin="12,2,2,2" Click="OnInputEncodingClick"
-                    ToolTip="Edit Input Encoding"
-                    IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
-                <StackPanel Orientation="Horizontal">
-                    <md:PackIcon Kind="Palette"/>
-                    <TextBlock Margin="4,0,0,0" Text="Input"/>
-                </StackPanel>
-            </Button>
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
-                        IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
-                <Button Content="{md:PackIcon Edit}" ToolTip="Manage Profiles" Width="28" Height="24" Padding="0" Margin="2" Click="OnProfilesClick"
-                        Style="{DynamicResource MaterialDesignFlatButton}"/>
-                <ComboBox Width="180" Margin="6,0,2,2" DisplayMemberPath="Name"
-                          ItemsSource="{Binding Profiles, Mode=OneWay}"
-                          SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
-                <StackPanel x:Name="PublishButtonLayout" Orientation="Horizontal" Margin="2,2,6,2">
-                    <Button Content="Publish" Height="24" Padding="8,0" Click="OnPublishMenuItemClick"
-                            IsEnabled="{Binding HasProfileSelection, Mode=OneWay}">
+            </Border.Background>
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="2">
+                    <Button Padding="8,0" Height="24" Click="OnOpenClick"
+                            ToolTip="Open a Directory">
+                        <md:PackIcon Kind="FolderOpen"/>
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
                                 <Setter Property="md:ButtonAssist.CornerRadius" Value="3,0,0,3"/>
                             </Style>
                         </Button.Style>
                     </Button>
-                    <ToggleButton x:Name="PublishDropDownButton" Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0">
-                        <ToggleButton.Style>
-                            <Style TargetType="ToggleButton" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                    <Button Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0"
+                            IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Recent"
+                                          IsEnabled="{Binding RecentDirectories, Mode=OneWay, Converter={StaticResource emptyEnumerableToFalseConverter}}"
+                                          ItemsSource="{Binding RecentDirectories, Mode=OneWay}">
+                                    <MenuItem.ItemContainerStyle>
+                                        <Style>
+                                            <Setter Property="MenuItem.Header" Value="TEST"/>
+                                        </Style>
+                                    </MenuItem.ItemContainerStyle>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem Header="Import Folder" Click="OnImportFolderClick"/>
+                                <MenuItem Header="Import ZIP" Click="OnImportZipClick"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
                                 <Setter Property="md:ButtonAssist.CornerRadius" Value="0,3,3,0"/>
+                                <Style.Triggers>
+                                    <EventTrigger RoutedEvent="Click">
+                                        <EventTrigger.Actions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="ContextMenu.IsOpen">
+                                                        <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="True"/>
+                                                    </BooleanAnimationUsingKeyFrames>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger.Actions>
+                                    </EventTrigger>
+                                </Style.Triggers>
                             </Style>
-                        </ToggleButton.Style>
-                    </ToggleButton>
+                        </Button.Style>
+                    </Button>
                 </StackPanel>
-                <Popup StaysOpen="False" Placement="Bottom" PopupAnimation="Fade" AllowsTransparency="True"
-                       PlacementTarget="{Binding ElementName=PublishButtonLayout, Mode=OneTime}"
-                       IsOpen="{Binding IsChecked, Mode=TwoWay, ElementName=PublishDropDownButton}">
-                    <Border CornerRadius="4" Background="{StaticResource MaterialDesignCardBackground}">
-                        <StackPanel Orientation="Vertical" Margin="4,4,8,4">
-                            <CheckBox Content="Create ZIP Archive" Margin="4" FontSize="14" FontWeight="Bold"
-                                      Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                      IsChecked="{Binding PublishArchive, Mode=TwoWay}"
-                                      ToolTip="Publishes the resource pack as a single compressed ZIP archive."/>
-                            <CheckBox Content="Clean Destination" Margin="4" FontSize="14" FontWeight="Bold"
-                                      Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                      IsChecked="{Binding PublishClean, Mode=TwoWay}"
-                                      ToolTip="Removes all content from destination before publishing."/>
-                        </StackPanel>
-                    </Border>
-                </Popup>
-            </StackPanel>
-        </DockPanel>
+                <Button DockPanel.Dock="Left" Height="24" Padding="6,0" Margin="6,2,2,2" Click="OnInputEncodingClick"
+                        ToolTip="Edit Input Encoding"
+                        IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal">
+                        <md:PackIcon Kind="Palette"/>
+                        <TextBlock Margin="4,0,0,0" Text="Input"/>
+                    </StackPanel>
+                </Button>
+                <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignFlatButton}" Height="24" Padding="8,0" Margin="2" IsEnabled="False" Click="OnSettingsClick"
+                        ToolTip="Edit Application Settings">
+                    <md:PackIcon Kind="Settings"/>
+                </Button>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                            IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
+                    <ComboBox Width="180" Margin="6,0,2,2" DisplayMemberPath="Name"
+                              ItemsSource="{Binding Profiles, Mode=OneWay}"
+                              SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
+                    <Button Content="{md:PackIcon Edit}" ToolTip="Manage Profiles" Height="24" Padding="6,0" Margin="2" Click="OnProfilesClick"/>
+                    <StackPanel x:Name="PublishButtonLayout" Orientation="Horizontal" Margin="2,2,6,2">
+                        <Button Content="Publish" Height="24" Padding="8,0" Click="OnPublishMenuItemClick"
+                                IsEnabled="{Binding HasProfileSelection, Mode=OneWay}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                                    <Setter Property="md:ButtonAssist.CornerRadius" Value="3,0,0,3"/>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <ToggleButton x:Name="PublishDropDownButton" Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0">
+                            <ToggleButton.Style>
+                                <Style TargetType="ToggleButton" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                                    <Setter Property="md:ButtonAssist.CornerRadius" Value="0,3,3,0"/>
+                                </Style>
+                            </ToggleButton.Style>
+                        </ToggleButton>
+                    </StackPanel>
+                    <Popup StaysOpen="False" Placement="Bottom" PopupAnimation="Fade" AllowsTransparency="True"
+                           PlacementTarget="{Binding ElementName=PublishButtonLayout, Mode=OneTime}"
+                           IsOpen="{Binding IsChecked, Mode=TwoWay, ElementName=PublishDropDownButton}">
+                        <Border CornerRadius="4" Background="{StaticResource MaterialDesignCardBackground}">
+                            <StackPanel Orientation="Vertical" Margin="4,4,8,4">
+                                <CheckBox Content="Create ZIP Archive" Margin="4" FontSize="14" FontWeight="Bold"
+                                          Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                          IsChecked="{Binding PublishArchive, Mode=TwoWay}"
+                                          ToolTip="Publishes the resource pack as a single compressed ZIP archive."/>
+                                <CheckBox Content="Clean Destination" Margin="4" FontSize="14" FontWeight="Bold"
+                                          Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                          IsChecked="{Binding PublishClean, Mode=TwoWay}"
+                                          ToolTip="Removes all content from destination before publishing."/>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                    <Button DockPanel.Dock="Right" Height="24" Padding="6,0" Margin="8,2,2,2" Click="OnDocumentationButtonClick"
+                            Style="{DynamicResource MaterialDesignFlatButton}" ToolTip="View Online Documentation">
+                        <md:PackIcon Kind="Help"/>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBar.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -197,13 +211,15 @@
                                     <TextBlock Text="{Binding Name, Mode=OneWay}"/>
                                 </StackPanel>
                             </DataTemplate>
-                            <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeMaterialDirectory}" ItemsSource="{Binding Nodes}">
+                            <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeMaterialDirectory}"
+                                                      ItemsSource="{Binding Nodes, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal">
                                     <md:PackIcon Kind="PaletteSwatch" Margin="0,0,4,0" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
                                     <TextBlock Text="{Binding Name}"/>
                                 </StackPanel>
                             </HierarchicalDataTemplate>
-                            <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeDirectory}" ItemsSource="{Binding Nodes}">
+                            <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeDirectory}"
+                                                      ItemsSource="{Binding Nodes, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal">
                                     <md:PackIcon Kind="Folder" Margin="0,0,4,0" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
                                     <TextBlock Text="{Binding Name}"/>

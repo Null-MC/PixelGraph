@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.ResourcePack;
 using System.IO;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
@@ -23,6 +24,7 @@ namespace PixelGraph.Common.IO.Serialization
             this.writer = writer;
 
             serializer = new SerializerBuilder()
+                .WithTypeConverter(new YamlStringEnumConverter())
                 .WithNamingConvention(HyphenatedNamingConvention.Instance)
                 .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults)
                 .Build();

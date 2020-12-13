@@ -11,7 +11,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -124,7 +123,7 @@ namespace PixelGraph.Common.Textures
                         // TODO: move resize before regions; then scale regions to match
                         using var resizedRegionImage = Resize(regionImage);
 
-                        await imageWriter.WriteAsync(resizedRegionImage ?? builder.ImageResult, destFile, imageFormat, token);
+                        await imageWriter.WriteAsync(resizedRegionImage ?? regionImage, destFile, imageFormat, token);
                     }
 
                     logger.LogInformation("Published texture region {Name} tag {textureTag}.", region.Name, textureTag);
@@ -222,7 +221,7 @@ namespace PixelGraph.Common.Textures
                 try {
                     occlusionTexture = await GenerateOcclusionAsync(token);
                 }
-                catch (FileNotFoundException) {}
+                catch (HeightSourceEmptyException) {}
             }
             
             return occlusionTexture;
@@ -250,6 +249,7 @@ namespace PixelGraph.Common.Textures
 
                 builder.Graph = this;
                 builder.Material = Context.Material;
+                builder.CreateEmpty = false;
                 builder.InputChannels = new [] {
                     normalXChannel, normalYChannel, normalZChannel
                 };
@@ -273,7 +273,8 @@ namespace PixelGraph.Common.Textures
 
                 NormalTexture = builder.ImageResult?.Clone();
             }
-            else {
+
+            if (NormalTexture == null) {
                 // generate
                 NormalTexture = await GenerateNormalAsync(token);
             }
@@ -301,12 +302,12 @@ namespace PixelGraph.Common.Textures
             var heightChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
 
             if (heightChannel == null || !heightChannel.HasMapping)
-                throw new FileNotFoundException("No height sources mapped!");
+                throw new HeightSourceEmptyException("No height sources mapped!");
 
             Image<Rgba32> heightTexture = null;
             try {
                 var file = reader.EnumerateTextures(Context.Material, heightChannel.Texture).FirstOrDefault();
-                if (file == null) throw new FileNotFoundException("No height textures found!");
+                if (file == null) throw new HeightSourceEmptyException();
 
                 await using var stream = reader.Open(file);
 
@@ -343,13 +344,13 @@ namespace PixelGraph.Common.Textures
             var heightChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
 
             if (heightChannel?.Color == null || heightChannel.Color.Value == ColorChannel.None)
-                throw new FileNotFoundException("No height sources mapped!");
+                throw new HeightSourceEmptyException("No height sources mapped!");
 
             Image<Rgba32> heightTexture = null;
             //Image<Rgba32> emissiveImage = null;
             try {
                 var file = reader.EnumerateTextures(Context.Material, heightChannel.Texture).FirstOrDefault();
-                if (file == null) throw new FileNotFoundException("No height textures found!");
+                if (file == null) throw new HeightSourceEmptyException();
 
                 //ColorChannel emissiveChannel = ColorChannel.None;
                 //if (Context.Material.Occlusion?.ClipEmissive ?? false) {
@@ -370,6 +371,11 @@ namespace PixelGraph.Common.Textures
                 var options = new OcclusionProcessor.Options {
                     HeightSource = heightTexture,
                     HeightChannel = heightChannel.Color.Value,
+                    HeightMin = heightChannel.MinValue ?? 0,
+                    HeightMax = heightChannel.MaxValue ?? 255,
+                    HeightShift = heightChannel.Shift ?? 0,
+                    HeightPower = (float?)heightChannel.Power ?? 0f,
+                    HeightInvert = heightChannel.Invert ?? false,
                     //EmissiveSource = emissiveImage,
                     //EmissiveChannel = emissiveChannel,
                     StepCount = Context.Material.Occlusion?.Steps ?? MaterialOcclusionProperties.DefaultSteps,

@@ -44,7 +44,7 @@ namespace PixelGraph.Common.Textures
             var inputFormat = TextureEncoding.GetFactory(context.Input.Format);
             var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
             inputEncoding.Merge(context.Input);
-            // TODO: layer material properties on top of pack encoding?
+            inputEncoding.Merge(context.Material);
 
             var outputFormat = TextureEncoding.GetFactory(context.Profile.Output.Format);
             var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
@@ -94,7 +94,10 @@ namespace PixelGraph.Common.Textures
                 });
 
             if (hasOutputNormals) {
-                await graph.BuildNormalTextureAsync(token);
+                try {
+                    await graph.BuildNormalTextureAsync(token);
+                }
+                catch (HeightSourceEmptyException) {}
             }
 
             var allOutputTags = graph.OutputEncoding

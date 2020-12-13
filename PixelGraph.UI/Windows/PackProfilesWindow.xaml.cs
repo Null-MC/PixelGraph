@@ -5,6 +5,7 @@ using PixelGraph.Common.Encoding;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
@@ -158,6 +159,14 @@ namespace PixelGraph.UI.Windows
         private async void OnDataChanged(object sender, EventArgs e)
         {
             await SaveAsync(VM.LoadedProfile);
+        }
+
+        private void OnTextureResetButtonClick(object sender, RoutedEventArgs e)
+        {
+            if (!(e.Source is Button button)) return;
+            var cell = button.FindParent<DataGridCell>();
+            var mapping = (OutputChannelMapping) cell?.DataContext;
+            mapping?.Clear();
         }
 
         #endregion

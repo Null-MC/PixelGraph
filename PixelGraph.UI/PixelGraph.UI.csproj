@@ -10,6 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controls\DataGridComboBoxExColumn.cs" />
+    <Compile Remove="Converters\InverseBooleanConverter.cs" />
     <Compile Remove="ViewModels\InputVMX.cs" />
     <Compile Remove="ViewModels\PackEncodingVM.cs" />
     <Compile Remove="ViewModels\PackInputVM.cs" />

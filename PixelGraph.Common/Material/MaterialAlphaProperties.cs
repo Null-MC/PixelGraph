@@ -2,10 +2,11 @@
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialMetalProperties
+    public class MaterialAlphaProperties
     {
-        public ResourcePackMetalChannelProperties Input {get; set;}
         public string Texture {get; set;}
+
+        public ResourcePackAlphaChannelProperties Input {get; set;}
         public byte? Value {get; set;}
         public decimal? Scale {get; set;}
     }

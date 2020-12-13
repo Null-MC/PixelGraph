@@ -7,38 +7,38 @@ namespace PixelGraph.UI.ViewModels
     internal class PackInput2VM : ViewModelBase
     {
         public string RootDirectory {get; set;}
-        public EncodingChannelMapping[] Channels {get;}
+        public InputChannelMapping[] Channels {get;}
 
-        public EncodingChannelMapping Alpha {get;}
+        public InputChannelMapping Alpha {get;}
 
-        public EncodingChannelMapping DiffuseRed {get;}
-        public EncodingChannelMapping DiffuseGreen {get;}
-        public EncodingChannelMapping DiffuseBlue {get;}
+        public InputChannelMapping DiffuseRed {get;}
+        public InputChannelMapping DiffuseGreen {get;}
+        public InputChannelMapping DiffuseBlue {get;}
 
-        public EncodingChannelMapping AlbedoRed {get;}
-        public EncodingChannelMapping AlbedoGreen {get;}
-        public EncodingChannelMapping AlbedoBlue {get;}
+        public InputChannelMapping AlbedoRed {get;}
+        public InputChannelMapping AlbedoGreen {get;}
+        public InputChannelMapping AlbedoBlue {get;}
 
-        public EncodingChannelMapping Height {get; set;}
+        public InputChannelMapping Height {get; set;}
 
-        public EncodingChannelMapping Occlusion {get; set;}
+        public InputChannelMapping Occlusion {get; set;}
 
-        public EncodingChannelMapping NormalX {get; set;}
-        public EncodingChannelMapping NormalY {get; set;}
-        public EncodingChannelMapping NormalZ {get; set;}
+        public InputChannelMapping NormalX {get; set;}
+        public InputChannelMapping NormalY {get; set;}
+        public InputChannelMapping NormalZ {get; set;}
 
-        public EncodingChannelMapping Specular {get; set;}
+        public InputChannelMapping Specular {get; set;}
 
-        public EncodingChannelMapping Smooth {get; set;}
-        public EncodingChannelMapping Rough {get; set;}
+        public InputChannelMapping Smooth {get; set;}
+        public InputChannelMapping Rough {get; set;}
 
-        public EncodingChannelMapping Metal {get; set;}
+        public InputChannelMapping Metal {get; set;}
 
-        public EncodingChannelMapping Porosity {get; set;}
+        public InputChannelMapping Porosity {get; set;}
 
-        public EncodingChannelMapping SSS {get; set;}
+        public InputChannelMapping SSS {get; set;}
 
-        public EncodingChannelMapping Emissive {get; set;}
+        public InputChannelMapping Emissive {get; set;}
 
         private ResourcePackInputProperties _packInput;
 
@@ -49,8 +49,9 @@ namespace PixelGraph.UI.ViewModels
                 _packInput = value;
                 OnPropertyChanged();
 
+                OnPropertyChanged(nameof(Format));
                 UpdateChannels();
-                OnFormatChanged();
+                UpdateDefaultValues();
             }
         }
 
@@ -62,7 +63,7 @@ namespace PixelGraph.UI.ViewModels
                 PackInput.Format = value;
                 OnPropertyChanged();
 
-                OnFormatChanged();
+                UpdateDefaultValues();
             }
         }
 
@@ -70,36 +71,36 @@ namespace PixelGraph.UI.ViewModels
         public PackInput2VM()
         {
             Channels = new []{
-                Alpha = new EncodingChannelMapping("Alpha"),
+                Alpha = new InputChannelMapping("Alpha"),
 
-                DiffuseRed = new EncodingChannelMapping("Diffuse Red"),
-                DiffuseGreen = new EncodingChannelMapping("Diffuse Green"),
-                DiffuseBlue = new EncodingChannelMapping("Diffuse Blue"),
+                DiffuseRed = new InputChannelMapping("Diffuse Red"),
+                DiffuseGreen = new InputChannelMapping("Diffuse Green"),
+                DiffuseBlue = new InputChannelMapping("Diffuse Blue"),
 
-                AlbedoRed = new EncodingChannelMapping("Albedo Red"),
-                AlbedoGreen = new EncodingChannelMapping("Albedo Green"),
-                AlbedoBlue = new EncodingChannelMapping("Albedo Blue"),
+                AlbedoRed = new InputChannelMapping("Albedo Red"),
+                AlbedoGreen = new InputChannelMapping("Albedo Green"),
+                AlbedoBlue = new InputChannelMapping("Albedo Blue"),
 
-                Height = new EncodingChannelMapping("Height"),
+                Height = new InputChannelMapping("Height"),
 
-                Occlusion = new EncodingChannelMapping("Ambient Occlusion"),
+                Occlusion = new InputChannelMapping("Ambient Occlusion"),
 
-                NormalX = new EncodingChannelMapping("Normal-X"),
-                NormalY = new EncodingChannelMapping("Normal-Y"),
-                NormalZ = new EncodingChannelMapping("Normal-Z"),
+                NormalX = new InputChannelMapping("Normal-X"),
+                NormalY = new InputChannelMapping("Normal-Y"),
+                NormalZ = new InputChannelMapping("Normal-Z"),
 
-                Specular = new EncodingChannelMapping("Specular"),
+                Specular = new InputChannelMapping("Specular"),
 
-                Smooth = new EncodingChannelMapping("Smooth"),
-                Rough = new EncodingChannelMapping("Rough"),
+                Smooth = new InputChannelMapping("Smooth"),
+                Rough = new InputChannelMapping("Rough"),
 
-                Metal = new EncodingChannelMapping("Metal"),
+                Metal = new InputChannelMapping("Metal"),
 
-                Porosity = new EncodingChannelMapping("Porosity"),
+                Porosity = new InputChannelMapping("Porosity"),
 
-                SSS = new EncodingChannelMapping("Sub-Surface-Scattering"),
+                SSS = new InputChannelMapping("Sub-Surface-Scattering"),
 
-                Emissive = new EncodingChannelMapping("Emissive"),
+                Emissive = new InputChannelMapping("Emissive"),
             };
         }
 
@@ -171,13 +172,6 @@ namespace PixelGraph.UI.ViewModels
 
             Emissive.SetChannel(_packInput?.Rough);
         }
-
-        private void OnFormatChanged()
-        {
-            // TODO: save input
-
-            UpdateDefaultValues();
-        }
     }
 
     internal class PackInput2DesignVM : PackInput2VM
@@ -193,12 +187,11 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    internal class EncodingChannelMapping : ViewModelBase
+    internal class InputChannelMapping : ViewModelBase
     {
         private ResourcePackChannelProperties _channel;
         private string _textureDefault;
         private ColorChannel? _colorDefault;
-        private string _samplerDefault;
         private byte? _minDefault;
         private byte? _maxDefault;
         private short? _shiftDefault;
@@ -223,16 +216,6 @@ namespace PixelGraph.UI.ViewModels
                 if (_channel == null) return;
                 if (_channel.Color == value) return;
                 _channel.Color = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string Sampler {
-            get => _channel?.Sampler;
-            set {
-                if (_channel == null) return;
-                if (_channel.Sampler == value) return;
-                _channel.Sampler = value;
                 OnPropertyChanged();
             }
         }
@@ -305,15 +288,6 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public string SamplerDefault {
-            get => _samplerDefault;
-            set {
-                if (_samplerDefault == value) return;
-                _samplerDefault = value;
-                OnPropertyChanged();
-            }
-        }
-
         public byte? MinDefault {
             get => _minDefault;
             set {
@@ -360,7 +334,7 @@ namespace PixelGraph.UI.ViewModels
         }
 
 
-        public EncodingChannelMapping(string label)
+        public InputChannelMapping(string label)
         {
             Label = label;
         }
@@ -371,7 +345,6 @@ namespace PixelGraph.UI.ViewModels
 
             OnPropertyChanged(nameof(Texture));
             OnPropertyChanged(nameof(Color));
-            OnPropertyChanged(nameof(Sampler));
             OnPropertyChanged(nameof(MinValue));
             OnPropertyChanged(nameof(MaxValue));
             OnPropertyChanged(nameof(Shift));
@@ -381,14 +354,24 @@ namespace PixelGraph.UI.ViewModels
 
         public void ApplyDefaultValues(ResourcePackChannelProperties encodingDefaults)
         {
-            TextureDefault = encodingDefaults.Texture;
-            ColorDefault = encodingDefaults.Color;
-            SamplerDefault = encodingDefaults.Sampler;
-            MinDefault = encodingDefaults.MinValue;
-            MaxDefault = encodingDefaults.MaxValue;
-            ShiftDefault = encodingDefaults.Shift;
-            PowerDefault = encodingDefaults.Power;
-            InvertDefault = encodingDefaults.Invert;
+            TextureDefault = encodingDefaults?.Texture;
+            ColorDefault = encodingDefaults?.Color;
+            MinDefault = encodingDefaults?.MinValue;
+            MaxDefault = encodingDefaults?.MaxValue;
+            ShiftDefault = encodingDefaults?.Shift;
+            PowerDefault = encodingDefaults?.Power;
+            InvertDefault = encodingDefaults?.Invert;
+        }
+
+        public void Clear()
+        {
+            Texture = null;
+            Color = null;
+            MinValue = null;
+            MaxValue = null;
+            Shift = null;
+            Power = null;
+            Invert = null;
         }
     }
 }

@@ -13,6 +13,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Alpha,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 AlbedoRed = new ResourcePackAlbedoRedChannelProperties {
@@ -20,6 +23,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Red,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 AlbedoGreen = new ResourcePackAlbedoGreenChannelProperties {
@@ -27,6 +33,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Green,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 AlbedoBlue = new ResourcePackAlbedoBlueChannelProperties {
@@ -34,6 +43,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Blue,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 NormalX = new ResourcePackNormalXChannelProperties {
@@ -41,6 +53,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Red,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 NormalY = new ResourcePackNormalYChannelProperties {
@@ -48,6 +63,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Green,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 Occlusion = new ResourcePackOcclusionChannelProperties {
@@ -55,6 +73,8 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Blue,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
                     Invert = true,
                 },
 
@@ -63,6 +83,8 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Alpha,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
                     Invert = true,
                 },
 
@@ -71,14 +93,20 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Red,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
                     Power = 0.5m,
+                    Invert = false,
                 },
 
                 Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
+                    Sampler = Samplers.Nearest,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 Porosity = new ResourcePackPorosityChannelProperties {
@@ -86,6 +114,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Blue,
                     MinValue = 0,
                     MaxValue = 64,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 SSS = new ResourcePackSssChannelProperties {
@@ -93,6 +124,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Blue,
                     MinValue = 65,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 Emissive = new ResourcePackEmissiveChannelProperties {
@@ -101,6 +135,8 @@ namespace PixelGraph.Common.Encoding
                     MinValue = 0,
                     MaxValue = 255,
                     Shift = -1,
+                    Power = 1m,
+                    Invert = false,
                 },
             };
         }

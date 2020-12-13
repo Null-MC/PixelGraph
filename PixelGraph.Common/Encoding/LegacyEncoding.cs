@@ -13,6 +13,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Alpha,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 DiffuseRed = new ResourcePackDiffuseRedChannelProperties {
@@ -20,6 +23,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Red,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 DiffuseGreen = new ResourcePackDiffuseGreenChannelProperties {
@@ -27,6 +33,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Green,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 DiffuseBlue = new ResourcePackDiffuseBlueChannelProperties {
@@ -34,6 +43,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Blue,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 NormalX = new ResourcePackNormalXChannelProperties {
@@ -41,6 +53,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Red,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 NormalY = new ResourcePackNormalYChannelProperties {
@@ -48,6 +63,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Green,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 NormalZ = new ResourcePackNormalZChannelProperties {
@@ -55,6 +73,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Blue,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
 
                 Specular = new ResourcePackSpecularChannelProperties {
@@ -62,6 +83,9 @@ namespace PixelGraph.Common.Encoding
                     Color = ColorChannel.Red,
                     MinValue = 0,
                     MaxValue = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
                 },
             };
         }

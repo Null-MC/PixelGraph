@@ -1,5 +1,5 @@
 ﻿using PixelGraph.Common.Encoding;
-using PixelGraph.Common.Textures;
+using PixelGraph.Common.ResourcePack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace PixelGraph.Common.Material
         public bool UseGlobalMatching {get; set;}
 
         [YamlIgnore]
-        public string LocalFilename {get; internal set;}
+        public string LocalFilename {get; set;}
 
         [YamlIgnore]
         public string LocalPath {get; set;}
@@ -44,6 +44,8 @@ namespace PixelGraph.Common.Material
         public int? RangeMin {get; set;}
 
         public int? RangeMax {get; set;}
+
+        public MaterialAlphaProperties Alpha {get; set;}
 
         public MaterialAlbedoProperties Albedo {get; set;}
 
@@ -74,26 +76,9 @@ namespace PixelGraph.Common.Material
         public List<MaterialPart> Parts {get; set;}
 
 
-        //public MaterialProperties()
-        //{
-        //    //Regions = new List<MaterialRegion>();
-
-        //    //Albedo = new MaterialAlbedoProperties();
-        //    //Height = new MaterialHeightProperties();
-        //    //Normal = new MaterialNormalProperties();
-        //    //Occlusion = new MaterialOcclusionProperties();
-        //    //Specular = new MaterialSpecularProperties();
-        //    //Smooth = new MaterialSmoothProperties();
-        //    //Rough = new MaterialRoughProperties();
-        //    //Metal = new MaterialMetalProperties();
-        //    //Porosity = new MaterialPorosityProperties();
-        //    //SSS = new MaterialSssProperties();
-        //    //Emissive = new MaterialEmissiveProperties();
-        //}
-
-        public TextureEncoding GetInputEncoding(string tag)
+        public ResourcePackChannelProperties GetChannelEncoding(string channel)
         {
-            return textureInputMap.TryGetValue(tag, out var encoding) ? encoding(this) : null;
+            return inputChannelMap.TryGetValue(channel, out var encoding) ? encoding(this) : null;
         }
 
         public MaterialProperties Clone()
@@ -105,19 +90,27 @@ namespace PixelGraph.Common.Material
             return clone;
         }
 
-        private static readonly Dictionary<string, Func<MaterialProperties, TextureEncoding>> textureInputMap
-            = new Dictionary<string, Func<MaterialProperties, TextureEncoding>>(StringComparer.InvariantCultureIgnoreCase) {
-                [TextureTags.Albedo] = m => m.Albedo?.Input,
-                [TextureTags.Height] = m => m.Height?.Input,
-                [TextureTags.Normal] = m => m.Normal?.Input,
-                [TextureTags.Occlusion] = m => m.Occlusion?.Input,
-                [TextureTags.Specular] = m => m.Specular?.Input,
-                [TextureTags.Smooth] = m => m.Smooth?.Input,
-                [TextureTags.Rough] = m => m.Rough?.Input,
-                [TextureTags.Metal] = m => m.Metal?.Input,
-                [TextureTags.Porosity] = m => m.Porosity?.Input,
-                [TextureTags.SubSurfaceScattering] = m => m.SSS?.Input,
-                [TextureTags.Emissive] = m => m.Emissive?.Input,
+        private static readonly Dictionary<string, Func<MaterialProperties, ResourcePackChannelProperties>> inputChannelMap
+            = new Dictionary<string, Func<MaterialProperties, ResourcePackChannelProperties>>(StringComparer.InvariantCultureIgnoreCase) {
+                [EncodingChannel.Alpha] = m => m.Alpha?.Input,
+                [EncodingChannel.DiffuseRed] = m => m.Diffuse?.InputRed,
+                [EncodingChannel.DiffuseGreen] = m => m.Diffuse?.InputGreen,
+                [EncodingChannel.DiffuseBlue] = m => m.Diffuse?.InputBlue,
+                [EncodingChannel.AlbedoRed] = m => m.Albedo?.InputRed,
+                [EncodingChannel.AlbedoGreen] = m => m.Albedo?.InputGreen,
+                [EncodingChannel.AlbedoBlue] = m => m.Albedo?.InputBlue,
+                [EncodingChannel.Height] = m => m.Height?.Input,
+                [EncodingChannel.Occlusion] = m => m.Occlusion?.Input,
+                [EncodingChannel.NormalX] = m => m.Normal?.InputX,
+                [EncodingChannel.NormalY] = m => m.Normal?.InputY,
+                [EncodingChannel.NormalZ] = m => m.Normal?.InputZ,
+                [EncodingChannel.Specular] = m => m.Specular?.Input,
+                [EncodingChannel.Smooth] = m => m.Smooth?.Input,
+                [EncodingChannel.Rough] = m => m.Rough?.Input,
+                [EncodingChannel.Metal] = m => m.Metal?.Input,
+                [EncodingChannel.Porosity] = m => m.Porosity?.Input,
+                [EncodingChannel.SubSurfaceScattering] = m => m.SSS?.Input,
+                [EncodingChannel.Emissive] = m => m.Emissive?.Input,
             };
     }
 }

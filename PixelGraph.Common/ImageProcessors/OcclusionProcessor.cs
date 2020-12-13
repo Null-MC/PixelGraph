@@ -12,8 +12,6 @@ namespace PixelGraph.Common.ImageProcessors
 {
     internal class OcclusionProcessor : PixelProcessor
     {
-        private const bool UseLinear = true;
-
         private readonly Options options;
         private readonly Lazy<Vector3[]> rayList;
 
@@ -32,6 +30,11 @@ namespace PixelGraph.Common.ImageProcessors
             var pixelIn = new Rgba32();
             sourceRow[context.X].ToRgba32(ref pixelIn);
             pixelIn.GetNormalizedChannelValue(in options.HeightChannel, out var height);
+
+            // TODO: range, shift, power
+            //if (height < options.HeightMin || height > options.HeightMax) return;
+            if (!options.HeightInvert) height = 1f - height;
+
             var z = height * options.ZScale + options.ZBias;
 
             var hitCount = 0;
@@ -47,7 +50,7 @@ namespace PixelGraph.Common.ImageProcessors
             }
 
             MathEx.Saturate(1f - hitCount / (float)rayCount, out pixelOut.R);
-            pixelOut.G = pixelOut.B = pixelOut.R;
+            pixelOut.B = pixelOut.G = pixelOut.R;
             pixelOut.A = 255;
         }
 
@@ -94,7 +97,7 @@ namespace PixelGraph.Common.ImageProcessors
                 if (position.Z > options.ZScale) return false;
 
                 float height;
-                if (UseLinear) SampleHeightLinear(in position.X, in position.Y, in context, out height);
+                if (options.UseLinearSampling) SampleHeightLinear(in position.X, in position.Y, in context, out height);
                 else SampleHeightPoint(in position.X, in position.Y, in context, out height);
 
                 if (position.Z < height * options.ZScale) return true;
@@ -163,6 +166,12 @@ namespace PixelGraph.Common.ImageProcessors
             //public Image<Rgba32> EmissiveSource;
             //public ColorChannel EmissiveChannel;
             public ColorChannel HeightChannel;
+            public bool UseLinearSampling;
+            public byte HeightMin;
+            public byte HeightMax;
+            public short HeightShift;
+            public float HeightPower;
+            public bool HeightInvert;
             public int StepCount;
             public float ZScale;
             public float ZBias;

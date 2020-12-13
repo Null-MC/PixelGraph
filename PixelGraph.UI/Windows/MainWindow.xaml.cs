@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.Common;
 using PixelGraph.Common.Encoding;
@@ -12,9 +13,9 @@ using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using SixLabors.ImageSharp;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,6 +23,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
@@ -30,25 +32,28 @@ namespace PixelGraph.UI.Windows
         private const int ThumbnailSize = 64;
 
         private readonly IServiceProvider provider;
+        private readonly ILogger logger;
         //private readonly IAppSettings settings;
-        private readonly MainWindowVM vm;
+        //private readonly MainWindowVM vm;
 
 
         public MainWindow(IServiceProvider provider)
         {
             this.provider = provider;
 
+            logger = provider.GetRequiredService<ILogger<MainWindow>>();
+
             //settings = provider.GetRequiredService<IAppSettings>();
 
-            if (!DesignerProperties.GetIsInDesignMode(this)) {
-                vm = new MainWindowVM();
-                DataContext = vm;
-            }
+            //if (!DesignerProperties.GetIsInDesignMode(this)) {
+            //    vm = new MainWindowVM();
+            //    DataContext = vm;
+            //}
+
+            InitializeComponent();
 
             var recent = provider.GetRequiredService<IRecentPathManager>();
             vm.RecentDirectories = recent.List;
-
-            InitializeComponent();
         }
 
         private async Task SelectRootDirectoryAsync(CancellationToken token)
@@ -239,8 +244,7 @@ namespace PixelGraph.UI.Windows
                     var inputFormat = TextureEncoding.GetFactory(context.Input.Format);
                     var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
                     inputEncoding.Merge(context.Input);
-
-                    // TODO: apply material properties?
+                    inputEncoding.Merge(context.Material);
 
                     using var graph = provider.GetRequiredService<ITextureGraph>();
                     graph.InputEncoding.AddRange(inputEncoding.GetMapped());
@@ -293,8 +297,7 @@ namespace PixelGraph.UI.Windows
                     var inputFormat = TextureEncoding.GetFactory(context.Input.Format);
                     var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
                     inputEncoding.Merge(context.Input);
-
-                    // TODO: apply material properties?
+                    inputEncoding.Merge(context.Material);
 
                     using var graph = provider.GetRequiredService<ITextureGraph>();
                     graph.InputEncoding.AddRange(inputEncoding.GetMapped());
@@ -344,6 +347,45 @@ namespace PixelGraph.UI.Windows
 
             if (window.ShowDialog() != null)
                 await LoadRootDirectoryAsync();
+        }
+
+        private async Task<MaterialProperties> ImportTextureAsync(string filename, CancellationToken token)
+        {
+            var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
+            scopeBuilder.AddFileInput();
+            scopeBuilder.AddFileOutput();
+            //...
+
+            await using var scope = scopeBuilder.Build();
+
+            var reader = scope.GetRequiredService<IInputReader>();
+            var writer = scope.GetRequiredService<IOutputWriter>();
+            var matWriter = scope.GetRequiredService<IMaterialWriter>();
+
+            reader.SetRoot(vm.RootDirectory);
+            writer.SetRoot(vm.RootDirectory);
+
+            var itemName = Path.GetFileNameWithoutExtension(filename);
+            var localPath = Path.GetDirectoryName(filename);
+            var matFile = PathEx.Join(localPath, itemName, "pbr.yml");
+
+            var material = new MaterialProperties {
+                LocalFilename = matFile,
+                LocalPath = localPath,
+                //...
+            };
+
+            await matWriter.WriteAsync(material, matFile);
+
+            var ext = Path.GetExtension(filename);
+            var destFile = PathEx.Join(localPath, itemName, $"albedo{ext}");
+            await using (var sourceStream = reader.Open(filename)) {
+                await using var destStream = writer.Open(destFile);
+                await sourceStream.CopyToAsync(destStream, token);
+            }
+
+            writer.Delete(filename);
+            return material;
         }
 
         private string GetArchiveFilename()
@@ -435,11 +477,12 @@ namespace PixelGraph.UI.Windows
                 Owner = this,
                 VM = {
                     RootDirectory = vm.RootDirectory,
-                    PackInput = vm.PackInput,
+                    PackInput = (ResourcePackInputProperties)vm.PackInput.Clone(),
                 },
             };
 
-            window.ShowDialog();
+            if (window.ShowDialog() != true) return;
+            vm.PackInput = window.VM.PackInput;
         }
 
         private void OnProfilesClick(object sender, RoutedEventArgs e)
@@ -495,7 +538,14 @@ namespace PixelGraph.UI.Windows
         private async void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             vm.SelectedNode = e.NewValue as ContentTreeNode;
-            await PopulateTextureViewerAsync(CancellationToken.None);
+
+            try {
+                await PopulateTextureViewerAsync(CancellationToken.None);
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to populate texture viewer!");
+                //ShowError("Failed to populate texture viewer!");
+            }
         }
 
         private async void OnGenerateNormal(object sender, EventArgs e)
@@ -506,6 +556,7 @@ namespace PixelGraph.UI.Windows
                 await GenerateNormalAsync(CancellationToken.None);
             }
             catch (Exception error) {
+                logger.LogError(error, "Failed to generate normal texture!");
                 ShowError($"Failed to generate normal texture! {error.Message}");
             }
         }
@@ -518,6 +569,7 @@ namespace PixelGraph.UI.Windows
                 await GenerateOcclusionAsync(CancellationToken.None);
             }
             catch (Exception error) {
+                logger.LogError(error, "Failed to generate occlusion texture!");
                 ShowError($"Failed to generate occlusion texture! {error.Message}");
             }
         }
@@ -534,48 +586,30 @@ namespace PixelGraph.UI.Windows
 
         private async void OnImportMaterialClick(object sender, RoutedEventArgs e)
         {
-            if (!(vm.SelectedNode is ContentTreeFile file) || file.Type != ContentNodeType.Texture) return;
+            if (!(vm.SelectedNode is ContentTreeFile fileNode) || fileNode.Type != ContentNodeType.Texture) return;
 
-            await Task.Run(() => ImportTextureAsync(file.Filename, CancellationToken.None));
+            var material = await Task.Run(() => ImportTextureAsync(fileNode.Filename, CancellationToken.None));
 
-            // TODO: refresh parent folder instead of whole tree
-            await LoadRootDirectoryAsync();
-        }
+            var parent = fileNode.Parent;
+            var contentReader = provider.GetRequiredService<IContentTreeReader>();
 
-        private async Task ImportTextureAsync(string filename, CancellationToken token)
-        {
-            var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
-            scopeBuilder.AddFileInput();
-            scopeBuilder.AddFileOutput();
-            //...
-
-            await using var scope = scopeBuilder.Build();
-
-            var reader = scope.GetRequiredService<IInputReader>();
-            var writer = scope.GetRequiredService<IOutputWriter>();
-            var matWriter = scope.GetRequiredService<IMaterialWriter>();
-
-            reader.SetRoot(vm.RootDirectory);
-            writer.SetRoot(vm.RootDirectory);
-
-            var itemName = Path.GetFileNameWithoutExtension(filename);
-            var localPath = Path.GetDirectoryName(filename);
-
-            var material = new MaterialProperties();
-            //...
-
-            var ext = Path.GetExtension(filename);
-            var destFile = PathEx.Join(localPath, itemName, $"albedo{ext}");
-
-            var matFile = PathEx.Join(localPath, itemName, "pbr.yml");
-            await matWriter.WriteAsync(material, matFile);
-
-            await using (var sourceStream = reader.Open(filename)) {
-                await using var destStream = writer.Open(destFile);
-                await sourceStream.CopyToAsync(destStream, token);
+            if (parent == null) {
+                // refresh root
+                await LoadRootDirectoryAsync();
             }
+            else {
+                //parent.Nodes.Clear();
+                var newParent = contentReader.GetPathNode(parent, parent.LocalPath);
+                var selected = newParent.Nodes.FirstOrDefault(n => {
+                    if (!(n is ContentTreeMaterialDirectory materialNode)) return false;
+                    return string.Equals(materialNode.MaterialFilename, material.LocalFilename);
+                });
 
-            writer.Delete(filename);
+                await Application.Current.Dispatcher.BeginInvoke(() => {
+                    parent.Nodes = newParent.Nodes;
+                    vm.SelectedNode = selected;
+                });
+            }
         }
 
         private void OnContentTreePreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)

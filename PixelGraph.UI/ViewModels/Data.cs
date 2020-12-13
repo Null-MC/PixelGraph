@@ -66,8 +66,9 @@ namespace PixelGraph.UI.ViewModels
     {
         public TextureTagValues()
         {
-            Add(new Item {Text = "Albedo", Value = TextureTags.Albedo});
+            Add(new Item {Text = "Alpha", Value = TextureTags.Alpha});
             Add(new Item {Text = "Diffuse", Value = TextureTags.Diffuse});
+            Add(new Item {Text = "Albedo", Value = TextureTags.Albedo});
             Add(new Item {Text = "Height", Value = TextureTags.Height});
             Add(new Item {Text = "Normal", Value = TextureTags.Normal});
             Add(new Item {Text = "Occlusion", Value = TextureTags.Occlusion});
@@ -91,7 +92,7 @@ namespace PixelGraph.UI.ViewModels
     {
         public OptionalTextureTagValues()
         {
-            Add(new Item {Text = string.Empty});
+            Add(new Item {Text = "None", Value = TextureTags.None});
             Add(new Item {Text = "Albedo", Value = TextureTags.Albedo});
             Add(new Item {Text = "Height", Value = TextureTags.Height});
             Add(new Item {Text = "Normal", Value = TextureTags.Normal});
@@ -147,18 +148,36 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
+    internal class SamplerValues : List<SamplerValues.Item>
+    {
+        public SamplerValues()
+        {
+            Add(new Item {Text = "Point", Value = Samplers.Point});
+            Add(new Item {Text = "Nearest", Value = Samplers.Nearest});
+            Add(new Item {Text = "Bilinear", Value = Samplers.Bilinear});
+            Add(new Item {Text = "Cubic", Value = Samplers.Cubic});
+            Add(new Item {Text = "Bicubic", Value = Samplers.Bicubic});
+        }
+
+        public class Item
+        {
+            public string Text {get; set;}
+            public string Value {get; set;}
+        }
+    }
+
     internal class EncodingChannelValues : List<EncodingChannelValues.Channel>
     {
         public EncodingChannelValues()
         {
             Add(new Channel {Text = string.Empty});
-            Add(new Channel {Text = "Albedo Red", Value = EncodingChannel.AlbedoRed});
-            Add(new Channel {Text = "Albedo Green", Value = EncodingChannel.AlbedoGreen});
-            Add(new Channel {Text = "Albedo Blue", Value = EncodingChannel.AlbedoBlue});
+            Add(new Channel {Text = "Alpha", Value = EncodingChannel.Alpha});
             Add(new Channel {Text = "Diffuse Red", Value = EncodingChannel.DiffuseRed});
             Add(new Channel {Text = "Diffuse Green", Value = EncodingChannel.DiffuseGreen});
             Add(new Channel {Text = "Diffuse Blue", Value = EncodingChannel.DiffuseBlue});
-            Add(new Channel {Text = "Alpha", Value = EncodingChannel.Alpha});
+            Add(new Channel {Text = "Albedo Red", Value = EncodingChannel.AlbedoRed});
+            Add(new Channel {Text = "Albedo Green", Value = EncodingChannel.AlbedoGreen});
+            Add(new Channel {Text = "Albedo Blue", Value = EncodingChannel.AlbedoBlue});
             Add(new Channel {Text = "Height", Value = EncodingChannel.Height});
             Add(new Channel {Text = "Occlusion", Value = EncodingChannel.Occlusion});
             Add(new Channel {Text = "Normal-X", Value = EncodingChannel.NormalX});
@@ -171,7 +190,7 @@ namespace PixelGraph.UI.ViewModels
             Add(new Channel {Text = "Porosity", Value = EncodingChannel.Porosity});
             Add(new Channel {Text = "SSS", Value = EncodingChannel.SubSurfaceScattering});
             Add(new Channel {Text = "Emissive", Value = EncodingChannel.Emissive});
-            Add(new Channel {Text = "White", Value = EncodingChannel.White});
+            //Add(new Channel {Text = "White", Value = EncodingChannel.White});
         }
 
         public class Channel

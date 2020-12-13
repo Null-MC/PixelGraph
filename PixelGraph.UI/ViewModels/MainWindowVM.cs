@@ -27,7 +27,6 @@ namespace PixelGraph.UI.ViewModels
         private bool _publishArchive, _publishClean;
         private volatile bool _isBusy;
 
-        public ObservableCollection<string> RecentDirectories {get; set;}
         public ObservableCollection<ProfileItem> Profiles {get;}
         public ObservableCollection<TextureSource> Textures {get;}
         public bool IsUpdatingSources {get; set;}
@@ -52,6 +51,16 @@ namespace PixelGraph.UI.ViewModels
         }
 
         private ContentTreeNode _treeRoot;
+        private ObservableCollection<string> _recentDirectories;
+
+        public ObservableCollection<string> RecentDirectories {
+            get => _recentDirectories;
+            set {
+                _recentDirectories = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ContentTreeNode TreeRoot {
             get => _treeRoot;
             set {
@@ -197,7 +206,7 @@ namespace PixelGraph.UI.ViewModels
             RecentDirectories = new ObservableCollection<string>();
             Profiles = new ObservableCollection<ProfileItem>();
             Textures = new ObservableCollection<TextureSource>();
-            _treeRoot = new ContentTreeNode();
+            _treeRoot = new ContentTreeNode(null);
             busyLock = new object();
         }
 
@@ -259,28 +268,28 @@ namespace PixelGraph.UI.ViewModels
             SearchText = "as";
             ShowAllFiles = true;
 
-            TreeRoot.Nodes.Add(new ContentTreeDirectory {
+            TreeRoot.Nodes.Add(new ContentTreeDirectory(null) {
                 Name = "assets",
                 Nodes = {
-                    new ContentTreeDirectory {
+                    new ContentTreeDirectory(null) {
                         Name = "minecraft",
                         Nodes = {
-                            new ContentTreeFile {
+                            new ContentTreeFile(null) {
                                 Name = "Dirt",
                                 Type = ContentNodeType.Texture,
                                 Icon = PackIconKind.Image,
                             },
-                            new ContentTreeFile {
+                            new ContentTreeFile(null) {
                                 Name = "Grass",
                                 Type = ContentNodeType.Texture,
                                 Icon = PackIconKind.Image,
                             },
-                            new ContentTreeFile {
+                            new ContentTreeFile(null) {
                                 Name = "Glass",
                                 Type = ContentNodeType.Texture,
                                 Icon = PackIconKind.Image,
                             },
-                            new ContentTreeFile {
+                            new ContentTreeFile(null) {
                                 Name = "Stone",
                                 Type = ContentNodeType.Texture,
                                 Icon = PackIconKind.Image,

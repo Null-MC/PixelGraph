@@ -6,6 +6,8 @@ namespace PixelGraph.Common.Textures
 {
     public static class TextureTags
     {
+        public const string None = "none";
+        public const string Alpha = "alpha";
         public const string Albedo = "albedo";
         public const string Diffuse = "diffuse";
         public const string Height = "height";
@@ -21,7 +23,7 @@ namespace PixelGraph.Common.Textures
         public const string SubSurfaceScattering = "sss";
         public const string Emissive = "emissive";
 
-        public static string[] All {get;} = {Albedo, Diffuse, Height, Normal, Occlusion, Specular, Smooth, Rough, Metal, Porosity, SubSurfaceScattering, Emissive};
+        public static string[] All {get;} = {Alpha, Albedo, Diffuse, Height, Normal, Occlusion, Specular, Smooth, Rough, Metal, Porosity, SubSurfaceScattering, Emissive};
 
 
         public static string Get(MaterialProperties material, string tag)
@@ -35,6 +37,7 @@ namespace PixelGraph.Common.Textures
 
         private static readonly Dictionary<string, Func<MaterialProperties, string>> map = new Dictionary<string, Func<MaterialProperties, string>>(StringComparer.InvariantCultureIgnoreCase)
         {
+            [Alpha] = mat => mat.Alpha?.Texture,
             [Albedo] = mat => mat.Albedo?.Texture,
             [Diffuse] = mat => mat.Diffuse?.Texture,
             [Height] = mat => mat.Height?.Texture,

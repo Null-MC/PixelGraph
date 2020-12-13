@@ -38,9 +38,31 @@
                         <local:PropertyGridItem Header="Input Format">
                             <local:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value" Margin="4,2" VerticalAlignment="Center"
                                       Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                      PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                       ItemsSource="{StaticResource EncodingFormats}"
                                       Placeholder="{Binding DefaultInputFormat, Mode=OneWay}"
                                       SelectedValue="{Binding InputFormat, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                    </StackPanel>
+                </Grid>
+                <Grid Visibility="{Binding IsAlphaSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
+                    <StackPanel Orientation="Vertical">
+                        <local:PropertyGridItem Header="Texture">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding AlphaTexture, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Value">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0"
+                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                             Text="{Binding AlphaValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Scale">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
+                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                             Text="{Binding AlphaScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
                 </Grid>
@@ -50,6 +72,42 @@
                             <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding AlbedoTexture, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Red Value">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0"
+                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                             Text="{Binding AlbedoRedValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Green Value">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0"
+                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                             Text="{Binding AlbedoGreenValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Blue Value">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0"
+                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                             Text="{Binding AlbedoBlueValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Red Scale">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
+                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                             Text="{Binding AlbedoRedScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Green Scale">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
+                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                             Text="{Binding AlbedoGreenScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Blue Scale">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
+                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                             Text="{Binding AlbedoBlueScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
                 </Grid>
@@ -70,13 +128,15 @@
                                      Text="{Binding HeightTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Value">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Text="{Binding HeightValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Scale">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Text="{Binding HeightScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
@@ -89,23 +149,27 @@
                                      Text="{Binding NormalTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Strength">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Text="{Binding NormalStrength, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Noise">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="0.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0.0"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Text="{Binding NormalNoise, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Curve X">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="0.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                              Text="{Binding NormalCurveX, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Curve Y">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="0.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                              Text="{Binding NormalCurveY, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem>
@@ -122,36 +186,41 @@
                                      Text="{Binding OcclusionTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Value">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding OcclusionValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Scale">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Text="{Binding OcclusionScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Quality">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Placeholder="{Binding DefaultOcclusionQuality, Mode=OneWay}"
                                      Text="{Binding OcclusionQuality, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Step Count">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Placeholder="{Binding DefaultOcclusionSteps, Mode=OneWay}"
                                      Text="{Binding OcclusionSteps, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Z-Bias">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Placeholder="{Binding DefaultOcclusionZBias, Mode=OneWay}"
                                      Text="{Binding OcclusionZBias, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Z-Scale">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Placeholder="{Binding DefaultOcclusionZScale, Mode=OneWay}"
                                      Text="{Binding OcclusionZScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
@@ -178,13 +247,14 @@
                                      Text="{Binding SmoothTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Value">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding SmoothValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Scale">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Text="{Binding SmoothScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
@@ -197,13 +267,14 @@
                                      Text="{Binding RoughTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Value">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding RoughValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Scale">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Text="{Binding RoughScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
@@ -216,13 +287,14 @@
                                      Text="{Binding MetalTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Value">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding MetalValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Scale">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                              Text="{Binding MetalScale, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
@@ -235,13 +307,14 @@
                                      Text="{Binding PorosityTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Value">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding PorosityValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Scale">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                              Text="{Binding PorosityScale, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
@@ -254,13 +327,14 @@
                                      Text="{Binding SssTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Value">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
                                              Text="{Binding SssValue, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Scale">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                              Text="{Binding SssScale, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
@@ -273,13 +347,14 @@
                                      Text="{Binding EmissiveTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Value">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" TextAlignment="Center"
+                            <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding EmissiveValue, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Scale">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" TextAlignment="Center" Placeholder="1.0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                              Text="{Binding EmissiveScale, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
                     </StackPanel>

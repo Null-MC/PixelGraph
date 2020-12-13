@@ -8,7 +8,7 @@
         xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
         xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
         xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
-        Title="Pack Profiles" Width="860" Height="480" mc:Ignorable="d"
+        Title="Pack Profiles" Width="1000" Height="800" mc:Ignorable="d"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
@@ -17,12 +17,18 @@
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
         d:DataContext="{d:DesignInstance vm:ProfilesDesignVM, IsDesignTimeCreatable=True}"
-        WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow">
+        WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <converters:VisibilityConverter x:Key="VisibilityConverter"/>
+        <vm:OptionalEncodingFormatValues x:Key="Formats"/>
+        <vm:OptionalTextureTagValues x:Key="TextureTags"/>
+        <vm:OptionalColorChannelValues x:Key="ColorChannels"/>
+        <vm:SamplerValues x:Key="Samplers"/>
+        <converters:NullableConverter x:Key="NullableConverter"/>
+        <converters:TextureLabelConverter x:Key="TextureLabelConverter"/>
+        <converters:SamplerLabelConverter x:Key="SamplerLabelConverter"/>
     </Window.Resources>
     <Window.DataContext>
-        <vm:ProfilesVM x:Name="VM" DataChanged="OnDataChanged"/>
+        <vm:PackProfilesVM x:Name="VM" DataChanged="OnDataChanged"/>
     </Window.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -49,137 +55,211 @@
                      SelectedItem="{Binding SelectedProfileItem, Mode=TwoWay}"/>
         </DockPanel>
         <GridSplitter Grid.Column="1" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
-        <ScrollViewer Grid.Column="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#222"
-                      Visibility="{Binding HasSelectedProfile, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-            <StackPanel Orientation="Vertical" MinWidth="320" MaxWidth="600">
-                <Grid Margin="12,12,12,12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Column="0" Grid.Row="0" Margin="4" VerticalAlignment="Center" Text="Game Edition" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                    <ComboBox Grid.Column="1" Grid.Row="0" SelectedValuePath="Content" Margin="4" TextBlock.FontSize="14" HorizontalContentAlignment="Center"
-                              Foreground="{DynamicResource SecondaryHueMidBrush}"
-                              SelectedValue="{Binding GameEdition}">
-                        <ComboBoxItem Content="Java"/>
-                        <ComboBoxItem Content="Bedrock"/>
-                    </ComboBox>
-                    <TextBlock Grid.Column="2" Grid.Row="0" VerticalAlignment="Center" Text="Pack Version" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}" Margin="4,4,4,4" HorizontalAlignment="Right"/>
-                    <TextBox Grid.Column="3" Grid.Row="0" Margin="4" HorizontalContentAlignment="Center" Width="64" HorizontalAlignment="Right"
-                             Foreground="{DynamicResource SecondaryHueMidBrush}"
-                             Text="{Binding PackFormat}"/>
-                    <TextBlock Grid.Column="0" Grid.Row="1" Margin="4" VerticalAlignment="Center" Text="Description" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                    <TextBox Grid.Column="1" Grid.Row="1" Margin="4" Grid.ColumnSpan="3"
-                             Foreground="{DynamicResource SecondaryHueMidBrush}"
-                             Text="{Binding PackDescription}"/>
-                    <TextBlock Grid.Column="0" Grid.Row="2" Margin="4" VerticalAlignment="Center" Text="Tags" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                    <TextBox Grid.Column="1" Grid.Row="2" Margin="4" Grid.ColumnSpan="3"
-                             Foreground="{DynamicResource SecondaryHueMidBrush}"
-                             Text="{Binding PackTags}"/>
-                </Grid>
-                <Grid Margin="12,12,12,12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-                    <DockPanel Grid.Column="1">
-                        <TextBlock DockPanel.Dock="Left" Margin="8,0" Text="Output Format" Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Center"/>
-                        <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" Foreground="{DynamicResource SecondaryHueMidBrush}" MaxWidth="140" HorizontalContentAlignment="Center"
-                                  SelectedValue="{Binding OutputFormat}">
-                            <ComboBox.ItemsSource>
-                                <vm:OptionalEncodingFormatValues/>
-                            </ComboBox.ItemsSource>
+        <TabControl Grid.Column="2" Style="{StaticResource MaterialDesignTabControl}"
+                    IsEnabled="{Binding HasSelectedProfile, Mode=OneWay}">
+            <TabItem Header="Metadata">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Background="#222">
+                    <Grid Margin="12,12,12,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Column="0" Grid.Row="0" Margin="4" VerticalAlignment="Center" Text="Game Edition" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                        <ComboBox Grid.Column="1" Grid.Row="0" SelectedValuePath="Content" Margin="4" TextBlock.FontSize="14" HorizontalContentAlignment="Center"
+                                  Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                  SelectedValue="{Binding GameEdition}">
+                            <ComboBoxItem Content="Java"/>
+                            <ComboBoxItem Content="Bedrock"/>
                         </ComboBox>
-                    </DockPanel>
-                </Grid>
-                <GroupBox Margin="0,20,0,12" md:ColorZoneAssist.Mode="Dark"
-                          Background="#111"
-                          Foreground="{DynamicResource PrimaryHueMidBrush}"
-                          Style="{DynamicResource MaterialDesignCardGroupBox}">
-                    <GroupBox.Header>
-                        <DockPanel>
-                            <ComboBox DockPanel.Dock="Right" DisplayMemberPath="Text" SelectedValuePath="Value" HorizontalContentAlignment="Center"
-                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                      SelectedValue="{Binding SelectedTextureTag}" Width="200">
-                                <ComboBox.ItemsSource>
-                                    <vm:TextureTagValues/>
-                                </ComboBox.ItemsSource>
-                            </ComboBox>
-                            <TextBlock Text="Texture Encoding" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
-                        </DockPanel>
-                    </GroupBox.Header>
-                    <StackPanel Orientation="Vertical">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1*"/>
-                                <ColumnDefinition Width="2*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.Resources>
-                                <Style TargetType="controls:ComboBoxEx">
-                                    <Setter Property="ItemsSource">
-                                        <Setter.Value>
-                                            <vm:EncodingChannelValues/>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </Grid.Resources>
-                            <TextBlock Grid.Column="1" Grid.Row="0" Margin="6" Text="Output" HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Center"/>
-                            <StackPanel Grid.Column="0" Grid.Row="1" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
-                                <md:PackIcon Kind="Circle" VerticalAlignment="Center" Foreground="Red"/>
-                                <TextBlock Margin="4,0" Text="Red" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                            </StackPanel>
-                            <controls:ComboBoxEx Grid.Column="1" Grid.Row="1"
-                                                 SelectedValue="{Binding OutputEncoding.Red}"
-                                                 Placeholder="{Binding OutputRedDefault, Mode=OneWay}"/>
-                            <StackPanel Grid.Column="0" Grid.Row="2" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
-                                <md:PackIcon Kind="Circle" VerticalAlignment="Center" Foreground="Green"/>
-                                <TextBlock Margin="4,0" Text="Green" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                            <controls:ComboBoxEx Grid.Column="1" Grid.Row="2"
-                                                 SelectedValue="{Binding OutputEncoding.Green}"
-                                                 Placeholder="{Binding OutputGreenDefault, Mode=OneWay}"/>
-                            <StackPanel Grid.Column="0" Grid.Row="3" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
-                                <md:PackIcon Kind="Circle" VerticalAlignment="Center" Foreground="Blue"/>
-                                <TextBlock Margin="4,0" Text="Blue" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                            <controls:ComboBoxEx Grid.Column="1" Grid.Row="3"
-                                                 SelectedValue="{Binding OutputEncoding.Blue}"
-                                                 Placeholder="{Binding OutputBlueDefault, Mode=OneWay}"/>
-                            <StackPanel Grid.Column="0" Grid.Row="4" Margin="6,2" Orientation="Horizontal" HorizontalAlignment="Left">
-                                <md:PackIcon Kind="CircleOutline" VerticalAlignment="Center" Foreground="White"/>
-                                <TextBlock Margin="4,0" Text="Alpha" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                            <controls:ComboBoxEx Grid.Column="1" Grid.Row="4"
-                                                 SelectedValue="{Binding OutputEncoding.Alpha}"
-                                                 Placeholder="{Binding OutputAlphaDefault, Mode=OneWay}"/>
-                            <TextBlock Grid.Column="0" Grid.Row="5" Margin="4,0" Text="Sampler" VerticalAlignment="Center" HorizontalAlignment="Center"
+                        <TextBlock Grid.Column="2" Grid.Row="0" VerticalAlignment="Center" Text="Pack Version" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}" Margin="4,4,4,4" HorizontalAlignment="Right"/>
+                        <TextBox Grid.Column="3" Grid.Row="0" Margin="4" HorizontalContentAlignment="Center" Width="64" HorizontalAlignment="Right"
+                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                 Text="{Binding PackFormat}"/>
+                        <TextBlock Grid.Column="0" Grid.Row="1" Margin="4" VerticalAlignment="Center" Text="Description" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                        <TextBox Grid.Column="1" Grid.Row="1" Margin="4" Grid.ColumnSpan="3"
+                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                 Text="{Binding PackDescription}"/>
+                        <TextBlock Grid.Column="0" Grid.Row="2" Margin="4" VerticalAlignment="Center" Text="Tags" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                        <TextBox Grid.Column="1" Grid.Row="2" Margin="4" Grid.ColumnSpan="3"
+                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                 Text="{Binding PackTags}"/>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Encoding">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <DockPanel Grid.Column="0">
+                            <TextBlock DockPanel.Dock="Left" Margin="8,0" Text="Format" VerticalAlignment="Center"
                                        Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                            <controls:ComboBoxEx Grid.Column="1" Grid.Row="5"
-                                                 SelectedValue="{Binding OutputEncoding.Alpha}"
-                                                 Placeholder="{Binding OutputAlphaDefault, Mode=OneWay}"/>
-                            <CheckBox Grid.Column="1" Grid.Row="6" Content="Export Material" HorizontalAlignment="Center" Margin="8"
-                                      IsChecked="{Binding OutputEncoding.Include}"
-                                      Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                        </Grid>
-                    </StackPanel>
-                </GroupBox>
-            </StackPanel>
-        </ScrollViewer>
+                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" MaxWidth="140" HorizontalContentAlignment="Center"
+                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                      ItemsSource="{StaticResource Formats}"
+                                      SelectedValue="{Binding EncodingFormat}"/>
+                        </DockPanel>
+                        <DockPanel Grid.Column="1">
+                            <TextBlock DockPanel.Dock="Left" Margin="8,0" Text="Default Sampler" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                            <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value" MaxWidth="140" HorizontalContentAlignment="Center" Placeholder="Point"
+                                                 PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                 ItemsSource="{StaticResource Samplers}"
+                                                 SelectedValue="{Binding EncodingSampler, Mode=TwoWay}"/>
+                        </DockPanel>
+                    </Grid>
+                    <DataGrid AutoGenerateColumns="False" Margin="4" md:DataGridAssist.CellPadding="4,2" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False"
+                              CanUserResizeRows="False" CanUserResizeColumns="True" CanUserSortColumns="False"
+                              ItemsSource="{Binding EncodingChannels, Mode=OneTime}">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
+                                <Setter Property="Background" Value="{DynamicResource MaterialDesignCardBackground}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.Resources>
+                            <Style TargetType="controls:ComboBoxEx" BasedOn="{StaticResource MaterialDesignComboBox}">
+                                <Setter Property="IsTabStop" Value="False"/>
+                                <Setter Property="Foreground" Value="{DynamicResource SecondaryHueMidBrush}"/>
+                                <Setter Property="PlaceholderForeground" Value="{DynamicResource SecondaryHueDarkBrush}"/>
+                            </Style>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource MaterialDesignDataGridRow}">
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource MaterialDesignDataGridRowHoverBackground}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="Transparent" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Channel" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Width="16" Height="16" Margin="2" Padding="0" ToolTip="Clear Values" Click="OnTextureResetButtonClick">
+                                                <md:PackIcon Kind="Eraser" Width="12"/>
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatAccentButton}">
+                                                        <Setter Property="Foreground" Value="{DynamicResource MaterialDesignToolForeground}"/>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Foreground" Value="{DynamicResource SecondaryHueMidBrush}"/>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                            <TextBlock Margin="2" VerticalAlignment="Center"
+                                                       Text="{Binding Path=Label, Mode=OneTime}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Texture">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value"
+                                                             ItemsSource="{StaticResource TextureTags}"
+                                                             Placeholder="{Binding TextureDefault, Mode=OneWay, Converter={StaticResource TextureLabelConverter}}"
+                                                             SelectedValue="{Binding Texture, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Color">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value"
+                                                             ItemsSource="{StaticResource ColorChannels}"
+                                                             Placeholder="{Binding ColorDefault, Mode=OneWay}"
+                                                             SelectedValue="{Binding Color, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Sampler">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value"
+                                                             ItemsSource="{StaticResource Samplers}"
+                                                             Placeholder="{Binding SamplerDefault, Mode=OneWay, Converter={StaticResource SamplerLabelConverter}}"
+                                                             SelectedValue="{Binding Sampler, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Min">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:TextBoxEx HorizontalContentAlignment="Center"
+                                                            Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                            PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                                            Placeholder="{Binding MinDefault, Mode=OneWay}"
+                                                            Text="{Binding MinValue, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Max">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:TextBoxEx HorizontalContentAlignment="Center"
+                                                            Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                            PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                                            Placeholder="{Binding MaxDefault, Mode=OneWay}"
+                                                            Text="{Binding MaxValue, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Shift">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:TextBoxEx HorizontalContentAlignment="Center"
+                                                            Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                            PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                                            Placeholder="{Binding ShiftDefault, Mode=OneWay}"
+                                                            Text="{Binding Shift, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Power">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:TextBoxEx HorizontalContentAlignment="Center"
+                                                            Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                            PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                                            Placeholder="{Binding PowerDefault, Mode=OneWay}"
+                                                            Text="{Binding Power, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Invert">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:CheckBoxEx HorizontalAlignment="Center"
+                                                  Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                  Placeholder="{Binding InvertDefault, Mode=OneWay}"
+                                                  IsChecked="{Binding Invert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
     </Grid>
 </mde:MaterialWindow>

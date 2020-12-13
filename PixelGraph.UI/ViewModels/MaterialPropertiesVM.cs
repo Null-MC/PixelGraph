@@ -15,6 +15,7 @@ namespace PixelGraph.UI.ViewModels
 
         public bool HasMaterial => _material != null;
         public bool IsGeneralSelected => _selectedTag == null;
+        public bool IsAlphaSelected => TextureTags.Is(_selectedTag, TextureTags.Alpha);
         public bool IsAlbedoSelected => TextureTags.Is(_selectedTag, TextureTags.Albedo);
         public bool IsDiffuseSelected => TextureTags.Is(_selectedTag, TextureTags.Diffuse);
         public bool IsHeightSelected => TextureTags.Is(_selectedTag, TextureTags.Height);
@@ -50,6 +51,7 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged(nameof(HasMaterial));
 
                 UpdateGeneralProperties();
+                UpdateAlphaProperties();
                 UpdateAlbedoProperties();
                 UpdateDiffuseProperties();
                 UpdateHeightProperties();
@@ -72,6 +74,7 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged();
 
                 OnPropertyChanged(nameof(IsGeneralSelected));
+                OnPropertyChanged(nameof(IsAlphaSelected));
                 OnPropertyChanged(nameof(IsAlbedoSelected));
                 OnPropertyChanged(nameof(IsDiffuseSelected));
                 OnPropertyChanged(nameof(IsHeightSelected));
@@ -115,109 +118,43 @@ namespace PixelGraph.UI.ViewModels
 
         #endregion
 
-        #region Albedo
+        #region Alpha
 
-        public string AlbedoTexture {
-            get => _material?.Albedo?.Texture;
+        public string AlphaTexture {
+            get => _material?.Alpha?.Texture;
             set {
-                _material.Albedo ??= new MaterialAlbedoProperties();
-                _material.Albedo.Texture = value;
+                _material.Alpha ??= new MaterialAlphaProperties();
+                _material.Alpha.Texture = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
         }
 
-        public byte? AlbedoValueRed {
-            get => _material?.Albedo?.ValueRed;
+        public byte? AlphaValue {
+            get => _material?.Alpha?.Value;
             set {
-                _material.Albedo ??= new MaterialAlbedoProperties();
-                _material.Albedo.ValueRed = value;
+                _material.Alpha ??= new MaterialAlphaProperties();
+                _material.Alpha.Value = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
         }
 
-        public decimal? AlbedoScaleRed {
-            get => _material?.Albedo?.ScaleRed;
+        public decimal? AlphaScale {
+            get => _material?.Alpha?.Scale;
             set {
-                _material.Albedo ??= new MaterialAlbedoProperties();
-                _material.Albedo.ScaleRed = value;
+                _material.Alpha ??= new MaterialAlphaProperties();
+                _material.Alpha.Scale = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
         }
 
-        public byte? AlbedoValueGreen {
-            get => _material?.Albedo?.ValueGreen;
-            set {
-                _material.Albedo ??= new MaterialAlbedoProperties();
-                _material.Albedo.ValueGreen = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public decimal? AlbedoScaleGreen {
-            get => _material?.Albedo?.ScaleGreen;
-            set {
-                _material.Albedo ??= new MaterialAlbedoProperties();
-                _material.Albedo.ScaleGreen = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public byte? AlbedoValueBlue {
-            get => _material?.Albedo?.ValueBlue;
-            set {
-                _material.Albedo ??= new MaterialAlbedoProperties();
-                _material.Albedo.ValueBlue = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public decimal? AlbedoScaleBlue {
-            get => _material?.Albedo?.ScaleBlue;
-            set {
-                _material.Albedo ??= new MaterialAlbedoProperties();
-                _material.Albedo.ScaleBlue = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public byte? AlbedoValueAlpha {
-            get => _material?.Albedo?.ValueAlpha;
-            set {
-                _material.Albedo ??= new MaterialAlbedoProperties();
-                _material.Albedo.ValueAlpha = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public decimal? AlbedoScaleAlpha {
-            get => _material?.Albedo?.ScaleAlpha;
-            set {
-                _material.Albedo ??= new MaterialAlbedoProperties();
-                _material.Albedo.ScaleAlpha = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        private void UpdateAlbedoProperties()
+        private void UpdateAlphaProperties()
         {
-            OnPropertyChanged(nameof(AlbedoTexture));
-            OnPropertyChanged(nameof(AlbedoValueRed));
-            OnPropertyChanged(nameof(AlbedoValueGreen));
-            OnPropertyChanged(nameof(AlbedoValueBlue));
-            OnPropertyChanged(nameof(AlbedoValueAlpha));
-            OnPropertyChanged(nameof(AlbedoScaleRed));
-            OnPropertyChanged(nameof(AlbedoScaleGreen));
-            OnPropertyChanged(nameof(AlbedoScaleBlue));
-            OnPropertyChanged(nameof(AlbedoScaleAlpha));
+            OnPropertyChanged(nameof(AlphaTexture));
+            OnPropertyChanged(nameof(AlphaValue));
+            OnPropertyChanged(nameof(AlphaScale));
         }
 
         #endregion
@@ -234,7 +171,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? DiffuseValueRed {
+        public byte? DiffuseRedValue {
             get => _material?.Diffuse?.ValueRed;
             set {
                 _material.Diffuse ??= new MaterialDiffuseProperties();
@@ -244,7 +181,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public decimal? DiffuseScaleRed {
+        public decimal? DiffuseRedScale {
             get => _material?.Diffuse?.ScaleRed;
             set {
                 _material.Diffuse ??= new MaterialDiffuseProperties();
@@ -254,7 +191,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? DiffuseValueGreen {
+        public byte? DiffuseGreenValue {
             get => _material?.Diffuse?.ValueGreen;
             set {
                 _material.Diffuse ??= new MaterialDiffuseProperties();
@@ -264,7 +201,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public decimal? DiffuseScaleGreen {
+        public decimal? DiffuseGreenScale {
             get => _material?.Diffuse?.ScaleGreen;
             set {
                 _material.Diffuse ??= new MaterialDiffuseProperties();
@@ -274,7 +211,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? DiffuseValueBlue {
+        public byte? DiffuseBlueValue {
             get => _material?.Diffuse?.ValueBlue;
             set {
                 _material.Diffuse ??= new MaterialDiffuseProperties();
@@ -284,7 +221,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public decimal? DiffuseScaleBlue {
+        public decimal? DiffuseBlueScale {
             get => _material?.Diffuse?.ScaleBlue;
             set {
                 _material.Diffuse ??= new MaterialDiffuseProperties();
@@ -294,37 +231,100 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? DiffuseValueAlpha {
-            get => _material?.Diffuse?.ValueAlpha;
-            set {
-                _material.Diffuse ??= new MaterialDiffuseProperties();
-                _material.Diffuse.ValueAlpha = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public decimal? DiffuseScaleAlpha {
-            get => _material?.Diffuse?.ScaleAlpha;
-            set {
-                _material.Diffuse ??= new MaterialDiffuseProperties();
-                _material.Diffuse.ScaleAlpha = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
         private void UpdateDiffuseProperties()
         {
             OnPropertyChanged(nameof(DiffuseTexture));
-            OnPropertyChanged(nameof(DiffuseValueRed));
-            OnPropertyChanged(nameof(DiffuseValueGreen));
-            OnPropertyChanged(nameof(DiffuseValueBlue));
-            OnPropertyChanged(nameof(DiffuseValueAlpha));
-            OnPropertyChanged(nameof(DiffuseScaleRed));
-            OnPropertyChanged(nameof(DiffuseScaleGreen));
-            OnPropertyChanged(nameof(DiffuseScaleBlue));
-            OnPropertyChanged(nameof(DiffuseScaleAlpha));
+            OnPropertyChanged(nameof(DiffuseRedValue));
+            OnPropertyChanged(nameof(DiffuseGreenValue));
+            OnPropertyChanged(nameof(DiffuseBlueValue));
+            OnPropertyChanged(nameof(DiffuseRedScale));
+            OnPropertyChanged(nameof(DiffuseGreenScale));
+            OnPropertyChanged(nameof(DiffuseBlueScale));
+        }
+
+        #endregion
+
+        #region Albedo
+
+        public string AlbedoTexture {
+            get => _material?.Albedo?.Texture;
+            set {
+                _material.Albedo ??= new MaterialAlbedoProperties();
+                _material.Albedo.Texture = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public byte? AlbedoRedValue {
+            get => _material?.Albedo?.ValueRed;
+            set {
+                _material.Albedo ??= new MaterialAlbedoProperties();
+                _material.Albedo.ValueRed = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? AlbedoRedScale {
+            get => _material?.Albedo?.ScaleRed;
+            set {
+                _material.Albedo ??= new MaterialAlbedoProperties();
+                _material.Albedo.ScaleRed = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public byte? AlbedoGreenValue {
+            get => _material?.Albedo?.ValueGreen;
+            set {
+                _material.Albedo ??= new MaterialAlbedoProperties();
+                _material.Albedo.ValueGreen = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? AlbedoGreenScale {
+            get => _material?.Albedo?.ScaleGreen;
+            set {
+                _material.Albedo ??= new MaterialAlbedoProperties();
+                _material.Albedo.ScaleGreen = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public byte? AlbedoBlueValue {
+            get => _material?.Albedo?.ValueBlue;
+            set {
+                _material.Albedo ??= new MaterialAlbedoProperties();
+                _material.Albedo.ValueBlue = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? AlbedoBlueScale {
+            get => _material?.Albedo?.ScaleBlue;
+            set {
+                _material.Albedo ??= new MaterialAlbedoProperties();
+                _material.Albedo.ScaleBlue = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        private void UpdateAlbedoProperties()
+        {
+            OnPropertyChanged(nameof(AlbedoTexture));
+            OnPropertyChanged(nameof(AlbedoRedValue));
+            OnPropertyChanged(nameof(AlbedoGreenValue));
+            OnPropertyChanged(nameof(AlbedoBlueValue));
+            OnPropertyChanged(nameof(AlbedoRedScale));
+            OnPropertyChanged(nameof(AlbedoGreenScale));
+            OnPropertyChanged(nameof(AlbedoBlueScale));
         }
 
         #endregion

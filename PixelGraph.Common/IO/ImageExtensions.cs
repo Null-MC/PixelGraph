@@ -8,18 +8,19 @@ namespace PixelGraph.Common.IO
         public const string Default = "png";
 
         public static readonly string[] Supported = {
-            ".bmp",
-            ".png",
-            ".tga",
-            ".gif",
-            ".jpg",
-            ".jpeg",
+            "bmp",
+            "png",
+            "tga",
+            "gif",
+            "jpg",
+            "jpeg",
         };
 
 
         public static bool Supports(string extension)
         {
-            return Supported.Contains(extension, StringComparer.InvariantCultureIgnoreCase);
+            var e = extension.TrimStart('.');
+            return Supported.Contains(e, StringComparer.InvariantCultureIgnoreCase);
         }
     }
 }

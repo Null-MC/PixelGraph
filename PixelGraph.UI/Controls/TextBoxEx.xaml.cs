@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Media;
 
 namespace PixelGraph.UI.Controls
 {
@@ -9,6 +10,11 @@ namespace PixelGraph.UI.Controls
             set => SetValue(PlaceholderProperty, value);
         }
 
+        public Brush PlaceholderForeground {
+            get => (Brush)GetValue(PlaceholderForegroundProperty);
+            set => SetValue(PlaceholderForegroundProperty, value);
+        }
+
 
         public TextBoxEx()
         {
@@ -17,5 +23,8 @@ namespace PixelGraph.UI.Controls
 
         public static readonly DependencyProperty PlaceholderProperty =
             DependencyProperty.Register("Placeholder", typeof(object), typeof(TextBoxEx));
+
+        public static readonly DependencyProperty PlaceholderForegroundProperty =
+            DependencyProperty.Register("PlaceholderForeground", typeof(Brush), typeof(TextBoxEx));
     }
 }

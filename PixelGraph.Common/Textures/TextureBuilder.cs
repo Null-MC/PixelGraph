@@ -1,7 +1,9 @@
 ﻿using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.ResourcePack;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -21,6 +23,7 @@ namespace PixelGraph.Common.Textures
         ResourcePackChannelProperties[] InputChannels {get; set;}
         ResourcePackChannelProperties[] OutputChannels {get; set;}
         Image<Rgba32> ImageResult {get;}
+        bool CreateEmpty {get; set;}
 
         Task BuildAsync(CancellationToken token = default);
     }
@@ -28,29 +31,39 @@ namespace PixelGraph.Common.Textures
     internal class TextureBuilder : ITextureBuilder
     {
         private readonly IInputReader reader;
+        private Rgba32 defaultValues;
 
         public ITextureGraph Graph {get; set;}
         public MaterialProperties Material {get; set;}
         public ResourcePackChannelProperties[] InputChannels {get; set;}
         public ResourcePackChannelProperties[] OutputChannels {get; set;}
         public Image<Rgba32> ImageResult {get; private set;}
+        public bool CreateEmpty {get; set;}
 
 
         public TextureBuilder(IInputReader reader)
         {
             this.reader = reader;
+
+            defaultValues = new Rgba32();
+            CreateEmpty = true;
         }
 
         public async Task BuildAsync(CancellationToken token = default)
         {
-            foreach (var channel in OutputChannels) {
-                if (!TryBuildMapping(channel, out var mapping)) {
-                    // TODO: log
-                    continue;
-                }
+            var mappings = new List<TextureChannelMapping>();
 
-                await ApplyMappingAsync(mapping, token);
+            foreach (var channel in OutputChannels) {
+                if (TryBuildMapping(channel, out var mapping))
+                    mappings.Add(mapping);
             }
+
+            if (!CreateEmpty && mappings.Count == 0) return;
+
+            foreach (var mapping in mappings)
+                await ApplyMappingAsync(mapping, token);
+
+            ImageResult ??= new Image<Rgba32>(1, 1, defaultValues);
         }
 
         public void Dispose()
@@ -73,7 +86,7 @@ namespace PixelGraph.Common.Textures
 
             var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
             var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
-            var isOutputOcclusion = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Occlusion);
+            //var isOutputOcclusion = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Occlusion);
 
             if (TryGetChannelValue(outputChannel.ID, out var value)) {
                 mapping.InputValue = value;
@@ -94,13 +107,30 @@ namespace PixelGraph.Common.Textures
                     mapping.ApplyInputChannel(inputChannel);
                     return true;
                 }
+
+                if (TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
+                    mapping.SourceTag = TextureTags.OcclusionGenerated;
+                    //mapping.ApplyInputChannel(inputChannel);
+                    mapping.InputColor = ColorChannel.Red;
+                    mapping.InputMin = 0;
+                    mapping.InputMax = 255;
+                    mapping.InputShift = 0;
+                    mapping.InputPower = 1f;
+                    mapping.InvertInput = true; //(inputChannel.Invert ?? false);
+                    //InputMin = channel.MinValue ?? 0;
+                    //InputMax = channel.MaxValue ?? 255;
+                    //InputShift = channel.Shift ?? 0;
+                    //InputPower = (float?)channel.Power ?? 1f;
+                    //InvertInput = channel.Invert ?? false;
+                    return true;
+                }
             }
 
-            if (isOutputOcclusion) {
-                mapping.SourceTag = TextureTags.OcclusionGenerated;
-                mapping.InputColor = ColorChannel.Red;
-                return true;
-            }
+            //if (isOutputOcclusion) {
+            //    mapping.SourceTag = TextureTags.OcclusionGenerated;
+            //    mapping.InputColor = ColorChannel.Red;
+            //    return true;
+            //}
 
             // Rough > Smooth
             if (isOutputSmooth && TryGetInputChannel(EncodingChannel.Rough, out var roughChannel)
@@ -117,6 +147,16 @@ namespace PixelGraph.Common.Textures
                     mapping.InvertInput = true;
                     return true;
                 }
+            }
+
+            //return false;
+            if (CreateEmpty) {
+                // WARN: TESTING! fallback to allow default value
+                mapping.InputValue = outputChannel.MinValue ?? 0;
+                //var color = outputChannel.Color ?? ColorChannel.None;
+                //var defaultValue = outputChannel.MinValue ?? 0;
+                //defaultValues.SetChannelValue(color, defaultValue);
+                return true;
             }
 
             return false;
@@ -172,12 +212,26 @@ namespace PixelGraph.Common.Textures
                 }
 
                 if (ImageResult == null) {
-                    int width = 1, height = 1;
+                    if (sourceImage == null) {
+                        var value = mapping.InputValue ?? 0;
+                        if (MathF.Abs(options.OutputPower - 1f) > float.Epsilon) {
+                            var x = MathF.Pow(value / 255f, options.OutputPower);
+                            MathEx.Saturate(in x, out value);
+                        }
 
-                    if (sourceImage != null)
+                        if (options.InvertOutput) value = (byte)(255 - value);
+
+                        MathEx.Cycle(ref value, options.OutputShift);
+
+                        defaultValues.SetChannelValue(mapping.OutputColor, value);
+                        return;
+                    }
+                    else {
+                        int width, height;
                         (width, height) = sourceImage.Size();
 
-                    ImageResult = new Image<Rgba32>(width, height);
+                        ImageResult = new Image<Rgba32>(width, height, defaultValues);
+                    }
                 }
 
                 if (options.InputValue.HasValue || options.Source != null) {
@@ -233,7 +287,7 @@ namespace PixelGraph.Common.Textures
             [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ValueRed,
             [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ValueGreen,
             [EncodingChannel.DiffuseBlue] = mat => mat.Diffuse?.ValueBlue,
-            [EncodingChannel.Alpha] = mat => mat.Albedo?.ValueAlpha ?? mat.Diffuse?.ValueAlpha,
+            [EncodingChannel.Alpha] = mat => mat.Alpha?.Value,
             [EncodingChannel.Height] = mat => mat.Height?.Value,
             [EncodingChannel.NormalX] = mat => mat.Normal?.ValueX,
             [EncodingChannel.NormalY] = mat => mat.Normal?.ValueY,
@@ -254,7 +308,7 @@ namespace PixelGraph.Common.Textures
             [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ScaleRed ?? 1m,
             [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ScaleGreen ?? 1m,
             [EncodingChannel.DiffuseBlue] = mat => mat.Diffuse?.ScaleBlue ?? 1m,
-            [EncodingChannel.Alpha] = mat => mat.Albedo?.ScaleAlpha ?? mat.Diffuse?.ScaleAlpha ?? 1m,
+            [EncodingChannel.Alpha] = mat => mat.Alpha?.Scale ?? 1m,
             [EncodingChannel.Height] = mat => mat.Height?.Scale ?? 1m,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Scale ?? 1m,
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Scale ?? 1m,

@@ -8,13 +8,9 @@ namespace PixelGraph.UI.Controls
 {
     public partial class MaterialPropertiesControl
     {
-        //private MaterialVM _materialVM;
-        //internal MaterialVM vm;
-
         public event EventHandler DataChanged;
         public event EventHandler GenerateNormal;
         public event EventHandler GenerateOcclusion;
-        //public event PropertyChangedEventHandler PropertyChanged;
 
         public MaterialProperties Material {
             get => (MaterialProperties)GetValue(MaterialProperty);
@@ -25,39 +21,6 @@ namespace PixelGraph.UI.Controls
             get => (string)GetValue(SelectedTagProperty);
             set => SetValue(SelectedTagProperty, value);
         }
-
-        //public ResourcePackInputProperties PackInput {
-        //    get => (ResourcePackInputProperties)GetValue(PackInputProperty);
-        //    set => SetValue(PackInputProperty, value);
-        //}
-
-        //public string Selected {
-        //    get => (string)GetValue(SelectedProperty);
-        //    set {
-        //        SetValue(SelectedProperty, value);
-        //        UpdateDefaults();
-        //    }
-        //}
-
-        //public bool HasTexture => Material != null;
-        //public bool IsGeneralSelected => Selected == null;
-        //public bool IsAlbedoSelected => TextureTags.Is(Selected, TextureTags.Albedo);
-        //public bool IsHeightSelected => TextureTags.Is(Selected, TextureTags.Height);
-        //public bool IsNormalSelected => TextureTags.Is(Selected, TextureTags.Normal);
-        //public bool IsOcclusionSelected => TextureTags.Is(Selected, TextureTags.Occlusion);
-        //public bool IsSpecularSelected => TextureTags.Is(Selected, TextureTags.Specular);
-        //public bool IsSmoothSelected => TextureTags.Is(Selected, TextureTags.Smooth);
-        //public bool IsRoughSelected => TextureTags.Is(Selected, TextureTags.Rough);
-        //public bool IsMetalSelected => TextureTags.Is(Selected, TextureTags.Metal);
-        //public bool IsPorositySelected => TextureTags.Is(Selected, TextureTags.Porosity);
-        //public bool IsSssSelected => TextureTags.Is(Selected, TextureTags.SubSurfaceScattering);
-        //public bool IsEmissiveSelected => TextureTags.Is(Selected, TextureTags.Emissive);
-
-        //public string DefaultInputFormat => PackInput?.Format ?? MaterialProperties.DefaultInputFormat;
-        //public string DefaultOcclusionQuality => MaterialOcclusionProperties.DefaultQuality.ToString("N3");
-        //public string DefaultOcclusionSteps => MaterialOcclusionProperties.DefaultSteps.ToString();
-        //public string DefaultOcclusionZBias => MaterialOcclusionProperties.DefaultZBias.ToString("N3");
-        //public string DefaultOcclusionZScale => MaterialOcclusionProperties.DefaultZScale.ToString("N3");
 
 
         public MaterialPropertiesControl()
@@ -112,6 +75,7 @@ namespace PixelGraph.UI.Controls
         public TextureItemList()
         {
             Add(new MaterialPropertiesControl.TextureItem {Name = "General"});
+            Add(new MaterialPropertiesControl.TextureItem {Name = "Alpha", Key = TextureTags.Alpha});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Albedo", Key = TextureTags.Albedo});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Diffuse", Key = TextureTags.Diffuse});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Height", Key = TextureTags.Height});
