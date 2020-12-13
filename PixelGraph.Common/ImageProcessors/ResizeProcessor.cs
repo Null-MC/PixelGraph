@@ -1,7 +1,5 @@
 ﻿using PixelGraph.Common.PixelOperations;
-using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Textures;
-using SixLabors.ImageSharp;
+using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace PixelGraph.Common.ImageProcessors
@@ -18,41 +16,17 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
         {
-            var fx = context.X / (float)context.Width * options.Source.Width;
-            var fy = context.Y / (float)context.Height * options.Source.Height;
+            var fx = context.X / (float)context.Width * options.SourceWidth;
+            var fy = context.Y / (float)context.Height * options.SourceHeight;
 
-            foreach (var channel in options.Channels) {
-                var color = channel.Color ?? ColorChannel.None;
-                if (color == ColorChannel.None) continue;
-
-                Sample(fx, fy, color, out var value);
-
-                var channelMin = channel.MinValue ?? 0;
-                var channelMax = channel.MaxValue ?? 255;
-
-                if (value > channelMin && value <= channelMax)
-                    pixelOut.SetChannelValue(in color, in value);
-            }
-        }
-
-        private void Sample(in float fx, in float fy, in ColorChannel color, out byte value)
-        {
-            // TODO: Add more than just nearest filtering
-
-            // force nearest
-            var px = (int) (fx + 0.5f);
-            var py = (int) (fy + 0.5f);
-            var pixel = options.Source[px, py];
-
-            pixel.GetChannelValue(in color, out value);
+            options.Sampler.Sample(fx, fy, out pixelOut);
         }
 
         public class Options
         {
-            public Image<Rgba32> Source {get; set;}
-            public int TargetWidth {get; set;}
-            public int TargetHeight {get; set;}
-            public ResourcePackChannelProperties[] Channels {get; set;}
+            public ISampler Sampler {get; set;}
+            public int SourceWidth;
+            public int SourceHeight;
         }
     }
 }

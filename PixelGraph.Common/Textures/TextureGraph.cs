@@ -6,6 +6,7 @@ using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -93,6 +94,7 @@ namespace PixelGraph.Common.Textures
             builder.Graph = this;
             builder.Material = Context.Material;
             builder.InputChannels = InputEncoding.ToArray();
+
             builder.OutputChannels = OutputEncoding.Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
 
             await builder.BuildAsync(token);
@@ -121,7 +123,7 @@ namespace PixelGraph.Common.Textures
                         using var regionImage = GetImageRegion(builder.ImageResult, region.GetRectangle());
 
                         // TODO: move resize before regions; then scale regions to match
-                        using var resizedRegionImage = Resize(regionImage);
+                        using var resizedRegionImage = Resize(regionImage, textureTag);
 
                         await imageWriter.WriteAsync(resizedRegionImage ?? regionImage, destFile, imageFormat, token);
                     }
@@ -133,7 +135,7 @@ namespace PixelGraph.Common.Textures
                 var name = naming.GetOutputTextureName(Context.Profile, Context.Material.Name, textureTag, UseGlobalOutput);
                 var destFile = PathEx.Join(p, name);
 
-                using var resizedImage = Resize(builder.ImageResult);
+                using var resizedImage = Resize(builder.ImageResult, textureTag);
 
                 await imageWriter.WriteAsync(resizedImage ?? builder.ImageResult, destFile, imageFormat, token);
 
@@ -143,27 +145,42 @@ namespace PixelGraph.Common.Textures
             //await CopyMetaAsync(graph.Context, tag, token);
         }
 
-        private Image<Rgba32> Resize(Image<Rgba32> image)
+        private Image<Rgba32> Resize(Image<Rgba32> image, string tag)
         {
             if (image == null) throw new ArgumentNullException(nameof(image));
 
             if (!(Context.Material?.ResizeEnabled ?? true)) return null;
             if (!Context.Profile.TextureSize.HasValue && !Context.Profile.TextureScale.HasValue) return null;
 
-            var options = new ResizeProcessor.Options {
-                Source = image,
-                TargetWidth = Context.Profile.TextureSize ?? 0,
-                Channels = OutputEncoding.ToArray(),
-            };
-
             var (width, height) = image.Size();
 
-            //var encoding = context.Profile.Output.GetFinalTextureEncoding(tag);
-            //var samplerName = encoding.Sampler;
+            var options = new ChannelResizeProcessor.Options {
+                SourceWidth = width,
+                SourceHeight = height,
+            };
 
-            //var resampler = KnownResamplers.Bicubic;
-            //if (samplerName != null && Samplers.TryParse(samplerName, out var _resampler))
-            //    resampler = _resampler;
+            var textureEncodings = OutputEncoding
+                .Where(e => TextureTags.Is(e.Texture, tag));
+
+            foreach (var encoding in textureEncodings) {
+                var color = encoding.Color ?? ColorChannel.None;
+                if (color == ColorChannel.None) continue;
+
+                var samplerName = encoding.Sampler ?? Context.Profile.Output?.Sampler;
+                var sampler = Sampler.Create(samplerName) ?? new NearestSampler();
+
+                sampler.Image = image;
+                sampler.Wrap = Context.Material?.Wrap ?? true;
+
+                var channel = new ChannelResizeProcessor.ChannelOptions {
+                    Color = color,
+                    MinValue = encoding.MinValue,
+                    MaxValue = encoding.MaxValue,
+                    Sampler = sampler,
+                };
+
+                options.Channels.Add(channel);
+            }
 
             if (Context.Profile.TextureSize.HasValue) {
                 if (width == Context.Profile.TextureSize) return null;
@@ -177,7 +194,7 @@ namespace PixelGraph.Common.Textures
                 options.TargetHeight = (int)Math.Max(height * Context.Profile.TextureScale.Value, 1f);
             }
 
-            var processor = new ResizeProcessor(options);
+            var processor = new ChannelResizeProcessor(options);
             var resizedImage = new Image<Rgba32>(Configuration.Default, options.TargetWidth, options.TargetHeight);
 
             try {
@@ -235,7 +252,7 @@ namespace PixelGraph.Common.Textures
 
         private async Task<bool> TryBuildNormalMapAsync(CancellationToken token)
         {
-            // TODO: Try to compose from existing channels first
+            // Try to compose from existing channels first
             var normalXChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
             var normalYChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
             var normalZChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalZ));
@@ -244,7 +261,7 @@ namespace PixelGraph.Common.Textures
             var hasNormalY = normalYChannel?.HasMapping ?? false;
 
             if (hasNormalX && hasNormalY) {
-                // TODO: make image from normal X & Y; z if found
+                // make image from normal X & Y; z if found
                 using var builder = provider.GetRequiredService<ITextureBuilder>();
 
                 builder.Graph = this;
@@ -369,7 +386,11 @@ namespace PixelGraph.Common.Textures
                 if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
                 var options = new OcclusionProcessor.Options {
-                    HeightSource = heightTexture,
+                    Sampler = new BilinearSampler {
+                        Image = heightTexture,
+                        Wrap = Context.Material?.Wrap ?? MaterialProperties.DefaultWrap,
+                    },
+                    //HeightSource = heightTexture,
                     HeightChannel = heightChannel.Color.Value,
                     HeightMin = heightChannel.MinValue ?? 0,
                     HeightMax = heightChannel.MaxValue ?? 255,

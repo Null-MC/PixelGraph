@@ -1,7 +1,7 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.PixelOperations;
+using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
@@ -25,11 +25,12 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
         {
-            var sourceRow = options.HeightSource.GetPixelRowSpan(context.Y);
+            //var sourceRow = options.Sampler.Image.GetPixelRowSpan(context.Y);
 
-            var pixelIn = new Rgba32();
-            sourceRow[context.X].ToRgba32(ref pixelIn);
-            pixelIn.GetNormalizedChannelValue(in options.HeightChannel, out var height);
+            //var pixelIn = new Rgba32();
+            //sourceRow[context.X].ToRgba32(ref pixelIn);
+            //pixelIn.GetChannelValueScaled(in options.HeightChannel, out var height);
+            options.Sampler.SampleScaled(context.X, context.Y, in options.HeightChannel, out var height);
 
             // TODO: range, shift, power
             //if (height < options.HeightMin || height > options.HeightMax) return;
@@ -38,7 +39,8 @@ namespace PixelGraph.Common.ImageProcessors
             var z = height * options.ZScale + options.ZBias;
 
             var hitCount = 0;
-            var position = new Vector3(context.X, context.Y, z);
+            var position = new Vector3();
+
             var rayCount = rayList.Value.Length;
             for (var i = 0; i < rayCount; i++) {
                 position.X = context.X;
@@ -96,9 +98,11 @@ namespace PixelGraph.Common.ImageProcessors
 
                 if (position.Z > options.ZScale) return false;
 
-                float height;
-                if (options.UseLinearSampling) SampleHeightLinear(in position.X, in position.Y, in context, out height);
-                else SampleHeightPoint(in position.X, in position.Y, in context, out height);
+                options.Sampler.SampleScaled(in position.X, in position.Y, options.HeightChannel, out var height);
+
+                // TODO: range, shift, power
+                //if (height < options.HeightMin || height > options.HeightMax) return;
+                if (!options.HeightInvert) height = 1f - height;
 
                 if (position.Z < height * options.ZScale) return true;
             }
@@ -106,67 +110,11 @@ namespace PixelGraph.Common.ImageProcessors
             return false;
         }
 
-        private void SampleHeightPoint(in float x, in float y, in PixelContext context, out float height)
-        {
-            var px = (int) (x + 0.5f);
-            var py = (int) (y + 0.5f);
-
-            if (options.Wrap) context.Wrap(ref px, ref py);
-            else context.Clamp(ref px, ref py);
-
-            var row = options.HeightSource.GetPixelRowSpan(py);
-
-            var pixel = new Rgba32();
-            row[px].ToRgba32(ref pixel);
-            pixel.GetNormalizedChannelValue(in options.HeightChannel, out height);
-        }
-
-        private void SampleHeightLinear(in float x, in float y, in PixelContext context, out float height)
-        {
-            var pxMin = (int)x;
-            var pxMax = pxMin + 1;
-            var pyMin = (int)y;
-            var pyMax = pyMin + 1;
-
-            var fx = x - pxMin;
-            var fy = y - pyMin;
-
-            if (options.Wrap) {
-                context.Wrap(ref pxMin, ref pyMin);
-                context.Wrap(ref pxMax, ref pyMax);
-            }
-            else {
-                context.Clamp(ref pxMin, ref pyMin);
-                context.Clamp(ref pxMax, ref pyMax);
-            }
-
-            var rowMin = options.HeightSource.GetPixelRowSpan(pyMin);
-            var rowMax = options.HeightSource.GetPixelRowSpan(pyMax);
-
-            var pixelMatrix = new Rgba32[4];
-            rowMin[pxMin].ToRgba32(ref pixelMatrix[0]);
-            rowMin[pxMax].ToRgba32(ref pixelMatrix[1]);
-            rowMax[pxMin].ToRgba32(ref pixelMatrix[2]);
-            rowMax[pxMax].ToRgba32(ref pixelMatrix[3]);
-
-            var heightMatrix = new float[4];
-            pixelMatrix[0].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[0]);
-            pixelMatrix[1].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[1]);
-            pixelMatrix[2].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[2]);
-            pixelMatrix[3].GetNormalizedChannelValue(in options.HeightChannel, out heightMatrix[3]);
-
-            MathEx.Lerp(in heightMatrix[0], in heightMatrix[1], in fx, out var zMin);
-            MathEx.Lerp(in heightMatrix[2], in heightMatrix[3], in fx, out var zMax);
-            MathEx.Lerp(in zMin, in zMax, in fy, out height);
-        }
-
         public class Options
         {
-            public Image<Rgba32> HeightSource;
-            //public Image<Rgba32> EmissiveSource;
-            //public ColorChannel EmissiveChannel;
+            //public Image<Rgba32> HeightSource;
             public ColorChannel HeightChannel;
-            public bool UseLinearSampling;
+            public ISampler Sampler;
             public byte HeightMin;
             public byte HeightMax;
             public short HeightShift;

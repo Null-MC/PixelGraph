@@ -1,18 +1,16 @@
 ﻿using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO;
-using PixelGraph.Common.Material;
-using PixelGraph.Common.Textures;
+using PixelGraph.Common.ImageProcessors;
+using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.ResourcePack;
 
-namespace PixelGraph.Common.Publishing
+namespace PixelGraph.Common.IO.Publishing
 {
     internal class GenericTexturePublisher
     {
@@ -40,7 +38,6 @@ namespace PixelGraph.Common.Publishing
             var destinationFile = path == null ? newName : PathEx.Join(path, newName);
 
             await PublishAsync(filename, null, destinationFile, context => {
-                Resize(context, null);
             }, token);
         }
 
@@ -50,47 +47,60 @@ namespace PixelGraph.Common.Publishing
                 throw new ArgumentException("Value cannot be null or empty!", nameof(destinationFile));
 
             using var sourceImage = await LoadSourceImageAsync(sourceFile, sourceColor, token);
-            using var targetImage = new Image<Rgba32>(Configuration.Default, sourceImage.Width, sourceImage.Height);
-
-            var brush = new ImageBrush(sourceImage);
-            targetImage.Mutate(c => c.Clear(brush));
-            targetImage.Mutate(processAction);
-
-            Writer.Prepare();
+            using var resizedImage = Resize(sourceImage);
 
             await using var stream = Writer.Open(destinationFile);
-            await targetImage.SaveAsPngAsync(stream, token);
+            await resizedImage.SaveAsPngAsync(stream, token);
         }
 
-        protected void Resize(IImageProcessingContext context, MaterialProperties material)
+        protected Image Resize(Image<Rgba32> source)
         {
-            if (!(material?.ResizeEnabled ?? true)) return;
-            if (!Pack.TextureSize.HasValue && !Pack.TextureScale.HasValue) return;
+            if (!Pack.TextureSize.HasValue && !Pack.TextureScale.HasValue) return null;
 
-            var (width, height) = context.GetCurrentSize();
+            var (width, height) = source.Size();
+            var packSampler = Sampler.Create(Pack.Output.Sampler) ?? new NearestSampler();
+            packSampler.Image = source;
+            packSampler.Wrap = false;
 
-            var resampler = KnownResamplers.Bicubic;
-            if (Pack.Output.Sampler != null && Samplers.TryParse(Pack.Output.Sampler, out var _resampler))
-                resampler = _resampler;
+            var options = new ResizeProcessor.Options {
+                SourceWidth = width,
+                SourceHeight = height,
+                Sampler = packSampler,
+            };
 
+            int targetWidth, targetHeight;
             if (Pack.TextureSize.HasValue) {
-                if (width == Pack.TextureSize) return;
+                // Preserve aspect
+                if (options.SourceWidth == Pack.TextureSize.Value) return null;
 
-                context.Resize(Pack.TextureSize.Value, 0, resampler);
+                var aspect = height / (float) width;
+                targetWidth = Pack.TextureSize.Value;
+                targetHeight = (int)(Pack.TextureSize.Value * aspect);
             }
             else {
-                var targetWidth = (int)Math.Max(width * Pack.TextureScale.Value, 1f);
-                var targetHeight = (int)Math.Max(height * Pack.TextureScale.Value, 1f);
+                // scale all
+                targetWidth = (int)Math.Max(width * Pack.TextureScale.Value, 1f);
+                targetHeight = (int)Math.Max(height * Pack.TextureScale.Value, 1f);
+            }
 
-                context.Resize(targetWidth, targetHeight, resampler);
+            var processor = new ResizeProcessor(options);
+            var resizedImage = new Image<Rgba32>(Configuration.Default, targetWidth, targetHeight);
+
+            try {
+                resizedImage.Mutate(c => c.ApplyProcessor(processor));
+                return resizedImage;
+            }
+            catch {
+                resizedImage.Dispose();
+                throw;
             }
         }
 
-        private async Task<Image> LoadSourceImageAsync(string sourceFile, Rgba32? sourceColor, CancellationToken token)
+        private async Task<Image<Rgba32>> LoadSourceImageAsync(string sourceFile, Rgba32? sourceColor, CancellationToken token)
         {
             if (!string.IsNullOrEmpty(sourceFile)) {
                 await using var stream = Reader.Open(sourceFile);
-                return await Image.LoadAsync(Configuration.Default, stream, token);
+                return await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
             }
 
             if (sourceColor.HasValue) {

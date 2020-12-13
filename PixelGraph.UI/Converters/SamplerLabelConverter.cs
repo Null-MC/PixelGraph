@@ -1,4 +1,4 @@
-﻿using PixelGraph.Common.Textures;
+﻿using PixelGraph.Common.Samplers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,8 +9,9 @@ namespace PixelGraph.UI.Converters
     internal class SamplerLabelConverter : IValueConverter
     {
         private static readonly Dictionary<string, string> map = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
-            [Samplers.Point] = "Point",
-            [Samplers.Nearest] = "Nearest",
+            //[Sampler.Point] = "Point",
+            [Sampler.Nearest] = "Nearest",
+            [Sampler.Bilinear] = "Bilinear",
             //...
         };
 

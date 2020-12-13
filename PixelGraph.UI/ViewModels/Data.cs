@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using System.Collections.Generic;
 using System.Windows.Media;
@@ -152,11 +153,11 @@ namespace PixelGraph.UI.ViewModels
     {
         public SamplerValues()
         {
-            Add(new Item {Text = "Point", Value = Samplers.Point});
-            Add(new Item {Text = "Nearest", Value = Samplers.Nearest});
-            Add(new Item {Text = "Bilinear", Value = Samplers.Bilinear});
-            Add(new Item {Text = "Cubic", Value = Samplers.Cubic});
-            Add(new Item {Text = "Bicubic", Value = Samplers.Bicubic});
+            //Add(new Item {Text = "Point", Value = Sampler.Point});
+            Add(new Item {Text = "Nearest", Value = Sampler.Nearest});
+            Add(new Item {Text = "Bilinear", Value = Sampler.Bilinear});
+            //Add(new Item {Text = "Cubic", Value = Sampler.Cubic});
+            //Add(new Item {Text = "Bicubic", Value = Sampler.Bicubic});
         }
 
         public class Item

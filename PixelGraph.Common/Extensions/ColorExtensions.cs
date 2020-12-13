@@ -1,10 +1,10 @@
-﻿using PixelGraph.Common.Textures;
+﻿using System;
+using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 
-namespace PixelGraph.Common.PixelOperations
+namespace PixelGraph.Common.Extensions
 {
-    internal static class Pixel
+    internal static class ColorExtensions
     {
         public static void GetChannelValue(this in Rgba32 pixel, in ColorChannel channel, out byte value)
         {
@@ -17,7 +17,7 @@ namespace PixelGraph.Common.PixelOperations
             };
         }
 
-        public static void GetNormalizedChannelValue(this in Rgba32 pixel, in ColorChannel channel, out float value)
+        public static void GetChannelValueScaled(this in Rgba32 pixel, in ColorChannel channel, out float value)
         {
             value = channel switch {
                 ColorChannel.Red => pixel.R / 255f,

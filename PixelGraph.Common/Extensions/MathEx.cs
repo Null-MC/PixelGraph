@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace PixelGraph.Common.Extensions
 {
@@ -65,6 +66,14 @@ namespace PixelGraph.Common.Extensions
         public static void Lerp(in float min, in float max, in float mix, out float result)
         {
             result = min * (1f - mix) + max * mix;
+        }
+
+        public static void Lerp(in Vector4 min, in Vector4 max, in float mix, out Vector4 result)
+        {
+            Lerp(in min.X, in max.X, in mix, out result.X);
+            Lerp(in min.Y, in max.Y, in mix, out result.Y);
+            Lerp(in min.Z, in max.Z, in mix, out result.Z);
+            Lerp(in min.W, in max.W, in mix, out result.W);
         }
 
         public static void Cycle(ref byte value, in int offset)

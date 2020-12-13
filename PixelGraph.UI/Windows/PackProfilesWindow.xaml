@@ -111,7 +111,7 @@
                         <DockPanel Grid.Column="1">
                             <TextBlock DockPanel.Dock="Left" Margin="8,0" Text="Default Sampler" VerticalAlignment="Center"
                                        Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                            <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value" MaxWidth="140" HorizontalContentAlignment="Center" Placeholder="Point"
+                            <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value" MaxWidth="140" HorizontalContentAlignment="Center" Placeholder="Nearest"
                                                  PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                                  Foreground="{DynamicResource SecondaryHueMidBrush}"
                                                  ItemsSource="{StaticResource Samplers}"

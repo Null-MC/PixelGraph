@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
@@ -101,7 +102,7 @@ namespace PixelGraph.Common.Encoding
                 Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
-                    Sampler = Samplers.Nearest,
+                    Sampler = Sampler.Nearest,
                     MinValue = 0,
                     MaxValue = 255,
                     Shift = 0,

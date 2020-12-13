@@ -1,4 +1,4 @@
-﻿namespace PixelGraph.Common.Publishing
+﻿namespace PixelGraph.Common.IO.Publishing
 {
     internal class PublishOptions
     {

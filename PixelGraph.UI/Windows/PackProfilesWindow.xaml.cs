@@ -57,8 +57,11 @@ namespace PixelGraph.UI.Windows
                 },
             };
 
-            var writer = provider.GetRequiredService<IResourcePackWriter>();
-            await writer.WriteAsync(localFile, packProfile);
+            var writer = provider.GetRequiredService<IOutputWriter>();
+            var packWriter = provider.GetRequiredService<IResourcePackWriter>();
+
+            writer.SetRoot(VM.RootDirectory);
+            await packWriter.WriteAsync(localFile, packProfile);
 
             var profile = CreateProfileItem(localFile);
             Application.Current.Dispatcher.Invoke(() => {

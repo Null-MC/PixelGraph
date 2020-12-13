@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
-using PixelGraph.Common.Publishing;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;

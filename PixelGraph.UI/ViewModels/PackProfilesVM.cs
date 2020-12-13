@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.Encoding;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using System;
 using System.Collections.ObjectModel;
@@ -243,7 +244,7 @@ namespace PixelGraph.UI.ViewModels
         {
             var encoding = TextureEncoding.GetFactory(_loadedProfile?.Output?.Format);
             var encodingDefaults = encoding?.Create();
-            var sampler = _loadedProfile?.Output?.Sampler ?? Samplers.Point;
+            var sampler = _loadedProfile?.Output?.Sampler ?? Sampler.Nearest;
 
             Alpha.ApplyDefaultValues(encodingDefaults?.Alpha, sampler);
 
