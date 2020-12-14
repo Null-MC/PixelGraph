@@ -46,23 +46,26 @@ namespace PixelGraph.Common.ImageProcessors
                 }
             }
 
+            var fValue = value / 255f;
+
             // Common Processing
 
             if (MathF.Abs(options.Scale - 1f) > float.Epsilon)
-                MathEx.Saturate(value / 255f * options.Scale, out value);
+                fValue *= options.Scale;
 
             // Output Processing
 
             if (MathF.Abs(options.OutputPower - 1f) > float.Epsilon) {
-                var x = MathF.Pow(value / 255f, options.OutputPower);
-                MathEx.Saturate(in x, out value);
+                fValue = MathF.Pow(fValue, options.OutputPower);
             }
 
-            if (options.InvertOutput) value = (byte)(255 - value);
+            if (options.InvertOutput) fValue = 1f - fValue;
 
+            MathEx.Saturate(in fValue, out value);
             MathEx.Cycle(ref value, options.OutputShift);
-
             pixelOut.SetChannelValue(options.OutputColor, value);
+
+            // TODO: range
         }
 
         public class Options
@@ -81,7 +84,7 @@ namespace PixelGraph.Common.ImageProcessors
             public ColorChannel OutputColor;
             public byte OutputMin;
             public byte OutputMax;
-            public short OutputShift;
+            public int OutputShift;
             public float OutputPower;
 
             public float Scale = 1f;

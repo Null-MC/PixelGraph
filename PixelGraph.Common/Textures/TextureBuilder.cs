@@ -3,7 +3,6 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
-using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.ResourcePack;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -213,17 +212,18 @@ namespace PixelGraph.Common.Textures
 
                 if (ImageResult == null) {
                     if (sourceImage == null) {
-                        var value = mapping.InputValue ?? 0;
+                        var value = (mapping.InputValue ?? 0) / 255f * mapping.Scale;
+
                         if (MathF.Abs(options.OutputPower - 1f) > float.Epsilon) {
-                            var x = MathF.Pow(value / 255f, options.OutputPower);
-                            MathEx.Saturate(in x, out value);
+                            value = MathF.Pow(value, options.OutputPower);
                         }
 
-                        if (options.InvertOutput) value = (byte)(255 - value);
+                        if (options.InvertOutput) value = 1f - value;
 
-                        MathEx.Cycle(ref value, options.OutputShift);
+                        MathEx.Saturate(value, out var finalValue);
+                        MathEx.Cycle(ref finalValue, in options.OutputShift);
 
-                        defaultValues.SetChannelValue(mapping.OutputColor, value);
+                        defaultValues.SetChannelValue(mapping.OutputColor, finalValue);
                         return;
                     }
                     else {
@@ -281,42 +281,42 @@ namespace PixelGraph.Common.Textures
         }
 
         private static readonly Dictionary<string, Func<MaterialProperties, byte?>> valueMap = new Dictionary<string, Func<MaterialProperties, byte?>>(StringComparer.OrdinalIgnoreCase) {
-            [EncodingChannel.AlbedoRed] = mat => mat.Albedo?.ValueRed,
-            [EncodingChannel.AlbedoGreen] = mat => mat.Albedo?.ValueGreen,
-            [EncodingChannel.AlbedoBlue] = mat => mat.Albedo?.ValueBlue,
+            [EncodingChannel.Alpha] = mat => mat.Alpha?.Value,
             [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ValueRed,
             [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ValueGreen,
             [EncodingChannel.DiffuseBlue] = mat => mat.Diffuse?.ValueBlue,
-            [EncodingChannel.Alpha] = mat => mat.Alpha?.Value,
+            [EncodingChannel.AlbedoRed] = mat => mat.Albedo?.ValueRed,
+            [EncodingChannel.AlbedoGreen] = mat => mat.Albedo?.ValueGreen,
+            [EncodingChannel.AlbedoBlue] = mat => mat.Albedo?.ValueBlue,
             [EncodingChannel.Height] = mat => mat.Height?.Value,
+            [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Value,
             [EncodingChannel.NormalX] = mat => mat.Normal?.ValueX,
             [EncodingChannel.NormalY] = mat => mat.Normal?.ValueY,
             [EncodingChannel.NormalZ] = mat => mat.Normal?.ValueZ,
-            [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Value,
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Value,
             [EncodingChannel.Rough] = mat => mat.Rough?.Value,
             [EncodingChannel.Metal] = mat => mat.Metal?.Value,
-            [EncodingChannel.Emissive] = mat => mat.Emissive?.Value,
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Value,
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Value,
+            [EncodingChannel.Emissive] = mat => mat.Emissive?.Value,
         };
 
         private static readonly Dictionary<string, Func<MaterialProperties, decimal>> scaleMap = new Dictionary<string, Func<MaterialProperties, decimal>>(StringComparer.OrdinalIgnoreCase) {
-            [EncodingChannel.AlbedoRed] = mat => mat.Albedo?.ScaleRed ?? 1m,
-            [EncodingChannel.AlbedoGreen] = mat => mat.Albedo?.ScaleGreen ?? 1m,
-            [EncodingChannel.AlbedoBlue] = mat => mat.Albedo?.ScaleBlue ?? 1m,
+            [EncodingChannel.Alpha] = mat => mat.Alpha?.Scale ?? 1m,
             [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ScaleRed ?? 1m,
             [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ScaleGreen ?? 1m,
             [EncodingChannel.DiffuseBlue] = mat => mat.Diffuse?.ScaleBlue ?? 1m,
-            [EncodingChannel.Alpha] = mat => mat.Alpha?.Scale ?? 1m,
+            [EncodingChannel.AlbedoRed] = mat => mat.Albedo?.ScaleRed ?? 1m,
+            [EncodingChannel.AlbedoGreen] = mat => mat.Albedo?.ScaleGreen ?? 1m,
+            [EncodingChannel.AlbedoBlue] = mat => mat.Albedo?.ScaleBlue ?? 1m,
             [EncodingChannel.Height] = mat => mat.Height?.Scale ?? 1m,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Scale ?? 1m,
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Scale ?? 1m,
             [EncodingChannel.Rough] = mat => mat.Rough?.Scale ?? 1m,
             [EncodingChannel.Metal] = mat => mat.Metal?.Scale ?? 1m,
-            [EncodingChannel.Emissive] = mat => mat.Emissive?.Scale ?? 1m,
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Scale ?? 1m,
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Scale ?? 1m,
+            [EncodingChannel.Emissive] = mat => mat.Emissive?.Scale ?? 1m,
         };
     }
 

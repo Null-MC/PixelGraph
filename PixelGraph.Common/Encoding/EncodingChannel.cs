@@ -5,7 +5,7 @@ namespace PixelGraph.Common.Encoding
     public class EncodingChannel
     {
         public const string None = "none";
-        public const string White = "255";
+        //public const string White = "255";
 
         public const string Alpha = "alpha";
         public const string DiffuseRed = "diffuse-red";

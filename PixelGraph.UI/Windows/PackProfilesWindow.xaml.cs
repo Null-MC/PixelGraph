@@ -46,10 +46,6 @@ namespace PixelGraph.UI.Windows
                 return;
             }
 
-            var localFile = dialog.FileName
-                .Substring(VM.RootDirectory.Length)
-                .TrimStart('\\', '/');
-
             var packProfile = new ResourcePackProfileProperties {
                 //InputFormat = EncodingProperties.Raw,
                 Output = {
@@ -59,8 +55,9 @@ namespace PixelGraph.UI.Windows
 
             var writer = provider.GetRequiredService<IOutputWriter>();
             var packWriter = provider.GetRequiredService<IResourcePackWriter>();
-
             writer.SetRoot(VM.RootDirectory);
+
+            var localFile = dialog.FileName[VM.RootDirectory.Length..].TrimStart('\\', '/');
             await packWriter.WriteAsync(localFile, packProfile);
 
             var profile = CreateProfileItem(localFile);
