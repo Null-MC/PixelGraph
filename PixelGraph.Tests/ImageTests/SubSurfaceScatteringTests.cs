@@ -26,7 +26,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             packProfile = new ResourcePackProfileProperties {
-                Output = {
+                Encoding = {
                     SSS = {
                         Texture = TextureTags.SubSurfaceScattering,
                         Color = ColorChannel.Red,

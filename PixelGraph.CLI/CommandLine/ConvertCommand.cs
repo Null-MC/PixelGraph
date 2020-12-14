@@ -124,7 +124,7 @@ namespace PixelGraph.CLI.CommandLine
                 var fullFile = Path.GetFullPath(textureFilename);
                 var packProfile = await packReader.ReadProfileAsync(fullFile);
                 //pack.Properties["input.format"] = inputFormat;
-                packProfile.Output.Format = outputFormat;
+                packProfile.Encoding.Format = outputFormat;
 
                 var packInput = new ResourcePackInputProperties {
                     Format = TextureEncoding.Format_Raw,

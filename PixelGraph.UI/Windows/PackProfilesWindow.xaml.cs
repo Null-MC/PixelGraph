@@ -34,6 +34,7 @@ namespace PixelGraph.UI.Windows
             var dialog = new SaveFileDialog {
                 Title = "Create a new pack properties file",
                 Filter = "Pack YAML|*.pack.yml|All Files|*.*",
+                InitialDirectory = VM.RootDirectory,
                 AddExtension = true,
                 FileName = "default",
             };
@@ -42,13 +43,13 @@ namespace PixelGraph.UI.Windows
             if (result != true) return;
 
             if (!dialog.FileName.StartsWith(VM.RootDirectory)) {
-                // ERROR: show error message
+                ShowError("Pack profile should be saved in project root directory!");
                 return;
             }
 
             var packProfile = new ResourcePackProfileProperties {
                 //InputFormat = EncodingProperties.Raw,
-                Output = {
+                Encoding = {
                     Format = TextureEncoding.Format_Lab13,
                 },
             };

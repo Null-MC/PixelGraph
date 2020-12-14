@@ -143,11 +143,11 @@ namespace PixelGraph.UI.ViewModels
         }
 
         public string EncodingFormat {
-            get => _loadedProfile?.Output?.Format;
+            get => _loadedProfile?.Encoding?.Format;
             set {
                 if (_loadedProfile == null) return;
-                _loadedProfile.Output ??= new ResourcePackOutputProperties();
-                _loadedProfile.Output.Format = value;
+                _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
+                _loadedProfile.Encoding.Format = value;
                 OnPropertyChanged();
 
                 UpdateDefaultValues();
@@ -156,11 +156,11 @@ namespace PixelGraph.UI.ViewModels
         }
 
         public string EncodingSampler {
-            get => _loadedProfile?.Output?.Sampler;
+            get => _loadedProfile?.Encoding?.Sampler;
             set {
                 if (_loadedProfile == null) return;
-                _loadedProfile.Output ??= new ResourcePackOutputProperties();
-                _loadedProfile.Output.Sampler = value;
+                _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
+                _loadedProfile.Encoding.Sampler = value;
                 OnPropertyChanged();
 
                 UpdateDefaultValues();
@@ -209,42 +209,42 @@ namespace PixelGraph.UI.ViewModels
 
         private void UpdateChannels()
         {
-            Alpha.SetChannel(_loadedProfile?.Output?.Alpha);
+            Alpha.SetChannel(_loadedProfile?.Encoding?.Alpha);
 
-            DiffuseRed.SetChannel(_loadedProfile?.Output?.DiffuseRed);
-            DiffuseGreen.SetChannel(_loadedProfile?.Output?.DiffuseGreen);
-            DiffuseBlue.SetChannel(_loadedProfile?.Output?.DiffuseBlue);
+            DiffuseRed.SetChannel(_loadedProfile?.Encoding?.DiffuseRed);
+            DiffuseGreen.SetChannel(_loadedProfile?.Encoding?.DiffuseGreen);
+            DiffuseBlue.SetChannel(_loadedProfile?.Encoding?.DiffuseBlue);
 
-            AlbedoRed.SetChannel(_loadedProfile?.Output?.AlbedoRed);
-            AlbedoGreen.SetChannel(_loadedProfile?.Output?.AlbedoGreen);
-            AlbedoBlue.SetChannel(_loadedProfile?.Output?.AlbedoBlue);
+            AlbedoRed.SetChannel(_loadedProfile?.Encoding?.AlbedoRed);
+            AlbedoGreen.SetChannel(_loadedProfile?.Encoding?.AlbedoGreen);
+            AlbedoBlue.SetChannel(_loadedProfile?.Encoding?.AlbedoBlue);
 
-            Height.SetChannel(_loadedProfile?.Output?.Height);
-            Occlusion.SetChannel(_loadedProfile?.Output?.Occlusion);
+            Height.SetChannel(_loadedProfile?.Encoding?.Height);
+            Occlusion.SetChannel(_loadedProfile?.Encoding?.Occlusion);
 
-            NormalX.SetChannel(_loadedProfile?.Output?.NormalX);
-            NormalY.SetChannel(_loadedProfile?.Output?.NormalY);
-            NormalZ.SetChannel(_loadedProfile?.Output?.NormalZ);
+            NormalX.SetChannel(_loadedProfile?.Encoding?.NormalX);
+            NormalY.SetChannel(_loadedProfile?.Encoding?.NormalY);
+            NormalZ.SetChannel(_loadedProfile?.Encoding?.NormalZ);
 
-            Specular.SetChannel(_loadedProfile?.Output?.Specular);
+            Specular.SetChannel(_loadedProfile?.Encoding?.Specular);
 
-            Smooth.SetChannel(_loadedProfile?.Output?.Smooth);
-            Rough.SetChannel(_loadedProfile?.Output?.Rough);
+            Smooth.SetChannel(_loadedProfile?.Encoding?.Smooth);
+            Rough.SetChannel(_loadedProfile?.Encoding?.Rough);
 
-            Metal.SetChannel(_loadedProfile?.Output?.Rough);
+            Metal.SetChannel(_loadedProfile?.Encoding?.Rough);
 
-            Porosity.SetChannel(_loadedProfile?.Output?.Rough);
+            Porosity.SetChannel(_loadedProfile?.Encoding?.Rough);
 
-            SSS.SetChannel(_loadedProfile?.Output?.SSS);
+            SSS.SetChannel(_loadedProfile?.Encoding?.SSS);
 
-            Emissive.SetChannel(_loadedProfile?.Output?.Rough);
+            Emissive.SetChannel(_loadedProfile?.Encoding?.Rough);
         }
 
         public void UpdateDefaultValues()
         {
-            var encoding = TextureEncoding.GetFactory(_loadedProfile?.Output?.Format);
+            var encoding = TextureEncoding.GetFactory(_loadedProfile?.Encoding?.Format);
             var encodingDefaults = encoding?.Create();
-            var sampler = _loadedProfile?.Output?.Sampler ?? Sampler.Nearest;
+            var sampler = _loadedProfile?.Encoding?.Sampler ?? Sampler.Nearest;
 
             Alpha.ApplyDefaultValues(encodingDefaults?.Alpha, sampler);
 
@@ -297,8 +297,8 @@ namespace PixelGraph.UI.ViewModels
                 Edition = "Java",
                 Description = "Designer Data",
                 Format = 99,
-                ImageEncoding = "tga",
-                Output = {
+                Encoding = {
+                    Image = "tga",
                     Sampler = "point",
                 },
             };

@@ -27,7 +27,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             packProfile = new ResourcePackProfileProperties {
-                Output = {
+                Encoding = {
                     Occlusion = {
                         Texture = TextureTags.Occlusion,
                         Color = ColorChannel.Red,

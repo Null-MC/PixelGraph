@@ -26,7 +26,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             packProfile = new ResourcePackProfileProperties {
-                Output = {
+                Encoding = {
                     Rough = {
                         Texture = TextureTags.Rough,
                         Color = ColorChannel.Red,

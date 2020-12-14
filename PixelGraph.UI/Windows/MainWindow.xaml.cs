@@ -99,6 +99,24 @@ namespace PixelGraph.UI.Windows
             }
         }
 
+        private void ReloadContent()
+        {
+            if (!vm.TryStartBusy()) return;
+
+            var reader = provider.GetRequiredService<IInputReader>();
+            var treeReader = provider.GetRequiredService<IContentTreeReader>();
+
+            try {
+                reader.SetRoot(vm.RootDirectory);
+
+                vm.TreeRoot = treeReader.GetRootNode();
+                vm.TreeRoot.UpdateVisibility(vm);
+            }
+            finally {
+                vm.EndBusy();
+            }
+        }
+
         private async Task LoadPackInputAsync()
         {
             var packReader = provider.GetRequiredService<IResourcePackReader>();
@@ -620,6 +638,11 @@ namespace PixelGraph.UI.Windows
                 source = VisualTreeHelper.GetParent(source);
 
             (source as TreeViewItem)?.Focus();
+        }
+
+        private void OnContentRefreshClick(object sender, RoutedEventArgs e)
+        {
+            ReloadContent();
         }
 
         #endregion

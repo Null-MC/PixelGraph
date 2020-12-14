@@ -4,7 +4,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace PixelGraph.Common.IO
 {
@@ -76,7 +75,7 @@ namespace PixelGraph.Common.IO
 
         private static string GetExtension(ResourcePackProfileProperties pack)
         {
-            var encoding = pack.ImageEncoding ?? ImageExtensions.Default;
+            var encoding = pack.Encoding.Image ?? ImageExtensions.Default;
 
             if (!ImageExtensions.Supports(encoding))
                 throw new ApplicationException($"Unsupported image encoding '{encoding}'!");

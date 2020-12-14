@@ -34,7 +34,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             packProfile = new ResourcePackProfileProperties {
-                Output = {
+                Encoding = {
                     NormalX = {
                         Texture = TextureTags.Normal,
                         Color = ColorChannel.Red,

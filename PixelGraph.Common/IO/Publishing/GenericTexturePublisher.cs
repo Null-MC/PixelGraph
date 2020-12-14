@@ -58,7 +58,7 @@ namespace PixelGraph.Common.IO.Publishing
             if (!Pack.TextureSize.HasValue && !Pack.TextureScale.HasValue) return null;
 
             var (width, height) = source.Size();
-            var packSampler = Sampler.Create(Pack.Output.Sampler) ?? new NearestSampler();
+            var packSampler = Sampler.Create(Pack.Encoding.Sampler) ?? new NearestSampler();
             packSampler.Image = source;
             packSampler.Wrap = false;
 

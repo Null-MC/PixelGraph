@@ -27,7 +27,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             packProfile = new ResourcePackProfileProperties {
-                Output = {
+                Encoding = {
                     Height = {
                         Texture = TextureTags.Height,
                         Color = ColorChannel.Red,

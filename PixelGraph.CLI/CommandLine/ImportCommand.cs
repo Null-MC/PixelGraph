@@ -143,7 +143,7 @@ namespace PixelGraph.CLI.CommandLine
                     };
 
                     var packProfile = new ResourcePackProfileProperties {
-                        Output = {
+                        Encoding = {
                             Format = outputFormat,
                         }
                     };

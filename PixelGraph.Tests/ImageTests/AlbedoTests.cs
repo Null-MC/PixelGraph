@@ -38,7 +38,7 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             packProfile = new ResourcePackProfileProperties {
-                Output = {
+                Encoding = {
                     AlbedoRed = {
                         Texture = TextureTags.Albedo,
                         Color = ColorChannel.Red,

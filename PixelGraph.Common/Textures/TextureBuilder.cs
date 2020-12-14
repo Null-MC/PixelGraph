@@ -62,7 +62,10 @@ namespace PixelGraph.Common.Textures
             foreach (var mapping in mappings)
                 await ApplyMappingAsync(mapping, token);
 
-            ImageResult ??= new Image<Rgba32>(1, 1, defaultValues);
+            if (ImageResult == null) {
+                var size = Graph.Context.Profile.TextureSize ?? 1;
+                ImageResult = new Image<Rgba32>(Configuration.Default, size, size, defaultValues);
+            }
         }
 
         public void Dispose()

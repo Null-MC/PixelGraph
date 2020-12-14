@@ -4,8 +4,7 @@ namespace PixelGraph.Common.ResourcePack
 {
     public class ResourcePackProfileProperties
     {
-        public const int DefaultFormat = 5;
-        public const string DefaultImageEncoding = "png";
+        public const int DefaultFormat = 6;
 
         [YamlIgnore]
         public string LocalFile {get; set;}
@@ -18,20 +17,18 @@ namespace PixelGraph.Common.ResourcePack
 
         public string Tags {get; set;}
 
-        public string ImageEncoding {get; set;}
+        public ResourcePackOutputProperties Encoding {get; set;}
 
-        public ResourcePackOutputProperties Output {get; set;}
-
-        [YamlMember(Alias = "texture-size")]
         public int? TextureSize {get; set;}
 
-        [YamlMember(Alias = "texture-scale")]
         public float? TextureScale {get; set;}
+
+        //public int? BlockSize {get; set;}
 
 
         public ResourcePackProfileProperties()
         {
-            Output = new ResourcePackOutputProperties();
+            Encoding = new ResourcePackOutputProperties();
         }
     }
 }

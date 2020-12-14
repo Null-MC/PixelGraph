@@ -105,8 +105,8 @@ namespace PixelGraph.Common.Textures
                 return;
             }
 
-            var imageFormat = Context.Profile.ImageEncoding
-                ?? ResourcePackProfileProperties.DefaultImageEncoding;
+            var imageFormat = Context.Profile.Encoding.Image
+                ?? ResourcePackOutputProperties.ImageDefault;
 
             var p = Context.Material.LocalPath;
             if (!UseGlobalOutput) p = PathEx.Join(p, Context.Material.Name);
@@ -166,7 +166,7 @@ namespace PixelGraph.Common.Textures
                 var color = encoding.Color ?? ColorChannel.None;
                 if (color == ColorChannel.None) continue;
 
-                var samplerName = encoding.Sampler ?? Context.Profile.Output?.Sampler;
+                var samplerName = encoding.Sampler ?? Context.Profile.Encoding?.Sampler;
                 var sampler = Sampler.Create(samplerName) ?? new NearestSampler();
 
                 sampler.Image = image;
@@ -322,20 +322,31 @@ namespace PixelGraph.Common.Textures
                 throw new HeightSourceEmptyException("No height sources mapped!");
 
             Image<Rgba32> heightTexture = null;
+            var heightColor = heightChannel.Color ?? ColorChannel.None;
+            var heightValue = Context.Material.Height?.Value;
+
             try {
                 var file = reader.EnumerateTextures(Context.Material, heightChannel.Texture).FirstOrDefault();
-                if (file == null) throw new HeightSourceEmptyException();
 
-                await using var stream = reader.Open(file);
+                if (file != null) {
+                    await using var stream = reader.Open(file);
 
-                try {
-                    heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
-                }
-                catch {
-                    logger.LogWarning("Failed to load texture {file}!", file);
-                }
+                    try {
+                        heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
+                    }
+                    catch {
+                        logger.LogWarning("Failed to load texture {file}!", file);
+                    }
                 
-                if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
+                    if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
+                }
+                else if (heightValue.HasValue) {
+                    var color = new Rgba32();
+                    color.SetChannelValue(heightColor, heightValue.Value);
+                    var size = Context.Profile.TextureSize ?? 1;
+                    heightTexture = new Image<Rgba32>(size, size, color);
+                }
+                else throw new HeightSourceEmptyException();
                 
                 var options = new NormalMapProcessor.Options {
                     Source = heightTexture,

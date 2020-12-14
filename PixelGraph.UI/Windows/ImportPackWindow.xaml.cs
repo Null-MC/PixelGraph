@@ -72,7 +72,7 @@ namespace PixelGraph.UI.Windows
             importer.PackInput = VM.PackInput;
 
             importer.PackProfile = new ResourcePackProfileProperties {
-                Output = new ResourcePackOutputProperties {
+                Encoding = new ResourcePackOutputProperties {
                     Format = VM.SourceFormat,
                     //...
                 },

@@ -180,8 +180,10 @@
                 </Grid.ColumnDefinitions>
                 <DockPanel Grid.Column="0" Background="#FF1B1B1B">
                     <DockPanel DockPanel.Dock="Top">
-                        <controls:ToggleButtonEx DockPanel.Dock="Right" Content="{md:PackIcon FileMultiple}" ToolTip="Show All Files" Height="20" Width="20" Margin="6,2,4,1" BorderThickness="1" Padding="2,2,2,2"
+                        <controls:ToggleButtonEx DockPanel.Dock="Right" Content="{md:PackIcon FileMultiple}" ToolTip="Show All Files" Height="20" Width="20" Margin="2,2,4,1" BorderThickness="1" Padding="2"
                                                  IsChecked="{Binding ShowAllFiles, Mode=TwoWay}"/>
+                        <Button DockPanel.Dock="Right" Content="{md:PackIcon Refresh}" ToolTip="Refresh" Height="20" Width="20" Margin="6,2,4,1" BorderThickness="1" Padding="2" Click="OnContentRefreshClick"
+                                Style="{StaticResource MaterialDesignFlatButton}"/>
                         <Grid>
                             <TextBox Padding="4,0,12,0"
                                      Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

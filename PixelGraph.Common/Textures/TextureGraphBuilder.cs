@@ -46,9 +46,9 @@ namespace PixelGraph.Common.Textures
             inputEncoding.Merge(context.Input);
             inputEncoding.Merge(context.Material);
 
-            var outputFormat = TextureEncoding.GetFactory(context.Profile.Output.Format);
+            var outputFormat = TextureEncoding.GetFactory(context.Profile.Encoding.Format);
             var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
-            outputEncoding.Merge(context.Profile.Output);
+            outputEncoding.Merge(context.Profile.Encoding);
 
             using var graph = provider.GetRequiredService<ITextureGraph>();
             graph.InputEncoding = inputEncoding.GetMapped().ToList();
@@ -64,9 +64,9 @@ namespace PixelGraph.Common.Textures
         /// </summary>
         public async Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default)
         {
-            var inputFormat = TextureEncoding.GetFactory(context.Profile.Output.Format);
+            var inputFormat = TextureEncoding.GetFactory(context.Profile.Encoding.Format);
             var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
-            inputEncoding.Merge(context.Profile.Output);
+            inputEncoding.Merge(context.Profile.Encoding);
 
             var outputFormat = TextureEncoding.GetFactory(context.Input.Format);
             var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
@@ -74,7 +74,7 @@ namespace PixelGraph.Common.Textures
             // TODO: layer material properties on top of pack encoding?
 
             using var graph = provider.GetRequiredService<ITextureGraph>();
-            graph.InputEncoding = context.Profile.Output.GetMapped().ToList();
+            graph.InputEncoding = context.Profile.Encoding.GetMapped().ToList();
             graph.OutputEncoding = context.Input.GetMapped().ToList();
             graph.UseGlobalOutput = UseGlobalOutput;
             graph.Context = context;
