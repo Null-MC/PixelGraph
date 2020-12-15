@@ -1,0 +1,31 @@
+﻿<DataGridTemplateColumn x:Class="PixelGraph.UI.Controls.DataGridComboBoxExColumn"
+                        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+                        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+                        xmlns:local="clr-namespace:PixelGraph.UI.Controls"
+                        xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+                        d:DesignWidth="800" d:DesignHeight="450" mc:Ignorable="d">
+    <DataGridTemplateColumn.CellTemplate>
+        <DataTemplate DataType="vm:InputChannelMapping">
+            <Grid>
+                <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryHueMidBrush}"
+                           Text="{Binding Texture, Mode=OneWay, Converter={StaticResource TextureTagConverter}}"
+                           Visibility="{Binding Texture, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
+                <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
+                           Text="{Binding TextureDefault, Mode=OneWay, Converter={StaticResource TextureTagConverter}}"
+                           Visibility="{Binding Texture, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
+            </Grid>
+        </DataTemplate>
+    </DataGridTemplateColumn.CellTemplate>
+    <DataGridTemplateColumn.CellEditingTemplate>
+        <DataTemplate DataType="vm:InputChannelMapping">
+            <local:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value"
+                                 ItemsSource="{StaticResource TextureTags}"
+                                 Placeholder="{Binding TextureDefault, Mode=OneWay, Converter={StaticResource TextureTagConverter}}"
+                                 SelectedValue="{Binding Texture, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </DataTemplate>
+    </DataGridTemplateColumn.CellEditingTemplate>
+</DataGridTemplateColumn>

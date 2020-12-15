@@ -9,8 +9,8 @@ namespace PixelGraph.Common.Encoding
         {
             return new ResourcePackEncoding {
                 Alpha = new ResourcePackAlphaChannelProperties {
-                    Texture = TextureTags.Albedo,
-                    Color = ColorChannel.Alpha,
+                    Texture = TextureTags.Alpha,
+                    Color = ColorChannel.Red,
                     MinValue = 0,
                     MaxValue = 255,
                     Shift = 0,

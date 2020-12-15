@@ -12,8 +12,8 @@ namespace PixelGraph.Common.IO
         static JavaNamingStructure()
         {
             globalMap = new Dictionary<string, Func<string, string, string>>(StringComparer.InvariantCultureIgnoreCase) {
-                [TextureTags.Albedo] = (name, ext) => $"{name}.{ext}",
                 [TextureTags.Alpha] = (name, ext) => $"{name}_a.{ext}",
+                [TextureTags.Albedo] = (name, ext) => $"{name}.{ext}",
                 [TextureTags.Diffuse] = (name, ext) => $"{name}_d.{ext}",
                 [TextureTags.Height] = (name, ext) => $"{name}_h.{ext}",
                 [TextureTags.Normal] = (name, ext) => $"{name}_n.{ext}",

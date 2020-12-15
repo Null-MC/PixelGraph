@@ -63,8 +63,8 @@ namespace PixelGraph.Common.Textures
                 await ApplyMappingAsync(mapping, token);
 
             if (ImageResult == null) {
-                var size = Graph.Context.Profile.TextureSize ?? 1;
-                ImageResult = new Image<Rgba32>(Configuration.Default, size, size, defaultValues);
+                var (width, height) = Graph.GetSourceSize();
+                ImageResult = new Image<Rgba32>(Configuration.Default, width, height, defaultValues);
             }
         }
 

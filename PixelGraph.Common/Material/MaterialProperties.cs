@@ -1,6 +1,5 @@
 ﻿using PixelGraph.Common.Encoding;
-using PixelGraph.Common.ResourcePack;
-using System;
+using SixLabors.ImageSharp;
 using System.Collections.Generic;
 using System.Linq;
 using YamlDotNet.Serialization;
@@ -76,9 +75,32 @@ namespace PixelGraph.Common.Material
         public List<MaterialPart> Parts {get; set;}
 
 
-        public ResourcePackChannelProperties GetChannelEncoding(string channel)
+        //public ResourcePackChannelProperties GetChannelEncoding(string channel)
+        //{
+        //    return inputChannelMap.TryGetValue(channel, out var encoding) ? encoding(this) : null;
+        //}
+
+        public bool TryGetSourceBounds(out Size size)
         {
-            return inputChannelMap.TryGetValue(channel, out var encoding) ? encoding(this) : null;
+            if (!IsMultiPart) {
+                size = Size.Empty;
+                return false;
+            }
+
+            size = new Size();
+            foreach (var part in Parts) {
+                if (part.Left.HasValue && part.Width.HasValue) {
+                    var partWidth = part.Left.Value + part.Width.Value;
+                    if (partWidth > size.Width) size.Width = partWidth;
+                }
+
+                if (part.Top.HasValue && part.Height.HasValue) {
+                    var partHeight = part.Top.Value + part.Height.Value;
+                    if (partHeight > size.Height) size.Height = partHeight;
+                }
+            }
+
+            return true;
         }
 
         public MaterialProperties Clone()
@@ -90,27 +112,27 @@ namespace PixelGraph.Common.Material
             return clone;
         }
 
-        private static readonly Dictionary<string, Func<MaterialProperties, ResourcePackChannelProperties>> inputChannelMap
-            = new Dictionary<string, Func<MaterialProperties, ResourcePackChannelProperties>>(StringComparer.InvariantCultureIgnoreCase) {
-                [EncodingChannel.Alpha] = m => m.Alpha?.Input,
-                [EncodingChannel.DiffuseRed] = m => m.Diffuse?.InputRed,
-                [EncodingChannel.DiffuseGreen] = m => m.Diffuse?.InputGreen,
-                [EncodingChannel.DiffuseBlue] = m => m.Diffuse?.InputBlue,
-                [EncodingChannel.AlbedoRed] = m => m.Albedo?.InputRed,
-                [EncodingChannel.AlbedoGreen] = m => m.Albedo?.InputGreen,
-                [EncodingChannel.AlbedoBlue] = m => m.Albedo?.InputBlue,
-                [EncodingChannel.Height] = m => m.Height?.Input,
-                [EncodingChannel.Occlusion] = m => m.Occlusion?.Input,
-                [EncodingChannel.NormalX] = m => m.Normal?.InputX,
-                [EncodingChannel.NormalY] = m => m.Normal?.InputY,
-                [EncodingChannel.NormalZ] = m => m.Normal?.InputZ,
-                [EncodingChannel.Specular] = m => m.Specular?.Input,
-                [EncodingChannel.Smooth] = m => m.Smooth?.Input,
-                [EncodingChannel.Rough] = m => m.Rough?.Input,
-                [EncodingChannel.Metal] = m => m.Metal?.Input,
-                [EncodingChannel.Porosity] = m => m.Porosity?.Input,
-                [EncodingChannel.SubSurfaceScattering] = m => m.SSS?.Input,
-                [EncodingChannel.Emissive] = m => m.Emissive?.Input,
-            };
+        //private static readonly Dictionary<string, Func<MaterialProperties, ResourcePackChannelProperties>> inputChannelMap
+        //    = new Dictionary<string, Func<MaterialProperties, ResourcePackChannelProperties>>(StringComparer.InvariantCultureIgnoreCase) {
+        //        [EncodingChannel.Alpha] = m => m.Alpha?.Input,
+        //        [EncodingChannel.DiffuseRed] = m => m.Diffuse?.InputRed,
+        //        [EncodingChannel.DiffuseGreen] = m => m.Diffuse?.InputGreen,
+        //        [EncodingChannel.DiffuseBlue] = m => m.Diffuse?.InputBlue,
+        //        [EncodingChannel.AlbedoRed] = m => m.Albedo?.InputRed,
+        //        [EncodingChannel.AlbedoGreen] = m => m.Albedo?.InputGreen,
+        //        [EncodingChannel.AlbedoBlue] = m => m.Albedo?.InputBlue,
+        //        [EncodingChannel.Height] = m => m.Height?.Input,
+        //        [EncodingChannel.Occlusion] = m => m.Occlusion?.Input,
+        //        [EncodingChannel.NormalX] = m => m.Normal?.InputX,
+        //        [EncodingChannel.NormalY] = m => m.Normal?.InputY,
+        //        [EncodingChannel.NormalZ] = m => m.Normal?.InputZ,
+        //        [EncodingChannel.Specular] = m => m.Specular?.Input,
+        //        [EncodingChannel.Smooth] = m => m.Smooth?.Input,
+        //        [EncodingChannel.Rough] = m => m.Rough?.Input,
+        //        [EncodingChannel.Metal] = m => m.Metal?.Input,
+        //        [EncodingChannel.Porosity] = m => m.Porosity?.Input,
+        //        [EncodingChannel.SubSurfaceScattering] = m => m.SSS?.Input,
+        //        [EncodingChannel.Emissive] = m => m.Emissive?.Input,
+        //    };
     }
 }

@@ -28,6 +28,7 @@ namespace PixelGraph.Common.Textures
 
         Task BuildNormalTextureAsync(CancellationToken token = default);
         Task BuildFinalImageAsync(string textureTag, CancellationToken token = default);
+        (int, int) GetSourceSize();
 
         Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token = default);
         Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default);
@@ -343,8 +344,8 @@ namespace PixelGraph.Common.Textures
                 else if (heightValue.HasValue) {
                     var color = new Rgba32();
                     color.SetChannelValue(heightColor, heightValue.Value);
-                    var size = Context.Profile.TextureSize ?? 1;
-                    heightTexture = new Image<Rgba32>(size, size, color);
+                    var (width, height) = GetSourceSize();
+                    heightTexture = new Image<Rgba32>(width, height, color);
                 }
                 else throw new HeightSourceEmptyException();
                 
@@ -426,6 +427,15 @@ namespace PixelGraph.Common.Textures
                 heightTexture?.Dispose();
                 //emissiveImage?.Dispose();
             }
+        }
+
+        public (int, int) GetSourceSize()
+        {
+            if (Context.Material.TryGetSourceBounds(out var size))
+                return (size.Width, size.Height);
+
+            var length = Context.Profile.TextureSize ?? 1;
+            return (length, length);
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Windows.Data;
 
 namespace PixelGraph.UI.Controls
 {
-    internal class DataGridComboBoxExColumn : DataGridComboBoxColumn
+    internal class DataGridComboBoxExColumn2 : DataGridComboBoxColumn
     {
         private BindingBase _placeholderBinding;
 
