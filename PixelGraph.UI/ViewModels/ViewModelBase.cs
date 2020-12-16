@@ -11,7 +11,5 @@ namespace PixelGraph.UI.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        //protected static Visibility GetVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
     }
 }

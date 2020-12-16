@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <Version>0.7.2</Version>
+    <Version>0.7.3</Version>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>PixelGraph</AssemblyName>
@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controls\DataGridComboBoxExColumn.xaml.cs" />
     <Compile Remove="Controls\DataGridComboBoxExColumn2.cs" />
     <Compile Remove="Converters\InverseBooleanConverter.cs" />
     <Compile Remove="ViewModels\InputVMX.cs" />
@@ -24,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Remove="Controls\DataGridComboBoxExColumn.xaml" />
     <Page Remove="Windows\PackInputWindow.xaml" />
   </ItemGroup>
 

@@ -66,9 +66,6 @@ namespace PixelGraph.UI.ViewModels
 
     internal class ContentTreeDirectory : ContentTreeNode
     {
-        //public string Path {get; set;}
-
-
         public ContentTreeDirectory(ContentTreeNode parent) : base(parent) {}
 
         public override void UpdateVisibility(ISearchParameters search)
@@ -146,6 +143,6 @@ namespace PixelGraph.UI.ViewModels
         PackProfile,
         Material,
         Texture,
-        Model,
+        //Model,
     }
 }

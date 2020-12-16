@@ -38,16 +38,6 @@ namespace PixelGraph.UI.ViewModels
             Application.Current.Dispatcher.BeginInvoke(() => Append(level, message));
         }
 
-        public void Clear()
-        {
-            Items.Clear();
-        }
-
-        //public void BeginClear()
-        //{
-        //    Application.Current.Dispatcher.BeginInvoke(Clear);
-        //}
-
         private static readonly Dictionary<LogLevel, Brush> logBrushMap = new Dictionary<LogLevel, Brush> {
             [LogLevel.Debug] = Brushes.LimeGreen,
             [LogLevel.Information] = Brushes.LightSkyBlue,

@@ -17,7 +17,6 @@ namespace PixelGraph.UI.ViewModels
         public bool AsGlobal {get; set;}
         public bool CopyUntracked {get; set;}
         public string SourceFormat {get; set;}
-        //public ResourcePackOutputProperties SourceEncoding {get; set;}
         public ResourcePackInputProperties PackInput {get; set;}
         public LogListVM LogList {get;}
 
