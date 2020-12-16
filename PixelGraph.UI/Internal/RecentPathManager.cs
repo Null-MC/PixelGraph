@@ -13,6 +13,7 @@ namespace PixelGraph.UI.Internal
 
         Task InitializeAsync(CancellationToken token = default);
         Task InsertAsync(string path, CancellationToken token = default);
+        Task RemoveAsync(string path, CancellationToken token = default);
     }
 
     internal class RecentPathManager : IRecentPathManager
@@ -51,23 +52,40 @@ namespace PixelGraph.UI.Internal
         public async Task InsertAsync(string path, CancellationToken token = default)
         {
             await Application.Current.Dispatcher.InvokeAsync(() => Insert(path));
+            await SaveAsync(token);
+        }
 
-            if (!Directory.Exists(_path)) Directory.CreateDirectory(_path);
-            await File.WriteAllLinesAsync(_filename, List, token);
+        public async Task RemoveAsync(string path, CancellationToken token = default)
+        {
+            await Application.Current.Dispatcher.InvokeAsync(() => Remove(path));
+            await SaveAsync(token);
         }
 
         private void Insert(string path)
         {
+            Remove(path);
             List.Insert(0, path);
-
-            var t = Math.Min(List.Count, MaxCount);
-            for (var i = t - 1; i > 0; i--) {
-                if (string.Equals(List[i], path))
-                    List.RemoveAt(i);
-            }
 
             for (var i = List.Count - 1; i >= MaxCount; i--)
                 List.RemoveAt(i);
+        }
+
+        private void Remove(string path)
+        {
+            var t = Math.Min(List.Count, MaxCount);
+
+            for (var i = t - 1; i >= 0; i--) {
+                if (string.Equals(List[i], path))
+                    List.RemoveAt(i);
+            }
+        }
+
+        private async Task SaveAsync(CancellationToken token)
+        {
+            if (!Directory.Exists(_path))
+                Directory.CreateDirectory(_path);
+
+            await File.WriteAllLinesAsync(_filename, List, token);
         }
     }
 }

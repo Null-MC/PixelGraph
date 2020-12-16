@@ -9,6 +9,7 @@ namespace PixelGraph.Common.Samplers
     internal abstract class SamplerBase : ISampler
     {
         public Image<Rgba32> Image {get; set;}
+        public float Range {get; set;}
         public bool Wrap {get; set;}
 
 

@@ -12,6 +12,7 @@ namespace PixelGraph.Common.Samplers
         //public const string Point = "point";
         public const string Nearest = "nearest";
         public const string Bilinear = "bilinear";
+        public const string Average = "average";
 
         //public const string Box = "box";
         //public const string Triangle = "triangle";
@@ -37,6 +38,7 @@ namespace PixelGraph.Common.Samplers
             //[Point] = () => new PointSampler(),
             [Nearest] = () => new NearestSampler(),
             [Bilinear] = () => new BilinearSampler(),
+            [Average] = () => new AverageSampler(),
 
             //[Box] = KnownResamplers.Box,
             //[Triangle] = KnownResamplers.Triangle,
@@ -56,6 +58,7 @@ namespace PixelGraph.Common.Samplers
     public interface ISampler
     {
         Image<Rgba32> Image {get; set;}
+        float Range {get; set;}
         bool Wrap {get; set;}
 
         void Sample(in float fx, in float fy, out Rgba32 pixel);

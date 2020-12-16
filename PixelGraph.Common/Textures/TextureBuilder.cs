@@ -110,7 +110,10 @@ namespace PixelGraph.Common.Textures
                     return true;
                 }
 
-                if (TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
+                var autoGenOcclusion = Graph.Context.Profile?.AutoGenerateOcclusion
+                    ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
+
+                if (autoGenOcclusion && TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
                     mapping.SourceTag = TextureTags.OcclusionGenerated;
                     //mapping.ApplyInputChannel(inputChannel);
                     mapping.InputColor = ColorChannel.Red;

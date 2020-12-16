@@ -163,6 +163,21 @@ namespace PixelGraph.Common.Textures
             var textureEncodings = OutputEncoding
                 .Where(e => TextureTags.Is(e.Texture, tag));
 
+            float range;
+            if (Context.Profile.TextureSize.HasValue) {
+                if (width == Context.Profile.TextureSize) return null;
+
+                var aspect = height / (float) width;
+                options.TargetWidth = Context.Profile.TextureSize.Value;
+                options.TargetHeight = (int)(Context.Profile.TextureSize.Value * aspect);
+                range = width / (float)Context.Profile.TextureSize.Value;
+            }
+            else {
+                options.TargetWidth = (int)Math.Max(width * Context.Profile.TextureScale.Value, 1f);
+                options.TargetHeight = (int)Math.Max(height * Context.Profile.TextureScale.Value, 1f);
+                range = 1f / Context.Profile.TextureScale.Value;
+            }
+
             foreach (var encoding in textureEncodings) {
                 var color = encoding.Color ?? ColorChannel.None;
                 if (color == ColorChannel.None) continue;
@@ -171,6 +186,7 @@ namespace PixelGraph.Common.Textures
                 var sampler = Sampler.Create(samplerName) ?? new NearestSampler();
 
                 sampler.Image = image;
+                sampler.Range = range;
                 sampler.Wrap = Context.Material?.Wrap ?? true;
 
                 var channel = new ChannelResizeProcessor.ChannelOptions {
@@ -181,18 +197,6 @@ namespace PixelGraph.Common.Textures
                 };
 
                 options.Channels.Add(channel);
-            }
-
-            if (Context.Profile.TextureSize.HasValue) {
-                if (width == Context.Profile.TextureSize) return null;
-
-                var aspect = height / (float) width;
-                options.TargetWidth = Context.Profile.TextureSize.Value;
-                options.TargetHeight = (int)(Context.Profile.TextureSize.Value * aspect);
-            }
-            else {
-                options.TargetWidth = (int)Math.Max(width * Context.Profile.TextureScale.Value, 1f);
-                options.TargetHeight = (int)Math.Max(height * Context.Profile.TextureScale.Value, 1f);
             }
 
             var processor = new ChannelResizeProcessor(options);
@@ -292,10 +296,11 @@ namespace PixelGraph.Common.Textures
                 NormalTexture = builder.ImageResult?.Clone();
             }
 
-            if (NormalTexture == null) {
-                // generate
+            var autoGenNormal = Context.Profile?.AutoGenerateNormal
+                ?? ResourcePackProfileProperties.AutoGenerateNormalDefault;
+
+            if (NormalTexture == null && autoGenNormal)
                 NormalTexture = await GenerateNormalAsync(token);
-            }
 
             if (NormalTexture == null) return false;
 

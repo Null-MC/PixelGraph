@@ -59,6 +59,7 @@ namespace PixelGraph.Common.IO.Publishing
             var (width, height) = source.Size();
             var packSampler = Sampler.Create(Pack.Encoding.Sampler) ?? new NearestSampler();
             packSampler.Image = source;
+            //packSampler.Range = 1f;
             packSampler.Wrap = false;
 
             var options = new ResizeProcessor.Options {
@@ -75,11 +76,13 @@ namespace PixelGraph.Common.IO.Publishing
                 var aspect = height / (float) width;
                 targetWidth = Pack.TextureSize.Value;
                 targetHeight = (int)(Pack.TextureSize.Value * aspect);
+                packSampler.Range = options.SourceWidth / (float)Pack.TextureSize.Value;
             }
             else {
                 // scale all
                 targetWidth = (int)Math.Max(width * Pack.TextureScale.Value, 1f);
                 targetHeight = (int)Math.Max(height * Pack.TextureScale.Value, 1f);
+                packSampler.Range = 1f / Pack.TextureScale.Value;
             }
 
             var processor = new ResizeProcessor(options);

@@ -159,6 +159,7 @@ namespace PixelGraph.UI.ViewModels
             //Add(new Item {Text = "Point", Value = Sampler.Point});
             Add(new Item {Text = "Nearest", Value = Sampler.Nearest});
             Add(new Item {Text = "Bilinear", Value = Sampler.Bilinear});
+            Add(new Item {Text = "Average", Value = Sampler.Average});
             //Add(new Item {Text = "Cubic", Value = Sampler.Cubic});
             //Add(new Item {Text = "Bicubic", Value = Sampler.Bicubic});
         }

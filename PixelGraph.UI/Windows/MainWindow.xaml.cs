@@ -459,7 +459,19 @@ namespace PixelGraph.UI.Windows
         private async void OnRecentSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!(RecentList.SelectedItem is string item)) return;
-            await SetRootDirectoryAsync(item, CancellationToken.None);
+
+            try {
+                await SetRootDirectoryAsync(item, CancellationToken.None);
+            }
+            catch (DirectoryNotFoundException) {
+                Application.Current.Dispatcher.Invoke(() => {
+                    vm.RootDirectory = null;
+                    MessageBox.Show(this, "The selected resource pack directory could not be found!", "Error!");
+                });
+
+                var recent = provider.GetRequiredService<IRecentPathManager>();
+                await recent.RemoveAsync(item);
+            }
         }
 
         private async void OnOpenClick(object sender, RoutedEventArgs e)

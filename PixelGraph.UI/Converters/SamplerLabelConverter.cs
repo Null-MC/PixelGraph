@@ -12,6 +12,7 @@ namespace PixelGraph.UI.Converters
             //[Sampler.Point] = "Point",
             [Sampler.Nearest] = "Nearest",
             [Sampler.Bilinear] = "Bilinear",
+            [Sampler.Average] = "Average",
             //...
         };
 
