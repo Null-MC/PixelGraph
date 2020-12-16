@@ -81,68 +81,94 @@ namespace PixelGraph.Common.ResourcePack
 
         public void Merge(ResourcePackEncoding encoding)
         {
-            if (encoding.Alpha.HasMapping) Alpha = encoding.Alpha;
+            if (encoding.Alpha != null) Alpha.Merge(encoding.Alpha);
 
-            if (encoding.DiffuseRed.HasMapping) DiffuseRed = encoding.DiffuseRed;
-            if (encoding.DiffuseGreen.HasMapping) DiffuseGreen = encoding.DiffuseGreen;
-            if (encoding.DiffuseBlue.HasMapping) DiffuseBlue = encoding.DiffuseBlue;
+            if (encoding.DiffuseRed != null) DiffuseRed.Merge(encoding.DiffuseRed);
+            if (encoding.DiffuseGreen != null) DiffuseGreen.Merge(encoding.DiffuseGreen);
+            if (encoding.DiffuseBlue != null) DiffuseBlue.Merge(encoding.DiffuseBlue);
 
-            if (encoding.AlbedoRed.HasMapping) AlbedoRed = encoding.AlbedoRed;
-            if (encoding.AlbedoGreen.HasMapping) AlbedoGreen = encoding.AlbedoGreen;
-            if (encoding.AlbedoBlue.HasMapping) AlbedoBlue = encoding.AlbedoBlue;
+            if (encoding.AlbedoRed != null) AlbedoRed.Merge(encoding.AlbedoRed);
+            if (encoding.AlbedoGreen != null) AlbedoGreen.Merge(encoding.AlbedoGreen);
+            if (encoding.AlbedoBlue != null) AlbedoBlue.Merge(encoding.AlbedoBlue);
 
-            if (encoding.Height.HasMapping) Height = encoding.Height;
-            if (encoding.Occlusion.HasMapping) Occlusion = encoding.Occlusion;
+            if (encoding.Height != null) Height.Merge(encoding.Height);
+            if (encoding.Occlusion != null) Occlusion.Merge(encoding.Occlusion);
 
-            if (encoding.NormalX.HasMapping) NormalX = encoding.NormalX;
-            if (encoding.NormalY.HasMapping) NormalY = encoding.NormalY;
-            if (encoding.NormalZ.HasMapping) NormalZ = encoding.NormalZ;
+            if (encoding.NormalX != null) NormalX.Merge(encoding.NormalX);
+            if (encoding.NormalY != null) NormalY.Merge(encoding.NormalY);
+            if (encoding.NormalZ != null) NormalZ.Merge(encoding.NormalZ);
 
-            if (encoding.Specular.HasMapping) Specular = encoding.Specular;
+            if (encoding.Specular != null) Specular.Merge(encoding.Specular);
 
-            if (encoding.Smooth.HasMapping) Smooth = encoding.Smooth;
-            if (encoding.Rough.HasMapping) Rough = encoding.Rough;
+            if (encoding.Smooth != null) Smooth.Merge(encoding.Smooth);
+            if (encoding.Rough != null) Rough.Merge(encoding.Rough);
 
-            if (encoding.Metal.HasMapping) Metal = encoding.Metal;
+            if (encoding.Metal != null) Metal.Merge(encoding.Metal);
 
-            if (encoding.Porosity.HasMapping) Porosity = encoding.Porosity;
+            if (encoding.Porosity != null) Porosity.Merge(encoding.Porosity);
 
-            if (encoding.SSS.HasMapping) SSS = encoding.SSS;
+            if (encoding.SSS != null) SSS.Merge(encoding.SSS);
 
-            if (encoding.Emissive.HasMapping) Emissive = encoding.Emissive;
+            if (encoding.Emissive != null) Emissive.Merge(encoding.Emissive);
+
+
+
+            //if (encoding.AlbedoRed.HasMapping) AlbedoRed = encoding.AlbedoRed;
+            //if (encoding.AlbedoGreen.HasMapping) AlbedoGreen = encoding.AlbedoGreen;
+            //if (encoding.AlbedoBlue.HasMapping) AlbedoBlue = encoding.AlbedoBlue;
+
+            //if (encoding.Height.HasMapping) Height = encoding.Height;
+            //if (encoding.Occlusion.HasMapping) Occlusion = encoding.Occlusion;
+
+            //if (encoding.NormalX.HasMapping) NormalX = encoding.NormalX;
+            //if (encoding.NormalY.HasMapping) NormalY = encoding.NormalY;
+            //if (encoding.NormalZ.HasMapping) NormalZ = encoding.NormalZ;
+
+            //if (encoding.Specular.HasMapping) Specular = encoding.Specular;
+
+            //if (encoding.Smooth.HasMapping) Smooth = encoding.Smooth;
+            //if (encoding.Rough.HasMapping) Rough = encoding.Rough;
+
+            //if (encoding.Metal.HasMapping) Metal = encoding.Metal;
+
+            //if (encoding.Porosity.HasMapping) Porosity = encoding.Porosity;
+
+            //if (encoding.SSS.HasMapping) SSS = encoding.SSS;
+
+            //if (encoding.Emissive.HasMapping) Emissive = encoding.Emissive;
         }
 
         public void Merge(MaterialProperties material)
         {
-            if (material.Alpha?.Input?.HasMapping ?? false) Alpha = material.Alpha.Input;
+            if (material.Alpha?.Input != null) Alpha.Merge(material.Alpha.Input);
 
-            if (material.Diffuse?.InputRed?.HasMapping ?? false) DiffuseRed = material.Diffuse.InputRed;
-            if (material.Diffuse?.InputGreen?.HasMapping ?? false) DiffuseGreen = material.Diffuse.InputGreen;
-            if (material.Diffuse?.InputBlue?.HasMapping ?? false) DiffuseBlue = material.Diffuse.InputBlue;
+            if (material.Diffuse?.InputRed != null) DiffuseRed.Merge(material.Diffuse.InputRed);
+            if (material.Diffuse?.InputGreen != null) DiffuseGreen.Merge(material.Diffuse.InputGreen);
+            if (material.Diffuse?.InputBlue != null) DiffuseBlue.Merge(material.Diffuse.InputBlue);
 
-            if (material.Albedo?.InputRed?.HasMapping ?? false) AlbedoRed = material.Albedo.InputRed;
-            if (material.Albedo?.InputGreen?.HasMapping ?? false) AlbedoGreen = material.Albedo.InputGreen;
-            if (material.Albedo?.InputBlue?.HasMapping ?? false) AlbedoBlue = material.Albedo.InputBlue;
+            if (material.Albedo?.InputRed != null) AlbedoRed.Merge(material.Albedo.InputRed);
+            if (material.Albedo?.InputGreen != null) AlbedoGreen.Merge(material.Albedo.InputGreen);
+            if (material.Albedo?.InputBlue != null) AlbedoBlue.Merge(material.Albedo.InputBlue);
 
-            if (material.Height?.Input?.HasMapping ?? false) Height = material.Height.Input;
-            if (material.Occlusion?.Input?.HasMapping ?? false) Occlusion = material.Occlusion.Input;
+            if (material.Height?.Input != null) Height.Merge(material.Height.Input);
+            if (material.Occlusion?.Input != null) Occlusion.Merge(material.Occlusion.Input);
 
-            if (material.Normal?.InputX?.HasMapping ?? false) NormalX = material.Normal.InputX;
-            if (material.Normal?.InputY?.HasMapping ?? false) NormalY = material.Normal.InputY;
-            if (material.Normal?.InputZ?.HasMapping ?? false) NormalZ = material.Normal.InputZ;
+            if (material.Normal?.InputX != null) NormalX.Merge(material.Normal.InputX);
+            if (material.Normal?.InputY != null) NormalY.Merge(material.Normal.InputY);
+            if (material.Normal?.InputZ != null) NormalZ.Merge(material.Normal.InputZ);
 
-            if (material.Specular?.Input?.HasMapping ?? false) Specular = material.Specular.Input;
+            if (material.Specular?.Input != null) Specular.Merge(material.Specular.Input);
 
-            if (material.Smooth?.Input?.HasMapping ?? false) Smooth = material.Smooth.Input;
-            if (material.Rough?.Input?.HasMapping ?? false) Rough = material.Rough.Input;
+            if (material.Smooth?.Input != null) Smooth.Merge(material.Smooth.Input);
+            if (material.Rough?.Input != null) Rough.Merge(material.Rough.Input);
 
-            if (material.Metal?.Input?.HasMapping ?? false) Metal = material.Metal.Input;
+            if (material.Metal?.Input != null) Metal.Merge(material.Metal.Input);
 
-            if (material.Porosity?.Input?.HasMapping ?? false) Porosity = material.Porosity.Input;
+            if (material.Porosity?.Input != null) Porosity.Merge(material.Porosity.Input);
 
-            if (material.SSS?.Input?.HasMapping ?? false) SSS = material.SSS.Input;
+            if (material.SSS?.Input != null) SSS.Merge(material.SSS.Input);
 
-            if (material.Emissive?.Input?.HasMapping ?? false) Emissive = material.Emissive.Input;
+            if (material.Emissive?.Input != null) Emissive.Merge(material.Emissive.Input);
         }
 
         private IEnumerable<ResourcePackChannelProperties> GetAll()

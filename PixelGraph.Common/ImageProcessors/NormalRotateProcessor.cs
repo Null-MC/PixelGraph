@@ -33,8 +33,8 @@ namespace PixelGraph.Common.ImageProcessors
             var angleY = Math.Asin(vy) / MathEx.Deg2Rad;
 
             if (hasRotation) {
-                var fx = context.X / (double)context.Width;
-                var fy = context.Y / (double)context.Height;
+                var fx = (context.X + 0.5d) / context.Width;
+                var fy = (context.Y + 0.5d) / context.Height;
                 angleX += options.CurveX * (fx - 0.5d);
                 angleY += options.CurveY * (fy - 0.5d);
             }

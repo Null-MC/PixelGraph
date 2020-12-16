@@ -6,8 +6,8 @@ namespace PixelGraph.Common.Samplers
     {
         public override void Sample(in float fx, in float fy, out Rgba32 pixel)
         {
-            var px = (int) (fx + 0.5f);
-            var py = (int) (fy + 0.5f);
+            var px = (int) fx;
+            var py = (int) fy;
 
             if (Wrap) WrapCoords(ref px, ref py);
             else ClampCoords(ref px, ref py);

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Numerics;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace PixelGraph.Common.Extensions
 {
     internal static class MathEx
     {
         public const double Deg2Rad = Math.PI / 180;
-        public const float Deg2RadF = (float)Deg2Rad;
+        //public const float Deg2RadF = (float)Deg2Rad;
 
 
         public static void Normalize(ref Vector3 value)
@@ -24,6 +23,11 @@ namespace PixelGraph.Common.Extensions
             value.X /= length;
             value.Y /= length;
             value.Z /= length;
+        }
+
+        public static byte Clamp(int value)
+        {
+            return (byte)Math.Clamp(value, 0, 255);
         }
 
         public static byte Clamp(float value)

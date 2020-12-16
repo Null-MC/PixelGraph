@@ -28,7 +28,7 @@ namespace PixelGraph.Common.ImageProcessors
                 if (channel.HasRange) {
                     var channelMin = channel.MinValue ?? 0;
                     var channelMax = channel.MaxValue ?? 255;
-                    if (value <= channelMin || value > channelMax) continue;
+                    if (value < channelMin || value > channelMax) continue;
                 }
 
                 pixelOut.SetChannelValue(in channel.Color, in value);

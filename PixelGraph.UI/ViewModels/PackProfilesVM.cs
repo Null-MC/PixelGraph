@@ -205,6 +205,9 @@ namespace PixelGraph.UI.ViewModels
 
                 Emissive = new OutputChannelMapping("Emissive"),
             };
+
+            //Alpha.DataChanged += OnDataChanged;
+            //...
         }
 
         private void UpdateChannels()

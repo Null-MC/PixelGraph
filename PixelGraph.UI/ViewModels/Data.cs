@@ -94,6 +94,7 @@ namespace PixelGraph.UI.ViewModels
         public OptionalTextureTagValues()
         {
             Add(new Item {Text = "None", Value = TextureTags.None});
+            //Add(new Item {Text = "White", Value = TextureTags.White});
             Add(new Item {Text = "Alpha", Value = TextureTags.Alpha});
             Add(new Item {Text = "Diffuse", Value = TextureTags.Diffuse});
             Add(new Item {Text = "Albedo", Value = TextureTags.Albedo});

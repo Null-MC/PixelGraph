@@ -226,6 +226,12 @@ namespace PixelGraph.Common.Textures
                         MathEx.Saturate(value, out var finalValue);
                         MathEx.Cycle(ref finalValue, in options.OutputShift);
 
+                        if (options.OutputMin != 0 || options.OutputMax != 255) {
+                            var f = finalValue / 255f;
+                            var range = options.OutputMax - options.OutputMin;
+                            finalValue = MathEx.Clamp(options.OutputMin + (int) (f * range));
+                        }
+
                         defaultValues.SetChannelValue(mapping.OutputColor, finalValue);
                         return;
                     }
