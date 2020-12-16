@@ -37,11 +37,10 @@ namespace PixelGraph.Common.IO.Publishing
 
             var destinationFile = path == null ? newName : PathEx.Join(path, newName);
 
-            await PublishAsync(filename, null, destinationFile, context => {
-            }, token);
+            await PublishAsync(filename, null, destinationFile, token);
         }
 
-        protected async Task PublishAsync(string sourceFile, Rgba32? sourceColor, string destinationFile, Action<IImageProcessingContext> processAction, CancellationToken token = default)
+        protected async Task PublishAsync(string sourceFile, Rgba32? sourceColor, string destinationFile, CancellationToken token = default)
         {
             if (string.IsNullOrEmpty(destinationFile))
                 throw new ArgumentException("Value cannot be null or empty!", nameof(destinationFile));
@@ -50,7 +49,7 @@ namespace PixelGraph.Common.IO.Publishing
             using var resizedImage = Resize(sourceImage);
 
             await using var stream = Writer.Open(destinationFile);
-            await resizedImage.SaveAsPngAsync(stream, token);
+            await (resizedImage ?? sourceImage).SaveAsPngAsync(stream, token);
         }
 
         protected Image Resize(Image<Rgba32> source)
