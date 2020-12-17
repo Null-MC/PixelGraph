@@ -73,7 +73,7 @@ namespace PixelGraph.UI.ViewModels
         {
             LogList = new LogListVM();
 
-            SourceFormat = TextureEncoding.Format_Default;
+            SourceFormat = TextureEncoding.DefaultFormat;
             CopyUntracked = true;
             AsGlobal = false;
         }

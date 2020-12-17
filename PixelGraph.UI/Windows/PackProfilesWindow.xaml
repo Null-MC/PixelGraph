@@ -175,68 +175,166 @@
                             <DataGridTemplateColumn Header="Texture">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
-                                        <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value"
+                                        <Grid>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                       Text="{Binding Texture, Mode=OneWay, Converter={StaticResource TextureLabelConverter}}"
+                                                       Visibility="{Binding Texture, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
+                                                       Text="{Binding TextureDefault, Mode=OneWay, Converter={StaticResource TextureLabelConverter}}"
+                                                       Visibility="{Binding Texture, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value" HorizontalContentAlignment="Center" IsTabStop="False"
                                                              ItemsSource="{StaticResource TextureTags}"
                                                              Placeholder="{Binding TextureDefault, Mode=OneWay, Converter={StaticResource TextureLabelConverter}}"
                                                              SelectedValue="{Binding Texture, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="Color">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
-                                        <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value"
+                                        <Grid>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                       Text="{Binding Color, Mode=OneWay}"
+                                                       Visibility="{Binding Color, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
+                                                       Text="{Binding ColorDefault, Mode=OneWay}"
+                                                       Visibility="{Binding Color, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value" HorizontalContentAlignment="Center" IsTabStop="False"
                                                              ItemsSource="{StaticResource ColorChannels}"
                                                              Placeholder="{Binding ColorDefault, Mode=OneWay}"
                                                              SelectedValue="{Binding Color, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="Sampler">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
-                                        <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value"
+                                        <Grid>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                       Text="{Binding Sampler, Mode=OneWay, Converter={StaticResource SamplerLabelConverter}}"
+                                                       Visibility="{Binding Sampler, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
+                                                       Text="{Binding SamplerDefault, Mode=OneWay, Converter={StaticResource SamplerLabelConverter}}"
+                                                       Visibility="{Binding Sampler, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value" HorizontalContentAlignment="Center" IsTabStop="False"
                                                              ItemsSource="{StaticResource Samplers}"
                                                              Placeholder="{Binding SamplerDefault, Mode=OneWay, Converter={StaticResource SamplerLabelConverter}}"
                                                              SelectedValue="{Binding Sampler, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="Min">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
-                                        <controls:TextBoxEx HorizontalContentAlignment="Center"
+                                        <Grid>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                       Text="{Binding MinValue, Mode=OneWay}"
+                                                       Visibility="{Binding MinValue, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
+                                                       Text="{Binding MinDefault, Mode=OneWay}"
+                                                       Visibility="{Binding MinValue, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:TextBoxEx HorizontalContentAlignment="Center" IsTabStop="False"
                                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
                                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                                             Placeholder="{Binding MinDefault, Mode=OneWay}"
                                                             Text="{Binding MinValue, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="Max">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
-                                        <controls:TextBoxEx HorizontalContentAlignment="Center"
+                                        <Grid>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                       Text="{Binding MaxValue, Mode=OneWay}"
+                                                       Visibility="{Binding MaxValue, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
+                                                       Text="{Binding MaxDefault, Mode=OneWay}"
+                                                       Visibility="{Binding MaxValue, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:TextBoxEx HorizontalContentAlignment="Center" IsTabStop="False"
                                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
                                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                                             Placeholder="{Binding MaxDefault, Mode=OneWay}"
                                                             Text="{Binding MaxValue, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="Shift">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
-                                        <controls:TextBoxEx HorizontalContentAlignment="Center"
+                                        <Grid>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                       Text="{Binding Shift, Mode=OneWay}"
+                                                       Visibility="{Binding Shift, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
+                                                       Text="{Binding ShiftDefault, Mode=OneWay}"
+                                                       Visibility="{Binding Shift, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:TextBoxEx HorizontalContentAlignment="Center" IsTabStop="False"
                                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
                                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                                             Placeholder="{Binding ShiftDefault, Mode=OneWay}"
                                                             Text="{Binding Shift, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="Power">
                                 <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <Grid>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                       Text="{Binding Power, Mode=OneWay}"
+                                                       Visibility="{Binding Power, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
+                                                       Text="{Binding PowerDefault, Mode=OneWay}"
+                                                       Visibility="{Binding Power, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                                <DataGridTemplateColumn.CellEditingTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <controls:TextBoxEx HorizontalContentAlignment="Center"
                                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
@@ -244,7 +342,7 @@
                                                             Placeholder="{Binding PowerDefault, Mode=OneWay}"
                                                             Text="{Binding Power, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="Invert">
                                 <DataGridTemplateColumn.CellTemplate>

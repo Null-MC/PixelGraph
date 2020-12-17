@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using PixelGraph.Common;
 using PixelGraph.Common.Encoding;
@@ -20,11 +21,14 @@ namespace PixelGraph.UI.Windows
     public partial class PackProfilesWindow
     {
         private readonly IServiceProvider provider;
+        private readonly ILogger logger;
 
 
         public PackProfilesWindow(IServiceProvider provider)
         {
             this.provider = provider;
+
+            logger = provider.GetRequiredService<ILogger<PackProfilesWindow>>();
 
             InitializeComponent();
         }
@@ -74,7 +78,9 @@ namespace PixelGraph.UI.Windows
             if (profile?.LocalFile == null) return;
 
             var writer = provider.GetRequiredService<IOutputWriter>();
+            writer.SetRoot(VM.RootDirectory);
             writer.Delete(profile.LocalFile);
+
             VM.Profiles.Remove(profile);
         }
 
@@ -104,6 +110,7 @@ namespace PixelGraph.UI.Windows
                 await packWriter.WriteAsync(packProfile.LocalFile, packProfile);
             }
             catch (Exception error) {
+                logger.LogError(error, "Failed to save pack profile!");
                 ShowError($"Failed to save pack profile '{packProfile.LocalFile}'! {error.Message}");
             }
         }
@@ -124,12 +131,21 @@ namespace PixelGraph.UI.Windows
 
         private void OnDuplicateProfileClick(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            MessageBox.Show(this, "Not yet implemented.", "Sorry");
         }
 
         private void OnDeleteProfileClick(object sender, RoutedEventArgs e)
         {
-            DeleteSelectedProfile();
+            var result = MessageBox.Show(this, "Are you sure? This operation cannot be undone.", "Warning", MessageBoxButton.OKCancel);
+            if (result != MessageBoxResult.OK) return;
+
+            try {
+                DeleteSelectedProfile();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to delete profile!");
+                MessageBox.Show("Failed to delete profile!");
+            }
         }
 
         private async void OnProfileSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -143,6 +159,7 @@ namespace PixelGraph.UI.Windows
                     //vm.LoadedFilename = vm.SelectedProfileItem.Filename;
                 }
                 catch (Exception error) {
+                    logger.LogError(error, "Failed to delete pack profile!");
                     ShowError($"Failed to load pack profile '{VM.SelectedProfileItem.LocalFile}'! {error.Message}");
                 }
             }

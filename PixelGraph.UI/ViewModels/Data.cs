@@ -29,7 +29,8 @@ namespace PixelGraph.UI.ViewModels
         public EncodingFormatValues()
         {
             Add(new Item {Text = "Raw", Value = TextureEncoding.Format_Raw, Hint = "All texture channel mappings."});
-            Add(new Item {Text = "Default", Value = TextureEncoding.Format_Default});
+            Add(new Item {Text = "Albedo", Value = TextureEncoding.Format_Albedo});
+            Add(new Item {Text = "Diffuse", Value = TextureEncoding.Format_Diffuse});
             Add(new Item {Text = "Legacy", Value = TextureEncoding.Format_Legacy});
             Add(new Item {Text = "LAB 1.1", Value = TextureEncoding.Format_Lab11});
             Add(new Item {Text = "LAB 1.3", Value = TextureEncoding.Format_Lab13});
@@ -48,11 +49,12 @@ namespace PixelGraph.UI.ViewModels
         public OptionalEncodingFormatValues()
         {
             Add(new Item {Text = "None"});
-            Add(new Item {Text = "Raw", Value = TextureEncoding.Format_Raw, Hint = "All texture channel mappings."});
-            Add(new Item {Text = "Default", Value = TextureEncoding.Format_Default});
-            Add(new Item {Text = "Legacy", Value = TextureEncoding.Format_Legacy});
-            Add(new Item {Text = "LAB 1.1", Value = TextureEncoding.Format_Lab11});
-            Add(new Item {Text = "LAB 1.3", Value = TextureEncoding.Format_Lab13});
+            Add(new Item {Text = "Raw", Value = TextureEncoding.Format_Raw, Hint = "All texture channels stored separately."});
+            Add(new Item {Text = "Albedo", Value = TextureEncoding.Format_Albedo, Hint = "Only Albedo colors and Alpha."});
+            Add(new Item {Text = "Diffuse", Value = TextureEncoding.Format_Diffuse, Hint = "Only Diffuse colors and Alpha."});
+            Add(new Item {Text = "Legacy", Value = TextureEncoding.Format_Legacy, Hint = "Legacy greyscale specular."});
+            Add(new Item {Text = "LAB 1.1", Value = TextureEncoding.Format_Lab11, Hint = "Lab 1.1 encoding."});
+            Add(new Item {Text = "LAB 1.3", Value = TextureEncoding.Format_Lab13, Hint = "Lab 1.3 encoding."});
         }
 
         public class Item

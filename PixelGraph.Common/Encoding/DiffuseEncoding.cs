@@ -3,7 +3,7 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class DefaultEncoding : ITextureEncodingFactory
+    internal class DiffuseEncoding : ITextureEncodingFactory
     {
         public ResourcePackEncoding Create()
         {

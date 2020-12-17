@@ -185,7 +185,6 @@ namespace PixelGraph.UI.ViewModels
                 AlbedoBlue = new OutputChannelMapping("Albedo Blue"),
 
                 Height = new OutputChannelMapping("Height"),
-
                 Occlusion = new OutputChannelMapping("Ambient Occlusion"),
 
                 NormalX = new OutputChannelMapping("Normal-X"),
@@ -206,8 +205,35 @@ namespace PixelGraph.UI.ViewModels
                 Emissive = new OutputChannelMapping("Emissive"),
             };
 
-            //Alpha.DataChanged += OnDataChanged;
-            //...
+            Alpha.DataChanged += OnPropertyDataChanged;
+            
+            DiffuseRed.DataChanged += OnPropertyDataChanged;
+            DiffuseGreen.DataChanged += OnPropertyDataChanged;
+            DiffuseBlue.DataChanged += OnPropertyDataChanged;
+
+            AlbedoRed.DataChanged += OnPropertyDataChanged;
+            AlbedoGreen.DataChanged += OnPropertyDataChanged;
+            AlbedoBlue.DataChanged += OnPropertyDataChanged;
+
+            Height.DataChanged += OnPropertyDataChanged;
+            Occlusion.DataChanged += OnPropertyDataChanged;
+
+            NormalX.DataChanged += OnPropertyDataChanged;
+            NormalY.DataChanged += OnPropertyDataChanged;
+            NormalZ.DataChanged += OnPropertyDataChanged;
+
+            Specular.DataChanged += OnPropertyDataChanged;
+
+            Smooth.DataChanged += OnPropertyDataChanged;
+            Rough.DataChanged += OnPropertyDataChanged;
+
+            Metal.DataChanged += OnPropertyDataChanged;
+
+            Porosity.DataChanged += OnPropertyDataChanged;
+
+            SSS.DataChanged += OnPropertyDataChanged;
+
+            Emissive.DataChanged += OnPropertyDataChanged;
         }
 
         private void UpdateChannels()
@@ -280,6 +306,11 @@ namespace PixelGraph.UI.ViewModels
             Emissive.ApplyDefaultValues(encodingDefaults?.Emissive, sampler);
         }
 
+        private void OnPropertyDataChanged(object sender, EventArgs e)
+        {
+            OnDataChanged();
+        }
+
         private void OnDataChanged()
         {
             DataChanged?.Invoke(this, EventArgs.Empty);
@@ -320,6 +351,8 @@ namespace PixelGraph.UI.ViewModels
         private decimal? _powerDefault;
         private bool? _invertDefault;
 
+        public event EventHandler DataChanged;
+
         public string Label {get;}
 
         public string Texture {
@@ -329,6 +362,8 @@ namespace PixelGraph.UI.ViewModels
                 if (_channel.Texture == value) return;
                 _channel.Texture = value;
                 OnPropertyChanged();
+
+                OnDataChanged();
             }
         }
 
@@ -339,6 +374,8 @@ namespace PixelGraph.UI.ViewModels
                 if (_channel.Color == value) return;
                 _channel.Color = value;
                 OnPropertyChanged();
+
+                OnDataChanged();
             }
         }
 
@@ -349,6 +386,8 @@ namespace PixelGraph.UI.ViewModels
                 if (_channel.Sampler == value) return;
                 _channel.Sampler = value;
                 OnPropertyChanged();
+
+                OnDataChanged();
             }
         }
 
@@ -359,6 +398,8 @@ namespace PixelGraph.UI.ViewModels
                 if (_channel.MinValue == value) return;
                 _channel.MinValue = value;
                 OnPropertyChanged();
+
+                OnDataChanged();
             }
         }
 
@@ -369,6 +410,8 @@ namespace PixelGraph.UI.ViewModels
                 if (_channel.MaxValue == value) return;
                 _channel.MaxValue = value;
                 OnPropertyChanged();
+
+                OnDataChanged();
             }
         }
 
@@ -379,6 +422,8 @@ namespace PixelGraph.UI.ViewModels
                 if (_channel.Shift == value) return;
                 _channel.Shift = value;
                 OnPropertyChanged();
+
+                OnDataChanged();
             }
         }
 
@@ -389,6 +434,8 @@ namespace PixelGraph.UI.ViewModels
                 if (_channel.Power == value) return;
                 _channel.Power = value;
                 OnPropertyChanged();
+
+                OnDataChanged();
             }
         }
 
@@ -399,6 +446,8 @@ namespace PixelGraph.UI.ViewModels
                 if (_channel.Invert == value) return;
                 _channel.Invert = value;
                 OnPropertyChanged();
+
+                OnDataChanged();
             }
         }
 
@@ -516,6 +565,11 @@ namespace PixelGraph.UI.ViewModels
             Shift = null;
             Power = null;
             Invert = null;
+        }
+
+        private void OnDataChanged()
+        {
+            DataChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }
