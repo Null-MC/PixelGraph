@@ -192,8 +192,10 @@
                                          Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                         </Grid>
                     </DockPanel>
-                    <TreeView SelectedItemChanged="OnTextureTreeSelectedItemChanged" PreviewMouseRightButtonDown="OnContentTreePreviewMouseRightButtonDown"
-                             ItemsSource="{Binding TreeRoot.Nodes, Mode=OneWay}">
+                    <TreeView VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
+                              SelectedItemChanged="OnTextureTreeSelectedItemChanged"
+                              PreviewMouseRightButtonDown="OnContentTreePreviewMouseRightButtonDown"
+                              ItemsSource="{Binding TreeRoot.Nodes, Mode=OneWay}">
                         <TreeView.Resources>
                             <DataTemplate DataType="{x:Type vm:ContentTreeFile}">
                                 <StackPanel Orientation="Horizontal">
@@ -284,7 +286,7 @@
                                     <DockPanel MinWidth="12" MaxWidth="86">
                                         <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center"
                                                    Text="{Binding Name}"/>
-                                        <Border BorderThickness="1" BorderBrush="#666" Width="64" Height="64">
+                                        <Border BorderThickness="1" BorderBrush="#666" Width="48" Height="48">
                                             <Border.Background>
                                                 <ImageBrush ImageSource="/Resources/tiled_bg.png" Stretch="None" TileMode="Tile" Viewport="0,0,8,8" ViewportUnits="Absolute"/>
                                             </Border.Background>
