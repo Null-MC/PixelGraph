@@ -5,17 +5,17 @@ using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
 {
-    internal class BilinearSampler : SamplerBase
+    internal class BilinearSampler<TPixel> : SamplerBase<TPixel>
+        where TPixel : unmanaged, IPixel<TPixel>
     {
-        public override void Sample(in float fx, in float fy, out Rgba32 pixel)
+        public override void Sample(in float fx, in float fy, ref Rgba32 pixel)
         {
-            SampleScaled(in fx, in fy, out var vector);
-
-            pixel = new Rgba32();
+            var vector = new Vector4();
+            SampleScaled(in fx, in fy, ref vector);
             pixel.FromScaledVector4(vector);
         }
 
-        public override void SampleScaled(in float fx, in float fy, out Vector4 vector)
+        public override void SampleScaled(in float fx, in float fy, ref Vector4 vector)
         {
             var pxMin = (int)fx;
             var pxMax = pxMin + 1;
@@ -48,15 +48,17 @@ namespace PixelGraph.Common.Samplers
             MathEx.Lerp(in zMin, in zMax, in py, out vector);
         }
 
-        public override void Sample(in float fx, in float fy, in ColorChannel color, out byte pixelValue)
+        public override void Sample(in float fx, in float fy, in ColorChannel color, ref byte pixelValue)
         {
-            Sample(in fx, in fy, out var pixel);
+            var pixel = new Rgba32();
+            Sample(in fx, in fy, ref pixel);
             pixel.GetChannelValue(color, out pixelValue);
         }
 
-        public override void SampleScaled(in float fx, in float fy, in ColorChannel color, out float pixelValue)
+        public override void SampleScaled(in float fx, in float fy, in ColorChannel color, ref float pixelValue)
         {
-            SampleScaled(in fx, in fy, out var vector);
+            var vector = new Vector4();
+            SampleScaled(in fx, in fy, ref vector);
             vector.GetChannelValue(color, out pixelValue);
         }
     }

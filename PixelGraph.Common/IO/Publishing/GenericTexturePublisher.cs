@@ -52,17 +52,18 @@ namespace PixelGraph.Common.IO.Publishing
             await (resizedImage ?? sourceImage).SaveAsPngAsync(stream, token);
         }
 
-        protected Image Resize(Image<Rgba32> source)
+        protected Image Resize<TPixel>(Image<TPixel> source)
+            where TPixel : unmanaged, IPixel<TPixel>
         {
             if (!Pack.TextureSize.HasValue && !Pack.TextureScale.HasValue) return null;
 
             var (width, height) = source.Size();
-            var packSampler = Sampler.Create(Pack.Encoding.Sampler) ?? new NearestSampler();
+            var packSampler = Sampler<TPixel>.Create(Pack.Encoding.Sampler) ?? new NearestSampler<TPixel>();
             packSampler.Image = source;
             //packSampler.Range = 1f;
             packSampler.Wrap = false;
 
-            var options = new ResizeProcessor.Options {
+            var options = new ResizeProcessor<TPixel>.Options {
                 SourceWidth = width,
                 SourceHeight = height,
                 Sampler = packSampler,
@@ -85,7 +86,7 @@ namespace PixelGraph.Common.IO.Publishing
                 packSampler.Range = 1f / Pack.TextureScale.Value;
             }
 
-            var processor = new ResizeProcessor(options);
+            var processor = new ResizeProcessor<TPixel>(options);
             var resizedImage = new Image<Rgba32>(Configuration.Default, targetWidth, targetHeight);
 
             try {

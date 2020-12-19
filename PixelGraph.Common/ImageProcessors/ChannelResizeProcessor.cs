@@ -1,13 +1,14 @@
-﻿using PixelGraph.Common.PixelOperations;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Collections.Generic;
-using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class ChannelResizeProcessor : PixelProcessor
+    internal class ChannelResizeProcessor<TPixel> : PixelProcessor
+        where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly Options options;
 
@@ -22,8 +23,9 @@ namespace PixelGraph.Common.ImageProcessors
             var fx = context.X / (float)context.Width * options.SourceWidth;
             var fy = context.Y / (float)context.Height * options.SourceHeight;
 
+            byte value = 0;
             foreach (var channel in options.Channels) {
-                channel.Sampler.Sample(fx, fy, channel.Color, out var value);
+                channel.Sampler.Sample(fx, fy, channel.Color, ref value);
 
                 if (channel.HasRange) {
                     var channelMin = channel.MinValue ?? 0;
@@ -53,7 +55,7 @@ namespace PixelGraph.Common.ImageProcessors
         public class ChannelOptions
         {
             public ColorChannel Color;
-            public ISampler Sampler;
+            public ISampler<TPixel> Sampler;
             public byte? MinValue;
             public byte? MaxValue;
 

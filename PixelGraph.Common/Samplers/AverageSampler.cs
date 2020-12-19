@@ -3,13 +3,14 @@ using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
 {
-    internal class AverageSampler : SamplerBase
+    internal class AverageSampler<TPixel> : SamplerBase<TPixel>
+        where TPixel : unmanaged, IPixel<TPixel>
     {
-        public override void Sample(in float fx, in float fy, out Rgba32 pixel)
+        public override void Sample(in float fx, in float fy, ref Rgba32 pixel)
         {
-            var pxMin = (int)(fx);
+            var pxMin = (int)fx;
             var pxMax = (int)(fx + Range - 1);
-            var pyMin = (int)(fy);
+            var pyMin = (int)fy;
             var pyMax = (int)(fy + Range - 1);
 
             var color = new Vector4();

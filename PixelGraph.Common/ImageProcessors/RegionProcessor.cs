@@ -25,7 +25,7 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
-            public Image<Rgba32> Source {get; set;}
+            public Image Source {get; set;}
             public Point Offset;
         }
     }

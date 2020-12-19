@@ -25,15 +25,10 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
         {
-            //var sourceRow = options.Sampler.Image.GetPixelRowSpan(context.Y);
-
-            //var pixelIn = new Rgba32();
-            //sourceRow[context.X].ToRgba32(ref pixelIn);
-            //pixelIn.GetChannelValueScaled(in options.HeightChannel, out var height);
-            options.Sampler.SampleScaled(context.X, context.Y, in options.HeightChannel, out var height);
+            var height = 0f;
+            options.Sampler.SampleScaled(context.X, context.Y, in options.HeightChannel, ref height);
 
             // TODO: range, shift, power
-            //if (height < options.HeightMin || height > options.HeightMax) return;
             if (!options.HeightInvert) height = 1f - height;
 
             var z = height * options.ZScale + options.ZBias;
@@ -47,7 +42,7 @@ namespace PixelGraph.Common.ImageProcessors
                 position.Y = context.Y;
                 position.Z = z;
 
-                if (RayTest(ref position, in rayList.Value[i], in context))
+                if (RayTest(ref position, in rayList.Value[i]))
                     hitCount++;
             }
 
@@ -91,17 +86,18 @@ namespace PixelGraph.Common.ImageProcessors
             }
         }
 
-        private bool RayTest(ref Vector3 position, in Vector3 ray, in PixelContext context)
+        private bool RayTest(ref Vector3 position, in Vector3 ray)
         {
+            float height = 0;
+
             for (var step = 0; step < options.StepCount; step++) {
                 position += ray;
 
                 if (position.Z > options.ZScale) return false;
 
-                options.Sampler.SampleScaled(in position.X, in position.Y, options.HeightChannel, out var height);
+                options.Sampler.SampleScaled(in position.X, in position.Y, options.HeightChannel, ref height);
 
                 // TODO: range, shift, power
-                //if (height < options.HeightMin || height > options.HeightMax) return;
                 if (!options.HeightInvert) height = 1f - height;
 
                 if (position.Z < height * options.ZScale) return true;
@@ -112,9 +108,8 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
-            //public Image<Rgba32> HeightSource;
             public ColorChannel HeightChannel;
-            public ISampler Sampler;
+            public ISampler<Rgba32> Sampler;
             public byte HeightMin;
             public byte HeightMax;
             public short HeightShift;

@@ -15,19 +15,21 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures
 {
-    internal interface ITextureBuilder : IDisposable
+    internal interface ITextureBuilder<TPixel> : IDisposable
+        where TPixel : unmanaged, IPixel<TPixel>
     {
         ITextureGraph Graph {get; set;}
         MaterialProperties Material {get; set;}
         ResourcePackChannelProperties[] InputChannels {get; set;}
         ResourcePackChannelProperties[] OutputChannels {get; set;}
-        Image<Rgba32> ImageResult {get;}
+        Image<TPixel> ImageResult {get;}
         bool CreateEmpty {get; set;}
 
         Task BuildAsync(CancellationToken token = default);
     }
 
-    internal class TextureBuilder : ITextureBuilder
+    internal class TextureBuilder<TPixel> : ITextureBuilder<TPixel>
+        where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly IInputReader reader;
         private Rgba32 defaultValues;
@@ -36,7 +38,7 @@ namespace PixelGraph.Common.Textures
         public MaterialProperties Material {get; set;}
         public ResourcePackChannelProperties[] InputChannels {get; set;}
         public ResourcePackChannelProperties[] OutputChannels {get; set;}
-        public Image<Rgba32> ImageResult {get; private set;}
+        public Image<TPixel> ImageResult {get; private set;}
         public bool CreateEmpty {get; set;}
 
 
@@ -63,8 +65,8 @@ namespace PixelGraph.Common.Textures
                 await ApplyMappingAsync(mapping, token);
 
             if (ImageResult == null) {
-                var (width, height) = Graph.GetSourceSize();
-                ImageResult = new Image<Rgba32>(Configuration.Default, width, height, defaultValues);
+                var size = Graph.GetSourceSize();
+                CreateImageResult(in size);
             }
         }
 
@@ -88,7 +90,6 @@ namespace PixelGraph.Common.Textures
 
             var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
             var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
-            //var isOutputOcclusion = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Occlusion);
 
             if (TryGetChannelValue(outputChannel.ID, out var value)) {
                 mapping.InputValue = value;
@@ -115,27 +116,15 @@ namespace PixelGraph.Common.Textures
 
                 if (autoGenOcclusion && TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
                     mapping.SourceTag = TextureTags.OcclusionGenerated;
-                    //mapping.ApplyInputChannel(inputChannel);
                     mapping.InputColor = ColorChannel.Red;
                     mapping.InputMin = 0;
                     mapping.InputMax = 255;
                     mapping.InputShift = 0;
                     mapping.InputPower = 1f;
-                    mapping.InvertInput = true; //(inputChannel.Invert ?? false);
-                    //InputMin = channel.MinValue ?? 0;
-                    //InputMax = channel.MaxValue ?? 255;
-                    //InputShift = channel.Shift ?? 0;
-                    //InputPower = (float?)channel.Power ?? 1f;
-                    //InvertInput = channel.Invert ?? false;
+                    mapping.InvertInput = true;
                     return true;
                 }
             }
-
-            //if (isOutputOcclusion) {
-            //    mapping.SourceTag = TextureTags.OcclusionGenerated;
-            //    mapping.InputColor = ColorChannel.Red;
-            //    return true;
-            //}
 
             // Rough > Smooth
             if (isOutputSmooth && TryGetInputChannel(EncodingChannel.Rough, out var roughChannel)
@@ -154,13 +143,8 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
-            //return false;
             if (CreateEmpty) {
-                // WARN: TESTING! fallback to allow default value
                 mapping.InputValue = 0;
-                //var color = outputChannel.Color ?? ColorChannel.None;
-                //var defaultValue = outputChannel.MinValue ?? 0;
-                //defaultValues.SetChannelValue(color, defaultValue);
                 return true;
             }
 
@@ -175,85 +159,73 @@ namespace PixelGraph.Common.Textures
 
         private async Task ApplyMappingAsync(TextureChannelMapping mapping, CancellationToken token)
         {
-            Image<Rgba32> sourceImage = null;
-            var disposeSource = false;
-
-            try {
-                var options = new OverlayProcessor.Options {
-                    InputColor = mapping.InputColor,
-                    InputValue = mapping.InputValue,
-                    InputMin = mapping.InputMin,
-                    InputMax = mapping.InputMax,
-                    InputShift = mapping.InputShift,
-                    InputPower = mapping.InputPower,
-                    InvertInput = mapping.InvertInput,
-
-                    OutputColor = mapping.OutputColor,
-                    OutputMin = mapping.OutputMin,
-                    OutputMax = mapping.OutputMax,
-                    OutputShift = mapping.OutputShift,
-                    OutputPower = mapping.OutputPower,
-                    InvertOutput = mapping.InvertOutput,
-
+            if (mapping.SourceTag != null) {
+                var options = new OverlayProcessor<Rgb24>.Options {
+                    Mapping = mapping,
                     Scale = mapping.Scale,
                 };
 
-                if (mapping.SourceTag != null) {
-                    if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
-                        sourceImage = Graph.NormalTexture;
-                        options.Source = sourceImage;
-                    }
-                    else if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated)) {
-                        sourceImage = await Graph.GetGeneratedOcclusionAsync(token);
-                        options.Source = sourceImage;
-                    }
-                    else throw new ApplicationException($"No source mapped for tag '{mapping.SourceTag}'!");
+                if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
+                    options.Source = Graph.NormalTexture;
                 }
-                else if (mapping.SourceFilename != null) {
-                    await using var sourceStream = reader.Open(mapping.SourceFilename);
-                    sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
-                    options.Source = sourceImage;
-                    disposeSource = true;
+                else if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated)) {
+                    options.Source = await Graph.GetGeneratedOcclusionAsync(token);
                 }
+                else throw new ApplicationException($"No source mapped for tag '{mapping.SourceTag}'!");
 
                 if (ImageResult == null) {
-                    if (sourceImage == null) {
-                        var value = (mapping.InputValue ?? 0) / 255f * mapping.Scale;
-
-                        if (MathF.Abs(options.OutputPower - 1f) > float.Epsilon) {
-                            value = MathF.Pow(value, options.OutputPower);
-                        }
-
-                        if (options.InvertOutput) value = 1f - value;
-
-                        MathEx.Saturate(value, out var finalValue);
-                        MathEx.Cycle(ref finalValue, in options.OutputShift);
-
-                        if (options.OutputMin != 0 || options.OutputMax != 255) {
-                            var f = finalValue / 255f;
-                            var range = options.OutputMax - options.OutputMin;
-                            finalValue = MathEx.Clamp(options.OutputMin + (int) (f * range), options.OutputMin, options.OutputMax);
-                        }
-
-                        defaultValues.SetChannelValue(mapping.OutputColor, finalValue);
-                        return;
-                    }
-                    else {
-                        int width, height;
-                        (width, height) = sourceImage.Size();
-
-                        ImageResult = new Image<Rgba32>(width, height, defaultValues);
-                    }
+                    var size = options.Source.Size();
+                    CreateImageResult(in size);
                 }
 
-                if (options.InputValue.HasValue || options.Source != null) {
-                    var processor = new OverlayProcessor(options);
-                    ImageResult.Mutate(context => context.ApplyProcessor(processor));
+                var processor = new OverlayProcessor<Rgb24>(options);
+                ImageResult.Mutate(context => context.ApplyProcessor(processor));
+            }
+            else if (mapping.SourceFilename != null) {
+                await using var sourceStream = reader.Open(mapping.SourceFilename);
+                using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
+
+                var options = new OverlayProcessor<Rgba32>.Options {
+                    Mapping = mapping,
+                    Scale = mapping.Scale,
+                    Source = sourceImage,
+                };
+
+                if (ImageResult == null) {
+                    var size = options.Source.Size();
+                    CreateImageResult(in size);
                 }
+
+                var processor = new OverlayProcessor<Rgba32>(options);
+                ImageResult.Mutate(context => context.ApplyProcessor(processor));
             }
-            finally {
-                if (disposeSource) sourceImage?.Dispose();
+            else {
+                var value = (mapping.InputValue ?? 0) / 255f * mapping.Scale;
+
+                if (MathF.Abs(mapping.OutputPower - 1f) > float.Epsilon) {
+                    value = MathF.Pow(value, mapping.OutputPower);
+                }
+
+                if (mapping.InvertOutput) value = 1f - value;
+
+                MathEx.Saturate(value, out var finalValue);
+                MathEx.Cycle(ref finalValue, in mapping.OutputShift);
+
+                if (mapping.OutputMin != 0 || mapping.OutputMax != 255) {
+                    var f = finalValue / 255f;
+                    var range = mapping.OutputMax - mapping.OutputMin;
+                    finalValue = MathEx.Clamp(mapping.OutputMin + (int) (f * range), mapping.OutputMin, mapping.OutputMax);
+                }
+
+                defaultValues.SetChannelValue(in mapping.OutputColor, in finalValue);
             }
+        }
+
+        private void CreateImageResult(in Size size)
+        {
+            var pixel = new TPixel();
+            pixel.FromRgba32(defaultValues);
+            ImageResult = new Image<TPixel>(Configuration.Default, size.Width, size.Height, pixel);
         }
 
         private bool TryGetSourceFilename(string tag, out string filename)
@@ -338,14 +310,14 @@ namespace PixelGraph.Common.Textures
         public byte? InputValue;
         public byte InputMin;
         public byte InputMax;
-        public short InputShift;
+        public int InputShift;
         public float InputPower;
         public bool InvertInput;
 
         public ColorChannel OutputColor;
         public byte OutputMin;
         public byte OutputMax;
-        public short OutputShift;
+        public int OutputShift;
         public float OutputPower;
         public bool InvertOutput;
 

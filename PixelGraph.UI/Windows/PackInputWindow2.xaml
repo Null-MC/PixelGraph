@@ -22,7 +22,7 @@
     </Window.DataContext>
     <Window.Resources>
         <vm:OptionalEncodingFormatValues x:Key="Formats"/>
-        <vm:TextureTagValues x:Key="TextureTags"/>
+        <vm:OptionalTextureTagValues x:Key="TextureTags"/>
         <vm:ColorChannelValues x:Key="ColorChannels"/>
         <converters:TextureLabelConverter x:Key="TextureTagConverter"/>
         <converters:NullableConverter x:Key="NullableConverter"/>

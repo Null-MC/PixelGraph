@@ -2,6 +2,7 @@
 using PixelGraph.Common.Encoding;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.ResourcePack;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Linq;
 using System.Threading;
@@ -54,6 +55,7 @@ namespace PixelGraph.Common.Textures
             graph.InputEncoding = inputEncoding.GetMapped().ToList();
             graph.OutputEncoding = outputEncoding.GetMapped().ToList();
             graph.UseGlobalOutput = UseGlobalOutput;
+            graph.CreateEmpty = true;
             graph.Context = context;
 
             await ProcessAllTexturesAsync(graph, token);
@@ -74,9 +76,10 @@ namespace PixelGraph.Common.Textures
             // TODO: layer material properties on top of pack encoding?
 
             using var graph = provider.GetRequiredService<ITextureGraph>();
-            graph.InputEncoding = context.Profile.Encoding.GetMapped().ToList();
-            graph.OutputEncoding = context.Input.GetMapped().ToList();
+            graph.InputEncoding = inputEncoding.GetMapped().ToList();
+            graph.OutputEncoding = outputEncoding.GetMapped().ToList();
             graph.UseGlobalOutput = UseGlobalOutput;
+            graph.CreateEmpty = false;
             graph.Context = context;
 
             await ProcessAllTexturesAsync(graph, token);
@@ -107,8 +110,16 @@ namespace PixelGraph.Common.Textures
                 var tagOutputEncoding = graph.OutputEncoding
                     .Where(e => TextureTags.Is(e.Texture, tag)).ToArray();
 
-                if (tagOutputEncoding.Any())
-                    await graph.BuildFinalImageAsync(tag, token);
+                if (tagOutputEncoding.Any()) {
+                    var hasAlpha = tagOutputEncoding.Any(c => c.Color == ColorChannel.Alpha);
+
+                    if (hasAlpha) {
+                        await graph.BuildFinalImageAsync<Rgba32>(tag, token);
+                    }
+                    else {
+                        await graph.BuildFinalImageAsync<Rgb24>(tag, token);
+                    }
+                }
 
                 await CopyMetaAsync(graph.Context, tag, token);
             }

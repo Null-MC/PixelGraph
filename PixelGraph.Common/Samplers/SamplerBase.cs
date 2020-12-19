@@ -6,30 +6,34 @@ using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
 {
-    internal abstract class SamplerBase : ISampler
+    internal abstract class SamplerBase<TPixel> : ISampler<TPixel>
+        where TPixel : unmanaged, IPixel<TPixel>
     {
-        public Image<Rgba32> Image {get; set;}
+        public Image<TPixel> Image {get; set;}
         public float Range {get; set;}
         public bool Wrap {get; set;}
 
 
-        public abstract void Sample(in float fx, in float fy, out Rgba32 pixel);
+        public abstract void Sample(in float fx, in float fy, ref Rgba32 pixel);
 
-        public virtual void SampleScaled(in float fx, in float fy, out Vector4 vector)
+        public virtual void SampleScaled(in float fx, in float fy, ref Vector4 vector)
         {
-            Sample(in fx, in fy, out var pixel);
+            var pixel = new Rgba32();
+            Sample(in fx, in fy, ref pixel);
             vector = pixel.ToScaledVector4();
         }
 
-        public virtual void Sample(in float fx, in float fy, in ColorChannel color, out byte pixelValue)
+        public virtual void Sample(in float fx, in float fy, in ColorChannel color, ref byte pixelValue)
         {
-            Sample(in fx, in fy, out var pixel);
+            var pixel = new Rgba32();
+            Sample(in fx, in fy, ref pixel);
             pixel.GetChannelValue(in color, out pixelValue);
         }
 
-        public virtual void SampleScaled(in float fx, in float fy, in ColorChannel color, out float pixelValue)
+        public virtual void SampleScaled(in float fx, in float fy, in ColorChannel color, ref float pixelValue)
         {
-            Sample(in fx, in fy, in color, out var _value);
+            byte _value = 0;
+            Sample(in fx, in fy, in color, ref _value);
             pixelValue = _value / 255f;
         }
 

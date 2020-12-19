@@ -8,6 +8,7 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
@@ -23,16 +24,19 @@ namespace PixelGraph.Common.Textures
         MaterialContext Context {get; set;}
         List<ResourcePackChannelProperties> InputEncoding {get; set;}
         List<ResourcePackChannelProperties> OutputEncoding {get; set;}
-        Image<Rgba32> NormalTexture {get;}
+        Image<Rgb24> NormalTexture {get;}
         bool UseGlobalOutput {get; set;}
+        bool CreateEmpty {get; set;}
 
         Task BuildNormalTextureAsync(CancellationToken token = default);
-        Task BuildFinalImageAsync(string textureTag, CancellationToken token = default);
-        (int, int) GetSourceSize();
+        Size GetSourceSize();
 
-        Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token = default);
-        Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default);
-        Task<Image<Rgba32>> GetGeneratedOcclusionAsync(CancellationToken token = default);
+        Task BuildFinalImageAsync<TPixel>(string textureTag, CancellationToken token = default)
+            where TPixel : unmanaged, IPixel<TPixel>;
+
+        Task<Image<Rgb24>> GenerateNormalAsync(CancellationToken token = default);
+        Task<Image<Rgb24>> GenerateOcclusionAsync(CancellationToken token = default);
+        Task<Image<Rgb24>> GetGeneratedOcclusionAsync(CancellationToken token = default);
     }
 
     internal class TextureGraph : ITextureGraph
@@ -42,13 +46,14 @@ namespace PixelGraph.Common.Textures
         private readonly INamingStructure naming;
         private readonly IImageWriter imageWriter;
         private readonly ILogger logger;
-        private Image<Rgba32> occlusionTexture;
+        private Image<Rgb24> occlusionTexture;
 
         public MaterialContext Context {get; set;}
         public List<ResourcePackChannelProperties> InputEncoding {get; set;}
         public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
-        public Image<Rgba32> NormalTexture {get; private set;}
+        public Image<Rgb24> NormalTexture {get; private set;}
         public bool UseGlobalOutput {get; set;}
+        public bool CreateEmpty {get; set;}
 
 
         public TextureGraph(IServiceProvider provider)
@@ -88,13 +93,15 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        public async Task BuildFinalImageAsync(string textureTag, CancellationToken token = default)
+        public async Task BuildFinalImageAsync<TPixel>(string textureTag, CancellationToken token = default)
+            where TPixel : unmanaged, IPixel<TPixel>
         {
-            using var builder = provider.GetRequiredService<ITextureBuilder>();
+            using var builder = provider.GetRequiredService<ITextureBuilder<TPixel>>();
 
             builder.Graph = this;
             builder.Material = Context.Material;
             builder.InputChannels = InputEncoding.ToArray();
+            builder.CreateEmpty = CreateEmpty;
 
             builder.OutputChannels = OutputEncoding.Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
 
@@ -121,7 +128,9 @@ namespace PixelGraph.Common.Textures
                         await imageWriter.WriteAsync(builder.ImageResult, destFile, imageFormat, token);
                     }
                     else {
-                        using var regionImage = GetImageRegion(builder.ImageResult, region.GetRectangle());
+                        var bounds = region.GetRectangle();
+                        using var regionImage = builder.ImageResult
+                            .Clone(c => c.Crop(bounds));
 
                         // TODO: move resize before regions; then scale regions to match
                         using var resizedRegionImage = Resize(regionImage, textureTag);
@@ -146,7 +155,8 @@ namespace PixelGraph.Common.Textures
             //await CopyMetaAsync(graph.Context, tag, token);
         }
 
-        private Image<Rgba32> Resize(Image<Rgba32> image, string tag)
+        private Image Resize<TPixel>(Image<TPixel> image, string tag)
+            where TPixel : unmanaged, IPixel<TPixel>
         {
             if (image == null) throw new ArgumentNullException(nameof(image));
 
@@ -155,7 +165,7 @@ namespace PixelGraph.Common.Textures
 
             var (width, height) = image.Size();
 
-            var options = new ChannelResizeProcessor.Options {
+            var options = new ChannelResizeProcessor<TPixel>.Options {
                 SourceWidth = width,
                 SourceHeight = height,
             };
@@ -183,13 +193,13 @@ namespace PixelGraph.Common.Textures
                 if (color == ColorChannel.None) continue;
 
                 var samplerName = encoding.Sampler ?? Context.Profile.Encoding?.Sampler;
-                var sampler = Sampler.Create(samplerName) ?? new NearestSampler();
+                var sampler = Sampler<TPixel>.Create(samplerName) ?? new NearestSampler<TPixel>();
 
                 sampler.Image = image;
                 sampler.Range = range;
                 sampler.Wrap = Context.Material?.Wrap ?? true;
 
-                var channel = new ChannelResizeProcessor.ChannelOptions {
+                var channel = new ChannelResizeProcessor<TPixel>.ChannelOptions {
                     Color = color,
                     MinValue = encoding.MinValue,
                     MaxValue = encoding.MaxValue,
@@ -199,8 +209,9 @@ namespace PixelGraph.Common.Textures
                 options.Channels.Add(channel);
             }
 
-            var processor = new ChannelResizeProcessor(options);
-            var resizedImage = new Image<Rgba32>(Configuration.Default, options.TargetWidth, options.TargetHeight);
+            var sourceConfig = image.GetConfiguration();
+            var processor = new ChannelResizeProcessor<TPixel>(options);
+            var resizedImage = new Image<TPixel>(sourceConfig, options.TargetWidth, options.TargetHeight);
 
             try {
                 resizedImage.Mutate(c => c.ApplyProcessor(processor));
@@ -212,32 +223,7 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private Image<Rgba32> GetImageRegion(Image<Rgba32> sourceImage, Rectangle bounds)
-        {
-            Image<Rgba32> regionImage = null;
-            try {
-                regionImage = new Image<Rgba32>(Configuration.Default, bounds.Width, bounds.Height);
-
-                // TODO: copy region from source
-                var options = new RegionProcessor.Options {
-                    Source = sourceImage,
-                    Offset = bounds.Location,
-                };
-
-                regionImage.Mutate(context => {
-                    var processor = new RegionProcessor(options);
-                    context.ApplyProcessor(processor);
-                });
-
-                return regionImage;
-            }
-            catch {
-                regionImage?.Dispose();
-                throw;
-            }
-        }
-
-        public async Task<Image<Rgba32>> GetGeneratedOcclusionAsync(CancellationToken token = default)
+        public async Task<Image<Rgb24>> GetGeneratedOcclusionAsync(CancellationToken token = default)
         {
             if (occlusionTexture == null) {
                 try {
@@ -267,7 +253,7 @@ namespace PixelGraph.Common.Textures
 
             if (hasNormalX && hasNormalY) {
                 // make image from normal X & Y; z if found
-                using var builder = provider.GetRequiredService<ITextureBuilder>();
+                using var builder = provider.GetRequiredService<ITextureBuilder<Rgb24>>();
 
                 builder.Graph = this;
                 builder.Material = Context.Material;
@@ -293,7 +279,7 @@ namespace PixelGraph.Common.Textures
 
                 await builder.BuildAsync(token);
 
-                NormalTexture = builder.ImageResult?.Clone();
+                NormalTexture = builder.ImageResult?.CloneAs<Rgb24>();
             }
 
             var autoGenNormal = Context.Profile?.AutoGenerateNormal
@@ -318,7 +304,7 @@ namespace PixelGraph.Common.Textures
             return true;
         }
 
-        public async Task<Image<Rgba32>> GenerateNormalAsync(CancellationToken token)
+        public async Task<Image<Rgb24>> GenerateNormalAsync(CancellationToken token)
         {
             logger.LogInformation("Generating normal map for texture {DisplayName}.", Context.Material.DisplayName);
 
@@ -328,7 +314,6 @@ namespace PixelGraph.Common.Textures
                 throw new HeightSourceEmptyException("No height sources mapped!");
 
             Image<Rgba32> heightTexture = null;
-            var heightColor = heightChannel.Color ?? ColorChannel.None;
             var heightValue = Context.Material.Height?.Value;
 
             try {
@@ -347,10 +332,9 @@ namespace PixelGraph.Common.Textures
                     if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
                 }
                 else if (heightValue.HasValue) {
-                    var color = new Rgba32();
-                    color.SetChannelValue(heightColor, heightValue.Value);
+                    var up = new Rgb24(127, 127, 255);
                     var (width, height) = GetSourceSize();
-                    heightTexture = new Image<Rgba32>(width, height, color);
+                    return new Image<Rgb24>(Configuration.Default, width, height, up);
                 }
                 else throw new HeightSourceEmptyException();
                 
@@ -362,7 +346,7 @@ namespace PixelGraph.Common.Textures
                 };
 
                 var processor = new NormalMapProcessor(options);
-                var image = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
+                var image = new Image<Rgb24>(Configuration.Default, heightTexture.Width, heightTexture.Height);
                 image.Mutate(c => c.ApplyProcessor(processor));
                 return image;
             }
@@ -371,7 +355,7 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        public async Task<Image<Rgba32>> GenerateOcclusionAsync(CancellationToken token = default)
+        public async Task<Image<Rgb24>> GenerateOcclusionAsync(CancellationToken token = default)
         {
             logger.LogInformation("Generating occlusion map for texture {DisplayName}.", Context.Material.DisplayName);
 
@@ -403,7 +387,7 @@ namespace PixelGraph.Common.Textures
                 if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
                 var options = new OcclusionProcessor.Options {
-                    Sampler = new BilinearSampler {
+                    Sampler = new BilinearSampler<Rgba32> {
                         Image = heightTexture,
                         Wrap = Context.Material?.Wrap ?? MaterialProperties.DefaultWrap,
                     },
@@ -424,7 +408,7 @@ namespace PixelGraph.Common.Textures
                 };
 
                 var processor = new OcclusionProcessor(options);
-                var image = new Image<Rgba32>(Configuration.Default, heightTexture.Width, heightTexture.Height);
+                var image = new Image<Rgb24>(Configuration.Default, heightTexture.Width, heightTexture.Height);
                 image.Mutate(c => c.ApplyProcessor(processor));
                 return image;
             }
@@ -434,13 +418,12 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        public (int, int) GetSourceSize()
+        public Size GetSourceSize()
         {
-            if (Context.Material.TryGetSourceBounds(out var size))
-                return (size.Width, size.Height);
+            if (Context.Material.TryGetSourceBounds(out var size)) return size;
 
             var length = Context.Profile.TextureSize ?? 1;
-            return (length, length);
+            return new Size(length, length);
         }
     }
 }

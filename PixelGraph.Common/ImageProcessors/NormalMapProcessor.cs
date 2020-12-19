@@ -32,13 +32,10 @@ namespace PixelGraph.Common.ImageProcessors
             MathEx.Saturate(normal.X * 0.5f + 0.5f, out pixel.R);
             MathEx.Saturate(normal.Y * 0.5f + 0.5f, out pixel.G);
             MathEx.Saturate(normal.Z, out pixel.B);
-            pixel.A = 255;
         }
 
         private void PopulateKernel_3x3(ref float[,] kernel, in PixelContext context)
         {
-            var pixel = new Rgba32();
-
             for (var kY = 0; kY < 3; kY++) {
                 for (var kX = 0; kX < 3; kX++) {
                     var pX = context.X + kX - 1;
@@ -48,7 +45,7 @@ namespace PixelGraph.Common.ImageProcessors
                     else context.Clamp(ref pX, ref pY);
 
                     // TODO: Add read-row caching
-                    options.Source[pX, pY].ToRgba32(ref pixel);
+                    var pixel = options.Source[pX, pY].Rgb;
                     pixel.GetChannelValue(in options.HeightChannel, out var height);
                     kernel[kX, kY] = height / 255f;
                 }

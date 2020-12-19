@@ -4,7 +4,8 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class ResizeProcessor : PixelProcessor
+    internal class ResizeProcessor<TPixel> : PixelProcessor
+        where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly Options options;
 
@@ -19,12 +20,12 @@ namespace PixelGraph.Common.ImageProcessors
             var fx = context.X / (float)context.Width * options.SourceWidth;
             var fy = context.Y / (float)context.Height * options.SourceHeight;
 
-            options.Sampler.Sample(fx, fy, out pixelOut);
+            options.Sampler.Sample(fx, fy, ref pixelOut);
         }
 
         public class Options
         {
-            public ISampler Sampler {get; set;}
+            public ISampler<TPixel> Sampler {get; set;}
             public int SourceWidth;
             public int SourceHeight;
         }

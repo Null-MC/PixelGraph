@@ -1,11 +1,21 @@
-﻿using System;
-using PixelGraph.Common.Textures;
+﻿using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
 
 namespace PixelGraph.Common.Extensions
 {
     internal static class ColorExtensions
     {
+        public static void GetChannelValue(this in Rgb24 pixel, in ColorChannel channel, out byte value)
+        {
+            value = channel switch {
+                ColorChannel.Red => pixel.R,
+                ColorChannel.Green => pixel.G,
+                ColorChannel.Blue => pixel.B,
+                _ => 0,
+            };
+        }
+
         public static void GetChannelValue(this in Rgba32 pixel, in ColorChannel channel, out byte value)
         {
             value = channel switch {

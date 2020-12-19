@@ -7,7 +7,8 @@ using System;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class OverlayProcessor : PixelProcessor
+    internal class OverlayProcessor<TPixel> : PixelProcessor
+        where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly Options options;
 
@@ -19,21 +20,24 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
         {
+            var mapping = options.Mapping;
+
             byte value;
-            if (options.InputValue.HasValue) {
-                value = options.InputValue.Value;
+            if (mapping.InputValue.HasValue) {
+                value = mapping.InputValue.Value;
             }
             else {
-                var pixelIn = options.Source[context.X, context.Y];
-                pixelIn.GetChannelValue(in options.InputColor, out var rawValue);
+                var pixelIn = new Rgba32();
+                options.Source[context.X, context.Y].ToRgba32(ref pixelIn);
+                pixelIn.GetChannelValue(in mapping.InputColor, out var rawValue);
 
-                if (options.InputMin != 0 || options.InputMax != 255) {
+                if (mapping.InputMin != 0 || mapping.InputMax != 255) {
                     // Discard operation if source value outside bounds
-                    if (rawValue < options.InputMin || rawValue > options.InputMax) return;
+                    if (rawValue < mapping.InputMin || rawValue > mapping.InputMax) return;
 
                     // Input: scale to range
-                    var offset = rawValue - options.InputMin;
-                    var range = options.InputMax - options.InputMin;
+                    var offset = rawValue - mapping.InputMin;
+                    var range = mapping.InputMax - mapping.InputMin;
                     MathEx.Saturate(offset / (float)range, out value);
                 }
                 else {
@@ -41,14 +45,14 @@ namespace PixelGraph.Common.ImageProcessors
                 }
 
                 // Input: cycle
-                MathEx.Cycle(ref value, -options.InputShift);
+                MathEx.Cycle(ref value, -mapping.InputShift);
 
                 // Input: invert
-                if (options.InvertInput) value = (byte)(255 - value);
+                if (mapping.InvertInput) value = (byte)(255 - value);
 
                 // Input: power
-                if (MathF.Abs(options.InputPower - 1f) > float.Epsilon) {
-                    var x = MathF.Pow(value / 255f, 1f / options.InputPower);
+                if (MathF.Abs(mapping.InputPower - 1f) > float.Epsilon) {
+                    var x = MathF.Pow(value / 255f, 1f / mapping.InputPower);
                     MathEx.Saturate(in x, out value);
                 }
             }
@@ -62,46 +66,31 @@ namespace PixelGraph.Common.ImageProcessors
                 fValue *= options.Scale;
 
             // Output: power
-            if (MathF.Abs(options.OutputPower - 1f) > float.Epsilon) {
-                fValue = MathF.Pow(fValue, options.OutputPower);
+            if (MathF.Abs(mapping.OutputPower - 1f) > float.Epsilon) {
+                fValue = MathF.Pow(fValue, mapping.OutputPower);
             }
 
             // Output: invert
-            if (options.InvertOutput) fValue = 1f - fValue;
+            if (mapping.InvertOutput) fValue = 1f - fValue;
 
             // Output: convert to byte and shift
             MathEx.Saturate(in fValue, out value);
-            MathEx.Cycle(ref value, options.OutputShift);
+            MathEx.Cycle(ref value, mapping.OutputShift);
 
             // Output: scale to range
-            if (options.OutputMin != 0 || options.OutputMax != 255) {
+            if (mapping.OutputMin != 0 || mapping.OutputMax != 255) {
                 var f = value / 255f;
-                var range = options.OutputMax - options.OutputMin;
-                value = MathEx.Clamp(options.OutputMin + (int) (f * range));
+                var range = mapping.OutputMax - mapping.OutputMin;
+                value = MathEx.Clamp(mapping.OutputMin + (int) (f * range));
             }
 
-            pixelOut.SetChannelValue(options.OutputColor, value);
+            pixelOut.SetChannelValue(mapping.OutputColor, value);
         }
 
         public class Options
         {
-            public Image<Rgba32> Source;
-
-            public bool InvertInput;
-            public ColorChannel InputColor;
-            public byte? InputValue;
-            public byte InputMin;
-            public byte InputMax;
-            public short InputShift;
-            public float InputPower;
-
-            public bool InvertOutput;
-            public ColorChannel OutputColor;
-            public byte OutputMin;
-            public byte OutputMax;
-            public int OutputShift;
-            public float OutputPower;
-
+            public Image<TPixel> Source;
+            public TextureChannelMapping Mapping;
             public float Scale = 1f;
         }
     }
