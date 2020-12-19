@@ -61,8 +61,14 @@ namespace PixelGraph.Common.Textures
 
             if (!CreateEmpty && mappings.Count == 0) return;
 
-            foreach (var mapping in mappings)
-                await ApplyMappingAsync(mapping, token);
+            foreach (var mapping in mappings) {
+                try {
+                    await ApplyMappingAsync(mapping, token);
+                }
+                catch (SourceEmptyException) {
+                    // TODO: log
+                }
+            }
 
             if (ImageResult == null) {
                 var size = Graph.GetSourceSize();
@@ -171,7 +177,9 @@ namespace PixelGraph.Common.Textures
                 else if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated)) {
                     options.Source = await Graph.GetGeneratedOcclusionAsync(token);
                 }
-                else throw new ApplicationException($"No source mapped for tag '{mapping.SourceTag}'!");
+
+                if (options.Source == null)
+                    throw new SourceEmptyException($"No source mapped for tag '{mapping.SourceTag}'!");
 
                 if (ImageResult == null) {
                     var size = options.Source.Size();
@@ -180,8 +188,10 @@ namespace PixelGraph.Common.Textures
 
                 var processor = new OverlayProcessor<Rgb24>(options);
                 ImageResult.Mutate(context => context.ApplyProcessor(processor));
+                return;
             }
-            else if (mapping.SourceFilename != null) {
+            
+            if (mapping.SourceFilename != null) {
                 await using var sourceStream = reader.Open(mapping.SourceFilename);
                 using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
 
@@ -198,27 +208,27 @@ namespace PixelGraph.Common.Textures
 
                 var processor = new OverlayProcessor<Rgba32>(options);
                 ImageResult.Mutate(context => context.ApplyProcessor(processor));
+                return;
             }
-            else {
-                var value = (mapping.InputValue ?? 0) / 255f * mapping.Scale;
+            
+            var value = (mapping.InputValue ?? 0) / 255f * mapping.Scale;
 
-                if (MathF.Abs(mapping.OutputPower - 1f) > float.Epsilon) {
-                    value = MathF.Pow(value, mapping.OutputPower);
-                }
-
-                if (mapping.InvertOutput) value = 1f - value;
-
-                MathEx.Saturate(value, out var finalValue);
-                MathEx.Cycle(ref finalValue, in mapping.OutputShift);
-
-                if (mapping.OutputMin != 0 || mapping.OutputMax != 255) {
-                    var f = finalValue / 255f;
-                    var range = mapping.OutputMax - mapping.OutputMin;
-                    finalValue = MathEx.Clamp(mapping.OutputMin + (int) (f * range), mapping.OutputMin, mapping.OutputMax);
-                }
-
-                defaultValues.SetChannelValue(in mapping.OutputColor, in finalValue);
+            if (MathF.Abs(mapping.OutputPower - 1f) > float.Epsilon) {
+                value = MathF.Pow(value, mapping.OutputPower);
             }
+
+            if (mapping.InvertOutput) value = 1f - value;
+
+            MathEx.Saturate(value, out var finalValue);
+            MathEx.Cycle(ref finalValue, in mapping.OutputShift);
+
+            if (mapping.OutputMin != 0 || mapping.OutputMax != 255) {
+                var f = finalValue / 255f;
+                var range = mapping.OutputMax - mapping.OutputMin;
+                finalValue = MathEx.Clamp(mapping.OutputMin + (int) (f * range), mapping.OutputMin, mapping.OutputMax);
+            }
+
+            defaultValues.SetChannelValue(in mapping.OutputColor, in finalValue);
         }
 
         private void CreateImageResult(in Size size)
