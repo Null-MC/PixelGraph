@@ -47,18 +47,10 @@
                             IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
                         <Button.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Recent"
-                                          IsEnabled="{Binding RecentDirectories, Mode=OneWay, Converter={StaticResource emptyEnumerableToFalseConverter}}"
-                                          ItemsSource="{Binding RecentDirectories, Mode=OneWay}">
-                                    <MenuItem.ItemContainerStyle>
-                                        <Style>
-                                            <Setter Property="MenuItem.Header" Value="TEST"/>
-                                        </Style>
-                                    </MenuItem.ItemContainerStyle>
-                                </MenuItem>
-                                <Separator/>
                                 <MenuItem Header="Import Folder" Click="OnImportFolderClick"/>
                                 <MenuItem Header="Import ZIP" Click="OnImportZipClick"/>
+                                <Separator/>
+                                <MenuItem Header="Close Project" Click="OnCloseProjectClick"/>
                             </ContextMenu>
                         </Button.ContextMenu>
                         <Button.Style>

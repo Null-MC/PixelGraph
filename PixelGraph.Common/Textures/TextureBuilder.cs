@@ -157,7 +157,7 @@ namespace PixelGraph.Common.Textures
             //return false;
             if (CreateEmpty) {
                 // WARN: TESTING! fallback to allow default value
-                mapping.InputValue = outputChannel.MinValue ?? 0;
+                mapping.InputValue = 0;
                 //var color = outputChannel.Color ?? ColorChannel.None;
                 //var defaultValue = outputChannel.MinValue ?? 0;
                 //defaultValues.SetChannelValue(color, defaultValue);
@@ -232,7 +232,7 @@ namespace PixelGraph.Common.Textures
                         if (options.OutputMin != 0 || options.OutputMax != 255) {
                             var f = finalValue / 255f;
                             var range = options.OutputMax - options.OutputMin;
-                            finalValue = MathEx.Clamp(options.OutputMin + (int) (f * range));
+                            finalValue = MathEx.Clamp(options.OutputMin + (int) (f * range), options.OutputMin, options.OutputMax);
                         }
 
                         defaultValues.SetChannelValue(mapping.OutputColor, finalValue);

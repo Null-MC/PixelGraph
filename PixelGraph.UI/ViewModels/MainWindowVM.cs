@@ -229,6 +229,20 @@ namespace PixelGraph.UI.ViewModels
         {
             SelectedSource = Textures.FirstOrDefault(x => TextureTags.Is(x.Tag, _selectedTag));
         }
+
+        public void CloseProject()
+        {
+            SelectedSource = null;
+            SelectedNode = null;
+            LoadedTexture = null;
+            LoadedMaterial = null;
+            PackInput = null;
+            TreeRoot = null;
+            RootDirectory = null;
+
+            Profiles.Clear();
+            Textures.Clear();
+        }
     }
 
     internal class MainWindowDesignVM : MainWindowVM

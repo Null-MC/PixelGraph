@@ -489,6 +489,11 @@ namespace PixelGraph.UI.Windows
                 await ImportPackAsync(dialog.SelectedPath, false);
         }
 
+        private void OnCloseProjectClick(object sender, RoutedEventArgs e)
+        {
+            vm.CloseProject();
+        }
+
         private async void OnImportZipClick(object sender, RoutedEventArgs e)
         {
             var dialog = new VistaOpenFileDialog {

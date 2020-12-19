@@ -30,6 +30,11 @@ namespace PixelGraph.Common.Extensions
             return (byte)Math.Clamp(value, 0, 255);
         }
 
+        public static byte Clamp(int value, byte min, byte max)
+        {
+            return (byte)Math.Clamp(value, min, max);
+        }
+
         public static byte Clamp(float value)
         {
             return (byte)Math.Clamp(value + 0.5f, 0f, 255f);
