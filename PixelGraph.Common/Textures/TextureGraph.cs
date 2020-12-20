@@ -132,6 +132,8 @@ namespace PixelGraph.Common.Textures
                         using var regionImage = builder.ImageResult
                             .Clone(c => c.Crop(bounds));
 
+                        FixEdges(regionImage, textureTag);
+
                         // TODO: move resize before regions; then scale regions to match
                         using var resizedRegionImage = Resize(regionImage, textureTag);
 
@@ -145,6 +147,8 @@ namespace PixelGraph.Common.Textures
                 var name = naming.GetOutputTextureName(Context.Profile, Context.Material.Name, textureTag, UseGlobalOutput);
                 var destFile = PathEx.Join(p, name);
 
+                FixEdges(builder.ImageResult, textureTag);
+
                 using var resizedImage = Resize(builder.ImageResult, textureTag);
 
                 await imageWriter.WriteAsync(resizedImage ?? builder.ImageResult, destFile, imageFormat, token);
@@ -153,6 +157,24 @@ namespace PixelGraph.Common.Textures
             }
 
             //await CopyMetaAsync(graph.Context, tag, token);
+        }
+
+        public async Task<Image<Rgb24>> GetGeneratedOcclusionAsync(CancellationToken token = default)
+        {
+            if (occlusionTexture == null) {
+                try {
+                    occlusionTexture = await GenerateOcclusionAsync(token);
+                }
+                catch (HeightSourceEmptyException) {}
+            }
+            
+            return occlusionTexture;
+        }
+
+        public void Dispose()
+        {
+            NormalTexture?.Dispose();
+            occlusionTexture?.Dispose();
         }
 
         private Image Resize<TPixel>(Image<TPixel> image, string tag)
@@ -223,22 +245,22 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        public async Task<Image<Rgb24>> GetGeneratedOcclusionAsync(CancellationToken token = default)
+        private void FixEdges(Image image, string tag)
         {
-            if (occlusionTexture == null) {
-                try {
-                    occlusionTexture = await GenerateOcclusionAsync(token);
-                }
-                catch (HeightSourceEmptyException) {}
-            }
-            
-            return occlusionTexture;
-        }
+            var hasEdgeSize = Context.Material.Height?.EdgeFadeSize.HasValue ?? false;
+            if (!hasEdgeSize) return;
 
-        public void Dispose()
-        {
-            NormalTexture?.Dispose();
-            occlusionTexture?.Dispose();
+            var heightChannel = OutputEncoding.Where(c => TextureTags.Is(c.Texture, tag))
+                .FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Height));
+
+            if (heightChannel == null) return;
+
+            var options = new HeightEdgeProcessor.Options();
+            options.Size = Context.Material.Height?.EdgeFadeSize ?? 0;
+            options.Color = heightChannel.Color ?? ColorChannel.None;
+
+            var processor = new HeightEdgeProcessor(options);
+            image.Mutate(context => context.ApplyProcessor(processor));
         }
 
         private async Task<bool> TryBuildNormalMapAsync(CancellationToken token)

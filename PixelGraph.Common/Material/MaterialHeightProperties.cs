@@ -8,5 +8,6 @@ namespace PixelGraph.Common.Material
         public string Texture {get; set;}
         public byte? Value {get; set;}
         public decimal? Scale {get; set;}
+        public int? EdgeFadeSize {get; set;}
     }
 }

@@ -194,22 +194,28 @@ namespace PixelGraph.UI.Windows
                 foreach (var tag in TextureTags.All) {
                     foreach (var file in reader.EnumerateTextures(vm.LoadedMaterial, tag)) {
                         if (!reader.FileExists(file)) continue;
-                        var fullFile = PathEx.Join(vm.RootDirectory, file);
+                        //var fullFile = PathEx.Join(vm.RootDirectory, file);
+
+                        await using var stream = reader.Open(file);
 
                         var thumbnailImage = new BitmapImage();
                         thumbnailImage.BeginInit();
                         thumbnailImage.CacheOption = BitmapCacheOption.OnLoad;
                         thumbnailImage.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
                         thumbnailImage.DecodePixelHeight = ThumbnailSize;
-                        thumbnailImage.UriSource = new Uri(fullFile);
+                        //thumbnailImage.UriSource = new Uri(fullFile);
+                        thumbnailImage.StreamSource = stream;
                         thumbnailImage.EndInit();
                         thumbnailImage.Freeze();
+
+                        stream.Position = 0;
 
                         var fullImage = new BitmapImage();
                         fullImage.BeginInit();
                         fullImage.CacheOption = BitmapCacheOption.OnLoad;
                         fullImage.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                        fullImage.UriSource = new Uri(fullFile);
+                        //fullImage.UriSource = new Uri(fullFile);
+                        fullImage.StreamSource = stream;
                         fullImage.EndInit();
                         fullImage.Freeze();
 

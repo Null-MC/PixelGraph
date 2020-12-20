@@ -61,14 +61,8 @@ namespace PixelGraph.Common.Textures
 
             if (!CreateEmpty && mappings.Count == 0) return;
 
-            foreach (var mapping in mappings) {
-                try {
-                    await ApplyMappingAsync(mapping, token);
-                }
-                catch (SourceEmptyException) {
-                    // TODO: log
-                }
-            }
+            foreach (var mapping in mappings)
+                await ApplyMappingAsync(mapping, token);
 
             if (ImageResult == null) {
                 var size = Graph.GetSourceSize();
@@ -91,13 +85,13 @@ namespace PixelGraph.Common.Textures
                 OutputPower = (float?)outputChannel.Power ?? 1f,
                 InvertOutput = outputChannel.Invert ?? false,
 
-                Scale = GetChannelScale(outputChannel.ID),
+                Scale = Material.GetChannelScale(outputChannel.ID),
             };
 
             var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
             var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
 
-            if (TryGetChannelValue(outputChannel.ID, out var value)) {
+            if (Material.TryGetChannelValue(outputChannel.ID, out var value)) {
                 mapping.InputValue = value;
                 return true;
             }
@@ -178,17 +172,16 @@ namespace PixelGraph.Common.Textures
                     options.Source = await Graph.GetGeneratedOcclusionAsync(token);
                 }
 
-                if (options.Source == null)
-                    throw new SourceEmptyException($"No source mapped for tag '{mapping.SourceTag}'!");
+                if (options.Source != null) {
+                    if (ImageResult == null) {
+                        var size = options.Source.Size();
+                        CreateImageResult(in size);
+                    }
 
-                if (ImageResult == null) {
-                    var size = options.Source.Size();
-                    CreateImageResult(in size);
+                    var processor = new OverlayProcessor<Rgb24>(options);
+                    ImageResult.Mutate(context => context.ApplyProcessor(processor));
+                    return;
                 }
-
-                var processor = new OverlayProcessor<Rgb24>(options);
-                ImageResult.Mutate(context => context.ApplyProcessor(processor));
-                return;
             }
             
             if (mapping.SourceFilename != null) {
@@ -210,7 +203,7 @@ namespace PixelGraph.Common.Textures
                 ImageResult.Mutate(context => context.ApplyProcessor(processor));
                 return;
             }
-            
+
             var value = (mapping.InputValue ?? 0) / 255f * mapping.Scale;
 
             if (MathF.Abs(mapping.OutputPower - 1f) > float.Epsilon) {
@@ -228,7 +221,18 @@ namespace PixelGraph.Common.Textures
                 finalValue = MathEx.Clamp(mapping.OutputMin + (int) (f * range), mapping.OutputMin, mapping.OutputMax);
             }
 
-            defaultValues.SetChannelValue(in mapping.OutputColor, in finalValue);
+            if (ImageResult != null) {
+                var options = new OverwriteProcessor.Options {
+                    Color = mapping.OutputColor,
+                    Value = finalValue,
+                };
+
+                var processor = new OverwriteProcessor(options);
+                ImageResult.Mutate(context => context.ApplyProcessor(processor));
+            }
+            else {
+                defaultValues.SetChannelValue(in mapping.OutputColor, in finalValue);
+            }
         }
 
         private void CreateImageResult(in Size size)
@@ -252,66 +256,6 @@ namespace PixelGraph.Common.Textures
             filename = null;
             return false;
         }
-
-        private bool TryGetChannelValue(string encodingChannel, out byte value)
-        {
-            byte? result = null;
-
-            if (byte.TryParse(encodingChannel, out value)) return true;
-
-            if (valueMap.TryGetValue(encodingChannel, out var valueFunc)) {
-                result = valueFunc(Material);
-                value = result ?? 0;
-            }
-            else value = 0;
-
-            return result.HasValue;
-        }
-
-        private float GetChannelScale(string channel)
-        {
-            if (EncodingChannel.IsEmpty(channel)) return 1f;
-            return scaleMap.TryGetValue(channel, out var value) ? (float)value(Material) : 1f;
-        }
-
-        private static readonly Dictionary<string, Func<MaterialProperties, byte?>> valueMap = new Dictionary<string, Func<MaterialProperties, byte?>>(StringComparer.OrdinalIgnoreCase) {
-            [EncodingChannel.Alpha] = mat => mat.Alpha?.Value,
-            [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ValueRed,
-            [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ValueGreen,
-            [EncodingChannel.DiffuseBlue] = mat => mat.Diffuse?.ValueBlue,
-            [EncodingChannel.AlbedoRed] = mat => mat.Albedo?.ValueRed,
-            [EncodingChannel.AlbedoGreen] = mat => mat.Albedo?.ValueGreen,
-            [EncodingChannel.AlbedoBlue] = mat => mat.Albedo?.ValueBlue,
-            [EncodingChannel.Height] = mat => mat.Height?.Value,
-            [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Value,
-            [EncodingChannel.NormalX] = mat => mat.Normal?.ValueX,
-            [EncodingChannel.NormalY] = mat => mat.Normal?.ValueY,
-            [EncodingChannel.NormalZ] = mat => mat.Normal?.ValueZ,
-            [EncodingChannel.Smooth] = mat => mat.Smooth?.Value,
-            [EncodingChannel.Rough] = mat => mat.Rough?.Value,
-            [EncodingChannel.Metal] = mat => mat.Metal?.Value,
-            [EncodingChannel.Porosity] = mat => mat.Porosity?.Value,
-            [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Value,
-            [EncodingChannel.Emissive] = mat => mat.Emissive?.Value,
-        };
-
-        private static readonly Dictionary<string, Func<MaterialProperties, decimal>> scaleMap = new Dictionary<string, Func<MaterialProperties, decimal>>(StringComparer.OrdinalIgnoreCase) {
-            [EncodingChannel.Alpha] = mat => mat.Alpha?.Scale ?? 1m,
-            [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ScaleRed ?? 1m,
-            [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ScaleGreen ?? 1m,
-            [EncodingChannel.DiffuseBlue] = mat => mat.Diffuse?.ScaleBlue ?? 1m,
-            [EncodingChannel.AlbedoRed] = mat => mat.Albedo?.ScaleRed ?? 1m,
-            [EncodingChannel.AlbedoGreen] = mat => mat.Albedo?.ScaleGreen ?? 1m,
-            [EncodingChannel.AlbedoBlue] = mat => mat.Albedo?.ScaleBlue ?? 1m,
-            [EncodingChannel.Height] = mat => mat.Height?.Scale ?? 1m,
-            [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Scale ?? 1m,
-            [EncodingChannel.Smooth] = mat => mat.Smooth?.Scale ?? 1m,
-            [EncodingChannel.Rough] = mat => mat.Rough?.Scale ?? 1m,
-            [EncodingChannel.Metal] = mat => mat.Metal?.Scale ?? 1m,
-            [EncodingChannel.Porosity] = mat => mat.Porosity?.Scale ?? 1m,
-            [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Scale ?? 1m,
-            [EncodingChannel.Emissive] = mat => mat.Emissive?.Scale ?? 1m,
-        };
     }
 
     internal class TextureChannelMapping
