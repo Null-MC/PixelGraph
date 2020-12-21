@@ -263,33 +263,16 @@
                                 <ComboBoxItem Content="800%"/>
                             </ComboBox>
                         </DockPanel>
-                        <ListBox DockPanel.Dock="Bottom" Background="Black" VerticalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                 SelectionChanged="OnMaterialSourceSelectionChanged"
-                                 ItemsSource="{Binding Textures, Mode=OneWay}"
-                                 SelectedItem="{Binding SelectedSource, Mode=TwoWay}"
-                                 Visibility="{Binding HasLoadedMaterial, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
-                            <ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ListBox.ItemsPanel>
-                            <ListBox.ItemTemplate>
-                                <DataTemplate DataType="vm:TextureSource">
-                                    <DockPanel MinWidth="12" MaxWidth="86">
-                                        <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center"
-                                                   Text="{Binding Name}"/>
-                                        <Border BorderThickness="1" BorderBrush="#666" Width="48" Height="48">
-                                            <Border.Background>
-                                                <ImageBrush ImageSource="/Resources/tiled_bg.png" Stretch="None" TileMode="Tile" Viewport="0,0,8,8" ViewportUnits="Absolute"/>
-                                            </Border.Background>
-                                            <Image Stretch="Uniform" Source="{Binding Thumbnail}"/>
-                                        </Border>
-                                    </DockPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                        <controls:TextureView x:Name="TextureViewer" Background="#222"
-                                              Texture="{Binding LoadedTexture, Mode=OneWay}"/>
+                        <Grid>
+                            <controls:TextureView x:Name="TextureViewer" Background="#222"
+                                                  Texture="{Binding LoadedTexture, Mode=OneWay}"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Visibility="{Binding IsPreviewLoading, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
+                                <Button Width="24" Height="24" Content="{md:PackIcon Close}" ToolTip="Cancel" Style="{StaticResource MaterialDesignFlatAccentButton}"/>
+                                <TextBlock HorizontalAlignment="Center" FontSize="18" FontStyle="Italic" Text="Generating Preview..."
+                                           Foreground="{DynamicResource SecondaryHueDarkBrush}"/>
+                            </StackPanel>
+                        </Grid>
                     </DockPanel>
                     <GridSplitter Grid.Column="1" Grid.Row="0" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
                     <controls:MaterialPropertiesControl Grid.Column="2" DataChanged="OnMaterialChanged" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"

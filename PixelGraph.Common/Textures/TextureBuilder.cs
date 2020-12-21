@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures
 {
-    internal interface ITextureBuilder<TPixel> : IDisposable
+    public interface ITextureBuilder<TPixel> : IDisposable
         where TPixel : unmanaged, IPixel<TPixel>
     {
         ITextureGraph Graph {get; set;}
@@ -23,6 +23,7 @@ namespace PixelGraph.Common.Textures
         ResourcePackChannelProperties[] InputChannels {get; set;}
         ResourcePackChannelProperties[] OutputChannels {get; set;}
         Image<TPixel> ImageResult {get;}
+        Size DefaultSize {get; set;}
         bool CreateEmpty {get; set;}
 
         Task BuildAsync(CancellationToken token = default);
@@ -38,6 +39,7 @@ namespace PixelGraph.Common.Textures
         public MaterialProperties Material {get; set;}
         public ResourcePackChannelProperties[] InputChannels {get; set;}
         public ResourcePackChannelProperties[] OutputChannels {get; set;}
+        public Size DefaultSize {get; set;}
         public Image<TPixel> ImageResult {get; private set;}
         public bool CreateEmpty {get; set;}
 
@@ -47,6 +49,7 @@ namespace PixelGraph.Common.Textures
             this.reader = reader;
 
             defaultValues = new Rgba32();
+            DefaultSize = new Size(1);
             CreateEmpty = true;
         }
 
@@ -65,8 +68,8 @@ namespace PixelGraph.Common.Textures
                 await ApplyMappingAsync(mapping, token);
 
             if (ImageResult == null) {
-                var size = Graph.GetSourceSize();
-                CreateImageResult(in size);
+                //var size = Graph.GetSourceSize();
+                CreateImageResult(DefaultSize);
             }
         }
 

@@ -114,10 +114,10 @@ namespace PixelGraph.Common.Textures
                     var hasAlpha = tagOutputEncoding.Any(c => c.Color == ColorChannel.Alpha);
 
                     if (hasAlpha) {
-                        await graph.BuildFinalImageAsync<Rgba32>(tag, token);
+                        await graph.PublishImageAsync<Rgba32>(tag, token);
                     }
                     else {
-                        await graph.BuildFinalImageAsync<Rgb24>(tag, token);
+                        await graph.PublishImageAsync<Rgb24>(tag, token);
                     }
                 }
 

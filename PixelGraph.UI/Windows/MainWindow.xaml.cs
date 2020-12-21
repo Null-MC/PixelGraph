@@ -29,10 +29,14 @@ namespace PixelGraph.UI.Windows
 {
     public partial class MainWindow
     {
-        private const int ThumbnailSize = 64;
+        //private const int ThumbnailSize = 64;
 
         private readonly IServiceProvider provider;
         private readonly ILogger logger;
+
+        private readonly object previewLock;
+        private ITexturePreviewBuilder previewBuilder;
+
         //private readonly IAppSettings settings;
         //private readonly MainWindowVM vm;
 
@@ -42,6 +46,8 @@ namespace PixelGraph.UI.Windows
             this.provider = provider;
 
             logger = provider.GetRequiredService<ILogger<MainWindow>>();
+
+            previewLock = new object();
 
             //settings = provider.GetRequiredService<IAppSettings>();
 
@@ -54,6 +60,8 @@ namespace PixelGraph.UI.Windows
 
             var recent = provider.GetRequiredService<IRecentPathManager>();
             vm.RecentDirectories = recent.List;
+
+            vm.SelectedTagChanged += OnSelectedTagChanged;
         }
 
         private async Task SelectRootDirectoryAsync(CancellationToken token)
@@ -164,76 +172,30 @@ namespace PixelGraph.UI.Windows
             }
 
             vm.LoadedTexture = null;
-            vm.IsUpdatingSources = true;
 
-            try {
-                Application.Current.Dispatcher.Invoke(vm.Textures.Clear);
-
-                bool isMat;
-                string matFile;
-                if (vm.SelectedNode is ContentTreeMaterialDirectory matFolder) {
-                    isMat = true;
-                    matFile = matFolder.MaterialFilename;
-                }
-                else {
-                    var fileNode = vm.SelectedNode as ContentTreeFile;
-                    isMat = fileNode?.Type == ContentNodeType.Material;
-                    matFile = fileNode?.Filename;
-                }
-
-                if (!isMat) return;
-
-                // TODO: wait for texture busy
-                var reader = provider.GetRequiredService<IInputReader>();
-                var matReader = provider.GetRequiredService<IMaterialReader>();
-
-                reader.SetRoot(vm.RootDirectory);
-                vm.LoadedMaterialFilename = matFile;
-                vm.LoadedMaterial = await matReader.LoadAsync(matFile, token);
-
-                foreach (var tag in TextureTags.All) {
-                    foreach (var file in reader.EnumerateTextures(vm.LoadedMaterial, tag)) {
-                        if (!reader.FileExists(file)) continue;
-                        //var fullFile = PathEx.Join(vm.RootDirectory, file);
-
-                        await using var stream = reader.Open(file);
-
-                        var thumbnailImage = new BitmapImage();
-                        thumbnailImage.BeginInit();
-                        thumbnailImage.CacheOption = BitmapCacheOption.OnLoad;
-                        thumbnailImage.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                        thumbnailImage.DecodePixelHeight = ThumbnailSize;
-                        //thumbnailImage.UriSource = new Uri(fullFile);
-                        thumbnailImage.StreamSource = stream;
-                        thumbnailImage.EndInit();
-                        thumbnailImage.Freeze();
-
-                        stream.Position = 0;
-
-                        var fullImage = new BitmapImage();
-                        fullImage.BeginInit();
-                        fullImage.CacheOption = BitmapCacheOption.OnLoad;
-                        fullImage.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                        //fullImage.UriSource = new Uri(fullFile);
-                        fullImage.StreamSource = stream;
-                        fullImage.EndInit();
-                        fullImage.Freeze();
-
-                        var source = new TextureSource {
-                            Name = Path.GetFileNameWithoutExtension(file),
-                            Thumbnail = thumbnailImage,
-                            Image = fullImage,
-                            Tag = tag,
-                        };
-
-                        Application.Current.Dispatcher.Invoke(() => vm.Textures.Add(source));
-                    }
-                }
+            bool isMat;
+            string matFile;
+            if (vm.SelectedNode is ContentTreeMaterialDirectory matFolder) {
+                isMat = true;
+                matFile = matFolder.MaterialFilename;
             }
-            finally {
-                vm.IsUpdatingSources = false;
-                vm.SelectFirstTexture();
+            else {
+                var fileNode = vm.SelectedNode as ContentTreeFile;
+                isMat = fileNode?.Type == ContentNodeType.Material;
+                matFile = fileNode?.Filename;
             }
+
+            if (!isMat) return;
+
+            // TODO: wait for texture busy
+            var reader = provider.GetRequiredService<IInputReader>();
+            var matReader = provider.GetRequiredService<IMaterialReader>();
+
+            reader.SetRoot(vm.RootDirectory);
+            vm.LoadedMaterialFilename = matFile;
+            vm.LoadedMaterial = await matReader.LoadAsync(matFile, token);
+
+            await UpdatePreviewAsync();
         }
 
         private async Task GenerateNormalAsync(CancellationToken token)
@@ -447,6 +409,51 @@ namespace PixelGraph.UI.Windows
             Process.Start(info);
         }
 
+        private async Task UpdatePreviewAsync()
+        {
+            ITexturePreviewBuilder p;
+
+            lock (previewLock) {
+                previewBuilder?.Cancel();
+
+                p = previewBuilder = provider.GetRequiredService<ITexturePreviewBuilder>();
+            }
+
+            var hasSelectedTexture = vm.SelectedTag != null;
+
+            await Application.Current.Dispatcher.BeginInvoke(() => {
+                vm.LoadedTexture = null;
+                vm.IsPreviewLoading = hasSelectedTexture;
+            });
+
+            if (!hasSelectedTexture) return;
+
+            p.Input = vm.PackInput;
+            p.Material = vm.LoadedMaterial;
+
+            ImageSource image = null;
+            try {
+                image = await Task.Run(() => p.BuildAsync(vm.SelectedTag), p.Token);
+            }
+            catch (TaskCanceledException) {}
+            catch (Exception error) {
+                logger.LogError(error, "Failed to create preview image!");
+                // TODO: Set error image instead of message box
+                ShowError($"Failed to create preview! {error.Message}");
+            }
+            finally {
+                lock (previewLock) {
+                    p.Dispose();
+                    if (previewBuilder == p) previewBuilder = null;
+                }
+
+                await Application.Current.Dispatcher.BeginInvoke(() => {
+                    vm.LoadedTexture = image;
+                    vm.IsPreviewLoading = false;
+                });
+            }
+        }
+
         private void ShowError(string message)
         {
             Application.Current.Dispatcher.Invoke(() => {
@@ -574,6 +581,8 @@ namespace PixelGraph.UI.Windows
         private async void OnMaterialChanged(object sender, EventArgs e)
         {
             await SaveMaterialAsync();
+
+            await UpdatePreviewAsync();
         }
 
         private async void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -620,10 +629,10 @@ namespace PixelGraph.UI.Windows
             OpenDocumentation();
         }
 
-        private void OnMaterialSourceSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            vm.LoadedTexture = vm.SelectedSource?.Image;
-        }
+        //private void OnMaterialSourceSelectionChanged(object sender, SelectionChangedEventArgs e)
+        //{
+        //    vm.LoadedTexture = vm.SelectedSource?.Image;
+        //}
 
         private async void OnImportMaterialClick(object sender, RoutedEventArgs e)
         {
@@ -665,7 +674,18 @@ namespace PixelGraph.UI.Windows
 
         private void OnContentRefreshClick(object sender, RoutedEventArgs e)
         {
+            var reselectPath = vm.SelectedNode?.LocalPath;
+
             ReloadContent();
+
+            if (reselectPath != null) {
+                // TODO
+            }
+        }
+
+        private async void OnSelectedTagChanged(object sender, EventArgs e)
+        {
+            await UpdatePreviewAsync();
         }
 
         #endregion

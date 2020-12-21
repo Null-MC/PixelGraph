@@ -24,6 +24,7 @@ namespace PixelGraph.UI
             builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
 
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
+            builder.Services.AddTransient<ITexturePreviewBuilder, TexturePreviewBuilder>();
 
             builder.Services.AddTransient<MainWindowVM>();
             builder.Services.AddTransient<SettingsWindowVM>();

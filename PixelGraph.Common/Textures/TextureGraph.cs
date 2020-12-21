@@ -29,9 +29,14 @@ namespace PixelGraph.Common.Textures
         bool CreateEmpty {get; set;}
 
         Task BuildNormalTextureAsync(CancellationToken token = default);
-        Size GetSourceSize();
+        //Size GetSourceSize();
 
-        Task BuildFinalImageAsync<TPixel>(string textureTag, CancellationToken token = default)
+        Task<Image> GetPreviewAsync(string textureTag, CancellationToken token = default);
+
+        //Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, CancellationToken token = default)
+        //    where TPixel : unmanaged, IPixel<TPixel>;
+
+        Task PublishImageAsync<TPixel>(string textureTag, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>;
 
         Task<Image<Rgb24>> GenerateNormalAsync(CancellationToken token = default);
@@ -93,21 +98,50 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        public async Task BuildFinalImageAsync<TPixel>(string textureTag, CancellationToken token = default)
+        private async Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>
         {
-            using var builder = provider.GetRequiredService<ITextureBuilder<TPixel>>();
+            var builder = provider.GetRequiredService<ITextureBuilder<TPixel>>();
 
-            builder.Graph = this;
-            builder.Material = Context.Material;
-            builder.InputChannels = InputEncoding.ToArray();
-            builder.CreateEmpty = CreateEmpty;
+            try {
+                builder.Graph = this;
+                builder.Material = Context.Material;
+                builder.InputChannels = InputEncoding.ToArray();
+                builder.CreateEmpty = CreateEmpty;
+                builder.DefaultSize = GetSourceSize();
 
-            builder.OutputChannels = OutputEncoding.Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
+                builder.OutputChannels = OutputEncoding.Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
 
-            await builder.BuildAsync(token);
+                await builder.BuildAsync(token);
+                return builder.ImageResult;
+            }
+            catch {
+                builder.Dispose();
+                throw;
+            }
+        }
 
-            if (builder.ImageResult == null) {
+        public async Task<Image> GetPreviewAsync(string textureTag, CancellationToken token = default)
+        {
+            var image = await CreateImageAsync<Rgb24>(textureTag, token);
+            if (image == null) return null;
+
+            try {
+                FixEdges(image, textureTag);
+                return Resize(image, textureTag) ?? image;
+            }
+            catch {
+                image.Dispose();
+                throw;
+            }
+        }
+
+        public async Task PublishImageAsync<TPixel>(string textureTag, CancellationToken token = default)
+            where TPixel : unmanaged, IPixel<TPixel>
+        {
+            using var image = await CreateImageAsync<TPixel>(textureTag, token);
+
+            if (image == null) {
                 // TODO: log
                 logger.LogWarning("No texture sources found for item {DisplayName} texture {textureTag}.", Context.Material.DisplayName, textureTag);
                 return;
@@ -124,13 +158,12 @@ namespace PixelGraph.Common.Textures
                     var name = naming.GetOutputTextureName(Context.Profile, region.Name, textureTag, UseGlobalOutput);
                     var destFile = PathEx.Join(p, name);
 
-                    if (builder.ImageResult.Width == 1 && builder.ImageResult.Height == 1) {
-                        await imageWriter.WriteAsync(builder.ImageResult, destFile, imageFormat, token);
+                    if (image.Width == 1 && image.Height == 1) {
+                        await imageWriter.WriteAsync(image, destFile, imageFormat, token);
                     }
                     else {
                         var bounds = region.GetRectangle();
-                        using var regionImage = builder.ImageResult
-                            .Clone(c => c.Crop(bounds));
+                        using var regionImage = image.Clone(c => c.Crop(bounds));
 
                         FixEdges(regionImage, textureTag);
 
@@ -147,11 +180,11 @@ namespace PixelGraph.Common.Textures
                 var name = naming.GetOutputTextureName(Context.Profile, Context.Material.Name, textureTag, UseGlobalOutput);
                 var destFile = PathEx.Join(p, name);
 
-                FixEdges(builder.ImageResult, textureTag);
+                FixEdges(image, textureTag);
 
-                using var resizedImage = Resize(builder.ImageResult, textureTag);
+                using var resizedImage = Resize(image, textureTag);
 
-                await imageWriter.WriteAsync(resizedImage ?? builder.ImageResult, destFile, imageFormat, token);
+                await imageWriter.WriteAsync(resizedImage ?? image, destFile, imageFormat, token);
 
                 logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", Context.Material.DisplayName, textureTag);
             }
@@ -183,7 +216,10 @@ namespace PixelGraph.Common.Textures
             if (image == null) throw new ArgumentNullException(nameof(image));
 
             if (!(Context.Material?.ResizeEnabled ?? true)) return null;
-            if (!Context.Profile.TextureSize.HasValue && !Context.Profile.TextureScale.HasValue) return null;
+
+            var hasTextureSize = Context.Profile?.TextureSize.HasValue ?? false;
+            var hasTextureScale = Context.Profile?.TextureScale.HasValue ?? false;
+            if (!hasTextureSize && !hasTextureScale) return null;
 
             var (width, height) = image.Size();
 
@@ -255,9 +291,10 @@ namespace PixelGraph.Common.Textures
 
             if (heightChannel == null) return;
 
-            var options = new HeightEdgeProcessor.Options();
-            options.Size = Context.Material.Height?.EdgeFadeSize ?? 0;
-            options.Color = heightChannel.Color ?? ColorChannel.None;
+            var options = new HeightEdgeProcessor.Options {
+                Size = Context.Material.Height?.EdgeFadeSize ?? 0,
+                Color = heightChannel.Color ?? ColorChannel.None,
+            };
 
             var processor = new HeightEdgeProcessor(options);
             image.Mutate(context => context.ApplyProcessor(processor));
@@ -279,6 +316,7 @@ namespace PixelGraph.Common.Textures
 
                 builder.Graph = this;
                 builder.Material = Context.Material;
+                builder.DefaultSize = GetSourceSize();
                 builder.CreateEmpty = false;
                 builder.InputChannels = new [] {
                     normalXChannel, normalYChannel, normalZChannel
@@ -440,11 +478,11 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        public Size GetSourceSize()
+        private Size GetSourceSize()
         {
             if (Context.Material.TryGetSourceBounds(out var size)) return size;
 
-            var length = Context.Profile.TextureSize ?? 1;
+            var length = Context.Profile?.TextureSize ?? 1;
             return new Size(length, length);
         }
     }

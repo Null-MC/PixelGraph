@@ -1,9 +1,8 @@
 ﻿using MaterialDesignThemes.Wpf;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Textures;
+using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows.Media;
 
 namespace PixelGraph.UI.ViewModels
@@ -13,23 +12,24 @@ namespace PixelGraph.UI.ViewModels
         #region Properties
 
         private readonly object busyLock;
+        private volatile bool _isBusy, _isPreviewLoading;
+        private ObservableCollection<string> _recentDirectories;
         private ResourcePackInputProperties _packInput;
         private string _rootDirectory;
         private string _searchText;
         private bool _showAllFiles;
         private string _selectedTag;
         private ContentTreeNode _selectedNode;
-        private TextureSource _selectedSource;
         private MaterialProperties _loadedMaterial;
         private ImageSource _loadedTexture;
         private ProfileItem _selectedProfile;
         private string _loadedMaterialFilename;
         private bool _publishArchive, _publishClean;
-        private volatile bool _isBusy;
+        private ContentTreeNode _treeRoot;
+
+        public event EventHandler SelectedTagChanged;
 
         public ObservableCollection<ProfileItem> Profiles {get;}
-        public ObservableCollection<TextureSource> Textures {get;}
-        public bool IsUpdatingSources {get; set;}
 
         public bool HasRootDirectory => _rootDirectory != null;
         public bool HasTreeSelection => _selectedNode is ContentTreeFile;
@@ -49,8 +49,6 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        private ContentTreeNode _treeRoot;
-        private ObservableCollection<string> _recentDirectories;
 
         public ObservableCollection<string> RecentDirectories {
             get => _recentDirectories;
@@ -102,9 +100,7 @@ namespace PixelGraph.UI.ViewModels
                 _selectedTag = value;
                 OnPropertyChanged();
 
-                if (value != null && !TextureTags.Is(value, _selectedSource?.Tag)) {
-                    SelectFirstTexture();
-                }
+                OnSelectedTagChanged();
             }
         }
 
@@ -114,22 +110,8 @@ namespace PixelGraph.UI.ViewModels
                 _selectedNode = value;
                 OnPropertyChanged();
 
-                SelectedSource = null;
                 OnPropertyChanged(nameof(HasTreeSelection));
                 OnPropertyChanged(nameof(HasTreeTextureSelection));
-            }
-        }
-
-        public TextureSource SelectedSource {
-            get => _selectedSource;
-            set {
-                if (IsUpdatingSources) return;
-
-                _selectedSource = value;
-                OnPropertyChanged();
-
-                if (value?.Tag != null && !TextureTags.Is(_selectedTag, value.Tag))
-                    SelectedTag = value.Tag;
             }
         }
 
@@ -197,6 +179,14 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public bool IsPreviewLoading {
+            get => _isPreviewLoading;
+            set {
+                _isPreviewLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
         #endregion
 
 
@@ -204,7 +194,6 @@ namespace PixelGraph.UI.ViewModels
         {
             RecentDirectories = new ObservableCollection<string>();
             Profiles = new ObservableCollection<ProfileItem>();
-            Textures = new ObservableCollection<TextureSource>();
             _treeRoot = new ContentTreeNode(null);
             busyLock = new object();
         }
@@ -225,14 +214,8 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public void SelectFirstTexture()
-        {
-            SelectedSource = Textures.FirstOrDefault(x => TextureTags.Is(x.Tag, _selectedTag));
-        }
-
         public void CloseProject()
         {
-            SelectedSource = null;
             SelectedNode = null;
             LoadedTexture = null;
             LoadedMaterial = null;
@@ -241,7 +224,11 @@ namespace PixelGraph.UI.ViewModels
             RootDirectory = null;
 
             Profiles.Clear();
-            Textures.Clear();
+        }
+
+        private void OnSelectedTagChanged()
+        {
+            SelectedTagChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -255,19 +242,6 @@ namespace PixelGraph.UI.ViewModels
 
             RootDirectory = "x:\\dev\\test-rp";
             IsBusy = true;
-
-
-            Textures.Add(new TextureSource {
-                Tag = TextureTags.Albedo,
-                Name = "albedo.png",
-                Image = null,
-            });
-
-            Textures.Add(new TextureSource {
-                Tag = TextureTags.Normal,
-                Name = "normal.png",
-                Image = null,
-            });
         }
 
         private void AddRecentItems()

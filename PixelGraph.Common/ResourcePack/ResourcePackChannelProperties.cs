@@ -33,6 +33,13 @@ namespace PixelGraph.Common.ResourcePack
             ID = id;
         }
 
+        protected ResourcePackChannelProperties(string id, string texture, ColorChannel color)
+        {
+            ID = id;
+            Texture = texture;
+            Color = color;
+        }
+
         public void Merge(ResourcePackChannelProperties channel)
         {
             if (channel == null) throw new ArgumentNullException(nameof(channel));
