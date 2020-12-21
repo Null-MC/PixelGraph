@@ -160,9 +160,9 @@ namespace PixelGraph.UI.Internal
 
         private static IEnumerable<ResourcePackChannelProperties> GetHeightChannels()
         {
-            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Red); //{Invert = true};
-            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Green); //{Invert = true};
-            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Blue); //{Invert = true};
+            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Red) {Invert = true};
+            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Green) {Invert = true};
+            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Blue) {Invert = true};
         }
 
         private static IEnumerable<ResourcePackChannelProperties> GetOcclusionChannels()

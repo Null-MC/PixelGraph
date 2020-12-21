@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SixLabors.ImageSharp;
+using System;
 
 namespace PixelGraph.Common.PixelOperations
 {
@@ -7,46 +8,46 @@ namespace PixelGraph.Common.PixelOperations
         private readonly Lazy<byte[]> noiseX;
         private readonly Lazy<byte[]> noiseY;
 
-        public readonly int Width;
-        public readonly int Height;
+        public readonly Rectangle Bounds;
         public readonly int Y;
         public int X;
 
 
-        public PixelContext(in int width, in int height, in int y)
+        public PixelContext(in Rectangle bounds, in int y)
         {
-            Width = width;
-            Height = height;
+            Bounds = bounds;
             Y = y;
             X = 0;
 
-            var _width = width;
+            var _width = bounds.Width;
             noiseX = new Lazy<byte[]>(() => {
                 GenerateNoise(in _width, out var buffer);
                 return buffer;
             });
+
+            var _height = bounds.Height;
             noiseY = new Lazy<byte[]>(() => {
-                GenerateNoise(in _width, out var buffer);
+                GenerateNoise(in _height, out var buffer);
                 return buffer;
             });
         }
 
         public readonly void Wrap(ref int x, ref int y)
         {
-            while (x < 0) x += Width;
-            while (y < 0) y += Height;
+            while (x < Bounds.Left) x += Bounds.Width;
+            while (y < Bounds.Top) y += Bounds.Height;
 
-            while (x >= Width) x -= Width;
-            while (y >= Height) y -= Height;
+            while (x >= Bounds.Right) x -= Bounds.Width;
+            while (y >= Bounds.Bottom) y -= Bounds.Height;
         }
 
         public readonly void Clamp(ref int x, ref int y)
         {
-            if (x < 0) x = 0;
-            if (y < 0) y = 0;
+            if (x < Bounds.Left) x = Bounds.Left;
+            if (y < Bounds.Top) y = Bounds.Top;
 
-            if (x >= Width) x = Width - 1;
-            if (y >= Height) y = Height - 1;
+            if (x >= Bounds.Right) x = Bounds.Right - 1;
+            if (y >= Bounds.Bottom) y = Bounds.Bottom - 1;
         }
 
         public readonly void GetNoise(in int x, out byte valueX, out byte valueY)

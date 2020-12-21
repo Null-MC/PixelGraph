@@ -28,7 +28,7 @@ namespace PixelGraph.Common.PixelOperations
 
             protected override void OnFrameApply(ImageFrame<TPixel> source)
             {
-                var operation = new FilterRowOperation(source, action);
+                var operation = new FilterRowOperation(source, action, SourceRectangle);
                 ParallelRowIterator.IterateRows(Configuration, SourceRectangle, in operation);
             }
 
@@ -36,21 +36,23 @@ namespace PixelGraph.Common.PixelOperations
             {
                 private readonly ImageFrame<TPixel> frame;
                 private readonly PixelAction action;
+                private readonly Rectangle region;
 
 
-                public FilterRowOperation(ImageFrame<TPixel> frame, PixelAction action)
+                public FilterRowOperation(ImageFrame<TPixel> frame, PixelAction action, Rectangle region)
                 {
                     this.frame = frame;
                     this.action = action;
+                    this.region = region;
                 }
 
                 public void Invoke(int y)
                 {
-                    var context = new PixelContext(frame.Width, frame.Height, y);
+                    var context = new PixelContext(region, y);
                     var row = frame.GetPixelRowSpan(y);
                     var pixel = new Rgba32();
 
-                    for (var x = 0; x < frame.Width; x++) {
+                    for (var x = region.Left; x < region.Right; x++) {
                         context.X = x;
 
                         row[x].ToRgba32(ref pixel);

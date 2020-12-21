@@ -127,8 +127,25 @@ namespace PixelGraph.Common.Textures
             if (image == null) return null;
 
             try {
-                FixEdges(image, textureTag);
-                return Resize(image, textureTag) ?? image;
+                if (image.Width == 1 && image.Height == 1) return image;
+
+                if (!Context.Material.IsMultiPart) {
+                    FixEdges(image, textureTag);
+                    return Resize(image, textureTag);
+                }
+
+                foreach (var region in Context.Material.Parts) {
+                    var bounds = region.GetRectangle();
+
+                    FixEdges(image, textureTag, bounds);
+
+                    //using var resizedRegionImage = Resize(regionImage, textureTag);
+                }
+
+                // TODO: fix this
+                //var size = Context.Material.GetMaxSize();
+                //return Resize(image, textureTag, size);
+                return image;
             }
             catch {
                 image.Dispose();
@@ -215,11 +232,11 @@ namespace PixelGraph.Common.Textures
         {
             if (image == null) throw new ArgumentNullException(nameof(image));
 
-            if (!(Context.Material?.ResizeEnabled ?? true)) return null;
+            if (!(Context.Material?.ResizeEnabled ?? true)) return image;
 
             var hasTextureSize = Context.Profile?.TextureSize.HasValue ?? false;
             var hasTextureScale = Context.Profile?.TextureScale.HasValue ?? false;
-            if (!hasTextureSize && !hasTextureScale) return null;
+            if (!hasTextureSize && !hasTextureScale) return image;
 
             var (width, height) = image.Size();
 
@@ -233,7 +250,7 @@ namespace PixelGraph.Common.Textures
 
             float range;
             if (Context.Profile.TextureSize.HasValue) {
-                if (width == Context.Profile.TextureSize) return null;
+                if (width == Context.Profile.TextureSize) return image;
 
                 var aspect = height / (float) width;
                 options.TargetWidth = Context.Profile.TextureSize.Value;
@@ -273,6 +290,7 @@ namespace PixelGraph.Common.Textures
 
             try {
                 resizedImage.Mutate(c => c.ApplyProcessor(processor));
+                image.Dispose();
                 return resizedImage;
             }
             catch {
@@ -281,23 +299,28 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private void FixEdges(Image image, string tag)
+        private void FixEdges(Image image, string tag, Rectangle? bounds = null)
         {
             var hasEdgeSize = Context.Material.Height?.EdgeFadeSize.HasValue ?? false;
             if (!hasEdgeSize) return;
 
-            var heightChannel = OutputEncoding.Where(c => TextureTags.Is(c.Texture, tag))
-                .FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Height));
+            var heightChannels = OutputEncoding
+                .Where(c => TextureTags.Is(c.Texture, tag))
+                .Where(c => EncodingChannel.Is(c.ID, EncodingChannel.Height))
+                .Select(c => c.Color ?? ColorChannel.None).ToArray();
 
-            if (heightChannel == null) return;
+            if (!heightChannels.Any()) return;
 
             var options = new HeightEdgeProcessor.Options {
                 Size = Context.Material.Height?.EdgeFadeSize ?? 0,
-                Color = heightChannel.Color ?? ColorChannel.None,
+                Colors = heightChannels,
             };
 
             var processor = new HeightEdgeProcessor(options);
-            image.Mutate(context => context.ApplyProcessor(processor));
+            image.Mutate(context => {
+                if (!bounds.HasValue) context.ApplyProcessor(processor);
+                else context.ApplyProcessor(processor, bounds.Value);
+            });
         }
 
         private async Task<bool> TryBuildNormalMapAsync(CancellationToken token)

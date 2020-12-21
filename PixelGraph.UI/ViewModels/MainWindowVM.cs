@@ -4,6 +4,7 @@ using PixelGraph.Common.ResourcePack;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -254,6 +255,10 @@ namespace PixelGraph.UI.ViewModels
         {
             SearchText = "as";
             ShowAllFiles = true;
+            IsPreviewLoading = true;
+
+            LoadedMaterial = new MaterialProperties();
+            LoadedTexture = new BitmapImage();
 
             TreeRoot.Nodes.Add(new ContentTreeDirectory(null) {
                 Name = "assets",

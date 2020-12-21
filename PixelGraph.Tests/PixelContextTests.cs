@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.PixelOperations;
+using SixLabors.ImageSharp;
 using Xunit;
 
 namespace PixelGraph.Tests
@@ -10,7 +11,8 @@ namespace PixelGraph.Tests
 
         public PixelContextTests()
         {
-            context = new PixelContext(128, 128, 0);
+            var bounds = new Rectangle(0, 0, 128, 128);
+            context = new PixelContext(in bounds, 0);
         }
 
         [InlineData(0, 0, 0, 0)]

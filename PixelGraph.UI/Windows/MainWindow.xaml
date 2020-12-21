@@ -268,9 +268,11 @@
                                                   Texture="{Binding LoadedTexture, Mode=OneWay}"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
                                         Visibility="{Binding IsPreviewLoading, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
-                                <Button Width="24" Height="24" Content="{md:PackIcon Close}" ToolTip="Cancel" Style="{StaticResource MaterialDesignFlatAccentButton}"/>
+                                <Button Width="20" Height="20" Margin="0,0,4,0" Content="{md:PackIcon Close}" ToolTip="Cancel"
+                                        Style="{StaticResource MaterialDesignFlatAccentButton}" Click="OnPreviewCancelClick"
+                                        Foreground="{DynamicResource SecondaryHueDarkBrush}" Padding="0,0,0,0" VerticalAlignment="Center"/>
                                 <TextBlock HorizontalAlignment="Center" FontSize="18" FontStyle="Italic" Text="Generating Preview..."
-                                           Foreground="{DynamicResource SecondaryHueDarkBrush}"/>
+                                           Foreground="{DynamicResource SecondaryHueDarkBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Grid>
                     </DockPanel>

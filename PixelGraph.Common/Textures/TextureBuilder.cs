@@ -64,7 +64,13 @@ namespace PixelGraph.Common.Textures
 
             if (!CreateEmpty && mappings.Count == 0) return;
 
-            foreach (var mapping in mappings)
+            foreach (var mappingGroup in mappings.GroupBy(m => m.SourceFilename)) {
+                if (mappingGroup.Key == null) continue;
+                
+                await ApplySourceMappingAsync(mappingGroup.Key, mappingGroup, token);
+            }
+
+            foreach (var mapping in mappings.Where(m => m.SourceFilename == null))
                 await ApplyMappingAsync(mapping, token);
 
             if (ImageResult == null) {
@@ -164,8 +170,7 @@ namespace PixelGraph.Common.Textures
         {
             if (mapping.SourceTag != null) {
                 var options = new OverlayProcessor<Rgb24>.Options {
-                    Mapping = mapping,
-                    Scale = mapping.Scale,
+                    Mappings = new []{mapping},
                 };
 
                 if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
@@ -187,33 +192,32 @@ namespace PixelGraph.Common.Textures
                 }
             }
             
-            if (mapping.SourceFilename != null) {
-                await using var sourceStream = reader.Open(mapping.SourceFilename);
-                using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
+            //if (mapping.SourceFilename != null) {
+            //    await using var sourceStream = reader.Open(mapping.SourceFilename);
+            //    using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
 
-                var options = new OverlayProcessor<Rgba32>.Options {
-                    Mapping = mapping,
-                    Scale = mapping.Scale,
-                    Source = sourceImage,
-                };
+            //    var options = new OverlayProcessor<Rgba32>.Options {
+            //        Mapping = mapping,
+            //        Scale = mapping.Scale,
+            //        Source = sourceImage,
+            //    };
 
-                if (ImageResult == null) {
-                    var size = options.Source.Size();
-                    CreateImageResult(in size);
-                }
+            //    if (ImageResult == null) {
+            //        var size = options.Source.Size();
+            //        CreateImageResult(in size);
+            //    }
 
-                var processor = new OverlayProcessor<Rgba32>(options);
-                ImageResult.Mutate(context => context.ApplyProcessor(processor));
-                return;
-            }
+            //    var processor = new OverlayProcessor<Rgba32>(options);
+            //    ImageResult.Mutate(context => context.ApplyProcessor(processor));
+            //    return;
+            //}
 
             var value = (mapping.InputValue ?? 0) / 255f * mapping.Scale;
 
-            if (MathF.Abs(mapping.OutputPower - 1f) > float.Epsilon) {
+            if (MathF.Abs(mapping.OutputPower - 1f) > float.Epsilon)
                 value = MathF.Pow(value, mapping.OutputPower);
-            }
 
-            if (mapping.InvertOutput) value = 1f - value;
+            if (mapping.InvertOutput) MathEx.Invert(ref value);
 
             MathEx.Saturate(value, out var finalValue);
             MathEx.Cycle(ref finalValue, in mapping.OutputShift);
@@ -236,6 +240,27 @@ namespace PixelGraph.Common.Textures
             else {
                 defaultValues.SetChannelValue(in mapping.OutputColor, in finalValue);
             }
+        }
+
+        private async Task ApplySourceMappingAsync(string sourceFilename, IEnumerable<TextureChannelMapping> mappings, CancellationToken token)
+        {
+            if (sourceFilename == null) throw new ArgumentNullException(nameof(sourceFilename));
+
+            await using var sourceStream = reader.Open(sourceFilename);
+            using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
+
+            var options = new OverlayProcessor<Rgba32>.Options {
+                Mappings = mappings as TextureChannelMapping[] ?? mappings.ToArray(),
+                Source = sourceImage,
+            };
+
+            if (ImageResult == null) {
+                var size = options.Source.Size();
+                CreateImageResult(in size);
+            }
+
+            var processor = new OverlayProcessor<Rgba32>(options);
+            ImageResult.Mutate(context => context.ApplyProcessor(processor));
         }
 
         private void CreateImageResult(in Size size)

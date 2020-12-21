@@ -361,11 +361,22 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public int? HeightEdgeFadeSize {
+            get => _material?.Height?.EdgeFadeSize;
+            set {
+                _material.Height ??= new MaterialHeightProperties();
+                _material.Height.EdgeFadeSize = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
         private void UpdateHeightProperties()
         {
             OnPropertyChanged(nameof(HeightTexture));
             OnPropertyChanged(nameof(HeightValue));
             OnPropertyChanged(nameof(HeightScale));
+            OnPropertyChanged(nameof(HeightEdgeFadeSize));
         }
 
         #endregion

@@ -25,6 +25,16 @@ namespace PixelGraph.Common.Extensions
             value.Z /= length;
         }
 
+        public static void Invert(ref byte value)
+        {
+            value = (byte) (255 - value);
+        }
+
+        public static void Invert(ref float value)
+        {
+            value = 1f - value;
+        }
+
         public static byte Clamp(int value)
         {
             return (byte)Math.Clamp(value, 0, 255);

@@ -139,6 +139,12 @@
                                      PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Text="{Binding HeightScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Edge Fade Size">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0"
+                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                             Text="{Binding HeightEdgeFadeSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        </local:PropertyGridItem>
                     </StackPanel>
                 </Grid>
                 <Grid Visibility="{Binding IsNormalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">

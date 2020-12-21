@@ -29,16 +29,11 @@ namespace PixelGraph.UI.Windows
 {
     public partial class MainWindow
     {
-        //private const int ThumbnailSize = 64;
-
         private readonly IServiceProvider provider;
         private readonly ILogger logger;
 
         private readonly object previewLock;
         private ITexturePreviewBuilder previewBuilder;
-
-        //private readonly IAppSettings settings;
-        //private readonly MainWindowVM vm;
 
 
         public MainWindow(IServiceProvider provider)
@@ -48,13 +43,6 @@ namespace PixelGraph.UI.Windows
             logger = provider.GetRequiredService<ILogger<MainWindow>>();
 
             previewLock = new object();
-
-            //settings = provider.GetRequiredService<IAppSettings>();
-
-            //if (!DesignerProperties.GetIsInDesignMode(this)) {
-            //    vm = new MainWindowVM();
-            //    DataContext = vm;
-            //}
 
             InitializeComponent();
 
@@ -629,11 +617,6 @@ namespace PixelGraph.UI.Windows
             OpenDocumentation();
         }
 
-        //private void OnMaterialSourceSelectionChanged(object sender, SelectionChangedEventArgs e)
-        //{
-        //    vm.LoadedTexture = vm.SelectedSource?.Image;
-        //}
-
         private async void OnImportMaterialClick(object sender, RoutedEventArgs e)
         {
             if (!(vm.SelectedNode is ContentTreeFile fileNode) || fileNode.Type != ContentNodeType.Texture) return;
@@ -686,6 +669,13 @@ namespace PixelGraph.UI.Windows
         private async void OnSelectedTagChanged(object sender, EventArgs e)
         {
             await UpdatePreviewAsync();
+        }
+
+        private void OnPreviewCancelClick(object sender, RoutedEventArgs e)
+        {
+            lock (previewLock) {
+                previewBuilder?.Cancel();
+            }
         }
 
         #endregion

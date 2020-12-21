@@ -20,8 +20,8 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
         {
-            var fx = context.X / (float)context.Width * options.SourceWidth;
-            var fy = context.Y / (float)context.Height * options.SourceHeight;
+            var fx = context.X / (float)context.Bounds.Width * options.SourceWidth;
+            var fy = context.Y / (float)context.Bounds.Height * options.SourceHeight;
 
             byte value = 0;
             foreach (var channel in options.Channels) {
