@@ -6,6 +6,7 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -80,6 +81,7 @@ namespace PixelGraph.Common.IO.Publishing
                 switch (fileObj) {
                     case MaterialProperties material:
                         sourceTime = reader.GetWriteTime(material.LocalFilename);
+
                         foreach (var texFile in reader.EnumerateAllTextures(material)) {
                             var z = reader.GetWriteTime(texFile);
                             if (!z.HasValue) continue;
@@ -123,29 +125,35 @@ namespace PixelGraph.Common.IO.Publishing
                         // TODO: Publish mcmeta files
 
                         break;
-                    case string localName:
-                        sourceTime = reader.GetWriteTime(localName);
-                        destinationTime = writer.GetWriteTime(localName);
+                    case string localFile:
+                        sourceTime = reader.GetWriteTime(localFile);
+                        destinationTime = writer.GetWriteTime(localFile);
 
-                        if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
-                            logger.LogDebug("Skipping up-to-date untracked file {localName}.", localName);
+                        var file = Path.GetFileName(localFile);
+                        if (fileIgnoreList.Contains(file)) {
+                            logger.LogDebug("Skipping ignored file {localFile}.", localFile);
                             continue;
                         }
 
-                        var extension = Path.GetExtension(localName);
-                        var filterImage = ImageExtensions.Supports(extension)
-                            && !pathIgnoreList.Any(x => localName.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
+                        if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
+                            logger.LogDebug("Skipping up-to-date untracked file {localFile}.", localFile);
+                            continue;
+                        }
 
-                        if (filterImage) {
-                            await genericPublisher.PublishAsync(localName, token);
+                        var extension = Path.GetExtension(localFile);
+                        var filterImage = ImageExtensions.Supports(extension);
+                        var ignoreImage = !pathIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
+
+                        if (filterImage && !ignoreImage) {
+                            await genericPublisher.PublishAsync(localFile, token);
                         }
                         else {
-                            await using var srcStream = reader.Open(localName);
-                            await using var destStream = writer.Open(localName);
+                            await using var srcStream = reader.Open(localFile);
+                            await using var destStream = writer.Open(localFile);
                             await srcStream.CopyToAsync(destStream, token);
                         }
 
-                        logger.LogInformation("Published untracked file {localName}.", localName);
+                        logger.LogInformation("Published untracked file {localFile}.", localFile);
                         break;
                 }
             }
@@ -188,6 +196,12 @@ namespace PixelGraph.Common.IO.Publishing
             Path.Combine("assets", "minecraft", "textures", "colormap"),
             Path.Combine("assets", "minecraft", "textures", "misc"),
             Path.Combine("assets", "minecraft", "optifine", "colormap"),
+        };
+
+        private static readonly HashSet<string> fileIgnoreList = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) {
+            "source.txt",
+            "readme.txt",
+            "readme.md",
         };
     }
 }

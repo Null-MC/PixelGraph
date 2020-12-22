@@ -36,7 +36,8 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = 0)]
         public string InputFormat {get; set;}
 
-        public bool? Wrap {get; set;}
+        public bool? WrapX {get; set;}
+        public bool? WrapY {get; set;}
 
         public bool? ResizeEnabled {get; set;}
 
@@ -128,6 +129,12 @@ namespace PixelGraph.Common.Material
             return scaleMap.TryGetValue(channel, out var value) ? (float)value(this) : 1f;
         }
 
+        public int GetChannelShift(string channel)
+        {
+            if (EncodingChannel.IsEmpty(channel)) return 0;
+            return shiftMap.TryGetValue(channel, out var value) ? (int)value(this) : 0;
+        }
+
         private static readonly Dictionary<string, Func<MaterialProperties, byte?>> valueMap = new Dictionary<string, Func<MaterialProperties, byte?>>(StringComparer.OrdinalIgnoreCase) {
             [EncodingChannel.Alpha] = mat => mat.Alpha?.Value,
             [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ValueRed,
@@ -147,6 +154,24 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Value,
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Value,
             [EncodingChannel.Emissive] = mat => mat.Emissive?.Value,
+        };
+
+        private static readonly Dictionary<string, Func<MaterialProperties, decimal>> shiftMap = new Dictionary<string, Func<MaterialProperties, decimal>>(StringComparer.OrdinalIgnoreCase) {
+            [EncodingChannel.Alpha] = mat => 0,
+            [EncodingChannel.DiffuseRed] = mat => 0,
+            [EncodingChannel.DiffuseGreen] = mat => 0,
+            [EncodingChannel.DiffuseBlue] = mat => 0,
+            [EncodingChannel.AlbedoRed] = mat => 0,
+            [EncodingChannel.AlbedoGreen] = mat => 0,
+            [EncodingChannel.AlbedoBlue] = mat => 0,
+            [EncodingChannel.Height] = mat => mat.Height?.Shift ?? 0,
+            [EncodingChannel.Occlusion] = mat => 0,
+            [EncodingChannel.Smooth] = mat => 0,
+            [EncodingChannel.Rough] = mat => 0,
+            [EncodingChannel.Metal] = mat => 0,
+            [EncodingChannel.Porosity] = mat => 0,
+            [EncodingChannel.SubSurfaceScattering] = mat => 0,
+            [EncodingChannel.Emissive] = mat => 0,
         };
 
         private static readonly Dictionary<string, Func<MaterialProperties, decimal>> scaleMap = new Dictionary<string, Func<MaterialProperties, decimal>>(StringComparer.OrdinalIgnoreCase) {

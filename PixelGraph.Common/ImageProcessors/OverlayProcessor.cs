@@ -23,6 +23,10 @@ namespace PixelGraph.Common.ImageProcessors
             var pixelIn = new Rgba32();
 
             foreach (var mapping in options.Mappings) {
+                pixelOut.GetChannelValue(in mapping.OutputColor, out var existingValue);
+
+                if (existingValue != 0 && (existingValue < mapping.OutputMin || existingValue > mapping.OutputMax)) continue;
+                
                 byte value;
 
                 if (mapping.InputValue.HasValue)
@@ -60,6 +64,11 @@ namespace PixelGraph.Common.ImageProcessors
 
                 // Common Processing
 
+                // Shift
+                if (mapping.Shift != 0)
+                    fValue += mapping.Shift / 255f;
+
+                // Scale
                 if (MathF.Abs(mapping.Scale - 1f) > float.Epsilon)
                     fValue *= mapping.Scale;
 

@@ -35,7 +35,8 @@ namespace PixelGraph.Common.Samplers
     {
         Image<TPixel> Image {get; set;}
         float Range {get; set;}
-        bool Wrap {get; set;}
+        bool WrapX {get; set;}
+        bool WrapY {get; set;}
 
         void Sample(in float fx, in float fy, ref Rgba32 pixel);
         void SampleScaled(in float fx, in float fy, ref Vector4 pixel);

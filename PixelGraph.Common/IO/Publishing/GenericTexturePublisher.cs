@@ -61,7 +61,8 @@ namespace PixelGraph.Common.IO.Publishing
             var packSampler = Sampler<TPixel>.Create(Pack.Encoding.Sampler) ?? new NearestSampler<TPixel>();
             packSampler.Image = source;
             //packSampler.Range = 1f;
-            packSampler.Wrap = false;
+            packSampler.WrapX = false;
+            packSampler.WrapY = false;
 
             var options = new ResizeProcessor<TPixel>.Options {
                 SourceWidth = width,

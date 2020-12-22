@@ -26,53 +26,47 @@ namespace PixelGraph.Common.ImageProcessors
             pixel.GetChannelValue(options.NormalX, out var normalX);
             pixel.GetChannelValue(options.NormalY, out var normalY);
 
-            var vx = Math.Clamp(normalX / 127d - 1d, -1d, 1d);
-            var vy = Math.Clamp(normalY / 127d - 1d, -1d, 1d);
+            var cx = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
+            var cy = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
 
-            var angleX = Math.Asin(vx) / MathEx.Deg2Rad;
-            var angleY = Math.Asin(vy) / MathEx.Deg2Rad;
+            var angleX = MathF.Asin(cx) / MathEx.Deg2Rad;
+            var angleY = MathF.Asin(cy) / MathEx.Deg2Rad;
 
             if (hasRotation) {
-                var fx = (context.X + 0.5d) / context.Bounds.Width;
-                var fy = (context.Y + 0.5d) / context.Bounds.Height;
-                angleX += options.CurveX * (fx - 0.5d);
-                angleY += options.CurveY * (fy - 0.5d);
+                var fx = (context.X + 0.5f) / context.Bounds.Width;
+                var fy = (context.Y + 0.5f) / context.Bounds.Height;
+                angleX += options.CurveX * (fx - 0.5f);
+                angleY += options.CurveY * (fy - 0.5f);
             }
 
             if (hasNoise) {
                 context.GetNoise(in context.X, out var noiseX, out var noiseY);
-                angleX += (noiseX / 127d - 1f) * options.Noise;
-                angleY += (noiseY / 127d - 1f) * options.Noise;
+                angleX += (noiseX / 127f - 1f) * options.Noise;
+                angleY += (noiseY / 127f - 1f) * options.Noise;
             }
 
-            MathEx.Clamp(ref angleX, -90d, 90d);
+            MathEx.Clamp(ref angleX, -90f, 90f);
             MathEx.Clamp(ref angleY, -90f, 90f);
 
-            var sinX = Math.Sin(angleX * MathEx.Deg2Rad);
-            var cosX = Math.Cos(angleX * MathEx.Deg2Rad);
-            var sinY = Math.Sin(angleY * MathEx.Deg2Rad);
-            var cosY = Math.Cos(angleY * MathEx.Deg2Rad);
+            var sinX = MathF.Sin(angleX * MathEx.Deg2Rad);
+            var cosX = MathF.Cos(angleX * MathEx.Deg2Rad);
+            var sinY = MathF.Sin(angleY * MathEx.Deg2Rad);
+            var cosY = MathF.Cos(angleY * MathEx.Deg2Rad);
 
             Vector3 v;
-            v.X = (float)(sinX * cosY);
-            v.Y = (float)(sinY * cosX);
-            v.Z = (float)(cosX * cosY);
+            v.X = sinX * cosY;
+            v.Y = sinY * cosX;
+            v.Z = cosX * cosY;
             MathEx.Normalize(ref v);
 
-            if (options.NormalX != ColorChannel.None) {
-                MathEx.SaturateFloor(v.X * 0.5f + 0.5f, out normalX);
-                pixel.SetChannelValue(options.NormalX, normalX);
-            }
+            if (options.NormalX != ColorChannel.None)
+                pixel.SetChannelValueScaledF(options.NormalX, v.X * 0.5f + 0.5f);
 
-            if (options.NormalY != ColorChannel.None) {
-                MathEx.SaturateFloor(v.Y * 0.5f + 0.5f, out normalY);
-                pixel.SetChannelValue(options.NormalY, normalY);
-            }
+            if (options.NormalY != ColorChannel.None)
+                pixel.SetChannelValueScaledF(options.NormalY, v.Y * 0.5f + 0.5f);
 
-            if (options.NormalZ != ColorChannel.None) {
-                MathEx.SaturateFloor(v.Z, out var normalZ);
-                pixel.SetChannelValue(options.NormalZ, normalZ);
-            }
+            if (options.NormalZ != ColorChannel.None)
+                pixel.SetChannelValueScaledF(options.NormalZ, v.Z);
         }
 
         public class Options
@@ -83,23 +77,6 @@ namespace PixelGraph.Common.ImageProcessors
             public float CurveX = 0f;
             public float CurveY = 0f;
             public float Noise = 0f;
-
-
-            //public bool HasAllMappings()
-            //{
-            //    if (NormalX == ColorChannel.None) return false;
-            //    if (NormalY == ColorChannel.None) return false;
-            //    if (NormalZ == ColorChannel.None) return false;
-            //    return true;
-            //}
-
-            //public bool HasRotations()
-            //{
-            //    if (CurveX > float.Epsilon) return true;
-            //    if (CurveY > float.Epsilon) return true;
-            //    if (Noise > float.Epsilon) return true;
-            //    return false;
-            //}
         }
     }
 }

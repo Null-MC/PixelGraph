@@ -183,7 +183,7 @@ namespace PixelGraph.UI.Windows
             vm.LoadedMaterialFilename = matFile;
             vm.LoadedMaterial = await matReader.LoadAsync(matFile, token);
 
-            await UpdatePreviewAsync();
+            await UpdatePreviewAsync(true);
         }
 
         private async Task GenerateNormalAsync(CancellationToken token)
@@ -397,7 +397,7 @@ namespace PixelGraph.UI.Windows
             Process.Start(info);
         }
 
-        private async Task UpdatePreviewAsync()
+        private async Task UpdatePreviewAsync(bool clear)
         {
             ITexturePreviewBuilder p;
 
@@ -410,7 +410,7 @@ namespace PixelGraph.UI.Windows
             var hasSelectedTexture = vm.SelectedTag != null;
 
             await Application.Current.Dispatcher.BeginInvoke(() => {
-                vm.LoadedTexture = null;
+                if (clear) vm.LoadedTexture = null;
                 vm.IsPreviewLoading = hasSelectedTexture;
             });
 
@@ -570,7 +570,7 @@ namespace PixelGraph.UI.Windows
         {
             await SaveMaterialAsync();
 
-            await UpdatePreviewAsync();
+            await UpdatePreviewAsync(false);
         }
 
         private async void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -668,7 +668,7 @@ namespace PixelGraph.UI.Windows
 
         private async void OnSelectedTagChanged(object sender, EventArgs e)
         {
-            await UpdatePreviewAsync();
+            await UpdatePreviewAsync(true);
         }
 
         private void OnPreviewCancelClick(object sender, RoutedEventArgs e)

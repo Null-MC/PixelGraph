@@ -94,6 +94,7 @@ namespace PixelGraph.Common.Textures
                 OutputPower = (float?)outputChannel.Power ?? 1f,
                 InvertOutput = outputChannel.Invert ?? false,
 
+                Shift = Material.GetChannelShift(outputChannel.ID),
                 Scale = Material.GetChannelScale(outputChannel.ID),
             };
 
@@ -152,12 +153,12 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
-            if (CreateEmpty) {
-                mapping.InputValue = 0;
-                return true;
-            }
+            //if (CreateEmpty) {
+            //    mapping.InputValue = 0;
+            //    return true;
+            //}
 
-            return false;
+            return CreateEmpty;
         }
 
         private bool TryGetInputChannel(string id, out ResourcePackChannelProperties channel)
@@ -191,28 +192,11 @@ namespace PixelGraph.Common.Textures
                     return;
                 }
             }
-            
-            //if (mapping.SourceFilename != null) {
-            //    await using var sourceStream = reader.Open(mapping.SourceFilename);
-            //    using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
 
-            //    var options = new OverlayProcessor<Rgba32>.Options {
-            //        Mapping = mapping,
-            //        Scale = mapping.Scale,
-            //        Source = sourceImage,
-            //    };
+            var value = (mapping.InputValue ?? 0) / 255f;
 
-            //    if (ImageResult == null) {
-            //        var size = options.Source.Size();
-            //        CreateImageResult(in size);
-            //    }
-
-            //    var processor = new OverlayProcessor<Rgba32>(options);
-            //    ImageResult.Mutate(context => context.ApplyProcessor(processor));
-            //    return;
-            //}
-
-            var value = (mapping.InputValue ?? 0) / 255f * mapping.Scale;
+            value += mapping.Shift;
+            value *= mapping.Scale;
 
             if (MathF.Abs(mapping.OutputPower - 1f) > float.Epsilon)
                 value = MathF.Pow(value, mapping.OutputPower);
@@ -232,6 +216,8 @@ namespace PixelGraph.Common.Textures
                 var options = new OverwriteProcessor.Options {
                     Color = mapping.OutputColor,
                     Value = finalValue,
+                    Min = mapping.OutputMin,
+                    Max = mapping.OutputMax,
                 };
 
                 var processor = new OverwriteProcessor(options);
@@ -305,6 +291,7 @@ namespace PixelGraph.Common.Textures
 
         public string SourceTag;
         public string SourceFilename;
+        public int Shift;
         public float Scale;
 
 

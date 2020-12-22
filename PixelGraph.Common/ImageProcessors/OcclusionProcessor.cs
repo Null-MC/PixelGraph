@@ -29,7 +29,7 @@ namespace PixelGraph.Common.ImageProcessors
             options.Sampler.SampleScaled(context.X, context.Y, in options.HeightChannel, ref height);
 
             // TODO: range, shift, power
-            if (!options.HeightInvert) height = 1f - height;
+            if (!options.HeightInvert) MathEx.Invert(ref height);
 
             var z = height * options.ZScale + options.ZBias;
 
@@ -46,7 +46,8 @@ namespace PixelGraph.Common.ImageProcessors
                     hitCount++;
             }
 
-            MathEx.Saturate(1f - hitCount / (float)rayCount, out pixelOut.R);
+            var occlusion = hitCount / (float)rayCount;
+            MathEx.Saturate(1f - occlusion, out pixelOut.R);
             pixelOut.B = pixelOut.G = pixelOut.R;
             pixelOut.A = 255;
         }
@@ -98,7 +99,7 @@ namespace PixelGraph.Common.ImageProcessors
                 options.Sampler.SampleScaled(in position.X, in position.Y, options.HeightChannel, ref height);
 
                 // TODO: range, shift, power
-                if (!options.HeightInvert) height = 1f - height;
+                if (!options.HeightInvert) MathEx.Invert(ref height);
 
                 if (position.Z < height * options.ZScale) return true;
             }
@@ -119,7 +120,6 @@ namespace PixelGraph.Common.ImageProcessors
             public float ZScale;
             public float ZBias;
             public float Quality;
-            public bool Wrap;
         }
     }
 }

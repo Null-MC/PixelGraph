@@ -10,8 +10,11 @@ namespace PixelGraph.Common.Samplers
             var px = (int) fx;
             var py = (int) fy;
 
-            if (Wrap) WrapCoords(ref px, ref py);
-            else ClampCoords(ref px, ref py);
+            if (WrapX) WrapCoordX(ref px);
+            else ClampCoordX(ref px);
+
+            if (WrapY) WrapCoordY(ref py);
+            else ClampCoordY(ref py);
 
             Image[px, py].ToRgba32(ref pixel);
         }

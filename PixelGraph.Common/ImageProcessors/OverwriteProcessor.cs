@@ -17,13 +17,17 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
         {
+            pixelOut.GetChannelValue(in options.Color, out var value);
+
+            if (value != 0 && (value < options.Min || value > options.Max)) return;
+
             pixelOut.SetChannelValue(in options.Color, in options.Value);
         }
 
         public class Options
         {
             public ColorChannel Color;
-            public byte Value;
+            public byte Value, Min, Max;
         }
     }
 }

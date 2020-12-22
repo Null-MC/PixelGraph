@@ -197,6 +197,9 @@
                                         <md:PackIcon.Style>
                                             <Style TargetType="md:PackIcon">
                                                 <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Type, Mode=OneWay}" Value="{x:Static vm:ContentNodeType.Material}">
+                                                        <Setter Property="Foreground" Value="{DynamicResource SecondaryHueMidBrush}"/>
+                                                    </DataTrigger>
                                                     <DataTrigger Binding="{Binding Type, Mode=OneWay}" Value="{x:Static vm:ContentNodeType.Texture}">
                                                         <Setter Property="Foreground" Value="#F00"/>
                                                     </DataTrigger>
@@ -210,7 +213,7 @@
                             <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeMaterialDirectory}"
                                                       ItemsSource="{Binding Nodes, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal">
-                                    <md:PackIcon Kind="PaletteSwatch" Margin="0,0,4,0" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                                    <md:PackIcon Kind="Palette" Margin="0,0,4,0" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
                                     <TextBlock Text="{Binding Name}"/>
                                 </StackPanel>
                             </HierarchicalDataTemplate>
@@ -246,36 +249,52 @@
                         <ColumnDefinition Width="3"/>
                         <ColumnDefinition Width="280"/>
                     </Grid.ColumnDefinitions>
-                    <DockPanel Grid.Column="0" Visibility="{Binding HasPreviewImage, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
-                        <DockPanel DockPanel.Dock="Top" Margin="4,2" LastChildFill="False">
-                            <CheckBox DockPanel.Dock="Left" Content="Tile" Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                      IsChecked="{Binding EnableTiling, ElementName=TextureViewer}"/>
-                            <ComboBox IsEditable="True" DockPanel.Dock="Right"
-                                      Style="{StaticResource MaterialDesignComboBox}"
-                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                      Text="{Binding ZoomText, Mode=TwoWay, ElementName=TextureViewer}">
-                                <ComboBoxItem Content="10%"/>
-                                <ComboBoxItem Content="25%"/>
-                                <ComboBoxItem Content="50%"/>
-                                <ComboBoxItem Content="100%" IsSelected="True"/>
-                                <ComboBoxItem Content="200%"/>
-                                <ComboBoxItem Content="400%"/>
-                                <ComboBoxItem Content="800%"/>
-                            </ComboBox>
+                    <Grid Grid.Column="0">
+                        <DockPanel Visibility="{Binding HasPreviewImage, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
+                            <DockPanel DockPanel.Dock="Top" Margin="4,2" LastChildFill="False">
+                                <CheckBox DockPanel.Dock="Left" Content="Tile" Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                          IsChecked="{Binding EnableTiling, ElementName=TextureViewer}"/>
+                                <ComboBox IsEditable="True" DockPanel.Dock="Right"
+                                          Style="{StaticResource MaterialDesignComboBox}"
+                                          Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                          Text="{Binding ZoomText, Mode=TwoWay, ElementName=TextureViewer}">
+                                    <ComboBoxItem Content="10%"/>
+                                    <ComboBoxItem Content="25%"/>
+                                    <ComboBoxItem Content="50%"/>
+                                    <ComboBoxItem Content="100%" IsSelected="True"/>
+                                    <ComboBoxItem Content="200%"/>
+                                    <ComboBoxItem Content="400%"/>
+                                    <ComboBoxItem Content="800%"/>
+                                </ComboBox>
+                            </DockPanel>
+                            <Grid>
+                                <controls:TextureView x:Name="TextureViewer" Background="#222"
+                                                      Texture="{Binding LoadedTexture, Mode=OneWay}"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Visibility="{Binding IsPreviewLoading, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
+                                    <Button Width="20" Height="20" Margin="0,0,4,0" Content="{md:PackIcon Close}" ToolTip="Cancel"
+                                            Style="{StaticResource MaterialDesignFlatAccentButton}" Click="OnPreviewCancelClick"
+                                            Foreground="{DynamicResource SecondaryHueDarkBrush}" Padding="0,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock HorizontalAlignment="Center" FontSize="18" FontStyle="Italic" Text="Generating Preview..."
+                                               Foreground="{DynamicResource SecondaryHueDarkBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
                         </DockPanel>
-                        <Grid>
-                            <controls:TextureView x:Name="TextureViewer" Background="#222"
-                                                  Texture="{Binding LoadedTexture, Mode=OneWay}"/>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                        Visibility="{Binding IsPreviewLoading, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
-                                <Button Width="20" Height="20" Margin="0,0,4,0" Content="{md:PackIcon Close}" ToolTip="Cancel"
-                                        Style="{StaticResource MaterialDesignFlatAccentButton}" Click="OnPreviewCancelClick"
-                                        Foreground="{DynamicResource SecondaryHueDarkBrush}" Padding="0,0,0,0" VerticalAlignment="Center"/>
-                                <TextBlock HorizontalAlignment="Center" FontSize="18" FontStyle="Italic" Text="Generating Preview..."
-                                           Foreground="{DynamicResource SecondaryHueDarkBrush}" VerticalAlignment="Center"/>
+                        <!--<WrapPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Vertical" Margin="32">
+                                <Border CornerRadius="8" Background="Black" Width="64" Height="64" Margin="4"/>
+                                <TextBlock Text="Alpha" HorizontalAlignment="Center"/>
                             </StackPanel>
-                        </Grid>
-                    </DockPanel>
+                            <StackPanel Orientation="Vertical" Margin="32">
+                                <Border CornerRadius="8" Background="Black" Width="64" Height="64" Margin="4"/>
+                                <TextBlock Text="Diffuse" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Margin="32">
+                                <Border CornerRadius="8" Background="Black" Width="64" Height="64" Margin="4"/>
+                                <TextBlock Text="Albedo" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </WrapPanel>-->
+                    </Grid>
                     <GridSplitter Grid.Column="1" Grid.Row="0" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
                     <controls:MaterialPropertiesControl Grid.Column="2" DataChanged="OnMaterialChanged" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
                                                    Material="{Binding LoadedMaterial, Mode=OneWay}"

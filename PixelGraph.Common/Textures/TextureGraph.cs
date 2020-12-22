@@ -272,7 +272,8 @@ namespace PixelGraph.Common.Textures
 
                 sampler.Image = image;
                 sampler.Range = range;
-                sampler.Wrap = Context.Material?.Wrap ?? true;
+                sampler.WrapX = Context.Material?.WrapX ?? true;
+                sampler.WrapY = Context.Material?.WrapY ?? true;
 
                 var channel = new ChannelResizeProcessor<TPixel>.ChannelOptions {
                     Color = color,
@@ -301,8 +302,9 @@ namespace PixelGraph.Common.Textures
 
         private void FixEdges(Image image, string tag, Rectangle? bounds = null)
         {
-            var hasEdgeSize = Context.Material.Height?.EdgeFadeSize.HasValue ?? false;
-            if (!hasEdgeSize) return;
+            var hasEdgeSizeX = Context.Material.Height?.EdgeFadeSizeX.HasValue ?? false;
+            var hasEdgeSizeY = Context.Material.Height?.EdgeFadeSizeY.HasValue ?? false;
+            if (!hasEdgeSizeX && !hasEdgeSizeY) return;
 
             var heightChannels = OutputEncoding
                 .Where(c => TextureTags.Is(c.Texture, tag))
@@ -312,7 +314,8 @@ namespace PixelGraph.Common.Textures
             if (!heightChannels.Any()) return;
 
             var options = new HeightEdgeProcessor.Options {
-                Size = Context.Material.Height?.EdgeFadeSize ?? 0,
+                SizeX = Context.Material.Height?.EdgeFadeSizeX ?? 0,
+                SizeY = Context.Material.Height?.EdgeFadeSizeY ?? 0,
                 Colors = heightChannels,
             };
 
@@ -425,7 +428,8 @@ namespace PixelGraph.Common.Textures
                     Source = heightTexture,
                     HeightChannel = heightChannel.Color ?? ColorChannel.None,
                     Strength = (float?)Context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
-                    Wrap = Context.Material.Wrap ?? MaterialProperties.DefaultWrap,
+                    WrapX = Context.Material.WrapX ?? MaterialProperties.DefaultWrap,
+                    WrapY = Context.Material.WrapY ?? MaterialProperties.DefaultWrap,
                 };
 
                 var processor = new NormalMapProcessor(options);
@@ -472,7 +476,8 @@ namespace PixelGraph.Common.Textures
                 var options = new OcclusionProcessor.Options {
                     Sampler = new BilinearSampler<Rgba32> {
                         Image = heightTexture,
-                        Wrap = Context.Material?.Wrap ?? MaterialProperties.DefaultWrap,
+                        WrapX = Context.Material?.WrapX ?? MaterialProperties.DefaultWrap,
+                        WrapY = Context.Material?.WrapY ?? MaterialProperties.DefaultWrap,
                     },
                     //HeightSource = heightTexture,
                     HeightChannel = heightChannel.Color.Value,
@@ -487,7 +492,7 @@ namespace PixelGraph.Common.Textures
                     Quality = (float?)Context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
                     ZScale = (float?)Context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
                     ZBias = (float?)Context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias,
-                    Wrap = Context.Material.Wrap ?? MaterialProperties.DefaultWrap,
+                    //Wrap = Context.Material.Wrap ?? MaterialProperties.DefaultWrap,
                 };
 
                 var processor = new OcclusionProcessor(options);

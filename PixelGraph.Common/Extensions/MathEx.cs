@@ -5,9 +5,14 @@ namespace PixelGraph.Common.Extensions
 {
     internal static class MathEx
     {
-        public const double Deg2Rad = Math.PI / 180;
+        public const float Deg2Rad = (float)(Math.PI / 180);
         //public const float Deg2RadF = (float)Deg2Rad;
 
+
+        public static bool Equal(this float valueA, float valueB)
+        {
+            return MathF.Abs(valueA - valueB) < float.Epsilon;
+        }
 
         public static void Normalize(ref Vector3 value)
         {

@@ -101,10 +101,19 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public bool? Wrap {
-            get => _material?.Wrap;
+        public bool? WrapX {
+            get => _material?.WrapX;
             set {
-                _material.Wrap = value;
+                _material.WrapX = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public bool? WrapY {
+            get => _material?.WrapY;
+            set {
+                _material.WrapY = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
@@ -113,7 +122,8 @@ namespace PixelGraph.UI.ViewModels
         private void UpdateGeneralProperties()
         {
             OnPropertyChanged(nameof(InputFormat));
-            OnPropertyChanged(nameof(Wrap));
+            OnPropertyChanged(nameof(WrapX));
+            OnPropertyChanged(nameof(WrapY));
         }
 
         #endregion
@@ -351,6 +361,16 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public int? HeightShift {
+            get => _material?.Height?.Shift;
+            set {
+                _material.Height ??= new MaterialHeightProperties();
+                _material.Height.Shift = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
         public decimal? HeightScale {
             get => _material?.Height?.Scale;
             set {
@@ -361,11 +381,21 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public int? HeightEdgeFadeSize {
-            get => _material?.Height?.EdgeFadeSize;
+        public int? HeightEdgeFadeSizeX {
+            get => _material?.Height?.EdgeFadeSizeX;
             set {
                 _material.Height ??= new MaterialHeightProperties();
-                _material.Height.EdgeFadeSize = value;
+                _material.Height.EdgeFadeSizeX = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public int? HeightEdgeFadeSizeY {
+            get => _material?.Height?.EdgeFadeSizeY;
+            set {
+                _material.Height ??= new MaterialHeightProperties();
+                _material.Height.EdgeFadeSizeY = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
@@ -375,8 +405,10 @@ namespace PixelGraph.UI.ViewModels
         {
             OnPropertyChanged(nameof(HeightTexture));
             OnPropertyChanged(nameof(HeightValue));
+            OnPropertyChanged(nameof(HeightShift));
             OnPropertyChanged(nameof(HeightScale));
-            OnPropertyChanged(nameof(HeightEdgeFadeSize));
+            OnPropertyChanged(nameof(HeightEdgeFadeSizeX));
+            OnPropertyChanged(nameof(HeightEdgeFadeSizeY));
         }
 
         #endregion

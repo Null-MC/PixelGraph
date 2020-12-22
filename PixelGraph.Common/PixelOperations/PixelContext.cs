@@ -32,22 +32,40 @@ namespace PixelGraph.Common.PixelOperations
             });
         }
 
-        public readonly void Wrap(ref int x, ref int y)
+        public readonly void WrapX(ref int x)
         {
             while (x < Bounds.Left) x += Bounds.Width;
-            while (y < Bounds.Top) y += Bounds.Height;
-
             while (x >= Bounds.Right) x -= Bounds.Width;
+        }
+
+        public readonly void WrapY(ref int y)
+        {
+            while (y < Bounds.Top) y += Bounds.Height;
             while (y >= Bounds.Bottom) y -= Bounds.Height;
+        }
+
+        public readonly void Wrap(ref int x, ref int y)
+        {
+            WrapX(ref x);
+            WrapY(ref y);
+        }
+
+        public readonly void ClampX(ref int x)
+        {
+            if (x < Bounds.Left) x = Bounds.Left;
+            if (x >= Bounds.Right) x = Bounds.Right - 1;
+        }
+
+        public readonly void ClampY(ref int y)
+        {
+            if (y < Bounds.Top) y = Bounds.Top;
+            if (y >= Bounds.Bottom) y = Bounds.Bottom - 1;
         }
 
         public readonly void Clamp(ref int x, ref int y)
         {
-            if (x < Bounds.Left) x = Bounds.Left;
-            if (y < Bounds.Top) y = Bounds.Top;
-
-            if (x >= Bounds.Right) x = Bounds.Right - 1;
-            if (y >= Bounds.Bottom) y = Bounds.Bottom - 1;
+            ClampX(ref x);
+            ClampY(ref y);
         }
 
         public readonly void GetNoise(in int x, out byte valueX, out byte valueY)

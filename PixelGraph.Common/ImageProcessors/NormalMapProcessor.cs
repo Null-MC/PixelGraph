@@ -29,25 +29,29 @@ namespace PixelGraph.Common.ImageProcessors
             normal.Z = 1f / options.Strength;
             MathEx.Normalize(ref normal);
 
-            MathEx.Saturate(normal.X * 0.5f + 0.5f, out pixel.R);
-            MathEx.Saturate(normal.Y * 0.5f + 0.5f, out pixel.G);
-            MathEx.Saturate(normal.Z, out pixel.B);
+            pixel.SetChannelValueScaled(ColorChannel.Red, normal.X * 0.5f + 0.5f);
+            pixel.SetChannelValueScaled(ColorChannel.Green, normal.Y * 0.5f + 0.5f);
+            pixel.SetChannelValueScaled(ColorChannel.Blue, normal.Z);
         }
 
         private void PopulateKernel_3x3(ref float[,] kernel, in PixelContext context)
         {
             for (var kY = 0; kY < 3; kY++) {
+                var pY = context.Y + kY - 1;
+
+                if (options.WrapY) context.WrapY(ref pY);
+                else context.ClampY(ref pY);
+
+                var row = options.Source.GetPixelRowSpan(pY);
+
                 for (var kX = 0; kX < 3; kX++) {
                     var pX = context.X + kX - 1;
-                    var pY = context.Y + kY - 1;
 
-                    if (options.Wrap) context.Wrap(ref pX, ref pY);
-                    else context.Clamp(ref pX, ref pY);
+                    if (options.WrapX) context.WrapX(ref pX);
+                    else context.ClampX(ref pX);
 
                     // TODO: Add read-row caching
-                    var pixel = options.Source[pX, pY].Rgb;
-                    pixel.GetChannelValue(in options.HeightChannel, out var height);
-                    kernel[kX, kY] = height / 255f;
+                    row[pX].GetChannelValueScaled(in options.HeightChannel, out kernel[kX, kY]);
                 }
             }
         }
@@ -68,7 +72,8 @@ namespace PixelGraph.Common.ImageProcessors
             public Image<Rgba32> Source;
             public ColorChannel HeightChannel;
             public float Strength = 1f;
-            public bool Wrap = true;
+            public bool WrapX = true;
+            public bool WrapY = true;
         }
     }
 }
