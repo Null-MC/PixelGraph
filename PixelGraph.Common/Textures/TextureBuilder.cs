@@ -153,11 +153,6 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
-            //if (CreateEmpty) {
-            //    mapping.InputValue = 0;
-            //    return true;
-            //}
-
             return CreateEmpty;
         }
 
