@@ -318,7 +318,7 @@
                             <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
                                              PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
-                                             Text="{Binding MetalScale, Mode=TwoWay}"/>
+                                             Text="{Binding MetalScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
                 </Grid>
@@ -338,7 +338,7 @@
                             <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
                                              PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
-                                             Text="{Binding PorosityScale, Mode=TwoWay}"/>
+                                             Text="{Binding PorosityScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
                 </Grid>
@@ -352,13 +352,13 @@
                         <local:PropertyGridItem Header="Value">
                             <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                             Text="{Binding SssValue, Mode=TwoWay}"/>
+                                             Text="{Binding SssValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Scale">
                             <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
                                              PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
-                                             Text="{Binding SssScale, Mode=TwoWay}"/>
+                                             Text="{Binding SssScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
                 </Grid>
@@ -372,13 +372,13 @@
                         <local:PropertyGridItem Header="Value">
                             <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                     Text="{Binding EmissiveValue, Mode=TwoWay}"/>
+                                     Text="{Binding EmissiveValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Scale">
                             <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
                                              PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
-                                             Text="{Binding EmissiveScale, Mode=TwoWay}"/>
+                                             Text="{Binding EmissiveScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
                 </Grid>
