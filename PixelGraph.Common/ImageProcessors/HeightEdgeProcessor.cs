@@ -27,6 +27,10 @@ namespace PixelGraph.Common.ImageProcessors
                 var skipX = context.X > context.Bounds.Left + options.SizeX && context.X < right - options.SizeX;
 
                 if (!skipX) {
+                    if (options.EnableSmartEdges) {
+                        //var pLeft = options.
+                    }
+
                     var fLeft = 1f - Math.Clamp((context.X - context.Bounds.Left) / (float) options.SizeX, 0f, 1f);
                     var fRight = 1f - Math.Clamp((right - context.X) / (float) options.SizeX, 0f, 1f);
                     fx = MathF.Max(fLeft, fRight);
@@ -67,6 +71,7 @@ namespace PixelGraph.Common.ImageProcessors
         {
             public ColorChannel[] Colors;
             public int SizeX, SizeY;
+            public bool EnableSmartEdges;
         }
     }
 }

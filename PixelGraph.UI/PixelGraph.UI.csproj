@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Version>0.9.0</Version>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <AssemblyName>PixelGraph</AssemblyName>
     <UseWPF>true</UseWPF>
     <Platforms>AnyCPU;x64</Platforms>

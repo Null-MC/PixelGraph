@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class NormalRotateProcessor : PixelProcessor
+    internal class NormalRotateProcessor : PixelRowProcessor
     {
         private readonly Options options;
         private readonly bool hasRotation, hasNoise;
@@ -21,52 +21,72 @@ namespace PixelGraph.Common.ImageProcessors
             hasNoise = options.Noise > float.Epsilon;
         }
 
-        protected override void ProcessPixel(ref Rgba32 pixel, in PixelContext context)
+        protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
-            pixel.GetChannelValue(options.NormalX, out var normalX);
-            pixel.GetChannelValue(options.NormalY, out var normalY);
-
-            var cx = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
-            var cy = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
-
-            var angleX = MathF.Asin(cx) / MathEx.Deg2Rad;
-            var angleY = MathF.Asin(cy) / MathEx.Deg2Rad;
-
-            if (hasRotation) {
-                var fx = (context.X + 0.5f) / context.Bounds.Width;
-                var fy = (context.Y + 0.5f) / context.Bounds.Height;
-                angleX += options.CurveX * (fx - 0.5f);
-                angleY += options.CurveY * (fy - 0.5f);
-            }
+            var pixel = new Rgba32();
+            byte[] noiseX = null, noiseY = null;
 
             if (hasNoise) {
-                context.GetNoise(in context.X, out var noiseX, out var noiseY);
-                angleX += (noiseX / 127f - 1f) * options.Noise;
-                angleY += (noiseY / 127f - 1f) * options.Noise;
+                GenerateNoise(context.Bounds.Width, out noiseX);
+                GenerateNoise(context.Bounds.Width, out noiseY);
             }
 
-            MathEx.Clamp(ref angleX, -90f, 90f);
-            MathEx.Clamp(ref angleY, -90f, 90f);
+            for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
+                row[x].ToRgba32(ref pixel);
+                pixel.GetChannelValue(options.NormalX, out var normalX);
+                pixel.GetChannelValue(options.NormalY, out var normalY);
 
-            var sinX = MathF.Sin(angleX * MathEx.Deg2Rad);
-            var cosX = MathF.Cos(angleX * MathEx.Deg2Rad);
-            var sinY = MathF.Sin(angleY * MathEx.Deg2Rad);
-            var cosY = MathF.Cos(angleY * MathEx.Deg2Rad);
+                var cx = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
+                var cy = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
 
-            Vector3 v;
-            v.X = sinX * cosY;
-            v.Y = sinY * cosX;
-            v.Z = cosX * cosY;
-            MathEx.Normalize(ref v);
+                var angleX = MathF.Asin(cx) / MathEx.Deg2Rad;
+                var angleY = MathF.Asin(cy) / MathEx.Deg2Rad;
 
-            if (options.NormalX != ColorChannel.None)
-                pixel.SetChannelValueScaledF(options.NormalX, v.X * 0.5f + 0.5f);
+                if (hasRotation) {
+                    var fx = (x + 0.5f) / context.Bounds.Width;
+                    var fy = (context.Y + 0.5f) / context.Bounds.Height;
+                    angleX += options.CurveX * (fx - 0.5f);
+                    angleY += options.CurveY * (fy - 0.5f);
+                }
 
-            if (options.NormalY != ColorChannel.None)
-                pixel.SetChannelValueScaledF(options.NormalY, v.Y * 0.5f + 0.5f);
+                if (hasNoise) {
+                    //context.GetNoise(in x, out var noiseX, out var noiseY);
+                    angleX += (noiseX[x] / 127f - 1f) * options.Noise;
+                    angleY += (noiseY[x] / 127f - 1f) * options.Noise;
+                }
 
-            if (options.NormalZ != ColorChannel.None)
-                pixel.SetChannelValueScaledF(options.NormalZ, v.Z);
+                MathEx.Clamp(ref angleX, -90f, 90f);
+                MathEx.Clamp(ref angleY, -90f, 90f);
+
+                var sinX = MathF.Sin(angleX * MathEx.Deg2Rad);
+                var cosX = MathF.Cos(angleX * MathEx.Deg2Rad);
+                var sinY = MathF.Sin(angleY * MathEx.Deg2Rad);
+                var cosY = MathF.Cos(angleY * MathEx.Deg2Rad);
+
+                Vector3 v;
+                v.X = sinX * cosY;
+                v.Y = sinY * cosX;
+                v.Z = cosX * cosY;
+                MathEx.Normalize(ref v);
+
+                if (options.NormalX != ColorChannel.None)
+                    pixel.SetChannelValueScaledF(options.NormalX, v.X * 0.5f + 0.5f);
+
+                if (options.NormalY != ColorChannel.None)
+                    pixel.SetChannelValueScaledF(options.NormalY, v.Y * 0.5f + 0.5f);
+
+                if (options.NormalZ != ColorChannel.None)
+                    pixel.SetChannelValueScaledF(options.NormalZ, v.Z);
+
+                row[x].FromRgba32(pixel);
+            }
+        }
+
+        private static void GenerateNoise(in int size, out byte[] buffer)
+        {
+            var random = new Random();
+            buffer = new byte[size];
+            random.NextBytes(buffer);
         }
 
         public class Options

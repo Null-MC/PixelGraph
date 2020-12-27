@@ -249,18 +249,20 @@ namespace PixelGraph.Common.Textures
                 .Where(e => TextureTags.Is(e.Texture, tag));
 
             float range;
-            if (Context.Profile.TextureSize.HasValue) {
+            if (hasTextureScale) {
+                if (Context.Profile.TextureScale.Value.Equal(1f)) return image;
+
+                options.TargetWidth = (int)Math.Max(width * Context.Profile.TextureScale.Value, 1f);
+                options.TargetHeight = (int)Math.Max(height * Context.Profile.TextureScale.Value, 1f);
+                range = 1f / Context.Profile.TextureScale.Value;
+            }
+            else {
                 if (width == Context.Profile.TextureSize) return image;
 
                 var aspect = height / (float) width;
                 options.TargetWidth = Context.Profile.TextureSize.Value;
                 options.TargetHeight = (int)(Context.Profile.TextureSize.Value * aspect);
                 range = width / (float)Context.Profile.TextureSize.Value;
-            }
-            else {
-                options.TargetWidth = (int)Math.Max(width * Context.Profile.TextureScale.Value, 1f);
-                options.TargetHeight = (int)Math.Max(height * Context.Profile.TextureScale.Value, 1f);
-                range = 1f / Context.Profile.TextureScale.Value;
             }
 
             foreach (var encoding in textureEncodings) {

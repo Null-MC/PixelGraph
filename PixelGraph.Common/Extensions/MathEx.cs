@@ -102,11 +102,19 @@ namespace PixelGraph.Common.Extensions
 
         public static void Cycle(ref byte value, in int offset)
         {
-            if (offset == 0) return;
             var x = value + offset;
-            while (x > 255) x -= 256;
             while (x < 0) x += 256;
+            while (x >= 256) x -= 256;
             value = (byte)x;
+        }
+
+        public static void Cycle(ref float value, in int offset)
+        {
+            const float r = (float)(256d / 255d);
+
+            value += offset / 255f;
+            while (value < 0f) value += r;
+            while (value >= r) value -= r;
         }
     }
 }

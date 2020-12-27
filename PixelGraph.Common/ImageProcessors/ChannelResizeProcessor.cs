@@ -3,11 +3,12 @@ using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
 using System.Collections.Generic;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class ChannelResizeProcessor<TPixel> : PixelProcessor
+    internal class ChannelResizeProcessor<TPixel> : PixelRowProcessor
         where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly Options options;
@@ -18,22 +19,30 @@ namespace PixelGraph.Common.ImageProcessors
             this.options = options;
         }
 
-        protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
+        protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
-            var fx = context.X / (float)context.Bounds.Width * options.SourceWidth;
-            var fy = context.Y / (float)context.Bounds.Height * options.SourceHeight;
+            var scaleX = options.SourceWidth / context.Bounds.Width;
+            var scaleY = options.SourceHeight / context.Bounds.Height;
+            var fy = context.Y * scaleY;
 
-            byte value = 0;
-            foreach (var channel in options.Channels) {
-                channel.Sampler.Sample(fx, fy, channel.Color, ref value);
+            var pixelOut = new Rgba32();
+            for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
+                var fx = x * scaleX;
 
-                if (channel.HasRange) {
-                    var channelMin = channel.MinValue ?? 0;
-                    var channelMax = channel.MaxValue ?? 255;
-                    if (value < channelMin || value > channelMax) continue;
+                byte value = 0;
+                foreach (var channel in options.Channels) {
+                    channel.Sampler.Sample(fx, fy, channel.Color, ref value);
+
+                    if (channel.HasRange) {
+                        var channelMin = channel.MinValue ?? 0;
+                        var channelMax = channel.MaxValue ?? 255;
+                        if (value < channelMin || value > channelMax) continue;
+                    }
+
+                    pixelOut.SetChannelValue(in channel.Color, in value);
                 }
 
-                pixelOut.SetChannelValue(in channel.Color, in value);
+                row[x].FromRgba32(pixelOut);
             }
         }
 
@@ -58,7 +67,6 @@ namespace PixelGraph.Common.ImageProcessors
             public ISampler<TPixel> Sampler;
             public byte? MinValue;
             public byte? MaxValue;
-
 
             public bool HasRange => MinValue.HasValue && MaxValue.HasValue;
         }
