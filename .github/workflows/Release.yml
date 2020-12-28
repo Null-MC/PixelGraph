@@ -42,11 +42,18 @@ jobs:
         run: |
           cd PixelGraph.UI
           dotnet publish -c Release -r win-x64 -o ../publish/win-ui-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish -c Release -r win7-x64 -o ../publish/wine-ui-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true --self-contained
+          zip -r Wine-UI-x64.zip ../publish/wine-ui-x64
       - name: Upload Windows-UI-x64 Binary
         uses: actions/upload-artifact@v2
         with:
           name: Windows-UI-x64
           path: publish/win-ui-x64/PixelGraph.exe
+      - name: Upload Wine-UI-x64 Binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: Wine-UI-x64
+          path: Wine-UI-x64.zip
   publish-release:
     name: Publish-Release
     runs-on: ubuntu-latest
@@ -73,6 +80,11 @@ jobs:
         with:
           name: Windows-UI-x64
           path: win-ui-x64
+      - name: Download Wine-UI-x64 Binary
+        uses: actions/download-artifact@v2
+        with:
+          name: Wine-UI-x64
+          path: Wine-UI-x64.zip
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -107,7 +119,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: osx-cli-x64/PixelGraph
-          asset_name: PixelGraph-CLI-osx-x64
+          asset_name: PixelGraph-CLI-mac-x64
           asset_content_type: application/exe
       - name: Release Windows-UI-x64 Binary
         uses: actions/upload-release-asset@v1
@@ -116,7 +128,16 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: win-ui-x64/PixelGraph.exe
-          asset_name: PixelGraph-UI-win-x64.exe
+          asset_name: PixelGraph-UI-windows-x64.exe
+          asset_content_type: application/exe
+      - name: Release Wine-UI-x64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: Wine-UI-x64.zip
+          asset_name: PixelGraph-UI-wine-x64.exe
           asset_content_type: application/exe
       - name: Publish Dockerfile
         uses: docker/build-push-action@v1
