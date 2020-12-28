@@ -58,6 +58,9 @@ namespace PixelGraph.Common.Textures
             graph.CreateEmpty = true;
             graph.Context = context;
 
+            graph.AutoGenerateOcclusion = context.Profile?.AutoGenerateOcclusion
+                ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
+
             await ProcessAllTexturesAsync(graph, token);
         }
 
@@ -80,6 +83,7 @@ namespace PixelGraph.Common.Textures
             graph.OutputEncoding = outputEncoding.GetMapped().ToList();
             graph.UseGlobalOutput = UseGlobalOutput;
             graph.CreateEmpty = false;
+            graph.AutoGenerateOcclusion = false;
             graph.Context = context;
 
             await ProcessAllTexturesAsync(graph, token);

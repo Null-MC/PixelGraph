@@ -4,13 +4,11 @@ using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class OcclusionProcessor : PixelProcessor
+    internal class OcclusionProcessor : PixelRowProcessor
     {
         private readonly Options options;
         private readonly Lazy<Vector3[]> rayList;
@@ -20,39 +18,44 @@ namespace PixelGraph.Common.ImageProcessors
         {
             this.options = options ?? new Options();
 
-            rayList = new Lazy<Vector3[]>(() => CreateRays().ToArray());
+            rayList = new Lazy<Vector3[]>(CreateRays);
         }
 
-        protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
+        protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
             var height = 0f;
-            options.Sampler.SampleScaled(context.X, context.Y, in options.HeightChannel, ref height);
-
-            // TODO: range, shift, power
-            if (!options.HeightInvert) MathEx.Invert(ref height);
-
-            var z = height * options.ZScale + options.ZBias;
-
-            var hitCount = 0;
-            var position = new Vector3();
-
             var rayCount = rayList.Value.Length;
-            for (var i = 0; i < rayCount; i++) {
-                position.X = context.X;
-                position.Y = context.Y;
-                position.Z = z;
+            var pixelOut = new Rgba32(0, 0, 0, 255);
+            var position = new Vector3();
+            int hitCount;
 
-                if (RayTest(ref position, in rayList.Value[i]))
-                    hitCount++;
+            for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
+                options.Sampler.SampleScaled(x, context.Y, in options.HeightChannel, ref height);
+
+                // TODO: range, shift, power
+                if (!options.HeightInvert) MathEx.Invert(ref height);
+
+                var z = height * options.ZScale + options.ZBias;
+
+                hitCount = 0;
+                for (var i = 0; i < rayCount; i++) {
+                    position.X = x;
+                    position.Y = context.Y;
+                    position.Z = z;
+
+                    if (RayTest(ref position, in rayList.Value[i]))
+                        hitCount++;
+                }
+
+                var occlusion = hitCount / (float)rayCount;
+                MathEx.Saturate(1f - occlusion, out pixelOut.R);
+                pixelOut.B = pixelOut.G = pixelOut.R;
+
+                row[x].FromRgba32(pixelOut);
             }
-
-            var occlusion = hitCount / (float)rayCount;
-            MathEx.Saturate(1f - occlusion, out pixelOut.R);
-            pixelOut.B = pixelOut.G = pixelOut.R;
-            pixelOut.A = 255;
         }
 
-        private IEnumerable<Vector3> CreateRays()
+        private Vector3[] CreateRays()
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
 
@@ -70,6 +73,9 @@ namespace PixelGraph.Common.ImageProcessors
             var hStepSize = 360f / hStepCount;
             var vStepSize = 90f / vStepCount;
 
+            var count = hStepCount * vStepCount;
+            var result = new Vector3[count];
+
             for (var v = 0; v < vStepCount; v++) {
                 for (var h = 0; h < hStepCount; h++) {
                     var hAngleDegrees = h * hStepSize - 180f;
@@ -78,13 +84,14 @@ namespace PixelGraph.Common.ImageProcessors
                     var vAngleDegrees = v * vStepSize;
                     var vAngleRadians = vAngleDegrees * MathEx.Deg2Rad;
 
-                    yield return new Vector3 {
-                        X = (float) Math.Cos(hAngleRadians),
-                        Y = (float) Math.Sin(hAngleRadians),
-                        Z = (float) Math.Sin(vAngleRadians),
-                    };
+                    var z = hStepCount * v + h;
+                    result[z].X = MathF.Cos(hAngleRadians);
+                    result[z].Y = MathF.Sin(hAngleRadians);
+                    result[z].Z = MathF.Sin(vAngleRadians);
                 }
             }
+
+            return result;
         }
 
         private bool RayTest(ref Vector3 position, in Vector3 ray)

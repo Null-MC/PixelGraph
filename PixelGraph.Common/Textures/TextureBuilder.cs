@@ -24,6 +24,7 @@ namespace PixelGraph.Common.Textures
         ResourcePackChannelProperties[] OutputChannels {get; set;}
         Image<TPixel> ImageResult {get;}
         Size DefaultSize {get; set;}
+        bool AutoGenerateOcclusion {get; set;}
         bool CreateEmpty {get; set;}
 
         Task BuildAsync(CancellationToken token = default);
@@ -41,6 +42,7 @@ namespace PixelGraph.Common.Textures
         public ResourcePackChannelProperties[] OutputChannels {get; set;}
         public Size DefaultSize {get; set;}
         public Image<TPixel> ImageResult {get; private set;}
+        public bool AutoGenerateOcclusion {get; set;}
         public bool CreateEmpty {get; set;}
 
 
@@ -121,10 +123,7 @@ namespace PixelGraph.Common.Textures
                     return true;
                 }
 
-                var autoGenOcclusion = Graph.Context.Profile?.AutoGenerateOcclusion
-                    ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
-
-                if (autoGenOcclusion && TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
+                if (AutoGenerateOcclusion && TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
                     mapping.SourceTag = TextureTags.OcclusionGenerated;
                     mapping.InputColor = ColorChannel.Red;
                     mapping.InputMin = 0;

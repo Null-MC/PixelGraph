@@ -27,6 +27,7 @@ namespace PixelGraph.Common.Textures
         Image<Rgb24> NormalTexture {get;}
         bool UseGlobalOutput {get; set;}
         bool CreateEmpty {get; set;}
+        bool AutoGenerateOcclusion {get; set;}
 
         Task BuildNormalTextureAsync(CancellationToken token = default);
         //Size GetSourceSize();
@@ -59,6 +60,7 @@ namespace PixelGraph.Common.Textures
         public Image<Rgb24> NormalTexture {get; private set;}
         public bool UseGlobalOutput {get; set;}
         public bool CreateEmpty {get; set;}
+        public bool AutoGenerateOcclusion {get; set;}
 
 
         public TextureGraph(IServiceProvider provider)
@@ -108,6 +110,7 @@ namespace PixelGraph.Common.Textures
                 builder.Material = Context.Material;
                 builder.InputChannels = InputEncoding.ToArray();
                 builder.CreateEmpty = CreateEmpty;
+                builder.AutoGenerateOcclusion = AutoGenerateOcclusion;
                 builder.DefaultSize = GetSourceSize();
 
                 builder.OutputChannels = OutputEncoding.Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
@@ -346,6 +349,7 @@ namespace PixelGraph.Common.Textures
                 builder.Material = Context.Material;
                 builder.DefaultSize = GetSourceSize();
                 builder.CreateEmpty = false;
+                builder.AutoGenerateOcclusion = false;
                 builder.InputChannels = new [] {
                     normalXChannel, normalYChannel, normalZChannel
                 };
@@ -476,10 +480,15 @@ namespace PixelGraph.Common.Textures
                 if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
                 var options = new OcclusionProcessor.Options {
-                    Sampler = new BilinearSampler<Rgba32> {
-                        Image = heightTexture,
+                    //Sampler = new BilinearSampler<Rgba32> {
+                    //    Image = heightTexture,
+                    //    WrapX = Context.Material?.WrapX ?? MaterialProperties.DefaultWrap,
+                    //    WrapY = Context.Material?.WrapY ?? MaterialProperties.DefaultWrap,
+                    //},
+                    Sampler = new NearestSampler<Rgba32> {
                         WrapX = Context.Material?.WrapX ?? MaterialProperties.DefaultWrap,
                         WrapY = Context.Material?.WrapY ?? MaterialProperties.DefaultWrap,
+                        Image = heightTexture,
                     },
                     //HeightSource = heightTexture,
                     HeightChannel = heightChannel.Color.Value,
