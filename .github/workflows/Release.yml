@@ -43,7 +43,12 @@ jobs:
           cd PixelGraph.UI
           dotnet publish -c Release -r win-x64 -o ../publish/win-ui-x64 -p:PublishSingleFile=true --self-contained false
           dotnet publish -c Release -r win7-x64 -o ../publish/wine-ui-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true --self-contained
-          zip -r Wine-UI-x64.zip ../publish/wine-ui-x64
+          # zip -r Wine-UI-x64.zip ../publish/wine-ui-x64
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
+        with:
+          filename: Wine-UI-x64.zip
+          path: ../publish/wine-ui-x64
       - name: Upload Windows-UI-x64 Binary
         uses: actions/upload-artifact@v2
         with:
