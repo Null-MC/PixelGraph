@@ -105,7 +105,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: win-cli-x64/PixelGraph.exe
-          asset_name: PixelGraph-CLI-win-x64.exe
+          asset_name: PixelGraph-CLI-windows-x64.exe
           asset_content_type: application/exe
       - name: Release Linux-CLI-x64 Binary
         uses: actions/upload-release-asset@v1
@@ -141,8 +141,8 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: Wine-UI-x64.zip
-          asset_name: PixelGraph-UI-wine-x64.exe
-          asset_content_type: application/exe
+          asset_name: PixelGraph-UI-wine-x64.zip
+          asset_content_type: application/zip
       - name: Publish Dockerfile
         uses: docker/build-push-action@v1
         with:
