@@ -29,11 +29,13 @@ namespace PixelGraph.UI.ViewModels
         public EncodingFormatValues()
         {
             Add(new Item {Text = "Raw", Value = TextureEncoding.Format_Raw, Hint = "All texture channel mappings."});
-            Add(new Item {Text = "Albedo", Value = TextureEncoding.Format_Albedo});
-            Add(new Item {Text = "Diffuse", Value = TextureEncoding.Format_Diffuse});
-            Add(new Item {Text = "Legacy", Value = TextureEncoding.Format_Legacy});
-            Add(new Item {Text = "LAB 1.1", Value = TextureEncoding.Format_Lab11});
-            Add(new Item {Text = "LAB 1.3", Value = TextureEncoding.Format_Lab13});
+            Add(new Item {Text = "Albedo", Value = TextureEncoding.Format_Albedo, Hint = "Only Albedo colors and Alpha."});
+            Add(new Item {Text = "Diffuse", Value = TextureEncoding.Format_Diffuse, Hint = "Only Diffuse colors and Alpha."});
+            Add(new Item {Text = "Specular", Value = TextureEncoding.Format_Specular, Hint = "Greyscale specular."});
+            Add(new Item {Text = "Legacy", Value = TextureEncoding.Format_Legacy, Hint = "Legacy PBR encoding."});
+            Add(new Item {Text = "LAB 1.1", Value = TextureEncoding.Format_Lab11, Hint = "LabPBR 1.1 encoding."});
+            Add(new Item {Text = "LAB 1.2", Value = TextureEncoding.Format_Lab12, Hint = "LabPBR 1.2 encoding."});
+            Add(new Item {Text = "LAB 1.3", Value = TextureEncoding.Format_Lab13, Hint = "LabPBR 1.3 encoding."});
         }
 
         public class Item
@@ -52,9 +54,11 @@ namespace PixelGraph.UI.ViewModels
             Add(new Item {Text = "Raw", Value = TextureEncoding.Format_Raw, Hint = "All texture channels stored separately."});
             Add(new Item {Text = "Albedo", Value = TextureEncoding.Format_Albedo, Hint = "Only Albedo colors and Alpha."});
             Add(new Item {Text = "Diffuse", Value = TextureEncoding.Format_Diffuse, Hint = "Only Diffuse colors and Alpha."});
-            Add(new Item {Text = "Legacy", Value = TextureEncoding.Format_Legacy, Hint = "Legacy greyscale specular."});
-            Add(new Item {Text = "LAB 1.1", Value = TextureEncoding.Format_Lab11, Hint = "Lab 1.1 encoding."});
-            Add(new Item {Text = "LAB 1.3", Value = TextureEncoding.Format_Lab13, Hint = "Lab 1.3 encoding."});
+            Add(new Item {Text = "Specular", Value = TextureEncoding.Format_Specular, Hint = "Greyscale specular."});
+            Add(new Item {Text = "Legacy", Value = TextureEncoding.Format_Legacy, Hint = "Legacy PBR encoding."});
+            Add(new Item {Text = "LAB 1.1", Value = TextureEncoding.Format_Lab11, Hint = "LabPBR 1.1 encoding."});
+            Add(new Item {Text = "LAB 1.2", Value = TextureEncoding.Format_Lab12, Hint = "LabPBR 1.2 encoding."});
+            Add(new Item {Text = "LAB 1.3", Value = TextureEncoding.Format_Lab13, Hint = "LabPBR 1.3 encoding."});
         }
 
         public class Item
@@ -79,6 +83,7 @@ namespace PixelGraph.UI.ViewModels
             Add(new Item {Text = "Rough", Value = TextureTags.Rough});
             Add(new Item {Text = "Smooth", Value = TextureTags.Smooth});
             Add(new Item {Text = "Metal", Value = TextureTags.Metal});
+            Add(new Item {Text = "F0", Value = TextureTags.F0});
             Add(new Item {Text = "Porosity", Value = TextureTags.Porosity});
             Add(new Item {Text = "SubSurface Scattering", Value = TextureTags.SubSurfaceScattering});
             Add(new Item {Text = "Emissive", Value = TextureTags.Emissive});
@@ -107,6 +112,7 @@ namespace PixelGraph.UI.ViewModels
             Add(new Item {Text = "Rough", Value = TextureTags.Rough});
             Add(new Item {Text = "Smooth", Value = TextureTags.Smooth});
             Add(new Item {Text = "Metal", Value = TextureTags.Metal});
+            Add(new Item {Text = "F0", Value = TextureTags.F0});
             Add(new Item {Text = "Porosity", Value = TextureTags.Porosity});
             Add(new Item {Text = "SubSurface Scattering", Value = TextureTags.SubSurfaceScattering});
             Add(new Item {Text = "Emissive", Value = TextureTags.Emissive});
@@ -136,6 +142,18 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
+    internal class NormalColorChannelValues : List<ColorChannelValues.Item>
+    {
+        public NormalColorChannelValues()
+        {
+            Add(new ColorChannelValues.Item {Text = "Red", Value = ColorChannel.Red});
+            Add(new ColorChannelValues.Item {Text = "Green", Value = ColorChannel.Green});
+            Add(new ColorChannelValues.Item {Text = "Blue", Value = ColorChannel.Blue});
+            Add(new ColorChannelValues.Item {Text = "Alpha", Value = ColorChannel.Alpha});
+            Add(new ColorChannelValues.Item {Text = "Magnitude", Value = ColorChannel.Magnitude});
+        }
+    }
+
     internal class OptionalColorChannelValues : List<OptionalColorChannelValues.Item>
     {
         public OptionalColorChannelValues()
@@ -158,12 +176,9 @@ namespace PixelGraph.UI.ViewModels
     {
         public SamplerValues()
         {
-            //Add(new Item {Text = "Point", Value = Sampler.Point});
             Add(new Item {Text = "Nearest", Value = Sampler.Nearest});
             Add(new Item {Text = "Bilinear", Value = Sampler.Bilinear});
             Add(new Item {Text = "Average", Value = Sampler.Average});
-            //Add(new Item {Text = "Cubic", Value = Sampler.Cubic});
-            //Add(new Item {Text = "Bicubic", Value = Sampler.Bicubic});
         }
 
         public class Item
@@ -194,6 +209,7 @@ namespace PixelGraph.UI.ViewModels
             Add(new Channel {Text = "Smoothness", Value = EncodingChannel.Smooth});
             Add(new Channel {Text = "Roughness", Value = EncodingChannel.Rough});
             Add(new Channel {Text = "Metalness", Value = EncodingChannel.Metal});
+            Add(new Channel {Text = "F0", Value = EncodingChannel.F0});
             Add(new Channel {Text = "Porosity", Value = EncodingChannel.Porosity});
             Add(new Channel {Text = "SSS", Value = EncodingChannel.SubSurfaceScattering});
             Add(new Channel {Text = "Emissive", Value = EncodingChannel.Emissive});

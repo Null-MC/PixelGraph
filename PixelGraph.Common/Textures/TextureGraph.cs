@@ -30,12 +30,8 @@ namespace PixelGraph.Common.Textures
         bool AutoGenerateOcclusion {get; set;}
 
         Task BuildNormalTextureAsync(CancellationToken token = default);
-        //Size GetSourceSize();
 
         Task<Image> GetPreviewAsync(string textureTag, CancellationToken token = default);
-
-        //Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, CancellationToken token = default)
-        //    where TPixel : unmanaged, IPixel<TPixel>;
 
         Task PublishImageAsync<TPixel>(string textureTag, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>;
@@ -141,13 +137,8 @@ namespace PixelGraph.Common.Textures
                     var bounds = region.GetRectangle();
 
                     FixEdges(image, textureTag, bounds);
-
-                    //using var resizedRegionImage = Resize(regionImage, textureTag);
                 }
 
-                // TODO: fix this
-                //var size = Context.Material.GetMaxSize();
-                //return Resize(image, textureTag, size);
                 return image;
             }
             catch {
@@ -208,13 +199,11 @@ namespace PixelGraph.Common.Textures
 
                 logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", Context.Material.DisplayName, textureTag);
             }
-
-            //await CopyMetaAsync(graph.Context, tag, token);
         }
 
         public async Task<Image<Rgb24>> GetGeneratedOcclusionAsync(CancellationToken token = default)
         {
-            if (occlusionTexture == null) {
+            if (occlusionTexture == null && AutoGenerateOcclusion) {
                 try {
                     occlusionTexture = await GenerateOcclusionAsync(token);
                 }
@@ -272,6 +261,12 @@ namespace PixelGraph.Common.Textures
                 var color = encoding.Color ?? ColorChannel.None;
                 if (color == ColorChannel.None) continue;
 
+                if (color == ColorChannel.Magnitude) {
+                    // WARN: currently not supporting channel sampling for magnitude
+                    // instead depends on normal x/y/z sampler
+                    continue;
+                }
+
                 var samplerName = encoding.Sampler ?? Context.Profile.Encoding?.Sampler;
                 var sampler = Sampler<TPixel>.Create(samplerName) ?? new NearestSampler<TPixel>();
 
@@ -282,8 +277,8 @@ namespace PixelGraph.Common.Textures
 
                 var channel = new ChannelResizeProcessor<TPixel>.ChannelOptions {
                     Color = color,
-                    MinValue = encoding.MinValue,
-                    MaxValue = encoding.MaxValue,
+                    RangeMin = encoding.RangeMin ?? 0,
+                    RangeMax = encoding.RangeMax ?? 255,
                     Sampler = sampler,
                 };
 
@@ -393,7 +388,67 @@ namespace PixelGraph.Common.Textures
 
             var processor = new NormalRotateProcessor(options);
             NormalTexture.Mutate(c => c.ApplyProcessor(processor));
+
+            // apply magnitude channels
+            var magnitudeChannels = OutputEncoding
+                .Where(c => TextureTags.Is(c.Texture, TextureTags.Normal))
+                .Where(c => c.Color == ColorChannel.Magnitude).ToArray();
+
+            if (magnitudeChannels.Length > 1) {
+                logger.LogWarning("Only a single encoding channel can be mapped to normal-magnitude! using first mapping. material={DisplayName}", Context.Material.DisplayName);
+            }
+
+            var magnitudeChannel = magnitudeChannels.FirstOrDefault();
+            if (magnitudeChannel != null) await ApplyMagnitudeAsync(magnitudeChannel, token);
+
             return true;
+        }
+
+        private async Task ApplyMagnitudeAsync(ResourcePackChannelProperties magnitudeChannel, CancellationToken token)
+        {
+            var localFile = reader.EnumerateTextures(Context.Material, magnitudeChannel.Texture).FirstOrDefault();
+
+            if (localFile != null) {
+                await using var sourceStream = reader.Open(localFile);
+                using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
+                if (sourceImage == null) return;
+
+                var inputChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, magnitudeChannel.ID));
+                if (inputChannel == null) return;
+
+                var options = new NormalMagnitudeProcessor<Rgba32>.Options {
+                    MagSource = sourceImage,
+                    Scale = Context.Material.GetChannelScale(magnitudeChannel.ID),
+                };
+
+                options.ApplyInputChannel(inputChannel);
+                options.ApplyOutputChannel(magnitudeChannel);
+
+                var processor = new NormalMagnitudeProcessor<Rgba32>(options);
+                NormalTexture.Mutate(c => c.ApplyProcessor(processor));
+            }
+            else if (EncodingChannel.Is(magnitudeChannel.ID, EncodingChannel.Occlusion)) {
+                var options = new NormalMagnitudeProcessor<Rgb24>.Options {
+                    MagSource = await GetGeneratedOcclusionAsync(token),
+                    Scale = Context.Material.GetChannelScale(magnitudeChannel.ID),
+                    InputChannel = ColorChannel.Red,
+                    InputMinValue = 0f,
+                    InputMaxValue = 1f,
+                    InputRangeMin = 0,
+                    InputRangeMax = 255,
+                    InputPower = 1f,
+                    InputInvert = false,
+                };
+
+                if (options.MagSource == null) return;
+                options.ApplyOutputChannel(magnitudeChannel);
+
+                var processor = new NormalMagnitudeProcessor<Rgb24>(options);
+                NormalTexture.Mutate(c => c.ApplyProcessor(processor));
+            }
+            else {
+                throw new SourceEmptyException("No sources found for applying normal magnitude!");
+            }
         }
 
         public async Task<Image<Rgb24>> GenerateNormalAsync(CancellationToken token)
@@ -480,11 +535,6 @@ namespace PixelGraph.Common.Textures
                 if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
                 var options = new OcclusionProcessor.Options {
-                    //Sampler = new BilinearSampler<Rgba32> {
-                    //    Image = heightTexture,
-                    //    WrapX = Context.Material?.WrapX ?? MaterialProperties.DefaultWrap,
-                    //    WrapY = Context.Material?.WrapY ?? MaterialProperties.DefaultWrap,
-                    //},
                     Sampler = new NearestSampler<Rgba32> {
                         WrapX = Context.Material?.WrapX ?? MaterialProperties.DefaultWrap,
                         WrapY = Context.Material?.WrapY ?? MaterialProperties.DefaultWrap,
@@ -492,8 +542,10 @@ namespace PixelGraph.Common.Textures
                     },
                     //HeightSource = heightTexture,
                     HeightChannel = heightChannel.Color.Value,
-                    HeightMin = heightChannel.MinValue ?? 0,
-                    HeightMax = heightChannel.MaxValue ?? 255,
+                    HeightMinValue = (float?)heightChannel.MinValue ?? 0f,
+                    HeightMaxValue = (float?)heightChannel.MaxValue ?? 1f,
+                    HeightRangeMin = heightChannel.RangeMin ?? 0,
+                    HeightRangeMax = heightChannel.RangeMax ?? 255,
                     HeightShift = heightChannel.Shift ?? 0,
                     HeightPower = (float?)heightChannel.Power ?? 0f,
                     HeightInvert = heightChannel.Invert ?? false,
@@ -503,7 +555,6 @@ namespace PixelGraph.Common.Textures
                     Quality = (float?)Context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
                     ZScale = (float?)Context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
                     ZBias = (float?)Context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias,
-                    //Wrap = Context.Material.Wrap ?? MaterialProperties.DefaultWrap,
                 };
 
                 var processor = new OcclusionProcessor(options);

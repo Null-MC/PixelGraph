@@ -142,7 +142,7 @@ namespace PixelGraph.Common.IO.Publishing
 
                         var extension = Path.GetExtension(localFile);
                         var filterImage = ImageExtensions.Supports(extension);
-                        var ignoreImage = !pathIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
+                        var ignoreImage = pathIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
 
                         if (filterImage && !ignoreImage) {
                             await genericPublisher.PublishAsync(localFile, token);

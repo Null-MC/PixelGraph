@@ -30,30 +30,45 @@ namespace PixelGraph.Common.Extensions
             value.Z /= length;
         }
 
-        public static void Invert(ref byte value)
-        {
-            value = (byte) (255 - value);
-        }
+        //public static void Invert(ref byte value)
+        //{
+        //    value = (byte) (255 - value);
+        //}
 
         public static void Invert(ref float value)
         {
             value = 1f - value;
         }
 
-        public static byte Clamp(int value)
+        //public static void Invert(ref float value, in float maxValue)
+        //{
+        //    value = maxValue - value;
+        //}
+
+        //public static byte Clamp(int value)
+        //{
+        //    return (byte)Math.Clamp(value, 0, 255);
+        //}
+
+        //public static byte Clamp(int value, byte min, byte max)
+        //{
+        //    return (byte)Math.Clamp(value, min, max);
+        //}
+
+        //public static byte Clamp(float value, byte min, byte max)
+        //{
+        //    return (byte)Math.Clamp((int)(value + 0.5f), min, max);
+        //}
+
+        public static byte ClampRound(double value, byte min, byte max)
         {
-            return (byte)Math.Clamp(value, 0, 255);
+            return (byte)Math.Clamp((int)(value + 0.5d), min, max);
         }
 
-        public static byte Clamp(int value, byte min, byte max)
-        {
-            return (byte)Math.Clamp(value, min, max);
-        }
-
-        public static byte Clamp(float value)
-        {
-            return (byte)Math.Clamp(value + 0.5f, 0f, 255f);
-        }
+        //public static byte Clamp(float value)
+        //{
+        //    return (byte)Math.Clamp(value + 0.5f, 0f, 255f);
+        //}
 
         public static void Clamp(ref float value, in float min, in float max)
         {
@@ -77,15 +92,15 @@ namespace PixelGraph.Common.Extensions
             result = (byte)Math.Clamp(value * 255f, 0f, 255f);
         }
 
-        public static byte Saturate(float value)
-        {
-            return (byte)Math.Clamp(value * 255f + 0.5f, 0f, 255f);
-        }
+        //public static byte Saturate(float value)
+        //{
+        //    return (byte)Math.Clamp(value * 255f + 0.5f, 0f, 255f);
+        //}
 
-        public static byte Saturate(double value)
-        {
-            return (byte)Math.Clamp(value * 255d + 0.5d, 0, 255);
-        }
+        //public static byte Saturate(double value)
+        //{
+        //    return (byte)Math.Clamp(value * 255d + 0.5d, 0, 255);
+        //}
 
         public static void Lerp(in float min, in float max, in float mix, out float result)
         {
@@ -100,21 +115,29 @@ namespace PixelGraph.Common.Extensions
             Lerp(in min.W, in max.W, in mix, out result.W);
         }
 
-        public static void Cycle(ref byte value, in int offset)
+        //public static void Cycle(ref byte value, in int offset)
+        //{
+        //    var x = value + offset;
+        //    while (x < 0) x += 256;
+        //    while (x >= 256) x -= 256;
+        //    value = (byte)x;
+        //}
+
+        public static void Cycle(ref byte value, in int offset, in byte min, in byte max)
         {
             var x = value + offset;
-            while (x < 0) x += 256;
-            while (x >= 256) x -= 256;
+            while (x < min) x += max - min + 1;
+            while (x > max) x -= max - min + 1;
             value = (byte)x;
         }
 
-        public static void Cycle(ref float value, in int offset)
-        {
-            const float r = (float)(256d / 255d);
+        //public static void Cycle(ref float value, in int offset)
+        //{
+        //    const float r = (float)(256d / 255d);
 
-            value += offset / 255f;
-            while (value < 0f) value += r;
-            while (value >= r) value -= r;
-        }
+        //    value += offset / 255f;
+        //    while (value < 0f) value += r;
+        //    while (value >= r) value -= r;
+        //}
     }
 }

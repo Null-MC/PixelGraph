@@ -33,11 +33,9 @@ namespace PixelGraph.Common.ImageProcessors
                 foreach (var channel in options.Channels) {
                     channel.Sampler.Sample(fx, fy, channel.Color, ref value);
 
-                    if (channel.HasRange) {
-                        var channelMin = channel.MinValue ?? 0;
-                        var channelMax = channel.MaxValue ?? 255;
-                        if (value < channelMin || value > channelMax) continue;
-                    }
+                    var channelMin = channel.RangeMin;
+                    var channelMax = channel.RangeMax;
+                    if (value < channelMin || value > channelMax) continue;
 
                     pixelOut.SetChannelValue(in channel.Color, in value);
                 }
@@ -65,10 +63,8 @@ namespace PixelGraph.Common.ImageProcessors
         {
             public ColorChannel Color;
             public ISampler<TPixel> Sampler;
-            public byte? MinValue;
-            public byte? MaxValue;
-
-            public bool HasRange => MinValue.HasValue && MaxValue.HasValue;
+            public byte RangeMin;
+            public byte RangeMax;
         }
     }
 }

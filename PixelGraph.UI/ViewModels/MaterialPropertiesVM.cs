@@ -25,6 +25,7 @@ namespace PixelGraph.UI.ViewModels
         public bool IsSmoothSelected => TextureTags.Is(_selectedTag, TextureTags.Smooth);
         public bool IsRoughSelected => TextureTags.Is(_selectedTag, TextureTags.Rough);
         public bool IsMetalSelected => TextureTags.Is(_selectedTag, TextureTags.Metal);
+        public bool IsF0Selected => TextureTags.Is(_selectedTag, TextureTags.F0);
         public bool IsPorositySelected => TextureTags.Is(_selectedTag, TextureTags.Porosity);
         public bool IsSssSelected => TextureTags.Is(_selectedTag, TextureTags.SubSurfaceScattering);
         public bool IsEmissiveSelected => TextureTags.Is(_selectedTag, TextureTags.Emissive);
@@ -61,6 +62,7 @@ namespace PixelGraph.UI.ViewModels
                 UpdateSmoothProperties();
                 UpdateRoughProperties();
                 UpdateMetalProperties();
+                UpdateF0Properties();
                 UpdatePorosityProperties();
                 UpdateSssProperties();
                 UpdateEmissiveProperties();
@@ -84,6 +86,7 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged(nameof(IsSmoothSelected));
                 OnPropertyChanged(nameof(IsRoughSelected));
                 OnPropertyChanged(nameof(IsMetalSelected));
+                OnPropertyChanged(nameof(IsF0Selected));
                 OnPropertyChanged(nameof(IsPorositySelected));
                 OnPropertyChanged(nameof(IsSssSelected));
                 OnPropertyChanged(nameof(IsEmissiveSelected));
@@ -140,7 +143,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? AlphaValue {
+        public decimal? AlphaValue {
             get => _material?.Alpha?.Value;
             set {
                 _material.Alpha ??= new MaterialAlphaProperties();
@@ -181,7 +184,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? DiffuseRedValue {
+        public decimal? DiffuseRedValue {
             get => _material?.Diffuse?.ValueRed;
             set {
                 _material.Diffuse ??= new MaterialDiffuseProperties();
@@ -201,7 +204,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? DiffuseGreenValue {
+        public decimal? DiffuseGreenValue {
             get => _material?.Diffuse?.ValueGreen;
             set {
                 _material.Diffuse ??= new MaterialDiffuseProperties();
@@ -221,7 +224,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? DiffuseBlueValue {
+        public decimal? DiffuseBlueValue {
             get => _material?.Diffuse?.ValueBlue;
             set {
                 _material.Diffuse ??= new MaterialDiffuseProperties();
@@ -266,7 +269,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? AlbedoRedValue {
+        public decimal? AlbedoRedValue {
             get => _material?.Albedo?.ValueRed;
             set {
                 _material.Albedo ??= new MaterialAlbedoProperties();
@@ -286,7 +289,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? AlbedoGreenValue {
+        public decimal? AlbedoGreenValue {
             get => _material?.Albedo?.ValueGreen;
             set {
                 _material.Albedo ??= new MaterialAlbedoProperties();
@@ -306,7 +309,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? AlbedoBlueValue {
+        public decimal? AlbedoBlueValue {
             get => _material?.Albedo?.ValueBlue;
             set {
                 _material.Albedo ??= new MaterialAlbedoProperties();
@@ -351,7 +354,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? HeightValue {
+        public decimal? HeightValue {
             get => _material?.Height?.Value;
             set {
                 _material.Height ??= new MaterialHeightProperties();
@@ -361,7 +364,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public int? HeightShift {
+        public decimal? HeightShift {
             get => _material?.Height?.Shift;
             set {
                 _material.Height ??= new MaterialHeightProperties();
@@ -425,7 +428,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? NormalValueX {
+        public decimal? NormalValueX {
             get => _material?.Normal?.ValueX;
             set {
                 _material.Normal ??= new MaterialNormalProperties();
@@ -435,7 +438,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? NormalValueY {
+        public decimal? NormalValueY {
             get => _material?.Normal?.ValueY;
             set {
                 _material.Normal ??= new MaterialNormalProperties();
@@ -445,7 +448,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? NormalValueZ {
+        public decimal? NormalValueZ {
             get => _material?.Normal?.ValueZ;
             set {
                 _material.Normal ??= new MaterialNormalProperties();
@@ -521,7 +524,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? OcclusionValue {
+        public decimal? OcclusionValue {
             get => _material?.Occlusion?.Value;
             set {
                 _material.Occlusion ??= new MaterialOcclusionProperties();
@@ -636,7 +639,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? SmoothValue {
+        public decimal? SmoothValue {
             get => _material?.Smooth?.Value;
             set {
                 _material.Smooth ??= new MaterialSmoothProperties();
@@ -677,7 +680,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? RoughValue {
+        public decimal? RoughValue {
             get => _material?.Rough?.Value;
             set {
                 _material.Rough ??= new MaterialRoughProperties();
@@ -718,7 +721,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? MetalValue {
+        public decimal? MetalValue {
             get => _material?.Metal?.Value;
             set {
                 _material.Metal ??= new MaterialMetalProperties();
@@ -747,6 +750,47 @@ namespace PixelGraph.UI.ViewModels
 
         #endregion
 
+        #region F0
+
+        public string F0Texture {
+            get => _material?.F0?.Texture;
+            set {
+                _material.F0 ??= new MaterialF0Properties();
+                _material.F0.Texture = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? F0Value {
+            get => _material?.F0?.Value;
+            set {
+                _material.F0 ??= new MaterialF0Properties();
+                _material.F0.Value = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? F0Scale {
+            get => _material?.F0?.Scale;
+            set {
+                _material.F0 ??= new MaterialF0Properties();
+                _material.F0.Scale = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        private void UpdateF0Properties()
+        {
+            OnPropertyChanged(nameof(F0Texture));
+            OnPropertyChanged(nameof(F0Value));
+            OnPropertyChanged(nameof(F0Scale));
+        }
+
+        #endregion
+
         #region Porosity
 
         public string PorosityTexture {
@@ -759,7 +803,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? PorosityValue {
+        public decimal? PorosityValue {
             get => _material?.Porosity?.Value;
             set {
                 _material.Porosity ??= new MaterialPorosityProperties();
@@ -800,7 +844,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? SssValue {
+        public decimal? SssValue {
             get => _material?.SSS?.Value;
             set {
                 _material.SSS ??= new MaterialSssProperties();
@@ -841,7 +885,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? EmissiveValue {
+        public decimal? EmissiveValue {
             get => _material?.Emissive?.Value;
             set {
                 _material.Emissive ??= new MaterialEmissiveProperties();

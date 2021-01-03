@@ -42,6 +42,7 @@ namespace PixelGraph.UI.ViewModels
         public OutputChannelMapping Rough {get; set;}
 
         public OutputChannelMapping Metal {get; set;}
+        public OutputChannelMapping F0 {get; set;}
 
         public OutputChannelMapping Porosity {get; set;}
 
@@ -197,6 +198,7 @@ namespace PixelGraph.UI.ViewModels
                 Rough = new OutputChannelMapping("Rough"),
 
                 Metal = new OutputChannelMapping("Metal"),
+                F0 = new OutputChannelMapping("F0"),
 
                 Porosity = new OutputChannelMapping("Porosity"),
 
@@ -228,6 +230,7 @@ namespace PixelGraph.UI.ViewModels
             Rough.DataChanged += OnPropertyDataChanged;
 
             Metal.DataChanged += OnPropertyDataChanged;
+            F0.DataChanged += OnPropertyDataChanged;
 
             Porosity.DataChanged += OnPropertyDataChanged;
 
@@ -260,13 +263,14 @@ namespace PixelGraph.UI.ViewModels
             Smooth.SetChannel(_loadedProfile?.Encoding?.Smooth);
             Rough.SetChannel(_loadedProfile?.Encoding?.Rough);
 
-            Metal.SetChannel(_loadedProfile?.Encoding?.Rough);
+            Metal.SetChannel(_loadedProfile?.Encoding?.Metal);
+            F0.SetChannel(_loadedProfile?.Encoding?.F0);
 
-            Porosity.SetChannel(_loadedProfile?.Encoding?.Rough);
+            Porosity.SetChannel(_loadedProfile?.Encoding?.Porosity);
 
             SSS.SetChannel(_loadedProfile?.Encoding?.SSS);
 
-            Emissive.SetChannel(_loadedProfile?.Encoding?.Rough);
+            Emissive.SetChannel(_loadedProfile?.Encoding?.Emissive);
         }
 
         public void UpdateDefaultValues()
@@ -298,6 +302,7 @@ namespace PixelGraph.UI.ViewModels
             Rough.ApplyDefaultValues(encodingDefaults?.Rough, sampler);
 
             Metal.ApplyDefaultValues(encodingDefaults?.Metal, sampler);
+            F0.ApplyDefaultValues(encodingDefaults?.F0, sampler);
 
             Porosity.ApplyDefaultValues(encodingDefaults?.Porosity, sampler);
 
@@ -345,9 +350,11 @@ namespace PixelGraph.UI.ViewModels
         private string _textureDefault;
         private ColorChannel? _colorDefault;
         private string _samplerDefault;
-        private byte? _minDefault;
-        private byte? _maxDefault;
-        private short? _shiftDefault;
+        private decimal? _minValueDefault;
+        private decimal? _maxValueDefault;
+        private byte? _rangeMinDefault;
+        private byte? _rangeMaxDefault;
+        private decimal? _shiftDefault;
         private decimal? _powerDefault;
         private bool? _invertDefault;
 
@@ -391,7 +398,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? MinValue {
+        public decimal? MinValue {
             get => _channel?.MinValue;
             set {
                 if (_channel == null) return;
@@ -403,7 +410,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? MaxValue {
+        public decimal? MaxValue {
             get => _channel?.MaxValue;
             set {
                 if (_channel == null) return;
@@ -415,7 +422,31 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public short? Shift {
+        public byte? RangeMin {
+            get => _channel?.RangeMin;
+            set {
+                if (_channel == null) return;
+                if (_channel.RangeMin == value) return;
+                _channel.RangeMin = value;
+                OnPropertyChanged();
+
+                OnDataChanged();
+            }
+        }
+
+        public byte? RangeMax {
+            get => _channel?.RangeMax;
+            set {
+                if (_channel == null) return;
+                if (_channel.RangeMax == value) return;
+                _channel.RangeMax = value;
+                OnPropertyChanged();
+
+                OnDataChanged();
+            }
+        }
+
+        public int? Shift {
             get => _channel?.Shift;
             set {
                 if (_channel == null) return;
@@ -478,25 +509,43 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public byte? MinDefault {
-            get => _minDefault;
+        public decimal? MinValueDefault {
+            get => _minValueDefault;
             set {
-                if (_minDefault == value) return;
-                _minDefault = value;
+                if (_minValueDefault == value) return;
+                _minValueDefault = value;
                 OnPropertyChanged();
             }
         }
 
-        public byte? MaxDefault {
-            get => _maxDefault;
+        public decimal? MaxValueDefault {
+            get => _maxValueDefault;
             set {
-                if (_maxDefault == value) return;
-                _maxDefault = value;
+                if (_maxValueDefault == value) return;
+                _maxValueDefault = value;
                 OnPropertyChanged();
             }
         }
 
-        public short? ShiftDefault {
+        public byte? RangeMinDefault {
+            get => _rangeMinDefault;
+            set {
+                if (_rangeMinDefault == value) return;
+                _rangeMinDefault = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public byte? RangeMaxDefault {
+            get => _rangeMaxDefault;
+            set {
+                if (_rangeMaxDefault == value) return;
+                _rangeMaxDefault = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public decimal? ShiftDefault {
             get => _shiftDefault;
             set {
                 if (_shiftDefault == value) return;
@@ -538,6 +587,8 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(Sampler));
             OnPropertyChanged(nameof(MinValue));
             OnPropertyChanged(nameof(MaxValue));
+            OnPropertyChanged(nameof(RangeMin));
+            OnPropertyChanged(nameof(RangeMax));
             OnPropertyChanged(nameof(Shift));
             OnPropertyChanged(nameof(Power));
             OnPropertyChanged(nameof(Invert));
@@ -548,8 +599,10 @@ namespace PixelGraph.UI.ViewModels
             TextureDefault = encodingDefaults?.Texture;
             ColorDefault = encodingDefaults?.Color;
             SamplerDefault = encodingDefaults?.Sampler ?? sampler;
-            MinDefault = encodingDefaults?.MinValue;
-            MaxDefault = encodingDefaults?.MaxValue;
+            MinValueDefault = encodingDefaults?.MinValue;
+            MaxValueDefault = encodingDefaults?.MaxValue;
+            RangeMinDefault = encodingDefaults?.RangeMin;
+            RangeMaxDefault = encodingDefaults?.RangeMax;
             ShiftDefault = encodingDefaults?.Shift;
             PowerDefault = encodingDefaults?.Power;
             InvertDefault = encodingDefaults?.Invert;
@@ -562,6 +615,8 @@ namespace PixelGraph.UI.ViewModels
             Sampler = null;
             MinValue = null;
             MaxValue = null;
+            RangeMin = null;
+            RangeMax = null;
             Shift = null;
             Power = null;
             Invert = null;

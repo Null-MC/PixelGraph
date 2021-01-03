@@ -22,18 +22,17 @@ namespace PixelGraph.Tests.ImageTests
                 AlbedoRed = {
                     Texture = TextureTags.Albedo,
                     Color = ColorChannel.Red,
+                    MaxValue = 255m,
                 },
                 AlbedoGreen = {
                     Texture = TextureTags.Albedo,
                     Color = ColorChannel.Green,
+                    MaxValue = 255m,
                 },
                 AlbedoBlue = {
                     Texture = TextureTags.Albedo,
                     Color = ColorChannel.Blue,
-                },
-                Alpha = {
-                    Texture = TextureTags.Albedo,
-                    Color = ColorChannel.Alpha,
+                    MaxValue = 255m,
                 },
             };
 
@@ -42,18 +41,17 @@ namespace PixelGraph.Tests.ImageTests
                     AlbedoRed = {
                         Texture = TextureTags.Albedo,
                         Color = ColorChannel.Red,
+                        MaxValue = 255m,
                     },
                     AlbedoGreen = {
                         Texture = TextureTags.Albedo,
                         Color = ColorChannel.Green,
+                        MaxValue = 255m,
                     },
                     AlbedoBlue = {
                         Texture = TextureTags.Albedo,
                         Color = ColorChannel.Blue,
-                    },
-                    Alpha = {
-                        Texture = TextureTags.Albedo,
-                        Color = ColorChannel.Alpha,
+                        MaxValue = 255m,
                     },
                 },
             };
@@ -115,13 +113,13 @@ namespace PixelGraph.Tests.ImageTests
             PixelAssert.GreenEquals(value, resultImage);
         }
 
-        [InlineData(  0,  0.0,   0)]
-        [InlineData(100,  1.0, 100)]
-        [InlineData(100,  0.5,  50)]
-        [InlineData(100,  2.0, 200)]
-        [InlineData(100,  3.0, 255)]
+        [InlineData(  0, 0.00,   0)]
+        [InlineData(100, 1.00, 100)]
+        [InlineData(100, 0.50,  50)]
+        [InlineData(100, 2.00, 200)]
+        [InlineData(100, 3.00, 255)]
         [InlineData(200, 0.01,   2)]
-        [Theory] public async Task ScaleRed(byte value, decimal scale, byte expected)
+        [Theory] public async Task ScaleRedValue(decimal value, decimal scale, byte expected)
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
@@ -146,8 +144,41 @@ namespace PixelGraph.Tests.ImageTests
             PixelAssert.RedEquals(expected, image);
         }
 
+        [InlineData(  0, 0.0,   0)]
+        [InlineData(100, 1.0, 100)]
+        [InlineData(100, 0.5,  50)]
+        [InlineData(100, 2.0, 200)]
+        [InlineData(100, 3.0, 255)]
+        [InlineData(200, 0.01,  2)]
+        [Theory] public async Task ScaleRedTexture(byte value, decimal scale, byte expected)
+        {
+            await using var provider = Builder.Build();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
+            graphBuilder.UseGlobalOutput = true;
+
+            using var srcImage = CreateImageR(value);
+            await content.AddAsync("assets/test/albedo.png", srcImage);
+
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = new MaterialProperties {
+                    Name = "test",
+                    LocalPath = "assets",
+                    Albedo = new MaterialAlbedoProperties {
+                        ScaleRed = scale,
+                    },
+                },
+            };
+
+            await graphBuilder.ProcessInputGraphAsync(context);
+            using var image = await content.OpenImageAsync("assets/test.png");
+            PixelAssert.RedEquals(expected, image);
+        }
+
         [Fact]
-        public async Task ShiftRGB()
+        public async Task ShiftRgb()
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
@@ -158,24 +189,27 @@ namespace PixelGraph.Tests.ImageTests
             await content.AddAsync("assets/test/albedo.png", image);
 
             var context = new MaterialContext {
-                Input = new ResourcePackInputProperties {
-                    AlbedoRed = {
-                        Texture = TextureTags.Albedo,
-                        Color = ColorChannel.Green,
-                    },
-                    AlbedoGreen = {
-                        Texture = TextureTags.Albedo,
-                        Color = ColorChannel.Blue,
-                    },
-                    AlbedoBlue = {
-                        Texture = TextureTags.Albedo,
-                        Color = ColorChannel.Red,
-                    },
-                },
                 Profile = packProfile,
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
+                },
+                Input = new ResourcePackInputProperties {
+                    AlbedoRed = {
+                        Texture = TextureTags.Albedo,
+                        Color = ColorChannel.Green,
+                        MaxValue = 255m,
+                    },
+                    AlbedoGreen = {
+                        Texture = TextureTags.Albedo,
+                        Color = ColorChannel.Blue,
+                        MaxValue = 255m,
+                    },
+                    AlbedoBlue = {
+                        Texture = TextureTags.Albedo,
+                        Color = ColorChannel.Red,
+                        MaxValue = 255m,
+                    },
                 },
             };
 

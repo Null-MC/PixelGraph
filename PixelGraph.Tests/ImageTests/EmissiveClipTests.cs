@@ -65,13 +65,14 @@ namespace PixelGraph.Tests.ImageTests
             PixelAssert.RedEquals(value, image);
         }
 
-        [InlineData(  0,  0.0, 255)]
-        [InlineData(100,  1.0,  99)]
-        [InlineData(100,  0.5,  49)]
-        [InlineData(100,  2.0, 199)]
-        [InlineData(100,  3.0, 254)]
-        [InlineData(200, 0.01,   1)]
-        [Theory] public async Task Scale(byte value, decimal scale, byte expected)
+        [InlineData(       0, 0.00, 255)]
+        [InlineData(       1, 0.00, 255)]
+        [InlineData(100/255d, 1.00,  99)]
+        [InlineData(100/255d, 0.50,  49)]
+        [InlineData(100/255d, 2.00, 199)]
+        [InlineData(100/255d, 3.00, 254)]
+        [InlineData(200/255d, 0.01,   1)]
+        [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
@@ -86,6 +87,40 @@ namespace PixelGraph.Tests.ImageTests
                     LocalPath = "assets",
                     Emissive = new MaterialEmissiveProperties {
                         Value = value,
+                        Scale = scale,
+                    },
+                },
+            };
+
+            await graphBuilder.ProcessInputGraphAsync(context);
+            var image = await content.OpenImageAsync("assets/test_e.png");
+            PixelAssert.RedEquals(expected, image);
+        }
+
+        [InlineData(255, 0.00, 255)]
+        [InlineData(  0, 0.00, 255)]
+        [InlineData( 99, 1.00,  99)]
+        [InlineData( 99, 0.50,  49)]
+        [InlineData( 99, 2.00, 199)]
+        [InlineData( 99, 3.00, 254)]
+        [InlineData(199, 0.01,   1)]
+        [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
+        {
+            await using var provider = Builder.Build();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
+            graphBuilder.UseGlobalOutput = true;
+
+            using var srcImage = CreateImageR(value);
+            await content.AddAsync("assets/test/emissive.png", srcImage);
+
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = new MaterialProperties {
+                    Name = "test",
+                    LocalPath = "assets",
+                    Emissive = new MaterialEmissiveProperties {
                         Scale = scale,
                     },
                 },

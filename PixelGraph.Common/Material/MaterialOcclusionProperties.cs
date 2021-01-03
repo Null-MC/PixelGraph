@@ -11,7 +11,7 @@ namespace PixelGraph.Common.Material
 
         public ResourcePackOcclusionChannelProperties Input {get; set;}
         public string Texture {get; set;}
-        public byte? Value {get; set;}
+        public decimal? Value {get; set;}
         public decimal? Scale {get; set;}
         public decimal? Quality {get; set;}
         public decimal? ZBias {get; set;}

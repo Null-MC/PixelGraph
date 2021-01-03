@@ -17,16 +17,16 @@ namespace PixelGraph.Common.Material
         public ResourcePackNormalXChannelProperties InputX {get; set;}
 
         [YamlMember(Alias = "value-x", ApplyNamingConventions = false)]
-        public byte? ValueX {get; set;}
+        public decimal? ValueX {get; set;}
 
         public ResourcePackNormalYChannelProperties InputY {get; set;}
 
         [YamlMember(Alias = "value-y", ApplyNamingConventions = false)]
-        public byte? ValueY {get; set;}
+        public decimal? ValueY {get; set;}
 
         public ResourcePackNormalZChannelProperties InputZ {get; set;}
 
         [YamlMember(Alias = "value-z", ApplyNamingConventions = false)]
-        public byte? ValueZ {get; set;}
+        public decimal? ValueZ {get; set;}
     }
 }

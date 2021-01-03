@@ -55,15 +55,16 @@ namespace PixelGraph.Common.ImageProcessors
 
             var fValue = Math.Max(fx, fy);
 
-            foreach (var color in options.Colors) {
-                pixelOut.GetChannelValueScaled(in color, out var srcValue);
+            var count = options.Colors.Length;
+            for (var i = 0; i < count; i++) {
+                pixelOut.GetChannelValueScaled(in options.Colors[i], out var srcValue);
 
                 var avg = (srcValue + fValue) * 0.5f;
                 var min = MathF.Max(srcValue, avg);
                 var max = MathF.Max(min, fValue);
                 if (srcValue.Equal(max)) continue;
 
-                pixelOut.SetChannelValueScaled(in color, in max);
+                pixelOut.SetChannelValueScaled(in options.Colors[i], in max);
             }
         }
 

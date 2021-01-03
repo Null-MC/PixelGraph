@@ -12,9 +12,11 @@ namespace PixelGraph.Common.ResourcePack
         public string Texture {get; set;}
         public ColorChannel? Color {get; set;}
         public string Sampler {get; set;}
-        public byte? MinValue {get; set;}
-        public byte? MaxValue {get; set;}
-        public short? Shift {get; set;}
+        public decimal? MinValue {get; set;}
+        public decimal? MaxValue {get; set;}
+        public byte? RangeMin {get; set;}
+        public byte? RangeMax {get; set;}
+        public int? Shift {get; set;}
         public decimal? Power {get; set;}
         public bool? Invert {get; set;}
 
@@ -49,6 +51,8 @@ namespace PixelGraph.Common.ResourcePack
             if (channel.Color.HasValue) Color = channel.Color.Value;
             if (channel.MinValue.HasValue) MinValue = channel.MinValue.Value;
             if (channel.MaxValue.HasValue) MaxValue = channel.MaxValue.Value;
+            if (channel.RangeMin.HasValue) RangeMin = channel.RangeMin.Value;
+            if (channel.RangeMax.HasValue) RangeMax = channel.RangeMax.Value;
             if (channel.Shift.HasValue) Shift = channel.Shift.Value;
             if (channel.Power.HasValue) Power = channel.Power.Value;
             if (channel.Invert.HasValue) Invert = channel.Invert.Value;

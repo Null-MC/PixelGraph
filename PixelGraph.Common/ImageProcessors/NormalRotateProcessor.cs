@@ -89,11 +89,13 @@ namespace PixelGraph.Common.ImageProcessors
             random.NextBytes(buffer);
         }
 
-        public class Options
+        public class Options //<TPixel>
         {
             public ColorChannel NormalX = ColorChannel.None;
             public ColorChannel NormalY = ColorChannel.None;
             public ColorChannel NormalZ = ColorChannel.None;
+            //public ResourcePackChannelProperties MagnitudeChannel;
+            //public Image<TP> MagnitudeImage;
             public float CurveX = 0f;
             public float CurveY = 0f;
             public float Noise = 0f;

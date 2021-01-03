@@ -4,7 +4,7 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class Lab13Encoding : ITextureEncodingFactory
+    internal class Lab12Encoding : ITextureEncodingFactory
     {
         public ResourcePackEncoding Create()
         {
@@ -125,7 +125,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 229,
                     Shift = 0,
-                    Power = 1m,
+                    Power = 0.5m,
                     Invert = false,
                 },
 
@@ -168,7 +168,7 @@ namespace PixelGraph.Common.Encoding
 
                 Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Specular,
-                    Color = ColorChannel.Alpha,
+                    Color = ColorChannel.Blue,
                     MinValue = 0m,
                     MaxValue = 1m,
                     RangeMin = 0,

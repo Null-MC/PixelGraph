@@ -2,9 +2,9 @@
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialRoughProperties
+    public class MaterialF0Properties
     {
-        public ResourcePackRoughChannelProperties Input {get; set;}
+        public ResourcePackF0ChannelProperties Input {get; set;}
         public string Texture {get; set;}
         public decimal? Value {get; set;}
         public decimal? Scale {get; set;}

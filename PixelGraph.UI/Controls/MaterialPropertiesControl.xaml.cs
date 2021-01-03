@@ -85,6 +85,7 @@ namespace PixelGraph.UI.Controls
             Add(new MaterialPropertiesControl.TextureItem {Name = "Smoothness", Key = TextureTags.Smooth});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Roughness", Key = TextureTags.Rough});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Metal", Key = TextureTags.Metal});
+            Add(new MaterialPropertiesControl.TextureItem {Name = "F0", Key = TextureTags.F0});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Porosity", Key = TextureTags.Porosity});
             Add(new MaterialPropertiesControl.TextureItem {Name = "SSS", Key = TextureTags.SubSurfaceScattering});
             Add(new MaterialPropertiesControl.TextureItem {Name = "Emissive", Key = TextureTags.Emissive});

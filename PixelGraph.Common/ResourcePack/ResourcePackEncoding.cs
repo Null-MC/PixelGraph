@@ -1,8 +1,8 @@
 ﻿using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Textures;
 using System.Collections.Generic;
 using System.Linq;
-using PixelGraph.Common.Textures;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
@@ -32,6 +32,7 @@ namespace PixelGraph.Common.ResourcePack
         public ResourcePackRoughChannelProperties Rough {get; set;}
 
         public ResourcePackMetalChannelProperties Metal {get; set;}
+        public ResourcePackF0ChannelProperties F0 {get; set;}
 
         public ResourcePackPorosityChannelProperties Porosity {get; set;}
 
@@ -67,6 +68,7 @@ namespace PixelGraph.Common.ResourcePack
             Rough = new ResourcePackRoughChannelProperties();
 
             Metal = new ResourcePackMetalChannelProperties();
+            F0 = new ResourcePackF0ChannelProperties();
 
             Porosity = new ResourcePackPorosityChannelProperties();
 
@@ -105,38 +107,13 @@ namespace PixelGraph.Common.ResourcePack
             if (encoding.Rough != null) Rough.Merge(encoding.Rough);
 
             if (encoding.Metal != null) Metal.Merge(encoding.Metal);
+            if (encoding.F0 != null) F0.Merge(encoding.F0);
 
             if (encoding.Porosity != null) Porosity.Merge(encoding.Porosity);
 
             if (encoding.SSS != null) SSS.Merge(encoding.SSS);
 
             if (encoding.Emissive != null) Emissive.Merge(encoding.Emissive);
-
-
-
-            //if (encoding.AlbedoRed.HasMapping) AlbedoRed = encoding.AlbedoRed;
-            //if (encoding.AlbedoGreen.HasMapping) AlbedoGreen = encoding.AlbedoGreen;
-            //if (encoding.AlbedoBlue.HasMapping) AlbedoBlue = encoding.AlbedoBlue;
-
-            //if (encoding.Height.HasMapping) Height = encoding.Height;
-            //if (encoding.Occlusion.HasMapping) Occlusion = encoding.Occlusion;
-
-            //if (encoding.NormalX.HasMapping) NormalX = encoding.NormalX;
-            //if (encoding.NormalY.HasMapping) NormalY = encoding.NormalY;
-            //if (encoding.NormalZ.HasMapping) NormalZ = encoding.NormalZ;
-
-            //if (encoding.Specular.HasMapping) Specular = encoding.Specular;
-
-            //if (encoding.Smooth.HasMapping) Smooth = encoding.Smooth;
-            //if (encoding.Rough.HasMapping) Rough = encoding.Rough;
-
-            //if (encoding.Metal.HasMapping) Metal = encoding.Metal;
-
-            //if (encoding.Porosity.HasMapping) Porosity = encoding.Porosity;
-
-            //if (encoding.SSS.HasMapping) SSS = encoding.SSS;
-
-            //if (encoding.Emissive.HasMapping) Emissive = encoding.Emissive;
         }
 
         public void Merge(MaterialProperties material)
@@ -164,6 +141,7 @@ namespace PixelGraph.Common.ResourcePack
             if (material.Rough?.Input != null) Rough.Merge(material.Rough.Input);
 
             if (material.Metal?.Input != null) Metal.Merge(material.Metal.Input);
+            if (material.F0?.Input != null) F0.Merge(material.F0.Input);
 
             if (material.Porosity?.Input != null) Porosity.Merge(material.Porosity.Input);
 
@@ -197,6 +175,7 @@ namespace PixelGraph.Common.ResourcePack
             yield return Rough;
 
             yield return Metal;
+            yield return F0;
 
             yield return Porosity;
 
@@ -232,6 +211,7 @@ namespace PixelGraph.Common.ResourcePack
             clone.Rough = (ResourcePackRoughChannelProperties)Rough.Clone();
 
             clone.Metal = (ResourcePackMetalChannelProperties)Metal.Clone();
+            clone.F0 = (ResourcePackF0ChannelProperties)F0.Clone();
 
             clone.Porosity = (ResourcePackPorosityChannelProperties)Porosity.Clone();
 
@@ -358,6 +338,13 @@ namespace PixelGraph.Common.ResourcePack
         public ResourcePackMetalChannelProperties() : base(EncodingChannel.Metal) {}
 
         public ResourcePackMetalChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Metal, texture, color) {}
+    }
+
+    public class ResourcePackF0ChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackF0ChannelProperties() : base(EncodingChannel.F0) {}
+
+        public ResourcePackF0ChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.F0, texture, color) {}
     }
 
     public class ResourcePackPorosityChannelProperties : ResourcePackChannelProperties

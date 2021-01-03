@@ -20,6 +20,7 @@ namespace PixelGraph.Common.IO
                 [TextureTags.Smooth] = (name, ext) => $"{name}_smooth.{ext}",
                 [TextureTags.Rough] = (name, ext) => $"{name}_rough.{ext}",
                 [TextureTags.Metal] = (name, ext) => $"{name}_metal.{ext}",
+                [TextureTags.F0] = (name, ext) => $"{name}_f0.{ext}",
                 [TextureTags.Porosity] = (name, ext) => $"{name}_p.{ext}",
                 [TextureTags.SubSurfaceScattering] = (name, ext) => $"{name}_sss.{ext}",
                 [TextureTags.Emissive] = (name, ext) => $"{name}_e.{ext}",

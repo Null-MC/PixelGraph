@@ -65,6 +65,8 @@ namespace PixelGraph.Common.Material
 
         public MaterialMetalProperties Metal {get; set;}
 
+        public MaterialF0Properties F0 {get; set;}
+
         public MaterialPorosityProperties Porosity {get; set;}
 
         [YamlMember(Alias = "sss", ApplyNamingConventions = false)]
@@ -108,15 +110,15 @@ namespace PixelGraph.Common.Material
             return clone;
         }
 
-        public bool TryGetChannelValue(string encodingChannel, out byte value)
+        public bool TryGetChannelValue(string encodingChannel, out decimal value)
         {
-            byte? result = null;
+            decimal? result = null;
 
-            if (byte.TryParse(encodingChannel, out value)) return true;
+            if (decimal.TryParse(encodingChannel, out value)) return true;
 
             if (valueMap.TryGetValue(encodingChannel, out var valueFunc)) {
                 result = valueFunc(this);
-                value = result ?? 0;
+                value = result ?? 0m;
             }
             else value = 0;
 
@@ -129,13 +131,13 @@ namespace PixelGraph.Common.Material
             return scaleMap.TryGetValue(channel, out var value) ? (float)value(this) : 1f;
         }
 
-        public int GetChannelShift(string channel)
+        public float GetChannelShift(string channel)
         {
-            if (EncodingChannel.IsEmpty(channel)) return 0;
-            return shiftMap.TryGetValue(channel, out var value) ? (int)value(this) : 0;
+            if (EncodingChannel.IsEmpty(channel)) return 0f;
+            return shiftMap.TryGetValue(channel, out var value) ? (float)value(this) : 0f;
         }
 
-        private static readonly Dictionary<string, Func<MaterialProperties, byte?>> valueMap = new Dictionary<string, Func<MaterialProperties, byte?>>(StringComparer.OrdinalIgnoreCase) {
+        private static readonly Dictionary<string, Func<MaterialProperties, decimal?>> valueMap = new Dictionary<string, Func<MaterialProperties, decimal?>>(StringComparer.OrdinalIgnoreCase) {
             [EncodingChannel.Alpha] = mat => mat.Alpha?.Value,
             [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ValueRed,
             [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ValueGreen,
@@ -151,6 +153,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Value,
             [EncodingChannel.Rough] = mat => mat.Rough?.Value,
             [EncodingChannel.Metal] = mat => mat.Metal?.Value,
+            [EncodingChannel.F0] = mat => mat.F0?.Value,
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Value,
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Value,
             [EncodingChannel.Emissive] = mat => mat.Emissive?.Value,
@@ -169,6 +172,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Smooth] = mat => 0,
             [EncodingChannel.Rough] = mat => 0,
             [EncodingChannel.Metal] = mat => 0,
+            [EncodingChannel.F0] = mat => 0,
             [EncodingChannel.Porosity] = mat => 0,
             [EncodingChannel.SubSurfaceScattering] = mat => 0,
             [EncodingChannel.Emissive] = mat => 0,
@@ -187,6 +191,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Scale ?? 1m,
             [EncodingChannel.Rough] = mat => mat.Rough?.Scale ?? 1m,
             [EncodingChannel.Metal] = mat => mat.Metal?.Scale ?? 1m,
+            [EncodingChannel.F0] = mat => mat.F0?.Scale ?? 1m,
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Scale ?? 1m,
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Scale ?? 1m,
             [EncodingChannel.Emissive] = mat => mat.Emissive?.Scale ?? 1m,

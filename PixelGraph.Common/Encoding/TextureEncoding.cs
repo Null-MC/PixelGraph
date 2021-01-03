@@ -10,8 +10,10 @@ namespace PixelGraph.Common.Encoding
         public const string Format_Raw = "raw";
         public const string Format_Albedo = "albedo";
         public const string Format_Diffuse = "diffuse";
+        public const string Format_Specular = "specular";
         public const string Format_Legacy = "legacy";
         public const string Format_Lab11 = "lab-1.1";
+        public const string Format_Lab12 = "lab-1.2";
         public const string Format_Lab13 = "lab-1.3";
 
 
@@ -26,8 +28,10 @@ namespace PixelGraph.Common.Encoding
                 [Format_Raw] = new RawEncoding(),
                 [Format_Albedo] = new AlbedoEncoding(),
                 [Format_Diffuse] = new DiffuseEncoding(),
+                [Format_Specular] = new SpecularEncoding(),
                 [Format_Legacy] = new LegacyEncoding(),
                 [Format_Lab11] = new Lab11Encoding(),
+                [Format_Lab12] = new Lab12Encoding(),
                 [Format_Lab13] = new Lab13Encoding(),
             };
     }

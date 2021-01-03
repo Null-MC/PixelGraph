@@ -23,6 +23,7 @@ namespace PixelGraph.Common.Encoding
         public const string Smooth = "smooth";
         public const string Rough = "rough";
         public const string Metal = "metal";
+        public const string F0 = "f0";
         public const string Porosity = "porosity";
         public const string SubSurfaceScattering = "sss";
         public const string Emissive = "emissive";

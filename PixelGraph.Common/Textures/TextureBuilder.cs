@@ -59,9 +59,8 @@ namespace PixelGraph.Common.Textures
         {
             var mappings = new List<TextureChannelMapping>();
 
-            foreach (var channel in OutputChannels) {
-                if (TryBuildMapping(channel, out var mapping))
-                    mappings.Add(mapping);
+            foreach (var channel in OutputChannels.Where(c => c.Color != ColorChannel.Magnitude)) {
+                if (TryBuildMapping(channel, out var mapping)) mappings.Add(mapping);
             }
 
             if (!CreateEmpty && mappings.Count == 0) return;
@@ -75,11 +74,16 @@ namespace PixelGraph.Common.Textures
             foreach (var mapping in mappings.Where(m => m.SourceFilename == null))
                 await ApplyMappingAsync(mapping, token);
 
-            if (ImageResult == null) {
-                //var size = Graph.GetSourceSize();
+            if (ImageResult == null)
                 CreateImageResult(DefaultSize);
-            }
+
+            //await ApplyMagnitudeScalingAsync(token);
         }
+
+        //private ResourcePackChannelProperties FindChannel(string id)
+        //{
+        //    return OutputChannels.FirstOrDefault(c => EncodingChannel.Is(c.ID, id));
+        //}
 
         public void Dispose()
         {
@@ -90,8 +94,10 @@ namespace PixelGraph.Common.Textures
         {
             mapping = new TextureChannelMapping {
                 OutputColor = outputChannel.Color ?? ColorChannel.None,
-                OutputMin = outputChannel.MinValue ?? 0,
-                OutputMax = outputChannel.MaxValue ?? 255,
+                OutputMinValue = (float?)outputChannel.MinValue ?? 0f,
+                OutputMaxValue = (float?)outputChannel.MaxValue ?? 1f,
+                OutputRangeMin = outputChannel.RangeMin ?? 0,
+                OutputRangeMax = outputChannel.RangeMax ?? 255,
                 OutputShift = outputChannel.Shift ?? 0,
                 OutputPower = (float?)outputChannel.Power ?? 1f,
                 InvertOutput = outputChannel.Invert ?? false,
@@ -126,8 +132,10 @@ namespace PixelGraph.Common.Textures
                 if (AutoGenerateOcclusion && TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
                     mapping.SourceTag = TextureTags.OcclusionGenerated;
                     mapping.InputColor = ColorChannel.Red;
-                    mapping.InputMin = 0;
-                    mapping.InputMax = 255;
+                    mapping.InputMinValue = 0f;
+                    mapping.InputMaxValue = 1f;
+                    mapping.InputRangeMin = 0;
+                    mapping.InputRangeMax = 255;
                     mapping.InputShift = 0;
                     mapping.InputPower = 1f;
                     mapping.InvertInput = true;
@@ -187,31 +195,38 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
-            var value = (mapping.InputValue ?? 0) / 255f;
+            if (!mapping.InputValue.HasValue && mapping.OutputMinValue > 0) return;
 
-            value += mapping.Shift;
-            value *= mapping.Scale;
+            var value = (double?)mapping.InputValue ?? 0d;
 
-            if (MathF.Abs(mapping.OutputPower - 1f) > float.Epsilon)
-                value = MathF.Pow(value, mapping.OutputPower);
+            //if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
-            if (mapping.InvertOutput) MathEx.Invert(ref value);
+            // Common Processing
+            value = (value + mapping.Shift) * mapping.Scale;
 
-            MathEx.Saturate(value, out var finalValue);
-            MathEx.Cycle(ref finalValue, in mapping.OutputShift);
+            if (!mapping.OutputPower.Equal(1f))
+                value = Math.Pow(value, mapping.OutputPower);
 
-            if (mapping.OutputMin != 0 || mapping.OutputMax != 255) {
-                var f = finalValue / 255f;
-                var range = mapping.OutputMax - mapping.OutputMin;
-                finalValue = MathEx.Clamp(mapping.OutputMin + (int) (f * range), mapping.OutputMin, mapping.OutputMax);
-            }
+            if (mapping.InvertOutput) value = mapping.OutputMaxValue - value;
+
+            MathEx.Clamp(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
+
+            var valueRange = mapping.OutputMaxValue - mapping.OutputMinValue;
+            var pixelRange = mapping.OutputRangeMax - mapping.OutputRangeMin;
+            var outputScale = pixelRange / valueRange;
+
+            var valueOut = mapping.OutputRangeMin + (value - mapping.OutputMinValue) * outputScale;
+            var finalValue = MathEx.ClampRound(valueOut, mapping.OutputRangeMin, mapping.OutputRangeMax);
+
+            if (mapping.OutputShift != 0)
+                MathEx.Cycle(ref finalValue, in mapping.OutputShift, in mapping.OutputRangeMin, in mapping.OutputRangeMax);
 
             if (ImageResult != null) {
                 var options = new OverwriteProcessor.Options {
                     Color = mapping.OutputColor,
+                    Min = mapping.OutputRangeMin,
+                    Max = mapping.OutputRangeMax,
                     Value = finalValue,
-                    Min = mapping.OutputMin,
-                    Max = mapping.OutputMax,
                 };
 
                 var processor = new OverwriteProcessor(options);
@@ -269,31 +284,37 @@ namespace PixelGraph.Common.Textures
     internal class TextureChannelMapping
     {
         public ColorChannel InputColor;
-        public byte? InputValue;
-        public byte InputMin;
-        public byte InputMax;
+        public decimal? InputValue;
+        public float InputMinValue;
+        public float InputMaxValue;
+        public byte InputRangeMin;
+        public byte InputRangeMax;
         public int InputShift;
         public float InputPower;
         public bool InvertInput;
 
         public ColorChannel OutputColor;
-        public byte OutputMin;
-        public byte OutputMax;
+        public float OutputMinValue;
+        public float OutputMaxValue;
+        public byte OutputRangeMin;
+        public byte OutputRangeMax;
         public int OutputShift;
         public float OutputPower;
         public bool InvertOutput;
 
         public string SourceTag;
         public string SourceFilename;
-        public int Shift;
+        public float Shift;
         public float Scale;
 
 
         public void ApplyInputChannel(ResourcePackChannelProperties channel)
         {
             InputColor = channel.Color ?? ColorChannel.None;
-            InputMin = channel.MinValue ?? 0;
-            InputMax = channel.MaxValue ?? 255;
+            InputMinValue = (float?)channel.MinValue ?? 0f;
+            InputMaxValue = (float?)channel.MaxValue ?? 1f;
+            InputRangeMin = channel.RangeMin ?? 0;
+            InputRangeMax = channel.RangeMax ?? 255;
             InputShift = channel.Shift ?? 0;
             InputPower = (float?)channel.Power ?? 1f;
             InvertInput = channel.Invert ?? false;

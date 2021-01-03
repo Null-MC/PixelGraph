@@ -65,14 +65,14 @@ namespace PixelGraph.Tests.ImageTests
             PixelAssert.RedEquals(value, image);
         }
 
-        [InlineData(  0,  0.0f, 255)]
-        [InlineData(255,  0.0f, 255)]
-        [InlineData(100,  1.0f, 155)]
-        [InlineData(100,  0.5f, 205)]
-        [InlineData(100,  2.0f,  55)]
-        [InlineData(100,  3.0f,   0)]
-        [InlineData(200, 0.01f, 253)]
-        [Theory] public async Task ValueScale(byte value, decimal scale, byte expected)
+        [InlineData(0.000, 0.00, 255)]
+        [InlineData(1.000, 0.00, 255)]
+        [InlineData(0.392, 1.00, 155)]
+        [InlineData(0.392, 0.50, 205)]
+        [InlineData(0.392, 2.00,  55)]
+        [InlineData(0.392, 3.00,   0)]
+        [InlineData(0.784, 0.01, 253)]
+        [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
@@ -97,14 +97,14 @@ namespace PixelGraph.Tests.ImageTests
             PixelAssert.RedEquals(expected, image);
         }
 
-        [InlineData(  0,  0.0f, 255)]
-        [InlineData(255,  0.0f, 255)]
-        [InlineData(100,  1.0f, 100)]
-        [InlineData(155,  0.5f, 205)]
-        [InlineData(155,  2.0f,  55)]
-        [InlineData(155,  3.0f,   0)]
-        [InlineData( 55, 0.01f, 253)]
-        [Theory] public async Task TextureScale(byte value, decimal scale, byte expected)
+        [InlineData(  0, 0.00, 255)]
+        [InlineData(255, 0.00, 255)]
+        [InlineData(100, 1.00, 100)]
+        [InlineData(155, 0.50, 205)]
+        [InlineData(155, 2.00,  55)]
+        [InlineData(155, 3.00,   0)]
+        [InlineData( 55, 0.01, 253)]
+        [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();

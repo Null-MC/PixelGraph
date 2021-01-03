@@ -63,13 +63,14 @@ namespace PixelGraph.Tests.ImageTests
             PixelAssert.RedEquals(value, image);
         }
 
-        [InlineData(  0,  0.0,   0)]
-        [InlineData(100,  1.0, 100)]
-        [InlineData(100,  0.5,  50)]
-        [InlineData(100,  2.0, 200)]
-        [InlineData(100,  3.0, 255)]
-        [InlineData(200, 0.01,   2)]
-        [Theory] public async Task Scale(byte value, decimal scale, byte expected)
+        [InlineData(0.000, 0.00,   0)]
+        [InlineData(1.000, 0.00,   0)]
+        [InlineData(0.392, 1.00, 100)]
+        [InlineData(0.392, 0.50,  50)]
+        [InlineData(0.392, 2.00, 200)]
+        [InlineData(0.392, 3.00, 255)]
+        [InlineData(0.784, 0.01,   2)]
+        [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
             await using var provider = Builder.Build();
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
@@ -84,6 +85,39 @@ namespace PixelGraph.Tests.ImageTests
                     LocalPath = "assets",
                     Smooth = new MaterialSmoothProperties {
                         Value = value,
+                        Scale = scale,
+                    },
+                },
+            };
+
+            await graphBuilder.ProcessInputGraphAsync(context);
+            var image = await content.OpenImageAsync("assets/test_smooth.png");
+            PixelAssert.RedEquals(expected, image);
+        }
+
+        [InlineData(  0,  0.0,   0)]
+        [InlineData(100,  1.0, 100)]
+        [InlineData(100,  0.5,  50)]
+        [InlineData(100,  2.0, 200)]
+        [InlineData(100,  3.0, 255)]
+        [InlineData(200, 0.01,   2)]
+        [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
+        {
+            await using var provider = Builder.Build();
+            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
+            var content = provider.GetRequiredService<MockFileContent>();
+            graphBuilder.UseGlobalOutput = true;
+
+            using var srcImage = CreateImageR(value);
+            await content.AddAsync("assets/test/smooth.png", srcImage);
+
+            var context = new MaterialContext {
+                Input = packInput,
+                Profile = packProfile,
+                Material = new MaterialProperties {
+                    Name = "test",
+                    LocalPath = "assets",
+                    Smooth = new MaterialSmoothProperties {
                         Scale = scale,
                     },
                 },

@@ -121,9 +121,11 @@ namespace PixelGraph.Common.ImageProcessors
         {
             public ColorChannel HeightChannel;
             public ISampler<Rgba32> Sampler;
-            public byte HeightMin;
-            public byte HeightMax;
-            public short HeightShift;
+            public float HeightMinValue;
+            public float HeightMaxValue;
+            public byte HeightRangeMin;
+            public byte HeightRangeMax;
+            public int HeightShift;
             public float HeightPower;
             public bool HeightInvert;
             public int StepCount;

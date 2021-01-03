@@ -7,7 +7,7 @@ namespace PixelGraph.Common.Material
         public string Texture {get; set;}
 
         public ResourcePackAlphaChannelProperties Input {get; set;}
-        public byte? Value {get; set;}
+        public decimal? Value {get; set;}
         public decimal? Scale {get; set;}
     }
 }

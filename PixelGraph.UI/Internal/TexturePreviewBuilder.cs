@@ -97,6 +97,9 @@ namespace PixelGraph.UI.Internal
             if (TextureTags.Is(tag, TextureTags.Metal))
                 graph.OutputEncoding.AddRange(GetMetalChannels());
 
+            if (TextureTags.Is(tag, TextureTags.F0))
+                graph.OutputEncoding.AddRange(GetF0Channels());
+
             if (TextureTags.Is(tag, TextureTags.Porosity))
                 graph.OutputEncoding.AddRange(GetPorosityChannels());
 
@@ -139,23 +142,23 @@ namespace PixelGraph.UI.Internal
 
         private static IEnumerable<ResourcePackChannelProperties> GetAlphaChannels()
         {
-            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Red);
-            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Green);
-            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Blue);
+            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Red) {MaxValue = 255};
+            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Green) {MaxValue = 255};
+            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Blue) {MaxValue = 255};
         }
 
         private static IEnumerable<ResourcePackChannelProperties> GetDiffuseChannels()
         {
-            yield return new ResourcePackDiffuseRedChannelProperties(TextureTags.Diffuse, ColorChannel.Red);
-            yield return new ResourcePackDiffuseGreenChannelProperties(TextureTags.Diffuse, ColorChannel.Green);
-            yield return new ResourcePackDiffuseBlueChannelProperties(TextureTags.Diffuse, ColorChannel.Blue);
+            yield return new ResourcePackDiffuseRedChannelProperties(TextureTags.Diffuse, ColorChannel.Red) {MaxValue = 255};
+            yield return new ResourcePackDiffuseGreenChannelProperties(TextureTags.Diffuse, ColorChannel.Green) {MaxValue = 255};
+            yield return new ResourcePackDiffuseBlueChannelProperties(TextureTags.Diffuse, ColorChannel.Blue) {MaxValue = 255};
         }
 
         private static IEnumerable<ResourcePackChannelProperties> GetAlbedoChannels()
         {
-            yield return new ResourcePackAlbedoRedChannelProperties(TextureTags.Albedo, ColorChannel.Red);
-            yield return new ResourcePackAlbedoGreenChannelProperties(TextureTags.Albedo, ColorChannel.Green);
-            yield return new ResourcePackAlbedoBlueChannelProperties(TextureTags.Albedo, ColorChannel.Blue);
+            yield return new ResourcePackAlbedoRedChannelProperties(TextureTags.Albedo, ColorChannel.Red) {MaxValue = 255};
+            yield return new ResourcePackAlbedoGreenChannelProperties(TextureTags.Albedo, ColorChannel.Green) {MaxValue = 255};
+            yield return new ResourcePackAlbedoBlueChannelProperties(TextureTags.Albedo, ColorChannel.Blue) {MaxValue = 255};
         }
 
         private static IEnumerable<ResourcePackChannelProperties> GetHeightChannels()
@@ -205,6 +208,13 @@ namespace PixelGraph.UI.Internal
             yield return new ResourcePackMetalChannelProperties(TextureTags.Metal, ColorChannel.Red);
             yield return new ResourcePackMetalChannelProperties(TextureTags.Metal, ColorChannel.Green);
             yield return new ResourcePackMetalChannelProperties(TextureTags.Metal, ColorChannel.Blue);
+        }
+
+        private static IEnumerable<ResourcePackChannelProperties> GetF0Channels()
+        {
+            yield return new ResourcePackF0ChannelProperties(TextureTags.F0, ColorChannel.Red);
+            yield return new ResourcePackF0ChannelProperties(TextureTags.F0, ColorChannel.Green);
+            yield return new ResourcePackF0ChannelProperties(TextureTags.F0, ColorChannel.Blue);
         }
 
         private static IEnumerable<ResourcePackChannelProperties> GetPorosityChannels()

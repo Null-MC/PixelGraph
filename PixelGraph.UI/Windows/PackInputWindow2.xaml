@@ -143,7 +143,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Min">
+                <DataGridTemplateColumn Header="Value Min">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -153,7 +153,7 @@
                                            Visibility="{Binding MinValue, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
                                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
-                                           Text="{Binding MinDefault, Mode=OneWay}"
+                                           Text="{Binding MinValueDefault, Mode=OneWay}"
                                            Visibility="{Binding MinValue, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
                             </Grid>
                         </DataTemplate>
@@ -163,12 +163,12 @@
                             <controls:TextBoxEx HorizontalContentAlignment="Center" IsTabStop="False"
                                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
                                                 PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
-                                                Placeholder="{Binding MinDefault, Mode=OneWay}"
+                                                Placeholder="{Binding MinValueDefault, Mode=OneWay}"
                                                 Text="{Binding MinValue, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Max">
+                <DataGridTemplateColumn Header="Value Max">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -178,7 +178,7 @@
                                            Visibility="{Binding MaxValue, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
                                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
-                                           Text="{Binding MaxDefault, Mode=OneWay}"
+                                           Text="{Binding MaxValueDefault, Mode=OneWay}"
                                            Visibility="{Binding MaxValue, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
                             </Grid>
                         </DataTemplate>
@@ -188,8 +188,58 @@
                             <controls:TextBoxEx HorizontalContentAlignment="Center" IsTabStop="False"
                                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
                                                 PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
-                                                Placeholder="{Binding MaxDefault, Mode=OneWay}"
+                                                Placeholder="{Binding MaxValueDefault, Mode=OneWay}"
                                                 Text="{Binding MaxValue, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Range Min">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="vm:InputChannelMapping">
+                            <Grid>
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                           Text="{Binding RangeMin, Mode=OneWay}"
+                                           Visibility="{Binding RangeMin, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
+                                           Text="{Binding RangeMinDefault, Mode=OneWay}"
+                                           Visibility="{Binding RangeMin, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate DataType="vm:InputChannelMapping">
+                            <controls:TextBoxEx HorizontalContentAlignment="Center" IsTabStop="False"
+                                                Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                                Placeholder="{Binding RangeMinDefault, Mode=OneWay}"
+                                                Text="{Binding RangeMin, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Range Max">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="vm:InputChannelMapping">
+                            <Grid>
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                           Text="{Binding RangeMax, Mode=OneWay}"
+                                           Visibility="{Binding RangeMax, Mode=OneWay, Converter={StaticResource notNullToVisibilityConverter}}"/>
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource SecondaryHueDarkBrush}" FontStyle="Italic"
+                                           Text="{Binding RangeMaxDefault, Mode=OneWay}"
+                                           Visibility="{Binding RangeMax, Mode=OneWay, Converter={StaticResource nullToVisibleConverter}}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate DataType="vm:InputChannelMapping">
+                            <controls:TextBoxEx HorizontalContentAlignment="Center" IsTabStop="False"
+                                                Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                                Placeholder="{Binding RangeMaxDefault, Mode=OneWay}"
+                                                Text="{Binding RangeMax, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>

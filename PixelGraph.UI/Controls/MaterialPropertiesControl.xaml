@@ -322,6 +322,26 @@
                         </local:PropertyGridItem>
                     </StackPanel>
                 </Grid>
+                <Grid Visibility="{Binding IsF0Selected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
+                    <StackPanel Orientation="Vertical">
+                        <local:PropertyGridItem Header="Texture">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding F0Texture, Mode=TwoWay}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Value">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding F0Value, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        </local:PropertyGridItem>
+                        <local:PropertyGridItem Header="Scale">
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
+                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                             PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
+                                             Text="{Binding F0Scale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        </local:PropertyGridItem>
+                    </StackPanel>
+                </Grid>
                 <Grid Visibility="{Binding IsPorositySelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">

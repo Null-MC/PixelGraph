@@ -19,11 +19,12 @@ namespace PixelGraph.Common.Textures
         public const string Rough = "rough";
         public const string Smooth = "smooth";
         public const string Metal = "metal";
+        public const string F0 = "f0";
         public const string Porosity = "porosity";
         public const string SubSurfaceScattering = "sss";
         public const string Emissive = "emissive";
 
-        public static string[] All {get;} = {Alpha, Albedo, Diffuse, Height, Normal, Occlusion, Specular, Smooth, Rough, Metal, Porosity, SubSurfaceScattering, Emissive};
+        public static string[] All {get;} = {Alpha, Albedo, Diffuse, Height, Normal, Occlusion, Specular, Smooth, Rough, Metal, F0, Porosity, SubSurfaceScattering, Emissive};
 
 
         public static string Get(MaterialProperties material, string tag)
@@ -47,6 +48,7 @@ namespace PixelGraph.Common.Textures
             [Smooth] = mat => mat.Smooth?.Texture,
             [Rough] = mat => mat.Rough?.Texture,
             [Metal] = mat => mat.Metal?.Texture,
+            [F0] = mat => mat.F0?.Texture,
             [Porosity] = mat => mat.Porosity?.Texture,
             [SubSurfaceScattering] = mat => mat.SSS?.Texture,
             [Emissive] = mat => mat.Emissive?.Texture,
