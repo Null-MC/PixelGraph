@@ -195,7 +195,7 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
-            if (!mapping.InputValue.HasValue && mapping.OutputMinValue > 0) return;
+            if (!mapping.InputValue.HasValue && mapping.OutputRangeMin > 0) return;
 
             var value = (double?)mapping.InputValue ?? 0d;
 
