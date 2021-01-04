@@ -18,9 +18,12 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TPixel2>(in PixelRowContext context, Span<TPixel2> row)
         {
-            var scaleX = options.SourceWidth / context.Bounds.Width;
-            var scaleY = options.SourceHeight / context.Bounds.Height;
-            var fy = context.Y / scaleY;
+            var srcBounds = context.Bounds;
+            if (srcBounds.IsEmpty) return;
+
+            var scaleX = options.SourceWidth / (float)context.Bounds.Width;
+            var scaleY = options.SourceHeight / (float)context.Bounds.Height;
+            var fy = context.Y * scaleY;
 
             var pixel = new Rgba32();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {

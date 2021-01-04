@@ -1,4 +1,5 @@
 ﻿using SixLabors.ImageSharp.PixelFormats;
+using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
@@ -8,10 +9,12 @@ namespace PixelGraph.Common.Samplers
     {
         public override void Sample(in float fx, in float fy, ref Rgba32 pixel)
         {
+            var step = (int) Range;
+
             var pxMin = (int)fx;
-            var pxMax = (int)(fx + Range - 1);
             var pyMin = (int)fy;
-            var pyMax = (int)(fy + Range - 1);
+            var pxMax = (int)(fx + step);
+            var pyMax = (int)(fy + step);
 
             var color = new Vector4();
 
@@ -31,8 +34,7 @@ namespace PixelGraph.Common.Samplers
                 }
             }
 
-            var count = (pxMax - pxMin + 1) * (pyMax - pyMin + 1);
-            color /= count;
+            if (step > 0) color /= MathF.Pow(step + 1, 2);
 
             pixel.FromScaledVector4(color);
         }
