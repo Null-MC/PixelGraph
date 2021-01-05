@@ -40,10 +40,15 @@ namespace PixelGraph.Common.Extensions
             value = 1f - value;
         }
 
-        //public static void Invert(ref float value, in float maxValue)
+        //public static void Invert(ref float value, in float minValue, in float maxValue)
         //{
-        //    value = maxValue - value;
+        //    value = maxValue - (value - minValue);
         //}
+
+        public static void Invert(ref double value, in double minValue, in double maxValue)
+        {
+            value = maxValue - (value - minValue);
+        }
 
         //public static byte Clamp(int value)
         //{

@@ -109,13 +109,14 @@ namespace PixelGraph.Common.Textures
             var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
             var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
 
-            if (Material.TryGetChannelValue(outputChannel.ID, out var value)) {
-                mapping.InputValue = value;
-                return true;
-            }
-
             var inputChannel = InputChannels.FirstOrDefault(i
                 => EncodingChannel.Is(i.ID, outputChannel.ID));
+
+            if (Material.TryGetChannelValue(outputChannel.ID, out var value)) {
+                mapping.InputValue = value;
+                mapping.ApplyInputChannel(inputChannel);
+                return true;
+            }
 
             if (inputChannel?.Texture != null) {
                 if (TextureTags.Is(inputChannel.Texture, TextureTags.NormalGenerated)) {
@@ -195,11 +196,11 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
-            if (!mapping.InputValue.HasValue && mapping.OutputRangeMin > 0) return;
+            if (!mapping.InputValue.HasValue && mapping.OutputShift == 0 && !mapping.InvertOutput) return;
 
             var value = (double?)mapping.InputValue ?? 0d;
 
-            //if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
+            if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
             // Common Processing
             value = (value + mapping.Shift) * mapping.Scale;
@@ -207,7 +208,7 @@ namespace PixelGraph.Common.Textures
             if (!mapping.OutputPower.Equal(1f))
                 value = Math.Pow(value, mapping.OutputPower);
 
-            if (mapping.InvertOutput) value = mapping.OutputMaxValue - value;
+            if (mapping.InvertOutput) MathEx.Invert(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
 
             MathEx.Clamp(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
 

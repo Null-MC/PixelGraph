@@ -63,7 +63,7 @@ namespace PixelGraph.Common.ImageProcessors
                         value += mapping.InputMinValue;
 
                         // Input: invert
-                        if (mapping.InvertInput) value = mapping.InputMaxValue - value;
+                        if (mapping.InvertInput) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
 
                         // Input: power
                         if (!mapping.InputPower.Equals(1f))
@@ -78,7 +78,7 @@ namespace PixelGraph.Common.ImageProcessors
                         value = Math.Pow(value, mapping.OutputPower);
 
                     // Output: invert
-                    if (mapping.InvertOutput) value = mapping.OutputMaxValue - value;
+                    if (mapping.InvertOutput) MathEx.Invert(ref value, mapping.InputMinValue, mapping.OutputMaxValue);
 
                     // TODO: convert from value-space to pixel-space
                     var valueRange = mapping.OutputMaxValue - mapping.OutputMinValue;

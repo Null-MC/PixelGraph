@@ -46,7 +46,7 @@ namespace PixelGraph.Common.ImageProcessors
                 var value = options.InputMinValue + (pixelValue - options.InputRangeMin) * inputScale;
 
                 // Input: invert
-                if (options.InputInvert) value = options.InputMaxValue - value;
+                if (options.InputInvert) MathEx.Invert(ref value, options.InputMinValue, options.InputMaxValue);
 
                 // Input: power
                 if (!options.InputPower.Equal(1f))
@@ -59,10 +59,10 @@ namespace PixelGraph.Common.ImageProcessors
                 if (!options.OutputPower.Equal(1f))
                     value = Math.Pow(value, options.OutputPower);
 
-                if (options.OutputInvert) value = options.OutputMagMaxValue - value;
+                if (options.OutputInvert) MathEx.Invert(ref value, options.OutputMinValue, options.OutputMaxValue);
 
                 // convert from value-space to pixel-space
-                var valueRange = options.OutputMagMaxValue - options.OutputMinValue;
+                var valueRange = options.OutputMaxValue - options.OutputMinValue;
                 var pixelRange = options.OutputRangeMax - options.OutputRangeMin;
                 var outputScale = pixelRange / (double)valueRange;
 
@@ -91,7 +91,7 @@ namespace PixelGraph.Common.ImageProcessors
             public float OutputPower;
             public bool OutputInvert;
             public float OutputMinValue;
-            public float OutputMagMaxValue;
+            public float OutputMaxValue;
             public byte OutputRangeMin;
             public byte OutputRangeMax;
 
@@ -112,7 +112,7 @@ namespace PixelGraph.Common.ImageProcessors
                 OutputPower = (float?) channel.Power ?? 1f;
                 OutputInvert = channel.Invert ?? false;
                 OutputMinValue = (float?)channel.MinValue ?? 0f;
-                OutputMagMaxValue = (float?)channel.MaxValue ?? 1f;
+                OutputMaxValue = (float?)channel.MaxValue ?? 1f;
                 OutputRangeMin = channel.RangeMin ?? 0;
                 OutputRangeMax = channel.RangeMax ?? 255;
             }
