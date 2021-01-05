@@ -140,11 +140,7 @@ namespace PixelGraph.Common.IO.Publishing
                             continue;
                         }
 
-                        var extension = Path.GetExtension(localFile);
-                        var filterImage = ImageExtensions.Supports(extension);
-                        var ignoreImage = pathIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
-
-                        if (filterImage && !ignoreImage) {
+                        if (IsGenericResizable(localFile)) {
                             await genericPublisher.PublishAsync(localFile, token);
                         }
                         else {
@@ -190,12 +186,26 @@ namespace PixelGraph.Common.IO.Publishing
             return sourceWriteTime <= destWriteTime.Value;
         }
 
-        private static readonly string[] pathIgnoreList = {
+        private static bool IsGenericResizable(string localFile)
+        {
+            var extension = Path.GetExtension(localFile);
+            if (!ImageExtensions.Supports(extension)) return false;
+
+            // Do not resize pack icon
+            var path = Path.GetDirectoryName(localFile);
+            var name = Path.GetFileNameWithoutExtension(localFile);
+            if (string.IsNullOrEmpty(path) && string.Equals("pack", name, StringComparison.InvariantCultureIgnoreCase)) return false;
+
+            return !resizeIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        private static readonly string[] resizeIgnoreList = {
             Path.Combine("assets", "minecraft", "textures", "font"),
             Path.Combine("assets", "minecraft", "textures", "gui"),
             Path.Combine("assets", "minecraft", "textures", "colormap"),
             Path.Combine("assets", "minecraft", "textures", "misc"),
             Path.Combine("assets", "minecraft", "optifine", "colormap"),
+            Path.Combine("pack", "minecraft", "optifine", "colormap"),
         };
 
         private static readonly HashSet<string> fileIgnoreList = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) {

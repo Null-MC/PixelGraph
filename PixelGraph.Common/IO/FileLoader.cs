@@ -12,8 +12,6 @@ namespace PixelGraph.Common.IO
 {
     public interface IFileLoader
     {
-        bool Expand {get; set;}
-
         IAsyncEnumerable<object> LoadAsync(CancellationToken token = default);
     }
 
@@ -24,8 +22,6 @@ namespace PixelGraph.Common.IO
         private readonly ILogger logger;
         private readonly Stack<string> untracked;
         private readonly HashSet<string> ignored;
-
-        public bool Expand {get; set;} = true;
 
 
         public FileLoader(
@@ -58,75 +54,76 @@ namespace PixelGraph.Common.IO
 
         private async IAsyncEnumerable<object> LoadRecursiveAsync(string searchPath, [EnumeratorCancellation] CancellationToken token)
         {
+            if (searchPath.EndsWith(".ignore", StringComparison.InvariantCultureIgnoreCase))
+                yield break;
+
+            var localMapFile = PathEx.Join(searchPath, "pbr.yml");
+
+            if (reader.FileExists(localMapFile)) {
+                MaterialProperties material = null;
+
+                try {
+                    material = await pbrReader.LoadLocalAsync(localMapFile, token);
+                    ignored.Add(localMapFile);
+
+                    foreach (var texture in reader.EnumerateAllTextures(material))
+                        ignored.Add(texture);
+                }
+                catch (Exception error) {
+                    logger.LogWarning(error, $"Failed to load local texture map '{localMapFile}'!");
+                }
+
+                if (material != null)
+                    yield return material;
+
+                yield break;
+            }
+
             foreach (var directory in reader.EnumerateDirectories(searchPath, "*")) {
                 token.ThrowIfCancellationRequested();
 
-                if (directory.EndsWith(".ignore", StringComparison.InvariantCultureIgnoreCase)) continue;
+                await foreach (var texture in LoadRecursiveAsync(directory, token))
+                    yield return texture;
+            }
 
-                var localMapFile = PathEx.Join(directory, "pbr.yml");
+            var materialList = new List<MaterialProperties>();
+            foreach (var filename in reader.EnumerateFiles(searchPath, "*.pbr.yml")) {
+                materialList.Clear();
 
-                if (reader.FileExists(localMapFile)) {
-                    MaterialProperties material = null;
+                try {
+                    var material = await pbrReader.LoadGlobalAsync(filename, token);
+                    ignored.Add(filename);
 
-                    try {
-                        material = await pbrReader.LoadLocalAsync(localMapFile, token);
-                        ignored.Add(localMapFile);
+                    if (pbrReader.TryExpandRange(material, out var subTextureList)) {
+                        foreach (var childMaterial in subTextureList) {
+                            materialList.Add(childMaterial);
+
+                            foreach (var texture in reader.EnumerateAllTextures(childMaterial))
+                                ignored.Add(texture);
+                        }
+                    }
+                    else {
+                        materialList.Add(material);
 
                         foreach (var texture in reader.EnumerateAllTextures(material))
                             ignored.Add(texture);
                     }
-                    catch (Exception error) {
-                        logger.LogWarning(error, $"Failed to load local texture map '{localMapFile}'!");
-                    }
+                }
+                catch (Exception error) {
+                    logger.LogWarning(error, $"Failed to load local texture map '{localMapFile}'!");
+                }
 
-                    if (material != null)
-                        yield return material;
+                foreach (var texture in materialList)
+                    yield return texture;
+            }
 
+            foreach (var filename in reader.EnumerateFiles(searchPath, "*")) {
+                if (IgnoredExtensions.Any(x => filename.EndsWith(x, StringComparison.InvariantCultureIgnoreCase))) {
+                    logger.LogDebug($"Ignoring file '{filename}'.");
                     continue;
                 }
 
-                await foreach (var texture in LoadRecursiveAsync(directory, token))
-                    yield return texture;
-
-                var materialList = new List<MaterialProperties>();
-                foreach (var filename in reader.EnumerateFiles(directory, "*.pbr.yml")) {
-                    materialList.Clear();
-
-                    try {
-                        var material = await pbrReader.LoadGlobalAsync(filename, token);
-                        ignored.Add(filename);
-
-                        if (Expand && pbrReader.TryExpandRange(material, out var subTextureList)) {
-                            foreach (var childMaterial in subTextureList) {
-                                materialList.Add(childMaterial);
-
-                                foreach (var texture in reader.EnumerateAllTextures(childMaterial))
-                                    ignored.Add(texture);
-                            }
-                        }
-                        else {
-                            materialList.Add(material);
-
-                            foreach (var texture in reader.EnumerateAllTextures(material))
-                                ignored.Add(texture);
-                        }
-                    }
-                    catch (Exception error) {
-                        logger.LogWarning(error, $"Failed to load local texture map '{localMapFile}'!");
-                    }
-
-                    foreach (var texture in materialList)
-                        yield return texture;
-                }
-
-                foreach (var filename in reader.EnumerateFiles(directory, "*")) {
-                    if (IgnoredExtensions.Any(x => filename.EndsWith(x, StringComparison.InvariantCultureIgnoreCase))) {
-                        logger.LogDebug($"Ignoring file '{filename}'.");
-                        continue;
-                    }
-
-                    untracked.Push(filename);
-                }
+                untracked.Push(filename);
             }
         }
 

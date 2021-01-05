@@ -1,0 +1,28 @@
+﻿<Window x:Class="PixelGraph.UI.Windows.NewProjectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PixelGraph.UI.Windows"
+        mc:Ignorable="d"
+        Title="NewProjectWindow" Height="450" Width="800">
+    <DockPanel>
+        <Grid DockPanel.Dock="Bottom">
+            <Button Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <Button Content="Next" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </Grid>
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Project Format:"/>
+                <ComboBox/>
+                <TextBlock Text="Creates a new project with no existing content."/>
+
+                <TextBlock Text="Select the type of project to create:"/>
+                <RadioButton Content="Empty"/>
+                <TextBlock Text="Creates a new project with no existing content."/>
+                <RadioButton Content="From Existing"/>
+                <TextBlock Text="Creates a new project from an existing project."/>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>
