@@ -61,7 +61,9 @@ emissive:
 
 ## Sample Repository
 
-Coming Soon! I am _not_ a texture artist and need a good set of example content for a proper sample. If you own content you'd like to submit please reach out to me.
+[Oversized](https://github.com/null511/MCRP-Oversized) - A high-resolution texture pack made primarily using stock textures and CTM.
+
+[Textureless](https://github.com/null511/MCRP-Textureless) - A low-resolution pack using solid colors, material values, and alpha-masking to provide a smooth visual base for shader testing. Also good for toon/outline style.
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
