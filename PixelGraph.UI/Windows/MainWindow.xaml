@@ -33,6 +33,10 @@
                 </LinearGradientBrush>
             </Border.Background>
             <DockPanel LastChildFill="False">
+                <Button DockPanel.Dock="Left" Margin="0,0,4,0" Padding="8,0" Height="24" Click="OnNewProjectClick"
+                        ToolTip="New Project">
+                    <md:PackIcon Kind="CreateNewFolder"/>
+                </Button>
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="2">
                     <Button Padding="8,0" Height="24" Click="OnOpenClick"
                             ToolTip="Open a Directory">
@@ -146,24 +150,58 @@
             </StatusBarItem>
         </StatusBar>
         <Grid>
-            <Grid Visibility="{Binding HasRootDirectory, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}">
-                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="800">
+            <Border HorizontalAlignment="Stretch" VerticalAlignment="Center" MaxWidth="800" CornerRadius="12"
+                    Background="{DynamicResource MaterialDesignBackground}"
+                    Visibility="{Binding HasRootDirectory, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}">
+                <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <Button Margin="2" Style="{DynamicResource MaterialDesignIconButton}" Padding="0,0,0,0" Click="OnOpenClick" Height="40" Width="40">
+                    <!--<Button Grid.Column="0" Grid.Row="0" Margin="2" Style="{DynamicResource MaterialDesignIconButton}" Padding="0" Click="OnNewProjectClick" Height="32" Width="32">
+                        <StackPanel Orientation="Horizontal">
+                            <md:PackIcon Kind="CreateNewFolder" Height="24" Width="24"/>
+                            <TextBlock Text="New"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Column="1" Grid.Row="0" Margin="2" Style="{DynamicResource MaterialDesignIconButton}" Padding="0" Click="OnNewProjectClick" Height="32" Width="32">
+                        <StackPanel Orientation="Horizontal">
+                            <md:PackIcon Kind="FolderOpen" Height="24" Width="24"/>
+                            <TextBlock Text="Open"/>
+                        </StackPanel>
+                    </Button>
+                    <TextBlock Grid.Column="1" Grid.Row="0" Margin="6,0,0,0" Text="Create New Project" Foreground="#FF767676" VerticalAlignment="Center" FontSize="16"/>
+                    <Button Grid.Column="0" Grid.Row="1" Margin="2" Style="{DynamicResource MaterialDesignIconButton}" Padding="0" Click="OnOpenClick" Height="32" Width="32">
                         <md:PackIcon Kind="FolderOpen" Height="24" Width="24"/>
                     </Button>
-                    <TextBlock Grid.Column="1" Grid.Row="0" Margin="6,2,2,2" Text="Open a Resource Pack directory" Foreground="#FF767676" VerticalAlignment="Center" FontSize="16"/>
-                    <ListView Grid.Column="1" Grid.Row="1" x:Name="RecentList" SelectionChanged="OnRecentSelectionChanged"
-                             ItemsSource="{Binding RecentDirectories, Mode=OneWay}"/>
+                    <TextBlock Grid.Column="1" Grid.Row="1" Margin="6,0,0,0" Text="Open Existing Project" Foreground="#FF767676" VerticalAlignment="Center" FontSize="16"/>-->
+                    <StackPanel Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Margin="8" Orientation="Vertical">
+                        <Button Margin="2" HorizontalContentAlignment="Left" Click="OnNewProjectClick"
+                                Style="{DynamicResource MaterialDesignFlatButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <md:PackIcon Margin="0,0,6,0" Kind="CreateNewFolder"/>
+                                <TextBlock Text="New Project"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Margin="2" HorizontalContentAlignment="Left" Click="OnOpenClick"
+                                Style="{DynamicResource MaterialDesignFlatButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <md:PackIcon Margin="0,0,6,0" Kind="FolderOpen"/>
+                                <TextBlock Text="Open Existing"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Grid.Row="0" Margin="6,6,0,0" Text="Recent Projects" FontStyle="Italic"
+                               Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                    <Rectangle Grid.Column="1" Grid.Row="0" VerticalAlignment="Bottom" Height="1" Fill="#333"/>
+                    <ListView Grid.Column="1" Grid.Row="1" Margin="0,0,6,6" x:Name="RecentList" SelectionChanged="OnRecentSelectionChanged"
+                              ItemsSource="{Binding RecentDirectories, Mode=OneWay}"/>
                 </Grid>
-            </Grid>
+            </Border>
             <Grid Visibility="{Binding HasRootDirectory, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="280"/>
@@ -280,20 +318,6 @@
                                 </StackPanel>
                             </Grid>
                         </DockPanel>
-                        <!--<WrapPanel Orientation="Horizontal">
-                            <StackPanel Orientation="Vertical" Margin="32">
-                                <Border CornerRadius="8" Background="Black" Width="64" Height="64" Margin="4"/>
-                                <TextBlock Text="Alpha" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Vertical" Margin="32">
-                                <Border CornerRadius="8" Background="Black" Width="64" Height="64" Margin="4"/>
-                                <TextBlock Text="Diffuse" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Vertical" Margin="32">
-                                <Border CornerRadius="8" Background="Black" Width="64" Height="64" Margin="4"/>
-                                <TextBlock Text="Albedo" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </WrapPanel>-->
                     </Grid>
                     <GridSplitter Grid.Column="1" Grid.Row="0" Background="{DynamicResource MaterialDesignDarkForeground}" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
                     <controls:MaterialPropertiesControl Grid.Column="2" DataChanged="OnMaterialChanged" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"

@@ -76,14 +76,7 @@ namespace PixelGraph.Common.Textures
 
             if (ImageResult == null)
                 CreateImageResult(DefaultSize);
-
-            //await ApplyMagnitudeScalingAsync(token);
         }
-
-        //private ResourcePackChannelProperties FindChannel(string id)
-        //{
-        //    return OutputChannels.FirstOrDefault(c => EncodingChannel.Is(c.ID, id));
-        //}
 
         public void Dispose()
         {

@@ -1,28 +1,103 @@
-﻿<Window x:Class="PixelGraph.UI.Windows.NewProjectWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PixelGraph.UI.Windows"
-        mc:Ignorable="d"
-        Title="NewProjectWindow" Height="450" Width="800">
-    <DockPanel>
-        <Grid DockPanel.Dock="Bottom">
-            <Button Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-            <Button Content="Next" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        </Grid>
-        <ScrollViewer>
-            <StackPanel Orientation="Vertical">
-                <TextBlock Text="Project Format:"/>
-                <ComboBox/>
-                <TextBlock Text="Creates a new project with no existing content."/>
-
-                <TextBlock Text="Select the type of project to create:"/>
-                <RadioButton Content="Empty"/>
-                <TextBlock Text="Creates a new project with no existing content."/>
-                <RadioButton Content="From Existing"/>
-                <TextBlock Text="Creates a new project from an existing project."/>
-            </StackPanel>
-        </ScrollViewer>
-    </DockPanel>
-</Window>
+﻿<mde:MaterialWindow x:Class="PixelGraph.UI.Windows.NewProjectWindow"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+                    xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
+                    xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+                    TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+                    TextElement.FontWeight="Regular"
+                    TextElement.FontSize="13"
+                    TextOptions.TextFormattingMode="Ideal" 
+                    TextOptions.TextRenderingMode="Auto"        
+                    Background="{DynamicResource MaterialDesignPaper}"
+                    FontFamily="{DynamicResource MaterialDesignFont}"
+                    WindowStartupLocation="CenterOwner"
+                    d:DataContext="{d:DesignInstance vm:NewProjectDesignVM, IsDesignTimeCreatable=True}"
+                    Title="Create a New Project" Width="500" Height="380" mc:Ignorable="d">
+    <Window.Resources>
+        <vm:OptionalEncodingFormatValues x:Key="Formats"/>
+    </Window.Resources>
+    <Window.DataContext>
+        <vm:NewProjectVM x:Name="VM"/>
+    </Window.DataContext>
+    <Grid>
+        <DockPanel Visibility="{Binding IsFormatPage, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
+            <Grid DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Margin="8" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Click="OnFormatCancelClick"/>
+                <Button Grid.Column="1" Margin="8" Content="Next" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Click="OnFormatNextClick"/>
+            </Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="20" Orientation="Vertical">
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="Project Format:" FontSize="18"
+                                   Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                        <ComboBox HorizontalContentAlignment="Center" MinWidth="180" FontSize="16" DisplayMemberPath="Text" SelectedValuePath="Value"
+                                  ItemsSource="{StaticResource Formats}" Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                  SelectedValue="{Binding ContentFormat, Mode=TwoWay}"/>
+                        <Button DockPanel.Dock="Right" VerticalAlignment="Center" Width="28" Height="24" Margin="4,0,0,0" Padding="0" Content="{md:PackIcon Palette}" ToolTip="Advanced"
+                                Style="{StaticResource MaterialDesignFlatButton}" IsEnabled="False"/>
+                    </StackPanel>
+                    <TextBlock Margin="0,32,0,0" TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource MaterialDesignBody}"
+                               Text="Choose a texture encoding for your project workspace; this will be the format used for editing your resource pack content, it does not affect publishing. This will typically be 'raw' which allows you to manage each channel as a separate texture."/>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+        <DockPanel Visibility="{Binding IsLocationPage, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
+            <Grid DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Margin="8" Content="Back" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Click="OnLocationTypeBack"/>
+                <Button Grid.Column="1" Margin="8" Content="Next" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Click="OnLocationTypeNext"/>
+            </Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="12" Orientation="Vertical">
+                    <TextBlock Text="Root Directory:" FontSize="16" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Width="28" Height="24" Padding="0" Content="{md:PackIcon FolderOpen}" ToolTip="Browse"
+                                Click="OnLocationBrowseClick"/>
+                        <TextBox Margin="0,0,4,0" FontFamily="Global Monospace" Text="{Binding Location, Mode=TwoWay}"
+                                 Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                    </DockPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+        <DockPanel Visibility="{Binding IsReviewPage, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
+            <Grid DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Margin="8" Content="Back" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Click="OnReviewBackClick"/>
+                <Button Grid.Column="1" Margin="8" Content="Create" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Click="OnReviewCreateClick"/>
+            </Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="12" Orientation="Vertical">
+                    <CheckBox Margin="0,6" Content="Create default publishing profile."
+                              IsChecked="{Binding CreateDefaultProfile, Mode=TwoWay}"/>
+                    <CheckBox Margin="0,6,4,2" Content="Import an existing resource pack."
+                              IsChecked="{Binding EnablePackImport, Mode=TwoWay}"/>
+                    <RadioButton Margin="20,2,0,2" Content="From Directory"
+                                 IsEnabled="{Binding EnablePackImport, Mode=OneWay}"
+                                 IsChecked="{Binding ImportFromDirectory, Mode=TwoWay}"/>
+                    <RadioButton Margin="20,2,0,2" Content="From ZIP Archive"
+                                 IsEnabled="{Binding EnablePackImport, Mode=OneWay}"
+                                 IsChecked="{Binding ImportFromArchive, Mode=TwoWay}"/>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Grid>
+</mde:MaterialWindow>

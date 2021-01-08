@@ -24,20 +24,18 @@
         <vm:ImportPackVM x:Name="VM"/>
     </Window.DataContext>
     <DockPanel>
-        <Border DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
-            <Grid Margin="4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
-                <Button Grid.Column="1" Content="Import" Margin="4" HorizontalAlignment="Right" Click="OnImportClick"
-                        IsEnabled="{Binding IsReady, Mode=OneWay}"
-                        Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}"/>
-                <Button Grid.Column="1" Content="Cancel" Margin="4" HorizontalAlignment="Right" Click="OnCancelClick"
-                        IsEnabled="{Binding IsActive, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"
-                        Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"/>
-            </Grid>
-        </Border>
+        <Grid DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="1" Content="Import" Margin="4" HorizontalAlignment="Right" Click="OnImportClick"
+                    IsEnabled="{Binding IsReady, Mode=OneWay}"
+                    Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}"/>
+            <Button Grid.Column="1" Content="Cancel" Margin="4" HorizontalAlignment="Right" Click="OnCancelClick"
+                    IsEnabled="{Binding IsActive, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"
+                    Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"/>
+        </Grid>
         <Grid>
             <DockPanel
                 Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}">

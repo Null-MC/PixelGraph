@@ -442,6 +442,28 @@ namespace PixelGraph.UI.Windows
             }
         }
 
+        private async Task ShowImportFolderAsync()
+        {
+            var dialog = new VistaFolderBrowserDialog {
+                Description = "Select the root folder of a resource pack.",
+            };
+
+            if (dialog.ShowDialog(this) != true) return;
+            await ImportPackAsync(dialog.SelectedPath, false);
+        }
+
+        private async Task ShowImportArchiveAsync()
+        {
+            var dialog = new VistaOpenFileDialog {
+                Title = "Import Zip Archive",
+                Filter = "Zip Archive|*.zip|All Files|*.*",
+                CheckFileExists = true,
+            };
+
+            if (dialog.ShowDialog(this) != true) return;
+            await ImportPackAsync(dialog.FileName, true);
+        }
+
         private void ShowError(string message)
         {
             Application.Current.Dispatcher.Invoke(() => {
@@ -475,6 +497,28 @@ namespace PixelGraph.UI.Windows
             }
         }
 
+        private async void OnNewProjectClick(object sender, RoutedEventArgs e)
+        {
+            var window = new NewProjectWindow(provider) {
+                Owner = this,
+            };
+
+            if (window.ShowDialog() != true) return;
+
+            vm.CloseProject();
+
+            await SetRootDirectoryAsync(window.VM.Location, CancellationToken.None);
+
+            if (window.VM.EnablePackImport) {
+                if (window.VM.ImportFromDirectory) {
+                    await ShowImportFolderAsync();
+                }
+                else if (window.VM.ImportFromArchive) {
+                    await ShowImportArchiveAsync();
+                }
+            }
+        }
+
         private async void OnOpenClick(object sender, RoutedEventArgs e)
         {
             await SelectRootDirectoryAsync(CancellationToken.None);
@@ -482,12 +526,7 @@ namespace PixelGraph.UI.Windows
 
         private async void OnImportFolderClick(object sender, RoutedEventArgs e)
         {
-            var dialog = new VistaFolderBrowserDialog {
-                Description = "Select the root folder of a resource pack.",
-            };
-
-            if (dialog.ShowDialog(this) == true)
-                await ImportPackAsync(dialog.SelectedPath, false);
+            await ShowImportFolderAsync();
         }
 
         private void OnCloseProjectClick(object sender, RoutedEventArgs e)
@@ -497,14 +536,7 @@ namespace PixelGraph.UI.Windows
 
         private async void OnImportZipClick(object sender, RoutedEventArgs e)
         {
-            var dialog = new VistaOpenFileDialog {
-                Title = "Import Zip Archive",
-                Filter = "Zip Archive|*.zip|All Files|*.*",
-                CheckFileExists = true,
-            };
-
-            if (dialog.ShowDialog(this) == true)
-                await ImportPackAsync(dialog.FileName, true);
+            await ShowImportArchiveAsync();
         }
 
         private void OnInputEncodingClick(object sender, RoutedEventArgs e)

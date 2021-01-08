@@ -241,8 +241,8 @@ namespace PixelGraph.UI.ViewModels
 
             AddTreeItems();
 
-            RootDirectory = "x:\\dev\\test-rp";
-            IsBusy = true;
+            //RootDirectory = "x:\\dev\\test-rp";
+            //IsBusy = true;
         }
 
         private void AddRecentItems()

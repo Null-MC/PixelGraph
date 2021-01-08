@@ -345,9 +345,9 @@ namespace PixelGraph.Common.Textures
                 builder.DefaultSize = GetSourceSize();
                 builder.CreateEmpty = false;
                 builder.AutoGenerateOcclusion = false;
-                builder.InputChannels = new [] {
-                    normalXChannel, normalYChannel, normalZChannel
-                };
+
+                builder.InputChannels = new [] {normalXChannel, normalYChannel, normalZChannel}
+                    .Where(x => x != null).ToArray();
 
                 builder.OutputChannels = new ResourcePackChannelProperties[] {
                     new ResourcePackNormalXChannelProperties {

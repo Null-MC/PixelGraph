@@ -6,7 +6,7 @@ namespace PixelGraph.Common.ResourcePack
     {
         public const int DefaultFormat = 6;
         public const bool AutoGenerateNormalDefault = true;
-        public const bool AutoGenerateOcclusionDefault = true;
+        public const bool AutoGenerateOcclusionDefault = false;
 
         [YamlIgnore]
         public string LocalFile {get; set;}
