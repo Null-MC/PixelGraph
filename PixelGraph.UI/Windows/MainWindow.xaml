@@ -9,14 +9,14 @@
                     xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
                     xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
                     d:DataContext="{d:DesignInstance vm:MainWindowDesignVM, IsDesignTimeCreatable=True}"
-                    Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" Loaded="OnWindowLoaded"
+                    Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" Loaded="OnWindowLoaded" WindowState="Maximized"
                     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
                     TextElement.FontWeight="Regular"
                     TextElement.FontSize="13"
                     TextOptions.TextFormattingMode="Ideal" 
                     TextOptions.TextRenderingMode="Auto"        
                     Background="{DynamicResource MaterialDesignPaper}"
-                    FontFamily="{DynamicResource MaterialDesignFont}" WindowState="Maximized">
+                    FontFamily="{DynamicResource MaterialDesignFont}">
     <Window.Resources>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
