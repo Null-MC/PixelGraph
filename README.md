@@ -1,4 +1,4 @@
-# <img src="https://raw.githubusercontent.com/null511/PixelGraph/master/media/icon.png" height="28"/>&nbsp;&nbsp;&nbsp;PixelGraph&nbsp; [![Actions Status](https://github.com/null511/PixelGraph/workflows/Release/badge.svg)](https://github.com/null511/PixelGraph/actions)
+# <img src="https://raw.githubusercontent.com/null511/PixelGraph/master/media/icon.png" height="28"/>&nbsp; PixelGraph&nbsp; [![Actions Status](https://github.com/null511/PixelGraph/workflows/Release/badge.svg)](https://github.com/null511/PixelGraph/actions)
 
 PixelGraph (formerly MCPBRP) is an application for publishing Minecraft resource packs, with special tooling for post-processing PBR materials. Automate the workload of modifying and distributing your resource packs through yaml text files. Supports a WPF-based desktop application as well as a command-line version for remote/server usage. Written in .NET Core; supports Windows, Linux, Mac. Docker ready.
 
