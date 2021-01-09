@@ -3,8 +3,11 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class AlbedoEncoding : ITextureEncodingFactory
+    public class AlbedoEncoding : ITextureEncodingFactory
     {
+        public const string Description = "Uses only an albedo color map.";
+
+
         public ResourcePackEncoding Create()
         {
             return new ResourcePackEncoding {

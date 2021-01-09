@@ -3,8 +3,11 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class LegacyEncoding : ITextureEncodingFactory
+    public class LegacyEncoding : ITextureEncodingFactory
     {
+        public const string Description = "The pre-Lab standard, also known as \"Old PBR\".";
+
+
         public ResourcePackEncoding Create()
         {
             return new ResourcePackEncoding {

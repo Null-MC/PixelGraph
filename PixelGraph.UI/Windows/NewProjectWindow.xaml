@@ -6,6 +6,7 @@
                     xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
                     xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
                     xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+                    xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
                     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
                     TextElement.FontWeight="Regular"
                     TextElement.FontSize="13"
@@ -18,48 +19,22 @@
                     Title="Create a New Project" Width="500" Height="380" mc:Ignorable="d">
     <Window.Resources>
         <vm:OptionalEncodingFormatValues x:Key="Formats"/>
+        <converters:FormatDescriptionConverter x:Key="FormatDescriptionConverter"/>
     </Window.Resources>
     <Window.DataContext>
         <vm:NewProjectVM x:Name="VM"/>
     </Window.DataContext>
     <Grid>
-        <DockPanel Visibility="{Binding IsFormatPage, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
-            <Grid DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Margin="8" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Center"
-                        Click="OnFormatCancelClick"/>
-                <Button Grid.Column="1" Margin="8" Content="Next" HorizontalAlignment="Right" VerticalAlignment="Center"
-                        Click="OnFormatNextClick"/>
-            </Grid>
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="20" Orientation="Vertical">
-                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="Project Format:" FontSize="18"
-                                   Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
-                        <ComboBox HorizontalContentAlignment="Center" MinWidth="180" FontSize="16" DisplayMemberPath="Text" SelectedValuePath="Value"
-                                  ItemsSource="{StaticResource Formats}" Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                  SelectedValue="{Binding ContentFormat, Mode=TwoWay}"/>
-                        <Button DockPanel.Dock="Right" VerticalAlignment="Center" Width="28" Height="24" Margin="4,0,0,0" Padding="0" Content="{md:PackIcon Palette}" ToolTip="Advanced"
-                                Style="{StaticResource MaterialDesignFlatButton}" IsEnabled="False"/>
-                    </StackPanel>
-                    <TextBlock Margin="0,32,0,0" TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource MaterialDesignBody}"
-                               Text="Choose a texture encoding for your project workspace; this will be the format used for editing your resource pack content, it does not affect publishing. This will typically be 'raw' which allows you to manage each channel as a separate texture."/>
-                </StackPanel>
-            </ScrollViewer>
-        </DockPanel>
         <DockPanel Visibility="{Binding IsLocationPage, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
             <Grid DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Margin="8" Content="Back" HorizontalAlignment="Left" VerticalAlignment="Center"
-                        Click="OnLocationTypeBack"/>
+                <Button Grid.Column="0" Margin="8" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Click="OnLocationCancelClick"/>
                 <Button Grid.Column="1" Margin="8" Content="Next" HorizontalAlignment="Right" VerticalAlignment="Center"
-                        Click="OnLocationTypeNext"/>
+                        Click="OnLocationNextClick"/>
             </Grid>
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="12" Orientation="Vertical">
@@ -70,6 +45,37 @@
                         <TextBox Margin="0,0,4,0" FontFamily="Global Monospace" Text="{Binding Location, Mode=TwoWay}"
                                  Foreground="{DynamicResource SecondaryHueMidBrush}"/>
                     </DockPanel>
+                    <TextBlock Margin="12,20,12,12" TextWrapping="Wrap"
+                        Text="Select a folder where the content of the project should be stored. This should be an empty folder with no existing content."/>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+        <DockPanel Visibility="{Binding IsFormatPage, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
+            <Grid DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Margin="8" Content="Back" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Click="OnFormatBackClick"/>
+                <Button Grid.Column="1" Margin="8" Content="Next" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Click="OnFormatNextClick"/>
+            </Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="12" Orientation="Vertical">
+                    <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource MaterialDesignBody}"
+                               Text="Choose a texture encoding for your project workspace. This will be the format used for editing your resource pack content."/>
+                    <StackPanel Margin="0,20,0,8" HorizontalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="Project Format:" FontSize="18"
+                                   Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                        <ComboBox HorizontalContentAlignment="Center" MinWidth="180" FontSize="16" DisplayMemberPath="Text" SelectedValuePath="Value"
+                                  ItemsSource="{StaticResource Formats}" Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                  SelectedValue="{Binding ContentFormat, Mode=TwoWay}"/>
+                        <Button DockPanel.Dock="Right" VerticalAlignment="Center" Width="28" Height="24" Margin="4,0,0,0" Padding="0" Content="{md:PackIcon Palette}" ToolTip="Advanced"
+                                Style="{StaticResource MaterialDesignFlatButton}" IsEnabled="False"/>
+                    </StackPanel>
+                    <TextBlock Margin="20,0" TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource SecondaryHueLightBrush}"
+                               Text="{Binding ContentFormat, Mode=OneWay, Converter={StaticResource FormatDescriptionConverter}}"/>
                 </StackPanel>
             </ScrollViewer>
         </DockPanel>

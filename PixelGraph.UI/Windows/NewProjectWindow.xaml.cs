@@ -82,39 +82,34 @@ namespace PixelGraph.UI.Windows
             VM.Location = dialog.SelectedPath;
         }
 
-        private void OnFormatCancelClick(object sender, RoutedEventArgs e)
+        private void OnLocationCancelClick(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
         }
 
-        private void OnFormatNextClick(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(VM.ContentFormat)) {
-                MessageBox.Show(this, "Please select an encoding format first!", "Error!", MessageBoxButton.OK);
-                return;
-            }
-
-            VM.SetState(NewProjectStates.Location);
-        }
-
-        private void OnLocationTypeBack(object sender, RoutedEventArgs e)
-        {
-            VM.SetState(NewProjectStates.Format);
-        }
-
-        private void OnLocationTypeNext(object sender, RoutedEventArgs e)
+        private void OnLocationNextClick(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(VM.Location)) {
                 MessageBox.Show(this, "Please select a location for your project content!", "Error!", MessageBoxButton.OK);
                 return;
             }
 
+            VM.SetState(NewProjectStates.Format);
+        }
+
+        private void OnFormatBackClick(object sender, RoutedEventArgs e)
+        {
+            VM.SetState(NewProjectStates.Location);
+        }
+
+        private void OnFormatNextClick(object sender, RoutedEventArgs e)
+        {
             VM.SetState(NewProjectStates.Review);
         }
 
         private void OnReviewBackClick(object sender, RoutedEventArgs e)
         {
-            VM.SetState(NewProjectStates.Location);
+            VM.SetState(NewProjectStates.Format);
         }
 
         private async void OnReviewCreateClick(object sender, RoutedEventArgs e)

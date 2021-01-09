@@ -89,6 +89,7 @@ namespace PixelGraph.UI.Windows
 
                 vm.TreeRoot = treeReader.GetRootNode();
                 vm.TreeRoot.UpdateVisibility(vm);
+                vm.SelectedProfile = vm.Profiles.FirstOrDefault();
             }
             finally {
                 vm.EndBusy();
@@ -560,10 +561,13 @@ namespace PixelGraph.UI.Windows
                 VM = {
                     RootDirectory = vm.RootDirectory,
                     Profiles = vm.Profiles,
+                    SelectedProfileItem = vm.SelectedProfile,
                 },
             };
 
             window.ShowDialog();
+
+            vm.SelectedProfile = window.VM.SelectedProfileItem;
         }
 
         private void OnSettingsClick(object sender, RoutedEventArgs e)

@@ -73,7 +73,7 @@ namespace PixelGraph.UI.ViewModels
 
         public NewProjectVM()
         {
-            _state = NewProjectStates.Format;
+            _state = NewProjectStates.Location;
             _contentFormat = TextureEncoding.Format_Raw;
             _createDefaultProfile = true;
             _enablePackImport = false;
@@ -96,14 +96,14 @@ namespace PixelGraph.UI.ViewModels
         {
             ContentFormat = TextureEncoding.Format_Raw;
             Location = "C:\\Somewhere\\over\\the\\rainbow";
-            SetState(NewProjectStates.Review);
+            SetState(NewProjectStates.Format);
         }
     }
 
     internal enum NewProjectStates
     {
-        Format,
         Location,
+        Format,
         Review,
     }
 }

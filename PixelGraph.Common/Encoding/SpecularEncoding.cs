@@ -3,8 +3,11 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class SpecularEncoding : ITextureEncodingFactory
+    public class SpecularEncoding : ITextureEncodingFactory
     {
+        public const string Description = "Uses a diffuse color map, normal XYZ, and legacy grayscale specular channels.";
+
+
         public ResourcePackEncoding Create()
         {
             return new ResourcePackEncoding {

@@ -3,8 +3,11 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class DiffuseEncoding : ITextureEncodingFactory
+    public class DiffuseEncoding : ITextureEncodingFactory
     {
+        public const string Description = "Uses only a diffuse color map.";
+
+
         public ResourcePackEncoding Create()
         {
             return new ResourcePackEncoding {

@@ -4,8 +4,11 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class Lab11Encoding : ITextureEncodingFactory
+    public class Lab11Encoding : ITextureEncodingFactory
     {
+        public const string Description = "The first LabPBR standard.";
+
+
         public ResourcePackEncoding Create()
         {
             return new ResourcePackEncoding {

@@ -4,8 +4,11 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
 {
-    internal class RawEncoding : ITextureEncodingFactory
+    public class RawEncoding : ITextureEncodingFactory
     {
+        public const string Description = "Manages each encoding channel in its own texture. Supports all encoding channels.";
+
+
         public ResourcePackEncoding Create()
         {
             return new ResourcePackEncoding {
