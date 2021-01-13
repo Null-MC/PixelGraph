@@ -49,6 +49,8 @@ namespace PixelGraph.Common.IO.Publishing
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
 
+            loader.EnableAutoMaterial = context.AutoMaterial;
+
             if (clean) {
                 logger.LogDebug("Cleaning destination...");
 

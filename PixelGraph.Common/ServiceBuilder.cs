@@ -37,8 +37,8 @@ namespace PixelGraph.Common
             Services.AddSingleton<IMaterialWriter, MaterialWriter>();
             Services.AddSingleton<IPublisher, Publisher>();
             Services.AddSingleton<IImageWriter, ImageWriter>();
+            Services.AddSingleton<IFileLoader, FileLoader>();
 
-            Services.AddTransient<IFileLoader, FileLoader>();
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
             Services.AddTransient<IMaterialImporter, MaterialImporter>();
             Services.AddTransient<ITextureGraph, TextureGraph>();

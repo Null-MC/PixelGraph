@@ -37,7 +37,8 @@ namespace PixelGraph.UI.ViewModels
         public bool HasTreeTextureSelection => _selectedNode is ContentTreeFile _file && _file.Type == ContentNodeType.Texture;
         public bool HasLoadedMaterial => _loadedMaterial != null;
         public bool HasLoadedTexture => _loadedTexture != null;
-        public bool HasPreviewImage => HasLoadedMaterial || HasLoadedTexture;
+        public bool HasPreviewImage => HasLoadedTexture || (HasLoadedMaterial && _selectedTag != null);
+        public bool HasTagSelection => !string.IsNullOrEmpty(_selectedTag);
         public bool HasProfileSelection => _selectedProfile != null;
 
         public string RootDirectory {
@@ -49,8 +50,7 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged(nameof(HasRootDirectory));
             }
         }
-
-
+        
         public ObservableCollection<string> RecentDirectories {
             get => _recentDirectories;
             set {
@@ -102,6 +102,8 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged();
 
                 OnSelectedTagChanged();
+                OnPropertyChanged(nameof(HasTagSelection));
+                OnPropertyChanged(nameof(HasPreviewImage));
             }
         }
 
@@ -241,8 +243,17 @@ namespace PixelGraph.UI.ViewModels
 
             AddTreeItems();
 
-            //RootDirectory = "x:\\dev\\test-rp";
+            RootDirectory = "x:\\dev\\test-rp";
             //IsBusy = true;
+            SearchText = "as";
+            ShowAllFiles = true;
+            //IsPreviewLoading = true;
+
+            //SelectedNode = new ContentTreeFile(null) {
+            //    Type = ContentNodeType.Material,
+            //};
+
+            LoadedMaterial = new MaterialProperties();
         }
 
         private void AddRecentItems()
@@ -253,9 +264,6 @@ namespace PixelGraph.UI.ViewModels
 
         private void AddTreeItems()
         {
-            SearchText = "as";
-            ShowAllFiles = true;
-            IsPreviewLoading = true;
 
             LoadedMaterial = new MaterialProperties();
             LoadedTexture = new BitmapImage();

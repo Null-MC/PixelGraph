@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.10.5</Version>
+    <Version>0.10.6</Version>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
@@ -10,6 +10,7 @@
     <Compile Remove="ImageProcessors\ChannelActionProcessor.cs" />
     <Compile Remove="ImageProcessors\NormalRestoreProcessor.cs" />
     <Compile Remove="ImageProcessors\RegionProcessor.cs" />
+    <Compile Remove="IO\Publishing\PublishOptions.cs" />
     <Compile Remove="PixelOperations\PixelFilterProcessor.cs" />
     <Compile Remove="ResourcePack\ResourcePackInputAlphaProperties.cs" />
     <Compile Remove="ResourcePack\ResourcePackInputDiffuseBlueProperties.cs" />

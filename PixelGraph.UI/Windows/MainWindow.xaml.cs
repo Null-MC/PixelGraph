@@ -30,6 +30,7 @@ namespace PixelGraph.UI.Windows
     public partial class MainWindow
     {
         private readonly IServiceProvider provider;
+        private readonly IAppSettings settings;
         private readonly ILogger logger;
 
         private readonly object previewLock;
@@ -40,6 +41,7 @@ namespace PixelGraph.UI.Windows
         {
             this.provider = provider;
 
+            settings = provider.GetRequiredService<IAppSettings>();
             logger = provider.GetRequiredService<ILogger<MainWindow>>();
 
             previewLock = new object();
@@ -77,10 +79,12 @@ namespace PixelGraph.UI.Windows
             if (!vm.TryStartBusy()) return;
 
             var reader = provider.GetRequiredService<IInputReader>();
+            var loader = provider.GetRequiredService<IFileLoader>();
             var treeReader = provider.GetRequiredService<IContentTreeReader>();
 
             try {
                 reader.SetRoot(vm.RootDirectory);
+                loader.EnableAutoMaterial = settings.AutoMaterial;
 
                 vm.Profiles.Clear();
                 LoadProfiles();
@@ -101,10 +105,12 @@ namespace PixelGraph.UI.Windows
             if (!vm.TryStartBusy()) return;
 
             var reader = provider.GetRequiredService<IInputReader>();
+            var loader = provider.GetRequiredService<IFileLoader>();
             var treeReader = provider.GetRequiredService<IContentTreeReader>();
 
             try {
                 reader.SetRoot(vm.RootDirectory);
+                loader.EnableAutoMaterial = settings.AutoMaterial;
 
                 vm.TreeRoot = treeReader.GetRootNode();
                 vm.TreeRoot.UpdateVisibility(vm);
@@ -174,7 +180,10 @@ namespace PixelGraph.UI.Windows
                 matFile = fileNode?.Filename;
             }
 
-            if (!isMat) return;
+            if (!isMat) {
+                vm.LoadedMaterial = null;
+                return;
+            }
 
             // TODO: wait for texture busy
             var reader = provider.GetRequiredService<IInputReader>();
@@ -183,6 +192,16 @@ namespace PixelGraph.UI.Windows
             reader.SetRoot(vm.RootDirectory);
             vm.LoadedMaterialFilename = matFile;
             vm.LoadedMaterial = await matReader.LoadAsync(matFile, token);
+
+            if (vm.LoadedMaterial == null && settings.AutoMaterial) {
+                var localPath = Path.GetDirectoryName(matFile);
+
+                vm.LoadedMaterial = new MaterialProperties {
+                    LocalFilename = matFile,
+                    LocalPath = Path.GetDirectoryName(localPath),
+                    Name = Path.GetFileName(localPath),
+                };
+            }
 
             await UpdatePreviewAsync(true);
         }

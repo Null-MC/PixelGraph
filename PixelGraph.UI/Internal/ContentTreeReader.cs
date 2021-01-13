@@ -16,22 +16,35 @@ namespace PixelGraph.UI.Internal
     internal class ContentTreeReader : IContentTreeReader
     {
         private readonly IInputReader reader;
+        private readonly IFileLoader loader;
 
 
-        public ContentTreeReader(IInputReader reader)
+        public ContentTreeReader(
+            IInputReader reader,
+            IFileLoader loader)
         {
             this.reader = reader;
+            this.loader = loader;
         }
 
         public ContentTreeNode GetRootNode() => GetPathNode(null, ".");
 
-        public ContentTreeNode GetPathNode(ContentTreeNode parent, string localPath)
+        private bool IsLocalMaterialPath(string localPath)
         {
             var matFile = PathEx.Join(localPath, "pbr.yml");
-            var isMat = reader.FileExists(matFile);
+            if (reader.FileExists(matFile)) return true;
+
+            return loader.EnableAutoMaterial && loader.IsLocalMaterialPath(localPath);
+        }
+
+        public ContentTreeNode GetPathNode(ContentTreeNode parent, string localPath)
+        {
+            var isMat = IsLocalMaterialPath(localPath);
 
             var node = isMat
-                ? new ContentTreeMaterialDirectory(parent) {MaterialFilename = matFile}
+                ? new ContentTreeMaterialDirectory(parent) {
+                    MaterialFilename = PathEx.Join(localPath, "pbr.yml"),
+                }
                 : new ContentTreeDirectory(parent);
 
             node.Name = Path.GetFileName(localPath);

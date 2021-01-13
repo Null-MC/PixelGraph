@@ -4,6 +4,7 @@ using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -12,25 +13,30 @@ namespace PixelGraph.Common.IO
 {
     public interface IFileLoader
     {
+        bool EnableAutoMaterial {get; set;}
+
         IAsyncEnumerable<object> LoadAsync(CancellationToken token = default);
+        bool IsLocalMaterialPath(string localPath);
     }
 
     internal class FileLoader : IFileLoader
     {
         private readonly IInputReader reader;
-        private readonly IMaterialReader pbrReader;
+        private readonly IMaterialReader materialReader;
         private readonly ILogger logger;
         private readonly Stack<string> untracked;
         private readonly HashSet<string> ignored;
 
+        public bool EnableAutoMaterial {get; set;}
+
 
         public FileLoader(
             IInputReader reader,
-            IMaterialReader pbrReader,
+            IMaterialReader materialReader,
             ILogger<FileLoader> logger)
         {
             this.reader = reader;
-            this.pbrReader = pbrReader;
+            this.materialReader = materialReader;
             this.logger = logger;
 
             untracked = new Stack<string>();
@@ -52,6 +58,14 @@ namespace PixelGraph.Common.IO
             }
         }
 
+        //private bool IsPathLocalMaterial(string localPath)
+        //{
+        //    var localMapFile = PathEx.Join(localPath, "pbr.yml");
+        //    if (reader.FileExists(localMapFile)) return true;
+
+        //    return false;
+        //}
+
         private async IAsyncEnumerable<object> LoadRecursiveAsync(string searchPath, [EnumeratorCancellation] CancellationToken token)
         {
             if (searchPath.EndsWith(".ignore", StringComparison.InvariantCultureIgnoreCase))
@@ -63,7 +77,7 @@ namespace PixelGraph.Common.IO
                 MaterialProperties material = null;
 
                 try {
-                    material = await pbrReader.LoadLocalAsync(localMapFile, token);
+                    material = await materialReader.LoadLocalAsync(localMapFile, token);
                     ignored.Add(localMapFile);
 
                     foreach (var texture in reader.EnumerateAllTextures(material))
@@ -75,6 +89,16 @@ namespace PixelGraph.Common.IO
 
                 if (material != null)
                     yield return material;
+
+                yield break;
+            }
+
+            if (EnableAutoMaterial && IsLocalMaterialPath(searchPath)) {
+                yield return new MaterialProperties {
+                    LocalFilename = localMapFile,
+                    LocalPath = Path.GetDirectoryName(searchPath),
+                    Name = Path.GetFileName(searchPath),
+                };
 
                 yield break;
             }
@@ -91,10 +115,10 @@ namespace PixelGraph.Common.IO
                 materialList.Clear();
 
                 try {
-                    var material = await pbrReader.LoadGlobalAsync(filename, token);
+                    var material = await materialReader.LoadGlobalAsync(filename, token);
                     ignored.Add(filename);
 
-                    if (pbrReader.TryExpandRange(material, out var subTextureList)) {
+                    if (materialReader.TryExpandRange(material, out var subTextureList)) {
                         foreach (var childMaterial in subTextureList) {
                             materialList.Add(childMaterial);
 
@@ -127,6 +151,21 @@ namespace PixelGraph.Common.IO
             }
         }
 
+        public bool IsLocalMaterialPath(string localPath)
+        {
+            foreach (var localFile in reader.EnumerateFiles(localPath, "*.*")) {
+                var ext = Path.GetExtension(localFile);
+                if (IgnoredExtensions.Contains(ext, StringComparer.InvariantCultureIgnoreCase)) continue;
+                if (!ImageExtensions.Supports(ext)) continue;
+
+                var name = Path.GetFileNameWithoutExtension(localFile);
+                if (AllLocalTextures.Contains(name, StringComparer.InvariantCultureIgnoreCase)) return true;
+            }
+
+            return false;
+        }
+
+        public static string[] AllLocalTextures = {"alpha", "diffuse", "albedo", "height", "occlusion", "normal", "specular", "smooth", "rough", "metal", "f0", "porosity", "sss", "emissive"};
         private static readonly string[] IgnoredExtensions = {".pack.yml", ".pbr.yml", ".zip", ".db", ".cmd", ".sh", ".xcf", ".psd", ".bak"};
     }
 }

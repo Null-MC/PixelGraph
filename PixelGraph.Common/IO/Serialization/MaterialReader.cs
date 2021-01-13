@@ -64,9 +64,9 @@ namespace PixelGraph.Common.IO.Serialization
         public async Task<MaterialProperties> LoadLocalAsync(string localFile, CancellationToken token = default)
         {
             var itemPath = Path.GetDirectoryName(localFile);
+            if (!reader.FileExists(localFile)) return null;
 
             var material = await ParseDocumentAsync(localFile);
-
             material.LocalFilename = localFile;
             material.LocalPath = Path.GetDirectoryName(itemPath);
 

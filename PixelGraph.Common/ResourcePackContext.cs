@@ -6,5 +6,8 @@ namespace PixelGraph.Common
     {
         public ResourcePackInputProperties Input {get; set;}
         public ResourcePackProfileProperties Profile {get; set;}
+
+
+        public bool AutoMaterial => Profile.AutoMaterial ?? ResourcePackProfileProperties.AutoMaterialDefault;
     }
 }
