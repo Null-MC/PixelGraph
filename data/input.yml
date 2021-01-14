@@ -1,0 +1,34 @@
+# The texture encoding used in your local content repository.
+# It is recommended to use the 'raw' encoding to separate your encoding channels into individual textures, but you may also work directly in one of the predefined fomrats.
+# Set to 'none' to define a completely custom encoding.
+format: raw
+
+# channels: alpha, diffuse-red, diffuse-green, diffuse-blue, ...
+(channel):
+
+  # The name of the texture this encoding-channel will use.
+  texture: <none|alpha|diffuse|albedo|height|occlusion|normal|specular|rough|smooth|metal|f0|porosity|sss|emissive>
+
+  # The color-channel of the texture this encoding-channel will use.
+  color: <red|green|blue|alpha>
+
+  # The sampler to use when resizing images.
+  #sampler: <nearest|bilinear|average>
+
+  # The minimum value used by this channel.
+  min-value: 0.0
+
+  # The maximum value used by this channel.
+  max-value: 1.0
+
+  # The minimum pixel value used by this channel.
+  range-min: 0
+
+  # The maximum pixel value used by this channel.
+  range-max: 255
+
+  shift: 0
+
+  power: 1.0
+
+  invert: false
