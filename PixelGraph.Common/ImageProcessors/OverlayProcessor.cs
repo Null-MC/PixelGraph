@@ -97,7 +97,14 @@ namespace PixelGraph.Common.ImageProcessors
                     if (mapping.OutputShift != 0)
                         MathEx.Cycle(ref finalValue, in mapping.OutputShift, in mapping.OutputRangeMin, in mapping.OutputRangeMax);
 
-                    pixelOut.SetChannelValue(mapping.OutputColor, finalValue);
+                    if (options.IsGrayscale) {
+                        pixelOut.R = finalValue;
+                        pixelOut.G = finalValue;
+                        pixelOut.B = finalValue;
+                    }
+                    else {
+                        pixelOut.SetChannelValue(mapping.OutputColor, finalValue);
+                    }
                 }
 
                 row[x].FromRgba32(pixelOut);
@@ -108,6 +115,7 @@ namespace PixelGraph.Common.ImageProcessors
         {
             public Image<TPixel> Source;
             public TextureChannelMapping[] Mappings;
+            public bool IsGrayscale;
         }
     }
 }

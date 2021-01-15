@@ -35,6 +35,7 @@ namespace PixelGraph.Common.Textures
     {
         private readonly IInputReader reader;
         private Rgba32 defaultValues;
+        private bool isGrayscale;
 
         public ITextureGraph Graph {get; set;}
         public MaterialProperties Material {get; set;}
@@ -64,6 +65,8 @@ namespace PixelGraph.Common.Textures
             }
 
             if (!CreateEmpty && mappings.Count == 0) return;
+
+            isGrayscale = mappings.All(x => x.OutputColor == ColorChannel.Red);
 
             foreach (var mappingGroup in mappings.GroupBy(m => m.SourceFilename)) {
                 if (mappingGroup.Key == null) continue;
@@ -168,6 +171,7 @@ namespace PixelGraph.Common.Textures
             if (mapping.SourceTag != null) {
                 var options = new OverlayProcessor<Rgb24>.Options {
                     Mappings = new []{mapping},
+                    IsGrayscale = isGrayscale,
                 };
 
                 if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
@@ -217,6 +221,7 @@ namespace PixelGraph.Common.Textures
 
             if (ImageResult != null) {
                 var options = new OverwriteProcessor.Options {
+                    IsGrayscale = isGrayscale,
                     Color = mapping.OutputColor,
                     Min = mapping.OutputRangeMin,
                     Max = mapping.OutputRangeMax,
@@ -227,7 +232,14 @@ namespace PixelGraph.Common.Textures
                 ImageResult.Mutate(context => context.ApplyProcessor(processor));
             }
             else {
-                defaultValues.SetChannelValue(in mapping.OutputColor, in finalValue);
+                if (isGrayscale) {
+                    defaultValues.R = finalValue;
+                    defaultValues.G = finalValue;
+                    defaultValues.B = finalValue;
+                }
+                else {
+                    defaultValues.SetChannelValue(in mapping.OutputColor, in finalValue);
+                }
             }
         }
 
@@ -238,8 +250,11 @@ namespace PixelGraph.Common.Textures
             await using var sourceStream = reader.Open(sourceFilename);
             using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
 
+            var mappingArray = mappings as TextureChannelMapping[] ?? mappings.ToArray();
+
             var options = new OverlayProcessor<Rgba32>.Options {
-                Mappings = mappings as TextureChannelMapping[] ?? mappings.ToArray(),
+                Mappings = mappingArray,
+                IsGrayscale = isGrayscale, //mappingArray.All(x => x.OutputColor == ColorChannel.Red),
                 Source = sourceImage,
             };
 

@@ -21,13 +21,21 @@ namespace PixelGraph.Common.ImageProcessors
 
             if (value != 0 && (value < options.Min || value > options.Max)) return;
 
-            pixelOut.SetChannelValue(in options.Color, in options.Value);
+            if (options.IsGrayscale) {
+                pixelOut.R = options.Value;
+                pixelOut.G = options.Value;
+                pixelOut.B = options.Value;
+            }
+            else {
+                pixelOut.SetChannelValue(in options.Color, in options.Value);
+            }
         }
 
         public class Options
         {
             public ColorChannel Color;
             public byte Value, Min, Max;
+            public bool IsGrayscale;
         }
     }
 }

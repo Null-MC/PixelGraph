@@ -33,7 +33,7 @@ namespace PixelGraph.Common.Textures
 
         Task<Image> GetPreviewAsync(string textureTag, CancellationToken token = default);
 
-        Task PublishImageAsync<TPixel>(string textureTag, CancellationToken token = default)
+        Task PublishImageAsync<TPixel>(string textureTag, ImageChannels type, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>;
 
         Task<Image<Rgb24>> GenerateNormalAsync(CancellationToken token = default);
@@ -147,7 +147,7 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        public async Task PublishImageAsync<TPixel>(string textureTag, CancellationToken token = default)
+        public async Task PublishImageAsync<TPixel>(string textureTag, ImageChannels type, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             using var image = await CreateImageAsync<TPixel>(textureTag, token);
@@ -161,6 +161,10 @@ namespace PixelGraph.Common.Textures
             var imageFormat = Context.Profile.Encoding.Image
                 ?? ResourcePackOutputProperties.ImageDefault;
 
+            imageWriter.Format = imageFormat;
+            //imageWriter.HasAlpha = typeof(TPixel) == typeof(Rgba32);
+            //imageWriter.HasColor = typeof(TPixel) != typeof(HalfSingle);
+
             var p = Context.Material.LocalPath;
             if (!UseGlobalOutput) p = PathEx.Join(p, Context.Material.Name);
 
@@ -170,7 +174,7 @@ namespace PixelGraph.Common.Textures
                     var destFile = PathEx.Join(p, name);
 
                     if (image.Width == 1 && image.Height == 1) {
-                        await imageWriter.WriteAsync(image, destFile, imageFormat, token);
+                        await imageWriter.WriteAsync(image, destFile, type, token);
                     }
                     else {
                         var bounds = region.GetRectangle();
@@ -181,7 +185,7 @@ namespace PixelGraph.Common.Textures
                         // TODO: move resize before regions; then scale regions to match
                         using var resizedRegionImage = Resize(regionImage, textureTag);
 
-                        await imageWriter.WriteAsync(resizedRegionImage ?? regionImage, destFile, imageFormat, token);
+                        await imageWriter.WriteAsync(resizedRegionImage ?? regionImage, destFile, type, token);
                     }
 
                     logger.LogInformation("Published texture region {Name} tag {textureTag}.", region.Name, textureTag);
@@ -195,7 +199,7 @@ namespace PixelGraph.Common.Textures
 
                 using var resizedImage = Resize(image, textureTag);
 
-                await imageWriter.WriteAsync(resizedImage ?? image, destFile, imageFormat, token);
+                await imageWriter.WriteAsync(resizedImage ?? image, destFile, type, token);
 
                 logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", Context.Material.DisplayName, textureTag);
             }

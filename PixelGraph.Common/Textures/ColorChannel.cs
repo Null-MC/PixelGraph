@@ -21,6 +21,9 @@ namespace PixelGraph.Common.Textures
         [EnumMember(Value = "alpha")]
         Alpha,
 
+        //[EnumMember(Value = "gray")]
+        //Gray,
+
         [EnumMember(Value = "magnitude")]
         Magnitude,
     }
