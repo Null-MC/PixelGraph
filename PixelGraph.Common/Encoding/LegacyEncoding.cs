@@ -119,12 +119,12 @@ namespace PixelGraph.Common.Encoding
                     Invert = false,
                 },
 
-                F0 = new ResourcePackF0ChannelProperties {
+                Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
-                    MinValue = 0,
-                    MaxValue = 1,
-                    RangeMin = 0,
+                    MinValue = 255,
+                    MaxValue = 255,
+                    RangeMin = 255,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,

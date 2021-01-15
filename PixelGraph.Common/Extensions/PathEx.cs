@@ -26,7 +26,7 @@ namespace PixelGraph.Common.Extensions
                 .Replace("\\?", ".")
                 .Replace("\\*", ".+");
 
-            return Regex.IsMatch(name, regexPattern);
+            return Regex.IsMatch(name, $"^{regexPattern}$");
         }
     }
 }

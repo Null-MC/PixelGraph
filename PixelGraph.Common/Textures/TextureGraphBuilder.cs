@@ -116,9 +116,14 @@ namespace PixelGraph.Common.Textures
 
                 if (tagOutputEncoding.Any()) {
                     var hasAlpha = tagOutputEncoding.Any(c => c.Color == ColorChannel.Alpha);
+                    var onlyRed = tagOutputEncoding.All(c => c.Color == ColorChannel.Red);
 
                     if (hasAlpha) {
                         await graph.PublishImageAsync<Rgba32>(tag, token);
+                    }
+                    if (onlyRed) {
+                        // WARN: I don't know if this is actually going to work!
+                        await graph.PublishImageAsync<L8>(tag, token);
                     }
                     else {
                         await graph.PublishImageAsync<Rgb24>(tag, token);
