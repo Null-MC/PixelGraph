@@ -20,7 +20,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -32,7 +32,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -44,7 +44,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -56,7 +56,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -68,7 +68,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -80,7 +80,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -92,7 +92,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -104,7 +104,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = true,
                 },
 
@@ -116,7 +116,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = true,
                 },
 
@@ -128,7 +128,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -140,7 +140,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -152,7 +152,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -164,7 +164,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -176,7 +176,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -188,7 +188,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -196,12 +196,12 @@ namespace PixelGraph.Common.Encoding
                     Texture = TextureTags.Metal,
                     Color = ColorChannel.Red,
                     Sampler = Sampler.Nearest,
-                    MinValue = 0m,
+                    MinValue = 230m,
                     MaxValue = 255m,
-                    RangeMin = 0,
+                    RangeMin = 230,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -213,7 +213,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -225,7 +225,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -237,7 +237,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
 
@@ -249,7 +249,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
-                    Power = 1m,
+                    Perceptual = false,
                     Invert = false,
                 },
             };

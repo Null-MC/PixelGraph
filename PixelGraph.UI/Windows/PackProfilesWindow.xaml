@@ -151,7 +151,7 @@
                             </Style>
                         </DataGrid.Resources>
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Channel" Width="*">
+                            <DataGridTemplateColumn Header="Channel" Width="auto">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <StackPanel Orientation="Horizontal">
@@ -174,7 +174,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Texture">
+                            <DataGridTemplateColumn Header="Texture" MinWidth="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <Grid>
@@ -198,7 +198,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Color">
+                            <DataGridTemplateColumn Header="Color" MinWidth="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <Grid>
@@ -227,7 +227,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Sampler">
+                            <DataGridTemplateColumn Header="Sampler" MinWidth="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <Grid>
@@ -251,7 +251,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Value Min">
+                            <DataGridTemplateColumn Header="Value Min" MinWidth="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <Grid>
@@ -276,7 +276,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Value Max">
+                            <DataGridTemplateColumn Header="Value Max" MinWidth="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <Grid>
@@ -301,7 +301,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Range Min">
+                            <DataGridTemplateColumn Header="Range Min" MinWidth="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <Grid>
@@ -326,7 +326,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Range Max">
+                            <DataGridTemplateColumn Header="Range Max" MinWidth="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <Grid>
@@ -351,7 +351,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Shift">
+                            <DataGridTemplateColumn Header="Shift" MinWidth="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <Grid>
@@ -376,7 +376,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Power">
+                            <!--<DataGridTemplateColumn Header="Power">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <Grid>
@@ -400,14 +400,24 @@
                                                             Text="{Binding Power, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Invert">
+                            </DataGridTemplateColumn>-->
+                            <DataGridTemplateColumn Header="Perceptual" Width="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <controls:CheckBoxEx HorizontalAlignment="Center"
                                                   Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                                  Placeholder="{Binding InvertDefault, Mode=OneWay}"
-                                                  IsChecked="{Binding Invert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                  Placeholder="{Binding PerceptualDefault, Mode=OneWay}"
+                                                  IsChecked="{Binding Perceptual, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Invert" Width="80">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="vm:OutputChannelMapping">
+                                        <controls:CheckBoxEx HorizontalAlignment="Center"
+                                                             Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                             Placeholder="{Binding InvertDefault, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                                                             IsChecked="{Binding Invert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

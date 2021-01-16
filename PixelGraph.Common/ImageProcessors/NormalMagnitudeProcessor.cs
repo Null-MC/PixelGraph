@@ -49,15 +49,21 @@ namespace PixelGraph.Common.ImageProcessors
                 if (options.InputInvert) MathEx.Invert(ref value, options.InputMinValue, options.InputMaxValue);
 
                 // Input: power
-                if (!options.InputPower.Equal(1f))
-                    value = Math.Pow(value, 1d / options.InputPower);
-                
+                //if (!options.InputPower.Equal(1f))
+                //    value = Math.Pow(value, 1d / options.InputPower);
+
+                // Input: Perceptual > Linear
+                if (options.InputPerceptual) MathEx.PerceptualToLinear(ref value);
+
                 // Common operations
 
                 value *= options.Scale;
 
-                if (!options.OutputPower.Equal(1f))
-                    value = Math.Pow(value, options.OutputPower);
+                //if (!options.OutputPower.Equal(1f))
+                //    value = Math.Pow(value, options.OutputPower);
+
+                // Output: Linear > Perceptual
+                if (options.OutputPerceptual) MathEx.LinearToPerceptual(ref value);
 
                 if (options.OutputInvert) MathEx.Invert(ref value, options.OutputMinValue, options.OutputMaxValue);
 
@@ -80,41 +86,45 @@ namespace PixelGraph.Common.ImageProcessors
             public float Scale;
 
             public ColorChannel InputChannel;
-            public float InputPower;
+            //public float InputPower;
             public int InputShift;
-            public bool InputInvert;
             public float InputMinValue;
             public float InputMaxValue;
             public byte InputRangeMin;
             public byte InputRangeMax;
+            public bool InputPerceptual;
+            public bool InputInvert;
 
-            public float OutputPower;
-            public bool OutputInvert;
+            //public float OutputPower;
             public float OutputMinValue;
             public float OutputMaxValue;
             public byte OutputRangeMin;
             public byte OutputRangeMax;
+            public bool OutputPerceptual;
+            public bool OutputInvert;
 
 
             public void ApplyInputChannel(ResourcePackChannelProperties channel)
             {
                 InputChannel = channel.Color ?? ColorChannel.None;
-                InputPower = (float?) channel.Power ?? 1f;
-                InputInvert = channel.Invert ?? false;
+                //InputPower = (float?) channel.Power ?? 1f;
                 InputMinValue = (float?)channel.MinValue ?? 0f;
                 InputMaxValue = (float?)channel.MaxValue ?? 1f;
                 InputRangeMin = channel.RangeMin ?? 0;
                 InputRangeMax = channel.RangeMax ?? 255;
+                InputPerceptual = channel.Perceptual ?? false;
+                InputInvert = channel.Invert ?? false;
             }
 
             public void ApplyOutputChannel(ResourcePackChannelProperties channel)
             {
-                OutputPower = (float?) channel.Power ?? 1f;
-                OutputInvert = channel.Invert ?? false;
+                //OutputPower = (float?) channel.Power ?? 1f;
                 OutputMinValue = (float?)channel.MinValue ?? 0f;
                 OutputMaxValue = (float?)channel.MaxValue ?? 1f;
                 OutputRangeMin = channel.RangeMin ?? 0;
                 OutputRangeMax = channel.RangeMax ?? 255;
+                OutputPerceptual = channel.Perceptual ?? false;
+                OutputInvert = channel.Invert ?? false;
             }
         }
     }

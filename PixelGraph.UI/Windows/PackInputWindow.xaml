@@ -1,4 +1,4 @@
-﻿<mde:MaterialWindow x:Class="PixelGraph.UI.Windows.PackInputWindow2"
+﻿<mde:MaterialWindow x:Class="PixelGraph.UI.Windows.PackInputWindow"
                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -18,7 +18,7 @@
                     Background="{DynamicResource MaterialDesignPaper}"
                     FontFamily="{DynamicResource MaterialDesignFont}" WindowStartupLocation="CenterOwner">
     <Window.DataContext>
-        <vm:PackInput2VM x:Name="VM"/>
+        <vm:PackInputVM x:Name="VM"/>
     </Window.DataContext>
     <Window.Resources>
         <vm:OptionalEncodingFormatValues x:Key="Formats"/>
@@ -72,7 +72,7 @@
                 </Style>
             </DataGrid.Resources>
             <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Channel" Width="*">
+                <DataGridTemplateColumn Header="Channel" Width="180">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <StackPanel Orientation="Horizontal">
@@ -95,7 +95,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Texture">
+                <DataGridTemplateColumn Header="Texture" Width="160">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -119,7 +119,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Color">
+                <DataGridTemplateColumn Header="Color" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -143,7 +143,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Value Min">
+                <DataGridTemplateColumn Header="Value Min" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -168,7 +168,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Value Max">
+                <DataGridTemplateColumn Header="Value Max" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -193,7 +193,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Range Min">
+                <DataGridTemplateColumn Header="Range Min" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -218,7 +218,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Range Max">
+                <DataGridTemplateColumn Header="Range Max" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -243,7 +243,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Shift">
+                <DataGridTemplateColumn Header="Shift" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -268,7 +268,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Power">
+                <!--<DataGridTemplateColumn Header="Power">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -292,13 +292,23 @@
                                                 Text="{Binding Power, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>-->
+                <DataGridTemplateColumn Header="Perceptual" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="vm:InputChannelMapping">
+                            <controls:CheckBoxEx HorizontalAlignment="Center" IsTabStop="False"
+                                                 Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                                 Placeholder="{Binding PerceptualDefault, Mode=OneWay}"
+                                                 IsChecked="{Binding Perceptual, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Invert">
+                <DataGridTemplateColumn Header="Invert" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <controls:CheckBoxEx HorizontalAlignment="Center" IsTabStop="False"
                                       Foreground="{DynamicResource SecondaryHueMidBrush}"
-                                      Placeholder="{Binding InvertDefault, Mode=OneWay}"
+                                      Placeholder="{Binding InvertDefault, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                                       IsChecked="{Binding Invert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

@@ -7,7 +7,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="Green" SecondaryColor="LightBlue" />
-                <ResourceDictionary Source="pack://application:,,,/Resources/MaterialDesignTheme.CheckBoxEx.xaml" />
+                <!--<ResourceDictionary Source="pack://application:,,,/Resources/MaterialDesignTheme.CheckBoxEx.xaml" />-->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignExtensions;component/Themes/Generic.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignExtensions;component/Themes/MaterialDesignDarkTheme.xaml" />

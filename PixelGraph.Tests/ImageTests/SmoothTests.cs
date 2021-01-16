@@ -162,8 +162,8 @@ namespace PixelGraph.Tests.ImageTests
         }
 
         [InlineData(  0,   0)]
-        [InlineData(160, 100)]
-        [InlineData(226, 200)]
+        [InlineData(160, 220)]
+        [InlineData(226, 252)]
         [InlineData(255, 255)]
         [Theory] public async Task ConvertsPerceptualSmoothToSmooth(byte value, byte expected)
         {
@@ -180,7 +180,7 @@ namespace PixelGraph.Tests.ImageTests
                     Smooth = {
                         Texture = TextureTags.Smooth,
                         Color = ColorChannel.Red,
-                        Power = 0.5m,
+                        Perceptual = true,
                     },
                 },
                 Profile = packProfile,

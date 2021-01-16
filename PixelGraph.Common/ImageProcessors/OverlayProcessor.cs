@@ -62,23 +62,17 @@ namespace PixelGraph.Common.ImageProcessors
 
                         value += mapping.InputMinValue;
 
-                        // Input: invert
-                        if (mapping.InvertInput) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
+                        if (mapping.InputInverted) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
 
-                        // Input: power
-                        if (!mapping.InputPower.Equals(1f))
-                            value = Math.Pow(value, 1d / mapping.InputPower);
+                        if (mapping.InputPerceptual) MathEx.PerceptualToLinear(ref value);
                     }
 
                     // Common Processing
                     value = (value + mapping.Shift) * mapping.Scale;
 
-                    // Output: power
-                    if (!mapping.OutputPower.Equal(1f))
-                        value = Math.Pow(value, mapping.OutputPower);
+                    if (mapping.OutputPerceptual) MathEx.LinearToPerceptual(ref value);
 
-                    // Output: invert
-                    if (mapping.InvertOutput) MathEx.Invert(ref value, mapping.InputMinValue, mapping.OutputMaxValue);
+                    if (mapping.OutputInverted) MathEx.Invert(ref value, mapping.InputMinValue, mapping.OutputMaxValue);
 
                     // TODO: convert from value-space to pixel-space
                     var valueRange = mapping.OutputMaxValue - mapping.OutputMinValue;
@@ -93,7 +87,6 @@ namespace PixelGraph.Common.ImageProcessors
 
                     var finalValue = MathEx.ClampRound(valueOut, mapping.OutputRangeMin, mapping.OutputRangeMax);
 
-                    // Output: shift
                     if (mapping.OutputShift != 0)
                         MathEx.Cycle(ref finalValue, in mapping.OutputShift, in mapping.OutputRangeMin, in mapping.OutputRangeMax);
 

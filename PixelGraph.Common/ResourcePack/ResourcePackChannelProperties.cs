@@ -17,7 +17,8 @@ namespace PixelGraph.Common.ResourcePack
         public byte? RangeMin {get; set;}
         public byte? RangeMax {get; set;}
         public int? Shift {get; set;}
-        public decimal? Power {get; set;}
+        //public decimal? Power {get; set;}
+        public bool? Perceptual {get; set;}
         public bool? Invert {get; set;}
 
         [YamlIgnore]
@@ -54,7 +55,8 @@ namespace PixelGraph.Common.ResourcePack
             if (channel.RangeMin.HasValue) RangeMin = channel.RangeMin.Value;
             if (channel.RangeMax.HasValue) RangeMax = channel.RangeMax.Value;
             if (channel.Shift.HasValue) Shift = channel.Shift.Value;
-            if (channel.Power.HasValue) Power = channel.Power.Value;
+            //if (channel.Power.HasValue) Power = channel.Power.Value;
+            if (channel.Perceptual.HasValue) Perceptual = channel.Perceptual.Value;
             if (channel.Invert.HasValue) Invert = channel.Invert.Value;
         }
 

@@ -95,8 +95,8 @@ namespace PixelGraph.Common.Textures
                 OutputRangeMin = outputChannel.RangeMin ?? 0,
                 OutputRangeMax = outputChannel.RangeMax ?? 255,
                 OutputShift = outputChannel.Shift ?? 0,
-                OutputPower = (float?)outputChannel.Power ?? 1f,
-                InvertOutput = outputChannel.Invert ?? false,
+                OutputPerceptual = outputChannel.Perceptual ?? false,
+                OutputInverted = outputChannel.Invert ?? false,
 
                 Shift = Material.GetChannelShift(outputChannel.ID),
                 Scale = Material.GetChannelScale(outputChannel.ID),
@@ -134,8 +134,8 @@ namespace PixelGraph.Common.Textures
                     mapping.InputRangeMin = 0;
                     mapping.InputRangeMax = 255;
                     mapping.InputShift = 0;
-                    mapping.InputPower = 1f;
-                    mapping.InvertInput = true;
+                    mapping.InputPerceptual = false;
+                    mapping.InputInverted = true;
                     return true;
                 }
             }
@@ -144,7 +144,7 @@ namespace PixelGraph.Common.Textures
             if (isOutputSmooth && TryGetInputChannel(EncodingChannel.Rough, out var roughChannel)
                                && TryGetSourceFilename(roughChannel.Texture, out mapping.SourceFilename)) {
                 mapping.ApplyInputChannel(roughChannel);
-                mapping.InvertInput = true;
+                mapping.InputInverted = true;
                 return true;
             }
 
@@ -152,7 +152,7 @@ namespace PixelGraph.Common.Textures
             if (isOutputRough && TryGetInputChannel(EncodingChannel.Smooth, out var smoothChannel)) {
                 if (TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(smoothChannel);
-                    mapping.InvertInput = true;
+                    mapping.InputInverted = true;
                     return true;
                 }
             }
@@ -193,7 +193,7 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
-            if (!mapping.InputValue.HasValue && mapping.OutputShift == 0 && !mapping.InvertOutput) return;
+            if (!mapping.InputValue.HasValue && mapping.OutputShift == 0 && !mapping.OutputInverted) return;
 
             var value = (double?)mapping.InputValue ?? 0d;
 
@@ -202,10 +202,10 @@ namespace PixelGraph.Common.Textures
             // Common Processing
             value = (value + mapping.Shift) * mapping.Scale;
 
-            if (!mapping.OutputPower.Equal(1f))
-                value = Math.Pow(value, mapping.OutputPower);
+            if (mapping.OutputPerceptual)
+                MathEx.LinearToPerceptual(ref value);
 
-            if (mapping.InvertOutput) MathEx.Invert(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
+            if (mapping.OutputInverted) MathEx.Invert(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
 
             MathEx.Clamp(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
 
@@ -254,7 +254,7 @@ namespace PixelGraph.Common.Textures
 
             var options = new OverlayProcessor<Rgba32>.Options {
                 Mappings = mappingArray,
-                IsGrayscale = isGrayscale, //mappingArray.All(x => x.OutputColor == ColorChannel.Red),
+                IsGrayscale = isGrayscale,
                 Source = sourceImage,
             };
 
@@ -299,8 +299,8 @@ namespace PixelGraph.Common.Textures
         public byte InputRangeMin;
         public byte InputRangeMax;
         public int InputShift;
-        public float InputPower;
-        public bool InvertInput;
+        public bool InputPerceptual;
+        public bool InputInverted;
 
         public ColorChannel OutputColor;
         public float OutputMinValue;
@@ -308,8 +308,8 @@ namespace PixelGraph.Common.Textures
         public byte OutputRangeMin;
         public byte OutputRangeMax;
         public int OutputShift;
-        public float OutputPower;
-        public bool InvertOutput;
+        public bool OutputPerceptual;
+        public bool OutputInverted;
 
         public string SourceTag;
         public string SourceFilename;
@@ -325,8 +325,8 @@ namespace PixelGraph.Common.Textures
             InputRangeMin = channel.RangeMin ?? 0;
             InputRangeMax = channel.RangeMax ?? 255;
             InputShift = channel.Shift ?? 0;
-            InputPower = (float?)channel.Power ?? 1f;
-            InvertInput = channel.Invert ?? false;
+            InputPerceptual = channel.Perceptual ?? false;
+            InputInverted = channel.Invert ?? false;
         }
     }
 }

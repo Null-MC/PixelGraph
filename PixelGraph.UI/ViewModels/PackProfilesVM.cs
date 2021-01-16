@@ -355,7 +355,8 @@ namespace PixelGraph.UI.ViewModels
         private byte? _rangeMinDefault;
         private byte? _rangeMaxDefault;
         private decimal? _shiftDefault;
-        private decimal? _powerDefault;
+        //private decimal? _powerDefault;
+        private bool? _perceptualDefault;
         private bool? _invertDefault;
 
         public event EventHandler DataChanged;
@@ -458,12 +459,24 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public decimal? Power {
-            get => _channel?.Power;
+        //public decimal? Power {
+        //    get => _channel?.Power;
+        //    set {
+        //        if (_channel == null) return;
+        //        if (_channel.Power == value) return;
+        //        _channel.Power = value;
+        //        OnPropertyChanged();
+
+        //        OnDataChanged();
+        //    }
+        //}
+
+        public bool? Perceptual {
+            get => _channel?.Perceptual;
             set {
                 if (_channel == null) return;
-                if (_channel.Power == value) return;
-                _channel.Power = value;
+                if (_channel.Perceptual == value) return;
+                _channel.Perceptual = value;
                 OnPropertyChanged();
 
                 OnDataChanged();
@@ -554,11 +567,20 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public decimal? PowerDefault {
-            get => _powerDefault;
+        //public decimal? PowerDefault {
+        //    get => _powerDefault;
+        //    set {
+        //        if (_powerDefault == value) return;
+        //        _powerDefault = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
+
+        public bool? PerceptualDefault {
+            get => _perceptualDefault;
             set {
-                if (_powerDefault == value) return;
-                _powerDefault = value;
+                if (_perceptualDefault == value) return;
+                _perceptualDefault = value;
                 OnPropertyChanged();
             }
         }
@@ -590,7 +612,8 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(RangeMin));
             OnPropertyChanged(nameof(RangeMax));
             OnPropertyChanged(nameof(Shift));
-            OnPropertyChanged(nameof(Power));
+            //OnPropertyChanged(nameof(Power));
+            OnPropertyChanged(nameof(Perceptual));
             OnPropertyChanged(nameof(Invert));
         }
 
@@ -604,7 +627,8 @@ namespace PixelGraph.UI.ViewModels
             RangeMinDefault = encodingDefaults?.RangeMin;
             RangeMaxDefault = encodingDefaults?.RangeMax;
             ShiftDefault = encodingDefaults?.Shift;
-            PowerDefault = encodingDefaults?.Power;
+            //PowerDefault = encodingDefaults?.Power;
+            PerceptualDefault = encodingDefaults?.Perceptual;
             InvertDefault = encodingDefaults?.Invert;
         }
 
@@ -618,7 +642,8 @@ namespace PixelGraph.UI.ViewModels
             RangeMin = null;
             RangeMax = null;
             Shift = null;
-            Power = null;
+            //Power = null;
+            Perceptual = null;
             Invert = null;
         }
 

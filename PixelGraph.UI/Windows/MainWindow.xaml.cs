@@ -561,7 +561,7 @@ namespace PixelGraph.UI.Windows
 
         private void OnInputEncodingClick(object sender, RoutedEventArgs e)
         {
-            var window = new PackInputWindow2(provider) {
+            var window = new PackInputWindow(provider) {
                 Owner = this,
                 VM = {
                     RootDirectory = vm.RootDirectory,

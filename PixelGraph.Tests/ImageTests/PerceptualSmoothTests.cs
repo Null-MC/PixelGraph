@@ -22,7 +22,7 @@ namespace PixelGraph.Tests.ImageTests
                 Smooth = {
                     Texture = TextureTags.Smooth,
                     Color = ColorChannel.Red,
-                    Power = 0.5m,
+                    Perceptual = true,
                 }
             };
 
@@ -31,7 +31,7 @@ namespace PixelGraph.Tests.ImageTests
                     Smooth = {
                         Texture = TextureTags.Smooth,
                         Color = ColorChannel.Red,
-                        Power = 0.5m,
+                        Perceptual = true,
                     },
                 },
             };
@@ -66,8 +66,8 @@ namespace PixelGraph.Tests.ImageTests
         }
 
         [InlineData(  0,   0)]
-        [InlineData(100, 160)]
-        [InlineData(200, 226)]
+        [InlineData(100,  56)]
+        [InlineData(200, 137)]
         [InlineData(255, 255)]
         [Theory] public async Task ConvertsSmoothToPerceptualSmooth(byte value, byte expected)
         {

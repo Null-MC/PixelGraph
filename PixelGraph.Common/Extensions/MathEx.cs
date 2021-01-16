@@ -144,5 +144,17 @@ namespace PixelGraph.Common.Extensions
         //    while (value < 0f) value += r;
         //    while (value >= r) value -= r;
         //}
+
+        public static void PerceptualToLinear(ref double value)
+        {
+            value = 1d - value;
+            value *= value;
+            value = 1d - value;
+        }
+
+        public static void LinearToPerceptual(ref double value)
+        {
+            value = 1d - Math.Sqrt(1d - value);
+        }
     }
 }
