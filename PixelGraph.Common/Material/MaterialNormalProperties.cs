@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Textures;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material
@@ -7,12 +8,14 @@ namespace PixelGraph.Common.Material
     {
         public const float DefaultStrength = 1f;
         public const float DefaultNoise = 0f;
+        public const NormalMapFilters DefaultFilter = NormalMapFilters.Sobel3;
 
         public string Texture {get; set;}
         public decimal? Strength {get; set;}
         public decimal? Noise {get; set;}
         public decimal? CurveX {get; set;}
         public decimal? CurveY {get; set;}
+        public NormalMapFilters? Filter {get; set;}
         
         public ResourcePackNormalXChannelProperties InputX {get; set;}
 

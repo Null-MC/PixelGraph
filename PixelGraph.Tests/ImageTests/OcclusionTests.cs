@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common;
+﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -10,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImageTests
 {
-    public class OcclusionTests : TestBase
+    public class OcclusionTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
@@ -43,14 +42,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(255)]
         [Theory] public async Task Passthrough(byte value)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var sourceImage = CreateImageR(value);
-            await content.AddAsync("assets/test/occlusion.png", sourceImage);
-            
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -60,9 +51,12 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var resultImage = await content.OpenImageAsync("assets/test_ao.png");
-            PixelAssert.RedEquals(value, resultImage);
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/occlusion.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_ao.png");
+            PixelAssert.RedEquals(value, image);
         }
 
         [InlineData(0.000,  0.0f, 255)]
@@ -74,11 +68,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(0.784, 0.01f, 253)]
         [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -92,28 +81,22 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_ao.png");
+            await using var graph = Graph(context);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_ao.png");
             PixelAssert.RedEquals(expected, image);
         }
 
-        [InlineData(  0,  0.0f, 255)]
-        [InlineData(255,  0.0f, 255)]
-        [InlineData(100,  1.0f, 100)]
-        [InlineData(155,  0.5f, 205)]
-        [InlineData(155,  2.0f,  55)]
-        [InlineData(155,  3.0f,   0)]
-        [InlineData( 55, 0.01f, 253)]
+        [InlineData(  0,  0.0, 255)]
+        [InlineData(255,  0.0, 255)]
+        [InlineData(100,  1.0, 100)]
+        [InlineData(155,  0.5, 205)]
+        [InlineData(155,  2.0,  55)]
+        [InlineData(155,  3.0,   0)]
+        [InlineData( 55, 0.01, 253)]
         [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var sourceImage = CreateImageR(value);
-            await content.AddAsync("assets/test/occlusion.png", sourceImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -126,8 +109,11 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_ao.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/occlusion.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_ao.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

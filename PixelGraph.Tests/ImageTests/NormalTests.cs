@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common;
+﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -10,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImageTests
 {
-    public class NormalTests : TestBase
+    public class NormalTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
@@ -58,14 +57,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(127, 255,   0)]
         [Theory] public async Task PassthroughX(byte valueX, byte valueY, byte valueZ)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var sourceImage = CreateImage(valueX, valueY, valueZ);
-            await content.AddAsync("assets/test/normal.png", sourceImage);
-            
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -75,11 +66,14 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var resultImage = await content.OpenImageAsync("assets/test_n.png");
-            PixelAssert.RedEquals(valueX, resultImage);
-            PixelAssert.GreenEquals(valueY, resultImage);
-            PixelAssert.BlueEquals(valueZ, resultImage);
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/normal.png", valueX, valueY, valueZ);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_n.png");
+            PixelAssert.RedEquals(valueX, image);
+            PixelAssert.GreenEquals(valueY, image);
+            PixelAssert.BlueEquals(valueZ, image);
         }
 
         [InlineData(127, 127, 255)]
@@ -87,14 +81,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(127,   0,   0)]
         [Theory] public async Task RestoreZ(byte valueX, byte valueY, byte expectedZ)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var sourceImage = CreateImage(valueX, valueY, 0);
-            await content.AddAsync("assets/test/normal.png", sourceImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -104,8 +90,11 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_n.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/normal.png", valueX, valueY, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_n.png");
             PixelAssert.RedEquals(valueX, image);
             PixelAssert.GreenEquals(valueY, image);
             PixelAssert.BlueEquals(expectedZ, image);

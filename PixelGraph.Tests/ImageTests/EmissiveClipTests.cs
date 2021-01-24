@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common;
+﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -10,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImageTests
 {
-    public class EmissiveClipTests : TestBase
+    public class EmissiveClipTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
@@ -43,14 +42,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(255)]
         [Theory] public async Task Passthrough(byte value)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var emissiveImage = CreateImageR(value);
-            await content.AddAsync("assets/test/emissive.png", emissiveImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -60,8 +51,11 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_e.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_e.png");
             PixelAssert.RedEquals(value, image);
         }
 
@@ -74,11 +68,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(200/255d, 0.01,   1)]
         [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -92,8 +81,10 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_e.png");
+            await using var graph = Graph(context);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_e.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -106,14 +97,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(199, 0.01,   1)]
         [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var srcImage = CreateImageR(value);
-            await content.AddAsync("assets/test/emissive.png", srcImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -126,8 +109,11 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_e.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_e.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -137,14 +123,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(255, 254)]
         [Theory] public async Task ConvertsEmissiveToEmissiveClipped(byte value, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-            
-            using var emissiveImage = CreateImageR(value);
-            await content.AddAsync("assets/test/emissive.png", emissiveImage);
-
             var context = new MaterialContext {
                 Input = new ResourcePackInputProperties {
                     Emissive = {
@@ -159,8 +137,11 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_e.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_e.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

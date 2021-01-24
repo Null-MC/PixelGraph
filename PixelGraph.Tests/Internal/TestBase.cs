@@ -1,27 +1,32 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.IO;
+using System.Reflection;
 using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.Internal
 {
     public abstract class TestBase
     {
-        protected IServiceBuilder Builder {get;}
-        //protected MockFileContent Content {get;}
+        private static readonly Lazy<string> assemblyPathFunc;
 
+        protected IServiceBuilder Builder {get;}
+        protected string AssemblyPath => assemblyPathFunc.Value;
+
+
+        static TestBase()
+        {
+            assemblyPathFunc = new Lazy<string>(GetAssemblyPath);
+        }
 
         protected TestBase(ITestOutputHelper output)
         {
-            //Content = new MockFileContent();
             Builder = new ServiceBuilder();
 
             Builder.Services.AddSingleton(output);
-            //Builder.Services.AddSingleton(Content);
             Builder.Services.AddSingleton(typeof(ILogger<>), typeof(TestLogger<>));
             Builder.Services.AddSingleton<ILogger, TestLogger>();
             Builder.Services.AddSingleton<IInputReader, MockInputReader>();
@@ -29,22 +34,10 @@ namespace PixelGraph.Tests.Internal
             Builder.Services.AddSingleton<MockFileContent>();
         }
 
-        protected Image CreateImageR(in byte value)
+        private static string GetAssemblyPath()
         {
-            var color = new Rgba32(value, 0, 0, 0);
-            return new Image<Rgba32>(Configuration.Default, 1, 1, color);
-        }
-
-        protected Image CreateImageR(float value)
-        {
-            MathEx.SaturateFloor(value, out var pixelValue);
-            return CreateImageR(in pixelValue);
-        }
-
-        protected Image CreateImage(in byte r, in byte g, in byte b)
-        {
-            var color = new Rgba32(r, g, b, 255);
-            return new Image<Rgba32>(Configuration.Default, 1, 1, color);
+            var assembly = Assembly.GetExecutingAssembly();
+            return Path.GetDirectoryName(assembly.Location);
         }
     }
 }

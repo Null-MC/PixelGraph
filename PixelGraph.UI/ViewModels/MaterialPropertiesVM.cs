@@ -31,6 +31,7 @@ namespace PixelGraph.UI.ViewModels
         public bool IsEmissiveSelected => TextureTags.Is(_selectedTag, TextureTags.Emissive);
 
         public string DefaultInputFormat => _packInput?.Format ?? MaterialProperties.DefaultInputFormat;
+        public string DefaultNormalFilter => MaterialNormalProperties.DefaultFilter.ToString();
         public string DefaultOcclusionQuality => MaterialOcclusionProperties.DefaultQuality.ToString("N3");
         public string DefaultOcclusionSteps => MaterialOcclusionProperties.DefaultSteps.ToString();
         public string DefaultOcclusionZBias => MaterialOcclusionProperties.DefaultZBias.ToString("N3");
@@ -458,16 +459,6 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public decimal? NormalStrength {
-            get => _material?.Normal?.Strength;
-            set {
-                _material.Normal ??= new MaterialNormalProperties();
-                _material.Normal.Strength = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
         public decimal? NormalNoise {
             get => _material?.Normal?.Noise;
             set {
@@ -498,16 +489,37 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public NormalMapFilters? NormalFilter {
+            get => _material?.Normal?.Filter;
+            set {
+                _material.Normal ??= new MaterialNormalProperties();
+                _material.Normal.Filter = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? NormalStrength {
+            get => _material?.Normal?.Strength;
+            set {
+                _material.Normal ??= new MaterialNormalProperties();
+                _material.Normal.Strength = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
         private void UpdateNormalProperties()
         {
             OnPropertyChanged(nameof(NormalTexture));
             OnPropertyChanged(nameof(NormalValueX));
             OnPropertyChanged(nameof(NormalValueY));
             OnPropertyChanged(nameof(NormalValueZ));
-            OnPropertyChanged(nameof(NormalStrength));
             OnPropertyChanged(nameof(NormalNoise));
             OnPropertyChanged(nameof(NormalCurveX));
             OnPropertyChanged(nameof(NormalCurveY));
+            OnPropertyChanged(nameof(NormalFilter));
+            OnPropertyChanged(nameof(NormalStrength));
         }
 
         #endregion

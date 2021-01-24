@@ -9,6 +9,7 @@
         xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
         xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
         xmlns:textures="clr-namespace:PixelGraph.Common.Textures;assembly=PixelGraph.Common"
+        xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
         Title="Pack Profiles" Width="1000" Height="800" mc:Ignorable="d"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
@@ -20,11 +21,11 @@
         d:DataContext="{d:DesignInstance vm:ProfilesDesignVM, IsDesignTimeCreatable=True}"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <vm:OptionalEncodingFormatValues x:Key="Formats"/>
-        <vm:TextureTagValues x:Key="TextureTags"/>
-        <vm:ColorChannelValues x:Key="ColorChannels"/>
-        <vm:NormalColorChannelValues x:Key="NormalColorChannels"/>
-        <vm:SamplerValues x:Key="Samplers"/>
+        <vd:OptionalEncodingFormatValues x:Key="Formats"/>
+        <vd:TextureTagValues x:Key="TextureTags"/>
+        <vd:ColorChannelValues x:Key="ColorChannels"/>
+        <vd:NormalColorChannelValues x:Key="NormalColorChannels"/>
+        <vd:SamplerValues x:Key="Samplers"/>
         <converters:NullableConverter x:Key="NullableConverter"/>
         <converters:TextureLabelConverter x:Key="TextureLabelConverter"/>
         <converters:SamplerLabelConverter x:Key="SamplerLabelConverter"/>

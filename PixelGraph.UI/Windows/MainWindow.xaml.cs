@@ -87,9 +87,22 @@ namespace PixelGraph.UI.Windows
                 loader.EnableAutoMaterial = settings.AutoMaterial;
 
                 vm.Profiles.Clear();
-                LoadProfiles();
 
-                await LoadPackInputAsync();
+                try {
+                    await LoadPackInputAsync();
+                }
+                catch (Exception error) {
+                    logger.LogError(error, "Failed to load pack input definitions!");
+                    ShowError("Failed to load pack input definitions!");
+                }
+
+                try {
+                    LoadProfiles();
+                }
+                catch (Exception error) {
+                    logger.LogError(error, "Failed to load pack profile definitions!");
+                    ShowError("Failed to load pack profile definitions!");
+                }
 
                 vm.TreeRoot = treeReader.GetRootNode();
                 vm.TreeRoot.UpdateVisibility(vm);
@@ -191,7 +204,15 @@ namespace PixelGraph.UI.Windows
 
             reader.SetRoot(vm.RootDirectory);
             vm.LoadedMaterialFilename = matFile;
-            vm.LoadedMaterial = await matReader.LoadAsync(matFile, token);
+
+            try {
+                vm.LoadedMaterial = await matReader.LoadAsync(matFile, token);
+            }
+            catch (Exception error) {
+                vm.LoadedMaterial = null;
+                logger.LogError(error, "Failed to load material properties!");
+                ShowError("Failed to load material properties!");
+            }
 
             if (vm.LoadedMaterial == null && settings.AutoMaterial) {
                 var localPath = Path.GetDirectoryName(matFile);

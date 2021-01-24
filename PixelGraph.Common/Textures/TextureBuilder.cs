@@ -98,12 +98,9 @@ namespace PixelGraph.Common.Textures
                 OutputPerceptual = outputChannel.Perceptual ?? false,
                 OutputInverted = outputChannel.Invert ?? false,
 
-                Shift = Material.GetChannelShift(outputChannel.ID),
-                Scale = Material.GetChannelScale(outputChannel.ID),
+                ValueShift = Material.GetChannelShift(outputChannel.ID),
+                ValueScale = Material.GetChannelScale(outputChannel.ID),
             };
-
-            var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
-            var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
 
             var inputChannel = InputChannels.FirstOrDefault(i
                 => EncodingChannel.Is(i.ID, outputChannel.ID));
@@ -140,6 +137,9 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
+            var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
+            var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
+
             // Rough > Smooth
             if (isOutputSmooth && TryGetInputChannel(EncodingChannel.Rough, out var roughChannel)
                                && TryGetSourceFilename(roughChannel.Texture, out mapping.SourceFilename)) {
@@ -153,6 +153,29 @@ namespace PixelGraph.Common.Textures
                 if (TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(smoothChannel);
                     mapping.InputInverted = true;
+                    return true;
+                }
+            }
+
+            var isOutputF0 = EncodingChannel.Is(outputChannel.ID, EncodingChannel.F0);
+            var isOutputMetal = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Metal);
+
+            // Metal > F0
+            if (isOutputF0 && TryGetInputChannel(EncodingChannel.Metal, out var metalChannel)) {
+                if (TryGetSourceFilename(metalChannel.Texture, out mapping.SourceFilename)) {
+                    mapping.ApplyInputChannel(metalChannel);
+                    //mapping.Threshold = 0.5f;
+                    mapping.IsMetalToF0 = true;
+                    return true;
+                }
+            }
+
+            // F0 > Metal
+            if (isOutputMetal && TryGetInputChannel(EncodingChannel.F0, out var f0Channel)) {
+                if (TryGetSourceFilename(f0Channel.Texture, out mapping.SourceFilename)) {
+                    mapping.ApplyInputChannel(f0Channel);
+                    //mapping.Threshold = 0.5f;
+                    mapping.IsF0ToMetal = true;
                     return true;
                 }
             }
@@ -200,7 +223,7 @@ namespace PixelGraph.Common.Textures
             if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
             // Common Processing
-            value = (value + mapping.Shift) * mapping.Scale;
+            value = (value + mapping.ValueShift) * mapping.ValueScale;
 
             if (mapping.OutputPerceptual)
                 MathEx.LinearToPerceptual(ref value);
@@ -294,8 +317,8 @@ namespace PixelGraph.Common.Textures
     {
         public ColorChannel InputColor;
         public decimal? InputValue;
-        public float InputMinValue;
-        public float InputMaxValue;
+        public double InputMinValue;
+        public double InputMaxValue;
         public byte InputRangeMin;
         public byte InputRangeMax;
         public int InputShift;
@@ -303,8 +326,8 @@ namespace PixelGraph.Common.Textures
         public bool InputInverted;
 
         public ColorChannel OutputColor;
-        public float OutputMinValue;
-        public float OutputMaxValue;
+        public double OutputMinValue;
+        public double OutputMaxValue;
         public byte OutputRangeMin;
         public byte OutputRangeMax;
         public int OutputShift;
@@ -313,8 +336,10 @@ namespace PixelGraph.Common.Textures
 
         public string SourceTag;
         public string SourceFilename;
-        public float Shift;
-        public float Scale;
+        public float ValueShift;
+        public float ValueScale;
+        public bool IsMetalToF0;
+        public bool IsF0ToMetal;
 
 
         public void ApplyInputChannel(ResourcePackChannelProperties channel)

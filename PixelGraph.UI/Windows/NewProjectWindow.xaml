@@ -7,6 +7,7 @@
                     xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
                     xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
                     xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
+                    xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
                     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
                     TextElement.FontWeight="Regular"
                     TextElement.FontSize="13"
@@ -18,7 +19,7 @@
                     d:DataContext="{d:DesignInstance vm:NewProjectDesignVM, IsDesignTimeCreatable=True}"
                     Title="Create a New Project" Width="500" Height="380" mc:Ignorable="d">
     <Window.Resources>
-        <vm:OptionalEncodingFormatValues x:Key="Formats"/>
+        <vd:OptionalEncodingFormatValues x:Key="Formats"/>
         <converters:FormatDescriptionConverter x:Key="FormatDescriptionConverter"/>
     </Window.Resources>
     <Window.DataContext>
@@ -47,6 +48,12 @@
                     </DockPanel>
                     <TextBlock Margin="12,20,12,12" TextWrapping="Wrap"
                         Text="Select a folder where the content of the project should be stored. This should be an empty folder with no existing content."/>
+                    <CheckBox Margin="12,20,12,4" Content="Create Minecraft folders" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"
+                              IsChecked="{Binding CreateMinecraftFolders, Mode=TwoWay}"/>
+                    <CheckBox Margin="12,4,12,4" Content="Create Optifine folders" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"
+                              IsChecked="{Binding CreateOptifineFolders, Mode=TwoWay}"/>
+                    <CheckBox Margin="12,4,12,12" Content="Create Realms folders" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"
+                              IsChecked="{Binding CreateRealmsFolders, Mode=TwoWay}"/>
                 </StackPanel>
             </ScrollViewer>
         </DockPanel>

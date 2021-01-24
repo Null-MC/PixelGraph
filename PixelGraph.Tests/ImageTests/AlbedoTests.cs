@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common;
+﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -10,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImageTests
 {
-    public class AlbedoTests : TestBase
+    public class AlbedoTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
@@ -63,14 +62,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(255)]
         [Theory] public async Task RedPassthrough(byte value)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var sourceImage = CreateImage(value, 0, 0);
-            await content.AddAsync("assets/test/albedo.png", sourceImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -80,9 +71,12 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            using var resultImage = await content.OpenImageAsync("assets/test.png");
-            PixelAssert.RedEquals(value, resultImage);
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/albedo.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test.png");
+            PixelAssert.RedEquals(value, image);
         }
 
         [InlineData(  0)]
@@ -91,14 +85,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(255)]
         [Theory] public async Task GreenPassthrough(byte value)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var sourceImage = CreateImage(0, value, 0);
-            await content.AddAsync("assets/test/albedo.png", sourceImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -108,9 +94,12 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            using var resultImage = await content.OpenImageAsync("assets/test.png");
-            PixelAssert.GreenEquals(value, resultImage);
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/albedo.png", 0, value, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test.png");
+            PixelAssert.GreenEquals(value, image);
         }
 
         [InlineData(  0, 0.00,   0)]
@@ -121,11 +110,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(200, 0.01,   2)]
         [Theory] public async Task ScaleRedValue(decimal value, decimal scale, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -139,8 +123,10 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            using var image = await content.OpenImageAsync("assets/test.png");
+            await using var graph = Graph(context);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -152,14 +138,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(200, 0.01,  2)]
         [Theory] public async Task ScaleRedTexture(byte value, decimal scale, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var srcImage = CreateImageR(value);
-            await content.AddAsync("assets/test/albedo.png", srcImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -172,22 +150,17 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            using var image = await content.OpenImageAsync("assets/test.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/albedo.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test.png");
             PixelAssert.RedEquals(expected, image);
         }
 
         [Fact]
         public async Task ShiftRgb()
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var image = CreateImage(60, 120, 180);
-            await content.AddAsync("assets/test/albedo.png", image);
-
             var context = new MaterialContext {
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -213,11 +186,14 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            using var outputImage = await content.OpenImageAsync("assets/test.png");
-            PixelAssert.RedEquals(120, outputImage);
-            PixelAssert.GreenEquals(180, outputImage);
-            PixelAssert.BlueEquals(60, outputImage);
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/albedo.png", 60, 120, 180);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test.png");
+            PixelAssert.RedEquals(120, image);
+            PixelAssert.GreenEquals(180, image);
+            PixelAssert.BlueEquals(60, image);
         }
     }
 }

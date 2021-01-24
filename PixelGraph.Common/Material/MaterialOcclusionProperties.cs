@@ -4,10 +4,10 @@ namespace PixelGraph.Common.Material
 {
     public class MaterialOcclusionProperties
     {
-        public const float DefaultQuality = 0.1f;
+        public const float DefaultQuality = 0.08f;
         public const float DefaultZScale = 25f;
-        public const float DefaultZBias = 1.0f;
-        public const int DefaultSteps = 32;
+        public const float DefaultZBias = 0.1f;
+        public const int DefaultSteps = 16;
 
         public ResourcePackOcclusionChannelProperties Input {get; set;}
         public string Texture {get; set;}

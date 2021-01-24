@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common;
+﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -10,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImageTests
 {
-    public class RoughTests : TestBase
+    public class RoughTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
@@ -41,14 +40,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(255)]
         [Theory] public async Task Passthrough(byte value)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var roughImage = CreateImageR(value);
-            await content.AddAsync("assets/test/rough.png", roughImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -58,8 +49,11 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_rough.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/rough.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(value, image);
         }
 
@@ -72,11 +66,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(0.784, 0.01,   2)]
         [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -90,8 +79,10 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_rough.png");
+            await using var graph = Graph(context);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -103,14 +94,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(200, 0.01,   2)]
         [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var srcImage = CreateImageR(value);
-            await content.AddAsync("assets/test/rough.png", srcImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -123,8 +106,11 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_rough.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/rough.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -134,14 +120,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(255,   0)]
         [Theory] public async Task ConvertsSmoothToRough(byte value, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var smoothImage = CreateImageR(value);
-            await content.AddAsync("assets/test/smooth.png", smoothImage);
-
             var context = new MaterialContext {
                 Input = new ResourcePackInputProperties {
                     Smooth = {
@@ -156,8 +134,11 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_rough.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/smooth.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

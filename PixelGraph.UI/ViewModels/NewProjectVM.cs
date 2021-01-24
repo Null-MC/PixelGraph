@@ -7,6 +7,9 @@ namespace PixelGraph.UI.ViewModels
         private NewProjectStates _state;
         private string _contentFormat;
         private string _location;
+        private bool _createMinecraftFolders;
+        private bool _createRealmsFolders;
+        private bool _createOptifineFolders;
         private bool _enablePackImport;
         private bool _createDefaultProfile;
         private bool _importFromDirectory;
@@ -26,6 +29,33 @@ namespace PixelGraph.UI.ViewModels
             set {
                 if (_location == value) return;
                 _location = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool CreateMinecraftFolders {
+            get => _createMinecraftFolders;
+            set {
+                if (_createMinecraftFolders == value) return;
+                _createMinecraftFolders = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool CreateRealmsFolders {
+            get => _createRealmsFolders;
+            set {
+                if (_createRealmsFolders == value) return;
+                _createRealmsFolders = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool CreateOptifineFolders {
+            get => _createOptifineFolders;
+            set {
+                if (_createOptifineFolders == value) return;
+                _createOptifineFolders = value;
                 OnPropertyChanged();
             }
         }
@@ -75,6 +105,9 @@ namespace PixelGraph.UI.ViewModels
         {
             _state = NewProjectStates.Location;
             _contentFormat = TextureEncoding.Format_Raw;
+            _createMinecraftFolders = true;
+            _createRealmsFolders = true;
+            _createOptifineFolders = true;
             _createDefaultProfile = true;
             _enablePackImport = false;
         }
@@ -96,7 +129,7 @@ namespace PixelGraph.UI.ViewModels
         {
             ContentFormat = TextureEncoding.Format_Raw;
             Location = "C:\\Somewhere\\over\\the\\rainbow";
-            SetState(NewProjectStates.Format);
+            SetState(NewProjectStates.Location);
         }
     }
 

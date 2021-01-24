@@ -494,6 +494,7 @@ namespace PixelGraph.Common.Textures
                     Source = heightTexture,
                     HeightChannel = heightChannel.Color ?? ColorChannel.None,
                     Strength = (float?)Context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
+                    Filter = Context.Material.Normal?.Filter ?? MaterialNormalProperties.DefaultFilter,
                     WrapX = Context.Material.WrapX ?? MaterialProperties.DefaultWrap,
                     WrapY = Context.Material.WrapY ?? MaterialProperties.DefaultWrap,
                 };

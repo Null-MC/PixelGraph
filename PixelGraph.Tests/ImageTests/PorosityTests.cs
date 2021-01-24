@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common;
+﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -10,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImageTests
 {
-    public class PorosityTests : TestBase
+    public class PorosityTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
@@ -41,14 +40,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(255)]
         [Theory] public async Task Passthrough(byte value)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var heightImage = CreateImageR(value);
-            await content.AddAsync("assets/test/porosity.png", heightImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -58,8 +49,11 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_p.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/porosity.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_p.png");
             PixelAssert.RedEquals(value, image);
         }
 
@@ -72,11 +66,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(200/255d, 0.01,   2)]
         [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -90,8 +79,10 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_p.png");
+            await using var graph = Graph(context);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_p.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -103,14 +94,6 @@ namespace PixelGraph.Tests.ImageTests
         [InlineData(200, 0.01,   2)]
         [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
-            await using var provider = Builder.Build();
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            var content = provider.GetRequiredService<MockFileContent>();
-            graphBuilder.UseGlobalOutput = true;
-
-            using var srcImage = CreateImageR(value);
-            await content.AddAsync("assets/test/porosity.png", srcImage);
-
             var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
@@ -123,8 +106,11 @@ namespace PixelGraph.Tests.ImageTests
                 },
             };
 
-            await graphBuilder.ProcessInputGraphAsync(context);
-            var image = await content.OpenImageAsync("assets/test_p.png");
+            await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/porosity.png", value, 0, 0);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_p.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

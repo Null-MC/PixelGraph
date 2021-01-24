@@ -57,7 +57,8 @@ namespace PixelGraph.Common.ImageProcessors
 
                         if (pixelInputRange > 0) {
                             var valueInputRange = mapping.InputMaxValue - mapping.InputMinValue;
-                            value *= (double)valueInputRange / pixelInputRange;
+                            if (!valueInputRange.Equal(pixelInputRange))
+                                value *= valueInputRange / pixelInputRange;
                         }
 
                         value += mapping.InputMinValue;
@@ -68,7 +69,11 @@ namespace PixelGraph.Common.ImageProcessors
                     }
 
                     // Common Processing
-                    value = (value + mapping.Shift) * mapping.Scale;
+                    if (!mapping.ValueShift.Equal(0f))
+                        value += mapping.ValueShift;
+
+                    if (!mapping.ValueScale.Equal(1f))
+                        value *= mapping.ValueScale;
 
                     if (mapping.OutputPerceptual) MathEx.LinearToPerceptual(ref value);
 
@@ -80,8 +85,10 @@ namespace PixelGraph.Common.ImageProcessors
 
                     var valueOut = value - mapping.OutputMinValue;
 
-                    if (valueRange > float.Epsilon)
-                        valueOut *= (double)pixelRange / valueRange;
+                    if (pixelRange == 0 || valueRange == 0)
+                        valueOut = 0;
+                    else if (!valueRange.Equal(pixelRange))
+                        valueOut *= pixelRange / valueRange;
 
                     valueOut += mapping.OutputRangeMin;
 

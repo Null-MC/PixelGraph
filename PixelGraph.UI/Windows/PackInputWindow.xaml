@@ -8,6 +8,7 @@
                     xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
                     xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
                     xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
+                    xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
                     d:DataContext="{d:DesignInstance vm:PackInput2DesignVM, IsDesignTimeCreatable=True}"
                     Title="Pack Input Encoding" Width="800" Height="480" mc:Ignorable="d"
                     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -21,9 +22,9 @@
         <vm:PackInputVM x:Name="VM"/>
     </Window.DataContext>
     <Window.Resources>
-        <vm:OptionalEncodingFormatValues x:Key="Formats"/>
-        <vm:OptionalTextureTagValues x:Key="TextureTags"/>
-        <vm:ColorChannelValues x:Key="ColorChannels"/>
+        <vd:OptionalEncodingFormatValues x:Key="Formats"/>
+        <vd:OptionalTextureTagValues x:Key="TextureTags"/>
+        <vd:ColorChannelValues x:Key="ColorChannels"/>
         <converters:TextureLabelConverter x:Key="TextureTagConverter"/>
         <converters:NullableConverter x:Key="NullableConverter"/>
     </Window.Resources>

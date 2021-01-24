@@ -14,6 +14,11 @@ namespace PixelGraph.Common.Extensions
             return MathF.Abs(valueA - valueB) < float.Epsilon;
         }
 
+        public static bool Equal(this double valueA, double valueB)
+        {
+            return Math.Abs(valueA - valueB) < double.Epsilon;
+        }
+
         public static void Normalize(ref Vector3 value)
         {
             float length;
