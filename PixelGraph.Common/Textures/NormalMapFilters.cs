@@ -13,7 +13,7 @@ namespace PixelGraph.Common.Textures
         [EnumMember(Value = "sobel-low")]
         SobelLow,
 
-        [EnumMember(Value = "spline")]
-        Spline,
+        [EnumMember(Value = "variance")]
+        Variance,
     }
 }

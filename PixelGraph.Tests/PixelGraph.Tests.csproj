@@ -32,6 +32,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Data\height-round.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Data\height.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

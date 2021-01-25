@@ -489,20 +489,24 @@ namespace PixelGraph.Common.Textures
                     return new Image<Rgb24>(Configuration.Default, width, height, up);
                 }
                 else throw new HeightSourceEmptyException();
-                
-                var options = new NormalMapProcessor.Options {
-                    Source = heightTexture,
+
+                var builder = new NormalMapBuilder {
+                    HeightImage = heightTexture,
                     HeightChannel = heightChannel.Color ?? ColorChannel.None,
-                    Strength = (float?)Context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
                     Filter = Context.Material.Normal?.Filter ?? MaterialNormalProperties.DefaultFilter,
+                    Strength = (float?)Context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
                     WrapX = Context.Material.WrapX ?? MaterialProperties.DefaultWrap,
                     WrapY = Context.Material.WrapY ?? MaterialProperties.DefaultWrap,
+
+                    // TODO: testing
+                    VarianceStrength = 0.998f,
+                    LowFreqDownscale = 4,
+                    VarianceBlur = 3f,
                 };
 
-                var processor = new NormalMapProcessor(options);
-                var image = new Image<Rgb24>(Configuration.Default, heightTexture.Width, heightTexture.Height);
-                image.Mutate(c => c.ApplyProcessor(processor));
-                return image;
+                builder.LowFreqStrength = builder.Strength / 4f;
+
+                return builder.Build();
             }
             finally {
                 heightTexture?.Dispose();

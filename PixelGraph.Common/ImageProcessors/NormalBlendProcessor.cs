@@ -1,6 +1,5 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.PixelOperations;
-using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -20,68 +19,38 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
-            var pixelSrc = new Rgba32();
-            var pixelBlend = new Rgba32();
+            var pixelOut = new Rgb24();
+            var vectorFinal = new Vector3();
 
-            var blendRow = options.BlendImage.GetPixelRowSpan(context.Y);
+            var rowHigh = options.HighFreqNormalImage.GetPixelRowSpan(context.Y);
+            var rowLow = options.LowFreqNormalImage.GetPixelRowSpan(context.Y);
+            var rowVariance = options.VarianceImage.GetPixelRowSpan(context.Y);
 
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                row[x].ToRgba32(ref pixelSrc);
-                blendRow[x].ToRgba32(ref pixelBlend);
+                rowVariance[x].GetChannelValueScaledF(out var variance);
 
-                // Convert Source from Normal to Vector
-                pixelSrc.GetChannelValueScaledF(ColorChannel.Red, out var normalSrcX);
-                pixelSrc.GetChannelValueScaledF(ColorChannel.Green, out var normalSrcY);
+                rowHigh[x].ToNormalVector(out var vectorHigh);
+                vectorHigh.ToEuler(out var angleHigh);
 
-                var vxSrc = Math.Clamp(normalSrcX * 2f - 1f, -1f, 1f);
-                var vySrc = Math.Clamp(normalSrcY * 2f - 1f, -1f, 1f);
-                var angleSrcX = MathF.Asin(vxSrc) / MathEx.Deg2Rad;
-                var angleSrcY = MathF.Asin(vySrc) / MathEx.Deg2Rad;
+                rowLow[x].ToNormalVector(out var vectorLow);
+                vectorLow.ToEuler(out var angleLow);
 
-                // Convert Blend from Normal to Vector
-                pixelBlend.GetChannelValueScaledF(ColorChannel.Red, out var normalBlendX);
-                pixelBlend.GetChannelValueScaledF(ColorChannel.Green, out var normalBlendY);
+                MathEx.Lerp(in angleLow, in angleHigh, in variance, out var angleFinal);
 
-                var vxBlend = Math.Clamp(normalBlendX * 2f - 1f, -1f, 1f);
-                var vyBlend = Math.Clamp(normalBlendY * 2f - 1f, -1f, 1f);
-                var angleBlendX = MathF.Asin(vxBlend) / MathEx.Deg2Rad;
-                var angleBlendY = MathF.Asin(vyBlend) / MathEx.Deg2Rad;
+                MathEx.Clamp(ref angleFinal.X, -90f, 90f);
+                MathEx.Clamp(ref angleFinal.Y, -90f, 90f);
 
-                // TODO: MATH
-                //var angleFinalX = angleSrcX + angleBlendX;
-                //var angleFinalY = angleSrcY + angleBlendY;
-
-                var blend = options.Blend;
-                MathEx.Clamp(ref blend, 0f, 1f);
-                MathEx.Lerp(angleSrcX, angleBlendX, blend, out var angleFinalX);
-                MathEx.Lerp(angleSrcY, angleBlendY, blend, out var angleFinalY);
-
-                // Convert from Vector to Normal
-                MathEx.Clamp(ref angleFinalX, -90f, 90f);
-                MathEx.Clamp(ref angleFinalY, -90f, 90f);
-
-                var sinX = MathF.Sin(angleFinalX * MathEx.Deg2Rad);
-                var cosX = MathF.Cos(angleFinalX * MathEx.Deg2Rad);
-                var sinY = MathF.Sin(angleFinalY * MathEx.Deg2Rad);
-                var cosY = MathF.Cos(angleFinalY * MathEx.Deg2Rad);
-
-                Vector3 v;
-                v.X = sinX * cosY;
-                v.Y = sinY * cosX;
-                v.Z = cosX * cosY;
-                MathEx.Normalize(ref v);
-
-                pixelSrc.SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
-                pixelSrc.SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
-                pixelSrc.SetChannelValueScaledF(ColorChannel.Blue, v.Z);
-                row[x].FromRgba32(pixelSrc);
+                vectorFinal.FromEuler(in angleFinal);
+                pixelOut.FromNormalVector(in vectorFinal);
+                row[x].FromRgb24(pixelOut);
             }
         }
 
         public class Options
         {
-            public Image<Rgb24> BlendImage;
-            public float Blend = 0f;
+            public Image<Rgb24> HighFreqNormalImage;
+            public Image<Rgb24> LowFreqNormalImage;
+            public Image<L8> VarianceImage;
         }
     }
 }

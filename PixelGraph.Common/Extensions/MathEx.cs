@@ -112,9 +112,24 @@ namespace PixelGraph.Common.Extensions
         //    return (byte)Math.Clamp(value * 255d + 0.5d, 0, 255);
         //}
 
+        #region Lerp
+
         public static void Lerp(in float min, in float max, in float mix, out float result)
         {
             result = min * (1f - mix) + max * mix;
+        }
+
+        public static void Lerp(in Vector2 min, in Vector2 max, in float mix, out Vector2 result)
+        {
+            Lerp(in min.X, in max.X, in mix, out result.X);
+            Lerp(in min.Y, in max.Y, in mix, out result.Y);
+        }
+
+        public static void Lerp(in Vector3 min, in Vector3 max, in float mix, out Vector3 result)
+        {
+            Lerp(in min.X, in max.X, in mix, out result.X);
+            Lerp(in min.Y, in max.Y, in mix, out result.Y);
+            Lerp(in min.Z, in max.Z, in mix, out result.Z);
         }
 
         public static void Lerp(in Vector4 min, in Vector4 max, in float mix, out Vector4 result)
@@ -124,6 +139,33 @@ namespace PixelGraph.Common.Extensions
             Lerp(in min.Z, in max.Z, in mix, out result.Z);
             Lerp(in min.W, in max.W, in mix, out result.W);
         }
+
+        #endregion
+
+        #region SmoothLerp
+
+        //public static void SmoothLerp(in float min, in float max, in float mix, out float result)
+        //{
+        //    var f = (mix - min) / (max - min);
+        //    Clamp(ref f, 0f, 1f);
+
+        //    result = f * f * f * (f * (f * 6 - 15) + 10);
+        //}
+
+        //public static void SmoothLerp(in Vector2 min, in Vector2 max, in float mix, out Vector2 result)
+        //{
+        //    SmoothLerp(in min.X, in max.X, in mix, out result.X);
+        //    SmoothLerp(in min.Y, in max.Y, in mix, out result.Y);
+        //}
+
+        //public static void SmoothLerp(in Vector3 min, in Vector3 max, in float mix, out Vector3 result)
+        //{
+        //    SmoothLerp(in min.X, in max.X, in mix, out result.X);
+        //    SmoothLerp(in min.Y, in max.Y, in mix, out result.Y);
+        //    SmoothLerp(in min.Z, in max.Z, in mix, out result.Z);
+        //}
+
+        #endregion
 
         //public static void Cycle(ref byte value, in int offset)
         //{

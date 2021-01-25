@@ -10,6 +10,7 @@ namespace PixelGraph.UI.ViewData
             Add(new Item {Text = "Sobel-3", Value = NormalMapFilters.Sobel3});
             Add(new Item {Text = "Sobel-High", Value = NormalMapFilters.SobelHigh});
             Add(new Item {Text = "Sobel-Low", Value = NormalMapFilters.SobelLow});
+            Add(new Item {Text = "Variance", Value = NormalMapFilters.Variance});
         }
 
         public class Item

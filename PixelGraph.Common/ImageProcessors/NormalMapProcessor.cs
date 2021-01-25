@@ -28,12 +28,11 @@ namespace PixelGraph.Common.ImageProcessors
                 case NormalMapFilters.SobelLow:
                     CalculateSobel3LowPass(in context, out normal);
                     break;
-                case NormalMapFilters.Spline:
-                    CalculateSpline(in context, out normal);
-                    break;
-                default:
+                case NormalMapFilters.Sobel3:
                     CalculateSobel3(in context, out normal);
                     break;
+                default:
+                    throw new ApplicationException($"Unsupported filter '{options.Filter}'!");
             }
             
             pixel.SetChannelValueScaledF(ColorChannel.Red, normal.X * 0.5f + 0.5f);
@@ -83,11 +82,6 @@ namespace PixelGraph.Common.ImageProcessors
 
             GetSobelDerivative(ref k, out var derivative);
             CalculateNormal(in derivative, out normal);
-        }
-
-        private void CalculateSpline(in PixelContext context, out Vector3 normal)
-        {
-            throw new NotImplementedException();
         }
 
         private void PopulateKernel_3x3(ref float[,] kernel, in PixelContext context)

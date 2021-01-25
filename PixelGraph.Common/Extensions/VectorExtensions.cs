@@ -1,6 +1,6 @@
-﻿using System;
+﻿using PixelGraph.Common.Textures;
+using System;
 using System.Numerics;
-using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Extensions
 {
@@ -35,6 +35,27 @@ namespace PixelGraph.Common.Extensions
                 default:
                     throw new ArgumentOutOfRangeException(nameof(channel), channel, "Unknown vector channel!");
             }
+        }
+
+        public static void ToEuler(this in Vector3 vector, out Vector2 angle)
+        {
+            angle.X = MathF.Asin(vector.X) / MathEx.Deg2Rad;
+            angle.Y = MathF.Asin(vector.Y) / MathEx.Deg2Rad;
+        }
+
+        public static void FromEuler(this ref Vector3 vector, in Vector2 angle)
+        {
+            var sinX = MathF.Sin(angle.X * MathEx.Deg2Rad);
+            var cosX = MathF.Cos(angle.X * MathEx.Deg2Rad);
+            var sinY = MathF.Sin(angle.Y * MathEx.Deg2Rad);
+            var cosY = MathF.Cos(angle.Y * MathEx.Deg2Rad);
+
+            vector.X = sinX * cosY;
+            vector.Y = sinY * cosX;
+            vector.Z = cosX * cosY;
+
+            if (vector.LengthSquared() >= float.Epsilon) MathEx.Normalize(ref vector);
+            else vector = Vector3.UnitZ;
         }
     }
 }
