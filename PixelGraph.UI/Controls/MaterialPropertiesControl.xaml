@@ -231,7 +231,7 @@
                                      PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                      Text="{Binding OcclusionScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
-                        <local:PropertyGridItem Header="Quality">
+                        <local:PropertyGridItem Header="Quality" Margin="0,8,0,0">
                             <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
@@ -346,6 +346,11 @@
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding F0Value, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
+                        <!--<local:PropertyGridItem Header="IOR Value">
+                            <TextBox Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
+                                     Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                     Text="{Binding IORValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        </local:PropertyGridItem>-->
                         <local:PropertyGridItem Header="Scale">
                             <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="1.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
