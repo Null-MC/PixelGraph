@@ -160,25 +160,25 @@ namespace PixelGraph.Common.Textures
             var isOutputF0 = EncodingChannel.Is(outputChannel.ID, EncodingChannel.F0);
             var isOutputMetal = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Metal);
 
-            // Metal > F0
-            if (isOutputF0 && TryGetInputChannel(EncodingChannel.Metal, out var metalChannel)) {
-                if (TryGetSourceFilename(metalChannel.Texture, out mapping.SourceFilename)) {
-                    mapping.ApplyInputChannel(metalChannel);
-                    //mapping.Threshold = 0.5f;
-                    mapping.IsMetalToF0 = true;
-                    return true;
-                }
-            }
+            //// Metal > F0
+            //if (isOutputF0 && TryGetInputChannel(EncodingChannel.Metal, out var metalChannel)) {
+            //    if (TryGetSourceFilename(metalChannel.Texture, out mapping.SourceFilename)) {
+            //        mapping.ApplyInputChannel(metalChannel);
+            //        //mapping.Threshold = 0.5f;
+            //        mapping.IsMetalToF0 = true;
+            //        return true;
+            //    }
+            //}
 
-            // F0 > Metal
-            if (isOutputMetal && TryGetInputChannel(EncodingChannel.F0, out var f0Channel)) {
-                if (TryGetSourceFilename(f0Channel.Texture, out mapping.SourceFilename)) {
-                    mapping.ApplyInputChannel(f0Channel);
-                    //mapping.Threshold = 0.5f;
-                    mapping.IsF0ToMetal = true;
-                    return true;
-                }
-            }
+            //// F0 > Metal
+            //if (isOutputMetal && TryGetInputChannel(EncodingChannel.F0, out var f0Channel)) {
+            //    if (TryGetSourceFilename(f0Channel.Texture, out mapping.SourceFilename)) {
+            //        mapping.ApplyInputChannel(f0Channel);
+            //        //mapping.Threshold = 0.5f;
+            //        mapping.IsF0ToMetal = true;
+            //        return true;
+            //    }
+            //}
 
             return CreateEmpty;
         }
