@@ -440,8 +440,8 @@ namespace PixelGraph.Common.Textures
                     InputMaxValue = 1f,
                     InputRangeMin = 0,
                     InputRangeMax = 255,
-                    //InputPower = 1f,
-                    InputPerceptual = false,
+                    InputPower = 1f,
+                    //InputPerceptual = false,
                     InputInvert = false,
                 };
 
@@ -557,8 +557,8 @@ namespace PixelGraph.Common.Textures
                     HeightRangeMin = heightChannel.RangeMin ?? 0,
                     HeightRangeMax = heightChannel.RangeMax ?? 255,
                     HeightShift = heightChannel.Shift ?? 0,
-                    //HeightPower = (float?)heightChannel.Power ?? 0f,
-                    HeightPerceptual = heightChannel.Perceptual ?? false,
+                    HeightPower = (float?)heightChannel.Power ?? 0f,
+                    //HeightPerceptual = heightChannel.Perceptual ?? false,
                     HeightInvert = heightChannel.Invert ?? false,
                     //EmissiveSource = emissiveImage,
                     //EmissiveChannel = emissiveChannel,

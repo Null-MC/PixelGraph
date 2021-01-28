@@ -65,7 +65,10 @@ namespace PixelGraph.Common.ImageProcessors
 
                         if (mapping.InputInverted) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
 
-                        if (mapping.InputPerceptual) MathEx.PerceptualToLinear(ref value);
+                        //if (mapping.InputPerceptual) MathEx.PerceptualToLinear(ref value);
+
+                        if (!mapping.InputPower.Equal(1d))
+                            value = Math.Pow(value, 1d / mapping.InputPower);
                     }
 
                     // Common Processing
@@ -75,7 +78,10 @@ namespace PixelGraph.Common.ImageProcessors
                     if (!mapping.ValueScale.Equal(1f))
                         value *= mapping.ValueScale;
 
-                    if (mapping.OutputPerceptual) MathEx.LinearToPerceptual(ref value);
+                    //if (mapping.OutputPerceptual) MathEx.LinearToPerceptual(ref value);
+
+                    if (!mapping.OutputPower.Equal(1d))
+                        value = Math.Pow(value, mapping.OutputPower);
 
                     if (mapping.OutputInverted) MathEx.Invert(ref value, mapping.InputMinValue, mapping.OutputMaxValue);
 

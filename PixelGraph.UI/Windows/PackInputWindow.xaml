@@ -269,7 +269,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
                 </DataGridTemplateColumn>
-                <!--<DataGridTemplateColumn Header="Power">
+                <DataGridTemplateColumn Header="Power">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <Grid>
@@ -293,8 +293,8 @@
                                                 Text="{Binding Power, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellEditingTemplate>
-                </DataGridTemplateColumn>-->
-                <DataGridTemplateColumn Header="Perceptual" Width="80">
+                </DataGridTemplateColumn>
+                <!--<DataGridTemplateColumn Header="Perceptual" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">
                             <controls:CheckBoxEx HorizontalAlignment="Center" IsTabStop="False"
@@ -303,7 +303,7 @@
                                                  IsChecked="{Binding Perceptual, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                </DataGridTemplateColumn>-->
                 <DataGridTemplateColumn Header="Invert" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="vm:InputChannelMapping">

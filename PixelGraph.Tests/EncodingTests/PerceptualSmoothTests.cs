@@ -1,36 +1,36 @@
-﻿using PixelGraph.Common;
+﻿using System.Threading.Tasks;
+using PixelGraph.Common;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.ImageTests
+namespace PixelGraph.Tests.EncodingTests
 {
-    public class HeightTests : ImageTestBase
+    public class PerceptualSmoothTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public HeightTests(ITestOutputHelper output) : base(output)
+        public PerceptualSmoothTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Height = {
-                    Texture = TextureTags.Height,
+                Smooth = {
+                    Texture = TextureTags.Smooth,
                     Color = ColorChannel.Red,
-                    Invert = true,
-                },
+                    Perceptual = true,
+                }
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Height = {
-                        Texture = TextureTags.Height,
+                    Smooth = {
+                        Texture = TextureTags.Smooth,
                         Color = ColorChannel.Red,
-                        Invert = true,
+                        Perceptual = true,
                     },
                 },
             };
@@ -52,68 +52,68 @@ namespace PixelGraph.Tests.ImageTests
             };
 
             await using var graph = Graph(context);
-            await graph.CreateImageAsync("assets/test/height.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/smooth.png", value, 0, 0);
             await graph.ProcessAsync();
-            
-            using var image = await graph.GetImageAsync("assets/test_h.png");
+
+            using var image = await graph.GetImageAsync("assets/test_smooth.png");
             PixelAssert.RedEquals(value, image);
         }
 
-        [InlineData(0.000, 0.00, 255)]
-        [InlineData(1.000, 0.00, 255)]
-        [InlineData(0.392, 1.00, 155)]
-        [InlineData(0.392, 0.50, 205)]
-        [InlineData(0.392, 2.00,  55)]
-        [InlineData(0.392, 3.00,   0)]
-        [InlineData(0.784, 0.01, 253)]
-        [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
+        [InlineData(  0,   0)]
+        [InlineData(100,  56)]
+        [InlineData(200, 137)]
+        [InlineData(255, 255)]
+        [Theory] public async Task ConvertsSmoothToPerceptualSmooth(byte value, byte expected)
         {
             var context = new MaterialContext {
-                Input = packInput,
+                Input = new ResourcePackInputProperties {
+                    Smooth = {
+                        Texture = TextureTags.Smooth,
+                        Color = ColorChannel.Red,
+                    },
+                },
                 Profile = packProfile,
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Height = new MaterialHeightProperties {
-                        Value = value,
-                        Scale = scale,
-                    },
                 },
             };
 
             await using var graph = Graph(context);
+            await graph.CreateImageAsync("assets/test/smooth.png", value, 0, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_h.png");
+            using var image = await graph.GetImageAsync("assets/test_smooth.png");
             PixelAssert.RedEquals(expected, image);
         }
 
-        [InlineData(  0, 0.00, 255)]
-        [InlineData(255, 0.00, 255)]
-        [InlineData(100, 1.00, 100)]
-        [InlineData(155, 0.50, 205)]
-        [InlineData(155, 2.00,  55)]
-        [InlineData(155, 3.00,   0)]
-        [InlineData( 55, 0.01, 253)]
-        [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
+        [InlineData(255,   0)]
+        [InlineData(200,  29)]
+        [InlineData(100,  95)]
+        [InlineData( 50, 142)]
+        [InlineData(  0, 255)]
+        [Theory] public async Task ConvertsRoughToPerceptualSmooth(byte value, byte expected)
         {
             var context = new MaterialContext {
-                Input = packInput,
+                Input = new ResourcePackInputProperties {
+                    Rough = {
+                        Texture = TextureTags.Rough,
+                        Color = ColorChannel.Red,
+                        Perceptual = false,
+                    },
+                },
                 Profile = packProfile,
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Height = new MaterialHeightProperties {
-                        Scale = scale,
-                    },
                 },
             };
 
             await using var graph = Graph(context);
-            await graph.CreateImageAsync("assets/test/height.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/rough.png", value, 0, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_h.png");
+            using var image = await graph.GetImageAsync("assets/test_smooth.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

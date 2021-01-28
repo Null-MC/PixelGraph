@@ -377,7 +377,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
                             </DataGridTemplateColumn>
-                            <!--<DataGridTemplateColumn Header="Power">
+                            <DataGridTemplateColumn Header="Power">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <Grid>
@@ -401,8 +401,8 @@
                                                             Text="{Binding Power, Mode=TwoWay, Converter={StaticResource NullableConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellEditingTemplate>
-                            </DataGridTemplateColumn>-->
-                            <DataGridTemplateColumn Header="Perceptual" Width="80">
+                            </DataGridTemplateColumn>
+                            <!--<DataGridTemplateColumn Header="Perceptual" Width="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <controls:CheckBoxEx HorizontalAlignment="Center"
@@ -411,7 +411,7 @@
                                                   IsChecked="{Binding Perceptual, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
+                            </DataGridTemplateColumn>-->
                             <DataGridTemplateColumn Header="Invert" Width="80">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate DataType="vm:OutputChannelMapping">

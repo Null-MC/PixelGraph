@@ -126,8 +126,8 @@ namespace PixelGraph.Common.ImageProcessors
             public byte HeightRangeMin;
             public byte HeightRangeMax;
             public int HeightShift;
-            //public float HeightPower;
-            public bool HeightPerceptual;
+            public float HeightPower;
+            //public bool HeightPerceptual;
             public bool HeightInvert;
             public int StepCount;
             public float ZScale;

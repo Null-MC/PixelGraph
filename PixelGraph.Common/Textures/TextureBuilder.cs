@@ -90,12 +90,13 @@ namespace PixelGraph.Common.Textures
         {
             mapping = new TextureChannelMapping {
                 OutputColor = outputChannel.Color ?? ColorChannel.None,
-                OutputMinValue = (float?)outputChannel.MinValue ?? 0f,
-                OutputMaxValue = (float?)outputChannel.MaxValue ?? 1f,
+                OutputMinValue = (double?)outputChannel.MinValue ?? 0f,
+                OutputMaxValue = (double?)outputChannel.MaxValue ?? 1f,
                 OutputRangeMin = outputChannel.RangeMin ?? 0,
                 OutputRangeMax = outputChannel.RangeMax ?? 255,
                 OutputShift = outputChannel.Shift ?? 0,
-                OutputPerceptual = outputChannel.Perceptual ?? false,
+                OutputPower = (double?)outputChannel.Power ?? 1,
+                //OutputPerceptual = outputChannel.Perceptual ?? false,
                 OutputInverted = outputChannel.Invert ?? false,
 
                 ValueShift = Material.GetChannelShift(outputChannel.ID),
@@ -131,7 +132,8 @@ namespace PixelGraph.Common.Textures
                     mapping.InputRangeMin = 0;
                     mapping.InputRangeMax = 255;
                     mapping.InputShift = 0;
-                    mapping.InputPerceptual = false;
+                    mapping.InputPower = 1;
+                    //mapping.InputPerceptual = false;
                     mapping.InputInverted = true;
                     return true;
                 }
@@ -157,8 +159,8 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
-            var isOutputF0 = EncodingChannel.Is(outputChannel.ID, EncodingChannel.F0);
-            var isOutputMetal = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Metal);
+            //var isOutputF0 = EncodingChannel.Is(outputChannel.ID, EncodingChannel.F0);
+            //var isOutputMetal = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Metal);
 
             //// Metal > F0
             //if (isOutputF0 && TryGetInputChannel(EncodingChannel.Metal, out var metalChannel)) {
@@ -225,8 +227,11 @@ namespace PixelGraph.Common.Textures
             // Common Processing
             value = (value + mapping.ValueShift) * mapping.ValueScale;
 
-            if (mapping.OutputPerceptual)
-                MathEx.LinearToPerceptual(ref value);
+            //if (mapping.OutputPerceptual)
+            //    MathEx.LinearToPerceptual(ref value);
+
+            if (!mapping.OutputPower.Equal(1))
+                value = Math.Pow(value, mapping.OutputPower);
 
             if (mapping.OutputInverted) MathEx.Invert(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
 
@@ -322,7 +327,8 @@ namespace PixelGraph.Common.Textures
         public byte InputRangeMin;
         public byte InputRangeMax;
         public int InputShift;
-        public bool InputPerceptual;
+        public double InputPower;
+        //public bool InputPerceptual;
         public bool InputInverted;
 
         public ColorChannel OutputColor;
@@ -331,26 +337,28 @@ namespace PixelGraph.Common.Textures
         public byte OutputRangeMin;
         public byte OutputRangeMax;
         public int OutputShift;
-        public bool OutputPerceptual;
+        public double OutputPower;
+        //public bool OutputPerceptual;
         public bool OutputInverted;
 
         public string SourceTag;
         public string SourceFilename;
         public float ValueShift;
         public float ValueScale;
-        public bool IsMetalToF0;
-        public bool IsF0ToMetal;
+        //public bool IsMetalToF0;
+        //public bool IsF0ToMetal;
 
 
         public void ApplyInputChannel(ResourcePackChannelProperties channel)
         {
             InputColor = channel.Color ?? ColorChannel.None;
-            InputMinValue = (float?)channel.MinValue ?? 0f;
-            InputMaxValue = (float?)channel.MaxValue ?? 1f;
+            InputMinValue = (double?)channel.MinValue ?? 0d;
+            InputMaxValue = (double?)channel.MaxValue ?? 1d;
             InputRangeMin = channel.RangeMin ?? 0;
             InputRangeMax = channel.RangeMax ?? 255;
             InputShift = channel.Shift ?? 0;
-            InputPerceptual = channel.Perceptual ?? false;
+            InputPower = (double?)channel.Power ?? 1d;
+            //InputPerceptual = channel.Perceptual ?? false;
             InputInverted = channel.Invert ?? false;
         }
     }
