@@ -14,7 +14,7 @@ namespace PixelGraph.UI.ViewModels
         public event EventHandler DataChanged;
 
         public bool HasMaterial => _material != null;
-        public bool IsGeneralSelected => _selectedTag == null;
+        //public bool IsGeneralSelected => _selectedTag == null;
         public bool IsAlphaSelected => TextureTags.Is(_selectedTag, TextureTags.Alpha);
         public bool IsAlbedoSelected => TextureTags.Is(_selectedTag, TextureTags.Albedo);
         public bool IsDiffuseSelected => TextureTags.Is(_selectedTag, TextureTags.Diffuse);
@@ -76,7 +76,7 @@ namespace PixelGraph.UI.ViewModels
                 _selectedTag = value;
                 OnPropertyChanged();
 
-                OnPropertyChanged(nameof(IsGeneralSelected));
+                //OnPropertyChanged(nameof(IsGeneralSelected));
                 OnPropertyChanged(nameof(IsAlphaSelected));
                 OnPropertyChanged(nameof(IsAlbedoSelected));
                 OnPropertyChanged(nameof(IsDiffuseSelected));
@@ -93,6 +93,12 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged(nameof(IsEmissiveSelected));
             }
         }
+
+
+        //public MaterialPropertiesVM()
+        //{
+        //    _selectedTag = TextureTags.Albedo;
+        //}
 
         #region General
 

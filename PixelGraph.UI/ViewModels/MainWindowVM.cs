@@ -5,6 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using PixelGraph.Common.Textures;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -199,6 +200,8 @@ namespace PixelGraph.UI.ViewModels
             Profiles = new ObservableCollection<ProfileItem>();
             _treeRoot = new ContentTreeNode(null);
             busyLock = new object();
+
+            _selectedTag = TextureTags.Albedo;
         }
 
         public bool TryStartBusy()
