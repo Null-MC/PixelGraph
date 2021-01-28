@@ -7,30 +7,30 @@ using PixelGraph.Tests.Internal;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.EncodingTests
+namespace PixelGraph.Tests.EncodingChannelTests
 {
-    public class PerceptualSmoothTests : ImageTestBase
+    public class OcclusionTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public PerceptualSmoothTests(ITestOutputHelper output) : base(output)
+        public OcclusionTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Smooth = {
-                    Texture = TextureTags.Smooth,
+                Occlusion = {
+                    Texture = TextureTags.Occlusion,
                     Color = ColorChannel.Red,
-                    Perceptual = true,
-                }
+                    Invert = true,
+                },
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Smooth = {
-                        Texture = TextureTags.Smooth,
+                    Occlusion = {
+                        Texture = TextureTags.Occlusion,
                         Color = ColorChannel.Red,
-                        Perceptual = true,
+                        Invert = true,
                     },
                 },
             };
@@ -52,68 +52,68 @@ namespace PixelGraph.Tests.EncodingTests
             };
 
             await using var graph = Graph(context);
-            await graph.CreateImageAsync("assets/test/smooth.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/occlusion.png", value, 0, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_smooth.png");
+            using var image = await graph.GetImageAsync("assets/test_ao.png");
             PixelAssert.RedEquals(value, image);
         }
 
-        [InlineData(  0,   0)]
-        [InlineData(100,  56)]
-        [InlineData(200, 137)]
-        [InlineData(255, 255)]
-        [Theory] public async Task ConvertsSmoothToPerceptualSmooth(byte value, byte expected)
+        [InlineData(0.000,  0.0f, 255)]
+        [InlineData(1.000,  0.0f, 255)]
+        [InlineData(0.392,  1.0f, 155)]
+        [InlineData(0.392,  0.5f, 205)]
+        [InlineData(0.392,  2.0f,  55)]
+        [InlineData(0.392,  3.0f,   0)]
+        [InlineData(0.784, 0.01f, 253)]
+        [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
             var context = new MaterialContext {
-                Input = new ResourcePackInputProperties {
-                    Smooth = {
-                        Texture = TextureTags.Smooth,
-                        Color = ColorChannel.Red,
-                    },
-                },
+                Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
+                    Occlusion = new MaterialOcclusionProperties {
+                        Value = value,
+                        Scale = scale,
+                    },
                 },
             };
 
             await using var graph = Graph(context);
-            await graph.CreateImageAsync("assets/test/smooth.png", value, 0, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_smooth.png");
+            using var image = await graph.GetImageAsync("assets/test_ao.png");
             PixelAssert.RedEquals(expected, image);
         }
 
-        [InlineData(255,   0)]
-        [InlineData(200,  29)]
-        [InlineData(100,  95)]
-        [InlineData( 50, 142)]
-        [InlineData(  0, 255)]
-        [Theory] public async Task ConvertsRoughToPerceptualSmooth(byte value, byte expected)
+        [InlineData(  0,  0.0, 255)]
+        [InlineData(255,  0.0, 255)]
+        [InlineData(100,  1.0, 100)]
+        [InlineData(155,  0.5, 205)]
+        [InlineData(155,  2.0,  55)]
+        [InlineData(155,  3.0,   0)]
+        [InlineData( 55, 0.01, 253)]
+        [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
             var context = new MaterialContext {
-                Input = new ResourcePackInputProperties {
-                    Rough = {
-                        Texture = TextureTags.Rough,
-                        Color = ColorChannel.Red,
-                        Perceptual = false,
-                    },
-                },
+                Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
+                    Occlusion = new MaterialOcclusionProperties {
+                        Scale = scale,
+                    },
                 },
             };
 
             await using var graph = Graph(context);
-            await graph.CreateImageAsync("assets/test/rough.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/occlusion.png", value, 0, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_smooth.png");
+            using var image = await graph.GetImageAsync("assets/test_ao.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

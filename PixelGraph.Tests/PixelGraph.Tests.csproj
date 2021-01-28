@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="EncodingTests\PerceptualSmoothTests.cs" />
-    <Compile Remove="EncodingTests\PorositySSSTests.cs" />
+    <Compile Remove="EncodingChannelTests\PerceptualSmoothTests.cs" />
+    <Compile Remove="EncodingChannelTests\PorositySSSTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

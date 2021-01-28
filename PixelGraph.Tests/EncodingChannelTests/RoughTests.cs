@@ -7,30 +7,28 @@ using PixelGraph.Tests.Internal;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.EncodingTests
+namespace PixelGraph.Tests.EncodingChannelTests
 {
-    public class EmissiveClipTests : ImageTestBase
+    public class RoughTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public EmissiveClipTests(ITestOutputHelper output) : base(output)
+        public RoughTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Emissive = {
-                    Texture = TextureTags.Emissive,
+                Rough = {
+                    Texture = TextureTags.Rough,
                     Color = ColorChannel.Red,
-                    Shift = -1,
                 }
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Emissive = {
-                        Texture = TextureTags.Emissive,
+                    Rough = {
+                        Texture = TextureTags.Rough,
                         Color = ColorChannel.Red,
-                        Shift = -1,
                     },
                 },
             };
@@ -52,20 +50,20 @@ namespace PixelGraph.Tests.EncodingTests
             };
 
             await using var graph = Graph(context);
-            await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/rough.png", value, 0, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_e.png");
+            using var image = await graph.GetImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(value, image);
         }
 
-        [InlineData(       0, 0.00, 255)]
-        [InlineData(       1, 0.00, 255)]
-        [InlineData(100/255d, 1.00,  99)]
-        [InlineData(100/255d, 0.50,  49)]
-        [InlineData(100/255d, 2.00, 199)]
-        [InlineData(100/255d, 3.00, 254)]
-        [InlineData(200/255d, 0.01,   1)]
+        [InlineData(0.000, 0.00,   0)]
+        [InlineData(1.000, 0.00,   0)]
+        [InlineData(0.392, 1.00, 100)]
+        [InlineData(0.392, 0.50,  50)]
+        [InlineData(0.392, 2.00, 200)]
+        [InlineData(0.392, 3.00, 255)]
+        [InlineData(0.784, 0.01,   2)]
         [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
             var context = new MaterialContext {
@@ -74,7 +72,7 @@ namespace PixelGraph.Tests.EncodingTests
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Emissive = new MaterialEmissiveProperties {
+                    Rough = new MaterialRoughProperties {
                         Value = value,
                         Scale = scale,
                     },
@@ -84,17 +82,16 @@ namespace PixelGraph.Tests.EncodingTests
             await using var graph = Graph(context);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_e.png");
+            using var image = await graph.GetImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(expected, image);
         }
 
-        [InlineData(255, 0.00, 255)]
-        [InlineData(  0, 0.00, 255)]
-        [InlineData( 99, 1.00,  99)]
-        [InlineData( 99, 0.50,  49)]
-        [InlineData( 99, 2.00, 199)]
-        [InlineData( 99, 3.00, 254)]
-        [InlineData(199, 0.01,   1)]
+        [InlineData(  0,  0.0,   0)]
+        [InlineData(100,  1.0, 100)]
+        [InlineData(100,  0.5,  50)]
+        [InlineData(100,  2.0, 200)]
+        [InlineData(100,  3.0, 255)]
+        [InlineData(200, 0.01,   2)]
         [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
             var context = new MaterialContext {
@@ -103,30 +100,30 @@ namespace PixelGraph.Tests.EncodingTests
                 Material = new MaterialProperties {
                     Name = "test",
                     LocalPath = "assets",
-                    Emissive = new MaterialEmissiveProperties {
+                    Rough = new MaterialRoughProperties {
                         Scale = scale,
                     },
                 },
             };
 
             await using var graph = Graph(context);
-            await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/rough.png", value, 0, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_e.png");
+            using var image = await graph.GetImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(expected, image);
         }
 
         [InlineData(  0, 255)]
-        [InlineData(  1,   0)]
-        [InlineData(128, 127)]
-        [InlineData(255, 254)]
-        [Theory] public async Task ConvertsEmissiveToEmissiveClipped(byte value, byte expected)
+        [InlineData(100, 155)]
+        [InlineData(155, 100)]
+        [InlineData(255,   0)]
+        [Theory] public async Task ConvertsSmoothToRough(byte value, byte expected)
         {
             var context = new MaterialContext {
                 Input = new ResourcePackInputProperties {
-                    Emissive = {
-                        Texture = TextureTags.Emissive,
+                    Smooth = {
+                        Texture = TextureTags.Smooth,
                         Color = ColorChannel.Red,
                     },
                 },
@@ -138,10 +135,10 @@ namespace PixelGraph.Tests.EncodingTests
             };
 
             await using var graph = Graph(context);
-            await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/smooth.png", value, 0, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_e.png");
+            using var image = await graph.GetImageAsync("assets/test_rough.png");
             PixelAssert.RedEquals(expected, image);
         }
     }

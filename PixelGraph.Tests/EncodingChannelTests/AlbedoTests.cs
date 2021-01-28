@@ -1,13 +1,13 @@
-﻿using System.Threading.Tasks;
-using PixelGraph.Common;
+﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.EncodingTests
+namespace PixelGraph.Tests.EncodingChannelTests
 {
     public class AlbedoTests : ImageTestBase
     {

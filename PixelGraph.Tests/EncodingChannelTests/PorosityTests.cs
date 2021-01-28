@@ -7,7 +7,7 @@ using PixelGraph.Tests.Internal;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.EncodingTests
+namespace PixelGraph.Tests.EncodingChannelTests
 {
     public class PorosityTests : ImageTestBase
     {

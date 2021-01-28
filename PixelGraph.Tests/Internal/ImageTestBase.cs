@@ -13,12 +13,6 @@ namespace PixelGraph.Tests.Internal
     {
         protected ImageTestBase(ITestOutputHelper output) : base(output) {}
 
-        protected Image CreateImageR(in byte value)
-        {
-            var color = new Rgba32(value, 0, 0, 255);
-            return new Image<Rgba32>(Configuration.Default, 1, 1, color);
-        }
-
         protected ImageTestGraph Graph(MaterialContext context)
         {
             var provider = Builder.Build();
@@ -49,11 +43,20 @@ namespace PixelGraph.Tests.Internal
                 await provider.DisposeAsync();
         }
 
-        public Task CreateImageAsync(string localFile, byte r, byte g, byte b)
+        public Task CreateImageAsync(string localFile, byte gray)
         {
             var content = provider.GetRequiredService<MockFileContent>();
 
-            var color = new Rgba32(r, g, b, 255);
+            var color = new L8(gray);
+            using var image = new Image<L8>(Configuration.Default, 1, 1, color);
+            return content.AddAsync(localFile, image);
+        }
+
+        public Task CreateImageAsync(string localFile, byte r, byte g, byte b, byte alpha = 255)
+        {
+            var content = provider.GetRequiredService<MockFileContent>();
+
+            var color = new Rgba32(r, g, b, alpha);
             using var image = new Image<Rgba32>(Configuration.Default, 1, 1, color);
             return content.AddAsync(localFile, image);
         }

@@ -14,5 +14,8 @@ namespace PixelGraph.Tests.Internal
 
         public static void BlueEquals(byte expectedValue, Image<Rgba32> image) =>
             Assert.Equal(expectedValue, image[0, 0].B);
+
+        public static void AlphaEquals(byte expectedValue, Image<Rgba32> image) =>
+            Assert.Equal(expectedValue, image[0, 0].A);
     }
 }
