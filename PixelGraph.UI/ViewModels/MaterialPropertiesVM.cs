@@ -32,6 +32,7 @@ namespace PixelGraph.UI.ViewModels
 
         public string DefaultInputFormat => _packInput?.Format ?? MaterialProperties.DefaultInputFormat;
         public string DefaultNormalFilter => MaterialNormalProperties.DefaultFilter.ToString();
+        public string DefaultOcclusionSampler => MaterialOcclusionProperties.DefaultSampler;
         public string DefaultOcclusionQuality => MaterialOcclusionProperties.DefaultQuality.ToString("N3");
         public string DefaultOcclusionSteps => MaterialOcclusionProperties.DefaultSteps.ToString();
         public string DefaultOcclusionZBias => MaterialOcclusionProperties.DefaultZBias.ToString("N3");
@@ -557,6 +558,16 @@ namespace PixelGraph.UI.ViewModels
             set {
                 _material.Occlusion ??= new MaterialOcclusionProperties();
                 _material.Occlusion.Scale = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public string OcclusionSampler {
+            get => _material?.Occlusion?.Sampler;
+            set {
+                _material.Occlusion ??= new MaterialOcclusionProperties();
+                _material.Occlusion.Sampler = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }

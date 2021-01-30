@@ -114,12 +114,15 @@ namespace PixelGraph.Common.IO.Publishing
                             continue;
                         }
 
+                        //var type = naming.GetTextureType();
+
                         logger.LogDebug($"Publishing texture {material.LocalPath}:{{DisplayName}}.", material.DisplayName);
 
                         var materialContext = new MaterialContext {
                             Input = context.Input,
                             Profile = context.Profile,
                             Material = material,
+                            //Type = type,
                         };
 
                         await graphBuilder.ProcessInputGraphAsync(materialContext, token);

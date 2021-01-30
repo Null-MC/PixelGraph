@@ -46,8 +46,12 @@ namespace PixelGraph.Common.IO.Importing
 
         private async Task ImportPathAsync(string localPath, CancellationToken token)
         {
-            foreach (var childPath in reader.EnumerateDirectories(localPath, "*"))
+            foreach (var childPath in reader.EnumerateDirectories(localPath, "*")) {
+                var name = Path.GetFileName(childPath);
+                if (IgnoredFilesPaths.Contains(name)) continue;
+
                 await ImportPathAsync(childPath, token);
+            }
 
             var files = reader.EnumerateFiles(localPath, "*.*")
                 .ToHashSet(StringComparer.InvariantCultureIgnoreCase);
@@ -122,5 +126,10 @@ namespace PixelGraph.Common.IO.Importing
                     yield return name[..^2];
             }
         }
+
+        private static readonly string[] IgnoredFilesPaths = {
+            ".git",
+            ".ignore",
+        };
     }
 }

@@ -51,7 +51,9 @@ namespace PixelGraph.UI.Internal
             graph.Context = new MaterialContext {
                 Input = Input,
                 Material = Material,
-                //Profile = ,
+                Profile = new ResourcePackProfileProperties {
+                    DefaultTextureSize = 32,
+                },
             };
 
             graph.CreateEmpty = true;

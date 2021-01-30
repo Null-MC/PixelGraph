@@ -107,7 +107,7 @@ namespace PixelGraph.Common.Textures
                 builder.InputChannels = InputEncoding.ToArray();
                 builder.CreateEmpty = CreateEmpty;
                 builder.AutoGenerateOcclusion = AutoGenerateOcclusion;
-                builder.DefaultSize = GetSourceSize();
+                builder.DefaultSize = GetDefaultTextureSize();
 
                 builder.OutputChannels = OutputEncoding.Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
 
@@ -168,6 +168,9 @@ namespace PixelGraph.Common.Textures
             var p = Context.Material.LocalPath;
             if (!UseGlobalOutput) p = PathEx.Join(p, Context.Material.Name);
 
+            // TODO: TARGET SIZE???
+
+
             if (Context.Material.IsMultiPart) {
                 foreach (var region in Context.Material.Parts) {
                     var name = naming.GetOutputTextureName(Context.Profile, region.Name, textureTag, UseGlobalOutput);
@@ -204,6 +207,20 @@ namespace PixelGraph.Common.Textures
                 logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", Context.Material.DisplayName, textureTag);
             }
         }
+
+        private TextureTypes GetTextureType(string filename)
+        {
+            var path = System.IO.Path.GetDirectoryName(filename);
+            if (PathEx.ContainsSegment(path, "textures", "block"))
+                return TextureTypes.Block;
+
+            return TextureTypes.Unknown;
+        }
+
+        //private bool TryGetTextureSize(out Size size)
+        //{
+        //    //
+        //}
 
         public async Task<Image<Rgb24>> GetGeneratedOcclusionAsync(CancellationToken token = default)
         {
@@ -346,7 +363,7 @@ namespace PixelGraph.Common.Textures
 
                 builder.Graph = this;
                 builder.Material = Context.Material;
-                builder.DefaultSize = GetSourceSize();
+                builder.DefaultSize = GetDefaultTextureSize();
                 builder.CreateEmpty = false;
                 builder.AutoGenerateOcclusion = false;
 
@@ -485,7 +502,7 @@ namespace PixelGraph.Common.Textures
                 }
                 else if (heightValue.HasValue) {
                     var up = new Rgb24(127, 127, 255);
-                    var (width, height) = GetSourceSize();
+                    var (width, height) = GetDefaultTextureSize();
                     return new Image<Rgb24>(Configuration.Default, width, height, up);
                 }
                 else throw new HeightSourceEmptyException();
@@ -579,11 +596,11 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private Size GetSourceSize()
+        private Size GetDefaultTextureSize()
         {
             if (Context.Material.TryGetSourceBounds(out var size)) return size;
 
-            var length = Context.Profile?.TextureSize ?? 1;
+            var length = Context.Profile?.DefaultTextureSize ?? 1;
             return new Size(length, length);
         }
     }

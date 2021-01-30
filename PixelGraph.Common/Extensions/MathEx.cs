@@ -97,6 +97,11 @@ namespace PixelGraph.Common.Extensions
             result = (byte)Math.Clamp(value * 255f + 0.5f, 0f, 255f);
         }
 
+        public static void Saturate(in double value, out byte result)
+        {
+            result = (byte)Math.Clamp(value * 255d + 0.5d, 0d, 255d);
+        }
+
         public static void SaturateFloor(in float value, out byte result)
         {
             result = (byte)Math.Clamp(value * 255f, 0f, 255f);

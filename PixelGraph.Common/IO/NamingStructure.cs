@@ -4,6 +4,8 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using SixLabors.ImageSharp.Drawing;
 
 namespace PixelGraph.Common.IO
 {
@@ -68,6 +70,15 @@ namespace PixelGraph.Common.IO
             var file = Get(tag, material.Name, $"{ext}.mcmeta", global);
             return PathEx.Join(path, file);
         }
+
+        //public TextureTypes GetTextureType(string filename)
+        //{
+        //    var path = System.IO.Path.GetDirectoryName(filename);
+        //    if (PathEx.ContainsSegment(path, "textures", "block"))
+        //        return TextureTypes.Block;
+
+        //    return TextureTypes.Unknown;
+        //}
 
         private static string GetPath(MaterialProperties material, bool global)
         {

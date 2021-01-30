@@ -22,11 +22,13 @@ namespace PixelGraph.Common.ResourcePack
 
         public ResourcePackOutputProperties Encoding {get; set;}
 
+        public int? DefaultTextureSize {get; set;}
+
         public int? TextureSize {get; set;}
 
         public float? TextureScale {get; set;}
 
-        //public int? BlockSize {get; set;}
+        public int? BlockSize {get; set;}
 
         public bool? AutoGenerateNormal {get; set;}
 

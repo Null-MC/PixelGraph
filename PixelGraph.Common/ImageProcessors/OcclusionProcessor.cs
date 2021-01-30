@@ -25,7 +25,7 @@ namespace PixelGraph.Common.ImageProcessors
         {
             var height = 0f;
             var rayCount = rayList.Value.Length;
-            var rayCountFactor = 1f / rayCount;
+            var rayCountFactor = 1d / rayCount;
             var pixelOut = new Rgba32(0, 0, 0, 255);
             var position = new Vector3();
 
@@ -37,17 +37,21 @@ namespace PixelGraph.Common.ImageProcessors
 
                 var z = height * options.ZScale + options.ZBias;
 
-                var hitFactor = 0f;
+                var hitFactor = 0d;
                 for (var i = 0; i < rayCount; i++) {
                     position.X = x;
                     position.Y = context.Y;
                     position.Z = z;
 
-                    if (RayTest(ref position, in rayList.Value[i], out var rayHitFactor))
+                    if (RayTest(ref position, in rayList.Value[i], out var rayHitFactor)) {
+                        rayHitFactor = MathF.Sqrt(rayHitFactor);
                         hitFactor += rayHitFactor * rayCountFactor;
+                    }
                 }
 
-                MathEx.Saturate(1f - hitFactor, out pixelOut.R);
+                //hitFactor = Math.Pow(hitFactor, 2);
+                //hitFactor *= hitFactor;
+                MathEx.Saturate(1d - hitFactor, out pixelOut.R);
                 pixelOut.B = pixelOut.G = pixelOut.R;
 
                 row[x].FromRgba32(pixelOut);
