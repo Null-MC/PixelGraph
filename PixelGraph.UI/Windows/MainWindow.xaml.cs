@@ -30,7 +30,7 @@ namespace PixelGraph.UI.Windows
     public partial class MainWindow
     {
         private readonly IServiceProvider provider;
-        private readonly IAppSettings settings;
+        //private readonly IAppSettings settings;
         private readonly ILogger logger;
 
         private readonly object previewLock;
@@ -41,7 +41,7 @@ namespace PixelGraph.UI.Windows
         {
             this.provider = provider;
 
-            settings = provider.GetRequiredService<IAppSettings>();
+            //settings = provider.GetRequiredService<IAppSettings>();
             logger = provider.GetRequiredService<ILogger<MainWindow>>();
 
             previewLock = new object();
@@ -84,9 +84,7 @@ namespace PixelGraph.UI.Windows
 
             try {
                 reader.SetRoot(vm.RootDirectory);
-                loader.EnableAutoMaterial = settings.AutoMaterial;
-
-                vm.Profiles.Clear();
+                //settings.AutoMaterial;
 
                 try {
                     await LoadPackInputAsync();
@@ -95,6 +93,9 @@ namespace PixelGraph.UI.Windows
                     logger.LogError(error, "Failed to load pack input definitions!");
                     ShowError("Failed to load pack input definitions!");
                 }
+
+                loader.EnableAutoMaterial = vm.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
+                vm.Profiles.Clear();
 
                 try {
                     LoadProfiles();
@@ -123,7 +124,8 @@ namespace PixelGraph.UI.Windows
 
             try {
                 reader.SetRoot(vm.RootDirectory);
-                loader.EnableAutoMaterial = settings.AutoMaterial;
+                //loader.EnableAutoMaterial = settings.AutoMaterial;
+                loader.EnableAutoMaterial = vm.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
 
                 vm.TreeRoot = treeReader.GetRootNode();
                 vm.TreeRoot.UpdateVisibility(vm);
@@ -214,7 +216,9 @@ namespace PixelGraph.UI.Windows
                 ShowError("Failed to load material properties!");
             }
 
-            if (vm.LoadedMaterial == null && settings.AutoMaterial) {
+            var enableAutoMaterial = vm.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
+
+            if (vm.LoadedMaterial == null && enableAutoMaterial) {
                 var localPath = Path.GetDirectoryName(matFile);
 
                 vm.LoadedMaterial = new MaterialProperties {

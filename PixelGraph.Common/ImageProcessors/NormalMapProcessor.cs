@@ -116,13 +116,13 @@ namespace PixelGraph.Common.ImageProcessors
 
         private static void GetSobelDerivative(ref float[,] kernel, out Vector2 derivative)
         {
-            var topSide = kernel[0, 0] + 2f * kernel[0, 1] + kernel[0, 2];
-            var bottomSide = kernel[2, 0] + 2f * kernel[2, 1] + kernel[2, 2];
-            var rightSide = kernel[0, 2] + 2f * kernel[1, 2] + kernel[2, 2];
-            var leftSide = kernel[0, 0] + 2f * kernel[1, 0] + kernel[2, 0];
+            var topSide = kernel[0, 0] + 2f * kernel[1, 0] + kernel[2, 0];
+            var bottomSide = kernel[0, 2] + 2f * kernel[1, 2] + kernel[2, 2];
+            var leftSide = kernel[0, 0] + 2f * kernel[0, 1] + kernel[0, 2];
+            var rightSide = kernel[2, 0] + 2f * kernel[2, 1] + kernel[2, 2];
 
-            derivative.Y = leftSide - rightSide;
-            derivative.X = topSide - bottomSide;
+            derivative.X = leftSide - rightSide;
+            derivative.Y = topSide - bottomSide;
         }
 
         private static void ApplyHighPass(ref float value, in float level)
