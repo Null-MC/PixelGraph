@@ -5,7 +5,6 @@ using PixelGraph.Common;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
-using PixelGraph.Common.Textures;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -97,7 +96,6 @@ namespace PixelGraph.CLI.CommandLine
             private readonly IInputReader reader;
             private readonly IOutputWriter writer;
             private readonly IResourcePackReader packReader;
-            private readonly ITextureGraphBuilder graphBuilder;
             private readonly IPublisher publisher;
 
             //public string[] Properties {get; set;}
@@ -105,13 +103,11 @@ namespace PixelGraph.CLI.CommandLine
 
 
             public Executor(
-                ITextureGraphBuilder graphBuilder,
                 IResourcePackReader packReader,
                 IInputReader reader,
                 IOutputWriter writer,
                 IPublisher publisher)
             {
-                this.graphBuilder = graphBuilder;
                 this.packReader = packReader;
                 this.reader = reader;
                 this.writer = writer;
@@ -135,7 +131,6 @@ namespace PixelGraph.CLI.CommandLine
 
                 reader.SetRoot(root);
                 writer.SetRoot(destFilename);
-                graphBuilder.UseGlobalOutput = true;
 
                 var timer = Stopwatch.StartNew();
 
@@ -152,6 +147,7 @@ namespace PixelGraph.CLI.CommandLine
                     var context = new ResourcePackContext {
                         Input = packInput,
                         Profile = packProfile,
+                        UseGlobalOutput = true,
                     };
 
                     await publisher.PublishAsync(context, CleanDestination, token);

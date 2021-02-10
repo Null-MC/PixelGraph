@@ -123,6 +123,8 @@ namespace PixelGraph.Common.IO.Publishing
                             Profile = context.Profile,
                             Material = material,
                             //Type = type,
+                            UseGlobalOutput = context.UseGlobalOutput,
+                            CreateEmpty = true,
                         };
 
                         await graphBuilder.ProcessInputGraphAsync(materialContext, token);

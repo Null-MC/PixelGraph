@@ -36,6 +36,9 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = 0)]
         public string InputFormat {get; set;}
 
+        [YamlMember(Order = 1)]
+        public string Type {get; set;}
+
         public bool? WrapX {get; set;}
         public bool? WrapY {get; set;}
 

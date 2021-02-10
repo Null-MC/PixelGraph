@@ -52,6 +52,7 @@ namespace PixelGraph.UI.Windows
             vm.RecentDirectories = recent.List;
 
             vm.SelectedTagChanged += OnSelectedTagChanged;
+            vm.SelectedProfileChanged += OnSelectedProfileChanged;
         }
 
         private async Task SelectRootDirectoryAsync(CancellationToken token)
@@ -459,16 +460,29 @@ namespace PixelGraph.UI.Windows
                 vm.IsPreviewLoading = hasSelectedTexture;
             });
 
-            if (!hasSelectedTexture) return;
+            if (!vm.HasLoadedMaterial || !hasSelectedTexture) return;
 
             p.Input = vm.PackInput;
             p.Material = vm.LoadedMaterial;
+
+            if (vm.SelectedProfile != null) {
+                var reader = provider.GetRequiredService<IResourcePackReader>();
+
+                try {
+                    p.Profile = await reader.ReadProfileAsync(vm.SelectedProfile.LocalFile);
+                }
+                catch (Exception error) {
+                    logger.LogError(error, "Failed to load profile!");
+                    // TODO: display warning
+                }
+            }
 
             ImageSource image = null;
             try {
                 image = await Task.Run(() => p.BuildAsync(vm.SelectedTag), p.Token);
             }
             catch (TaskCanceledException) {}
+            catch (HeightSourceEmptyException) {}
             catch (Exception error) {
                 logger.LogError(error, "Failed to create preview image!");
                 // TODO: Set error image instead of message box
@@ -747,6 +761,11 @@ namespace PixelGraph.UI.Windows
         }
 
         private async void OnSelectedTagChanged(object sender, EventArgs e)
+        {
+            await UpdatePreviewAsync(true);
+        }
+
+        private async void OnSelectedProfileChanged(object sender, EventArgs e)
         {
             await UpdatePreviewAsync(true);
         }

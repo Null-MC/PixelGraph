@@ -30,6 +30,8 @@ namespace PixelGraph.Tests.Internal
         {
             this.provider = provider;
             this.context = context;
+
+            context.UseGlobalOutput = true;
         }
 
         public void Dispose()
@@ -64,8 +66,6 @@ namespace PixelGraph.Tests.Internal
         public async Task ProcessAsync()
         {
             var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-
-            graphBuilder.UseGlobalOutput = true;
             await graphBuilder.ProcessInputGraphAsync(context);
         }
 

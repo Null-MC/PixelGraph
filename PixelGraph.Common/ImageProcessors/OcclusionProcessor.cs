@@ -23,14 +23,17 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
-            var height = 0f;
             var rayCount = rayList.Value.Length;
             var rayCountFactor = 1d / rayCount;
             var pixelOut = new Rgba32(0, 0, 0, 255);
             var position = new Vector3();
 
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                options.Sampler.SampleScaled(x, context.Y, in options.HeightChannel, ref height);
+                //var fx = (x + 0.5f) / context.Bounds.Width;
+                //var fy = (context.Y + 0.5f) / context.Bounds.Height;
+                var fx = (float)x / context.Bounds.Width;
+                var fy = (float)context.Y / context.Bounds.Height;
+                options.Sampler.SampleScaled(fx, fy, in options.HeightChannel, out var height);
 
                 // TODO: range, shift, power
                 if (!options.HeightInvert) MathEx.Invert(ref height);
@@ -43,7 +46,7 @@ namespace PixelGraph.Common.ImageProcessors
                     position.Y = context.Y;
                     position.Z = z;
 
-                    if (RayTest(ref position, in rayList.Value[i], out var rayHitFactor)) {
+                    if (RayTest(in context, ref position, in rayList.Value[i], out var rayHitFactor)) {
                         rayHitFactor = MathF.Sqrt(rayHitFactor);
                         hitFactor += rayHitFactor * rayCountFactor;
                     }
@@ -97,16 +100,16 @@ namespace PixelGraph.Common.ImageProcessors
             return result;
         }
 
-        private bool RayTest(ref Vector3 position, in Vector3 ray, out float factor)
+        private bool RayTest(in PixelRowContext context, ref Vector3 position, in Vector3 ray, out float factor)
         {
-            float height = 0;
-
             for (var step = 1; step <= options.StepCount; step++) {
                 position += ray;
 
                 if (position.Z > options.ZScale) break;
 
-                options.Sampler.SampleScaled(in position.X, in position.Y, options.HeightChannel, ref height);
+                var fx = position.X / context.Bounds.Width;
+                var fy = position.Y / context.Bounds.Height;
+                options.Sampler.SampleScaled(in fx, in fy, options.HeightChannel, out var height);
 
                 // TODO: range, shift, power
                 if (!options.HeightInvert) MathEx.Invert(ref height);

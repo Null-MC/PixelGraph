@@ -21,17 +21,18 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
-            var scaleX = options.SourceWidth / context.Bounds.Width;
-            var scaleY = options.SourceHeight / context.Bounds.Height;
-            var fy = context.Y * scaleY;
+            //var scaleX = (float)options.SourceWidth / context.Bounds.Width;
+            //var scaleY = (float)options.SourceHeight / context.Bounds.Height;
+            //var fy = context.Y * scaleY;
 
             var pixelOut = new Rgba32();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                var fx = x * scaleX;
+                //var fx = x * scaleX;
 
-                byte value = 0;
                 foreach (var channel in options.Channels) {
-                    channel.Sampler.Sample(fx, fy, channel.Color, ref value);
+                    var fx = (float) x / context.Bounds.Width;
+                    var fy = (float) context.Y / context.Bounds.Height;
+                    channel.Sampler.Sample(fx, fy, channel.Color, out var value);
 
                     var channelMin = channel.RangeMin;
                     var channelMax = channel.RangeMax;
@@ -47,10 +48,10 @@ namespace PixelGraph.Common.ImageProcessors
         public class Options
         {
             public List<ChannelOptions> Channels {get; set;}
-            public int SourceWidth {get; set;}
-            public int SourceHeight {get; set;}
-            public int TargetWidth {get; set;}
-            public int TargetHeight {get; set;}
+            //public int SourceWidth {get; set;}
+            //public int SourceHeight {get; set;}
+            //public int TargetWidth {get; set;}
+            //public int TargetHeight {get; set;}
 
 
             public Options()

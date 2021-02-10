@@ -34,14 +34,15 @@ namespace PixelGraph.Common.Samplers
         where TPixel : unmanaged, IPixel<TPixel>
     {
         Image<TPixel> Image {get; set;}
-        float Range {get; set;}
+        float RangeX {get; set;}
+        float RangeY {get; set;}
         bool WrapX {get; set;}
         bool WrapY {get; set;}
 
-        void Sample(in float fx, in float fy, ref Rgba32 pixel);
-        void SampleScaled(in float fx, in float fy, ref Vector4 pixel);
+        void Sample(in float x, in float y, ref Rgba32 pixel);
+        void SampleScaled(in float x, in float y, out Vector4 pixel);
 
-        void Sample(in float fx, in float fy, in ColorChannel color, ref byte pixelValue);
-        void SampleScaled(in float fx, in float fy, in ColorChannel color, ref float pixelValue);
+        void Sample(in float x, in float y, in ColorChannel color, out byte pixelValue);
+        void SampleScaled(in float x, in float y, in ColorChannel color, out float pixelValue);
     }
 }

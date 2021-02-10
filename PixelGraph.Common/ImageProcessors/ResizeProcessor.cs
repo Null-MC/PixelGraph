@@ -21,13 +21,11 @@ namespace PixelGraph.Common.ImageProcessors
             var srcBounds = context.Bounds;
             if (srcBounds.IsEmpty) return;
 
-            var scaleX = options.SourceWidth / (float)context.Bounds.Width;
-            var scaleY = options.SourceHeight / (float)context.Bounds.Height;
-            var fy = context.Y * scaleY;
-
             var pixel = new Rgba32();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                var fx = x * scaleX;
+                var fx = (float) x / context.Bounds.Width;
+                var fy = (float) context.Y / context.Bounds.Height;
+
                 options.Sampler.Sample(fx, fy, ref pixel);
                 row[x].FromRgba32(pixel);
             }
@@ -36,8 +34,6 @@ namespace PixelGraph.Common.ImageProcessors
         public class Options
         {
             public ISampler<TPixel> Sampler {get; set;}
-            public int SourceWidth;
-            public int SourceHeight;
         }
     }
 }

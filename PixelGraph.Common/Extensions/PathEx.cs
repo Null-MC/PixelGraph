@@ -20,6 +20,11 @@ namespace PixelGraph.Common.Extensions
             return filename.Replace('/', Path.DirectorySeparatorChar);
         }
 
+        public static string ToUnixStyle(string filename)
+        {
+            return filename.Replace('\\', '/');
+        }
+
         public static bool MatchPattern(string name, string pattern)
         {
             if (pattern == null || pattern == "*") return true;

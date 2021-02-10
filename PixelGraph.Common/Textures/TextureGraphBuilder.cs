@@ -12,8 +12,6 @@ namespace PixelGraph.Common.Textures
 {
     public interface ITextureGraphBuilder
     {
-        bool UseGlobalOutput {get; set;}
-
         Task ProcessInputGraphAsync(MaterialContext context, CancellationToken token = default);
         Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default);
     }
@@ -24,8 +22,6 @@ namespace PixelGraph.Common.Textures
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
         private readonly INamingStructure naming;
-
-        public bool UseGlobalOutput {get; set;}
 
 
         public TextureGraphBuilder(IServiceProvider provider)
@@ -54,12 +50,7 @@ namespace PixelGraph.Common.Textures
             using var graph = provider.GetRequiredService<ITextureGraph>();
             graph.InputEncoding = inputEncoding.GetMapped().ToList();
             graph.OutputEncoding = outputEncoding.GetMapped().ToList();
-            graph.UseGlobalOutput = UseGlobalOutput;
-            graph.CreateEmpty = true;
             graph.Context = context;
-
-            graph.AutoGenerateOcclusion = context.Profile?.AutoGenerateOcclusion
-                ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
 
             await ProcessAllTexturesAsync(graph, token);
         }
@@ -81,9 +72,6 @@ namespace PixelGraph.Common.Textures
             using var graph = provider.GetRequiredService<ITextureGraph>();
             graph.InputEncoding = inputEncoding.GetMapped().ToList();
             graph.OutputEncoding = outputEncoding.GetMapped().ToList();
-            graph.UseGlobalOutput = UseGlobalOutput;
-            graph.CreateEmpty = false;
-            graph.AutoGenerateOcclusion = false;
             graph.Context = context;
 
             await ProcessAllTexturesAsync(graph, token);
@@ -125,7 +113,6 @@ namespace PixelGraph.Common.Textures
                         await graph.PublishImageAsync<Rgb24>(tag, ImageChannels.Color, token);
                     }
                     else {
-                        // WARN: I don't know if this is actually going to work!
                         await graph.PublishImageAsync<L8>(tag, ImageChannels.Gray, token);
                     }
                 }
@@ -139,7 +126,7 @@ namespace PixelGraph.Common.Textures
             var metaFileIn = naming.GetInputMetaName(context.Material, tag);
             if (!reader.FileExists(metaFileIn)) return;
 
-            var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, UseGlobalOutput);
+            var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.UseGlobalOutput);
 
             await using var sourceStream = reader.Open(metaFileIn);
             await using var destStream = writer.Open(metaFileOut);

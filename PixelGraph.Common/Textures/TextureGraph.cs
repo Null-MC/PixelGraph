@@ -25,9 +25,6 @@ namespace PixelGraph.Common.Textures
         List<ResourcePackChannelProperties> InputEncoding {get; set;}
         List<ResourcePackChannelProperties> OutputEncoding {get; set;}
         Image<Rgb24> NormalTexture {get;}
-        bool UseGlobalOutput {get; set;}
-        bool CreateEmpty {get; set;}
-        bool AutoGenerateOcclusion {get; set;}
 
         Task BuildNormalTextureAsync(CancellationToken token = default);
 
@@ -54,9 +51,6 @@ namespace PixelGraph.Common.Textures
         public List<ResourcePackChannelProperties> InputEncoding {get; set;}
         public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
         public Image<Rgb24> NormalTexture {get; private set;}
-        public bool UseGlobalOutput {get; set;}
-        public bool CreateEmpty {get; set;}
-        public bool AutoGenerateOcclusion {get; set;}
 
 
         public TextureGraph(IServiceProvider provider)
@@ -103,13 +97,10 @@ namespace PixelGraph.Common.Textures
 
             try {
                 builder.Graph = this;
-                builder.Material = Context.Material;
+                builder.Context = Context;
                 builder.InputChannels = InputEncoding.ToArray();
-                builder.CreateEmpty = CreateEmpty;
-                builder.AutoGenerateOcclusion = AutoGenerateOcclusion;
-                builder.DefaultSize = GetDefaultTextureSize();
-
-                builder.OutputChannels = OutputEncoding.Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
+                builder.OutputChannels = OutputEncoding
+                    .Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
 
                 await builder.BuildAsync(token);
                 return builder.ImageResult;
@@ -158,30 +149,32 @@ namespace PixelGraph.Common.Textures
                 return;
             }
 
-            var imageFormat = Context.Profile.Encoding.Image
+            imageWriter.Format = Context.Profile.Encoding.Image
                 ?? ResourcePackOutputProperties.ImageDefault;
 
-            imageWriter.Format = imageFormat;
-            //imageWriter.HasAlpha = typeof(TPixel) == typeof(Rgba32);
-            //imageWriter.HasColor = typeof(TPixel) != typeof(HalfSingle);
-
             var p = Context.Material.LocalPath;
-            if (!UseGlobalOutput) p = PathEx.Join(p, Context.Material.Name);
+            if (!Context.UseGlobalOutput) p = PathEx.Join(p, Context.Material.Name);
 
-            // TODO: TARGET SIZE???
+            if (Context.Material.TryGetSourceBounds(out var bounds)) {
+                // TODO: scale regions!
+                var scaleX = (float)image.Width / bounds.Width;
+                //var scaleY = (float)image.Height / bounds.Height;
 
-
-            if (Context.Material.IsMultiPart) {
                 foreach (var region in Context.Material.Parts) {
-                    var name = naming.GetOutputTextureName(Context.Profile, region.Name, textureTag, UseGlobalOutput);
+                    var name = naming.GetOutputTextureName(Context.Profile, region.Name, textureTag, Context.UseGlobalOutput);
                     var destFile = PathEx.Join(p, name);
 
                     if (image.Width == 1 && image.Height == 1) {
                         await imageWriter.WriteAsync(image, destFile, type, token);
                     }
                     else {
-                        var bounds = region.GetRectangle();
-                        using var regionImage = image.Clone(c => c.Crop(bounds));
+                        var regionBounds = region.GetRectangle();
+                        regionBounds.X = (int)MathF.Ceiling(regionBounds.X * scaleX);
+                        regionBounds.Y = (int)MathF.Ceiling(regionBounds.Y * scaleX);
+                        regionBounds.Width = (int)MathF.Ceiling(regionBounds.Width * scaleX);
+                        regionBounds.Height = (int)MathF.Ceiling(regionBounds.Height * scaleX);
+
+                        using var regionImage = image.Clone(c => c.Crop(regionBounds));
 
                         FixEdges(regionImage, textureTag);
 
@@ -195,36 +188,31 @@ namespace PixelGraph.Common.Textures
                 }
             }
             else {
-                var name = naming.GetOutputTextureName(Context.Profile, Context.Material.Name, textureTag, UseGlobalOutput);
+                var name = naming.GetOutputTextureName(Context.Profile, Context.Material.Name, textureTag, Context.UseGlobalOutput);
                 var destFile = PathEx.Join(p, name);
 
                 FixEdges(image, textureTag);
 
-                using var resizedImage = Resize(image, textureTag);
-
-                await imageWriter.WriteAsync(resizedImage ?? image, destFile, type, token);
+                //using var resizedImage = Resize(image, textureTag);
+                //await imageWriter.WriteAsync(resizedImage ?? image, destFile, type, token);
+                await imageWriter.WriteAsync(image, destFile, type, token);
 
                 logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", Context.Material.DisplayName, textureTag);
             }
         }
 
-        private TextureTypes GetTextureType(string filename)
-        {
-            var path = System.IO.Path.GetDirectoryName(filename);
-            if (PathEx.ContainsSegment(path, "textures", "block"))
-                return TextureTypes.Block;
-
-            return TextureTypes.Unknown;
-        }
-
-        //private bool TryGetTextureSize(out Size size)
+        //private TextureTypes GetTextureType(string filename)
         //{
-        //    //
+        //    var path = System.IO.Path.GetDirectoryName(filename);
+        //    if (PathEx.ContainsSegment(path, "textures", "block"))
+        //        return TextureTypes.Block;
+
+        //    return TextureTypes.Unknown;
         //}
 
         public async Task<Image<Rgb24>> GetGeneratedOcclusionAsync(CancellationToken token = default)
         {
-            if (occlusionTexture == null && AutoGenerateOcclusion) {
+            if (occlusionTexture == null && Context.AutoGenerateOcclusion) {
                 try {
                     occlusionTexture = await GenerateOcclusionAsync(token);
                 }
@@ -253,29 +241,27 @@ namespace PixelGraph.Common.Textures
 
             var (width, height) = image.Size();
 
-            var options = new ChannelResizeProcessor<TPixel>.Options {
-                SourceWidth = width,
-                SourceHeight = height,
-            };
+            var options = new ChannelResizeProcessor<TPixel>.Options();
 
             var textureEncodings = OutputEncoding
                 .Where(e => TextureTags.Is(e.Texture, tag));
 
             float range;
+            int targetWidth, targetHeight;
             if (hasTextureScale) {
                 if (Context.Profile.TextureScale.Value.Equal(1f)) return image;
 
-                options.TargetWidth = (int)Math.Max(width * Context.Profile.TextureScale.Value, 1f);
-                options.TargetHeight = (int)Math.Max(height * Context.Profile.TextureScale.Value, 1f);
+                targetWidth = (int)Math.Max(width * Context.Profile.TextureScale.Value, 1f);
+                targetHeight = (int)Math.Max(height * Context.Profile.TextureScale.Value, 1f);
                 range = 1f / Context.Profile.TextureScale.Value;
             }
             else {
                 if (width == Context.Profile.TextureSize) return image;
 
                 var aspect = height / (float) width;
-                options.TargetWidth = Context.Profile.TextureSize.Value;
-                options.TargetHeight = (int)(Context.Profile.TextureSize.Value * aspect);
-                range = width / (float)Context.Profile.TextureSize.Value;
+                targetWidth = Context.Profile.TextureSize.Value;
+                targetHeight = (int)(Context.Profile.TextureSize.Value * aspect);
+                range = (float)width / Context.Profile.TextureSize.Value;
             }
 
             foreach (var encoding in textureEncodings) {
@@ -292,9 +278,11 @@ namespace PixelGraph.Common.Textures
                 var sampler = Sampler<TPixel>.Create(samplerName) ?? new NearestSampler<TPixel>();
 
                 sampler.Image = image;
-                sampler.Range = range;
                 sampler.WrapX = Context.Material?.WrapX ?? true;
                 sampler.WrapY = Context.Material?.WrapY ?? true;
+
+                // TODO: should this be 2D?
+                sampler.RangeX = sampler.RangeY = range;
 
                 var channel = new ChannelResizeProcessor<TPixel>.ChannelOptions {
                     Color = color,
@@ -308,7 +296,7 @@ namespace PixelGraph.Common.Textures
 
             var sourceConfig = image.GetConfiguration();
             var processor = new ChannelResizeProcessor<TPixel>(options);
-            var resizedImage = new Image<TPixel>(sourceConfig, options.TargetWidth, options.TargetHeight);
+            var resizedImage = new Image<TPixel>(sourceConfig, targetWidth, targetHeight);
 
             try {
                 resizedImage.Mutate(c => c.ApplyProcessor(processor));
@@ -362,10 +350,16 @@ namespace PixelGraph.Common.Textures
                 using var builder = provider.GetRequiredService<ITextureBuilder<Rgb24>>();
 
                 builder.Graph = this;
-                builder.Material = Context.Material;
-                builder.DefaultSize = GetDefaultTextureSize();
-                builder.CreateEmpty = false;
-                builder.AutoGenerateOcclusion = false;
+                builder.Context = new MaterialContext {
+                    Input = Context.Input,
+                    Profile = Context.Profile,
+                    Material = Context.Material,
+                    //TargetSize = Context.TargetSize,
+                    //TargetScale = Context.TargetScale,
+                    //DefaultSize = Context.DefaultSize,
+                    CreateEmpty = false,
+                    //AutoGenerateOcclusion = false,
+                };
 
                 builder.InputChannels = new [] {normalXChannel, normalYChannel, normalZChannel}
                     .Where(x => x != null).ToArray();
@@ -489,21 +483,13 @@ namespace PixelGraph.Common.Textures
                 var file = reader.EnumerateTextures(Context.Material, heightChannel.Texture).FirstOrDefault();
 
                 if (file != null) {
-                    await using var stream = reader.Open(file);
-
-                    try {
-                        heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
-                    }
-                    catch {
-                        logger.LogWarning("Failed to load texture {file}!", file);
-                    }
-                
-                    if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
+                    heightTexture = await LoadHeightTextureAsync(file, heightChannel, token);
                 }
                 else if (heightValue.HasValue) {
                     var up = new Rgb24(127, 127, 255);
-                    var (width, height) = GetDefaultTextureSize();
-                    return new Image<Rgb24>(Configuration.Default, width, height, up);
+                    var size = Context.GetFinalBufferSize();
+                    //Context.ApplyTargetTextureScale(ref size);
+                    return new Image<Rgb24>(Configuration.Default, size, size, up);
                 }
                 else throw new HeightSourceEmptyException();
 
@@ -512,8 +498,8 @@ namespace PixelGraph.Common.Textures
                     HeightChannel = heightChannel.Color ?? ColorChannel.None,
                     Filter = Context.Material.Normal?.Filter ?? MaterialNormalProperties.DefaultFilter,
                     Strength = (float?)Context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
-                    WrapX = Context.Material.WrapX ?? MaterialProperties.DefaultWrap,
-                    WrapY = Context.Material.WrapY ?? MaterialProperties.DefaultWrap,
+                    WrapX = Context.WrapX,
+                    WrapY = Context.WrapY,
 
                     // TODO: testing
                     VarianceStrength = 0.998f,
@@ -550,23 +536,18 @@ namespace PixelGraph.Common.Textures
                 //    (emissiveImage, emissiveChannel) = await GetSourceImageAsync(EncodingChannel.Emissive, token);
                 //}
 
-                await using var stream = reader.Open(file);
+                var samplerName = heightChannel.Sampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
 
-                try {
-                    heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
-                }
-                catch {
-                    logger.LogWarning("Failed to load texture {file}!", file);
-                }
+                heightTexture = await LoadHeightTextureAsync(file, heightChannel, token);
+
+                var sampler = Sampler<Rgba32>.Create(samplerName);
+                sampler.Image = heightTexture;
+                sampler.WrapX = Context.WrapX;
+                sampler.WrapY = Context.WrapY;
+                sampler.RangeX = sampler.RangeY = 1f;
                 
-                if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
-
                 var options = new OcclusionProcessor.Options {
-                    Sampler = new NearestSampler<Rgba32> {
-                        WrapX = Context.Material?.WrapX ?? MaterialProperties.DefaultWrap,
-                        WrapY = Context.Material?.WrapY ?? MaterialProperties.DefaultWrap,
-                        Image = heightTexture,
-                    },
+                    Sampler = sampler,
                     //HeightSource = heightTexture,
                     HeightChannel = heightChannel.Color.Value,
                     HeightMinValue = (float?)heightChannel.MinValue ?? 0f,
@@ -596,12 +577,55 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private Size GetDefaultTextureSize()
+        private async Task<Image<Rgba32>> LoadHeightTextureAsync(string file, ResourcePackChannelProperties heightChannel, CancellationToken token)
         {
-            if (Context.Material.TryGetSourceBounds(out var size)) return size;
+            await using var stream = reader.Open(file);
 
-            var length = Context.Profile?.DefaultTextureSize ?? 1;
-            return new Size(length, length);
+            Image<Rgba32> heightTexture = null;
+            try {
+                heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
+                if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
+
+                // scale height texture instead of using samplers
+                var bufferSize = Context.GetFinalBufferSize();
+
+                if (heightTexture.Width != bufferSize) {
+                    var scale = (float)bufferSize / heightTexture.Width;
+                    var scaledWidth = (int)MathF.Ceiling(heightTexture.Width * scale);
+                    var scaledHeight = (int)MathF.Ceiling(heightTexture.Height * scale);
+
+                    var samplerName = heightChannel.Sampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
+                    var sampler = Sampler<Rgba32>.Create(samplerName);
+                    sampler.Image = heightTexture;
+                    sampler.WrapX = Context.WrapX;
+                    sampler.WrapY = Context.WrapY;
+                    sampler.RangeX = sampler.RangeY = 1f / scale;
+
+                    var options = new ResizeProcessor<Rgba32>.Options {
+                        Sampler = sampler,
+                    };
+
+                    var processor = new ResizeProcessor<Rgba32>(options);
+
+                    Image<Rgba32> heightCopy = null;
+                    try {
+                        heightCopy = heightTexture;
+                        heightTexture = new Image<Rgba32>(Configuration.Default, scaledWidth, scaledHeight);
+                        heightTexture.Mutate(c => c.ApplyProcessor(processor));
+                    }
+                    finally {
+                        heightCopy?.Dispose();
+                    }
+                }
+
+                return heightTexture;
+            }
+            catch (SourceEmptyException) {throw;}
+            catch {
+                //logger.LogWarning("Failed to load texture {file}!", file);
+                heightTexture?.Dispose();
+                throw;
+            }
         }
     }
 }

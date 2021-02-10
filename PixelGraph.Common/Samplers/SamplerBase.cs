@@ -10,31 +10,31 @@ namespace PixelGraph.Common.Samplers
         where TPixel : unmanaged, IPixel<TPixel>
     {
         public Image<TPixel> Image {get; set;}
-        public float Range {get; set;}
+        public float RangeX {get; set;}
+        public float RangeY {get; set;}
         public bool WrapX {get; set;}
         public bool WrapY {get; set;}
 
 
-        public abstract void Sample(in float fx, in float fy, ref Rgba32 pixel);
+        public abstract void Sample(in float x, in float y, ref Rgba32 pixel);
 
-        public virtual void SampleScaled(in float fx, in float fy, ref Vector4 vector)
+        public virtual void SampleScaled(in float x, in float y, out Vector4 vector)
         {
             var pixel = new Rgba32();
-            Sample(in fx, in fy, ref pixel);
+            Sample(in x, in y, ref pixel);
             vector = pixel.ToScaledVector4();
         }
 
-        public virtual void Sample(in float fx, in float fy, in ColorChannel color, ref byte pixelValue)
+        public virtual void Sample(in float x, in float y, in ColorChannel color, out byte pixelValue)
         {
             var pixel = new Rgba32();
-            Sample(in fx, in fy, ref pixel);
+            Sample(in x, in y, ref pixel);
             pixel.GetChannelValue(in color, out pixelValue);
         }
 
-        public virtual void SampleScaled(in float fx, in float fy, in ColorChannel color, ref float pixelValue)
+        public virtual void SampleScaled(in float x, in float y, in ColorChannel color, out float pixelValue)
         {
-            byte _value = 0;
-            Sample(in fx, in fy, in color, ref _value);
+            Sample(in x, in y, in color, out var _value);
             pixelValue = _value / 255f;
         }
 

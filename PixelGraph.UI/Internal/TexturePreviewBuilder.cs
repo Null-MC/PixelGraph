@@ -21,6 +21,7 @@ namespace PixelGraph.UI.Internal
     {
         ResourcePackInputProperties Input {get; set;}
         MaterialProperties Material {get; set;}
+        ResourcePackProfileProperties Profile {get; set;}
         CancellationToken Token {get;}
 
         Task<ImageSource> BuildAsync(string tag);
@@ -34,6 +35,7 @@ namespace PixelGraph.UI.Internal
 
         public ResourcePackInputProperties Input {get; set;}
         public MaterialProperties Material {get; set;}
+        public ResourcePackProfileProperties Profile {get; set;}
 
         public CancellationToken Token => tokenSource.Token;
 
@@ -51,12 +53,14 @@ namespace PixelGraph.UI.Internal
             graph.Context = new MaterialContext {
                 Input = Input,
                 Material = Material,
-                Profile = new ResourcePackProfileProperties {
-                    DefaultTextureSize = 32,
+                Profile = Profile ?? new ResourcePackProfileProperties {
+                    DefaultTextureSize = 16,
                 },
+                CreateEmpty = true,
+                //AutoGenerateOcclusion = true,
             };
 
-            graph.CreateEmpty = true;
+            //graph.Context.DefaultSize = graph.Context.GetDefaultTextureSize();
 
             //builder.DefaultSize = GetSourceSize(); TODO
 
@@ -68,7 +72,7 @@ namespace PixelGraph.UI.Internal
             graph.InputEncoding = inputEncoding.GetMapped().ToList();
 
             if (TextureTags.Is(tag, TextureTags.Alpha))
-                graph.OutputEncoding.AddRange(GetAlphaChannels());
+                graph.OutputEncoding.AddRange(GetAlphaChannels(graph.Context.Profile));
 
             if (TextureTags.Is(tag, TextureTags.Diffuse))
                 graph.OutputEncoding.AddRange(GetDiffuseChannels());
@@ -77,7 +81,7 @@ namespace PixelGraph.UI.Internal
                 graph.OutputEncoding.AddRange(GetAlbedoChannels());
 
             if (TextureTags.Is(tag, TextureTags.Height))
-                graph.OutputEncoding.AddRange(GetHeightChannels());
+                graph.OutputEncoding.AddRange(GetHeightChannels(graph.Context.Profile));
 
             if (TextureTags.Is(tag, TextureTags.Occlusion))
                 graph.OutputEncoding.AddRange(GetOcclusionChannels());
@@ -142,11 +146,22 @@ namespace PixelGraph.UI.Internal
             return imageSource;
         }
 
-        private static IEnumerable<ResourcePackChannelProperties> GetAlphaChannels()
+        private static IEnumerable<ResourcePackChannelProperties> GetAlphaChannels(ResourcePackProfileProperties profile)
         {
-            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Red) {MaxValue = 255};
-            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Green) {MaxValue = 255};
-            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Blue) {MaxValue = 255};
+            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Red) {
+                Sampler = profile?.Encoding?.Alpha?.Sampler,
+                MaxValue = 255,
+            };
+
+            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Green) {
+                Sampler = profile?.Encoding?.Alpha?.Sampler,
+                MaxValue = 255,
+            };
+
+            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Blue) {
+                Sampler = profile?.Encoding?.Alpha?.Sampler,
+                MaxValue = 255,
+            };
         }
 
         private static IEnumerable<ResourcePackChannelProperties> GetDiffuseChannels()
@@ -163,11 +178,22 @@ namespace PixelGraph.UI.Internal
             yield return new ResourcePackAlbedoBlueChannelProperties(TextureTags.Albedo, ColorChannel.Blue) {MaxValue = 255};
         }
 
-        private static IEnumerable<ResourcePackChannelProperties> GetHeightChannels()
+        private static IEnumerable<ResourcePackChannelProperties> GetHeightChannels(ResourcePackProfileProperties profile)
         {
-            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Red) {Invert = true};
-            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Green) {Invert = true};
-            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Blue) {Invert = true};
+            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Red) {
+                Sampler = profile?.Encoding?.Height?.Sampler,
+                Invert = true,
+            };
+
+            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Green) {
+                Sampler = profile?.Encoding?.Height?.Sampler,
+                Invert = true,
+            };
+
+            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Blue) {
+                Sampler = profile?.Encoding?.Height?.Sampler,
+                Invert = true,
+            };
         }
 
         private static IEnumerable<ResourcePackChannelProperties> GetOcclusionChannels()

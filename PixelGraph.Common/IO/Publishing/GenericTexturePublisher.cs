@@ -65,26 +65,28 @@ namespace PixelGraph.Common.IO.Publishing
             packSampler.WrapY = false;
 
             var options = new ResizeProcessor<TPixel>.Options {
-                SourceWidth = width,
-                SourceHeight = height,
+                //SourceWidth = width,
+                //SourceHeight = height,
                 Sampler = packSampler,
             };
 
             int targetWidth, targetHeight;
             if (Pack.TextureSize.HasValue) {
                 // Preserve aspect
-                if (options.SourceWidth == Pack.TextureSize.Value) return null;
+                if (source.Width == Pack.TextureSize.Value) return null;
 
                 var aspect = height / (float) width;
                 targetWidth = Pack.TextureSize.Value;
                 targetHeight = (int)(Pack.TextureSize.Value * aspect);
-                packSampler.Range = options.SourceWidth / (float)Pack.TextureSize.Value;
+                packSampler.RangeX = source.Width / (float)Pack.TextureSize.Value;
+                packSampler.RangeY = source.Height / (float)Pack.TextureSize.Value;
             }
             else {
                 // scale all
                 targetWidth = (int)Math.Max(width * Pack.TextureScale.Value, 1f);
                 targetHeight = (int)Math.Max(height * Pack.TextureScale.Value, 1f);
-                packSampler.Range = 1f / Pack.TextureScale.Value;
+                packSampler.RangeX = 1f / Pack.TextureScale.Value;
+                packSampler.RangeY = 1f / Pack.TextureScale.Value;
             }
 
             var processor = new ResizeProcessor<TPixel>(options);

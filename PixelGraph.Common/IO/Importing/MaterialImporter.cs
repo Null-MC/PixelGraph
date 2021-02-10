@@ -66,9 +66,11 @@ namespace PixelGraph.Common.IO.Importing
                 Input = PackInput,
                 Profile = PackProfile,
                 Material = material,
+                UseGlobalOutput = AsGlobal,
+                //AutoGenerateOcclusion = false,
+                CreateEmpty = false,
             };
 
-            graphBuilder.UseGlobalOutput = AsGlobal;
             await graphBuilder.ProcessOutputGraphAsync(context, token);
         }
     }

@@ -4,6 +4,8 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Collections.Generic;
+using PixelGraph.Common.Samplers;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -25,11 +27,18 @@ namespace PixelGraph.Common.ImageProcessors
             double value;
 
             var mappingCount = options.Mappings.Length;
-            var overlayRow = options.Source.GetPixelRowSpan(context.Y);
+
+            Span<TPixel> overlayRow = null;
+            if (options.SamplerMap == null) {
+                overlayRow = options.Source.GetPixelRowSpan(context.Y);
+            }
 
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                overlayRow[x].ToRgba32(ref pixelIn);
                 row[x].ToRgba32(ref pixelOut);
+
+                if (options.SamplerMap == null) {
+                    overlayRow[x].ToRgba32(ref pixelIn);
+                }
 
                 for (var i = 0; i < mappingCount; i++) {
                     var mapping = options.Mappings[i];
@@ -42,7 +51,15 @@ namespace PixelGraph.Common.ImageProcessors
                     if (mapping.InputValue.HasValue)
                         value = (double)mapping.InputValue.Value;
                     else {
-                        pixelIn.GetChannelValue(in mapping.InputColor, out var pixelValue);
+                        byte pixelValue;
+                        if (options.SamplerMap != null && options.SamplerMap.TryGetValue(mapping.InputColor, out var sampler)) {
+                            var fx = (float)x / context.Bounds.Width;
+                            var fy = (float)context.Y / context.Bounds.Height;
+                            sampler.Sample(fx, fy, in mapping.InputColor, out pixelValue);
+                        }
+                        else {
+                            pixelIn.GetChannelValue(in mapping.InputColor, out pixelValue);
+                        }
 
                         // Discard operation if source value outside bounds
                         if (pixelValue < mapping.InputRangeMin || pixelValue > mapping.InputRangeMax) continue;
@@ -121,6 +138,7 @@ namespace PixelGraph.Common.ImageProcessors
         {
             public Image<TPixel> Source;
             public TextureChannelMapping[] Mappings;
+            public Dictionary<ColorChannel, ISampler<TPixel>> SamplerMap;
             public bool IsGrayscale;
         }
     }

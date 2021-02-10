@@ -4,7 +4,6 @@ using PixelGraph.Common;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
-using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using System;
 using System.Threading;
@@ -47,12 +46,12 @@ namespace PixelGraph.UI.Windows
             var reader = scope.GetRequiredService<IInputReader>();
             var writer = scope.GetRequiredService<IOutputWriter>();
             var packReader = scope.GetRequiredService<IResourcePackReader>();
-            var graphBuilder = scope.GetRequiredService<ITextureGraphBuilder>();
+            //var graphBuilder = scope.GetRequiredService<ITextureGraphBuilder>();
             var publisher = scope.GetRequiredService<IPublisher>();
 
             reader.SetRoot(VM.RootDirectory);
             writer.SetRoot(destination);
-            graphBuilder.UseGlobalOutput = true;
+            //graphBuilder.UseGlobalOutput = true;
 
             VM.LogList.BeginAppend(LogLevel.None, "Preparing output directory...");
             writer.Prepare();
@@ -60,6 +59,7 @@ namespace PixelGraph.UI.Windows
             var context = new ResourcePackContext {
                 Input = await packReader.ReadInputAsync("input.yml"),
                 Profile = await packReader.ReadProfileAsync(VM.Profile.LocalFile),
+                UseGlobalOutput = true,
             };
 
             VM.LogList.BeginAppend(LogLevel.None, "Publishing content...");

@@ -30,6 +30,7 @@ namespace PixelGraph.UI.ViewModels
         private ContentTreeNode _treeRoot;
 
         public event EventHandler SelectedTagChanged;
+        public event EventHandler SelectedProfileChanged;
 
         public ObservableCollection<ProfileItem> Profiles {get;}
 
@@ -125,6 +126,7 @@ namespace PixelGraph.UI.ViewModels
                 _selectedProfile = value;
                 OnPropertyChanged();
 
+                OnSelectedProfileChanged();
                 OnPropertyChanged(nameof(HasProfileSelection));
             }
         }
@@ -235,6 +237,11 @@ namespace PixelGraph.UI.ViewModels
         private void OnSelectedTagChanged()
         {
             SelectedTagChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnSelectedProfileChanged()
+        {
+            SelectedProfileChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
