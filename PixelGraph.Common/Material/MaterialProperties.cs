@@ -39,10 +39,13 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = 1)]
         public string Type {get; set;}
 
+        [YamlMember(Order = 2)]
+        public int? TextureSize {get; set;}
+
         public bool? WrapX {get; set;}
         public bool? WrapY {get; set;}
 
-        public bool? ResizeEnabled {get; set;}
+        public bool? Resizable {get; set;}
 
         public int? RangeMin {get; set;}
 

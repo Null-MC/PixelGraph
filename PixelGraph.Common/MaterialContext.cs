@@ -1,10 +1,10 @@
-﻿using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
 using System;
 using System.Text.RegularExpressions;
-using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.Common
 {
@@ -14,32 +14,19 @@ namespace PixelGraph.Common
         private static readonly Regex entityTextureExp = new Regex(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
 
         public MaterialProperties Material {get; set;}
-        //public MaterialType Type {get; set;}
         public bool CreateEmpty {get; set;}
-        //public int DefaultSize {get; set;}
-        //public Size BufferSize {get; set;}
-        //public bool AutoGenerateOcclusion {get; set;}
 
         public bool WrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool WrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
-        public int DefaultTextureSize => Profile?.DefaultTextureSize ?? 1;
+        public float? TextureScale => Profile?.TextureScale;
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Sampler.Nearest;
         public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
 
 
         public MaterialContext()
         {
-            //DefaultSize = 1;
             CreateEmpty = true;
         }
-
-        //public Size GetDefaultTextureSize()
-        //{
-        //    if (Material.TryGetSourceBounds(out var size)) return size;
-
-        //    var length = Profile?.DefaultTextureSize ?? 1;
-        //    return new Size(length, length);
-        //}
 
         public MaterialType GetMaterialType()
         {
@@ -67,40 +54,48 @@ namespace PixelGraph.Common
             return type;
         }
 
-        public int? GetBufferSize()
+        public int? GetTextureSize()
         {
-            return GetMaterialFinalType() switch {
-                MaterialType.Block => Profile?.BlockTextureSize,
-                MaterialType.Entity => Profile.EntityTextureSize,
-                _ => null,
-            };
+            if (Material.TextureSize.HasValue) {
+                if (Profile.TextureScale.HasValue)
+                    return (int)MathF.Ceiling(Material.TextureSize.Value * Profile.TextureScale.Value);
+
+                return Material.TextureSize.Value;
+            }
+
+            var type = GetMaterialFinalType();
+
+            switch (type) {
+                case MaterialType.Block:
+                    if (Profile?.BlockTextureSize.HasValue ?? false)
+                        return Profile.BlockTextureSize.Value;
+                    break;
+            }
+
+            return Profile?.TextureSize;
         }
 
-        public int GetFinalBufferSize()
+        public Size? GetBufferSize(float aspect)
         {
-            return GetBufferSize() ?? DefaultTextureSize;
-        }
+            if (Material.TryGetSourceBounds(out var bounds)) {
+                if (TextureScale.HasValue) {
+                    var width = (int)MathF.Ceiling(bounds.Width * TextureScale.Value);
+                    var height = (int)MathF.Ceiling(bounds.Height * TextureScale.Value);
+                    return new Size(width, height);
+                }
 
-        public Size GetTargetTextureSize()
-        {
-            if (Material.TryGetSourceBounds(out var size)) return size;
+                return bounds;
+            }
 
-            var length = Profile?.DefaultTextureSize ?? 1;
-            return new Size(length, length);
-        }
+            var size = GetTextureSize();
 
-        public bool TryGetScale(out float scale)
-        {
-            scale = Profile?.TextureScale ?? 0f;
-            return Profile?.TextureScale.HasValue ?? false;
-        }
+            if (size.HasValue) {
+                var width = size.Value;
+                var height = (int) MathF.Ceiling(width * aspect);
+                return new Size(width, height);
+            }
 
-        public void ApplyTargetTextureScale(ref Size size)
-        {
-            if (!(Profile?.TextureScale.HasValue ?? false)) return;
-
-            size.Width = (int) MathF.Ceiling(size.Width * Profile.TextureScale.Value);
-            size.Height = (int) MathF.Ceiling(size.Height * Profile.TextureScale.Value);
+            return null;
         }
     }
 }

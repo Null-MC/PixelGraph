@@ -53,18 +53,10 @@ namespace PixelGraph.UI.Internal
             graph.Context = new MaterialContext {
                 Input = Input,
                 Material = Material,
-                Profile = Profile ?? new ResourcePackProfileProperties {
-                    DefaultTextureSize = 16,
-                },
+                Profile = Profile,
                 CreateEmpty = true,
-                //AutoGenerateOcclusion = true,
             };
 
-            //graph.Context.DefaultSize = graph.Context.GetDefaultTextureSize();
-
-            //builder.DefaultSize = GetSourceSize(); TODO
-
-            // ERROR: Layer pack format
             var inputFormat = TextureEncoding.GetFactory(Input?.Format);
             var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
             inputEncoding.Merge(Input);

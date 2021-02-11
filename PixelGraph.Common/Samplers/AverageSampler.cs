@@ -23,9 +23,7 @@ namespace PixelGraph.Common.Samplers
             var pxMax = pxMin + stepX;
             var pyMax = pyMin + stepY;
 
-            //var f = 1f / (stepX * stepY);
             var color = new Vector4();
-
             for (var py = pyMin; py < pyMax; py++) {
                 var _py = py;
 

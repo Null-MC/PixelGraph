@@ -129,7 +129,6 @@ namespace PixelGraph.Common.Textures
                 if (Context.AutoGenerateOcclusion && TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
                     mapping.SourceTag = TextureTags.OcclusionGenerated;
                     mapping.InputColor = ColorChannel.Red;
-                    //mapping.InputSampler = inputChannel.Sampler;
                     mapping.InputMinValue = 0f;
                     mapping.InputMaxValue = 1f;
                     mapping.InputRangeMin = 0;
@@ -203,10 +202,9 @@ namespace PixelGraph.Common.Textures
                 };
 
                 if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
-                    if (Graph.NormalTexture.Width == bufferSize.Width && Graph.NormalTexture.Height == bufferSize.Height) {
-                        options.Source = Graph.NormalTexture;
-                    }
-                    else {
+                    options.Source = Graph.NormalTexture;
+
+                    if (Graph.NormalTexture.Width != bufferSize.Width || Graph.NormalTexture.Height != bufferSize.Height) {
                         var samplerName = mapping.OutputSampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
                         var sampler = Sampler<Rgb24>.Create(samplerName);
                         sampler.Image = Graph.NormalTexture;
@@ -227,14 +225,11 @@ namespace PixelGraph.Common.Textures
                 }
 
                 if (options.Source != null) {
-                    if (ImageResult == null) {
-                        //var size = options.Source.Size();
+                    if (ImageResult == null)
                         CreateImageResult();
-                    }
 
-                    if (options.Source.Width != ImageResult.Width || options.Source.Height != ImageResult.Height) {
+                    if (options.Source.Width != ImageResult.Width || options.Source.Height != ImageResult.Height)
                         ApplySamplers(options, new [] {mapping}, options.Source);
-                    }
 
                     var processor = new OverlayProcessor<Rgb24>(options);
                     ImageResult.Mutate(context => context.ApplyProcessor(processor));
@@ -322,25 +317,41 @@ namespace PixelGraph.Common.Textures
 
         private async Task<Size> GetBufferSizeAsync(CancellationToken token = default)
         {
-            var bufferWidth = Context.GetBufferSize();
+            var scale = Context.TextureScale ?? 1f;
 
-            if (bufferWidth.HasValue) {
-                if (Context.Material.TryGetSourceBounds(out var bounds)) {
-                    var aspect = (float)bounds.Height / bounds.Width;
+            // Use multi-part bounds if defined
+            if (Context.Material.TryGetSourceBounds(out var partBounds)) {
+                if (scale.Equal(1f)) return partBounds;
 
-                    var width = bufferWidth.Value;
-                    var height = (int)MathF.Ceiling(bufferWidth.Value * aspect);
-                    return new Size(width, height);
-                }
-
-                return new Size(bufferWidth.Value);
+                var width = (int)MathF.Ceiling(partBounds.Width * scale);
+                var height = (int)MathF.Ceiling(partBounds.Height * scale);
+                return new Size(width, height);
             }
 
             var actualBounds = await GetActualBoundsAsync(token);
-            if (actualBounds.HasValue)
-                return actualBounds.Value;
+            var textureSize = Context.GetTextureSize();
 
-            return new Size(Context.DefaultTextureSize);
+            // Use texture-size
+            if (textureSize.HasValue) {
+                var targetWidth = textureSize.Value;
+
+                // Preserve aspect of original image bounds
+                if (actualBounds.HasValue) {
+                    var aspect = (float)actualBounds.Value.Height / actualBounds.Value.Width;
+                    var targetHeight = (int)MathF.Ceiling(targetWidth * aspect);
+                    return new Size(targetWidth, targetHeight);
+                }
+
+                return new Size(targetWidth);
+            }
+
+            if (actualBounds.HasValue) {
+                var targetWidth = (int)MathF.Ceiling(actualBounds.Value.Width * scale);
+                var targetHeight = (int)MathF.Ceiling(actualBounds.Value.Height * scale);
+                return new Size(targetWidth, targetHeight);
+            }
+
+            return new Size(1);
         }
 
         private async Task<Size?> GetActualBoundsAsync(CancellationToken token = default)
@@ -354,14 +365,29 @@ namespace PixelGraph.Common.Textures
 
                 await using var sourceStream = reader.Open(mappingGroup.Key);
                 var info = await Image.IdentifyAsync(Configuration.Default, sourceStream, token);
-                if (hasBounds && info.Width <= maxWidth && info.Height <= maxHeight) continue;
 
-                Expand(ref maxWidth, ref maxHeight, info.Width, info.Height);
-                hasBounds = true;
+                if (!hasBounds) {
+                    maxWidth = info.Width;
+                    maxHeight = info.Height;
+                    hasBounds = true;
+                    continue;
+                }
+
+                if (info.Width != maxWidth) {
+                    var scale = (float)info.Width / maxWidth;
+                    var scaledWidth = (int)MathF.Ceiling(info.Width * scale);
+                    var scaledHeight = (int)MathF.Ceiling(info.Height * scale);
+
+                    if (scaledWidth > maxWidth || scaledHeight > maxHeight) {
+                        maxWidth = scaledWidth;
+                        maxHeight = scaledHeight;
+                    }
+                }
+                else {
+                    if (info.Height > maxHeight)
+                        maxHeight = info.Height;
+                }
             }
-
-            //if (maxWidth > 1 || maxHeight > 1)
-            //    Context.ApplyTargetTextureScale(ref maxSize);
 
             foreach (var mapping in mappings.Where(m => m.SourceFilename == null)) {
                 if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
@@ -382,9 +408,6 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
-            //if (maxWidth <= 1 && maxHeight <= 1)
-            //    return Context.GetDefaultTextureSize();
-
             if (!hasBounds) return null;
             return new Size(maxWidth, maxHeight);
         }
@@ -401,7 +424,6 @@ namespace PixelGraph.Common.Textures
                 sampler.WrapX = Context.Material.WrapX ?? MaterialProperties.DefaultWrap;
                 sampler.WrapY = Context.Material.WrapY ?? MaterialProperties.DefaultWrap;
 
-                //sampler.RangeX = sampler.RangeY = 1f; // TODO: Set to target size / source size
                 sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
                 sampler.RangeY = (float)sourceImage.Height / bufferSize.Height;
 
@@ -445,7 +467,6 @@ namespace PixelGraph.Common.Textures
     internal class TextureChannelMapping
     {
         public ColorChannel InputColor;
-        //public string InputSampler;
         public decimal? InputValue;
         public double InputMinValue;
         public double InputMaxValue;
@@ -478,7 +499,6 @@ namespace PixelGraph.Common.Textures
         public void ApplyInputChannel(ResourcePackChannelProperties channel)
         {
             InputColor = channel.Color ?? ColorChannel.None;
-            //InputSampler = channel.Sampler;
             InputMinValue = (double?)channel.MinValue ?? 0d;
             InputMaxValue = (double?)channel.MaxValue ?? 1d;
             InputRangeMin = channel.RangeMin ?? 0;

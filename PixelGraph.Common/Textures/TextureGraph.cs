@@ -8,7 +8,6 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
@@ -121,7 +120,7 @@ namespace PixelGraph.Common.Textures
 
                 if (!Context.Material.IsMultiPart) {
                     FixEdges(image, textureTag);
-                    return Resize(image, textureTag);
+                    return image;
                 }
 
                 foreach (var region in Context.Material.Parts) {
@@ -156,9 +155,7 @@ namespace PixelGraph.Common.Textures
             if (!Context.UseGlobalOutput) p = PathEx.Join(p, Context.Material.Name);
 
             if (Context.Material.TryGetSourceBounds(out var bounds)) {
-                // TODO: scale regions!
                 var scaleX = (float)image.Width / bounds.Width;
-                //var scaleY = (float)image.Height / bounds.Height;
 
                 foreach (var region in Context.Material.Parts) {
                     var name = naming.GetOutputTextureName(Context.Profile, region.Name, textureTag, Context.UseGlobalOutput);
@@ -178,10 +175,7 @@ namespace PixelGraph.Common.Textures
 
                         FixEdges(regionImage, textureTag);
 
-                        // TODO: move resize before regions; then scale regions to match
-                        using var resizedRegionImage = Resize(regionImage, textureTag);
-
-                        await imageWriter.WriteAsync(resizedRegionImage ?? regionImage, destFile, type, token);
+                        await imageWriter.WriteAsync(regionImage, destFile, type, token);
                     }
 
                     logger.LogInformation("Published texture region {Name} tag {textureTag}.", region.Name, textureTag);
@@ -193,22 +187,11 @@ namespace PixelGraph.Common.Textures
 
                 FixEdges(image, textureTag);
 
-                //using var resizedImage = Resize(image, textureTag);
-                //await imageWriter.WriteAsync(resizedImage ?? image, destFile, type, token);
                 await imageWriter.WriteAsync(image, destFile, type, token);
 
                 logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", Context.Material.DisplayName, textureTag);
             }
         }
-
-        //private TextureTypes GetTextureType(string filename)
-        //{
-        //    var path = System.IO.Path.GetDirectoryName(filename);
-        //    if (PathEx.ContainsSegment(path, "textures", "block"))
-        //        return TextureTypes.Block;
-
-        //    return TextureTypes.Unknown;
-        //}
 
         public async Task<Image<Rgb24>> GetGeneratedOcclusionAsync(CancellationToken token = default)
         {
@@ -226,87 +209,6 @@ namespace PixelGraph.Common.Textures
         {
             NormalTexture?.Dispose();
             occlusionTexture?.Dispose();
-        }
-
-        private Image Resize<TPixel>(Image<TPixel> image, string tag)
-            where TPixel : unmanaged, IPixel<TPixel>
-        {
-            if (image == null) throw new ArgumentNullException(nameof(image));
-
-            if (!(Context.Material?.ResizeEnabled ?? true)) return image;
-
-            var hasTextureSize = Context.Profile?.TextureSize.HasValue ?? false;
-            var hasTextureScale = Context.Profile?.TextureScale.HasValue ?? false;
-            if (!hasTextureSize && !hasTextureScale) return image;
-
-            var (width, height) = image.Size();
-
-            var options = new ChannelResizeProcessor<TPixel>.Options();
-
-            var textureEncodings = OutputEncoding
-                .Where(e => TextureTags.Is(e.Texture, tag));
-
-            float range;
-            int targetWidth, targetHeight;
-            if (hasTextureScale) {
-                if (Context.Profile.TextureScale.Value.Equal(1f)) return image;
-
-                targetWidth = (int)Math.Max(width * Context.Profile.TextureScale.Value, 1f);
-                targetHeight = (int)Math.Max(height * Context.Profile.TextureScale.Value, 1f);
-                range = 1f / Context.Profile.TextureScale.Value;
-            }
-            else {
-                if (width == Context.Profile.TextureSize) return image;
-
-                var aspect = height / (float) width;
-                targetWidth = Context.Profile.TextureSize.Value;
-                targetHeight = (int)(Context.Profile.TextureSize.Value * aspect);
-                range = (float)width / Context.Profile.TextureSize.Value;
-            }
-
-            foreach (var encoding in textureEncodings) {
-                var color = encoding.Color ?? ColorChannel.None;
-                if (color == ColorChannel.None) continue;
-
-                if (color == ColorChannel.Magnitude) {
-                    // WARN: currently not supporting channel sampling for magnitude
-                    // instead depends on normal x/y/z sampler
-                    continue;
-                }
-
-                var samplerName = encoding.Sampler ?? Context.Profile.Encoding?.Sampler;
-                var sampler = Sampler<TPixel>.Create(samplerName) ?? new NearestSampler<TPixel>();
-
-                sampler.Image = image;
-                sampler.WrapX = Context.Material?.WrapX ?? true;
-                sampler.WrapY = Context.Material?.WrapY ?? true;
-
-                // TODO: should this be 2D?
-                sampler.RangeX = sampler.RangeY = range;
-
-                var channel = new ChannelResizeProcessor<TPixel>.ChannelOptions {
-                    Color = color,
-                    RangeMin = encoding.RangeMin ?? 0,
-                    RangeMax = encoding.RangeMax ?? 255,
-                    Sampler = sampler,
-                };
-
-                options.Channels.Add(channel);
-            }
-
-            var sourceConfig = image.GetConfiguration();
-            var processor = new ChannelResizeProcessor<TPixel>(options);
-            var resizedImage = new Image<TPixel>(sourceConfig, targetWidth, targetHeight);
-
-            try {
-                resizedImage.Mutate(c => c.ApplyProcessor(processor));
-                image.Dispose();
-                return resizedImage;
-            }
-            catch {
-                resizedImage.Dispose();
-                throw;
-            }
         }
 
         private void FixEdges(Image image, string tag, Rectangle? bounds = null)
@@ -354,11 +256,7 @@ namespace PixelGraph.Common.Textures
                     Input = Context.Input,
                     Profile = Context.Profile,
                     Material = Context.Material,
-                    //TargetSize = Context.TargetSize,
-                    //TargetScale = Context.TargetScale,
-                    //DefaultSize = Context.DefaultSize,
                     CreateEmpty = false,
-                    //AutoGenerateOcclusion = false,
                 };
 
                 builder.InputChannels = new [] {normalXChannel, normalYChannel, normalZChannel}
@@ -487,9 +385,8 @@ namespace PixelGraph.Common.Textures
                 }
                 else if (heightValue.HasValue) {
                     var up = new Rgb24(127, 127, 255);
-                    var size = Context.GetFinalBufferSize();
-                    //Context.ApplyTargetTextureScale(ref size);
-                    return new Image<Rgb24>(Configuration.Default, size, size, up);
+                    var size = Context.GetBufferSize(1f);
+                    return new Image<Rgb24>(Configuration.Default, size?.Width ?? 1, size?.Height ?? 1, up);
                 }
                 else throw new HeightSourceEmptyException();
 
@@ -587,10 +484,11 @@ namespace PixelGraph.Common.Textures
                 if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
                 // scale height texture instead of using samplers
-                var bufferSize = Context.GetFinalBufferSize();
+                var aspect = (float)heightTexture.Height / heightTexture.Width;
+                var bufferSize = Context.GetBufferSize(aspect);
 
-                if (heightTexture.Width != bufferSize) {
-                    var scale = (float)bufferSize / heightTexture.Width;
+                if (bufferSize.HasValue && heightTexture.Width != bufferSize.Value.Width) {
+                    var scale = (float)bufferSize.Value.Width / heightTexture.Width;
                     var scaledWidth = (int)MathF.Ceiling(heightTexture.Width * scale);
                     var scaledHeight = (int)MathF.Ceiling(heightTexture.Height * scale);
 
@@ -617,7 +515,7 @@ namespace PixelGraph.Common.Textures
                         heightCopy?.Dispose();
                     }
                 }
-
+                
                 return heightTexture;
             }
             catch (SourceEmptyException) {throw;}

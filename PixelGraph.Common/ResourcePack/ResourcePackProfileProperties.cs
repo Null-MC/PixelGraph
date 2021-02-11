@@ -51,22 +51,9 @@ namespace PixelGraph.Common.ResourcePack
 
         public ResourcePackOutputProperties Encoding {get; set;}
 
-        /// <summary>
-        /// Gets or sets the size to use when creating a new texture
-        /// and no existing resolution can be identified.
-        /// </summary>
-        public int? DefaultTextureSize {get; set;}
-
         public int? TextureSize {get; set;}
-        public float? TextureScale {get; set;}
-
         public int? BlockTextureSize {get; set;}
-        public float? BlockTextureScale {get; set;}
-
-        public int? EntityTextureSize {get; set;}
-        public float? EntityTextureScale {get; set;}
-
-        //public int? BlockSize {get; set;}
+        public float? TextureScale {get; set;}
 
         public bool? AutoGenerateNormal {get; set;}
 
