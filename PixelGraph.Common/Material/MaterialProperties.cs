@@ -42,7 +42,16 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = 2)]
         public int? TextureSize {get; set;}
 
+        [YamlMember(Order = 3)]
+        public int? TextureWidth {get; set;}
+
+        [YamlMember(Order = 4)]
+        public int? TextureHeight {get; set;}
+
+        [YamlMember(Order = 5)]
         public bool? WrapX {get; set;}
+
+        [YamlMember(Order = 6)]
         public bool? WrapY {get; set;}
 
         public bool? Resizable {get; set;}

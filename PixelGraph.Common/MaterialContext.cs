@@ -38,7 +38,7 @@ namespace PixelGraph.Common
             return MaterialType.Automatic;
         }
 
-        public MaterialType GetMaterialFinalType()
+        public MaterialType GetFinalMaterialType()
         {
             var type = GetMaterialType();
 
@@ -54,25 +54,68 @@ namespace PixelGraph.Common
             return type;
         }
 
-        public int? GetTextureSize()
+        public Size? GetTextureSize(float? defaultAspect)
         {
-            if (Material.TextureSize.HasValue) {
-                if (Profile.TextureScale.HasValue)
-                    return (int)MathF.Ceiling(Material.TextureSize.Value * Profile.TextureScale.Value);
+            if (Material.TextureWidth.HasValue) {
+                if (Material.TextureHeight.HasValue) {
+                    var width = Material.TextureWidth.Value;
+                    var height = Material.TextureHeight.Value;
 
-                return Material.TextureSize.Value;
+                    if (Profile.TextureScale.HasValue) {
+                        width = (int)MathF.Ceiling(width * Profile.TextureScale.Value);
+                        height = (int)MathF.Ceiling(height * Profile.TextureScale.Value);
+                    }
+
+                    return new Size(width, height);
+                }
+
+                if (defaultAspect.HasValue) {
+                    // TODO: return width, width*aspect
+                }
+            }
+            else if (Material.TextureHeight.HasValue) {
+                if (defaultAspect.HasValue) {
+                    // TODO: return height/aspect, height
+                }
             }
 
-            var type = GetMaterialFinalType();
+            //var width = Material.TextureWidth ?? Material.TextureSize;
+            //var height = Material.TextureHeight ?? Material.TextureSize;
+
+            if (Material.TextureSize.HasValue) {
+                var aspect = defaultAspect ?? 1f;
+                var width = Material.TextureSize.Value;
+                var height = (int)MathF.Ceiling(width * aspect);
+
+                if (Profile.TextureScale.HasValue) {
+                    width = (int)MathF.Ceiling(width * Profile.TextureScale.Value);
+                    height = (int)MathF.Ceiling(height * Profile.TextureScale.Value);
+                }
+
+                return new Size(width, height);
+            }
+
+            var type = GetFinalMaterialType();
 
             switch (type) {
                 case MaterialType.Block:
-                    if (Profile?.BlockTextureSize.HasValue ?? false)
-                        return Profile.BlockTextureSize.Value;
+                    if (Profile?.BlockTextureSize.HasValue ?? false) {
+                        var aspect = defaultAspect ?? 1f;
+                        var width = Profile.BlockTextureSize.Value;
+                        var height = (int)MathF.Ceiling(width * aspect);
+                        return new Size(width, height);
+                    }
                     break;
             }
 
-            return Profile?.TextureSize;
+            if (Profile?.TextureSize.HasValue ?? false) {
+                var aspect = defaultAspect ?? 1f;
+                var width = Profile.TextureSize.Value;
+                var height = (int)MathF.Ceiling(width * aspect);
+                return new Size(width, height);
+            }
+
+            return null;
         }
 
         public Size? GetBufferSize(float aspect)
@@ -87,15 +130,7 @@ namespace PixelGraph.Common
                 return bounds;
             }
 
-            var size = GetTextureSize();
-
-            if (size.HasValue) {
-                var width = size.Value;
-                var height = (int) MathF.Ceiling(width * aspect);
-                return new Size(width, height);
-            }
-
-            return null;
+            return GetTextureSize(aspect);
         }
     }
 }

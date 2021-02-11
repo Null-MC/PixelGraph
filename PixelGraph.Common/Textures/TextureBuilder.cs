@@ -329,21 +329,15 @@ namespace PixelGraph.Common.Textures
             }
 
             var actualBounds = await GetActualBoundsAsync(token);
-            var textureSize = Context.GetTextureSize();
+
+            float? aspect = null;
+            if (actualBounds.HasValue) aspect = (float)actualBounds.Value.Height / actualBounds.Value.Width;
+
+            var textureSize = Context.GetTextureSize(aspect);
 
             // Use texture-size
-            if (textureSize.HasValue) {
-                var targetWidth = textureSize.Value;
-
-                // Preserve aspect of original image bounds
-                if (actualBounds.HasValue) {
-                    var aspect = (float)actualBounds.Value.Height / actualBounds.Value.Width;
-                    var targetHeight = (int)MathF.Ceiling(targetWidth * aspect);
-                    return new Size(targetWidth, targetHeight);
-                }
-
-                return new Size(targetWidth);
-            }
+            if (textureSize.HasValue)
+                return textureSize.Value;
 
             if (actualBounds.HasValue) {
                 var targetWidth = (int)MathF.Ceiling(actualBounds.Value.Width * scale);
@@ -384,26 +378,63 @@ namespace PixelGraph.Common.Textures
                     }
                 }
                 else {
-                    if (info.Height > maxHeight)
+                    if (info.Height > maxHeight) {
                         maxHeight = info.Height;
+                    }
                 }
             }
 
             foreach (var mapping in mappings.Where(m => m.SourceFilename == null)) {
                 if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
-                    if (hasBounds && Graph.NormalTexture.Width <= maxWidth && Graph.NormalTexture.Height <= maxHeight) continue;
+                    if (!hasBounds) {
+                        maxWidth = Graph.NormalTexture.Width;
+                        maxHeight = Graph.NormalTexture.Height;
+                        hasBounds = true;
+                        continue;
+                    }
 
-                    Expand(ref maxWidth, ref maxHeight, Graph.NormalTexture.Width, Graph.NormalTexture.Height);
-                    hasBounds = true;
+                    if (Graph.NormalTexture.Width == maxWidth && Graph.NormalTexture.Height == maxHeight) continue;
+
+                    if (Graph.NormalTexture.Width >= maxWidth) {
+                        maxWidth = Graph.NormalTexture.Width;
+
+                        if (Graph.NormalTexture.Height > maxHeight)
+                            maxHeight = Graph.NormalTexture.Height;
+                    }
+                    else {
+                        var scale = (float)maxWidth / Graph.NormalTexture.Width;
+                        var scaledHeight = (int)MathF.Ceiling(Graph.NormalTexture.Height * scale);
+
+                        if (scaledHeight > maxHeight)
+                            maxHeight = scaledHeight;
+                    }
                 }
 
                 if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated)) {
                     var occlusionTex = await Graph.GetGeneratedOcclusionAsync(token);
                     if (occlusionTex != null) {
-                        if (hasBounds && occlusionTex.Width <= maxWidth && occlusionTex.Height <= maxHeight) continue;
+                        if (!hasBounds) {
+                            maxWidth = occlusionTex.Width;
+                            maxHeight = occlusionTex.Height;
+                            hasBounds = true;
+                            continue;
+                        }
 
-                        Expand(ref maxWidth, ref maxHeight, occlusionTex.Width, occlusionTex.Height);
-                        hasBounds = true;
+                        if (occlusionTex.Width == maxWidth && occlusionTex.Height == maxHeight) continue;
+
+                        if (occlusionTex.Width >= maxWidth) {
+                            maxWidth = occlusionTex.Width;
+
+                            if (occlusionTex.Height > maxHeight)
+                                maxHeight = occlusionTex.Height;
+                        }
+                        else {
+                            var scale = (float)maxWidth / occlusionTex.Width;
+                            var scaledHeight = (int)MathF.Ceiling(occlusionTex.Height * scale);
+
+                            if (scaledHeight > maxHeight)
+                                maxHeight = scaledHeight;
+                        }
                     }
                 }
             }
@@ -436,16 +467,6 @@ namespace PixelGraph.Common.Textures
             var pixel = new TPixel();
             pixel.FromRgba32(defaultValues);
             ImageResult = new Image<TPixel>(Configuration.Default, bufferSize.Width, bufferSize.Height, pixel);
-        }
-
-        private static void Expand(ref int maxWidth, ref int maxHeight, in int texWidth, in int texHeight)
-        {
-            var scaleX = (float) texWidth / maxWidth;
-            var scaleY = (float) texHeight / maxHeight;
-            var scale = Math.Max(scaleX, scaleY);
-
-            maxWidth = (int) Math.Ceiling(maxWidth * scale);
-            maxHeight = (int) Math.Ceiling(maxHeight * scale);
         }
 
         private bool TryGetSourceFilename(string tag, out string filename)
