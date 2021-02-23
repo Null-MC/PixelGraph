@@ -34,7 +34,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255)]
         [Theory] public async Task AlphaTextureTest(byte value)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -57,7 +57,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255, 255, 255)]
         [Theory] public async Task AlbedoTextureTest(byte red, byte green, byte blue)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -83,7 +83,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255, 127,   0)]
         [Theory] public async Task NormalTextureTest(byte red, byte green, byte blue)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -108,7 +108,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255)]
         [Theory] public async Task OcclusionTextureTest(byte value)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -131,7 +131,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255)]
         [Theory] public async Task HeightTextureTest(byte value)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -154,7 +154,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255)]
         [Theory] public async Task SmoothTextureTest(byte value)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -177,7 +177,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(229)]
         [Theory] public async Task F0TextureTest(byte value)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -200,7 +200,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255)]
         [Theory] public async Task MetalTextureTest(byte value)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -223,7 +223,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255, 64)]
         [Theory] public async Task PorosityTextureTest(byte actualValue, byte expectedValue)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -246,7 +246,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255, 255)]
         [Theory] public async Task SubSurfaceScatteringTextureTest(byte actualValue, byte expectedValue)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -270,7 +270,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255, 254)]
         [Theory] public async Task EmissiveTextureTest(byte actualValue, byte expectedValue)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {

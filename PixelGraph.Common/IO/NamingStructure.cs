@@ -4,8 +4,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using SixLabors.ImageSharp.Drawing;
 
 namespace PixelGraph.Common.IO
 {
@@ -40,6 +38,9 @@ namespace PixelGraph.Common.IO
                 [TextureTags.Porosity] = ext => $"porosity.{ext}",
                 [TextureTags.SubSurfaceScattering] = ext => $"sss.{ext}",
                 [TextureTags.Emissive] = ext => $"emissive.{ext}",
+                
+                // Internal
+                [TextureTags.Inventory] = ext => $"inventory.{ext}",
             };
         }
 

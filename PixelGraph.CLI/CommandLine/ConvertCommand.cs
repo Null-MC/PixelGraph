@@ -136,7 +136,7 @@ namespace PixelGraph.CLI.CommandLine
                     LocalPath = ".",
                 };
 
-                var context = new MaterialContext {
+                using var context = new MaterialContext {
                     Input = packInput,
                     Profile = packProfile,
                     Material = material,

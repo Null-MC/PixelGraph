@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Encoding;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
@@ -11,45 +10,33 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures
 {
-    public interface ITextureGraph : IDisposable
+    public interface ITextureGraph
     {
         MaterialContext Context {get; set;}
-        List<ResourcePackChannelProperties> InputEncoding {get; set;}
-        List<ResourcePackChannelProperties> OutputEncoding {get; set;}
-        Image<Rgb24> NormalTexture {get;}
 
-        Task BuildNormalTextureAsync(CancellationToken token = default);
+        Task PreBuildNormalTextureAsync(CancellationToken token = default);
+        void FixEdges(Image image, string tag, Rectangle? bounds = null);
 
-        Task<Image> GetPreviewAsync(string textureTag, CancellationToken token = default);
-
-        Task PublishImageAsync<TPixel>(string textureTag, ImageChannels type, CancellationToken token = default)
-            where TPixel : unmanaged, IPixel<TPixel>;
-
+        Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, bool createEmpty, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
         Task<Image<Rgb24>> GenerateNormalAsync(CancellationToken token = default);
         Task<Image<Rgb24>> GenerateOcclusionAsync(CancellationToken token = default);
-        Task<Image<Rgb24>> GetGeneratedOcclusionAsync(CancellationToken token = default);
+        Task<Image<Rgb24>> GetOrCreateOcclusionAsync(CancellationToken token = default);
     }
 
     internal class TextureGraph : ITextureGraph
     {
         private readonly IServiceProvider provider;
         private readonly IInputReader reader;
-        private readonly INamingStructure naming;
-        private readonly IImageWriter imageWriter;
         private readonly ILogger logger;
-        private Image<Rgb24> occlusionTexture;
+        private bool hasPreBuiltNormals;
 
         public MaterialContext Context {get; set;}
-        public List<ResourcePackChannelProperties> InputEncoding {get; set;}
-        public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
-        public Image<Rgb24> NormalTexture {get; private set;}
 
 
         public TextureGraph(IServiceProvider provider)
@@ -57,39 +44,50 @@ namespace PixelGraph.Common.Textures
             this.provider = provider;
 
             reader = provider.GetRequiredService<IInputReader>();
-            naming = provider.GetRequiredService<INamingStructure>();
-            imageWriter = provider.GetRequiredService<IImageWriter>();
             logger = provider.GetRequiredService<ILogger<TextureGraph>>();
 
-            InputEncoding = new List<ResourcePackChannelProperties>();
-            OutputEncoding = new List<ResourcePackChannelProperties>();
+            hasPreBuiltNormals = false;
         }
 
-        public async Task BuildNormalTextureAsync(CancellationToken token = default)
+        private bool HasOutputNormals()
         {
-            if (await TryBuildNormalMapAsync(token)) {
-                InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
-                InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
-                InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalZ));
+            return Context.OutputEncoding.Where(e => e.HasMapping)
+                .Any(e => {
+                    if (EncodingChannel.Is(e.ID, EncodingChannel.NormalX)) return true;
+                    if (EncodingChannel.Is(e.ID, EncodingChannel.NormalY)) return true;
+                    if (EncodingChannel.Is(e.ID, EncodingChannel.NormalZ)) return true;
+                    return false;
+                });
+        }
 
-                InputEncoding.Add(new ResourcePackNormalXChannelProperties {
+        public async Task PreBuildNormalTextureAsync(CancellationToken token = default)
+        {
+            if (hasPreBuiltNormals || !HasOutputNormals()) return;
+            hasPreBuiltNormals = true;
+
+            if (await TryBuildNormalMapAsync(token)) {
+                Context.InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
+                Context.InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
+                Context.InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalZ));
+
+                Context.InputEncoding.Add(new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.NormalGenerated,
                     Color = ColorChannel.Red,
                 });
 
-                InputEncoding.Add(new ResourcePackNormalYChannelProperties {
+                Context.InputEncoding.Add(new ResourcePackNormalYChannelProperties {
                     Texture = TextureTags.NormalGenerated,
                     Color = ColorChannel.Green,
                 });
 
-                InputEncoding.Add(new ResourcePackNormalZChannelProperties {
+                Context.InputEncoding.Add(new ResourcePackNormalZChannelProperties {
                     Texture = TextureTags.NormalGenerated,
                     Color = ColorChannel.Blue,
                 });
             }
         }
 
-        private async Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, CancellationToken token = default)
+        public async Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, bool createEmpty, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             var builder = provider.GetRequiredService<ITextureBuilder<TPixel>>();
@@ -97,11 +95,11 @@ namespace PixelGraph.Common.Textures
             try {
                 builder.Graph = this;
                 builder.Context = Context;
-                builder.InputChannels = InputEncoding.ToArray();
-                builder.OutputChannels = OutputEncoding
+                builder.InputChannels = Context.InputEncoding.ToArray();
+                builder.OutputChannels = Context.OutputEncoding
                     .Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
 
-                await builder.BuildAsync(token);
+                await builder.BuildAsync(createEmpty, token);
                 return builder.ImageResult;
             }
             catch {
@@ -110,114 +108,25 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        public async Task<Image> GetPreviewAsync(string textureTag, CancellationToken token = default)
+        public async Task<Image<Rgb24>> GetOrCreateOcclusionAsync(CancellationToken token = default)
         {
-            var image = await CreateImageAsync<Rgb24>(textureTag, token);
-            if (image == null) return null;
-
-            try {
-                if (image.Width == 1 && image.Height == 1) return image;
-
-                if (!Context.Material.IsMultiPart) {
-                    FixEdges(image, textureTag);
-                    return image;
-                }
-
-                foreach (var region in Context.Material.Parts) {
-                    var bounds = region.GetRectangle();
-
-                    FixEdges(image, textureTag, bounds);
-                }
-
-                return image;
-            }
-            catch {
-                image.Dispose();
-                throw;
-            }
-        }
-
-        public async Task PublishImageAsync<TPixel>(string textureTag, ImageChannels type, CancellationToken token = default)
-            where TPixel : unmanaged, IPixel<TPixel>
-        {
-            using var image = await CreateImageAsync<TPixel>(textureTag, token);
-
-            if (image == null) {
-                // TODO: log
-                logger.LogWarning("No texture sources found for item {DisplayName} texture {textureTag}.", Context.Material.DisplayName, textureTag);
-                return;
-            }
-
-            imageWriter.Format = Context.Profile.Encoding.Image
-                ?? ResourcePackOutputProperties.ImageDefault;
-
-            var p = Context.Material.LocalPath;
-            if (!Context.UseGlobalOutput) p = PathEx.Join(p, Context.Material.Name);
-
-            if (Context.Material.TryGetSourceBounds(out var bounds)) {
-                var scaleX = (float)image.Width / bounds.Width;
-
-                foreach (var region in Context.Material.Parts) {
-                    var name = naming.GetOutputTextureName(Context.Profile, region.Name, textureTag, Context.UseGlobalOutput);
-                    var destFile = PathEx.Join(p, name);
-
-                    if (image.Width == 1 && image.Height == 1) {
-                        await imageWriter.WriteAsync(image, destFile, type, token);
-                    }
-                    else {
-                        var regionBounds = region.GetRectangle();
-                        regionBounds.X = (int)MathF.Ceiling(regionBounds.X * scaleX);
-                        regionBounds.Y = (int)MathF.Ceiling(regionBounds.Y * scaleX);
-                        regionBounds.Width = (int)MathF.Ceiling(regionBounds.Width * scaleX);
-                        regionBounds.Height = (int)MathF.Ceiling(regionBounds.Height * scaleX);
-
-                        using var regionImage = image.Clone(c => c.Crop(regionBounds));
-
-                        FixEdges(regionImage, textureTag);
-
-                        await imageWriter.WriteAsync(regionImage, destFile, type, token);
-                    }
-
-                    logger.LogInformation("Published texture region {Name} tag {textureTag}.", region.Name, textureTag);
-                }
-            }
-            else {
-                var name = naming.GetOutputTextureName(Context.Profile, Context.Material.Name, textureTag, Context.UseGlobalOutput);
-                var destFile = PathEx.Join(p, name);
-
-                FixEdges(image, textureTag);
-
-                await imageWriter.WriteAsync(image, destFile, type, token);
-
-                logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", Context.Material.DisplayName, textureTag);
-            }
-        }
-
-        public async Task<Image<Rgb24>> GetGeneratedOcclusionAsync(CancellationToken token = default)
-        {
-            if (occlusionTexture == null && Context.AutoGenerateOcclusion) {
+            if (Context.OcclusionTexture == null && Context.AutoGenerateOcclusion) {
                 try {
-                    occlusionTexture = await GenerateOcclusionAsync(token);
+                    Context.OcclusionTexture = await GenerateOcclusionAsync(token);
                 }
                 catch (HeightSourceEmptyException) {}
             }
             
-            return occlusionTexture;
+            return Context.OcclusionTexture;
         }
 
-        public void Dispose()
-        {
-            NormalTexture?.Dispose();
-            occlusionTexture?.Dispose();
-        }
-
-        private void FixEdges(Image image, string tag, Rectangle? bounds = null)
+        public void FixEdges(Image image, string tag, Rectangle? bounds = null)
         {
             var hasEdgeSizeX = Context.Material.Height?.EdgeFadeSizeX.HasValue ?? false;
             var hasEdgeSizeY = Context.Material.Height?.EdgeFadeSizeY.HasValue ?? false;
             if (!hasEdgeSizeX && !hasEdgeSizeY) return;
 
-            var heightChannels = OutputEncoding
+            var heightChannels = Context.OutputEncoding
                 .Where(c => TextureTags.Is(c.Texture, tag))
                 .Where(c => EncodingChannel.Is(c.ID, EncodingChannel.Height))
                 .Select(c => c.Color ?? ColorChannel.None).ToArray();
@@ -240,24 +149,25 @@ namespace PixelGraph.Common.Textures
         private async Task<bool> TryBuildNormalMapAsync(CancellationToken token)
         {
             // Try to compose from existing channels first
-            var normalXChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
-            var normalYChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
-            var normalZChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalZ));
+            var normalXChannel = Context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
+            var normalYChannel = Context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
+            var normalZChannel = Context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalZ));
 
             var hasNormalX = normalXChannel?.HasMapping ?? false;
             var hasNormalY = normalYChannel?.HasMapping ?? false;
 
             if (hasNormalX && hasNormalY) {
                 // make image from normal X & Y; z if found
-                using var builder = provider.GetRequiredService<ITextureBuilder<Rgb24>>();
-
-                builder.Graph = this;
-                builder.Context = new MaterialContext {
+                using var context = new MaterialContext {
                     Input = Context.Input,
                     Profile = Context.Profile,
                     Material = Context.Material,
-                    CreateEmpty = false,
+                    //CreateEmpty = false,
                 };
+
+                using var builder = provider.GetRequiredService<ITextureBuilder<Rgb24>>();
+                builder.Graph = this;
+                builder.Context = context;
 
                 builder.InputChannels = new [] {normalXChannel, normalYChannel, normalZChannel}
                     .Where(x => x != null).ToArray();
@@ -277,18 +187,18 @@ namespace PixelGraph.Common.Textures
                     },
                 };
 
-                await builder.BuildAsync(token);
+                await builder.BuildAsync(false, token);
 
-                NormalTexture = builder.ImageResult?.CloneAs<Rgb24>();
+                Context.NormalTexture = builder.ImageResult?.CloneAs<Rgb24>();
             }
 
             var autoGenNormal = Context.Profile?.AutoGenerateNormal
                 ?? ResourcePackProfileProperties.AutoGenerateNormalDefault;
 
-            if (NormalTexture == null && autoGenNormal)
-                NormalTexture = await GenerateNormalAsync(token);
+            if (Context.NormalTexture == null && autoGenNormal)
+                Context.NormalTexture = await GenerateNormalAsync(token);
 
-            if (NormalTexture == null) return false;
+            if (Context.NormalTexture == null) return false;
 
             var options = new NormalRotateProcessor.Options {
                 NormalX = ColorChannel.Red,
@@ -300,10 +210,10 @@ namespace PixelGraph.Common.Textures
             };
 
             var processor = new NormalRotateProcessor(options);
-            NormalTexture.Mutate(c => c.ApplyProcessor(processor));
+            Context.NormalTexture.Mutate(c => c.ApplyProcessor(processor));
 
             // apply magnitude channels
-            var magnitudeChannels = OutputEncoding
+            var magnitudeChannels = Context.OutputEncoding
                 .Where(c => TextureTags.Is(c.Texture, TextureTags.Normal))
                 .Where(c => c.Color == ColorChannel.Magnitude).ToArray();
 
@@ -326,7 +236,7 @@ namespace PixelGraph.Common.Textures
                 using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
                 if (sourceImage == null) return;
 
-                var inputChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, magnitudeChannel.ID));
+                var inputChannel = Context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, magnitudeChannel.ID));
                 if (inputChannel == null) return;
 
                 var options = new NormalMagnitudeProcessor<Rgba32>.Options {
@@ -338,11 +248,11 @@ namespace PixelGraph.Common.Textures
                 options.ApplyOutputChannel(magnitudeChannel);
 
                 var processor = new NormalMagnitudeProcessor<Rgba32>(options);
-                NormalTexture.Mutate(c => c.ApplyProcessor(processor));
+                Context.NormalTexture.Mutate(c => c.ApplyProcessor(processor));
             }
             else if (EncodingChannel.Is(magnitudeChannel.ID, EncodingChannel.Occlusion)) {
                 var options = new NormalMagnitudeProcessor<Rgb24>.Options {
-                    MagSource = await GetGeneratedOcclusionAsync(token),
+                    MagSource = await GetOrCreateOcclusionAsync(token),
                     Scale = Context.Material.GetChannelScale(magnitudeChannel.ID),
                     InputChannel = ColorChannel.Red,
                     InputMinValue = 0f,
@@ -358,7 +268,7 @@ namespace PixelGraph.Common.Textures
                 options.ApplyOutputChannel(magnitudeChannel);
 
                 var processor = new NormalMagnitudeProcessor<Rgb24>(options);
-                NormalTexture.Mutate(c => c.ApplyProcessor(processor));
+                Context.NormalTexture.Mutate(c => c.ApplyProcessor(processor));
             }
             else {
                 throw new SourceEmptyException("No sources found for applying normal magnitude!");
@@ -369,7 +279,7 @@ namespace PixelGraph.Common.Textures
         {
             logger.LogInformation("Generating normal map for texture {DisplayName}.", Context.Material.DisplayName);
 
-            var heightChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
+            var heightChannel = Context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
 
             if (heightChannel == null || !heightChannel.HasMapping)
                 throw new HeightSourceEmptyException("No height sources mapped!");
@@ -417,7 +327,7 @@ namespace PixelGraph.Common.Textures
         {
             logger.LogInformation("Generating occlusion map for texture {DisplayName}.", Context.Material.DisplayName);
 
-            var heightChannel = InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
+            var heightChannel = Context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
 
             if (heightChannel?.Color == null || heightChannel.Color.Value == ColorChannel.None)
                 throw new HeightSourceEmptyException("No height sources mapped!");

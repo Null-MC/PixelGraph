@@ -12,6 +12,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -136,15 +137,17 @@ namespace PixelGraph.CLI.CommandLine
                 logger.LogDebug("Generating ambient occlusion for texture {DisplayName}.", material.DisplayName);
 
                 try {
-                    var context = new MaterialContext {
+                    using var context = new MaterialContext {
                         Input = packInput,
                         Profile = packProfile,
                         Material = material,
+                        InputEncoding = packInput.GetMapped().ToList(),
+                        OutputEncoding = packInput.GetMapped().ToList(),
                     };
 
-                    using var graph = provider.GetRequiredService<ITextureGraph>();
-                    graph.InputEncoding.AddRange(context.Input.GetMapped());
-                    graph.OutputEncoding.AddRange(context.Input.GetMapped());
+                    var graph = provider.GetRequiredService<ITextureGraph>();
+                    //graph.Context.InputEncoding.AddRange(context.Input.GetMapped());
+                    //graph.Context.OutputEncoding.AddRange(context.Input.GetMapped());
                     graph.Context = context;
 
                     using var occlusionImage = await graph.GenerateOcclusionAsync(token);

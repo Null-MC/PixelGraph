@@ -40,7 +40,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(255)]
         [Theory] public async Task Passthrough(byte value)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -66,7 +66,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(0.784, 0.01,   2)]
         [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -94,7 +94,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(200, 0.01,   2)]
         [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -120,7 +120,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(255,   0)]
         [Theory] public async Task ConvertsSmoothToRough(byte value, byte expected)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = new ResourcePackInputProperties {
                     Smooth = {
                         Texture = TextureTags.Smooth,

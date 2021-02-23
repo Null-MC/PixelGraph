@@ -16,18 +16,18 @@ namespace PixelGraph.UI.Windows
     public partial class PublishWindow : IDisposable
     {
         private readonly IServiceProvider provider;
-        private readonly IAppSettings settings;
+        private readonly IAppConfiguration configuration;
 
 
         public PublishWindow(IServiceProvider provider)
         {
             this.provider = provider;
 
-            settings = provider.GetRequiredService<IAppSettings>();
+            configuration = provider.GetRequiredService<IAppConfiguration>();
 
             InitializeComponent();
 
-            VM.CloseOnComplete = settings.PublishCloseOnComplete;
+            VM.CloseOnComplete = configuration.PublishCloseOnComplete;
             VM.LogList.Appended += OnLogListAppended;
         }
 
@@ -115,7 +115,9 @@ namespace PixelGraph.UI.Windows
 
         private async void OnCloseCheckBoxChecked(object sender, RoutedEventArgs e)
         {
-            settings.PublishCloseOnComplete = VM.CloseOnComplete;
+            configuration.PublishCloseOnComplete = VM.CloseOnComplete;
+
+            var settings = provider.GetRequiredService<IAppSettings>();
             await settings.SaveAsync();
         }
     }

@@ -21,18 +21,31 @@ namespace PixelGraph.Common.Extensions
 
         public static void Normalize(ref Vector3 value)
         {
-            float length;
+            float lengthF;
             if (Vector.IsHardwareAccelerated) {
-                length = value.Length();
+                lengthF = 1f / value.Length();
             }
             else {
                 var ls = value.X * value.X + value.Y * value.Y + value.Z * value.Z;
-                length = MathF.Sqrt(ls);
+                lengthF = 1f / MathF.Sqrt(ls);
             }
 
-            value.X /= length;
-            value.Y /= length;
-            value.Z /= length;
+            if (lengthF.Equal(1f)) return;
+
+            value.X *= lengthF;
+            value.Y *= lengthF;
+            value.Z *= lengthF;
+        }
+
+        public static void Normalize(ref Vector4 value)
+        {
+            var length2 = value.X * value.X + value.Y * value.Y + value.Z * value.Z;
+            var lengthF = 1f / MathF.Sqrt(length2);
+            if (lengthF.Equal(1f)) return;
+
+            value.X *= lengthF;
+            value.Y *= lengthF;
+            value.Z *= lengthF;
         }
 
         //public static void Invert(ref byte value)
@@ -197,16 +210,16 @@ namespace PixelGraph.Common.Extensions
         //    while (value >= r) value -= r;
         //}
 
-        public static void PerceptualToLinear(ref double value)
-        {
-            value = 1d - value;
-            value *= value;
-            value = 1d - value;
-        }
+        //public static void PerceptualToLinear(ref double value)
+        //{
+        //    value = 1d - value;
+        //    value *= value;
+        //    value = 1d - value;
+        //}
 
-        public static void LinearToPerceptual(ref double value)
-        {
-            value = 1d - Math.Sqrt(1d - value);
-        }
+        //public static void LinearToPerceptual(ref double value)
+        //{
+        //    value = 1d - Math.Sqrt(1d - value);
+        //}
     }
 }

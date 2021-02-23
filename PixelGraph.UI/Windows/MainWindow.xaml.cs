@@ -254,21 +254,21 @@ namespace PixelGraph.UI.Windows
             if (!vm.TryStartBusy()) return;
 
             try {
-                var context = new MaterialContext {
+                var inputFormat = TextureEncoding.GetFactory(vm.PackInput.Format);
+                var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+                inputEncoding.Merge(vm.PackInput);
+                inputEncoding.Merge(material);
+
+                using var context = new MaterialContext {
                     Input = vm.PackInput,
                     //Profile = vm.LoadedProfile,
                     Material = material,
+                    InputEncoding = inputEncoding.GetMapped().ToList(),
+                    OutputEncoding = inputEncoding.GetMapped().ToList(),
                 };
 
                 await Task.Factory.StartNew(async () => {
-                    var inputFormat = TextureEncoding.GetFactory(context.Input.Format);
-                    var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
-                    inputEncoding.Merge(context.Input);
-                    inputEncoding.Merge(context.Material);
-
-                    using var graph = provider.GetRequiredService<ITextureGraph>();
-                    graph.InputEncoding.AddRange(inputEncoding.GetMapped());
-                    graph.OutputEncoding.AddRange(inputEncoding.GetMapped());
+                    var graph = provider.GetRequiredService<ITextureGraph>();
                     graph.Context = context;
 
                     using var normalImage = await graph.GenerateNormalAsync(token);
@@ -307,21 +307,21 @@ namespace PixelGraph.UI.Windows
             if (!vm.TryStartBusy()) return;
 
             try {
-                var context = new MaterialContext {
+                var inputFormat = TextureEncoding.GetFactory(vm.PackInput.Format);
+                var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+                inputEncoding.Merge(vm.PackInput);
+                inputEncoding.Merge(material);
+
+                using var context = new MaterialContext {
                     Input = vm.PackInput,
                     //Profile = vm.LoadedProfile,
                     Material = material,
+                    InputEncoding = inputEncoding.GetMapped().ToList(),
+                    OutputEncoding = inputEncoding.GetMapped().ToList(),
                 };
 
                 await Task.Factory.StartNew(async () => {
-                    var inputFormat = TextureEncoding.GetFactory(context.Input.Format);
-                    var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
-                    inputEncoding.Merge(context.Input);
-                    inputEncoding.Merge(context.Material);
-
-                    using var graph = provider.GetRequiredService<ITextureGraph>();
-                    graph.InputEncoding.AddRange(inputEncoding.GetMapped());
-                    graph.OutputEncoding.AddRange(inputEncoding.GetMapped());
+                    var graph = provider.GetRequiredService<ITextureGraph>();
                     graph.Context = context;
 
                     using var occlusionImage = await graph.GenerateOcclusionAsync(token);
@@ -417,8 +417,14 @@ namespace PixelGraph.UI.Windows
                 AddExtension = true,
             };
 
-            return saveFileDialog.ShowDialog() == true
-                ? saveFileDialog.FileName : null;
+            var result = saveFileDialog.ShowDialog();
+            if (result != true) return null;
+
+            var filename = saveFileDialog.FileName;
+            if (saveFileDialog.FilterIndex == 1 && !filename.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
+                filename += ".zip";
+
+            return filename;
         }
 
         private static string GetDirectoryName()
@@ -534,6 +540,15 @@ namespace PixelGraph.UI.Windows
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            try {
+                var settings = provider.GetRequiredService<IAppSettings>();
+                await settings.LoadAsync();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to load application settings!");
+                ShowError("Failed to load application settings!");
+            }
+
             var recent = provider.GetRequiredService<IRecentPathManager>();
             await recent.InitializeAsync();
         }

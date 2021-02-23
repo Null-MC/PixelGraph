@@ -55,7 +55,7 @@ namespace PixelGraph.Tests.GenerationTests
         [InlineData(255)]
         [Theory] public async Task GeneratesFlat(byte height)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {

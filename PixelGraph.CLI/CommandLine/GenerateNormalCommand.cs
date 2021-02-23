@@ -12,6 +12,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -138,20 +139,20 @@ namespace PixelGraph.CLI.CommandLine
                 var finalName = normalFilename ?? naming.GetOutputTextureName(packProfile, material.Name, TextureTags.Normal, material.UseGlobalMatching);
 
                 try {
-                    var context = new MaterialContext {
+                    using var context = new MaterialContext {
                         Input = packInput,
                         Profile = packProfile,
                         Material = material,
+                        InputEncoding = packInput.GetMapped().ToList(),
+                        OutputEncoding = packInput.GetMapped().ToList(),
                     };
 
-                    using var graph = provider.GetRequiredService<ITextureGraph>();
-                    graph.InputEncoding.AddRange(context.Input.GetMapped());
-                    graph.OutputEncoding.AddRange(context.Input.GetMapped());
+                    var graph = provider.GetRequiredService<ITextureGraph>();
                     graph.Context = context;
 
                     using var image = await graph.GenerateNormalAsync(token);
-
                     await image.SaveAsync(finalName, token);
+
                     logger.LogInformation("Normal texture {finalName} generated successfully.", finalName);
                 }
                 catch (SourceEmptyException error) {

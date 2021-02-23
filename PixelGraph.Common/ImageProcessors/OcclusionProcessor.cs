@@ -46,14 +46,10 @@ namespace PixelGraph.Common.ImageProcessors
                     position.Y = context.Y;
                     position.Z = z;
 
-                    if (RayTest(in context, ref position, in rayList.Value[i], out var rayHitFactor)) {
-                        rayHitFactor = MathF.Sqrt(rayHitFactor);
+                    if (RayTest(in context, ref position, in rayList.Value[i], out var rayHitFactor))
                         hitFactor += rayHitFactor * rayCountFactor;
-                    }
                 }
 
-                //hitFactor = Math.Pow(hitFactor, 2);
-                //hitFactor *= hitFactor;
                 MathEx.Saturate(1d - hitFactor, out pixelOut.R);
                 pixelOut.B = pixelOut.G = pixelOut.R;
 
@@ -107,8 +103,8 @@ namespace PixelGraph.Common.ImageProcessors
 
                 if (position.Z > options.ZScale) break;
 
-                var fx = position.X / context.Bounds.Width;
-                var fy = position.Y / context.Bounds.Height;
+                var fx = (position.X + 0.5f) / context.Bounds.Width;
+                var fy = (position.Y + 0.5f) / context.Bounds.Height;
                 options.Sampler.SampleScaled(in fx, in fy, options.HeightChannel, out var height);
 
                 // TODO: range, shift, power
@@ -116,7 +112,8 @@ namespace PixelGraph.Common.ImageProcessors
                 if (!(position.Z < height * options.ZScale)) continue;
 
                 // hit, return 
-                factor = 1f - (float)step / options.StepCount;
+                factor = (float)step / options.StepCount;
+                factor = 1f - MathF.Pow(factor, options.HitPower);
                 return true;
             }
 
@@ -137,6 +134,7 @@ namespace PixelGraph.Common.ImageProcessors
             //public bool HeightPerceptual;
             public bool HeightInvert;
             public int StepCount;
+            public float HitPower = 1.5f;
             public float ZScale;
             public float ZBias;
             public float Quality;

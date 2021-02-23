@@ -26,6 +26,9 @@ namespace PixelGraph.Common.IO
                 [TextureTags.Porosity] = (name, ext) => $"{name}_p.{ext}",
                 [TextureTags.SubSurfaceScattering] = (name, ext) => $"{name}_sss.{ext}",
                 [TextureTags.Emissive] = (name, ext) => $"{name}_e.{ext}",
+
+                // Internal
+                [TextureTags.Inventory] = (name, ext) => $"{name}_inventory.{ext}",
             };
         }
 

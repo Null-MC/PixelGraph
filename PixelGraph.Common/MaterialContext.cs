@@ -1,31 +1,82 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace PixelGraph.Common
 {
-    public class MaterialContext : ResourcePackContext
+    public class MaterialContext : ResourcePackContext, IDisposable
     {
         private static readonly Regex blockTextureExp = new Regex(@"(?:^|\/)textures\/block(?:\/|$)", RegexOptions.Compiled);
         private static readonly Regex entityTextureExp = new Regex(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
 
         public MaterialProperties Material {get; set;}
-        public bool CreateEmpty {get; set;}
+        //public bool CreateEmpty {get; set;}
 
         public bool WrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool WrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
         public float? TextureScale => Profile?.TextureScale;
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Sampler.Nearest;
+        public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
+
         public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
+
+
+        public List<ResourcePackChannelProperties> InputEncoding {get; set;}
+        public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        public Image<Rgb24> OcclusionTexture {get; set;}
+        public Image<Rgb24> NormalTexture {get; set;}
 
 
         public MaterialContext()
         {
-            CreateEmpty = true;
+            //CreateEmpty = true;
+
+            InputEncoding = new List<ResourcePackChannelProperties>();
+            OutputEncoding = new List<ResourcePackChannelProperties>();
+        }
+
+        public void Dispose()
+        {
+            NormalTexture?.Dispose();
+            OcclusionTexture?.Dispose();
+        }
+
+        public void ApplyInputEncoding()
+        {
+            var inputFormat = TextureEncoding.GetFactory(Input.Format);
+            var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+            inputEncoding.Merge(Input);
+            inputEncoding.Merge(Material);
+
+            var outputFormat = TextureEncoding.GetFactory(Profile.Encoding.Format);
+            var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
+            outputEncoding.Merge(Profile.Encoding);
+
+            InputEncoding = inputEncoding.GetMapped().ToList();
+            OutputEncoding = outputEncoding.GetMapped().ToList();
+        }
+
+        public void ApplyOutputEncoding()
+        {
+            var inputFormat = TextureEncoding.GetFactory(Profile.Encoding.Format);
+            var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+            inputEncoding.Merge(Profile.Encoding);
+
+            var outputFormat = TextureEncoding.GetFactory(Input.Format);
+            var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
+            outputEncoding.Merge(Input);
+            // TODO: layer material properties on top of pack encoding?
+
+            InputEncoding = inputEncoding.GetMapped().ToList();
+            OutputEncoding = outputEncoding.GetMapped().ToList();
         }
 
         public MaterialType GetMaterialType()

@@ -12,9 +12,7 @@ namespace PixelGraph.Common.Textures
         public const string Diffuse = "diffuse";
         public const string Height = "height";
         public const string Normal = "normal";
-        public const string NormalGenerated = "normal-generated";
         public const string Occlusion = "occlusion";
-        public const string OcclusionGenerated = "occlusion-generated";
         public const string Specular = "specular";
         public const string Rough = "rough";
         public const string Smooth = "smooth";
@@ -24,7 +22,12 @@ namespace PixelGraph.Common.Textures
         public const string SubSurfaceScattering = "sss";
         public const string Emissive = "emissive";
 
-        public static string[] All {get;} = {Alpha, Albedo, Diffuse, Height, Normal, Occlusion, Specular, Smooth, Rough, Metal, F0, Porosity, SubSurfaceScattering, Emissive};
+        // Internal
+        public const string Inventory = "inventory";
+        public const string NormalGenerated = "normal-generated";
+        public const string OcclusionGenerated = "occlusion-generated";
+
+        public static string[] All {get;} = {Alpha, Albedo, Diffuse, Height, Normal, Occlusion, Specular, Smooth, Rough, Metal, F0, Porosity, SubSurfaceScattering, Emissive, Inventory};
 
 
         public static string Get(MaterialProperties material, string tag)

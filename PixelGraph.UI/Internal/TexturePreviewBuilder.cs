@@ -6,6 +6,7 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,66 +49,45 @@ namespace PixelGraph.UI.Internal
 
         public async Task<ImageSource> BuildAsync(string tag)
         {
-            using var graph = provider.GetRequiredService<ITextureGraph>();
-
-            graph.Context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = Input,
                 Material = Material,
                 Profile = Profile,
-                CreateEmpty = true,
+                //CreateEmpty = true,
             };
+
+            var graph = provider.GetRequiredService<ITextureGraph>();
+            graph.Context = context;
 
             var inputFormat = TextureEncoding.GetFactory(Input?.Format);
             var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
             inputEncoding.Merge(Input);
             inputEncoding.Merge(Material);
-            graph.InputEncoding = inputEncoding.GetMapped().ToList();
+            context.InputEncoding = inputEncoding.GetMapped().ToList();
 
-            if (TextureTags.Is(tag, TextureTags.Alpha))
-                graph.OutputEncoding.AddRange(GetAlphaChannels(graph.Context.Profile));
-
-            if (TextureTags.Is(tag, TextureTags.Diffuse))
-                graph.OutputEncoding.AddRange(GetDiffuseChannels());
-
-            if (TextureTags.Is(tag, TextureTags.Albedo))
-                graph.OutputEncoding.AddRange(GetAlbedoChannels());
-
-            if (TextureTags.Is(tag, TextureTags.Height))
-                graph.OutputEncoding.AddRange(GetHeightChannels(graph.Context.Profile));
-
-            if (TextureTags.Is(tag, TextureTags.Occlusion))
-                graph.OutputEncoding.AddRange(GetOcclusionChannels());
-
-            if (TextureTags.Is(tag, TextureTags.Normal)) {
-                graph.OutputEncoding.AddRange(GetNormalChannels());
-                await graph.BuildNormalTextureAsync(tokenSource.Token);
+            if (tagMap.TryGetValue(tag, out var channelFunc)) {
+                var channels = channelFunc(Profile);
+                context.OutputEncoding.AddRange(channels);
             }
 
-            if (TextureTags.Is(tag, TextureTags.Specular))
-                graph.OutputEncoding.AddRange(GetSpecularChannels());
+            if (TextureTags.Is(tag, TextureTags.Normal))
+                await graph.PreBuildNormalTextureAsync(tokenSource.Token);
 
-            if (TextureTags.Is(tag, TextureTags.Smooth))
-                graph.OutputEncoding.AddRange(GetSmoothChannels());
+            using var image = await graph.CreateImageAsync<Rgb24>(tag, true, tokenSource.Token);
+            if (image == null) return null;
 
-            if (TextureTags.Is(tag, TextureTags.Rough))
-                graph.OutputEncoding.AddRange(GetRoughChannels());
+            if (image.Width > 1 || image.Height > 1) {
+                if (context.Material.IsMultiPart) {
+                    foreach (var region in context.Material.Parts) {
+                        var bounds = region.GetRectangle();
+                        graph.FixEdges(image, tag, bounds);
+                    }
+                }
+                else {
+                    graph.FixEdges(image, tag);
+                }
+            }
 
-            if (TextureTags.Is(tag, TextureTags.Metal))
-                graph.OutputEncoding.AddRange(GetMetalChannels());
-
-            if (TextureTags.Is(tag, TextureTags.F0))
-                graph.OutputEncoding.AddRange(GetF0Channels());
-
-            if (TextureTags.Is(tag, TextureTags.Porosity))
-                graph.OutputEncoding.AddRange(GetPorosityChannels());
-
-            if (TextureTags.Is(tag, TextureTags.SubSurfaceScattering))
-                graph.OutputEncoding.AddRange(GetSSSChannels());
-
-            if (TextureTags.Is(tag, TextureTags.Emissive))
-                graph.OutputEncoding.AddRange(GetEmissiveChannels());
-
-            using var image = await graph.GetPreviewAsync(tag, tokenSource.Token);
             return await CreateImageSourceAsync(image, tokenSource.Token);
         }
 
@@ -138,124 +118,114 @@ namespace PixelGraph.UI.Internal
             return imageSource;
         }
 
-        private static IEnumerable<ResourcePackChannelProperties> GetAlphaChannels(ResourcePackProfileProperties profile)
-        {
-            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Red) {
-                Sampler = profile?.Encoding?.Alpha?.Sampler,
-                MaxValue = 255,
+        private static readonly Dictionary<string, Func<ResourcePackProfileProperties, ResourcePackChannelProperties[]>> tagMap =
+            new Dictionary<string, Func<ResourcePackProfileProperties, ResourcePackChannelProperties[]>>(StringComparer.InvariantCultureIgnoreCase) {
+                [TextureTags.Alpha] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Red) {
+                        Sampler = profile?.Encoding?.Alpha?.Sampler,
+                        MaxValue = 255,
+                    },
+                    new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Green) {
+                        Sampler = profile?.Encoding?.Alpha?.Sampler,
+                        MaxValue = 255,
+                    },
+                    new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Blue) {
+                        Sampler = profile?.Encoding?.Alpha?.Sampler,
+                        MaxValue = 255,
+                    },
+                },
+                [TextureTags.Diffuse] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackDiffuseRedChannelProperties(TextureTags.Diffuse, ColorChannel.Red) {
+                        Sampler = profile?.Encoding?.DiffuseRed?.Sampler,
+                        MaxValue = 255,
+                    },
+                    new ResourcePackDiffuseGreenChannelProperties(TextureTags.Diffuse, ColorChannel.Green) {
+                        Sampler = profile?.Encoding?.DiffuseGreen?.Sampler,
+                        MaxValue = 255,
+                    },
+                    new ResourcePackDiffuseBlueChannelProperties(TextureTags.Diffuse, ColorChannel.Blue) {
+                        Sampler = profile?.Encoding?.DiffuseBlue?.Sampler,
+                        MaxValue = 255,
+                    },
+                },
+                [TextureTags.Albedo] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackAlbedoRedChannelProperties(TextureTags.Albedo, ColorChannel.Red) {
+                        Sampler = profile?.Encoding?.AlbedoRed?.Sampler,
+                        MaxValue = 255,
+                    },
+                    new ResourcePackAlbedoGreenChannelProperties(TextureTags.Albedo, ColorChannel.Green) {
+                        Sampler = profile?.Encoding?.AlbedoGreen?.Sampler,
+                        MaxValue = 255,
+                    },
+                    new ResourcePackAlbedoBlueChannelProperties(TextureTags.Albedo, ColorChannel.Blue) {
+                        Sampler = profile?.Encoding?.AlbedoBlue?.Sampler,
+                        MaxValue = 255,
+                    },
+                },
+                [TextureTags.Height] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Red) {
+                        Sampler = profile?.Encoding?.Height?.Sampler,
+                        Invert = true,
+                    },
+                    new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Green) {
+                        Sampler = profile?.Encoding?.Height?.Sampler,
+                        Invert = true,
+                    },
+                    new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Blue) {
+                        Sampler = profile?.Encoding?.Height?.Sampler,
+                        Invert = true,
+                    },
+                },
+                [TextureTags.Occlusion] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackOcclusionChannelProperties(TextureTags.Occlusion, ColorChannel.Red), //{Invert = true};
+                    new ResourcePackOcclusionChannelProperties(TextureTags.Occlusion, ColorChannel.Green), //{Invert = true};
+                    new ResourcePackOcclusionChannelProperties(TextureTags.Occlusion, ColorChannel.Blue), //{Invert = true};
+                },
+                [TextureTags.Normal] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackNormalXChannelProperties(TextureTags.Normal, ColorChannel.Red),
+                    new ResourcePackNormalYChannelProperties(TextureTags.Normal, ColorChannel.Green),
+                    new ResourcePackNormalZChannelProperties(TextureTags.Normal, ColorChannel.Blue),
+                },
+                [TextureTags.Specular] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackSpecularChannelProperties(TextureTags.Specular, ColorChannel.Red),
+                    new ResourcePackSpecularChannelProperties(TextureTags.Specular, ColorChannel.Green),
+                    new ResourcePackSpecularChannelProperties(TextureTags.Specular, ColorChannel.Blue),
+                },
+                [TextureTags.Smooth] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackSmoothChannelProperties(TextureTags.Smooth, ColorChannel.Red),
+                    new ResourcePackSmoothChannelProperties(TextureTags.Smooth, ColorChannel.Green),
+                    new ResourcePackSmoothChannelProperties(TextureTags.Smooth, ColorChannel.Blue),
+                },
+                [TextureTags.Rough] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackRoughChannelProperties(TextureTags.Rough, ColorChannel.Red),
+                    new ResourcePackRoughChannelProperties(TextureTags.Rough, ColorChannel.Green),
+                    new ResourcePackRoughChannelProperties(TextureTags.Rough, ColorChannel.Blue),
+                },
+                [TextureTags.Metal] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackMetalChannelProperties(TextureTags.Metal, ColorChannel.Red),
+                    new ResourcePackMetalChannelProperties(TextureTags.Metal, ColorChannel.Green),
+                    new ResourcePackMetalChannelProperties(TextureTags.Metal, ColorChannel.Blue),
+                },
+                [TextureTags.F0] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackF0ChannelProperties(TextureTags.F0, ColorChannel.Red),
+                    new ResourcePackF0ChannelProperties(TextureTags.F0, ColorChannel.Green),
+                    new ResourcePackF0ChannelProperties(TextureTags.F0, ColorChannel.Blue),
+                },
+                [TextureTags.Porosity] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackPorosityChannelProperties(TextureTags.Porosity, ColorChannel.Red),
+                    new ResourcePackPorosityChannelProperties(TextureTags.Porosity, ColorChannel.Green),
+                    new ResourcePackPorosityChannelProperties(TextureTags.Porosity, ColorChannel.Blue),
+                },
+                [TextureTags.SubSurfaceScattering] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackSssChannelProperties(TextureTags.SubSurfaceScattering, ColorChannel.Red),
+                    new ResourcePackSssChannelProperties(TextureTags.SubSurfaceScattering, ColorChannel.Green),
+                    new ResourcePackSssChannelProperties(TextureTags.SubSurfaceScattering, ColorChannel.Blue),
+                },
+                [TextureTags.Emissive] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackEmissiveChannelProperties(TextureTags.Emissive, ColorChannel.Red),
+                    new ResourcePackEmissiveChannelProperties(TextureTags.Emissive, ColorChannel.Green),
+                    new ResourcePackEmissiveChannelProperties(TextureTags.Emissive, ColorChannel.Blue),
+                },
             };
-
-            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Green) {
-                Sampler = profile?.Encoding?.Alpha?.Sampler,
-                MaxValue = 255,
-            };
-
-            yield return new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Blue) {
-                Sampler = profile?.Encoding?.Alpha?.Sampler,
-                MaxValue = 255,
-            };
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetDiffuseChannels()
-        {
-            yield return new ResourcePackDiffuseRedChannelProperties(TextureTags.Diffuse, ColorChannel.Red) {MaxValue = 255};
-            yield return new ResourcePackDiffuseGreenChannelProperties(TextureTags.Diffuse, ColorChannel.Green) {MaxValue = 255};
-            yield return new ResourcePackDiffuseBlueChannelProperties(TextureTags.Diffuse, ColorChannel.Blue) {MaxValue = 255};
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetAlbedoChannels()
-        {
-            yield return new ResourcePackAlbedoRedChannelProperties(TextureTags.Albedo, ColorChannel.Red) {MaxValue = 255};
-            yield return new ResourcePackAlbedoGreenChannelProperties(TextureTags.Albedo, ColorChannel.Green) {MaxValue = 255};
-            yield return new ResourcePackAlbedoBlueChannelProperties(TextureTags.Albedo, ColorChannel.Blue) {MaxValue = 255};
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetHeightChannels(ResourcePackProfileProperties profile)
-        {
-            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Red) {
-                Sampler = profile?.Encoding?.Height?.Sampler,
-                Invert = true,
-            };
-
-            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Green) {
-                Sampler = profile?.Encoding?.Height?.Sampler,
-                Invert = true,
-            };
-
-            yield return new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Blue) {
-                Sampler = profile?.Encoding?.Height?.Sampler,
-                Invert = true,
-            };
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetOcclusionChannels()
-        {
-            yield return new ResourcePackOcclusionChannelProperties(TextureTags.Occlusion, ColorChannel.Red); //{Invert = true};
-            yield return new ResourcePackOcclusionChannelProperties(TextureTags.Occlusion, ColorChannel.Green); //{Invert = true};
-            yield return new ResourcePackOcclusionChannelProperties(TextureTags.Occlusion, ColorChannel.Blue); //{Invert = true};
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetNormalChannels()
-        {
-            yield return new ResourcePackNormalXChannelProperties(TextureTags.Normal, ColorChannel.Red);
-            yield return new ResourcePackNormalYChannelProperties(TextureTags.Normal, ColorChannel.Green);
-            yield return new ResourcePackNormalZChannelProperties(TextureTags.Normal, ColorChannel.Blue);
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetSpecularChannels()
-        {
-            yield return new ResourcePackSpecularChannelProperties(TextureTags.Specular, ColorChannel.Red);
-            yield return new ResourcePackSpecularChannelProperties(TextureTags.Specular, ColorChannel.Green);
-            yield return new ResourcePackSpecularChannelProperties(TextureTags.Specular, ColorChannel.Blue);
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetSmoothChannels()
-        {
-            yield return new ResourcePackSmoothChannelProperties(TextureTags.Smooth, ColorChannel.Red);
-            yield return new ResourcePackSmoothChannelProperties(TextureTags.Smooth, ColorChannel.Green);
-            yield return new ResourcePackSmoothChannelProperties(TextureTags.Smooth, ColorChannel.Blue);
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetRoughChannels()
-        {
-            yield return new ResourcePackRoughChannelProperties(TextureTags.Rough, ColorChannel.Red);
-            yield return new ResourcePackRoughChannelProperties(TextureTags.Rough, ColorChannel.Green);
-            yield return new ResourcePackRoughChannelProperties(TextureTags.Rough, ColorChannel.Blue);
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetMetalChannels()
-        {
-            yield return new ResourcePackMetalChannelProperties(TextureTags.Metal, ColorChannel.Red);
-            yield return new ResourcePackMetalChannelProperties(TextureTags.Metal, ColorChannel.Green);
-            yield return new ResourcePackMetalChannelProperties(TextureTags.Metal, ColorChannel.Blue);
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetF0Channels()
-        {
-            yield return new ResourcePackF0ChannelProperties(TextureTags.F0, ColorChannel.Red);
-            yield return new ResourcePackF0ChannelProperties(TextureTags.F0, ColorChannel.Green);
-            yield return new ResourcePackF0ChannelProperties(TextureTags.F0, ColorChannel.Blue);
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetPorosityChannels()
-        {
-            yield return new ResourcePackPorosityChannelProperties(TextureTags.Porosity, ColorChannel.Red);
-            yield return new ResourcePackPorosityChannelProperties(TextureTags.Porosity, ColorChannel.Green);
-            yield return new ResourcePackPorosityChannelProperties(TextureTags.Porosity, ColorChannel.Blue);
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetSSSChannels()
-        {
-            yield return new ResourcePackSssChannelProperties(TextureTags.SubSurfaceScattering, ColorChannel.Red);
-            yield return new ResourcePackSssChannelProperties(TextureTags.SubSurfaceScattering, ColorChannel.Green);
-            yield return new ResourcePackSssChannelProperties(TextureTags.SubSurfaceScattering, ColorChannel.Blue);
-        }
-
-        private static IEnumerable<ResourcePackChannelProperties> GetEmissiveChannels()
-        {
-            yield return new ResourcePackEmissiveChannelProperties(TextureTags.Emissive, ColorChannel.Red);
-            yield return new ResourcePackEmissiveChannelProperties(TextureTags.Emissive, ColorChannel.Green);
-            yield return new ResourcePackEmissiveChannelProperties(TextureTags.Emissive, ColorChannel.Blue);
-        }
     }
 }

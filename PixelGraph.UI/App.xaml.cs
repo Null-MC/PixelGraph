@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
@@ -19,12 +21,13 @@ namespace PixelGraph.UI
             builder.AddFileInput();
             builder.AddFileOutput();
 
-            builder.Services.AddSingleton<IAppSettings, AppSettings>();
+            builder.Services.AddSingleton<IAppConfiguration, AppConfiguration>();
             builder.Services.AddSingleton<IRecentPathManager, RecentPathManager>();
             builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
 
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
             builder.Services.AddTransient<ITexturePreviewBuilder, TexturePreviewBuilder>();
+            builder.Services.AddTransient<IAppSettings, AppSettings>();
 
             builder.Services.AddTransient<MainWindowVM>();
             builder.Services.AddTransient<SettingsWindowVM>();

@@ -62,13 +62,13 @@ namespace PixelGraph.Common.IO.Importing
 
             await writer.WriteAsync(material, matFile);
 
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = PackInput,
                 Profile = PackProfile,
                 Material = material,
                 UseGlobalOutput = AsGlobal,
                 //AutoGenerateOcclusion = false,
-                CreateEmpty = false,
+                //CreateEmpty = false,
             };
 
             await graphBuilder.ProcessOutputGraphAsync(context, token);

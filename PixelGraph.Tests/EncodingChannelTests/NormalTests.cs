@@ -57,7 +57,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(127, 255,   0)]
         [Theory] public async Task PassthroughX(byte valueX, byte valueY, byte valueZ)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {
@@ -81,7 +81,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(127,   0,   0)]
         [Theory] public async Task RestoreZ(byte valueX, byte valueY, byte expectedZ)
         {
-            var context = new MaterialContext {
+            using var context = new MaterialContext {
                 Input = packInput,
                 Profile = packProfile,
                 Material = new MaterialProperties {

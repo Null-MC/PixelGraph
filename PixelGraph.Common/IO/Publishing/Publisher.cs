@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -23,7 +22,6 @@ namespace PixelGraph.Common.IO.Publishing
     {
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
-        private readonly INamingStructure naming;
         private readonly ILogger logger;
         private readonly ITextureGraphBuilder graphBuilder;
         private readonly IFileLoader loader;
@@ -34,14 +32,12 @@ namespace PixelGraph.Common.IO.Publishing
             IFileLoader loader,
             IInputReader reader,
             IOutputWriter writer,
-            INamingStructure naming,
             ILogger<Publisher> logger)
         {
             this.graphBuilder = graphBuilder;
             this.loader = loader;
             this.reader = reader;
             this.writer = writer;
-            this.naming = naming;
             this.logger = logger;
         }
 
@@ -78,63 +74,25 @@ namespace PixelGraph.Common.IO.Publishing
 
             await foreach (var fileObj in loader.LoadAsync(token)) {
                 token.ThrowIfCancellationRequested();
-                DateTime? sourceTime, destinationTime = null;
 
                 switch (fileObj) {
                     case MaterialProperties material:
-                        sourceTime = reader.GetWriteTime(material.LocalFilename);
-
-                        foreach (var texFile in reader.EnumerateAllTextures(material)) {
-                            var z = reader.GetWriteTime(texFile);
-                            if (!z.HasValue) continue;
-
-                            if (!sourceTime.HasValue || z.Value > sourceTime.Value)
-                                sourceTime = z.Value;
-                        }
-
-                        if (material.IsMultiPart) {
-                            foreach (var part in material.Parts) {
-                                var albedoOutputName = naming.GetOutputTextureName(context.Profile, part.Name, TextureTags.Albedo, true);
-                                var albedoFile = PathEx.Join(material.LocalPath, albedoOutputName);
-                                var writeTime = writer.GetWriteTime(albedoFile);
-                                if (!writeTime.HasValue) continue;
-
-                                if (!destinationTime.HasValue || writeTime.Value > destinationTime.Value)
-                                    destinationTime = writeTime;
-                            }
-                        }
-                        else {
-                            var albedoOutputName = naming.GetOutputTextureName(context.Profile, material.Name, TextureTags.Albedo, true);
-                            var albedoFile = PathEx.Join(material.LocalPath, albedoOutputName);
-                            destinationTime = writer.GetWriteTime(albedoFile);
-                        }
-
-                        if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
-                            logger.LogDebug($"Skipping up-to-date texture {material.LocalPath}:{{DisplayName}}.", material.DisplayName);
-                            continue;
-                        }
-
-                        //var type = naming.GetTextureType();
-
-                        logger.LogDebug($"Publishing texture {material.LocalPath}:{{DisplayName}}.", material.DisplayName);
-
-                        var materialContext = new MaterialContext {
+                        using (var materialContext = new MaterialContext {
                             Input = context.Input,
                             Profile = context.Profile,
                             Material = material,
-                            //Type = type,
                             UseGlobalOutput = context.UseGlobalOutput,
-                            CreateEmpty = true,
-                        };
+                            //CreateEmpty = true,
+                        }) {
+                            await graphBuilder.ProcessInputGraphAsync(materialContext, token);
 
-                        await graphBuilder.ProcessInputGraphAsync(materialContext, token);
-
-                        // TODO: Publish mcmeta files
-
+                            // TODO: Publish mcmeta files
+                        }
                         break;
+
                     case string localFile:
-                        sourceTime = reader.GetWriteTime(localFile);
-                        destinationTime = writer.GetWriteTime(localFile);
+                        var sourceTime = reader.GetWriteTime(localFile);
+                        var destinationTime = writer.GetWriteTime(localFile);
 
                         var file = Path.GetFileName(localFile);
                         if (fileIgnoreList.Contains(file)) {
