@@ -210,8 +210,8 @@ namespace PixelGraph.Common.Textures
                         var samplerName = mapping.OutputSampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
                         var sampler = Sampler<Rgb24>.Create(samplerName);
                         sampler.Image = Context.NormalTexture;
-                        sampler.WrapX = Context.Material.WrapX ?? MaterialProperties.DefaultWrap;
-                        sampler.WrapY = Context.Material.WrapY ?? MaterialProperties.DefaultWrap;
+                        sampler.WrapX = Context.WrapX;
+                        sampler.WrapY = Context.WrapY;
                         sampler.RangeX = (float)Context.NormalTexture.Width / bufferSize.Width;
                         sampler.RangeY = (float)Context.NormalTexture.Height / bufferSize.Height;
 
@@ -456,8 +456,8 @@ namespace PixelGraph.Common.Textures
                 var samplerName = mapping.OutputSampler ?? Context.DefaultSampler;
                 var sampler = Sampler<TP>.Create(samplerName);
                 sampler.Image = sourceImage;
-                sampler.WrapX = Context.Material.WrapX ?? MaterialProperties.DefaultWrap;
-                sampler.WrapY = Context.Material.WrapY ?? MaterialProperties.DefaultWrap;
+                sampler.WrapX = Context.WrapX;
+                sampler.WrapY = Context.WrapY;
 
                 sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
                 sampler.RangeY = (float)sourceImage.Height / bufferSize.Height;

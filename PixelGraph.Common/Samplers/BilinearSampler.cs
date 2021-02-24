@@ -27,11 +27,23 @@ namespace PixelGraph.Common.Samplers
             var px = fx - pxMin;
             var py = fy - pyMin;
 
-            if (WrapX) WrapCoords(ref pxMin, ref pyMin);
-            else ClampCoords(ref pxMin, ref pyMin);
+            if (WrapX) {
+                WrapCoordX(ref pxMin);
+                WrapCoordX(ref pxMax);
+            }
+            else {
+                ClampCoordX(ref pxMin);
+                ClampCoordX(ref pxMax);
+            }
 
-            if (WrapY) WrapCoords(ref pxMax, ref pyMax);
-            else ClampCoords(ref pxMax, ref pyMax);
+            if (WrapY) {
+                WrapCoordY(ref pyMin);
+                WrapCoordY(ref pyMax);
+            }
+            else {
+                ClampCoordY(ref pyMin);
+                ClampCoordY(ref pyMax);
+            }
 
             var rowMin = Image.GetPixelRowSpan(pyMin);
             var rowMax = Image.GetPixelRowSpan(pyMax);
