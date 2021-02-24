@@ -19,6 +19,11 @@ namespace PixelGraph.Common.Samplers
     {
         public static ISampler<TPixel> Create(string name)
         {
+            return TryCreate(name) ?? throw new ApplicationException($"Unknown sampler '{name}'!");
+        }
+
+        public static ISampler<TPixel> TryCreate(string name)
+        {
             if (name == null) return null;
             return map.TryGetValue(name, out var samplerFunc) ? samplerFunc() : null;
         }

@@ -8,6 +8,9 @@ namespace PixelGraph.Common.PixelOperations
 {
     internal abstract class PixelRowProcessor : IImageProcessor
     {
+        protected const float HalfPixel = 0.5f - float.Epsilon;
+
+
         public IImageProcessor<TPixel> CreatePixelSpecificProcessor<TPixel>(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle)
             where TPixel : unmanaged, IPixel<TPixel>
         {

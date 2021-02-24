@@ -16,8 +16,8 @@ namespace PixelGraph.Common.Samplers
 
         public override void SampleScaled(in float x, in float y, out Vector4 vector)
         {
-            var fx = x * Image.Width;
-            var fy = y * Image.Width;
+            var fx = x * Image.Width - 0.5f + float.Epsilon;
+            var fy = y * Image.Height - 0.5f + float.Epsilon;
 
             var pxMin = (int)fx;
             var pxMax = pxMin + 1;

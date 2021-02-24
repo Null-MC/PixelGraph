@@ -53,8 +53,10 @@ namespace PixelGraph.Common.ImageProcessors
                     else {
                         byte pixelValue;
                         if (options.SamplerMap != null && options.SamplerMap.TryGetValue(mapping.InputColor, out var sampler)) {
-                            var fx = (float)x / context.Bounds.Width;
-                            var fy = (float)context.Y / context.Bounds.Height;
+                            //var fx = (float)x / context.Bounds.Width;
+                            //var fy = (float)context.Y / context.Bounds.Height;
+                            var fx = (x + HalfPixel) / context.Bounds.Width;
+                            var fy = (context.Y + HalfPixel) / context.Bounds.Height;
                             sampler.Sample(fx, fy, in mapping.InputColor, out pixelValue);
                         }
                         else {

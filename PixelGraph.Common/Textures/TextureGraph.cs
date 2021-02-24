@@ -291,7 +291,8 @@ namespace PixelGraph.Common.Textures
                 var file = reader.EnumerateTextures(Context.Material, heightChannel.Texture).FirstOrDefault();
 
                 if (file != null) {
-                    heightTexture = await LoadHeightTextureAsync(file, heightChannel, token);
+                    var heightSampler = Context.Profile?.Encoding?.Height?.Sampler;
+                    heightTexture = await LoadHeightTextureAsync(file, heightSampler, token);
                 }
                 else if (heightValue.HasValue) {
                     var up = new Rgb24(127, 127, 255);
@@ -343,14 +344,16 @@ namespace PixelGraph.Common.Textures
                 //    (emissiveImage, emissiveChannel) = await GetSourceImageAsync(EncodingChannel.Emissive, token);
                 //}
 
-                var samplerName = heightChannel.Sampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
+                var heightSamplerName = Context.Profile?.Encoding?.Height?.Sampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
+                heightTexture = await LoadHeightTextureAsync(file, heightSamplerName, token);
 
-                heightTexture = await LoadHeightTextureAsync(file, heightChannel, token);
-
-                var sampler = Sampler<Rgba32>.Create(samplerName);
+                var occlusionSamplerName = Context.Profile?.Encoding?.Occlusion?.Sampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
+                var sampler = Sampler<Rgba32>.Create(occlusionSamplerName);
                 sampler.Image = heightTexture;
                 sampler.WrapX = Context.WrapX;
                 sampler.WrapY = Context.WrapY;
+
+                // TODO: set this right!
                 sampler.RangeX = sampler.RangeY = 1f;
                 
                 var options = new OcclusionProcessor.Options {
@@ -367,7 +370,8 @@ namespace PixelGraph.Common.Textures
                     HeightInvert = heightChannel.Invert ?? false,
                     //EmissiveSource = emissiveImage,
                     //EmissiveChannel = emissiveChannel,
-                    StepCount = Context.Material.Occlusion?.Steps ?? MaterialOcclusionProperties.DefaultSteps,
+                    //StepCount = Context.Material.Occlusion?.Steps ?? MaterialOcclusionProperties.DefaultSteps,
+                    StepDistance = Context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance,
                     Quality = (float?)Context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
                     ZScale = (float?)Context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
                     ZBias = (float?)Context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias,
@@ -384,7 +388,7 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task<Image<Rgba32>> LoadHeightTextureAsync(string file, ResourcePackChannelProperties heightChannel, CancellationToken token)
+        private async Task<Image<Rgba32>> LoadHeightTextureAsync(string file, string heightSampler, CancellationToken token)
         {
             await using var stream = reader.Open(file);
 
@@ -402,7 +406,7 @@ namespace PixelGraph.Common.Textures
                     var scaledWidth = (int)MathF.Ceiling(heightTexture.Width * scale);
                     var scaledHeight = (int)MathF.Ceiling(heightTexture.Height * scale);
 
-                    var samplerName = heightChannel.Sampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
+                    var samplerName = heightSampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
                     var sampler = Sampler<Rgba32>.Create(samplerName);
                     sampler.Image = heightTexture;
                     sampler.WrapX = Context.WrapX;

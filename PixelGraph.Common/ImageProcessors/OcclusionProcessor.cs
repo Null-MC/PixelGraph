@@ -29,10 +29,10 @@ namespace PixelGraph.Common.ImageProcessors
             var position = new Vector3();
 
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                //var fx = (x + 0.5f) / context.Bounds.Width;
-                //var fy = (context.Y + 0.5f) / context.Bounds.Height;
-                var fx = (float)x / context.Bounds.Width;
-                var fy = (float)context.Y / context.Bounds.Height;
+                //var fx = (float)x / context.Bounds.Width;
+                //var fy = (float)context.Y / context.Bounds.Height;
+                var fx = (x + HalfPixel) / context.Bounds.Width;
+                var fy = (context.Y + HalfPixel) / context.Bounds.Height;
                 options.Sampler.SampleScaled(fx, fy, in options.HeightChannel, out var height);
 
                 // TODO: range, shift, power
@@ -61,9 +61,9 @@ namespace PixelGraph.Common.ImageProcessors
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
 
-            if (options.StepCount <= 0)
-                throw new ArgumentOutOfRangeException(nameof(options.StepCount),
-                    "Occlusion Step-Count must be greater than 0!");
+            if (options.StepDistance <= float.Epsilon)
+                throw new ArgumentOutOfRangeException(nameof(options.StepDistance),
+                    "Occlusion Step-Distance must be greater than 0!");
 
             if (options.Quality < 0 || options.Quality > 1f)
                 throw new ArgumentOutOfRangeException(nameof(options.Quality), 
@@ -98,13 +98,15 @@ namespace PixelGraph.Common.ImageProcessors
 
         private bool RayTest(in PixelRowContext context, ref Vector3 position, in Vector3 ray, out float factor)
         {
-            for (var step = 1; step <= options.StepCount; step++) {
+            var stepCount = (int)MathF.Max(context.Bounds.Width * options.StepDistance, 1f);
+
+            for (var step = 1; step <= stepCount; step++) {
                 position += ray;
 
                 if (position.Z > options.ZScale) break;
 
-                var fx = (position.X + 0.5f) / context.Bounds.Width;
-                var fy = (position.Y + 0.5f) / context.Bounds.Height;
+                var fx = (position.X + HalfPixel) / context.Bounds.Width;
+                var fy = (position.Y + HalfPixel) / context.Bounds.Height;
                 options.Sampler.SampleScaled(in fx, in fy, options.HeightChannel, out var height);
 
                 // TODO: range, shift, power
@@ -112,7 +114,7 @@ namespace PixelGraph.Common.ImageProcessors
                 if (!(position.Z < height * options.ZScale)) continue;
 
                 // hit, return 
-                factor = (float)step / options.StepCount;
+                factor = (float)step / stepCount;
                 factor = 1f - MathF.Pow(factor, options.HitPower);
                 return true;
             }
@@ -133,7 +135,7 @@ namespace PixelGraph.Common.ImageProcessors
             public float HeightPower;
             //public bool HeightPerceptual;
             public bool HeightInvert;
-            public int StepCount;
+            public float StepDistance;
             public float HitPower = 1.5f;
             public float ZScale;
             public float ZBias;

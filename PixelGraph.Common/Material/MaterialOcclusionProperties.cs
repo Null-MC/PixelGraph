@@ -1,14 +1,16 @@
 ﻿using PixelGraph.Common.ResourcePack;
+using System;
 
 namespace PixelGraph.Common.Material
 {
     public class MaterialOcclusionProperties
     {
         public const string DefaultSampler = Samplers.Sampler.Nearest;
-        public const float DefaultQuality = 0.08f;
-        public const float DefaultZScale = 25f;
+        public const float DefaultQuality = 0.1f;
+        public const float DefaultZScale = 8f;
         public const float DefaultZBias = 0.1f;
-        public const int DefaultSteps = 16;
+        //public const int DefaultSteps = 16;
+        public const float DefaultStepDistance = 0.1f;
 
         public ResourcePackOcclusionChannelProperties Input {get; set;}
         public string Texture {get; set;}
@@ -18,7 +20,10 @@ namespace PixelGraph.Common.Material
         public decimal? Quality {get; set;}
         public decimal? ZBias {get; set;}
         public decimal? ZScale {get; set;}
-        public int? Steps {get; set;}
+        public float? StepDistance {get; set;}
         public bool? ClipEmissive {get; set;}
+
+
+        [Obsolete] public int? Steps {get; set;}
     }
 }

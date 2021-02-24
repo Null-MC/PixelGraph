@@ -250,8 +250,8 @@
                             <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
-                                     Placeholder="{Binding DefaultOcclusionSteps, Mode=OneWay}"
-                                     Text="{Binding OcclusionSteps, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                     Placeholder="{Binding DefaultOcclusionStepDistance, Mode=OneWay}"
+                                     Text="{Binding OcclusionStepDistance, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Z-Bias">
                             <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"

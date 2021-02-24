@@ -32,9 +32,9 @@ namespace PixelGraph.UI.ViewModels
 
         public string DefaultInputFormat => _packInput?.Format ?? MaterialProperties.DefaultInputFormat;
         public string DefaultNormalFilter => MaterialNormalProperties.DefaultFilter.ToString();
-        public string DefaultOcclusionSampler => MaterialOcclusionProperties.DefaultSampler;
+        //public string DefaultOcclusionSampler => MaterialOcclusionProperties.DefaultSampler;
         public string DefaultOcclusionQuality => MaterialOcclusionProperties.DefaultQuality.ToString("N3");
-        public string DefaultOcclusionSteps => MaterialOcclusionProperties.DefaultSteps.ToString();
+        public string DefaultOcclusionStepDistance => MaterialOcclusionProperties.DefaultStepDistance.ToString("N3");
         public string DefaultOcclusionZBias => MaterialOcclusionProperties.DefaultZBias.ToString("N3");
         public string DefaultOcclusionZScale => MaterialOcclusionProperties.DefaultZScale.ToString("N3");
 
@@ -563,15 +563,15 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public string OcclusionSampler {
-            get => _material?.Occlusion?.Sampler;
-            set {
-                _material.Occlusion ??= new MaterialOcclusionProperties();
-                _material.Occlusion.Sampler = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
+        //public string OcclusionSampler {
+        //    get => _material?.Occlusion?.Sampler;
+        //    set {
+        //        _material.Occlusion ??= new MaterialOcclusionProperties();
+        //        _material.Occlusion.Sampler = value;
+        //        OnPropertyChanged();
+        //        OnDataChanged();
+        //    }
+        //}
 
         public decimal? OcclusionQuality {
             get => _material?.Occlusion?.Quality;
@@ -603,11 +603,11 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public int? OcclusionSteps {
-            get => _material?.Occlusion?.Steps;
+        public float? OcclusionStepDistance {
+            get => _material?.Occlusion?.StepDistance;
             set {
                 _material.Occlusion ??= new MaterialOcclusionProperties();
-                _material.Occlusion.Steps = value;
+                _material.Occlusion.StepDistance = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
@@ -629,7 +629,7 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(OcclusionValue));
             OnPropertyChanged(nameof(OcclusionScale));
             OnPropertyChanged(nameof(OcclusionQuality));
-            OnPropertyChanged(nameof(OcclusionSteps));
+            OnPropertyChanged(nameof(OcclusionStepDistance));
             OnPropertyChanged(nameof(OcclusionZBias));
             OnPropertyChanged(nameof(OcclusionZScale));
             OnPropertyChanged(nameof(OcclusionClipEmissive));
