@@ -15,7 +15,6 @@ namespace PixelGraph.Common.Textures
     {
         Task ProcessInputGraphAsync(MaterialContext context, CancellationToken token = default);
         Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default);
-        //Task GenerateItemTextureAsync(CancellationToken token = default);
     }
 
     internal class TextureGraphBuilder : ITextureGraphBuilder
@@ -218,17 +217,7 @@ namespace PixelGraph.Common.Textures
 
         private bool IsOutputUpToDate(MaterialContext context, DateTime packWriteTime, DateTime? sourceTime)
         {
-            //var sourceTime = reader.GetWriteTime(context.Material.LocalFilename);
-            //var packWriteTime = reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
             DateTime? destinationTime = null;
-
-            //foreach (var texFile in reader.EnumerateAllTextures(context.Material)) {
-            //    var z = reader.GetWriteTime(texFile);
-            //    if (!z.HasValue) continue;
-
-            //    if (!sourceTime.HasValue || z.Value > sourceTime.Value)
-            //        sourceTime = z.Value;
-            //}
 
             if (context.Material.IsMultiPart) {
                 foreach (var part in context.Material.Parts) {
@@ -252,16 +241,6 @@ namespace PixelGraph.Common.Textures
 
         private bool IsInventoryUpToDate(MaterialContext context, DateTime packWriteTime, DateTime? sourceTime)
         {
-            //var sourceTime = reader.GetWriteTime(context.Material.LocalFilename);
-            //var packWriteTime = reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
-
-            //var texFile = reader.EnumerateTextures(context.Material, TextureTags.Inventory).FirstOrDefault();
-            //var z = reader.GetWriteTime(texFile);
-            //if (z.HasValue) {
-            //    if (!sourceTime.HasValue || z.Value > sourceTime.Value)
-            //        sourceTime = z.Value;
-            //}
-
             var albedoOutputName = naming.GetOutputTextureName(context.Profile, context.Material.Name, TextureTags.Inventory, true);
             var albedoFile = PathEx.Join(context.Material.LocalPath, albedoOutputName);
             var destinationTime = writer.GetWriteTime(albedoFile);

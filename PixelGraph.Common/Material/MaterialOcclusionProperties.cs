@@ -20,10 +20,13 @@ namespace PixelGraph.Common.Material
         public decimal? Quality {get; set;}
         public decimal? ZBias {get; set;}
         public decimal? ZScale {get; set;}
-        public float? StepDistance {get; set;}
+        public decimal? StepDistance {get; set;}
         public bool? ClipEmissive {get; set;}
 
 
-        [Obsolete] public int? Steps {get; set;}
+        [Obsolete] public int? Steps {
+            get => null;
+            set {}
+        }
     }
 }

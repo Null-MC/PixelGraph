@@ -392,21 +392,21 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public int? HeightEdgeFadeSizeX {
-            get => _material?.Height?.EdgeFadeSizeX;
+        public decimal? HeightEdgeFadeX {
+            get => _material?.Height?.EdgeFadeX;
             set {
                 _material.Height ??= new MaterialHeightProperties();
-                _material.Height.EdgeFadeSizeX = value;
+                _material.Height.EdgeFadeX = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
         }
 
-        public int? HeightEdgeFadeSizeY {
-            get => _material?.Height?.EdgeFadeSizeY;
+        public decimal? HeightEdgeFadeY {
+            get => _material?.Height?.EdgeFadeY;
             set {
                 _material.Height ??= new MaterialHeightProperties();
-                _material.Height.EdgeFadeSizeY = value;
+                _material.Height.EdgeFadeY = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
@@ -418,8 +418,8 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(HeightValue));
             OnPropertyChanged(nameof(HeightShift));
             OnPropertyChanged(nameof(HeightScale));
-            OnPropertyChanged(nameof(HeightEdgeFadeSizeX));
-            OnPropertyChanged(nameof(HeightEdgeFadeSizeY));
+            OnPropertyChanged(nameof(HeightEdgeFadeX));
+            OnPropertyChanged(nameof(HeightEdgeFadeY));
         }
 
         #endregion
@@ -603,7 +603,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public float? OcclusionStepDistance {
+        public decimal? OcclusionStepDistance {
             get => _material?.Occlusion?.StepDistance;
             set {
                 _material.Occlusion ??= new MaterialOcclusionProperties();

@@ -28,12 +28,18 @@ namespace PixelGraph.Common.ImageProcessors
             var pixelOut = new Rgba32(0, 0, 0, 255);
             var position = new Vector3();
 
+            var hasEmissive = options.EmissiveSampler != null && options.EmissiveChannel != ColorChannel.None;
+
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 //var fx = (float)x / context.Bounds.Width;
                 //var fy = (float)context.Y / context.Bounds.Height;
                 var fx = (x + HalfPixel) / context.Bounds.Width;
                 var fy = (context.Y + HalfPixel) / context.Bounds.Height;
-                options.Sampler.SampleScaled(fx, fy, in options.HeightChannel, out var height);
+                options.HeightSampler.SampleScaled(fx, fy, in options.HeightChannel, out var height);
+
+                var emissive = 0f;
+                if (hasEmissive)
+                    options.EmissiveSampler.SampleScaled(fx, fy, in options.EmissiveChannel, out emissive);
 
                 // TODO: range, shift, power
                 if (!options.HeightInvert) MathEx.Invert(ref height);
@@ -50,7 +56,12 @@ namespace PixelGraph.Common.ImageProcessors
                         hitFactor += rayHitFactor * rayCountFactor;
                 }
 
-                MathEx.Saturate(1d - hitFactor, out pixelOut.R);
+                var occlusion = hitFactor;
+                if (emissive > float.Epsilon) {
+                    occlusion -= emissive * 8f;
+                }
+
+                MathEx.Saturate(1d - occlusion, out pixelOut.R);
                 pixelOut.B = pixelOut.G = pixelOut.R;
 
                 row[x].FromRgba32(pixelOut);
@@ -107,7 +118,7 @@ namespace PixelGraph.Common.ImageProcessors
 
                 var fx = (position.X + HalfPixel) / context.Bounds.Width;
                 var fy = (position.Y + HalfPixel) / context.Bounds.Height;
-                options.Sampler.SampleScaled(in fx, in fy, options.HeightChannel, out var height);
+                options.HeightSampler.SampleScaled(in fx, in fy, options.HeightChannel, out var height);
 
                 // TODO: range, shift, power
                 if (!options.HeightInvert) MathEx.Invert(ref height);
@@ -125,8 +136,8 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
+            public ISampler<Rgba32> HeightSampler;
             public ColorChannel HeightChannel;
-            public ISampler<Rgba32> Sampler;
             public float HeightMinValue;
             public float HeightMaxValue;
             public byte HeightRangeMin;
@@ -135,6 +146,10 @@ namespace PixelGraph.Common.ImageProcessors
             public float HeightPower;
             //public bool HeightPerceptual;
             public bool HeightInvert;
+
+            public ISampler<Rgba32> EmissiveSampler;
+            public ColorChannel EmissiveChannel;
+
             public float StepDistance;
             public float HitPower = 1.5f;
             public float ZScale;

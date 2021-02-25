@@ -18,7 +18,6 @@ namespace PixelGraph.Common
         private static readonly Regex entityTextureExp = new Regex(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
 
         public MaterialProperties Material {get; set;}
-        //public bool CreateEmpty {get; set;}
 
         public bool WrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool WrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
@@ -37,8 +36,6 @@ namespace PixelGraph.Common
 
         public MaterialContext()
         {
-            //CreateEmpty = true;
-
             InputEncoding = new List<ResourcePackChannelProperties>();
             OutputEncoding = new List<ResourcePackChannelProperties>();
         }
@@ -129,9 +126,6 @@ namespace PixelGraph.Common
                     // TODO: return height/aspect, height
                 }
             }
-
-            //var width = Material.TextureWidth ?? Material.TextureSize;
-            //var height = Material.TextureHeight ?? Material.TextureSize;
 
             if (Material.TextureSize.HasValue) {
                 var aspect = defaultAspect ?? 1f;

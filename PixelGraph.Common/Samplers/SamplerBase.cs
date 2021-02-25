@@ -50,12 +50,6 @@ namespace PixelGraph.Common.Samplers
             while (y >= Image.Height) y -= Image.Height;
         }
 
-        protected void WrapCoords(ref int x, ref int y)
-        {
-            WrapCoordX(ref x);
-            WrapCoordY(ref y);
-        }
-
         protected void ClampCoordX(ref int x)
         {
             if (x < 0) x = 0;
@@ -66,12 +60,6 @@ namespace PixelGraph.Common.Samplers
         {
             if (y < 0) y = 0;
             if (y >= Image.Height) y = Image.Height - 1;
-        }
-
-        protected void ClampCoords(ref int x, ref int y)
-        {
-            ClampCoordX(ref x);
-            ClampCoordY(ref y);
         }
     }
 }

@@ -154,16 +154,16 @@
                                              Text="{Binding HeightScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Horizontal Edge Fade">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
                                              PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
-                                             Text="{Binding HeightEdgeFadeSizeX, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                             Text="{Binding HeightEdgeFadeX, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                         <local:PropertyGridItem Header="Vertical Edge Fade">
-                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0"
+                            <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center" Placeholder="0.0"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
                                              PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
-                                             Text="{Binding HeightEdgeFadeSizeY, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                             Text="{Binding HeightEdgeFadeY, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                         </local:PropertyGridItem>
                     </StackPanel>
                 </Grid>

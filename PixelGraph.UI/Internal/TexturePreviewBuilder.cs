@@ -53,7 +53,6 @@ namespace PixelGraph.UI.Internal
                 Input = Input,
                 Material = Material,
                 Profile = Profile,
-                //CreateEmpty = true,
             };
 
             var graph = provider.GetRequiredService<ITextureGraph>();
@@ -77,10 +76,17 @@ namespace PixelGraph.UI.Internal
             if (image == null) return null;
 
             if (image.Width > 1 || image.Height > 1) {
-                if (context.Material.IsMultiPart) {
+                if (context.Material.TryGetSourceBounds(out var bounds)) {
+                    var scaleX = (float)image.Width / bounds.Width;
+
                     foreach (var region in context.Material.Parts) {
-                        var bounds = region.GetRectangle();
-                        graph.FixEdges(image, tag, bounds);
+                        var regionBounds = region.GetRectangle();
+                        regionBounds.X = (int)MathF.Ceiling(regionBounds.X * scaleX);
+                        regionBounds.Y = (int)MathF.Ceiling(regionBounds.Y * scaleX);
+                        regionBounds.Width = (int)MathF.Ceiling(regionBounds.Width * scaleX);
+                        regionBounds.Height = (int)MathF.Ceiling(regionBounds.Height * scaleX);
+
+                        graph.FixEdges(image, tag, regionBounds);
                     }
                 }
                 else {

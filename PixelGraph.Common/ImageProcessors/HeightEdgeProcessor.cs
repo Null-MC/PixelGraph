@@ -21,31 +21,31 @@ namespace PixelGraph.Common.ImageProcessors
             float fx = 0f, fy = 0f;
             var hasChanges = false;
 
-            if (options.SizeX > 0) {
+            if (options.SizeX > float.Epsilon) {
                 var right = context.Bounds.Right - 1;
-
-                var skipX = context.X > context.Bounds.Left + options.SizeX && context.X < right - options.SizeX;
+                var sizeX = (int) MathF.Ceiling(options.SizeX * context.Bounds.Width);
+                var skipX = context.X > context.Bounds.Left + sizeX && context.X < right - sizeX;
 
                 if (!skipX) {
                     if (options.EnableSmartEdges) {
                         //var pLeft = options.
                     }
 
-                    var fLeft = 1f - Math.Clamp((context.X - context.Bounds.Left) / (float) options.SizeX, 0f, 1f);
-                    var fRight = 1f - Math.Clamp((right - context.X) / (float) options.SizeX, 0f, 1f);
+                    var fLeft = 1f - Math.Clamp((context.X - context.Bounds.Left) / (float) sizeX, 0f, 1f);
+                    var fRight = 1f - Math.Clamp((right - context.X) / (float) sizeX, 0f, 1f);
                     fx = MathF.Max(fLeft, fRight);
                     hasChanges = true;
                 }
             }
 
-            if (options.SizeY > 0) {
+            if (options.SizeY > float.Epsilon) {
                 var bottom = context.Bounds.Bottom - 1;
-
-                var skipY = context.Y > context.Bounds.Top + options.SizeY && context.Y < bottom - options.SizeY;
+                var sizeY = (int) MathF.Ceiling(options.SizeY * context.Bounds.Height);
+                var skipY = context.Y > context.Bounds.Top + sizeY && context.Y < bottom - sizeY;
 
                 if (!skipY) {
-                    var fTop = 1f - Math.Clamp((context.Y - context.Bounds.Top) / (float) options.SizeY, 0f, 1f);
-                    var fBottom = 1f - Math.Clamp((bottom - context.Y) / (float) options.SizeY, 0f, 1f);
+                    var fTop = 1f - Math.Clamp((context.Y - context.Bounds.Top) / (float) sizeY, 0f, 1f);
+                    var fBottom = 1f - Math.Clamp((bottom - context.Y) / (float) sizeY, 0f, 1f);
                     fy = MathF.Max(fTop, fBottom);
                     hasChanges = true;
                 }
@@ -71,7 +71,7 @@ namespace PixelGraph.Common.ImageProcessors
         public class Options
         {
             public ColorChannel[] Colors;
-            public int SizeX, SizeY;
+            public float SizeX, SizeY;
             public bool EnableSmartEdges;
         }
     }

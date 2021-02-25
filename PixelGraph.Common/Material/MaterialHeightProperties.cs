@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.ResourcePack;
+using System;
 
 namespace PixelGraph.Common.Material
 {
@@ -9,7 +10,18 @@ namespace PixelGraph.Common.Material
         public decimal? Value {get; set;}
         public decimal? Shift {get; set;}
         public decimal? Scale {get; set;}
-        public int? EdgeFadeSizeX {get; set;}
-        public int? EdgeFadeSizeY {get; set;}
+        public decimal? EdgeFadeX {get; set;}
+        public decimal? EdgeFadeY {get; set;}
+
+
+        [Obsolete] public int? EdgeFadeSizeX {
+            get => null;
+            set {}
+        }
+
+        [Obsolete] public int? EdgeFadeSizeY {
+            get => null;
+            set {}
+        }
     }
 }
