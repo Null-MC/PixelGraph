@@ -57,16 +57,16 @@ namespace PixelGraph.Common.IO.Publishing
         {
             if (!Pack.TextureSize.HasValue && !Pack.TextureScale.HasValue) return null;
 
-            var (width, height) = source.Size();
-            var packSampler = Sampler<TPixel>.Create(Pack.Encoding.Sampler) ?? new NearestSampler<TPixel>();
+            var samplerName = Pack.Encoding?.Sampler ?? Sampler.Nearest;
+            var packSampler = Sampler<TPixel>.Create(samplerName);
             packSampler.Image = source;
-            //packSampler.Range = 1f;
             packSampler.WrapX = false;
             packSampler.WrapY = false;
+            //packSampler.Range = 1f;
+
+            var (width, height) = source.Size();
 
             var options = new ResizeProcessor<TPixel>.Options {
-                //SourceWidth = width,
-                //SourceHeight = height,
                 Sampler = packSampler,
             };
 
