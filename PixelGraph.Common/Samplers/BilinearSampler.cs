@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using System;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Numerics;
@@ -19,9 +20,9 @@ namespace PixelGraph.Common.Samplers
             var fx = x * Image.Width - 0.5f + float.Epsilon;
             var fy = y * Image.Height - 0.5f + float.Epsilon;
 
-            var pxMin = (int)fx;
+            var pxMin = (int)MathF.Floor(fx);
             var pxMax = pxMin + 1;
-            var pyMin = (int)fy;
+            var pyMin = (int)MathF.Floor(fy);
             var pyMax = pyMin + 1;
 
             var px = fx - pxMin;
