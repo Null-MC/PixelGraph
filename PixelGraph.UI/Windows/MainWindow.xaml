@@ -54,7 +54,7 @@
                     <MenuItem Header="Exit" Icon="{md:PackIcon ExitRun}" Click="OnExitClick"/>
                 </MenuItem>
                 <MenuItem Header="Edit">
-                    <MenuItem Header="App Settings" Icon="{md:PackIcon Settings}" Click="OnSettingsClick"/>
+                    <!--<MenuItem Header="App Settings" Icon="{md:PackIcon Settings}" Click="OnSettingsClick"/>-->
                     <MenuItem Header="Publish Locations" Icon="{md:PackIcon FolderCog}" Click="OnLocationsClick"/>
                     <Separator/>
                     <MenuItem Header="Pack Input" Icon="{md:PackIcon Palette}" Click="OnInputEncodingClick"

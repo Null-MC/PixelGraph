@@ -89,7 +89,6 @@ namespace PixelGraph.UI.Windows
 
             try {
                 reader.SetRoot(vm.RootDirectory);
-                //settings.AutoMaterial;
 
                 try {
                     await LoadPackInputAsync();
@@ -110,7 +109,11 @@ namespace PixelGraph.UI.Windows
                     ShowError("Failed to load pack profile definitions!");
                 }
 
-                vm.TreeRoot = treeReader.GetRootNode();
+                vm.TreeRoot = new ContentTreeDirectory(null) {
+                    LocalPath = null,
+                };
+                treeReader.Update(vm.TreeRoot);
+
                 vm.TreeRoot.UpdateVisibility(vm);
                 vm.SelectedProfile = vm.PublishProfiles.FirstOrDefault();
             }
@@ -132,8 +135,9 @@ namespace PixelGraph.UI.Windows
                 //loader.EnableAutoMaterial = settings.AutoMaterial;
                 loader.EnableAutoMaterial = vm.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
 
-                vm.TreeRoot = treeReader.GetRootNode();
+                //vm.TreeRoot = treeReader.GetRootNode();
                 vm.TreeRoot.UpdateVisibility(vm);
+                treeReader.Update(vm.TreeRoot);
             }
             finally {
                 vm.EndBusy();
@@ -801,8 +805,8 @@ namespace PixelGraph.UI.Windows
 
             var material = await Task.Run(() => ImportTextureAsync(fileNode.Filename, CancellationToken.None));
 
-            var parent = fileNode.Parent;
             var contentReader = provider.GetRequiredService<IContentTreeReader>();
+            var parent = fileNode.Parent;
 
             if (parent == null) {
                 // refresh root
@@ -810,15 +814,16 @@ namespace PixelGraph.UI.Windows
             }
             else {
                 //parent.Nodes.Clear();
-                var newParent = contentReader.GetPathNode(parent, parent.LocalPath);
-                var selected = newParent.Nodes.FirstOrDefault(n => {
-                    if (!(n is ContentTreeMaterialDirectory materialNode)) return false;
-                    return string.Equals(materialNode.MaterialFilename, material.LocalFilename);
-                });
 
                 await Application.Current.Dispatcher.BeginInvoke(() => {
-                    parent.Nodes = newParent.Nodes;
-                    vm.SelectedNode = selected;
+                    contentReader.Update(parent);
+
+                    var selected = parent.Nodes.FirstOrDefault(n => {
+                        if (!(n is ContentTreeMaterialDirectory materialNode)) return false;
+                        return string.Equals(materialNode.MaterialFilename, material.LocalFilename);
+                    });
+
+                    if (selected != null) vm.SelectedNode = selected;
                 });
             }
         }
