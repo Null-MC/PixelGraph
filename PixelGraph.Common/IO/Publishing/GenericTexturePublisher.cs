@@ -83,10 +83,11 @@ namespace PixelGraph.Common.IO.Publishing
             }
             else {
                 // scale all
-                targetWidth = (int)Math.Max(width * Pack.TextureScale.Value, 1f);
-                targetHeight = (int)Math.Max(height * Pack.TextureScale.Value, 1f);
-                packSampler.RangeX = 1f / Pack.TextureScale.Value;
-                packSampler.RangeY = 1f / Pack.TextureScale.Value;
+                var scale = (float)Pack.TextureScale.Value;
+                targetWidth = (int)Math.Max(width * scale, 1f);
+                targetHeight = (int)Math.Max(height * scale, 1f);
+                packSampler.RangeX = 1f / scale;
+                packSampler.RangeY = 1f / scale;
             }
 
             var processor = new ResizeProcessor<TPixel>(options);

@@ -10,7 +10,7 @@
         xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
         xmlns:textures="clr-namespace:PixelGraph.Common.Textures;assembly=PixelGraph.Common"
         xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
-        Title="Pack Profiles" Width="1000" Height="800" mc:Ignorable="d"
+        Title="Publishing Profiles" Width="1000" Height="800" mc:Ignorable="d"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
@@ -31,7 +31,7 @@
         <converters:SamplerLabelConverter x:Key="SamplerLabelConverter"/>
     </Window.Resources>
     <Window.DataContext>
-        <vm:PackProfilesVM x:Name="VM" DataChanged="OnDataChanged"/>
+        <vm:PublishProfilesVM x:Name="VM" DataChanged="OnDataChanged"/>
     </Window.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -425,6 +425,81 @@
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
+            </TabItem>
+            <TabItem Header="Textures">
+                <StackPanel Margin="8" Orientation="Vertical">
+                    <StackPanel.Resources>
+                        <Style x:Key="SectionLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignTextBlock}">
+                            <Setter Property="FontSize" Value="20"/>
+                            <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+                            <Setter Property="Margin" Value="0,8,0,0"/>
+                        </Style>
+                        <Style x:Key="FieldLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignTextBlock}">
+                            <Setter Property="FontSize" Value="15"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="{DynamicResource SecondaryHueMidBrush}"/>
+                        </Style>
+                        <Style x:Key="DescriptionTextStyle" TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignTextBlock}">
+                            <Setter Property="Margin" Value="0,4,0,20"/>
+                            <Setter Property="TextWrapping" Value="Wrap"/>
+                            <Setter Property="Foreground" Value="#AAA"/>
+                        </Style>
+                        <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignTextBox}">
+                            <Setter Property="Width" Value="200"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="{DynamicResource SecondaryHueMidBrush}"/>
+                        </Style>
+                    </StackPanel.Resources>
+                    <!-- Sizing -->
+                    <TextBlock Text="Sizing" Style="{StaticResource SectionLabelStyle}"/>
+                    <Rectangle Margin="0,4" Height="2" Fill="#111"/>
+                    <DockPanel>
+                        <TextBox DockPanel.Dock="Right"
+                                 Text="{Binding TextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        <TextBlock Text="Texture Size" Style="{StaticResource FieldLabelStyle}"/>
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                               Text="When defined this value will be used as the target width when publishing textures. Height is preserved through aspect ratio."/>
+                    <DockPanel>
+                        <TextBox DockPanel.Dock="Right"
+                                 Text="{Binding BlockTextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        <TextBlock Text="Block Texture Size" Style="{StaticResource FieldLabelStyle}"/>
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                               Text="When defined this value will be used as the target width when publishing textures located in 'block' folders. Height is preserved through aspect ratio. This overrides the above 'Texture Size' value."/>
+                    <DockPanel>
+                        <TextBox DockPanel.Dock="Right"
+                                 Text="{Binding TextureScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        <TextBlock Text="Texture Scale" Style="{StaticResource FieldLabelStyle}"/>
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                               Text="When defined this value will be used as the scale to apply when publishing textures. If block/texture-size is defined it will supersede this value."/>
+                    <!-- Normal -->
+                    <TextBlock Text="Normals" Style="{StaticResource SectionLabelStyle}"/>
+                    <Rectangle Margin="0,4" Height="2" Fill="#111"/>
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Right" Width="200">
+                            <CheckBox HorizontalAlignment="Center"
+                                      IsChecked="{Binding AutoGenerateNormal, Mode=TwoWay}"/>
+                        </Grid>
+                        <TextBlock Text="Generate Automatically" Style="{StaticResource FieldLabelStyle}"/>
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                               Text="When enabled materials that are missing a normal texture will attempt to generate it from the height texture."/>
+                    <!-- Occlusion -->
+                    <TextBlock Text="Occlusion" Style="{StaticResource SectionLabelStyle}"/>
+                    <Rectangle Margin="0,4" Height="2" Fill="#111"/>
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Right" Width="200">
+                            <CheckBox HorizontalAlignment="Center"
+                                      IsChecked="{Binding AutoGenerateOcclusion, Mode=TwoWay}"/>
+                        </Grid>
+                        <TextBlock Text="Generate Automatically" Style="{StaticResource FieldLabelStyle}"/>
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                               Text="When enabled materials that are missing an occlusion texture will attempt to generate it from the height texture."/>
+                </StackPanel>
             </TabItem>
         </TabControl>
     </Grid>

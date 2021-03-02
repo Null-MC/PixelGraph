@@ -1,11 +1,13 @@
 ﻿using MaterialDesignThemes.Wpf;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Textures;
+using PixelGraph.UI.ViewData;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using PixelGraph.Common.Textures;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -16,6 +18,7 @@ namespace PixelGraph.UI.ViewModels
         private readonly object busyLock;
         private volatile bool _isBusy, _isPreviewLoading;
         private ObservableCollection<string> _recentDirectories;
+        private List<LocationViewModel> _publishLocations;
         private ResourcePackInputProperties _packInput;
         private string _rootDirectory;
         private string _searchText;
@@ -25,18 +28,20 @@ namespace PixelGraph.UI.ViewModels
         private MaterialProperties _loadedMaterial;
         private ImageSource _loadedTexture;
         private ProfileItem _selectedProfile;
+        private LocationViewModel _selectedLocation;
         private string _loadedMaterialFilename;
-        private bool _publishArchive, _publishClean;
+        //private bool _publishArchive, _publishClean;
         private ContentTreeNode _treeRoot;
 
         public event EventHandler SelectedTagChanged;
         public event EventHandler SelectedProfileChanged;
 
-        public ObservableCollection<ProfileItem> Profiles {get;}
+        public ObservableCollection<ProfileItem> PublishProfiles {get;}
 
-        public bool HasRootDirectory => _rootDirectory != null;
+        public bool IsProjectLoaded => _rootDirectory != null;
+        //public bool IsProjectUnloaded => _rootDirectory == null;
         public bool HasTreeSelection => _selectedNode is ContentTreeFile;
-        public bool HasTreeTextureSelection => _selectedNode is ContentTreeFile _file && _file.Type == ContentNodeType.Texture;
+        public bool HasTreeTextureSelection => _selectedNode is ContentTreeFile {Type: ContentNodeType.Texture};
         public bool HasLoadedMaterial => _loadedMaterial != null;
         public bool HasLoadedTexture => _loadedTexture != null;
         public bool HasPreviewImage => HasLoadedTexture || (HasLoadedMaterial && _selectedTag != null);
@@ -49,7 +54,8 @@ namespace PixelGraph.UI.ViewModels
                 _rootDirectory = value;
                 OnPropertyChanged();
 
-                OnPropertyChanged(nameof(HasRootDirectory));
+                OnPropertyChanged(nameof(IsProjectLoaded));
+                //OnPropertyChanged(nameof(IsProjectUnloaded));
             }
         }
         
@@ -57,6 +63,14 @@ namespace PixelGraph.UI.ViewModels
             get => _recentDirectories;
             set {
                 _recentDirectories = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public List<LocationViewModel> PublishLocations {
+            get => _publishLocations;
+            set {
+                _publishLocations = value;
                 OnPropertyChanged();
             }
         }
@@ -131,6 +145,14 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public LocationViewModel SelectedLocation {
+            get => _selectedLocation;
+            set {
+                _selectedLocation = value;
+                OnPropertyChanged();
+            }
+        }
+
         public string LoadedMaterialFilename {
             get => _loadedMaterialFilename;
             set {
@@ -161,21 +183,21 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public bool PublishArchive {
-            get => _publishArchive;
-            set {
-                _publishArchive = value;
-                OnPropertyChanged();
-            }
-        }
+        //public bool PublishArchive {
+        //    get => _publishArchive;
+        //    set {
+        //        _publishArchive = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
-        public bool PublishClean {
-            get => _publishClean;
-            set {
-                _publishClean = value;
-                OnPropertyChanged();
-            }
-        }
+        //public bool PublishClean {
+        //    get => _publishClean;
+        //    set {
+        //        _publishClean = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
         public bool IsBusy {
             get => _isBusy;
@@ -199,7 +221,8 @@ namespace PixelGraph.UI.ViewModels
         public MainWindowVM()
         {
             RecentDirectories = new ObservableCollection<string>();
-            Profiles = new ObservableCollection<ProfileItem>();
+            PublishProfiles = new ObservableCollection<ProfileItem>();
+            _publishLocations = new List<LocationViewModel>();
             _treeRoot = new ContentTreeNode(null);
             busyLock = new object();
 
@@ -231,7 +254,7 @@ namespace PixelGraph.UI.ViewModels
             TreeRoot = null;
             RootDirectory = null;
 
-            Profiles.Clear();
+            PublishProfiles.Clear();
         }
 
         private void OnSelectedTagChanged()

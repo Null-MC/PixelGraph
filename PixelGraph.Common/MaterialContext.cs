@@ -21,7 +21,7 @@ namespace PixelGraph.Common
 
         public bool WrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool WrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
-        public float? TextureScale => Profile?.TextureScale;
+        public float? TextureScale => (float?)Profile?.TextureScale;
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Sampler.Nearest;
         public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
 
@@ -110,8 +110,9 @@ namespace PixelGraph.Common
                     var height = Material.TextureHeight.Value;
 
                     if (Profile.TextureScale.HasValue) {
-                        width = (int)MathF.Ceiling(width * Profile.TextureScale.Value);
-                        height = (int)MathF.Ceiling(height * Profile.TextureScale.Value);
+                        var scale = (float)Profile.TextureScale.Value;
+                        width = (int)MathF.Ceiling(width * scale);
+                        height = (int)MathF.Ceiling(height * scale);
                     }
 
                     return new Size(width, height);
@@ -133,8 +134,9 @@ namespace PixelGraph.Common
                 var height = (int)MathF.Ceiling(width * aspect);
 
                 if (Profile.TextureScale.HasValue) {
-                    width = (int)MathF.Ceiling(width * Profile.TextureScale.Value);
-                    height = (int)MathF.Ceiling(height * Profile.TextureScale.Value);
+                    var scale = (float)Profile.TextureScale.Value;
+                    width = (int)MathF.Ceiling(width * scale);
+                    height = (int)MathF.Ceiling(height * scale);
                 }
 
                 return new Size(width, height);

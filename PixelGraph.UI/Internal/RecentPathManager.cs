@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,30 +18,26 @@ namespace PixelGraph.UI.Internal
     internal class RecentPathManager : IRecentPathManager
     {
         private const int MaxCount = 8;
-        private const string AppName = "PixelGraph";
         private const string FileName = "Recent.txt";
 
-        private readonly string _filename, _path;
+        private readonly IAppDataHelper appData;
 
         public ObservableCollection<string> List {get;}
 
 
-        public RecentPathManager()
+        public RecentPathManager(IAppDataHelper appData)
         {
-            List = new ObservableCollection<string>();
+            this.appData = appData;
 
-            var rootPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            _path = Path.Combine(rootPath, AppName);
-            _filename = Path.Combine(_path, FileName);
+            List = new ObservableCollection<string>();
         }
 
         public async Task InitializeAsync(CancellationToken token = default)
         {
             List.Clear();
 
-            if (!File.Exists(_filename)) return;
-
-            var lines = await File.ReadAllLinesAsync(_filename, token);
+            var lines = await appData.ReadLinesAsync(FileName, token);
+            if (lines == null) return;
 
             await Application.Current.Dispatcher.InvokeAsync(() => {
                 foreach (var line in lines) List.Add(line);
@@ -80,12 +75,9 @@ namespace PixelGraph.UI.Internal
             }
         }
 
-        private async Task SaveAsync(CancellationToken token)
+        private Task SaveAsync(CancellationToken token)
         {
-            if (!Directory.Exists(_path))
-                Directory.CreateDirectory(_path);
-
-            await File.WriteAllLinesAsync(_filename, List, token);
+            return appData.WriteLinesAsync(FileName, List, token);
         }
     }
 }

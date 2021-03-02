@@ -10,9 +10,11 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using SixLabors.ImageSharp;
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -53,6 +55,8 @@ namespace PixelGraph.UI.Windows
 
             vm.SelectedTagChanged += OnSelectedTagChanged;
             vm.SelectedProfileChanged += OnSelectedProfileChanged;
+
+            vm.SelectedLocation = ManualLocation;
         }
 
         private async Task SelectRootDirectoryAsync(CancellationToken token)
@@ -96,7 +100,7 @@ namespace PixelGraph.UI.Windows
                 }
 
                 loader.EnableAutoMaterial = vm.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
-                vm.Profiles.Clear();
+                vm.PublishProfiles.Clear();
 
                 try {
                     LoadProfiles();
@@ -108,7 +112,7 @@ namespace PixelGraph.UI.Windows
 
                 vm.TreeRoot = treeReader.GetRootNode();
                 vm.TreeRoot.UpdateVisibility(vm);
-                vm.SelectedProfile = vm.Profiles.FirstOrDefault();
+                vm.SelectedProfile = vm.PublishProfiles.FirstOrDefault();
             }
             finally {
                 vm.EndBusy();
@@ -160,13 +164,23 @@ namespace PixelGraph.UI.Windows
                     LocalFile = localFile,
                 };
 
-                vm.Profiles.Add(profileItem);
+                vm.PublishProfiles.Add(profileItem);
             }
+        }
+
+        private async Task LoadPublishLocationsAsync(CancellationToken token = default)
+        {
+            var locationMgr = provider.GetRequiredService<IPublishLocationManager>();
+            var locations = await locationMgr.LoadAsync(token);
+            if (locations == null) return;
+
+            var list = locations.Select(x => new LocationViewModel(x)).ToList();
+            Application.Current.Dispatcher.Invoke(() => vm.PublishLocations = list);
         }
 
         private async Task PopulateTextureViewerAsync(CancellationToken token)
         {
-            if (vm.SelectedNode is ContentTreeFile texFile && texFile.Type == ContentNodeType.Texture) {
+            if (vm.SelectedNode is ContentTreeFile {Type: ContentNodeType.Texture} texFile) {
                 var fullFile = PathEx.Join(vm.RootDirectory, texFile.Filename);
 
                 var texImage = new BitmapImage();
@@ -179,6 +193,7 @@ namespace PixelGraph.UI.Windows
 
                 vm.LoadedTexture = texImage;
                 vm.LoadedMaterial = null;
+                vm.IsPreviewLoading = false;
                 return;
             }
 
@@ -427,17 +442,17 @@ namespace PixelGraph.UI.Windows
             return filename;
         }
 
-        private static string GetDirectoryName()
-        {
-            var folderDialog = new VistaFolderBrowserDialog {
-                Description = "Destination for published resource pack content.",
-                UseDescriptionForTitle = true,
-                ShowNewFolderButton = true,
-            };
+        //private static string GetDirectoryName()
+        //{
+        //    var folderDialog = new VistaFolderBrowserDialog {
+        //        Description = "Destination for published resource pack content.",
+        //        UseDescriptionForTitle = true,
+        //        ShowNewFolderButton = true,
+        //    };
 
-            return folderDialog.ShowDialog() == true
-                ? folderDialog.SelectedPath : null;
-        }
+        //    return folderDialog.ShowDialog() == true
+        //        ? folderDialog.SelectedPath : null;
+        //}
 
         private void OpenDocumentation()
         {
@@ -541,16 +556,35 @@ namespace PixelGraph.UI.Windows
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             try {
+                await LoadPublishLocationsAsync();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to load publishing locations!");
+                ShowError("Failed to load publishing locations!");
+            }
+
+            try {
+                var recentMgr = provider.GetRequiredService<IRecentPathManager>();
+                await recentMgr.InitializeAsync();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to load recent projects list!");
+                ShowError("Failed to load recent projects list!");
+            }
+
+            try {
                 var settings = provider.GetRequiredService<IAppSettings>();
                 await settings.LoadAsync();
+
+                if (settings.Data.SelectedPublishLocation != null) {
+                    var location = vm.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
+                    if (location != null) vm.SelectedLocation = location;
+                }
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to load application settings!");
                 ShowError("Failed to load application settings!");
             }
-
-            var recent = provider.GetRequiredService<IRecentPathManager>();
-            await recent.InitializeAsync();
         }
 
         private async void OnRecentSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -633,7 +667,7 @@ namespace PixelGraph.UI.Windows
                 Owner = this,
                 VM = {
                     RootDirectory = vm.RootDirectory,
-                    Profiles = vm.Profiles,
+                    Profiles = vm.PublishProfiles,
                     SelectedProfileItem = vm.SelectedProfile,
                 },
             };
@@ -641,6 +675,25 @@ namespace PixelGraph.UI.Windows
             window.ShowDialog();
 
             vm.SelectedProfile = window.VM.SelectedProfileItem;
+        }
+
+        private void OnLocationsClick(object sender, RoutedEventArgs e)
+        {
+            var window = new PublishLocationsWindow(provider) {
+                Owner = this,
+                VM = {
+                    Locations = new ObservableCollection<LocationViewModel>(vm.PublishLocations),
+                },
+            };
+
+            if (vm.SelectedLocation != null && !vm.SelectedLocation.IsManualSelect)
+                window.VM.SelectedLocationItem = vm.SelectedLocation;
+
+            var result = window.ShowDialog();
+            if (result != true) return;
+
+            vm.PublishLocations = window.VM.Locations.ToList();
+            vm.SelectedLocation = window.VM.SelectedLocationItem;
         }
 
         private void OnSettingsClick(object sender, RoutedEventArgs e)
@@ -656,21 +709,37 @@ namespace PixelGraph.UI.Windows
         {
             if (vm.SelectedProfile == null) return;
 
-            var destination = vm.PublishArchive
-                ? GetArchiveFilename() : GetDirectoryName();
-
-            if (destination == null) return;
-
             using var window = new PublishWindow(provider) {
                 Owner = this,
                 VM = {
                     RootDirectory = vm.RootDirectory,
-                    Destination = destination,
                     Profile = vm.SelectedProfile,
-                    Archive = vm.PublishArchive,
-                    Clean = vm.PublishClean,
+
+                    // TODO: Attach this to something on the UI
+                    Clean = false,
                 },
             };
+
+            if (vm.SelectedLocation != null && !vm.SelectedLocation.IsManualSelect) {
+                var name = vm.SelectedProfile.Name ?? Path.GetFileNameWithoutExtension(vm.SelectedProfile.LocalFile);
+                if (name == null) throw new ApplicationException("Unable to determine profile name!");
+
+                window.VM.Destination = Path.Combine(vm.SelectedLocation.Path, name);
+                window.VM.Archive = vm.SelectedLocation.Archive;
+                //window.VM.Clean = vm.PublishClean;
+            }
+            else {
+                //window.VM.Clean = vm.PublishClean;
+                //window.VM.Archive = vm.PublishArchive;
+                //window.VM.Destination = vm.PublishArchive
+                //    ? GetArchiveFilename() : GetDirectoryName();
+
+                // TODO: Add option to publish folder/archive when manually selecting destination
+                window.VM.Destination = GetArchiveFilename();
+                window.VM.Archive = true;
+
+                if (window.VM.Destination == null) return;
+            }
 
             window.ShowDialog();
         }
@@ -771,6 +840,8 @@ namespace PixelGraph.UI.Windows
             ReloadContent();
 
             if (reselectPath != null) {
+                
+                //vm.SelectedNode = vm.TreeRoot.FindNode(n => string.Equals(n.LocalPath, reselectPath, StringComparison.InvariantCultureIgnoreCase));
                 // TODO
             }
         }
@@ -790,6 +861,22 @@ namespace PixelGraph.UI.Windows
             lock (previewLock) {
                 previewBuilder?.Cancel();
             }
+        }
+
+        private async void OnPublishLocationSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var settings = provider.GetRequiredService<IAppSettings>();
+            var hasSelection = !vm.SelectedLocation?.IsManualSelect ?? true;
+            var newValue = hasSelection ? vm.SelectedLocation?.DisplayName : null;
+            if (newValue == settings.Data.SelectedPublishLocation) return;
+
+            settings.Data.SelectedPublishLocation = newValue;
+            await settings.SaveAsync();
+        }
+
+        private void OnExitClick(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
 
         #endregion

@@ -7,6 +7,7 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
@@ -35,40 +36,43 @@ namespace PixelGraph.UI.Windows
 
         private async Task CreateNewProfile()
         {
-            var dialog = new SaveFileDialog {
-                Title = "Create a new pack properties file",
-                Filter = "Pack YAML|*.pack.yml|All Files|*.*",
-                InitialDirectory = VM.RootDirectory,
-                AddExtension = true,
-                FileName = "default",
-            };
+            var filename = GetSaveName(VM.RootDirectory, "default");
+            if (filename == null) return;
 
-            var result = dialog.ShowDialog(this);
-            if (result != true) return;
-
-            if (!dialog.FileName.StartsWith(VM.RootDirectory)) {
-                ShowError("Pack profile should be saved in project root directory!");
-                return;
-            }
-
-            var packProfile = new ResourcePackProfileProperties {
-                //InputFormat = EncodingProperties.Raw,
+            var profile = new ResourcePackProfileProperties {
+                LocalFile = filename[VM.RootDirectory.Length..].TrimStart('\\', '/'),
                 Encoding = {
                     Format = TextureEncoding.Format_Lab13,
                 },
             };
 
-            var writer = provider.GetRequiredService<IOutputWriter>();
-            var packWriter = provider.GetRequiredService<IResourcePackWriter>();
-            writer.SetRoot(VM.RootDirectory);
+            await SaveAsync(profile);
 
-            var localFile = dialog.FileName[VM.RootDirectory.Length..].TrimStart('\\', '/');
-            await packWriter.WriteAsync(localFile, packProfile);
-
-            var profile = CreateProfileItem(localFile);
+            var profileItem = CreateProfileItem(profile.LocalFile);
             Application.Current.Dispatcher.Invoke(() => {
-                VM.Profiles.Add(profile);
-                VM.SelectedProfileItem = profile;
+                VM.Profiles.Add(profileItem);
+                VM.SelectedProfileItem = profileItem;
+            });
+        }
+
+        private void CloneSelectedProfile()
+        {
+            var profileItem = VM.SelectedProfileItem;
+            if (profileItem?.LocalFile == null) return;
+
+            var path = Path.GetDirectoryName(profileItem.LocalFile);
+            var filename = GetSaveName(path, profileItem.Name);
+            if (filename == null) return;
+
+            var srcFullFile = Path.Join(VM.RootDirectory, profileItem.LocalFile);
+            File.Copy(srcFullFile, filename);
+
+            var cloneLocalFile = filename[VM.RootDirectory.Length..].TrimStart('\\', '/');
+
+            var cloneProfileItem = CreateProfileItem(cloneLocalFile);
+            Application.Current.Dispatcher.Invoke(() => {
+                VM.Profiles.Add(cloneProfileItem);
+                VM.SelectedProfileItem = cloneProfileItem;
             });
         }
 
@@ -115,6 +119,27 @@ namespace PixelGraph.UI.Windows
             }
         }
 
+        private string GetSaveName(string path, string name)
+        {
+            var dialog = new SaveFileDialog {
+                Title = "Create a new pack properties file",
+                Filter = "Pack YAML|*.pack.yml|All Files|*.*",
+                InitialDirectory = path,
+                AddExtension = true,
+                FileName = name,
+            };
+
+            var result = dialog.ShowDialog(this);
+            if (result != true) return null;
+
+            if (!dialog.FileName.StartsWith(VM.RootDirectory)) {
+                ShowError("Pack profile should be saved in project root directory!");
+                return null;
+            }
+
+            return dialog.FileName;
+        }
+
         private void ShowError(string message)
         {
             Application.Current.Dispatcher.Invoke(() => {
@@ -131,7 +156,7 @@ namespace PixelGraph.UI.Windows
 
         private void OnDuplicateProfileClick(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(this, "Not yet implemented.", "Sorry");
+            CloneSelectedProfile();
         }
 
         private void OnDeleteProfileClick(object sender, RoutedEventArgs e)

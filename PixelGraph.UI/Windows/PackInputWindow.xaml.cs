@@ -38,6 +38,8 @@ namespace PixelGraph.UI.Windows
             });
         }
 
+        #region Events
+
         private void OnTextureResetButtonClick(object sender, RoutedEventArgs e)
         {
             if (!(e.Source is Button button)) return;
@@ -62,5 +64,7 @@ namespace PixelGraph.UI.Windows
                 ShowError($"Failed to save pack input! {error.Message}");
             }
         }
+
+        #endregion
     }
 }

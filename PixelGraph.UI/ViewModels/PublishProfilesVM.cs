@@ -4,10 +4,12 @@ using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using System;
 using System.Collections.ObjectModel;
+using PixelGraph.Common.Material;
+using PixelGraph.UI.ViewData;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class PackProfilesVM : ViewModelBase
+    internal class PublishProfilesVM : ViewModelBase
     {
         protected ObservableCollection<ProfileItem> _profiles;
         private ResourcePackProfileProperties _loadedProfile;
@@ -82,7 +84,11 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged(nameof(PackTags));
                 OnPropertyChanged(nameof(EncodingFormat));
                 OnPropertyChanged(nameof(EncodingSampler));
-                // TODO: ...
+                OnPropertyChanged(nameof(TextureSize));
+                OnPropertyChanged(nameof(BlockTextureSize));
+                OnPropertyChanged(nameof(TextureScale));
+                OnPropertyChanged(nameof(AutoGenerateNormal));
+                OnPropertyChanged(nameof(AutoGenerateOcclusion));
 
                 UpdateChannels();
                 UpdateDefaultValues();
@@ -169,8 +175,58 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public int? TextureSize {
+            get => _loadedProfile?.TextureSize;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.TextureSize = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
 
-        public PackProfilesVM()
+        public int? BlockTextureSize {
+            get => _loadedProfile?.BlockTextureSize;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.BlockTextureSize = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? TextureScale {
+            get => _loadedProfile?.TextureScale;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.TextureScale = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public bool? AutoGenerateNormal {
+            get => _loadedProfile?.AutoGenerateNormal ?? ResourcePackProfileProperties.AutoGenerateNormalDefault;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.AutoGenerateNormal = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public bool? AutoGenerateOcclusion {
+            get => _loadedProfile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.AutoGenerateOcclusion = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+
+        public PublishProfilesVM()
         {
             _profiles = new ObservableCollection<ProfileItem>();
 
@@ -322,7 +378,7 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    internal class ProfilesDesignVM : PackProfilesVM
+    internal class ProfilesDesignVM : PublishProfilesVM
     {
         public ProfilesDesignVM()
         {

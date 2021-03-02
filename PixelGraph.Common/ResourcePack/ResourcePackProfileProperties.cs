@@ -6,7 +6,7 @@ namespace PixelGraph.Common.ResourcePack
     {
         public const int DefaultFormat = 6;
         public const bool AutoGenerateNormalDefault = true;
-        public const bool AutoGenerateOcclusionDefault = true;
+        public const bool AutoGenerateOcclusionDefault = false;
 
         [YamlIgnore]
         public string LocalFile {get; set;}
@@ -53,7 +53,7 @@ namespace PixelGraph.Common.ResourcePack
 
         public int? TextureSize {get; set;}
         public int? BlockTextureSize {get; set;}
-        public float? TextureScale {get; set;}
+        public decimal? TextureScale {get; set;}
 
         public bool? AutoGenerateNormal {get; set;}
 
@@ -64,5 +64,12 @@ namespace PixelGraph.Common.ResourcePack
         {
             Encoding = new ResourcePackOutputProperties();
         }
+
+        //public virtual object Clone()
+        //{
+        //    var clone = (ResourcePackProfileProperties)MemberwiseClone();
+        //    clone.Encoding = (ResourcePackOutputProperties)Encoding.Clone();
+        //    return clone;
+        //}
     }
 }

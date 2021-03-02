@@ -2,6 +2,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.ViewModels
@@ -56,6 +57,18 @@ namespace PixelGraph.UI.ViewModels
 
             foreach (var node in _nodes)
                 node.SetVisibility(visible);
+        }
+
+        public ContentTreeNode FindNode(Func<ContentTreeNode, bool> predicate)
+        {
+            if (predicate(this)) return this;
+
+            foreach (var node in _nodes) {
+                var result = node.FindNode(predicate);
+                if (result != null) return result;
+            }
+
+            return null;
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

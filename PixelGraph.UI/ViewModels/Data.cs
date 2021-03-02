@@ -2,12 +2,6 @@
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class ProfileItem
-    {
-        public string Name {get; set;}
-        public string LocalFile {get; set;}
-    }
-
     public class LogMessageItem
     {
         public string Message {get; set;}

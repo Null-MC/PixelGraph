@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -36,29 +34,34 @@ namespace PixelGraph.Common.Extensions
             return Regex.IsMatch(name, $"^{regexPattern}$");
         }
 
-        public static bool ContainsSegment(string path, params string[] findParts)
+        public static string[] Split(string path)
         {
-            if (findParts == null) throw new ArgumentNullException(nameof(findParts));
-
-            var pathParts = path?.Split('/', '\\');
-            if (pathParts == null) return false;
-
-            for (var i = 0; i <= pathParts.Length; i++) {
-                if (MatchesAt(pathParts, findParts, i))
-                    return true;
-            }
-
-            return false;
+            return path.Split('/', '\\');
         }
 
-        private static bool MatchesAt(IReadOnlyList<string> srcParts, IReadOnlyList<string> matchParts, int index)
-        {
-            for (var i = 0; i < matchParts.Count; i++) {
-                if (index + i >= srcParts.Count) return false;
-                if (srcParts[index + i] != matchParts[i]) return false;
-            }
+        //public static bool ContainsSegment(string path, params string[] findParts)
+        //{
+        //    if (findParts == null) throw new ArgumentNullException(nameof(findParts));
 
-            return true;
-        }
+        //    var pathParts = path?.Split('/', '\\');
+        //    if (pathParts == null) return false;
+
+        //    for (var i = 0; i <= pathParts.Length; i++) {
+        //        if (MatchesAt(pathParts, findParts, i))
+        //            return true;
+        //    }
+
+        //    return false;
+        //}
+
+        //private static bool MatchesAt(IReadOnlyList<string> srcParts, IReadOnlyList<string> matchParts, int index)
+        //{
+        //    for (var i = 0; i < matchParts.Count; i++) {
+        //        if (index + i >= srcParts.Count) return false;
+        //        if (srcParts[index + i] != matchParts[i]) return false;
+        //    }
+
+        //    return true;
+        //}
     }
 }

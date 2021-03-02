@@ -20,139 +20,87 @@
     <Window.Resources>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
+        <CollectionViewSource x:Key="PublishLocationsView" Source="{Binding Path=PublishLocations}" />
     </Window.Resources>
     <Window.DataContext>
         <vm:MainWindowVM x:Name="vm"/>
     </Window.DataContext>
-    <DockPanel>
-        <Border DockPanel.Dock="Top" Margin="2">
-            <Border.Background>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <DockPanel LastChildFill="False">
+            <DockPanel.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <GradientStop Color="#FF272727"/>
                     <GradientStop Color="#FF343434" Offset="1"/>
                 </LinearGradientBrush>
-            </Border.Background>
-            <DockPanel LastChildFill="False">
-                <Button DockPanel.Dock="Left" Margin="2,0,4,0" Padding="8,0" Height="24" Click="OnNewProjectClick"
-                        ToolTip="New Project">
-                    <md:PackIcon Kind="CreateNewFolder"/>
-                </Button>
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="2">
-                    <Button Padding="8,0" Height="24" Click="OnOpenClick"
-                            ToolTip="Open a Directory">
-                        <md:PackIcon Kind="FolderOpen"/>
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-                                <Setter Property="md:ButtonAssist.CornerRadius" Value="3,0,0,3"/>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Button Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0"
-                            IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
-                        <Button.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Import Folder" Click="OnImportFolderClick"/>
-                                <MenuItem Header="Import ZIP" Click="OnImportZipClick"/>
-                                <Separator/>
-                                <MenuItem Header="Close Project" Click="OnCloseProjectClick"/>
-                            </ContextMenu>
-                        </Button.ContextMenu>
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-                                <Setter Property="md:ButtonAssist.CornerRadius" Value="0,3,3,0"/>
-                                <Style.Triggers>
-                                    <EventTrigger RoutedEvent="Click">
-                                        <EventTrigger.Actions>
-                                            <BeginStoryboard>
-                                                <Storyboard>
-                                                    <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="ContextMenu.IsOpen">
-                                                        <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="True"/>
-                                                    </BooleanAnimationUsingKeyFrames>
-                                                </Storyboard>
-                                            </BeginStoryboard>
-                                        </EventTrigger.Actions>
-                                    </EventTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </StackPanel>
-                <Button DockPanel.Dock="Left" Height="24" Padding="6,0" Margin="6,2,2,2" Click="OnInputEncodingClick"
-                        ToolTip="Edit Input Encoding"
-                        IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
-                    <StackPanel Orientation="Horizontal">
-                        <md:PackIcon Kind="Palette"/>
-                        <TextBlock Margin="4,0,0,0" Text="Input"/>
-                    </StackPanel>
-                </Button>
-                <Button DockPanel.Dock="Left" Style="{DynamicResource MaterialDesignFlatButton}" Height="24" Padding="8,0" Margin="2" IsEnabled="False" Click="OnSettingsClick"
-                        ToolTip="Edit Application Settings">
-                    <md:PackIcon Kind="Settings"/>
-                </Button>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
-                            IsEnabled="{Binding HasRootDirectory, Mode=OneWay}">
-                    <ComboBox Width="180" Margin="6,0,2,2" DisplayMemberPath="Name"
-                              ItemsSource="{Binding Profiles, Mode=OneWay}"
-                              SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
-                    <Button Content="{md:PackIcon Edit}" ToolTip="Manage Profiles" Height="24" Padding="6,0" Margin="2" Click="OnProfilesClick"/>
-                    <StackPanel x:Name="PublishButtonLayout" Orientation="Horizontal" Margin="2,2,6,2">
-                        <Button Content="Publish" Height="24" Padding="8,0" Click="OnPublishMenuItemClick"
-                                IsEnabled="{Binding HasProfileSelection, Mode=OneWay}">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-                                    <Setter Property="md:ButtonAssist.CornerRadius" Value="3,0,0,3"/>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <ToggleButton x:Name="PublishDropDownButton" Content="{md:PackIcon ArrowDropDown}" Height="24" Margin="1,0,0,0" Padding="0">
-                            <ToggleButton.Style>
-                                <Style TargetType="ToggleButton" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-                                    <Setter Property="md:ButtonAssist.CornerRadius" Value="0,3,3,0"/>
-                                </Style>
-                            </ToggleButton.Style>
-                        </ToggleButton>
-                    </StackPanel>
-                    <Popup StaysOpen="False" Placement="Bottom" PopupAnimation="Fade" AllowsTransparency="True"
-                           PlacementTarget="{Binding ElementName=PublishButtonLayout, Mode=OneTime}"
-                           IsOpen="{Binding IsChecked, Mode=TwoWay, ElementName=PublishDropDownButton}">
-                        <Border CornerRadius="4" Background="{StaticResource MaterialDesignCardBackground}">
-                            <StackPanel Orientation="Vertical" Margin="4,4,8,4">
-                                <CheckBox Content="Create ZIP Archive" Margin="4" FontSize="14" FontWeight="Bold"
-                                          Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                          IsChecked="{Binding PublishArchive, Mode=TwoWay}"
-                                          ToolTip="Publishes the resource pack as a single compressed ZIP archive."/>
-                                <CheckBox Content="Clean Destination" Margin="4" FontSize="14" FontWeight="Bold"
-                                          Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                          IsChecked="{Binding PublishClean, Mode=TwoWay}"
-                                          ToolTip="Removes all content from destination before publishing."/>
-                            </StackPanel>
-                        </Border>
-                    </Popup>
-                    <Button DockPanel.Dock="Right" Height="24" Padding="6,0" Margin="8,2,2,2" Click="OnDocumentationButtonClick"
-                            Style="{DynamicResource MaterialDesignFlatButton}" ToolTip="View Online Documentation">
-                        <md:PackIcon Kind="Help"/>
-                    </Button>
-                </StackPanel>
-            </DockPanel>
-        </Border>
-        <StatusBar DockPanel.Dock="Bottom">
-            <StatusBar.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <GradientStop Color="Black"/>
-                    <GradientStop Color="#111" Offset="1"/>
-                </LinearGradientBrush>
-            </StatusBar.Background>
-            <StatusBarItem>
-                <TextBlock Text="{Binding RootDirectory, Mode=OneWay}" Foreground="{DynamicResource SecondaryHueDarkBrush}"/>
-            </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Right">
-                <ProgressBar Width="90" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}"/>
-            </StatusBarItem>
-        </StatusBar>
-        <Grid>
+            </DockPanel.Background>
+            <Menu DockPanel.Dock="Left" IsMainMenu="True">
+                <MenuItem Header="Project">
+                    <MenuItem Header="New" Icon="{md:PackIcon CreateNewFolder}" Click="OnNewProjectClick"/>
+                    <MenuItem Header="Open" Icon="{md:PackIcon FolderOpen}" Click="OnOpenClick"/>
+                    <Separator/>
+                    <MenuItem Header="Import" Icon="{md:PackIcon Import}"
+                              IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}">
+                        <MenuItem Header="From Folder" Icon="{md:PackIcon Folder}" Click="OnImportFolderClick"/>
+                        <MenuItem Header="From Archive" Icon="{md:PackIcon Archive}" Click="OnImportZipClick"/>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="Close" Icon="{md:PackIcon Close}" Click="OnCloseProjectClick"
+                              IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
+                    <MenuItem Header="Exit" Icon="{md:PackIcon ExitRun}" Click="OnExitClick"/>
+                </MenuItem>
+                <MenuItem Header="Edit">
+                    <MenuItem Header="App Settings" Icon="{md:PackIcon Settings}" Click="OnSettingsClick"/>
+                    <MenuItem Header="Publish Locations" Icon="{md:PackIcon FolderCog}" Click="OnLocationsClick"/>
+                    <Separator/>
+                    <MenuItem Header="Pack Input" Icon="{md:PackIcon Palette}" Click="OnInputEncodingClick"
+                              IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
+                    <MenuItem Header="Publish Profiles" Icon="{md:PackIcon Book}" Click="OnProfilesClick"
+                              IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
+                </MenuItem>
+                <MenuItem Header="Help">
+                    <MenuItem Header="Documentation" Icon="{md:PackIcon Help}" Click="OnDocumentationButtonClick"/>
+                </MenuItem>
+            </Menu>
+            <Grid DockPanel.Dock="Right"
+                        IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Column="0" Grid.Row="0" Text="Profile" FontSize="10" Foreground="{DynamicResource SecondaryHueDarkBrush}" VerticalAlignment="Bottom"/>
+                <ComboBox Grid.Column="0" Grid.Row="1" Width="180" Margin="0,0,4,4" DisplayMemberPath="Name"
+                          ItemsSource="{Binding PublishProfiles, Mode=OneWay}"
+                          SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
+                <TextBlock Grid.Column="1" Grid.Row="0" Text="Location" FontSize="10" Foreground="{DynamicResource SecondaryHueDarkBrush}" VerticalAlignment="Bottom"/>
+                <ComboBox Grid.Column="1" Grid.Row="1" Width="180" Margin="0,0,4,4" DisplayMemberPath="DisplayName"
+                          SelectedItem="{Binding SelectedLocation, Mode=TwoWay}"
+                          SelectionChanged="OnPublishLocationSelectionChanged">
+                    <ComboBox.ItemsSource>
+                        <CompositeCollection>
+                            <vm:LocationViewModel x:Name="ManualLocation" DisplayName="Select" IsManualSelect="True"/>
+                            <!--<Separator/>-->
+                            <CollectionContainer Collection="{Binding Source={StaticResource PublishLocationsView}}"/>
+                        </CompositeCollection>
+                    </ComboBox.ItemsSource>
+                </ComboBox>
+                <Button Grid.Column="2" Grid.Row="1" Margin="0,0,4,4" Content="Publish" Padding="8,0" Click="OnPublishMenuItemClick"
+                         IsEnabled="{Binding HasProfileSelection, Mode=OneWay}" VerticalAlignment="Center" FontSize="12" Height="24"/>
+            </Grid>
+        </DockPanel>
+        <Grid Grid.Row="1">
             <Border HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="16" MaxWidth="800" CornerRadius="12"
                     Background="{DynamicResource MaterialDesignCardBackground}"
-                    Visibility="{Binding HasRootDirectory, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}">
+                    Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="200"/>
@@ -185,7 +133,7 @@
                               ItemsSource="{Binding RecentDirectories, Mode=OneWay}"/>
                 </Grid>
             </Border>
-            <Grid Visibility="{Binding HasRootDirectory, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+            <Grid Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="280"/>
                     <ColumnDefinition Width="3"/>
@@ -205,7 +153,7 @@
                                          Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                         </Grid>
                     </DockPanel>
-                    <TreeView VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
+                    <TreeView x:Name="ContentTree" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
                               SelectedItemChanged="OnTextureTreeSelectedItemChanged"
                               PreviewMouseRightButtonDown="OnContentTreePreviewMouseRightButtonDown"
                               ItemsSource="{Binding TreeRoot.Nodes, Mode=OneWay}">
@@ -330,5 +278,19 @@
                 </Grid>
             </Grid>
         </Grid>
-    </DockPanel>
+        <StatusBar Grid.Row="2">
+            <StatusBar.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="Black"/>
+                    <GradientStop Color="#111" Offset="1"/>
+                </LinearGradientBrush>
+            </StatusBar.Background>
+            <StatusBarItem>
+                <TextBlock Text="{Binding RootDirectory, Mode=OneWay}" Foreground="{DynamicResource SecondaryHueDarkBrush}"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <ProgressBar Width="90" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}"/>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
 </mde:MaterialWindow>

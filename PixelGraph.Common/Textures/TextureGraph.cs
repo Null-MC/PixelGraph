@@ -380,7 +380,7 @@ namespace PixelGraph.Common.Textures
                 sampler.WrapX = Context.WrapX;
                 sampler.WrapY = Context.WrapY;
                 sampler.RangeX = sampler.RangeY = scale;
-                
+
                 var options = new OcclusionProcessor.Options {
                     HeightSampler = sampler,
                     HeightChannel = heightChannel.Color.Value,
@@ -407,6 +407,10 @@ namespace PixelGraph.Common.Textures
                     ZScale = (float?)Context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
                     ZBias = (float?)Context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias,
                 };
+
+                // adjust volume height with texture scale
+                options.ZBias *= scale;
+                options.ZScale *= scale;
 
                 var processor = new OcclusionProcessor(options);
                 var image = new Image<Rgb24>(Configuration.Default, heightTexture.Width, heightTexture.Height);

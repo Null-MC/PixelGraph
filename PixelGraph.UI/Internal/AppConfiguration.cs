@@ -4,6 +4,7 @@
     {
         //bool PublishAsArchive {get; set;}
         //bool PublishCleanDestination {get; set;}
+        string SelectedPublishLocation {get; set;}
         bool PublishCloseOnComplete {get; set;}
         //bool AutoMaterial {get; set;}
     }
@@ -12,6 +13,7 @@
     {
         //public bool PublishAsArchive {get; set;}
         //public bool PublishCleanDestination {get; set;}
+        public string SelectedPublishLocation {get; set;}
         public bool PublishCloseOnComplete {get; set;}
         //public bool AutoMaterial {get; set;}
 
