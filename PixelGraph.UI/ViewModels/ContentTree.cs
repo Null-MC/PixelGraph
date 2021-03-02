@@ -85,7 +85,7 @@ namespace PixelGraph.UI.ViewModels
             var anyVisible = false;
 
             if (!string.IsNullOrEmpty(search.SearchText)) {
-                if (Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase)) {
+                if (Name != null && Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase)) {
                     SetVisibility(true);
                     return;
                 }
