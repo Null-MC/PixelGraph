@@ -95,7 +95,7 @@ namespace PixelGraph.UI.Windows
                 }
                 catch (Exception error) {
                     logger.LogError(error, "Failed to load pack input definitions!");
-                    ShowError("Failed to load pack input definitions!");
+                    ShowError($"Failed to load pack input definitions! {error.UnfoldMessageString()}");
                 }
 
                 loader.EnableAutoMaterial = vm.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
@@ -106,7 +106,7 @@ namespace PixelGraph.UI.Windows
                 }
                 catch (Exception error) {
                     logger.LogError(error, "Failed to load pack profile definitions!");
-                    ShowError("Failed to load pack profile definitions!");
+                    ShowError($"Failed to load pack profile definitions! {error.UnfoldMessageString()}");
                 }
 
                 vm.TreeRoot = new ContentTreeDirectory(null) {
@@ -233,7 +233,7 @@ namespace PixelGraph.UI.Windows
             catch (Exception error) {
                 vm.LoadedMaterial = null;
                 logger.LogError(error, "Failed to load material properties!");
-                ShowError("Failed to load material properties!");
+                ShowError($"Failed to load material properties! {error.UnfoldMessageString()}");
             }
 
             var enableAutoMaterial = vm.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
@@ -297,7 +297,7 @@ namespace PixelGraph.UI.Windows
                 await PopulateTextureViewerAsync(token);
             }
             catch (Exception error) {
-                ShowError($"Failed to generate normal texture! {error.Message}");
+                ShowError($"Failed to generate normal texture! {error.UnfoldMessageString()}");
             }
             finally {
                 vm.EndBusy();
@@ -351,7 +351,7 @@ namespace PixelGraph.UI.Windows
                 await PopulateTextureViewerAsync(token);
             }
             catch (Exception error) {
-                ShowError($"Failed to generate occlusion texture! {error.Message}");
+                ShowError($"Failed to generate occlusion texture! {error.UnfoldMessageString()}");
             }
             finally {
                 vm.EndBusy();
@@ -368,7 +368,7 @@ namespace PixelGraph.UI.Windows
                 await matWriter.WriteAsync(vm.LoadedMaterial, vm.LoadedMaterialFilename);
             }
             catch (Exception error) {
-                ShowError($"Failed to save material '{vm.LoadedMaterialFilename}'! {error.Message}");
+                ShowError($"Failed to save material '{vm.LoadedMaterialFilename}'! {error.UnfoldMessageString()}");
             }
         }
 
@@ -511,7 +511,7 @@ namespace PixelGraph.UI.Windows
             catch (Exception error) {
                 logger.LogError(error, "Failed to create preview image!");
                 // TODO: Set error image instead of message box
-                ShowError($"Failed to create preview! {error.Message}");
+                ShowError($"Failed to create preview! {error.UnfoldMessageString()}");
             }
             finally {
                 lock (previewLock) {
@@ -564,7 +564,7 @@ namespace PixelGraph.UI.Windows
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to load publishing locations!");
-                ShowError("Failed to load publishing locations!");
+                ShowError($"Failed to load publishing locations! {error.UnfoldMessageString()}");
             }
 
             try {
@@ -573,7 +573,7 @@ namespace PixelGraph.UI.Windows
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to load recent projects list!");
-                ShowError("Failed to load recent projects list!");
+                ShowError($"Failed to load recent projects list! {error.UnfoldMessageString()}");
             }
 
             try {
@@ -587,7 +587,7 @@ namespace PixelGraph.UI.Windows
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to load application settings!");
-                ShowError("Failed to load application settings!");
+                ShowError($"Failed to load application settings! {error.UnfoldMessageString()}");
             }
         }
 
@@ -777,7 +777,7 @@ namespace PixelGraph.UI.Windows
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to generate normal texture!");
-                ShowError($"Failed to generate normal texture! {error.Message}");
+                ShowError($"Failed to generate normal texture! {error.UnfoldMessageString()}");
             }
         }
 
@@ -790,7 +790,7 @@ namespace PixelGraph.UI.Windows
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to generate occlusion texture!");
-                ShowError($"Failed to generate occlusion texture! {error.Message}");
+                ShowError($"Failed to generate occlusion texture! {error.UnfoldMessageString()}");
             }
         }
 
@@ -877,6 +877,48 @@ namespace PixelGraph.UI.Windows
 
             settings.Data.SelectedPublishLocation = newValue;
             await settings.SaveAsync();
+        }
+
+        private void OnTreeOpenFolderClick(object sender, RoutedEventArgs e)
+        {
+            if (vm.SelectedNode is ContentTreeFile fileNode) {
+                OpenFolderSelectFile(fileNode.Filename);
+            }
+            else if (vm.SelectedNode is ContentTreeDirectory directoryNode) {
+                OpenFolder(directoryNode.LocalPath);
+            }
+            else if (vm.SelectedNode is ContentTreeMaterialDirectory materialNode) {
+                OpenFolder(materialNode.LocalPath);
+            }
+        }
+
+        private void OpenFolder(string path)
+        {
+            var fullPath = PathEx.Join(vm.RootDirectory, path);
+
+            if (!fullPath.EndsWith(Path.DirectorySeparatorChar))
+                fullPath += Path.DirectorySeparatorChar;
+
+            try {
+                Process.Start("explorer.exe", fullPath);
+            }
+            catch (Exception error) {
+                logger.LogError(error, $"Failed to open external directory \"{fullPath}\"!");
+                ShowError($"Failed to open directory! {error.UnfoldMessageString()}");
+            }
+        }
+
+        private void OpenFolderSelectFile(string file)
+        {
+            var fullFile = PathEx.Join(vm.RootDirectory, file);
+
+            try {
+                Process.Start("explorer.exe", $"/select,\"{fullFile}\"");
+            }
+            catch (Exception error) {
+                logger.LogError(error, $"Failed to open directory with file \"{fullFile}\"!");
+                ShowError($"Failed to open directory! {error.UnfoldMessageString()}");
+            }
         }
 
         private void OnExitClick(object sender, RoutedEventArgs e)

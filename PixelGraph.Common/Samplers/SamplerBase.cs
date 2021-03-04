@@ -9,6 +9,8 @@ namespace PixelGraph.Common.Samplers
     internal abstract class SamplerBase<TPixel> : ISampler<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
+        protected const float HalfPixel = 0.5f + float.Epsilon;
+
         public Image<TPixel> Image {get; set;}
         public float RangeX {get; set;}
         public float RangeY {get; set;}

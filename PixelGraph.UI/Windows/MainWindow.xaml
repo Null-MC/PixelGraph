@@ -205,6 +205,9 @@
                         </TreeView.ItemContainerStyle>
                         <TreeView.ContextMenu>
                             <ContextMenu>
+                                <MenuItem Header="Open Folder" Click="OnTreeOpenFolderClick"/>
+                                <Separator
+                                    Visibility="{Binding HasTreeTextureSelection, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"/>
                                 <MenuItem Header="Create Material" Icon="{md:PackIcon Palette}" Click="OnImportMaterialClick"
                                           Visibility="{Binding HasTreeTextureSelection, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}"/>
                             </ContextMenu>

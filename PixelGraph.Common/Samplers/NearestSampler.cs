@@ -1,4 +1,5 @@
 ﻿using SixLabors.ImageSharp.PixelFormats;
+using System;
 
 namespace PixelGraph.Common.Samplers
 {
@@ -7,8 +8,8 @@ namespace PixelGraph.Common.Samplers
     {
         public override void Sample(in float x, in float y, ref Rgba32 pixel)
         {
-            var px = (int) (x * Image.Width);
-            var py = (int) (y * Image.Height);
+            var px = (int)MathF.Floor(x * Image.Width);
+            var py = (int)MathF.Floor(y * Image.Height);
 
             if (WrapX) WrapCoordX(ref px);
             else ClampCoordX(ref px);

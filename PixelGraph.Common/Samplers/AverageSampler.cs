@@ -9,17 +9,17 @@ namespace PixelGraph.Common.Samplers
     {
         public override void Sample(in float x, in float y, ref Rgba32 pixel)
         {
-            var fx = x * Image.Width;
-            var fy = y * Image.Height;
+            var fx = x * Image.Width - HalfPixel;
+            var fy = y * Image.Height - HalfPixel;
 
             var minRangeX = MathF.Max(RangeX, 1f);
             var minRangeY = MathF.Max(RangeY, 1f);
             
-            var stepX = (int)Math.Ceiling(minRangeX);
-            var stepY = (int)Math.Ceiling(minRangeY);
+            var stepX = (int)MathF.Ceiling(minRangeX);
+            var stepY = (int)MathF.Ceiling(minRangeY);
 
-            var pxMin = (int)fx;
-            var pyMin = (int)fy;
+            var pxMin = (int)MathF.Floor(fx);
+            var pyMin = (int)MathF.Floor(fy);
             var pxMax = pxMin + stepX;
             var pyMax = pyMin + stepY;
 
