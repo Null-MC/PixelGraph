@@ -288,22 +288,16 @@ namespace PixelGraph.Common.Textures
                 throw new HeightSourceEmptyException("No height sources mapped!");
 
             Image<Rgba32> heightTexture = null;
-            var heightValue = Context.Material.Height?.Value;
 
             try {
-                var file = reader.EnumerateTextures(Context.Material, heightChannel.Texture).FirstOrDefault();
-
                 float scale;
-                if (file != null) {
-                    var heightSampler = Context.Profile?.Encoding?.Height?.Sampler;
-                    (heightTexture, scale) = await LoadHeightTextureAsync(file, heightSampler, token);
-                }
-                else if (heightValue.HasValue) {
+                (heightTexture, scale) = await LoadHeightTextureAsync(heightChannel, token);
+
+                if (heightTexture == null) {
                     var up = new Rgb24(127, 127, 255);
                     var size = Context.GetBufferSize(1f);
                     return new Image<Rgb24>(Configuration.Default, size?.Width ?? 1, size?.Height ?? 1, up);
                 }
-                else throw new HeightSourceEmptyException();
 
                 var builder = new NormalMapBuilder {
                     HeightImage = heightTexture,
@@ -337,42 +331,15 @@ namespace PixelGraph.Common.Textures
             logger.LogInformation("Generating occlusion map for texture {DisplayName}.", Context.Material.DisplayName);
 
             var heightChannel = Context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
-            //var emissiveChannel = Context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Emissive));
 
             if (heightChannel?.Color == null || heightChannel.Color.Value == ColorChannel.None)
                 throw new HeightSourceEmptyException("No height sources mapped!");
 
             Image<Rgba32> heightTexture = null;
-            //Image<Rgba32> emissiveImage = null;
-            //ISampler<Rgba32> emissiveSampler = null;
             try {
-                var file = reader.EnumerateTextures(Context.Material, heightChannel.Texture).FirstOrDefault();
-                if (file == null) throw new HeightSourceEmptyException();
-
-                //var clipEmissive = Context.Material.Occlusion?.ClipEmissive ?? true;
-
-                //if (clipEmissive && emissiveChannel != null) {
-                //    var emissiveFile = reader.EnumerateTextures(Context.Material, emissiveChannel.Texture).FirstOrDefault();
-
-                //    if (emissiveFile != null) {
-                //        await using var stream = reader.Open(file);
-                //        emissiveImage = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
-                //        //(emissiveImage, emissiveChannel) = await GetSourceImageAsync(EncodingChannel.Emissive, token);
-
-                //        var emissiveSamplerName = Context.Profile?.Encoding?.Emissive?.Sampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
-                //        emissiveSampler = Sampler<Rgba32>.Create(emissiveSamplerName);
-                //        emissiveSampler.Image = emissiveImage;
-                //        emissiveSampler.WrapX = Context.WrapX;
-                //        emissiveSampler.WrapY = Context.WrapY;
-
-                //        // TODO: set this right!
-                //        emissiveSampler.RangeX = emissiveSampler.RangeY = 1f;
-                //    }
-                //}
-
                 float scale;
-                var heightSamplerName = Context.Profile?.Encoding?.Height?.Sampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
-                (heightTexture, scale) = await LoadHeightTextureAsync(file, heightSamplerName, token);
+                (heightTexture, scale) = await LoadHeightTextureAsync(heightChannel, token);
+                if (heightTexture == null) throw new HeightSourceEmptyException();
 
                 var occlusionSamplerName = Context.Profile?.Encoding?.Occlusion?.Sampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
                 var sampler = Sampler<Rgba32>.Create(occlusionSamplerName);
@@ -392,16 +359,6 @@ namespace PixelGraph.Common.Textures
                     HeightPower = (float?)heightChannel.Power ?? 0f,
                     HeightInvert = heightChannel.Invert ?? false,
 
-                    //EmissiveSampler = emissiveSampler,
-                    //EmissiveChannel = emissiveChannel?.Color ?? ColorChannel.None,
-                    //EmissiveMinValue = (float?)emissiveChannel?.MinValue ?? 0f,
-                    //EmissiveMaxValue = (float?)emissiveChannel?.MaxValue ?? 1f,
-                    //EmissiveRangeMin = emissiveChannel?.RangeMin ?? 0,
-                    //EmissiveRangeMax = emissiveChannel?.RangeMax ?? 255,
-                    //EmissiveShift = emissiveChannel?.Shift ?? 0,
-                    //EmissivePower = (float?)emissiveChannel?.Power ?? 0f,
-                    //EmissiveInvert = emissiveChannel?.Invert ?? false,
-
                     StepDistance = (float?)Context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance,
                     Quality = (float?)Context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
                     ZScale = (float?)Context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
@@ -419,12 +376,21 @@ namespace PixelGraph.Common.Textures
             }
             finally {
                 heightTexture?.Dispose();
-                //emissiveImage?.Dispose();
             }
         }
 
-        private async Task<(Image<Rgba32>, float)> LoadHeightTextureAsync(string file, string heightSampler, CancellationToken token)
+        private async Task<(Image<Rgba32>, float)> LoadHeightTextureAsync(ResourcePackChannelProperties heightChannel, CancellationToken token)
         {
+            var file = reader.EnumerateTextures(Context.Material, TextureTags.Bump).FirstOrDefault();
+
+            if (file == null) {
+                file = reader.EnumerateTextures(Context.Material, heightChannel.Texture).FirstOrDefault();
+                if (file == null) return (null, 0f);
+            }
+
+            var samplerName = Context.Profile?.Encoding?.Height?.Sampler;
+
+
             await using var stream = reader.Open(file);
 
             Image<Rgba32> heightTexture = null;
@@ -442,7 +408,7 @@ namespace PixelGraph.Common.Textures
                     var scaledWidth = (int)MathF.Ceiling(heightTexture.Width * scale);
                     var scaledHeight = (int)MathF.Ceiling(heightTexture.Height * scale);
 
-                    var samplerName = heightSampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
+                    samplerName ??= Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
                     var sampler = Sampler<Rgba32>.Create(samplerName);
                     sampler.Image = heightTexture;
                     sampler.WrapX = Context.WrapX;

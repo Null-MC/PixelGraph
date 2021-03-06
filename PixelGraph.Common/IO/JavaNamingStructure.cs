@@ -16,6 +16,7 @@ namespace PixelGraph.Common.IO
                 [TextureTags.Albedo] = (name, ext) => $"{name}.{ext}",
                 [TextureTags.Diffuse] = (name, ext) => $"{name}_d.{ext}",
                 [TextureTags.Height] = (name, ext) => $"{name}_h.{ext}",
+                [TextureTags.Bump] = (name, ext) => $"{name}_b.{ext}",
                 [TextureTags.Normal] = (name, ext) => $"{name}_n.{ext}",
                 [TextureTags.Occlusion] = (name, ext) => $"{name}_ao.{ext}",
                 [TextureTags.Specular] = (name, ext) => $"{name}_s.{ext}",

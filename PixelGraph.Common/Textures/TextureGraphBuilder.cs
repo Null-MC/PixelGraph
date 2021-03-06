@@ -61,7 +61,7 @@ namespace PixelGraph.Common.Textures
 
             if (!IsOutputUpToDate(context, packWriteTime, sourceTime)) {
                 logger.LogDebug($"Publishing texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
-                await ProcessAllTexturesAsync(graph, context, token);
+                await ProcessAllTexturesAsync(graph, context, true, token);
             }
             else {
                 logger.LogDebug($"Skipping up-to-date texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
@@ -88,10 +88,10 @@ namespace PixelGraph.Common.Textures
             var graph = provider.GetRequiredService<ITextureGraph>();
             graph.Context = context;
 
-            await ProcessAllTexturesAsync(graph, context, token);
+            await ProcessAllTexturesAsync(graph, context, false, token);
         }
 
-        private async Task ProcessAllTexturesAsync(ITextureGraph graph, MaterialContext context, CancellationToken token)
+        private async Task ProcessAllTexturesAsync(ITextureGraph graph, MaterialContext context, bool createEmpty, CancellationToken token)
         {
             try {
                 await graph.PreBuildNormalTextureAsync(token);
@@ -100,6 +100,13 @@ namespace PixelGraph.Common.Textures
 
             var allOutputTags = graph.Context.OutputEncoding
                 .Select(e => e.Texture).Distinct();
+
+            var matPath = context.Material.UseGlobalMatching
+                ? context.Material.LocalPath
+                : PathEx.Join(context.Material.LocalPath, context.Material.Name);
+
+            var matMetaFileIn = PathEx.Join(matPath, "mat.mcmeta");
+            var hasMatMeta = reader.FileExists(matMetaFileIn);
 
             foreach (var tag in allOutputTags) {
                 var tagOutputEncoding = graph.Context.OutputEncoding
@@ -110,24 +117,32 @@ namespace PixelGraph.Common.Textures
                     var hasColor = tagOutputEncoding.Any(c => c.Color != ColorChannel.Red);
 
                     if (hasAlpha) {
-                        await PublishImageAsync<Rgba32>(graph, context, tag, ImageChannels.ColorAlpha, token);
+                        await PublishImageAsync<Rgba32>(graph, context, tag, ImageChannels.ColorAlpha, createEmpty, token);
                     }
                     else if (hasColor) {
-                        await PublishImageAsync<Rgb24>(graph, context, tag, ImageChannels.Color, token);
+                        await PublishImageAsync<Rgb24>(graph, context, tag, ImageChannels.Color, createEmpty, token);
                     }
                     else {
-                        await PublishImageAsync<L8>(graph, context, tag, ImageChannels.Gray, token);
+                        await PublishImageAsync<L8>(graph, context, tag, ImageChannels.Gray, createEmpty, token);
                     }
                 }
 
                 await CopyMetaAsync(graph.Context, tag, token);
+
+                if (hasMatMeta) {
+                    var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.UseGlobalOutput);
+
+                    await using var sourceStream = reader.Open(matMetaFileIn);
+                    await using var destStream = writer.Open(metaFileOut);
+                    await sourceStream.CopyToAsync(destStream, token);
+                }
             }
         }
 
-        private async Task PublishImageAsync<TPixel>(ITextureGraph graph, MaterialContext context, string textureTag, ImageChannels type, CancellationToken token = default)
+        private async Task PublishImageAsync<TPixel>(ITextureGraph graph, MaterialContext context, string textureTag, ImageChannels type, bool createEmpty, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>
         {
-            using var image = await graph.CreateImageAsync<TPixel>(textureTag, true, token);
+            using var image = await graph.CreateImageAsync<TPixel>(textureTag, createEmpty, token);
 
             if (image == null) {
                 // TODO: log
