@@ -29,21 +29,13 @@ namespace PixelGraph.Common.ImageProcessors
                 normalRow = options.NormalImage.GetPixelRowSpan(context.Y);
             }
 
-            Span<TOcclusion> occlusionRow = null;
-            if (options.OcclusionImage != null) {
-                occlusionRow = options.OcclusionImage.GetPixelRowSpan(context.Y);
-            }
-
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
                 var fx = (float)x / context.Bounds.Width;
                 var fy = (float)context.Y / context.Bounds.Height;
 
-                var litOcclusion = 1f;
-                if (options.OcclusionImage != null) {
-                    var occlusionPixel = occlusionRow[x].ToScaledVector4();
-                    litOcclusion = occlusionPixel.X;
-                }
+                var occlusionValue = 1f;
+                options.OcclusionSampler?.SampleScaled(in fx, in fy, in options.OcclusionColor, out occlusionValue);
 
                 var litNormal = 1f;
                 if (options.NormalImage != null) {
@@ -58,7 +50,7 @@ namespace PixelGraph.Common.ImageProcessors
                 var emissiveValue = 0f;
                 options.EmissiveSampler?.SampleScaled(in fx, in fy, in options.EmissiveColor, out emissiveValue);
 
-                var lit = MathF.Min(litNormal, litOcclusion);
+                var lit = MathF.Min(litNormal, occlusionValue);
                 lit = MathF.Max(lit, emissiveValue);
 
                 albedoPixel.X *= lit;
@@ -72,7 +64,10 @@ namespace PixelGraph.Common.ImageProcessors
         public class Options
         {
             public Image<TNormal> NormalImage;
-            public Image<TOcclusion> OcclusionImage;
+
+            public ISampler<TOcclusion> OcclusionSampler;
+            public ColorChannel OcclusionColor;
+
             public ISampler<TEmissive> EmissiveSampler;
             public ColorChannel EmissiveColor;
             public Vector4 LightDirection = Vector4.UnitZ;

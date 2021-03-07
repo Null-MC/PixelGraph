@@ -5,6 +5,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.ResourcePack;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;

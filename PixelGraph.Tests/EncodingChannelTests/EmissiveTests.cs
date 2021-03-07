@@ -1,9 +1,8 @@
-﻿using System.Threading.Tasks;
-using PixelGraph.Common;
-using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -40,16 +39,15 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(255)]
         [Theory] public async Task Passthrough(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
             await graph.ProcessAsync();
 
@@ -66,20 +64,19 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(0.784, 0.01,   2)]
         [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                    Emissive = new MaterialEmissiveProperties {
-                        Value = value,
-                        Scale = scale,
-                    },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+                Emissive = new MaterialEmissiveProperties {
+                    Value = value,
+                    Scale = scale,
                 },
             };
 
-            await using var graph = Graph(context);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_e.png");
@@ -94,19 +91,18 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(200, 0.01,   2)]
         [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                    Emissive = new MaterialEmissiveProperties {
-                        Scale = scale,
-                    },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+                Emissive = new MaterialEmissiveProperties {
+                    Scale = scale,
                 },
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
             await graph.ProcessAsync();
 
@@ -120,22 +116,21 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(255,   0)]
         [Theory] public async Task ConvertsEmissiveClippedToEmissive(byte value, byte expected)
         {
-            using var context = new MaterialContext {
-                Input = new ResourcePackInputProperties {
-                    Emissive = {
-                        Texture = TextureTags.Emissive,
-                        Color = ColorChannel.Red,
-                        Shift = -1,
-                    },
-                },
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
+            await using var graph = Graph();
+
+            graph.PackInput = new ResourcePackInputProperties {
+                Emissive = {
+                    Texture = TextureTags.Emissive,
+                    Color = ColorChannel.Red,
+                    Shift = -1,
                 },
             };
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+            };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
             await graph.ProcessAsync();
             
@@ -149,22 +144,21 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(255, 0)]
         [Theory] public async Task ConvertsEmissiveInverseToEmissive(byte value, byte expected)
         {
-            using var context = new MaterialContext {
-                Input = new ResourcePackInputProperties {
-                    Emissive = {
-                        Texture = TextureTags.Emissive,
-                        Color = ColorChannel.Red,
-                        Invert = true,
-                    },
-                },
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
+            await using var graph = Graph();
+
+            graph.PackInput = new ResourcePackInputProperties {
+                Emissive = {
+                    Texture = TextureTags.Emissive,
+                    Color = ColorChannel.Red,
+                    Invert = true,
                 },
             };
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+            };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
             await graph.ProcessAsync();
 

@@ -83,19 +83,22 @@ namespace PixelGraph.CLI.CommandLine
 
         private class Executor
         {
-            private readonly ITextureGraphBuilder graphBuilder;
+            private readonly IServiceProvider provider;
+            //private readonly ITextureGraphBuilder graphBuilder;
             private readonly IResourcePackReader packReader;
             private readonly IInputReader reader;
             private readonly IOutputWriter writer;
 
 
             public Executor(
-                ITextureGraphBuilder graphBuilder,
+                IServiceProvider provider,
+                //ITextureGraphBuilder graphBuilder,
                 IResourcePackReader packReader,
                 IInputReader reader,
                 IOutputWriter writer)
             {
-                this.graphBuilder = graphBuilder;
+                this.provider = provider;
+                //this.graphBuilder = graphBuilder;
                 this.packReader = packReader;
                 this.reader = reader;
                 this.writer = writer;
@@ -136,16 +139,18 @@ namespace PixelGraph.CLI.CommandLine
                     LocalPath = ".",
                 };
 
-                using var context = new MaterialContext {
-                    Input = packInput,
-                    Profile = packProfile,
-                    Material = material,
-                };
-
                 var timer = Stopwatch.StartNew();
 
                 try {
-                    await graphBuilder.ProcessInputGraphAsync(context, token);
+                    using var scope = provider.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+                    var graphBuilder = scope.ServiceProvider.GetRequiredService<ITextureGraphBuilder>();
+
+                    context.Input = packInput;
+                    context.Profile = packProfile;
+                    context.Material = material;
+
+                    await graphBuilder.ProcessInputGraphAsync(token);
                 }
                 finally {
                     timer.Stop();

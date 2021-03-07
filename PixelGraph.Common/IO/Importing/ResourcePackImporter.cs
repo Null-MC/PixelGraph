@@ -87,6 +87,7 @@ namespace PixelGraph.Common.IO.Importing
             importer.LocalPath = localPath;
             importer.PackInput = PackInput;
             importer.PackProfile = PackProfile;
+
             await importer.ImportAsync(name, token);
         }
 

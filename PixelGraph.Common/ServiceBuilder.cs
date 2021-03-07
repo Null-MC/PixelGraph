@@ -30,7 +30,6 @@ namespace PixelGraph.Common
             Services.AddLogging(builder => builder.AddSerilog());
 
             Services.AddSingleton<INamingStructure, JavaNamingStructure>();
-            Services.AddSingleton<ITextureGraphBuilder, TextureGraphBuilder>();
             Services.AddSingleton<IResourcePackReader, ResourcePackReader>();
             Services.AddSingleton<IResourcePackWriter, ResourcePackWriter>();
             Services.AddSingleton<IMaterialReader, MaterialReader>();
@@ -39,9 +38,14 @@ namespace PixelGraph.Common
             Services.AddSingleton<IImageWriter, ImageWriter>();
             Services.AddSingleton<IFileLoader, FileLoader>();
 
+            Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
+            Services.AddScoped<ITextureGraph, TextureGraph>();
+            Services.AddScoped<INormalTextureGraph, NormalTextureGraph>();
+            Services.AddScoped<IOcclusionTextureGraph, OcclusionTextureGraph>();
+            Services.AddScoped<ITextureGraphBuilder, TextureGraphBuilder>();
+
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
             Services.AddTransient<IMaterialImporter, MaterialImporter>();
-            Services.AddTransient<ITextureGraph, TextureGraph>();
             Services.AddTransient<IItemGenerator, ItemGenerator>();
 
             Services.AddTransient(typeof(ITextureBuilder<>), typeof(TextureBuilder<>));

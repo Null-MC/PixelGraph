@@ -32,7 +32,6 @@ namespace PixelGraph.UI.Windows
     public partial class MainWindow
     {
         private readonly IServiceProvider provider;
-        //private readonly IAppSettings settings;
         private readonly ILogger logger;
 
         private readonly object previewLock;
@@ -43,7 +42,6 @@ namespace PixelGraph.UI.Windows
         {
             this.provider = provider;
 
-            //settings = provider.GetRequiredService<IAppSettings>();
             logger = provider.GetRequiredService<ILogger<MainWindow>>();
 
             previewLock = new object();
@@ -278,19 +276,18 @@ namespace PixelGraph.UI.Windows
                 inputEncoding.Merge(vm.PackInput);
                 inputEncoding.Merge(material);
 
-                using var context = new MaterialContext {
-                    Input = vm.PackInput,
-                    //Profile = vm.LoadedProfile,
-                    Material = material,
-                    InputEncoding = inputEncoding.GetMapped().ToList(),
-                    OutputEncoding = inputEncoding.GetMapped().ToList(),
-                };
-
                 await Task.Factory.StartNew(async () => {
-                    var graph = provider.GetRequiredService<ITextureGraph>();
-                    graph.Context = context;
+                    using var scope = provider.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+                    var graph = scope.ServiceProvider.GetRequiredService<INormalTextureGraph>();
 
-                    using var normalImage = await graph.GenerateNormalAsync(token);
+                    context.Input = vm.PackInput;
+                    //context.Profile = null;
+                    context.Material = material;
+                    context.InputEncoding = inputEncoding.GetMapped().ToList();
+                    context.OutputEncoding = inputEncoding.GetMapped().ToList();
+
+                    using var normalImage = await graph.GenerateAsync(token);
                     await normalImage.SaveAsync(fullName, token);
                 }, token);
 
@@ -331,19 +328,18 @@ namespace PixelGraph.UI.Windows
                 inputEncoding.Merge(vm.PackInput);
                 inputEncoding.Merge(material);
 
-                using var context = new MaterialContext {
-                    Input = vm.PackInput,
-                    //Profile = vm.LoadedProfile,
-                    Material = material,
-                    InputEncoding = inputEncoding.GetMapped().ToList(),
-                    OutputEncoding = inputEncoding.GetMapped().ToList(),
-                };
-
                 await Task.Factory.StartNew(async () => {
-                    var graph = provider.GetRequiredService<ITextureGraph>();
-                    graph.Context = context;
+                    using var scope = provider.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+                    var graph = scope.ServiceProvider.GetRequiredService<IOcclusionTextureGraph>();
 
-                    using var occlusionImage = await graph.GenerateOcclusionAsync(token);
+                    context.Input = vm.PackInput;
+                    //context.Profile = null;
+                    context.Material = material;
+                    context.InputEncoding = inputEncoding.GetMapped().ToList();
+                    context.OutputEncoding = inputEncoding.GetMapped().ToList();
+
+                    using var occlusionImage = await graph.GenerateAsync(token);
                     await occlusionImage.SaveAsync(fullName, token);
                 }, token);
 
@@ -700,14 +696,14 @@ namespace PixelGraph.UI.Windows
             vm.SelectedLocation = window.VM.SelectedLocationItem;
         }
 
-        private void OnSettingsClick(object sender, RoutedEventArgs e)
-        {
-            var window = new SettingsWindow {
-                Owner = this,
-            };
+        //private void OnSettingsClick(object sender, RoutedEventArgs e)
+        //{
+        //    var window = new SettingsWindow {
+        //        Owner = this,
+        //    };
 
-            window.ShowDialog();
-        }
+        //    window.ShowDialog();
+        //}
 
         private void OnPublishMenuItemClick(object sender, RoutedEventArgs e)
         {

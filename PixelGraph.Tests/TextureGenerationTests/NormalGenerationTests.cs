@@ -1,5 +1,4 @@
-﻿using PixelGraph.Common;
-using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
@@ -55,16 +54,15 @@ namespace PixelGraph.Tests.GenerationTests
         [InlineData(255)]
         [Theory] public async Task GeneratesFlat(byte height)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/height.png", height, 0, 0);
             await graph.ProcessAsync();
 

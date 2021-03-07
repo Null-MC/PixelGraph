@@ -89,24 +89,21 @@ namespace PixelGraph.CLI.CommandLine
 
         private class Executor
         {
-            private readonly ITextureGraphBuilder graphBuilder;
+            private readonly IServiceProvider provider;
             private readonly IInputReader reader;
             private readonly IOutputWriter writer;
-            //private readonly IResourcePackReader packReader;
             private readonly IResourcePackWriter packWriter;
 
 
             public Executor(
-                ITextureGraphBuilder graphBuilder,
+                IServiceProvider provider,
                 IInputReader reader,
                 IOutputWriter writer,
-                //IResourcePackReader packReader,
                 IResourcePackWriter packWriter)
             {
-                this.graphBuilder = graphBuilder;
+                this.provider = provider;
                 this.reader = reader;
                 this.writer = writer;
-                //this.packReader = packReader;
                 this.packWriter = packWriter;
             }
 
@@ -148,21 +145,21 @@ namespace PixelGraph.CLI.CommandLine
                         }
                     };
 
-                    var material = new MaterialProperties {
-                        UseGlobalMatching = true,
+                    using var scope = provider.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+                    var graphBuilder = scope.ServiceProvider.GetRequiredService<ITextureGraphBuilder>();
+
+                    context.Input = packInput;
+                    context.Profile = packProfile;
+                    context.Material = new MaterialProperties {
                         Name = Path.GetFileName(textureFilename),
+                        UseGlobalMatching = true,
                         LocalPath = ".",
                     };
 
-                    using var context = new MaterialContext {
-                        Input = packInput,
-                        Profile = packProfile,
-                        Material = material,
-                    };
+                    await graphBuilder.ProcessInputGraphAsync(token);
 
-                    await graphBuilder.ProcessInputGraphAsync(context, token);
-
-                    var localFile = "pbr.yml";
+                    const string localFile = "pbr.yml";
                     await packWriter.WriteAsync(localFile, packProfile);
                 }
                 finally {

@@ -1,5 +1,4 @@
-﻿using PixelGraph.Common;
-using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Tests.Internal;
@@ -34,16 +33,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255)]
         [Theory] public async Task AlphaTextureTest(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/alpha.png", value);
             await graph.ProcessAsync();
 
@@ -57,16 +55,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255, 255, 255)]
         [Theory] public async Task AlbedoTextureTest(byte red, byte green, byte blue)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/albedo.png", red, green, blue);
             await graph.ProcessAsync();
 
@@ -83,16 +80,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255, 127,   0)]
         [Theory] public async Task NormalTextureTest(byte red, byte green, byte blue)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/normal.png", red, green, blue);
             await graph.ProcessAsync();
 
@@ -108,16 +104,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255)]
         [Theory] public async Task OcclusionTextureTest(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/occlusion.png", value);
             await graph.ProcessAsync();
 
@@ -131,16 +126,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255)]
         [Theory] public async Task HeightTextureTest(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/height.png", value);
             await graph.ProcessAsync();
 
@@ -154,16 +148,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255)]
         [Theory] public async Task SmoothTextureTest(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/smooth.png", value);
             await graph.ProcessAsync();
 
@@ -177,16 +170,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(229)]
         [Theory] public async Task F0TextureTest(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/f0.png", value);
             await graph.ProcessAsync();
 
@@ -200,16 +192,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255)]
         [Theory] public async Task MetalTextureTest(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/metal.png", value);
             await graph.ProcessAsync();
 
@@ -223,16 +214,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255, 64)]
         [Theory] public async Task PorosityTextureTest(byte actualValue, byte expectedValue)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/porosity.png", actualValue);
             await graph.ProcessAsync();
 
@@ -246,16 +236,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255, 255)]
         [Theory] public async Task SubSurfaceScatteringTextureTest(byte actualValue, byte expectedValue)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/sss.png", actualValue);
             await graph.ProcessAsync();
 
@@ -270,16 +259,15 @@ namespace PixelGraph.Tests.EncodingFormatTests
         [InlineData(255, 254)]
         [Theory] public async Task EmissiveTextureTest(byte actualValue, byte expectedValue)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/emissive.png", actualValue);
             await graph.ProcessAsync();
 

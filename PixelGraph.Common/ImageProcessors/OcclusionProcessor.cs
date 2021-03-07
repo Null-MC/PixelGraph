@@ -8,7 +8,8 @@ using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class OcclusionProcessor : PixelRowProcessor
+    internal class OcclusionProcessor<THeight> : PixelRowProcessor
+        where THeight : unmanaged, IPixel<THeight>
     {
         private readonly Options options;
         private readonly Lazy<Vector3[]> rayList;
@@ -28,7 +29,7 @@ namespace PixelGraph.Common.ImageProcessors
             var pixelOut = new Rgba32(0, 0, 0, 255);
             var position = new Vector3();
 
-            var hasEmissive = options.EmissiveSampler != null && options.EmissiveChannel != ColorChannel.None;
+            //var hasEmissive = options.EmissiveSampler != null && options.EmissiveChannel != ColorChannel.None;
 
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 //var fx = (float)x / context.Bounds.Width;
@@ -37,9 +38,9 @@ namespace PixelGraph.Common.ImageProcessors
                 var fy = (context.Y + HalfPixel) / context.Bounds.Height;
                 options.HeightSampler.SampleScaled(fx, fy, in options.HeightChannel, out var height);
 
-                var emissive = 0f;
-                if (hasEmissive)
-                    options.EmissiveSampler.SampleScaled(fx, fy, in options.EmissiveChannel, out emissive);
+                //var emissive = 0f;
+                //if (hasEmissive)
+                //    options.EmissiveSampler.SampleScaled(fx, fy, in options.EmissiveChannel, out emissive);
 
                 // TODO: range, shift, power
                 if (!options.HeightInvert) MathEx.Invert(ref height);
@@ -57,9 +58,9 @@ namespace PixelGraph.Common.ImageProcessors
                 }
 
                 var occlusion = hitFactor;
-                if (emissive > float.Epsilon) {
-                    occlusion -= emissive * 8f;
-                }
+                //if (emissive > float.Epsilon) {
+                //    occlusion -= emissive * 8f;
+                //}
 
                 MathEx.Saturate(1d - occlusion, out pixelOut.R);
                 pixelOut.B = pixelOut.G = pixelOut.R;
@@ -136,7 +137,7 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
-            public ISampler<Rgba32> HeightSampler;
+            public ISampler<THeight> HeightSampler;
             public ColorChannel HeightChannel;
             public float HeightMinValue;
             public float HeightMaxValue;
@@ -147,8 +148,8 @@ namespace PixelGraph.Common.ImageProcessors
             //public bool HeightPerceptual;
             public bool HeightInvert;
 
-            public ISampler<Rgba32> EmissiveSampler;
-            public ColorChannel EmissiveChannel;
+            //public ISampler<Rgba32> EmissiveSampler;
+            //public ColorChannel EmissiveChannel;
 
             public float StepDistance;
             public float HitPower = 1.5f;

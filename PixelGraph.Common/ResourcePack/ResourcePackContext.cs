@@ -1,6 +1,4 @@
-﻿using PixelGraph.Common.ResourcePack;
-
-namespace PixelGraph.Common
+﻿namespace PixelGraph.Common.ResourcePack
 {
     public class ResourcePackContext
     {

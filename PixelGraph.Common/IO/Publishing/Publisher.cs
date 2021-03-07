@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PixelGraph.Common.Material;
@@ -20,21 +21,21 @@ namespace PixelGraph.Common.IO.Publishing
 
     internal class Publisher : IPublisher
     {
+        private readonly IServiceProvider provider;
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
         private readonly ILogger logger;
-        private readonly ITextureGraphBuilder graphBuilder;
         private readonly IFileLoader loader;
 
 
         public Publisher(
-            ITextureGraphBuilder graphBuilder,
+            ILogger<Publisher> logger,
+            IServiceProvider provider,
             IFileLoader loader,
             IInputReader reader,
-            IOutputWriter writer,
-            ILogger<Publisher> logger)
+            IOutputWriter writer)
         {
-            this.graphBuilder = graphBuilder;
+            this.provider = provider;
             this.loader = loader;
             this.reader = reader;
             this.writer = writer;
@@ -66,29 +67,29 @@ namespace PixelGraph.Common.IO.Publishing
             await PublishContentAsync(context, token);
         }
 
-        private async Task PublishContentAsync(ResourcePackContext context, CancellationToken token = default)
+        private async Task PublishContentAsync(ResourcePackContext packContext, CancellationToken token = default)
         {
-            var genericPublisher = new GenericTexturePublisher(context.Profile, reader, writer);
+            var genericPublisher = new GenericTexturePublisher(packContext.Profile, reader, writer);
 
-            var packWriteTime = reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
+            var packWriteTime = reader.GetWriteTime(packContext.Profile.LocalFile) ?? DateTime.Now;
 
             await foreach (var fileObj in loader.LoadAsync(token)) {
                 token.ThrowIfCancellationRequested();
 
                 switch (fileObj) {
-                    case MaterialProperties material:
-                        using (var materialContext = new MaterialContext {
-                            Input = context.Input,
-                            Profile = context.Profile,
-                            Material = material,
-                            UseGlobalOutput = context.UseGlobalOutput,
-                            //CreateEmpty = true,
-                        }) {
-                            await graphBuilder.ProcessInputGraphAsync(materialContext, token);
+                    case MaterialProperties material: {
+                        using var scope = provider.CreateScope();
+                        var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+                        var graphBuilder = scope.ServiceProvider.GetRequiredService<ITextureGraphBuilder>();
 
-                            // TODO: Publish mcmeta files
-                        }
+                        graphContext.Input = packContext.Input;
+                        graphContext.Profile = packContext.Profile;
+                        graphContext.Material = material;
+                        graphContext.UseGlobalOutput = packContext.UseGlobalOutput;
+
+                        await graphBuilder.ProcessInputGraphAsync(token);
                         break;
+                    }
 
                     case string localFile:
                         var sourceTime = reader.GetWriteTime(localFile);

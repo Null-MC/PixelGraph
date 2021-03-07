@@ -1,5 +1,4 @@
-﻿using PixelGraph.Common;
-using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
@@ -43,19 +42,18 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(255)]
         [Theory] public async Task PassthroughValue(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                    Alpha = new MaterialAlphaProperties {
-                        Value = value,
-                    },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+                Alpha = new MaterialAlphaProperties {
+                    Value = value,
                 },
             };
 
-            await using var graph = Graph(context);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");
@@ -68,16 +66,15 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(255)]
         [Theory] public async Task PassthroughTexture(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/alpha.png", value, 0, 0);
             await graph.ProcessAsync();
 
@@ -93,20 +90,19 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(200, 0.01,   2)]
         [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                    Alpha = new MaterialAlphaProperties {
-                        Value = value,
-                        Scale = scale,
-                    },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+                Alpha = new MaterialAlphaProperties {
+                    Value = value,
+                    Scale = scale,
                 },
             };
 
-            await using var graph = Graph(context);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");
@@ -121,19 +117,18 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(200, 0.01,  2)]
         [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                    Alpha = new MaterialAlphaProperties {
-                        Scale = scale,
-                    },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+                Alpha = new MaterialAlphaProperties {
+                    Scale = scale,
                 },
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/alpha.png", value, 0, 0);
             await graph.ProcessAsync();
 

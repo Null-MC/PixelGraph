@@ -18,8 +18,6 @@ namespace PixelGraph.Common.Textures
     public interface ITextureBuilder<TPixel> : IDisposable
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        ITextureGraph Graph {get; set;}
-        MaterialContext Context {get; set;}
         ResourcePackChannelProperties[] InputChannels {get; set;}
         ResourcePackChannelProperties[] OutputChannels {get; set;}
         Image<TPixel> ImageResult {get;}
@@ -31,22 +29,30 @@ namespace PixelGraph.Common.Textures
         where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly IInputReader reader;
+        private readonly ITextureGraphContext context;
+        private readonly INormalTextureGraph normalGraph;
+        private readonly IOcclusionTextureGraph occlusionGraph;
         private readonly List<TextureChannelMapping> mappings;
         private Rgba32 defaultValues;
         private Size bufferSize;
         private bool isGrayscale;
         private bool hasDefaultValues;
 
-        public ITextureGraph Graph {get; set;}
-        public MaterialContext Context {get; set;}
         public ResourcePackChannelProperties[] InputChannels {get; set;}
         public ResourcePackChannelProperties[] OutputChannels {get; set;}
         public Image<TPixel> ImageResult {get; private set;}
 
 
-        public TextureBuilder(IInputReader reader)
+        public TextureBuilder(
+            IInputReader reader,
+            ITextureGraphContext context,
+            INormalTextureGraph normalGraph,
+            IOcclusionTextureGraph occlusionGraph)
         {
             this.reader = reader;
+            this.context = context;
+            this.normalGraph = normalGraph;
+            this.occlusionGraph = occlusionGraph;
 
             mappings = new List<TextureChannelMapping>();
             defaultValues = new Rgba32();
@@ -88,7 +94,7 @@ namespace PixelGraph.Common.Textures
 
         private bool TryBuildMapping(ResourcePackChannelProperties outputChannel, bool createEmpty, out TextureChannelMapping mapping)
         {
-            var samplerName = outputChannel.Sampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
+            var samplerName = outputChannel.Sampler ?? context.DefaultSampler;
 
             mapping = new TextureChannelMapping {
                 OutputColor = outputChannel.Color ?? ColorChannel.None,
@@ -102,14 +108,14 @@ namespace PixelGraph.Common.Textures
                 OutputInverted = outputChannel.Invert ?? false,
                 OutputSampler = samplerName,
 
-                ValueShift = Context.Material.GetChannelShift(outputChannel.ID),
-                ValueScale = Context.Material.GetChannelScale(outputChannel.ID),
+                ValueShift = context.Material.GetChannelShift(outputChannel.ID),
+                ValueScale = context.Material.GetChannelScale(outputChannel.ID),
             };
 
             var inputChannel = InputChannels.FirstOrDefault(i
                 => EncodingChannel.Is(i.ID, outputChannel.ID));
 
-            if (Context.Material.TryGetChannelValue(outputChannel.ID, out var value)) {
+            if (context.Material.TryGetChannelValue(outputChannel.ID, out var value)) {
                 mapping.InputValue = value;
                 mapping.ApplyInputChannel(inputChannel);
                 return true;
@@ -127,7 +133,7 @@ namespace PixelGraph.Common.Textures
                     return true;
                 }
 
-                if (Context.AutoGenerateOcclusion && TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
+                if (context.AutoGenerateOcclusion && TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
                     mapping.SourceTag = TextureTags.OcclusionGenerated;
                     mapping.InputColor = ColorChannel.Red;
                     mapping.InputMinValue = 0f;
@@ -197,22 +203,21 @@ namespace PixelGraph.Common.Textures
         private async Task ApplyMappingAsync(TextureChannelMapping mapping, CancellationToken token)
         {
             if (mapping.SourceTag != null) {
-                var options = new OverlayProcessor<Rgb24>.Options {
-                    Mappings = new []{mapping},
-                    IsGrayscale = isGrayscale,
-                };
-
                 if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
-                    options.Source = Context.NormalTexture;
+                    var options = new OverlayProcessor<Rgb24>.Options {
+                        Mappings = new []{mapping},
+                        Source = normalGraph.Texture,
+                        IsGrayscale = isGrayscale,
+                    };
 
-                    if (Context.NormalTexture.Width != bufferSize.Width || Context.NormalTexture.Height != bufferSize.Height) {
-                        var samplerName = mapping.OutputSampler ?? Context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
+                    if (normalGraph.Texture.Width != bufferSize.Width || normalGraph.Texture.Height != bufferSize.Height) {
+                        var samplerName = mapping.OutputSampler ?? context.Profile?.Encoding?.Sampler ?? Sampler.Nearest;
                         var sampler = Sampler<Rgb24>.Create(samplerName);
-                        sampler.Image = Context.NormalTexture;
-                        sampler.WrapX = Context.WrapX;
-                        sampler.WrapY = Context.WrapY;
-                        sampler.RangeX = (float)Context.NormalTexture.Width / bufferSize.Width;
-                        sampler.RangeY = (float)Context.NormalTexture.Height / bufferSize.Height;
+                        sampler.Image = normalGraph.Texture;
+                        sampler.WrapX = context.WrapX;
+                        sampler.WrapY = context.WrapY;
+                        sampler.RangeX = (float)normalGraph.Texture.Width / bufferSize.Width;
+                        sampler.RangeY = (float)normalGraph.Texture.Height / bufferSize.Height;
 
                         options.SamplerMap = new Dictionary<ColorChannel, ISampler<Rgb24>> {
                             [ColorChannel.Red] = sampler,
@@ -220,12 +225,7 @@ namespace PixelGraph.Common.Textures
                             [ColorChannel.Blue] = sampler,
                         };
                     }
-                }
-                else if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated)) {
-                    options.Source = await Graph.GetOrCreateOcclusionAsync(token);
-                }
 
-                if (options.Source != null) {
                     if (ImageResult == null)
                         CreateImageResult();
 
@@ -233,8 +233,30 @@ namespace PixelGraph.Common.Textures
                         ApplySamplers(options, new [] {mapping}, options.Source);
 
                     var processor = new OverlayProcessor<Rgb24>(options);
-                    ImageResult.Mutate(context => context.ApplyProcessor(processor));
+                    ImageResult.Mutate(c => c.ApplyProcessor(processor));
                     return;
+                }
+
+                if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated)) {
+                    var occlusionTexture = await occlusionGraph.GetTextureAsync(token);
+
+                    if (occlusionTexture != null) {
+                        var options = new OverlayProcessor<Rgba32>.Options {
+                            Mappings = new []{mapping},
+                            Source = occlusionTexture,
+                            IsGrayscale = isGrayscale,
+                        };
+
+                        if (ImageResult == null)
+                            CreateImageResult();
+
+                        if (options.Source.Width != ImageResult.Width || options.Source.Height != ImageResult.Height)
+                            ApplySamplers(options, new [] {mapping}, options.Source);
+
+                        var processor = new OverlayProcessor<Rgba32>(options);
+                        ImageResult.Mutate(c => c.ApplyProcessor(processor));
+                        return;
+                    }
                 }
             }
 
@@ -277,7 +299,7 @@ namespace PixelGraph.Common.Textures
                 };
 
                 var processor = new OverwriteProcessor(options);
-                ImageResult.Mutate(context => context.ApplyProcessor(processor));
+                ImageResult.Mutate(c => c.ApplyProcessor(processor));
             }
             else {
                 hasDefaultValues = true;
@@ -315,15 +337,15 @@ namespace PixelGraph.Common.Textures
             }
 
             var processor = new OverlayProcessor<Rgba32>(options);
-            ImageResult.Mutate(context => context.ApplyProcessor(processor));
+            ImageResult.Mutate(c => c.ApplyProcessor(processor));
         }
 
         private async Task<Size> GetBufferSizeAsync(CancellationToken token = default)
         {
-            var scale = Context.TextureScale ?? 1f;
+            var scale = context.TextureScale ?? 1f;
 
             // Use multi-part bounds if defined
-            if (Context.Material.TryGetSourceBounds(out var partBounds)) {
+            if (context.Material.TryGetSourceBounds(out var partBounds)) {
                 if (scale.Equal(1f)) return partBounds;
 
                 var width = (int)MathF.Ceiling(partBounds.Width * scale);
@@ -336,7 +358,7 @@ namespace PixelGraph.Common.Textures
             float? aspect = null;
             if (actualBounds.HasValue) aspect = (float)actualBounds.Value.Height / actualBounds.Value.Width;
 
-            var textureSize = Context.GetTextureSize(aspect);
+            var textureSize = context.GetTextureSize(aspect);
 
             // Use texture-size
             if (textureSize.HasValue)
@@ -390,23 +412,23 @@ namespace PixelGraph.Common.Textures
             foreach (var mapping in mappings.Where(m => m.SourceFilename == null)) {
                 if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
                     if (!hasBounds) {
-                        maxWidth = Context.NormalTexture.Width;
-                        maxHeight = Context.NormalTexture.Height;
+                        maxWidth = normalGraph.Texture.Width;
+                        maxHeight = normalGraph.Texture.Height;
                         hasBounds = true;
                         continue;
                     }
 
-                    if (Context.NormalTexture.Width == maxWidth && Context.NormalTexture.Height == maxHeight) continue;
+                    if (normalGraph.Texture.Width == maxWidth && normalGraph.Texture.Height == maxHeight) continue;
 
-                    if (Context.NormalTexture.Width >= maxWidth) {
-                        maxWidth = Context.NormalTexture.Width;
+                    if (normalGraph.Texture.Width >= maxWidth) {
+                        maxWidth = normalGraph.Texture.Width;
 
-                        if (Context.NormalTexture.Height > maxHeight)
-                            maxHeight = Context.NormalTexture.Height;
+                        if (normalGraph.Texture.Height > maxHeight)
+                            maxHeight = normalGraph.Texture.Height;
                     }
                     else {
-                        var scale = (float)maxWidth / Context.NormalTexture.Width;
-                        var scaledHeight = (int)MathF.Ceiling(Context.NormalTexture.Height * scale);
+                        var scale = (float)maxWidth / normalGraph.Texture.Width;
+                        var scaledHeight = (int)MathF.Ceiling(normalGraph.Texture.Height * scale);
 
                         if (scaledHeight > maxHeight)
                             maxHeight = scaledHeight;
@@ -414,7 +436,8 @@ namespace PixelGraph.Common.Textures
                 }
 
                 if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated)) {
-                    var occlusionTex = await Graph.GetOrCreateOcclusionAsync(token);
+                    var occlusionTex = await occlusionGraph.GetTextureAsync(token);
+
                     if (occlusionTex != null) {
                         if (!hasBounds) {
                             maxWidth = occlusionTex.Width;
@@ -452,11 +475,11 @@ namespace PixelGraph.Common.Textures
             options.SamplerMap = new Dictionary<ColorChannel, ISampler<TP>>();
 
             foreach (var mapping in mappingGroup) {
-                var samplerName = mapping.OutputSampler ?? Context.DefaultSampler;
+                var samplerName = mapping.OutputSampler ?? context.DefaultSampler;
                 var sampler = Sampler<TP>.Create(samplerName);
                 sampler.Image = sourceImage;
-                sampler.WrapX = Context.WrapX;
-                sampler.WrapY = Context.WrapY;
+                sampler.WrapX = context.WrapX;
+                sampler.WrapY = context.WrapY;
 
                 sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
                 sampler.RangeY = (float)sourceImage.Height / bufferSize.Height;
@@ -476,7 +499,7 @@ namespace PixelGraph.Common.Textures
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));
 
-            foreach (var file in reader.EnumerateTextures(Context.Material, tag)) {
+            foreach (var file in reader.EnumerateTextures(context.Material, tag)) {
                 if (!reader.FileExists(file)) continue;
 
                 filename = file;

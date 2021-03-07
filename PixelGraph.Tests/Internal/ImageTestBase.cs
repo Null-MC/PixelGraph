@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common;
+using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
@@ -13,25 +15,25 @@ namespace PixelGraph.Tests.Internal
     {
         protected ImageTestBase(ITestOutputHelper output) : base(output) {}
 
-        protected ImageTestGraph Graph(MaterialContext context)
+        protected ImageTestGraph Graph()
         {
             var provider = Builder.Build();
-            return new ImageTestGraph(provider, context);
+            return new ImageTestGraph(provider);
         }
     }
 
     public class ImageTestGraph : IDisposable, IAsyncDisposable
     {
-        private readonly MaterialContext context;
         private readonly ServiceProvider provider;
 
+        public ResourcePackInputProperties PackInput {get; set;}
+        public ResourcePackProfileProperties PackProfile {get; set;}
+        public MaterialProperties Material {get; set;}
 
-        public ImageTestGraph(ServiceProvider provider, MaterialContext context)
+
+        public ImageTestGraph(ServiceProvider provider)
         {
             this.provider = provider;
-            this.context = context;
-
-            context.UseGlobalOutput = true;
         }
 
         public void Dispose()
@@ -63,10 +65,18 @@ namespace PixelGraph.Tests.Internal
             return content.AddAsync(localFile, image);
         }
 
-        public async Task ProcessAsync()
+        public async Task ProcessAsync(CancellationToken token = default)
         {
-            var graphBuilder = provider.GetRequiredService<ITextureGraphBuilder>();
-            await graphBuilder.ProcessInputGraphAsync(context);
+            using var scope = provider.CreateScope();
+            var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+            var graphBuilder = scope.ServiceProvider.GetRequiredService<ITextureGraphBuilder>();
+
+            graphContext.Input = PackInput;
+            graphContext.Profile = PackProfile;
+            graphContext.Material = Material;
+            graphContext.UseGlobalOutput = true;
+
+            await graphBuilder.ProcessInputGraphAsync(token);
         }
 
         public Task<Image<Rgba32>> GetImageAsync(string localFile)

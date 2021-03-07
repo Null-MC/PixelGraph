@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using SixLabors.ImageSharp.PixelFormats;
@@ -13,40 +12,48 @@ namespace PixelGraph.Common.Textures
 {
     public interface ITextureGraphBuilder
     {
-        Task ProcessInputGraphAsync(MaterialContext context, CancellationToken token = default);
-        Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default);
+        Task ProcessInputGraphAsync(CancellationToken token = default);
+        Task ProcessOutputGraphAsync(CancellationToken token = default);
     }
 
     internal class TextureGraphBuilder : ITextureGraphBuilder
     {
-        private readonly IServiceProvider provider;
+        private readonly ITextureGraphContext context;
+        private readonly ITextureGraph graph;
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
         private readonly INamingStructure naming;
         private readonly IImageWriter imageWriter;
+        private readonly IItemGenerator itemGenerator;
         private readonly ILogger logger;
 
 
-        public TextureGraphBuilder(IServiceProvider provider)
+        public TextureGraphBuilder(
+            ILogger<TextureGraphBuilder> logger,
+            ITextureGraphContext context,
+            ITextureGraph graph,
+            IInputReader reader,
+            IOutputWriter writer,
+            INamingStructure naming,
+            IImageWriter imageWriter,
+            IItemGenerator itemGenerator)
         {
-            this.provider = provider;
-
-            reader = provider.GetRequiredService<IInputReader>();
-            writer = provider.GetRequiredService<IOutputWriter>();
-            naming = provider.GetRequiredService<INamingStructure>();
-            imageWriter = provider.GetRequiredService<IImageWriter>();
-            logger = provider.GetRequiredService<ILogger<TextureGraphBuilder>>();
+            this.context = context;
+            this.graph = graph;
+            this.reader = reader;
+            this.writer = writer;
+            this.naming = naming;
+            this.imageWriter = imageWriter;
+            this.itemGenerator = itemGenerator;
+            this.logger = logger;
         }
 
         /// <summary>
         /// Input -> Output; for publishing textures
         /// </summary>
-        public async Task ProcessInputGraphAsync(MaterialContext context, CancellationToken token = default)
+        public async Task ProcessInputGraphAsync(CancellationToken token = default)
         {
             context.ApplyInputEncoding();
-
-            var graph = provider.GetRequiredService<ITextureGraph>();
-            graph.Context = context;
 
             var sourceTime = reader.GetWriteTime(context.Material.LocalFilename);
             var packWriteTime = reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
@@ -59,18 +66,18 @@ namespace PixelGraph.Common.Textures
                     sourceTime = z.Value;
             }
 
-            if (!IsOutputUpToDate(context, packWriteTime, sourceTime)) {
+            if (!IsOutputUpToDate(packWriteTime, sourceTime)) {
                 logger.LogDebug($"Publishing texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
-                await ProcessAllTexturesAsync(graph, context, true, token);
+                await ProcessAllTexturesAsync(true, token);
             }
             else {
                 logger.LogDebug($"Skipping up-to-date texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
             }
 
             if (context.Material.CreateInventory ?? false) {
-                if (!IsInventoryUpToDate(context, packWriteTime, sourceTime)) {
+                if (!IsInventoryUpToDate(packWriteTime, sourceTime)) {
                     // TODO: check item generated for up-to-date
-                    await GenerateItemTextureAsync(graph, context, token);
+                    await GenerateItemTextureAsync(token);
                 }
                 else {
                     logger.LogDebug($"Skipping up-to-date item texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
@@ -81,24 +88,21 @@ namespace PixelGraph.Common.Textures
         /// <summary>
         /// Output -> Input; for importing textures
         /// </summary>
-        public async Task ProcessOutputGraphAsync(MaterialContext context, CancellationToken token = default)
+        public async Task ProcessOutputGraphAsync(CancellationToken token = default)
         {
             context.ApplyOutputEncoding();
 
-            var graph = provider.GetRequiredService<ITextureGraph>();
-            graph.Context = context;
-
-            await ProcessAllTexturesAsync(graph, context, false, token);
+            await ProcessAllTexturesAsync(false, token);
         }
 
-        private async Task ProcessAllTexturesAsync(ITextureGraph graph, MaterialContext context, bool createEmpty, CancellationToken token)
+        private async Task ProcessAllTexturesAsync(bool createEmpty, CancellationToken token)
         {
             try {
                 await graph.PreBuildNormalTextureAsync(token);
             }
             catch (HeightSourceEmptyException) {}
 
-            var allOutputTags = graph.Context.OutputEncoding
+            var allOutputTags = context.OutputEncoding
                 .Select(e => e.Texture).Distinct();
 
             var matPath = context.Material.UseGlobalMatching
@@ -109,7 +113,7 @@ namespace PixelGraph.Common.Textures
             var hasMatMeta = reader.FileExists(matMetaFileIn);
 
             foreach (var tag in allOutputTags) {
-                var tagOutputEncoding = graph.Context.OutputEncoding
+                var tagOutputEncoding = context.OutputEncoding
                     .Where(e => TextureTags.Is(e.Texture, tag)).ToArray();
 
                 if (tagOutputEncoding.Any()) {
@@ -117,17 +121,17 @@ namespace PixelGraph.Common.Textures
                     var hasColor = tagOutputEncoding.Any(c => c.Color != ColorChannel.Red);
 
                     if (hasAlpha) {
-                        await PublishImageAsync<Rgba32>(graph, context, tag, ImageChannels.ColorAlpha, createEmpty, token);
+                        await PublishImageAsync<Rgba32>(tag, ImageChannels.ColorAlpha, createEmpty, token);
                     }
                     else if (hasColor) {
-                        await PublishImageAsync<Rgb24>(graph, context, tag, ImageChannels.Color, createEmpty, token);
+                        await PublishImageAsync<Rgb24>(tag, ImageChannels.Color, createEmpty, token);
                     }
                     else {
-                        await PublishImageAsync<L8>(graph, context, tag, ImageChannels.Gray, createEmpty, token);
+                        await PublishImageAsync<L8>(tag, ImageChannels.Gray, createEmpty, token);
                     }
                 }
 
-                await CopyMetaAsync(graph.Context, tag, token);
+                await CopyMetaAsync(tag, token);
 
                 if (hasMatMeta) {
                     var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.UseGlobalOutput);
@@ -139,7 +143,7 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task PublishImageAsync<TPixel>(ITextureGraph graph, MaterialContext context, string textureTag, ImageChannels type, bool createEmpty, CancellationToken token = default)
+        private async Task PublishImageAsync<TPixel>(string textureTag, ImageChannels type, bool createEmpty, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             using var image = await graph.CreateImageAsync<TPixel>(textureTag, createEmpty, token);
@@ -194,7 +198,7 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task GenerateItemTextureAsync(ITextureGraph graph, MaterialContext context, CancellationToken token = default)
+        private async Task GenerateItemTextureAsync(CancellationToken token = default)
         {
             var name = naming.GetOutputTextureName(context.Profile, context.Material.Name, TextureTags.Inventory, true);
 
@@ -203,10 +207,7 @@ namespace PixelGraph.Common.Textures
             var destFile = PathEx.Join(path, name);
 
             // Generate item image
-            var generator = provider.GetRequiredService<IItemGenerator>();
-            generator.Context = context;
-
-            using var itemImage = await generator.CreateAsync(graph, token);
+            using var itemImage = await itemGenerator.CreateAsync(graph, token);
             if (itemImage == null) {
                 logger.LogWarning("Failed to publish item texture {DisplayName}! No sources found.", context.Material.DisplayName);
                 return;
@@ -218,7 +219,7 @@ namespace PixelGraph.Common.Textures
             logger.LogInformation("Published item texture {DisplayName}.", context.Material.DisplayName);
         }
 
-        private async Task CopyMetaAsync(MaterialContext context, string tag, CancellationToken token)
+        private async Task CopyMetaAsync(string tag, CancellationToken token)
         {
             var metaFileIn = naming.GetInputMetaName(context.Material, tag);
             if (!reader.FileExists(metaFileIn)) return;
@@ -230,7 +231,7 @@ namespace PixelGraph.Common.Textures
             await sourceStream.CopyToAsync(destStream, token);
         }
 
-        private bool IsOutputUpToDate(MaterialContext context, DateTime packWriteTime, DateTime? sourceTime)
+        private bool IsOutputUpToDate(DateTime packWriteTime, DateTime? sourceTime)
         {
             DateTime? destinationTime = null;
 
@@ -254,7 +255,7 @@ namespace PixelGraph.Common.Textures
             return IsUpToDate(packWriteTime, sourceTime, destinationTime);
         }
 
-        private bool IsInventoryUpToDate(MaterialContext context, DateTime packWriteTime, DateTime? sourceTime)
+        private bool IsInventoryUpToDate(DateTime packWriteTime, DateTime? sourceTime)
         {
             var albedoOutputName = naming.GetOutputTextureName(context.Profile, context.Material.Name, TextureTags.Inventory, true);
             var albedoFile = PathEx.Join(context.Material.LocalPath, albedoOutputName);

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common;
 using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
@@ -49,14 +48,13 @@ namespace PixelGraph.UI.Internal
 
         public async Task<ImageSource> BuildAsync(string tag)
         {
-            using var context = new MaterialContext {
-                Input = Input,
-                Material = Material,
-                Profile = Profile,
-            };
+            var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+            var graph = scope.ServiceProvider.GetRequiredService<ITextureGraph>();
 
-            var graph = provider.GetRequiredService<ITextureGraph>();
-            graph.Context = context;
+            context.Input = Input;
+            context.Profile = Profile;
+            context.Material = Material;
 
             var inputFormat = TextureEncoding.GetFactory(Input?.Format);
             var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();

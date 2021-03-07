@@ -1,8 +1,10 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +28,7 @@ namespace PixelGraph.Common.IO.Importing
 
     internal class MaterialImporter : IMaterialImporter
     {
-        private readonly ITextureGraphBuilder graphBuilder;
+        private readonly IServiceProvider provider;
         private readonly IMaterialWriter writer;
 
         /// <inheritdoc />
@@ -40,15 +42,19 @@ namespace PixelGraph.Common.IO.Importing
 
 
         public MaterialImporter(
-            ITextureGraphBuilder graphBuilder,
+            IServiceProvider provider,
             IMaterialWriter writer)
         {
-            this.graphBuilder = graphBuilder;
+            this.provider = provider;
             this.writer = writer;
         }
 
         public async Task ImportAsync(string name, CancellationToken token = default)
         {
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+            var graphBuilder = scope.ServiceProvider.GetRequiredService<ITextureGraphBuilder>();
+
             var matFile = AsGlobal
                 ? PathEx.Join(LocalPath, $"{name}.pbr.yml")
                 : PathEx.Join(LocalPath, name, "pbr.yml");
@@ -62,16 +68,12 @@ namespace PixelGraph.Common.IO.Importing
 
             await writer.WriteAsync(material, matFile);
 
-            using var context = new MaterialContext {
-                Input = PackInput,
-                Profile = PackProfile,
-                Material = material,
-                UseGlobalOutput = AsGlobal,
-                //AutoGenerateOcclusion = false,
-                //CreateEmpty = false,
-            };
+            context.Input = PackInput;
+            context.Profile = PackProfile;
+            context.Material = material;
+            context.UseGlobalOutput = AsGlobal;
 
-            await graphBuilder.ProcessOutputGraphAsync(context, token);
+            await graphBuilder.ProcessOutputGraphAsync(token);
         }
     }
 }

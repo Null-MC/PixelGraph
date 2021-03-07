@@ -4,20 +4,48 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace PixelGraph.Common
+namespace PixelGraph.Common.Textures
 {
-    public class MaterialContext : ResourcePackContext, IDisposable
+    public interface ITextureGraphContext
+    {
+        MaterialProperties Material {get; set;}
+        ResourcePackInputProperties Input {get; set;}
+        ResourcePackProfileProperties Profile {get; set;}
+        List<ResourcePackChannelProperties> InputEncoding {get; set;}
+        List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        bool UseGlobalOutput {get; set;}
+        bool WrapX {get;}
+        bool WrapY {get;}
+        float? TextureScale {get;}
+        string DefaultSampler {get;}
+        string ImageFormat {get;}
+        bool AutoMaterial {get;}
+        bool AutoGenerateOcclusion {get;}
+        
+        void ApplyInputEncoding();
+        void ApplyOutputEncoding();
+        Size? GetTextureSize(float? defaultAspect);
+        Size? GetBufferSize(float aspect);
+    }
+
+    internal class TextureGraphContext : ITextureGraphContext
     {
         private static readonly Regex blockTextureExp = new Regex(@"(?:^|\/)textures\/block(?:\/|$)", RegexOptions.Compiled);
         private static readonly Regex entityTextureExp = new Regex(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
 
+        //public MaterialContext Material {get; set;}
+
         public MaterialProperties Material {get; set;}
+        public ResourcePackInputProperties Input {get; set;}
+        public ResourcePackProfileProperties Profile {get; set;}
+        public List<ResourcePackChannelProperties> InputEncoding {get; set;}
+        public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        public bool UseGlobalOutput {get; set;}
 
         public bool WrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool WrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
@@ -25,25 +53,14 @@ namespace PixelGraph.Common
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Sampler.Nearest;
         public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
 
+        public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
         public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
 
 
-        public List<ResourcePackChannelProperties> InputEncoding {get; set;}
-        public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
-        public Image<Rgb24> OcclusionTexture {get; set;}
-        public Image<Rgb24> NormalTexture {get; set;}
-
-
-        public MaterialContext()
+        public TextureGraphContext()
         {
             InputEncoding = new List<ResourcePackChannelProperties>();
             OutputEncoding = new List<ResourcePackChannelProperties>();
-        }
-
-        public void Dispose()
-        {
-            NormalTexture?.Dispose();
-            OcclusionTexture?.Dispose();
         }
 
         public void ApplyInputEncoding()

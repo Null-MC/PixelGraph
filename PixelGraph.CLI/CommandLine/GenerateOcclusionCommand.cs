@@ -93,12 +93,12 @@ namespace PixelGraph.CLI.CommandLine
 
 
             public Executor(
+                ILogger<Executor> logger,
                 IServiceProvider provider,
                 INamingStructure naming,
                 IInputReader reader,
                 IResourcePackReader packReader,
-                IMaterialReader materialReader,
-                ILogger<Executor> logger)
+                IMaterialReader materialReader)
             {
                 this.provider = provider;
                 this.naming = naming;
@@ -137,20 +137,17 @@ namespace PixelGraph.CLI.CommandLine
                 logger.LogDebug("Generating ambient occlusion for texture {DisplayName}.", material.DisplayName);
 
                 try {
-                    using var context = new MaterialContext {
-                        Input = packInput,
-                        Profile = packProfile,
-                        Material = material,
-                        InputEncoding = packInput.GetMapped().ToList(),
-                        OutputEncoding = packInput.GetMapped().ToList(),
-                    };
+                    using var scope = provider.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+                    var occlusionGraph = provider.GetRequiredService<IOcclusionTextureGraph>();
 
-                    var graph = provider.GetRequiredService<ITextureGraph>();
-                    //graph.Context.InputEncoding.AddRange(context.Input.GetMapped());
-                    //graph.Context.OutputEncoding.AddRange(context.Input.GetMapped());
-                    graph.Context = context;
+                    context.Input = packInput;
+                    context.Profile = packProfile;
+                    context.Material = material;
+                    context.InputEncoding = packInput.GetMapped().ToList();
+                    context.OutputEncoding = packInput.GetMapped().ToList();
 
-                    using var occlusionImage = await graph.GenerateOcclusionAsync(token);
+                    using var occlusionImage = await occlusionGraph.GenerateAsync(token);
 
                     await occlusionImage.SaveAsync(outputName, token);
                     logger.LogInformation("Ambient Occlusion texture {outputName} generated successfully.", outputName);

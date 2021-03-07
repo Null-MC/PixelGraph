@@ -139,18 +139,17 @@ namespace PixelGraph.CLI.CommandLine
                 var finalName = normalFilename ?? naming.GetOutputTextureName(packProfile, material.Name, TextureTags.Normal, material.UseGlobalMatching);
 
                 try {
-                    using var context = new MaterialContext {
-                        Input = packInput,
-                        Profile = packProfile,
-                        Material = material,
-                        InputEncoding = packInput.GetMapped().ToList(),
-                        OutputEncoding = packInput.GetMapped().ToList(),
-                    };
+                    using var scope = provider.CreateScope();
+                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+                    var graph = scope.ServiceProvider.GetRequiredService<INormalTextureGraph>();
 
-                    var graph = provider.GetRequiredService<ITextureGraph>();
-                    graph.Context = context;
+                    context.Input = packInput;
+                    context.Profile = packProfile;
+                    context.Material = material;
+                    context.InputEncoding = packInput.GetMapped().ToList();
+                    context.OutputEncoding = packInput.GetMapped().ToList();
 
-                    using var image = await graph.GenerateNormalAsync(token);
+                    using var image = await graph.GenerateAsync(token);
                     await image.SaveAsync(finalName, token);
 
                     logger.LogInformation("Normal texture {finalName} generated successfully.", finalName);

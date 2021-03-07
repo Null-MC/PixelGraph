@@ -1,5 +1,4 @@
-﻿using PixelGraph.Common;
-using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
@@ -62,16 +61,15 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(255)]
         [Theory] public async Task RedPassthrough(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/albedo.png", value, 0, 0);
             await graph.ProcessAsync();
 
@@ -85,16 +83,15 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(255)]
         [Theory] public async Task GreenPassthrough(byte value)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/albedo.png", 0, value, 0);
             await graph.ProcessAsync();
 
@@ -110,20 +107,19 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(200, 0.01,   2)]
         [Theory] public async Task ScaleRedValue(decimal value, decimal scale, byte expected)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                    Albedo = new MaterialAlbedoProperties {
-                        ValueRed = value,
-                        ScaleRed = scale,
-                    },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+                Albedo = new MaterialAlbedoProperties {
+                    ValueRed = value,
+                    ScaleRed = scale,
                 },
             };
 
-            await using var graph = Graph(context);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");
@@ -138,19 +134,18 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(200, 0.01,  2)]
         [Theory] public async Task ScaleRedTexture(byte value, decimal scale, byte expected)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                    Albedo = new MaterialAlbedoProperties {
-                        ScaleRed = scale,
-                    },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+                Albedo = new MaterialAlbedoProperties {
+                    ScaleRed = scale,
                 },
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/albedo.png", value, 0, 0);
             await graph.ProcessAsync();
 
@@ -161,32 +156,31 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [Fact]
         public async Task ShiftRgb()
         {
-            using var context = new MaterialContext {
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
+            await using var graph = Graph();
+
+            graph.PackInput = new ResourcePackInputProperties {
+                AlbedoRed = {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Green,
+                    MaxValue = 255m,
                 },
-                Input = new ResourcePackInputProperties {
-                    AlbedoRed = {
-                        Texture = TextureTags.Albedo,
-                        Color = ColorChannel.Green,
-                        MaxValue = 255m,
-                    },
-                    AlbedoGreen = {
-                        Texture = TextureTags.Albedo,
-                        Color = ColorChannel.Blue,
-                        MaxValue = 255m,
-                    },
-                    AlbedoBlue = {
-                        Texture = TextureTags.Albedo,
-                        Color = ColorChannel.Red,
-                        MaxValue = 255m,
-                    },
+                AlbedoGreen = {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Blue,
+                    MaxValue = 255m,
+                },
+                AlbedoBlue = {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Red,
+                    MaxValue = 255m,
                 },
             };
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+            };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/albedo.png", 60, 120, 180);
             await graph.ProcessAsync();
 

@@ -1,9 +1,8 @@
-﻿using System.Threading.Tasks;
-using PixelGraph.Common;
-using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -57,16 +56,15 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(127, 255,   0)]
         [Theory] public async Task PassthroughX(byte valueX, byte valueY, byte valueZ)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/normal.png", valueX, valueY, valueZ);
             await graph.ProcessAsync();
 
@@ -81,16 +79,15 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(127,   0,   0)]
         [Theory] public async Task RestoreZ(byte valueX, byte valueY, byte expectedZ)
         {
-            using var context = new MaterialContext {
-                Input = packInput,
-                Profile = packProfile,
-                Material = new MaterialProperties {
-                    Name = "test",
-                    LocalPath = "assets",
-                },
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
             };
 
-            await using var graph = Graph(context);
             await graph.CreateImageAsync("assets/test/normal.png", valueX, valueY, 0);
             await graph.ProcessAsync();
 
