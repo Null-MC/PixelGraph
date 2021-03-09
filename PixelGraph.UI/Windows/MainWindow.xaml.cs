@@ -279,7 +279,7 @@ namespace PixelGraph.UI.Windows
                 await Task.Factory.StartNew(async () => {
                     using var scope = provider.CreateScope();
                     var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                    var graph = scope.ServiceProvider.GetRequiredService<INormalTextureGraph>();
+                    var graph = scope.ServiceProvider.GetRequiredService<ITextureNormalGraph>();
 
                     context.Input = vm.PackInput;
                     //context.Profile = null;
@@ -331,7 +331,7 @@ namespace PixelGraph.UI.Windows
                 await Task.Factory.StartNew(async () => {
                     using var scope = provider.CreateScope();
                     var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                    var graph = scope.ServiceProvider.GetRequiredService<IOcclusionTextureGraph>();
+                    var graph = scope.ServiceProvider.GetRequiredService<ITextureOcclusionGraph>();
 
                     context.Input = vm.PackInput;
                     //context.Profile = null;

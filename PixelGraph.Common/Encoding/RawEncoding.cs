@@ -210,7 +210,7 @@ namespace PixelGraph.Common.Encoding
                 Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Metal,
                     Color = ColorChannel.Red,
-                    Sampler = Sampler.Nearest,
+                    Sampler = Samplers.Samplers.Nearest,
                     MinValue = 230m,
                     MaxValue = 255m,
                     RangeMin = 230,

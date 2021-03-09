@@ -7,9 +7,9 @@ namespace PixelGraph.UI.ViewData
     {
         public SamplerValues()
         {
-            Add(new Item {Text = "Nearest", Value = Sampler.Nearest});
-            Add(new Item {Text = "Bilinear", Value = Sampler.Bilinear});
-            Add(new Item {Text = "Average", Value = Sampler.Average});
+            Add(new Item {Text = "Nearest", Value = Samplers.Nearest});
+            Add(new Item {Text = "Bilinear", Value = Samplers.Bilinear});
+            Add(new Item {Text = "Average", Value = Samplers.Average});
         }
 
         public class Item

@@ -6,6 +6,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,9 @@ namespace PixelGraph.Common.Textures
     {
         Task PreBuildNormalTextureAsync(CancellationToken token = default);
         void FixEdges(Image image, string tag, Rectangle? bounds = null);
+        int GetMaxFrameCount();
 
+        Task MapAsync(string textureTag, bool createEmpty, int? frame = null, CancellationToken token = default);
         Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, bool createEmpty, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
     }
 
@@ -24,7 +27,8 @@ namespace PixelGraph.Common.Textures
     {
         private readonly IServiceProvider provider;
         private readonly ITextureGraphContext context;
-        private readonly INormalTextureGraph normalGraph;
+        private readonly ITextureNormalGraph normalGraph;
+        private readonly Dictionary<string, ITextureBuilder> builderMap;
         private bool hasPreBuiltNormals;
 
 
@@ -33,8 +37,9 @@ namespace PixelGraph.Common.Textures
             this.provider = provider;
 
             context = provider.GetRequiredService<ITextureGraphContext>();
-            normalGraph = provider.GetRequiredService<INormalTextureGraph>();
+            normalGraph = provider.GetRequiredService<ITextureNormalGraph>();
 
+            builderMap = new Dictionary<string, ITextureBuilder>(StringComparer.OrdinalIgnoreCase);
             hasPreBuiltNormals = false;
         }
 
@@ -76,23 +81,31 @@ namespace PixelGraph.Common.Textures
             }
         }
 
+        public async Task MapAsync(string textureTag, bool createEmpty, int? frame = null, CancellationToken token = default)
+        {
+            var builder = provider.GetRequiredService<ITextureBuilder>();
+
+            builder.TargetFrame = frame;
+            builder.InputChannels = context.InputEncoding.ToArray();
+            builder.OutputChannels = context.OutputEncoding
+                .Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
+
+            await builder.MapAsync(createEmpty, token);
+            builderMap[textureTag] = builder;
+        }
+
         public async Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, bool createEmpty, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>
         {
-            var builder = provider.GetRequiredService<ITextureBuilder<TPixel>>();
+            if (!builderMap.TryGetValue(textureTag, out var builder))
+                throw new ApplicationException($"No texture builder found for tag '{textureTag}'!");
 
-            try {
-                builder.InputChannels = context.InputEncoding.ToArray();
-                builder.OutputChannels = context.OutputEncoding
-                    .Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();
+            return await builder.BuildAsync<TPixel>(createEmpty, token);
+        }
 
-                await builder.BuildAsync(createEmpty, token);
-                return builder.ImageResult;
-            }
-            catch {
-                builder.Dispose();
-                throw;
-            }
+        public int GetMaxFrameCount()
+        {
+            return builderMap.Values.Max(b => b.FrameCount);
         }
 
         public void FixEdges(Image image, string tag, Rectangle? bounds = null)

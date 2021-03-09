@@ -5,7 +5,7 @@ namespace PixelGraph.Common.Material
 {
     public class MaterialOcclusionProperties
     {
-        public const string DefaultSampler = Samplers.Sampler.Nearest;
+        public const string DefaultSampler = Samplers.Samplers.Nearest;
         public const float DefaultQuality = 0.1f;
         public const float DefaultZScale = 8f;
         public const float DefaultZBias = 0.1f;

@@ -333,7 +333,7 @@ namespace PixelGraph.UI.ViewModels
         {
             var encoding = TextureEncoding.GetFactory(_loadedProfile?.Encoding?.Format);
             var encodingDefaults = encoding?.Create();
-            var sampler = _loadedProfile?.Encoding?.Sampler ?? Sampler.Nearest;
+            var sampler = _loadedProfile?.Encoding?.Sampler ?? Samplers.Nearest;
 
             Alpha.ApplyDefaultValues(encodingDefaults?.Alpha, sampler);
 

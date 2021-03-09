@@ -7,13 +7,6 @@ using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
 {
-    public static class Sampler
-    {
-        public const string Nearest = "nearest";
-        public const string Bilinear = "bilinear";
-        public const string Average = "average";
-    }
-
     public static class Sampler<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
@@ -29,9 +22,9 @@ namespace PixelGraph.Common.Samplers
         }
 
         private static readonly Dictionary<string, Func<ISampler<TPixel>>> map = new Dictionary<string, Func<ISampler<TPixel>>>(StringComparer.InvariantCultureIgnoreCase) {
-            [Sampler.Nearest] = () => new NearestSampler<TPixel>(),
-            [Sampler.Bilinear] = () => new BilinearSampler<TPixel>(),
-            [Sampler.Average] = () => new AverageSampler<TPixel>(),
+            [Samplers.Nearest] = () => new NearestSampler<TPixel>(),
+            [Samplers.Bilinear] = () => new BilinearSampler<TPixel>(),
+            [Samplers.Average] = () => new AverageSampler<TPixel>(),
         };
     }
 
@@ -43,11 +36,15 @@ namespace PixelGraph.Common.Samplers
         float RangeY {get; set;}
         bool WrapX {get; set;}
         bool WrapY {get; set;}
+        int? Frame {get; set;}
+        int FrameCount {get; set;}
 
         void Sample(in float x, in float y, ref Rgba32 pixel);
         void SampleScaled(in float x, in float y, out Vector4 pixel);
 
         void Sample(in float x, in float y, in ColorChannel color, out byte pixelValue);
         void SampleScaled(in float x, in float y, in ColorChannel color, out float pixelValue);
+
+        //SamplerScope<TPixel> BeginScope();
     }
 }

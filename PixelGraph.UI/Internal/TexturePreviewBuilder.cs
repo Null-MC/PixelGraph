@@ -70,6 +70,7 @@ namespace PixelGraph.UI.Internal
             if (TextureTags.Is(tag, TextureTags.Normal))
                 await graph.PreBuildNormalTextureAsync(tokenSource.Token);
 
+            await graph.MapAsync(tag, true, 0, Token);
             using var image = await graph.CreateImageAsync<Rgb24>(tag, true, tokenSource.Token);
             if (image == null) return null;
 

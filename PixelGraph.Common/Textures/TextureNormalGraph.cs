@@ -16,32 +16,41 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures
 {
-    public interface INormalTextureGraph
+    public interface ITextureNormalGraph
     {
-        public Image<Rgb24> Texture {get;}
+        Image<Rgb24> Texture {get;}
+        int FrameCount {get;}
+        int FrameWidth {get;}
+        int FrameHeight {get;}
 
         Task<bool> TryBuildNormalMapAsync(CancellationToken token = default);
         Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default);
     }
 
-    internal class NormalTextureGraph : INormalTextureGraph, IDisposable
+    internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
     {
         private readonly IServiceProvider provider;
         private readonly ITextureGraphContext context;
+        private readonly ITextureSourceGraph sourceGraph;
         private readonly IInputReader reader;
         private readonly ILogger logger;
 
         public Image<Rgb24> Texture {get; private set;}
+        public int FrameCount {get; private set;}
+        public int FrameWidth {get; private set;}
+        public int FrameHeight {get; private set;}
 
 
-        public NormalTextureGraph(
-            ILogger<NormalTextureGraph> logger,
+        public TextureNormalGraph(
+            ILogger<TextureNormalGraph> logger,
             IServiceProvider provider,
             IInputReader reader,
-            ITextureGraphContext context)
+            ITextureGraphContext context,
+            ITextureSourceGraph sourceGraph)
         {
             this.provider = provider;
             this.context = context;
+            this.sourceGraph = sourceGraph;
             this.reader = reader;
             this.logger = logger;
         }
@@ -53,6 +62,8 @@ namespace PixelGraph.Common.Textures
 
         public async Task<bool> TryBuildNormalMapAsync(CancellationToken token = default)
         {
+            FrameCount = 1;
+
             // Try to compose from existing channels first
             var normalXChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
             var normalYChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
@@ -63,16 +74,14 @@ namespace PixelGraph.Common.Textures
 
             if (hasNormalX && hasNormalY) {
                 using var scope = provider.CreateScope();
-
                 var normalContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+                var builder = scope.ServiceProvider.GetRequiredService<ITextureBuilder>();
 
                 // make image from normal X & Y; z if found
                 normalContext.Input = context.Input;
                 normalContext.Profile = context.Profile;
                 normalContext.Material = context.Material;
-
-                using var builder = scope.ServiceProvider.GetRequiredService<ITextureBuilder<Rgb24>>();
-
+                
                 builder.InputChannels = new [] {normalXChannel, normalYChannel, normalZChannel}
                     .Where(x => x != null).ToArray();
 
@@ -91,9 +100,9 @@ namespace PixelGraph.Common.Textures
                     },
                 };
 
-                await builder.BuildAsync(false, token);
-
-                Texture = builder.ImageResult?.CloneAs<Rgb24>();
+                await builder.MapAsync(false, token);
+                Texture = await builder.BuildAsync<Rgb24>(false, token);
+                if (Texture != null) FrameCount = builder.FrameCount;
             }
 
             var autoGenNormal = context.Profile?.AutoGenerateNormal
@@ -103,6 +112,10 @@ namespace PixelGraph.Common.Textures
                 Texture = await GenerateAsync(token);
 
             if (Texture == null) return false;
+
+            FrameWidth = Texture.Width;
+            FrameHeight = Texture.Height;
+            if (FrameCount > 1) FrameHeight /= FrameCount;
 
             var options = new NormalRotateProcessor.Options {
                 NormalX = ColorChannel.Red,
@@ -135,16 +148,18 @@ namespace PixelGraph.Common.Textures
         {
             logger.LogInformation("Generating normal map for texture {DisplayName}.", context.Material.DisplayName);
 
-            var heightChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
+            var heightChannelIn = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
 
-            if (heightChannel == null || !heightChannel.HasMapping)
+            if (heightChannelIn == null || !heightChannelIn.HasMapping)
                 throw new HeightSourceEmptyException("No height sources mapped!");
 
             Image<Rgba32> heightTexture = null;
 
             try {
                 float scale;
-                (heightTexture, scale) = await LoadHeightTextureAsync(heightChannel, token);
+                (heightTexture, scale) = await LoadHeightTextureAsync(token);
+
+                // TODO: add frame support
 
                 if (heightTexture == null) {
                     var up = new Rgb24(127, 127, 255);
@@ -154,7 +169,7 @@ namespace PixelGraph.Common.Textures
 
                 var builder = new NormalMapBuilder {
                     HeightImage = heightTexture,
-                    HeightChannel = heightChannel.Color ?? ColorChannel.None,
+                    HeightChannel = heightChannelIn.Color ?? ColorChannel.None,
                     Filter = context.Material.Normal?.Filter ?? MaterialNormalProperties.DefaultFilter,
                     Strength = (float?)context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
                     WrapX = context.WrapX,
@@ -203,7 +218,7 @@ namespace PixelGraph.Common.Textures
                 Texture.Mutate(c => c.ApplyProcessor(processor));
             }
             else if (EncodingChannel.Is(magnitudeChannel.ID, EncodingChannel.Occlusion)) {
-                var occlusionGraph = provider.GetRequiredService<IOcclusionTextureGraph>();
+                var occlusionGraph = provider.GetRequiredService<ITextureOcclusionGraph>();
                 await occlusionGraph.ApplyMagnitudeAsync(Texture, magnitudeChannel, token);
             }
             else {
@@ -211,16 +226,31 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task<(Image<Rgba32>, float)> LoadHeightTextureAsync(ResourcePackChannelProperties channel, CancellationToken token)
+        private async Task<TextureSource> GetHeightSourceAsync(CancellationToken token)
         {
             var file = reader.EnumerateTextures(context.Material, TextureTags.Bump).FirstOrDefault();
 
-            if (file == null) {
-                file = reader.EnumerateTextures(context.Material, channel.Texture).FirstOrDefault();
-                if (file == null) return (null, 0f);
+            if (file != null) {
+                var info = await sourceGraph.GetOrCreateAsync(file, token);
+                if (info != null) return info;
             }
 
-            await using var stream = reader.Open(file);
+            file = reader.EnumerateTextures(context.Material, TextureTags.Height).FirstOrDefault();
+
+            if (file != null) {
+                var info = await sourceGraph.GetOrCreateAsync(file, token);
+                if (info != null) return info;
+            }
+
+            return null;
+        }
+
+        private async Task<(Image<Rgba32>, float)> LoadHeightTextureAsync(CancellationToken token)
+        {
+            var info = await GetHeightSourceAsync(token);
+            if (info == null) return (null, 0f);
+
+            await using var stream = reader.Open(info.LocalFile);
 
             Image<Rgba32> heightTexture = null;
             try {
@@ -228,16 +258,19 @@ namespace PixelGraph.Common.Textures
                 if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
                 // scale height texture instead of using samplers
-                var aspect = (float)heightTexture.Height / heightTexture.Width;
+                var aspect = (float)info.Height / info.Width;
                 var bufferSize = context.GetBufferSize(aspect);
+                FrameCount = info.FrameCount;
+
+                // WARN: Apply scaling per-frame to avoid edge blurring!!!
 
                 var scale = 1f;
-                if (bufferSize.HasValue && heightTexture.Width != bufferSize.Value.Width) {
-                    scale = (float)bufferSize.Value.Width / heightTexture.Width;
-                    var scaledWidth = (int)MathF.Ceiling(heightTexture.Width * scale);
-                    var scaledHeight = (int)MathF.Ceiling(heightTexture.Height * scale);
+                if (bufferSize.HasValue && info.Width != bufferSize.Value.Width) {
+                    scale = (float)bufferSize.Value.Width / info.Width;
+                    var scaledWidth = (int)MathF.Ceiling(info.Width * scale);
+                    var scaledHeight = (int)MathF.Ceiling(info.Height * scale);
 
-                    var samplerName = channel?.Sampler ?? context.DefaultSampler;
+                    var samplerName = context.Profile?.Encoding?.Height?.Sampler ?? context.DefaultSampler;
                     var sampler = Sampler<Rgba32>.Create(samplerName);
                     sampler.Image = heightTexture;
                     sampler.WrapX = context.WrapX;
@@ -265,7 +298,6 @@ namespace PixelGraph.Common.Textures
             }
             catch (SourceEmptyException) {throw;}
             catch {
-                //logger.LogWarning("Failed to load texture {file}!", file);
                 heightTexture?.Dispose();
                 throw;
             }

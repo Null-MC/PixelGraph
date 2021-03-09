@@ -9,9 +9,9 @@ namespace PixelGraph.Common.Samplers
     {
         public override void Sample(in float x, in float y, ref Rgba32 pixel)
         {
-            var fx = x * Image.Width - HalfPixel;
-            var fy = y * Image.Height - HalfPixel;
-
+            GetTexCoord(in x, in y, out var fx, out var fy);
+            var bounds = GetFrameBounds();
+            
             var minRangeX = MathF.Max(RangeX, 1f);
             var minRangeY = MathF.Max(RangeY, 1f);
             
@@ -27,14 +27,26 @@ namespace PixelGraph.Common.Samplers
             for (var py = pyMin; py < pyMax; py++) {
                 var _py = py;
 
-                if (WrapY) WrapCoordY(ref _py);
-                else ClampCoordY(ref _py);
+                if (Frame.HasValue) {
+                    if (WrapY) WrapCoordY(ref _py, ref bounds);
+                    else ClampCoordY(ref _py, ref bounds);
+                }
+                else {
+                    if (WrapY) WrapCoordY(ref _py);
+                    else ClampCoordY(ref _py);
+                }
 
                 for (var px = pxMin; px < pxMax; px++) {
                     var _px = px;
 
-                    if (WrapX) WrapCoordX(ref _px);
-                    else ClampCoordX(ref _px);
+                    if (Frame.HasValue) {
+                        if (WrapX) WrapCoordX(ref _px, ref bounds);
+                        else ClampCoordX(ref _px, ref bounds);
+                    }
+                    else {
+                        if (WrapX) WrapCoordX(ref _px);
+                        else ClampCoordX(ref _px);
+                    }
 
                     color += Image[_px, _py].ToScaledVector4();
                 }

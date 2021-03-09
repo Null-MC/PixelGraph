@@ -141,7 +141,7 @@ namespace PixelGraph.CLI.CommandLine
                 try {
                     using var scope = provider.CreateScope();
                     var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                    var graph = scope.ServiceProvider.GetRequiredService<INormalTextureGraph>();
+                    var graph = scope.ServiceProvider.GetRequiredService<ITextureNormalGraph>();
 
                     context.Input = packInput;
                     context.Profile = packProfile;

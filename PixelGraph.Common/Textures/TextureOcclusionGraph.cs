@@ -14,9 +14,12 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures
 {
-    public interface IOcclusionTextureGraph
+    public interface ITextureOcclusionGraph
     {
         ResourcePackChannelProperties Channel {get;}
+        int FrameCount {get;}
+        int FrameWidth {get;}
+        int FrameHeight {get;}
 
         Task<Image<Rgba32>> GetTextureAsync(CancellationToken token = default);
         Task<ISampler<Rgba32>> GetSamplerAsync(CancellationToken token = default);
@@ -24,22 +27,28 @@ namespace PixelGraph.Common.Textures
         Task<Image<Rgba32>> GenerateAsync(CancellationToken token = default);
     }
     
-    internal class OcclusionTextureGraph : IOcclusionTextureGraph, IDisposable
+    internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
     {
         private readonly IInputReader reader;
         private readonly ITextureGraphContext context;
+        private readonly ITextureSourceGraph sourceGraph;
         private Image<Rgba32> texture;
         private bool isLoaded;
 
         public ResourcePackChannelProperties Channel {get; private set;}
+        public int FrameCount {get; private set;}
+        public int FrameWidth {get; private set;}
+        public int FrameHeight {get; private set;}
 
 
-        public OcclusionTextureGraph(
+        public TextureOcclusionGraph(
             IInputReader reader,
-            ITextureGraphContext context)
+            ITextureGraphContext context,
+            ITextureSourceGraph sourceGraph)
         {
             this.reader = reader;
             this.context = context;
+            this.sourceGraph = sourceGraph;
         }
 
         public void Dispose()
@@ -51,6 +60,8 @@ namespace PixelGraph.Common.Textures
         {
             if (isLoaded) return texture;
             isLoaded = true;
+
+            FrameCount = 1;
 
             var occlusionChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Occlusion));
 
@@ -64,35 +75,7 @@ namespace PixelGraph.Common.Textures
             }
 
             if (texture == null) {
-                var heightChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
-                if (heightChannel == null) return null;
-
-                var heightFile = reader.EnumerateTextures(context.Material, heightChannel.Texture).FirstOrDefault();
-                if (heightFile == null) return null;
-
-                await using var stream = reader.Open(heightFile);
-                using var heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
-
-                var aspect = (float)heightTexture.Height / heightTexture.Width;
-                var bufferSize = context.GetBufferSize(aspect);
-
-                var occlusionWidth = bufferSize?.Width ?? heightTexture.Width;
-                var occlusionHeight = bufferSize?.Height ?? heightTexture.Height;
-
-                var heightScale = 1f;
-                if (bufferSize.HasValue)
-                    heightScale = (float)bufferSize.Value.Width / heightTexture.Width;
-
-                var samplerName = heightChannel.Sampler ?? context.DefaultSampler;
-                var heightSampler = Sampler<Rgba32>.Create(samplerName);
-                heightSampler.Image = heightTexture;
-                heightSampler.WrapX = context.WrapX;
-                heightSampler.WrapY = context.WrapY;
-
-                heightSampler.RangeX = (float)heightTexture.Width / occlusionWidth;
-                heightSampler.RangeY = (float)heightTexture.Height / occlusionHeight;
-
-                texture = GenerateImage(occlusionWidth, occlusionHeight, heightSampler, heightChannel, heightScale);
+                texture = await GenerateAsync(token);
 
                 Channel = new ResourcePackOcclusionChannelProperties {
                     //Texture = TextureTags.Occlusion,
@@ -100,6 +83,12 @@ namespace PixelGraph.Common.Textures
                     Color = ColorChannel.Red,
                     Invert = true,
                 };
+            }
+
+            if (texture != null) {
+                FrameWidth = texture.Width;
+                FrameHeight = texture.Height;
+                if (FrameCount > 1) FrameHeight /= FrameCount;
             }
 
             return texture;
@@ -128,11 +117,12 @@ namespace PixelGraph.Common.Textures
             var heightChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
             if (heightChannel == null) return null;
 
-            var heightFile = reader.EnumerateTextures(context.Material, heightChannel.Texture).FirstOrDefault();
-            if (heightFile == null) return null;
+            var info = await GetHeightSourceAsync(token);
+            if (info == null) return null;
 
-            await using var stream = reader.Open(heightFile);
+            await using var stream = reader.Open(info.LocalFile);
             using var heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
+            FrameCount = info.FrameCount;
 
             var aspect = (float)heightTexture.Height / heightTexture.Width;
             var bufferSize = context.GetBufferSize(aspect);
@@ -144,16 +134,61 @@ namespace PixelGraph.Common.Textures
             if (bufferSize.HasValue)
                 heightScale = (float)bufferSize.Value.Width / heightTexture.Width;
 
-            var samplerName = heightChannel.Sampler ?? context.DefaultSampler;
+            var samplerName = context.Profile?.Encoding?.Height?.Sampler ?? context.DefaultSampler;
             var heightSampler = Sampler<Rgba32>.Create(samplerName);
             heightSampler.Image = heightTexture;
             heightSampler.WrapX = context.WrapX;
             heightSampler.WrapY = context.WrapY;
+            heightSampler.FrameCount = info.FrameCount;
 
             heightSampler.RangeX = (float)heightTexture.Width / occlusionWidth;
             heightSampler.RangeY = (float)heightTexture.Height / occlusionHeight;
 
-            return GenerateImage(occlusionWidth, occlusionHeight, heightSampler, heightChannel, heightScale);
+            var options = new OcclusionProcessor<Rgba32>.Options {
+                HeightSampler = heightSampler,
+                HeightChannel = heightChannel.Color ?? ColorChannel.Red,
+                HeightMinValue = (float?)heightChannel.MinValue ?? 0f,
+                HeightMaxValue = (float?)heightChannel.MaxValue ?? 1f,
+                HeightRangeMin = heightChannel.RangeMin ?? 0,
+                HeightRangeMax = heightChannel.RangeMax ?? 255,
+                HeightShift = heightChannel.Shift ?? 0,
+                HeightPower = (float?)heightChannel.Power ?? 0f,
+                HeightInvert = heightChannel.Invert ?? false,
+
+                StepDistance = (float?)context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance,
+                Quality = (float?)context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
+                ZScale = (float?)context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
+                ZBias = (float?)context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias,
+            };
+
+            // adjust volume height with texture scale
+            options.ZBias *= heightScale;
+            options.ZScale *= heightScale;
+
+            var occlusionTexture = new Image<Rgba32>(Configuration.Default, occlusionWidth, occlusionHeight);
+
+            try {
+                if (FrameCount > 1) {
+                    var frameHeight = occlusionHeight / FrameCount;
+                    for (var i = 0; i < FrameCount; i++) {
+                        heightSampler.Frame = i;
+
+                        var processor = new OcclusionProcessor<Rgba32>(options);
+                        var frameBounds = new Rectangle(0, frameHeight * i, occlusionWidth, frameHeight);
+                        occlusionTexture.Mutate(c => c.ApplyProcessor(processor, frameBounds));
+                    }
+                }
+                else {
+                    var processor = new OcclusionProcessor<Rgba32>(options);
+                    occlusionTexture.Mutate(c => c.ApplyProcessor(processor));
+                }
+            }
+            catch {
+                occlusionTexture.Dispose();
+                throw;
+            }
+
+            return occlusionTexture;
         }
 
         public async Task ApplyMagnitudeAsync(Image normalImage, ResourcePackChannelProperties magnitudeChannel, CancellationToken token = default)
@@ -177,45 +212,23 @@ namespace PixelGraph.Common.Textures
             normalImage.Mutate(c => c.ApplyProcessor(processor));
         }
 
-        private Image<Rgba32> GenerateImage<THeight>(int width, int height, ISampler<THeight> heightSampler, ResourcePackChannelProperties heightChannel, float heightScale)
-            where THeight : unmanaged, IPixel<THeight>
+        private async Task<TextureSource> GetHeightSourceAsync(CancellationToken token)
         {
-            if (heightSampler == null) throw new ArgumentNullException(nameof(heightSampler));
-            if (heightChannel == null) throw new ArgumentNullException(nameof(heightChannel));
+            var file = reader.EnumerateTextures(context.Material, TextureTags.Bump).FirstOrDefault();
 
-            var options = new OcclusionProcessor<THeight>.Options {
-                HeightSampler = heightSampler,
-                HeightChannel = heightChannel.Color ?? ColorChannel.Red,
-                HeightMinValue = (float?)heightChannel.MinValue ?? 0f,
-                HeightMaxValue = (float?)heightChannel.MaxValue ?? 1f,
-                HeightRangeMin = heightChannel.RangeMin ?? 0,
-                HeightRangeMax = heightChannel.RangeMax ?? 255,
-                HeightShift = heightChannel.Shift ?? 0,
-                HeightPower = (float?)heightChannel.Power ?? 0f,
-                HeightInvert = heightChannel.Invert ?? false,
-
-                StepDistance = (float?)context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance,
-                Quality = (float?)context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
-                ZScale = (float?)context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
-                ZBias = (float?)context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias,
-            };
-
-            // adjust volume height with texture scale
-            options.ZBias *= heightScale;
-            options.ZScale *= heightScale;
-
-            var processor = new OcclusionProcessor<THeight>(options);
-
-            var occlusionTexture = new Image<Rgba32>(Configuration.Default, width, height);
-
-            try {
-                occlusionTexture.Mutate(c => c.ApplyProcessor(processor));
-                return occlusionTexture;
+            if (file != null) {
+                var info = await sourceGraph.GetOrCreateAsync(file, token);
+                if (info != null) return info;
             }
-            catch {
-                occlusionTexture.Dispose();
-                throw;
+
+            file = reader.EnumerateTextures(context.Material, TextureTags.Height).FirstOrDefault();
+
+            if (file != null) {
+                var info = await sourceGraph.GetOrCreateAsync(file, token);
+                if (info != null) return info;
             }
+
+            return null;
         }
     }
 }

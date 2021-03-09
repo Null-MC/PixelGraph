@@ -10,9 +10,9 @@ namespace PixelGraph.UI.Converters
     {
         private static readonly Dictionary<string, string> map = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
             //[Sampler.Point] = "Point",
-            [Sampler.Nearest] = "Nearest",
-            [Sampler.Bilinear] = "Bilinear",
-            [Sampler.Average] = "Average",
+            [Samplers.Nearest] = "Nearest",
+            [Samplers.Bilinear] = "Bilinear",
+            [Samplers.Average] = "Average",
             //...
         };
 

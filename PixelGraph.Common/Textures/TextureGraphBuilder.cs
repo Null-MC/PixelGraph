@@ -24,8 +24,9 @@ namespace PixelGraph.Common.Textures
         private readonly IOutputWriter writer;
         private readonly INamingStructure naming;
         private readonly IImageWriter imageWriter;
-        private readonly IItemGenerator itemGenerator;
+        private readonly IInventoryTextureGenerator itemGenerator;
         private readonly ILogger logger;
+        private string matMetaFileIn;
 
 
         public TextureGraphBuilder(
@@ -36,7 +37,7 @@ namespace PixelGraph.Common.Textures
             IOutputWriter writer,
             INamingStructure naming,
             IImageWriter imageWriter,
-            IItemGenerator itemGenerator)
+            IInventoryTextureGenerator itemGenerator)
         {
             this.context = context;
             this.graph = graph;
@@ -54,16 +55,25 @@ namespace PixelGraph.Common.Textures
         public async Task ProcessInputGraphAsync(CancellationToken token = default)
         {
             context.ApplyInputEncoding();
+            prep();
 
             var sourceTime = reader.GetWriteTime(context.Material.LocalFilename);
             var packWriteTime = reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
 
-            foreach (var texFile in reader.EnumerateAllTextures(context.Material)) {
-                var z = reader.GetWriteTime(texFile);
-                if (!z.HasValue) continue;
+            foreach (var tag in TextureTags.All) {
+                foreach (var texFile in reader.EnumerateTextures(context.Material, tag)) {
+                    var z = reader.GetWriteTime(texFile);
+                    if (!z.HasValue) continue;
 
-                if (!sourceTime.HasValue || z.Value > sourceTime.Value)
-                    sourceTime = z.Value;
+                    if (!sourceTime.HasValue || z.Value > sourceTime.Value)
+                        sourceTime = z.Value;
+                }
+
+                var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.UseGlobalOutput);
+                var metaTime = reader.GetWriteTime(metaFileOut);
+
+                if (metaTime.HasValue && (!sourceTime.HasValue || metaTime.Value > sourceTime.Value))
+                    sourceTime = metaTime.Value;
             }
 
             if (!IsOutputUpToDate(packWriteTime, sourceTime)) {
@@ -95,23 +105,42 @@ namespace PixelGraph.Common.Textures
             await ProcessAllTexturesAsync(false, token);
         }
 
+        private void prep()
+        {
+            var matPath = context.Material.UseGlobalMatching
+                ? context.Material.LocalPath
+                : PathEx.Join(context.Material.LocalPath, context.Material.Name);
+
+            matMetaFileIn = PathEx.Join(matPath, "mat.mcmeta");
+            context.IsAnimated = reader.FileExists(matMetaFileIn);
+
+            //context.IsAnimated = hasMatMeta;
+        }
+
         private async Task ProcessAllTexturesAsync(bool createEmpty, CancellationToken token)
         {
+            var allOutputTags = context.OutputEncoding
+                .Select(e => e.Texture).Distinct().ToArray();
+
+            //var matPath = context.Material.UseGlobalMatching
+            //    ? context.Material.LocalPath
+            //    : PathEx.Join(context.Material.LocalPath, context.Material.Name);
+
+            //var matMetaFileIn = PathEx.Join(matPath, "mat.mcmeta");
+            //var hasMatMeta = reader.FileExists(matMetaFileIn);
+
+            //context.IsAnimated = hasMatMeta;
+
             try {
                 await graph.PreBuildNormalTextureAsync(token);
             }
             catch (HeightSourceEmptyException) {}
 
-            var allOutputTags = context.OutputEncoding
-                .Select(e => e.Texture).Distinct();
+            foreach (var tag in allOutputTags)
+                await graph.MapAsync(tag, createEmpty, null, token);
 
-            var matPath = context.Material.UseGlobalMatching
-                ? context.Material.LocalPath
-                : PathEx.Join(context.Material.LocalPath, context.Material.Name);
-
-            var matMetaFileIn = PathEx.Join(matPath, "mat.mcmeta");
-            var hasMatMeta = reader.FileExists(matMetaFileIn);
-
+            context.MaxFrameCount = graph.GetMaxFrameCount();
+            
             foreach (var tag in allOutputTags) {
                 var tagOutputEncoding = context.OutputEncoding
                     .Where(e => TextureTags.Is(e.Texture, tag)).ToArray();
@@ -133,7 +162,7 @@ namespace PixelGraph.Common.Textures
 
                 await CopyMetaAsync(tag, token);
 
-                if (hasMatMeta) {
+                if (context.IsAnimated) {
                     var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.UseGlobalOutput);
 
                     await using var sourceStream = reader.Open(matMetaFileIn);
@@ -242,7 +271,7 @@ namespace PixelGraph.Common.Textures
                     var writeTime = writer.GetWriteTime(albedoFile);
                     if (!writeTime.HasValue) continue;
 
-                    if (!destinationTime.HasValue || writeTime.Value > destinationTime.Value)
+                    if (!destinationTime.HasValue || writeTime.Value < destinationTime.Value)
                         destinationTime = writeTime;
                 }
             }
@@ -251,6 +280,9 @@ namespace PixelGraph.Common.Textures
                 var albedoFile = PathEx.Join(context.Material.LocalPath, albedoOutputName);
                 destinationTime = writer.GetWriteTime(albedoFile);
             }
+
+            // TODO: update from mat.mcmeta file
+
 
             return IsUpToDate(packWriteTime, sourceTime, destinationTime);
         }

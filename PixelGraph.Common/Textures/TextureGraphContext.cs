@@ -2,7 +2,6 @@
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
@@ -19,6 +18,8 @@ namespace PixelGraph.Common.Textures
         List<ResourcePackChannelProperties> InputEncoding {get; set;}
         List<ResourcePackChannelProperties> OutputEncoding {get; set;}
         bool UseGlobalOutput {get; set;}
+        bool IsAnimated {get; set;}
+        int MaxFrameCount {get; set;}
         bool WrapX {get;}
         bool WrapY {get;}
         float? TextureScale {get;}
@@ -46,11 +47,13 @@ namespace PixelGraph.Common.Textures
         public List<ResourcePackChannelProperties> InputEncoding {get; set;}
         public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
         public bool UseGlobalOutput {get; set;}
+        public bool IsAnimated {get; set;}
+        public int MaxFrameCount {get; set;}
 
         public bool WrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool WrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
         public float? TextureScale => (float?)Profile?.TextureScale;
-        public string DefaultSampler => Profile?.Encoding?.Sampler ?? Sampler.Nearest;
+        public string DefaultSampler => Profile?.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
         public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
 
         public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
@@ -61,6 +64,7 @@ namespace PixelGraph.Common.Textures
         {
             InputEncoding = new List<ResourcePackChannelProperties>();
             OutputEncoding = new List<ResourcePackChannelProperties>();
+            MaxFrameCount = 1;
         }
 
         public void ApplyInputEncoding()
@@ -150,7 +154,7 @@ namespace PixelGraph.Common.Textures
                 var width = Material.TextureSize.Value;
                 var height = (int)MathF.Ceiling(width * aspect);
 
-                if (Profile.TextureScale.HasValue) {
+                if (Profile?.TextureScale.HasValue ?? false) {
                     var scale = (float)Profile.TextureScale.Value;
                     width = (int)MathF.Ceiling(width * scale);
                     height = (int)MathF.Ceiling(height * scale);

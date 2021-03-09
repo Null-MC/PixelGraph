@@ -139,7 +139,7 @@ namespace PixelGraph.CLI.CommandLine
                 try {
                     using var scope = provider.CreateScope();
                     var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                    var occlusionGraph = provider.GetRequiredService<IOcclusionTextureGraph>();
+                    var occlusionGraph = provider.GetRequiredService<ITextureOcclusionGraph>();
 
                     context.Input = packInput;
                     context.Profile = packProfile;

@@ -7,8 +7,8 @@ namespace PixelGraph.UI.ViewData
     {
         public OcclusionSamplerValues()
         {
-            Add(new Item {Text = "Nearest", Value = Sampler.Nearest});
-            Add(new Item {Text = "Bilinear", Value = Sampler.Bilinear});
+            Add(new Item {Text = "Nearest", Value = Samplers.Nearest});
+            Add(new Item {Text = "Bilinear", Value = Samplers.Bilinear});
         }
 
         public class Item

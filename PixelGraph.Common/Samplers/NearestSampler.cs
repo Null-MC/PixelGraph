@@ -8,14 +8,27 @@ namespace PixelGraph.Common.Samplers
     {
         public override void Sample(in float x, in float y, ref Rgba32 pixel)
         {
-            var px = (int)MathF.Floor(x * Image.Width);
-            var py = (int)MathF.Floor(y * Image.Height);
+            GetTexCoord(in x, in y, out var fx, out var fy);
 
-            if (WrapX) WrapCoordX(ref px);
-            else ClampCoordX(ref px);
+            var px = (int)MathF.Floor(fx + HalfPixel);
+            var py = (int)MathF.Floor(fy + HalfPixel);
 
-            if (WrapY) WrapCoordY(ref py);
-            else ClampCoordY(ref py);
+            if (Frame.HasValue) {
+                var bounds = GetFrameBounds();
+
+                if (WrapX) WrapCoordX(ref px, ref bounds);
+                else ClampCoordX(ref px, ref bounds);
+
+                if (WrapY) WrapCoordY(ref py, ref bounds);
+                else ClampCoordY(ref py, ref bounds);
+            }
+            else {
+                if (WrapX) WrapCoordX(ref px);
+                else ClampCoordX(ref px);
+
+                if (WrapY) WrapCoordY(ref py);
+                else ClampCoordY(ref py);
+            }
 
             Image[px, py].ToRgba32(ref pixel);
         }

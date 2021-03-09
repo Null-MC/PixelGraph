@@ -1,7 +1,7 @@
-﻿using System;
-using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
@@ -17,8 +17,7 @@ namespace PixelGraph.Common.Samplers
 
         public override void SampleScaled(in float x, in float y, out Vector4 vector)
         {
-            var fx = x * Image.Width - HalfPixel;
-            var fy = y * Image.Height - HalfPixel;
+            GetTexCoord(in x, in y, out var fx, out var fy);
 
             var pxMin = (int)MathF.Floor(fx);
             var pxMax = pxMin + 1;
@@ -28,22 +27,45 @@ namespace PixelGraph.Common.Samplers
             var px = fx - pxMin;
             var py = fy - pyMin;
 
-            if (WrapX) {
-                WrapCoordX(ref pxMin);
-                WrapCoordX(ref pxMax);
-            }
-            else {
-                ClampCoordX(ref pxMin);
-                ClampCoordX(ref pxMax);
-            }
+            if (Frame.HasValue) {
+                var bounds = GetFrameBounds();
 
-            if (WrapY) {
-                WrapCoordY(ref pyMin);
-                WrapCoordY(ref pyMax);
+                if (WrapX) {
+                    WrapCoordX(ref pxMin, ref bounds);
+                    WrapCoordX(ref pxMax, ref bounds);
+                }
+                else {
+                    ClampCoordX(ref pxMin, ref bounds);
+                    ClampCoordX(ref pxMax, ref bounds);
+                }
+
+                if (WrapY) {
+                    WrapCoordY(ref pyMin, ref bounds);
+                    WrapCoordY(ref pyMax, ref bounds);
+                }
+                else {
+                    ClampCoordY(ref pyMin, ref bounds);
+                    ClampCoordY(ref pyMax, ref bounds);
+                }
             }
             else {
-                ClampCoordY(ref pyMin);
-                ClampCoordY(ref pyMax);
+                if (WrapX) {
+                    WrapCoordX(ref pxMin);
+                    WrapCoordX(ref pxMax);
+                }
+                else {
+                    ClampCoordX(ref pxMin);
+                    ClampCoordX(ref pxMax);
+                }
+
+                if (WrapY) {
+                    WrapCoordY(ref pyMin);
+                    WrapCoordY(ref pyMax);
+                }
+                else {
+                    ClampCoordY(ref pyMin);
+                    ClampCoordY(ref pyMax);
+                }
             }
 
             var rowMin = Image.GetPixelRowSpan(pyMin);

@@ -40,15 +40,15 @@ namespace PixelGraph.Common
 
             Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
             Services.AddScoped<ITextureGraph, TextureGraph>();
-            Services.AddScoped<INormalTextureGraph, NormalTextureGraph>();
-            Services.AddScoped<IOcclusionTextureGraph, OcclusionTextureGraph>();
+            Services.AddScoped<ITextureSourceGraph, TextureSourceGraph>();
+            Services.AddScoped<ITextureNormalGraph, TextureNormalGraph>();
+            Services.AddScoped<ITextureOcclusionGraph, TextureOcclusionGraph>();
             Services.AddScoped<ITextureGraphBuilder, TextureGraphBuilder>();
 
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
             Services.AddTransient<IMaterialImporter, MaterialImporter>();
-            Services.AddTransient<IItemGenerator, ItemGenerator>();
-
-            Services.AddTransient(typeof(ITextureBuilder<>), typeof(TextureBuilder<>));
+            Services.AddTransient<IInventoryTextureGenerator, InventoryTextureGenerator>();
+            Services.AddTransient<ITextureBuilder, TextureBuilder>();
         }
 
         public void AddFileInput()
