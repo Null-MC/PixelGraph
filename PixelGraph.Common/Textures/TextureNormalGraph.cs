@@ -53,6 +53,8 @@ namespace PixelGraph.Common.Textures
             this.sourceGraph = sourceGraph;
             this.reader = reader;
             this.logger = logger;
+
+            FrameCount = 1;
         }
 
         public void Dispose()
@@ -62,8 +64,6 @@ namespace PixelGraph.Common.Textures
 
         public async Task<bool> TryBuildNormalMapAsync(CancellationToken token = default)
         {
-            FrameCount = 1;
-
             // Try to compose from existing channels first
             var normalXChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
             var normalYChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
@@ -276,6 +276,8 @@ namespace PixelGraph.Common.Textures
                     sampler.WrapX = context.WrapX;
                     sampler.WrapY = context.WrapY;
                     sampler.RangeX = sampler.RangeY = 1f / scale;
+                    sampler.FrameCount = 1;
+                    //sampler.Frame = 0;
 
                     var options = new ResizeProcessor<Rgba32>.Options {
                         Sampler = sampler,

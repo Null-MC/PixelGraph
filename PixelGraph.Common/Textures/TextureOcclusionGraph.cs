@@ -49,6 +49,8 @@ namespace PixelGraph.Common.Textures
             this.reader = reader;
             this.context = context;
             this.sourceGraph = sourceGraph;
+
+            FrameCount = 1;
         }
 
         public void Dispose()
@@ -60,8 +62,6 @@ namespace PixelGraph.Common.Textures
         {
             if (isLoaded) return texture;
             isLoaded = true;
-
-            FrameCount = 1;
 
             var occlusionChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Occlusion));
 
