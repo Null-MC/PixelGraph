@@ -10,25 +10,21 @@ namespace PixelGraph.Common.Textures
     public interface ITextureSourceGraph
     {
         bool TryGet(string tag, out TextureSource source);
-        //Task AddAsync(string tag, string localFile, CancellationToken token = default);
         Task<TextureSource> GetOrCreateAsync(string localFile, CancellationToken token = default);
     }
 
     internal class TextureSourceGraph : ITextureSourceGraph
     {
         private readonly IInputReader fileReader;
-        //private readonly INamingStructure naming;
         private readonly ITextureGraphContext context;
         private readonly Dictionary<string, TextureSource> sourceMap;
 
 
         public TextureSourceGraph(
             IInputReader fileReader,
-            //INamingStructure naming,
             ITextureGraphContext context)
         {
             this.fileReader = fileReader;
-            //this.naming = naming;
             this.context = context;
 
             sourceMap = new Dictionary<string, TextureSource>(StringComparer.OrdinalIgnoreCase);
@@ -60,26 +56,6 @@ namespace PixelGraph.Common.Textures
 
             return sourceMap[localFile] = source;
         }
-
-        //private async Task<int> GetFrameCountAsync(string tag, CancellationToken token)
-        //{
-        //    var metaFile = naming.GetInputMetaName(context.Material, tag);
-        //    if (!fileReader.FileExists(metaFile)) return 1;
-
-        //    var root = await LoadJsonAsync(metaFile, token);
-        //    var framesNode = root.SelectToken("animation/frames")?.Values<int>();
-        //    if (framesNode == null) return 1;
-
-        //    return framesNode.Max() + 1;
-        //}
-
-        //private async Task<JToken> LoadJsonAsync(string localFile, CancellationToken token)
-        //{
-        //    await using var stream = fileReader.Open(localFile);
-        //    using var reader = new StreamReader(stream);
-        //    using var jsonReader = new JsonTextReader(reader);
-        //    return await JToken.ReadFromAsync(jsonReader, token);
-        //}
     }
 
     public class TextureSource

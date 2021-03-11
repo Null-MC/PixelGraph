@@ -113,23 +113,12 @@ namespace PixelGraph.Common.Textures
 
             matMetaFileIn = PathEx.Join(matPath, "mat.mcmeta");
             context.IsAnimated = reader.FileExists(matMetaFileIn);
-
-            //context.IsAnimated = hasMatMeta;
         }
 
         private async Task ProcessAllTexturesAsync(bool createEmpty, CancellationToken token)
         {
             var allOutputTags = context.OutputEncoding
                 .Select(e => e.Texture).Distinct().ToArray();
-
-            //var matPath = context.Material.UseGlobalMatching
-            //    ? context.Material.LocalPath
-            //    : PathEx.Join(context.Material.LocalPath, context.Material.Name);
-
-            //var matMetaFileIn = PathEx.Join(matPath, "mat.mcmeta");
-            //var hasMatMeta = reader.FileExists(matMetaFileIn);
-
-            //context.IsAnimated = hasMatMeta;
 
             try {
                 await graph.PreBuildNormalTextureAsync(token);
@@ -282,8 +271,7 @@ namespace PixelGraph.Common.Textures
             }
 
             // TODO: update from mat.mcmeta file
-
-
+            
             return IsUpToDate(packWriteTime, sourceTime, destinationTime);
         }
 

@@ -34,17 +34,12 @@ namespace PixelGraph.Common.ImageProcessors
                 pixelHigh.GetChannelValueScaledF(options.HeightChannel, out var heightLow);
                 pixelLow.GetChannelValueScaledF(options.HeightChannel, out var heightHigh);
 
-                var variance = MathF.Abs(heightHigh - heightLow); // * options.Strength;
-                //MathEx.Clamp(ref variance, 0f, 1f);
+                var variance = MathF.Abs(heightHigh - heightLow);
 
-                //variance = MathF.Sqrt(variance);
-                //variance = MathF.Pow(variance, 2) * options.Strength;
                 variance = 1f - MathF.Sqrt(1f - variance);
                 variance *= options.Strength;
 
                 MathEx.Clamp(ref variance, 0f, 1f);
-
-                //MathEx.SmoothLerp(0f, 1f, variance, out variance);
 
                 pixelOut.SetChannelValueScaledF(ColorChannel.Red, in variance);
                 pixelOut.SetChannelValueScaledF(ColorChannel.Green, in variance);

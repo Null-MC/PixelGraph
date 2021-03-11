@@ -50,7 +50,6 @@ namespace PixelGraph.Common.ImageProcessors
                 }
 
                 if (hasNoise) {
-                    //context.GetNoise(in x, out var noiseX, out var noiseY);
                     angleX += (noiseX[x] / 127f - 1f) * options.Noise;
                     angleY += (noiseY[x] / 127f - 1f) * options.Noise;
                 }
@@ -89,13 +88,11 @@ namespace PixelGraph.Common.ImageProcessors
             random.NextBytes(buffer);
         }
 
-        public class Options //<TPixel>
+        public class Options
         {
             public ColorChannel NormalX = ColorChannel.None;
             public ColorChannel NormalY = ColorChannel.None;
             public ColorChannel NormalZ = ColorChannel.None;
-            //public ResourcePackChannelProperties MagnitudeChannel;
-            //public Image<TP> MagnitudeImage;
             public float CurveX = 0f;
             public float CurveY = 0f;
             public float Noise = 0f;

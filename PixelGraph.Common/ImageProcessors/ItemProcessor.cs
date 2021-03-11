@@ -22,22 +22,16 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
         {
-            //Span<Rgb24> normalRow = null;
-            //if (options.NormalImage != null) {
-            //    normalRow = options.NormalImage.GetPixelRowSpan(context.Y);
-            //}
-
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
-                var fx = (float)x / context.Bounds.Width;
-                var fy = (float)context.Y / context.Bounds.Height;
+                var fx = (x + HalfPixel) / context.Bounds.Width;
+                var fy = (context.Y + HalfPixel) / context.Bounds.Height;
 
                 var occlusionValue = 1f;
                 options.OcclusionSampler?.SampleScaled(in fx, in fy, in options.OcclusionColor, out occlusionValue);
 
                 var litNormal = 1f;
                 if (options.NormalSampler != null) {
-                    //var normal = normalRow[x].ToScaledVector4();
                     options.NormalSampler.SampleScaled(in fx, in fy, out var normal);
                     normal.X = normal.X * 2f - 1f;
                     normal.Y = normal.Y * 2f - 1f;
@@ -64,7 +58,6 @@ namespace PixelGraph.Common.ImageProcessors
         {
             public Vector4 LightDirection = Vector4.UnitZ;
 
-            //public Image<TNormal> NormalImage;
             public ISampler<Rgb24> NormalSampler;
 
             public ISampler<TOcclusion> OcclusionSampler;

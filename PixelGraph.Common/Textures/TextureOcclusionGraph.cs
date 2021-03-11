@@ -78,7 +78,6 @@ namespace PixelGraph.Common.Textures
                 texture = await GenerateAsync(token);
 
                 Channel = new ResourcePackOcclusionChannelProperties {
-                    //Texture = TextureTags.Occlusion,
                     Sampler = occlusionChannel?.Sampler,
                     Color = ColorChannel.Red,
                     Invert = true,
@@ -104,6 +103,7 @@ namespace PixelGraph.Common.Textures
             sampler.Image = occlusionTexture;
             sampler.WrapX = context.WrapX;
             sampler.WrapY = context.WrapY;
+            sampler.FrameCount = FrameCount;
 
             // TODO: SET THESE PROPERLY!
             sampler.RangeX = 1f;

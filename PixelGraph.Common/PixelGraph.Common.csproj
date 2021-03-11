@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
@@ -10,6 +10,7 @@
     <Compile Remove="ImageProcessors\ChannelActionProcessor.cs" />
     <Compile Remove="ImageProcessors\ChannelResizeProcessor.cs" />
     <Compile Remove="ImageProcessors\NormalRestoreProcessor.cs" />
+    <Compile Remove="ImageProcessors\OverwriteProcessor.cs" />
     <Compile Remove="ImageProcessors\RegionProcessor.cs" />
     <Compile Remove="IO\Publishing\PublishOptions.cs" />
     <Compile Remove="MaterialContext.cs" />

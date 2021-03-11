@@ -23,8 +23,6 @@ namespace PixelGraph.Common.ImageProcessors
 
             var pixel = new Rgba32();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                //var fx = (float)x / context.Bounds.Width;
-                //var fy = (float)context.Y / context.Bounds.Height;
                 var fx = (x + HalfPixel) / context.Bounds.Width;
                 var fy = (context.Y + HalfPixel) / context.Bounds.Height;
 

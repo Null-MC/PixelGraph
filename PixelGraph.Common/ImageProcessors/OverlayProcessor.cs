@@ -21,23 +21,13 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
-            //var pixelIn = new Rgba32();
             var pixelOut = new Rgba32();
             double value;
 
             var mappingCount = options.Mappings.Length;
 
-            //Span<TPixel> overlayRow = null;
-            //if (options.SamplerMap == null) {
-            //    overlayRow = options.Source.GetPixelRowSpan(context.Y);
-            //}
-
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 row[x].ToRgba32(ref pixelOut);
-
-                //if (options.SamplerMap == null) {
-                //    overlayRow[x].ToRgba32(ref pixelIn);
-                //}
 
                 for (var i = 0; i < mappingCount; i++) {
                     var mapping = options.Mappings[i];
@@ -52,15 +42,10 @@ namespace PixelGraph.Common.ImageProcessors
                     else {
                         byte pixelValue = 0;
                         if (options.SamplerMap.TryGetValue(mapping.InputColor, out var sampler)) {
-                            //var fx = (float)x / context.Bounds.Width;
-                            //var fy = (float)context.Y / context.Bounds.Height;
                             var fx = (x - context.Bounds.X + HalfPixel) / context.Bounds.Width;
                             var fy = (context.Y - context.Bounds.Y + HalfPixel) / context.Bounds.Height;
                             sampler.Sample(fx, fy, in mapping.InputColor, out pixelValue);
                         }
-                        //else {
-                        //    pixelIn.GetChannelValue(in mapping.InputColor, out pixelValue);
-                        //}
 
                         // Discard operation if source value outside bounds
                         if (pixelValue < mapping.InputRangeMin || pixelValue > mapping.InputRangeMax) continue;
@@ -83,8 +68,6 @@ namespace PixelGraph.Common.ImageProcessors
 
                         if (mapping.InputInverted) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
 
-                        //if (mapping.InputPerceptual) MathEx.PerceptualToLinear(ref value);
-
                         if (!mapping.InputPower.Equal(1d))
                             value = Math.Pow(value, 1d / mapping.InputPower);
                     }
@@ -96,14 +79,12 @@ namespace PixelGraph.Common.ImageProcessors
                     if (!mapping.ValueScale.Equal(1f))
                         value *= mapping.ValueScale;
 
-                    //if (mapping.OutputPerceptual) MathEx.LinearToPerceptual(ref value);
-
                     if (!mapping.OutputPower.Equal(1d))
                         value = Math.Pow(value, mapping.OutputPower);
 
                     if (mapping.OutputInverted) MathEx.Invert(ref value, mapping.InputMinValue, mapping.OutputMaxValue);
 
-                    // TODO: convert from value-space to pixel-space
+                    // convert from value-space to pixel-space
                     var valueRange = mapping.OutputMaxValue - mapping.OutputMinValue;
                     var pixelRange = mapping.OutputRangeMax - mapping.OutputRangeMin;
 
@@ -137,7 +118,6 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
-            //public Image<TPixel> Source;
             public TextureChannelMapping[] Mappings;
             public Dictionary<ColorChannel, ISampler<TPixel>> SamplerMap;
             public bool IsGrayscale;

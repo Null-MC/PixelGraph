@@ -46,12 +46,10 @@ namespace PixelGraph.UI.Windows
             var reader = scope.GetRequiredService<IInputReader>();
             var writer = scope.GetRequiredService<IOutputWriter>();
             var packReader = scope.GetRequiredService<IResourcePackReader>();
-            //var graphBuilder = scope.GetRequiredService<ITextureGraphBuilder>();
             var publisher = scope.GetRequiredService<IPublisher>();
 
             reader.SetRoot(VM.RootDirectory);
             writer.SetRoot(destination);
-            //graphBuilder.UseGlobalOutput = true;
 
             VM.LogList.BeginAppend(LogLevel.None, "Preparing output directory...");
             writer.Prepare();

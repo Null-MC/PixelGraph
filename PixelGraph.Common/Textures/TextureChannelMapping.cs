@@ -12,7 +12,6 @@ namespace PixelGraph.Common.Textures
         public byte InputRangeMax;
         public int InputShift;
         public double InputPower;
-        //public bool InputPerceptual;
         public bool InputInverted;
 
         public ColorChannel OutputColor;
@@ -23,8 +22,8 @@ namespace PixelGraph.Common.Textures
         public byte OutputRangeMax;
         public int OutputShift;
         public double OutputPower;
-        //public bool OutputPerceptual;
         public bool OutputInverted;
+        public bool OutputApplyOcclusion;
 
         public string SourceTag;
         public string SourceFilename;
@@ -43,7 +42,6 @@ namespace PixelGraph.Common.Textures
             InputRangeMax = channel.RangeMax ?? 255;
             InputShift = channel.Shift ?? 0;
             InputPower = (double?)channel.Power ?? 1d;
-            //InputPerceptual = channel.Perceptual ?? false;
             InputInverted = channel.Invert ?? false;
         }
     }

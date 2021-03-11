@@ -29,18 +29,10 @@ namespace PixelGraph.Common.ImageProcessors
             var pixelOut = new Rgba32(0, 0, 0, 255);
             var position = new Vector3();
 
-            //var hasEmissive = options.EmissiveSampler != null && options.EmissiveChannel != ColorChannel.None;
-
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                //var fx = (float)x / context.Bounds.Width;
-                //var fy = (float)context.Y / context.Bounds.Height;
                 var fx = (x + HalfPixel) / context.Bounds.Width;
                 var fy = (context.Y + HalfPixel) / context.Bounds.Height;
                 options.HeightSampler.SampleScaled(fx, fy, in options.HeightChannel, out var height);
-
-                //var emissive = 0f;
-                //if (hasEmissive)
-                //    options.EmissiveSampler.SampleScaled(fx, fy, in options.EmissiveChannel, out emissive);
 
                 // TODO: range, shift, power
                 if (!options.HeightInvert) MathEx.Invert(ref height);
@@ -57,14 +49,8 @@ namespace PixelGraph.Common.ImageProcessors
                         hitFactor += rayHitFactor * rayCountFactor;
                 }
 
-                var occlusion = hitFactor;
-                //if (emissive > float.Epsilon) {
-                //    occlusion -= emissive * 8f;
-                //}
-
-                MathEx.Saturate(1d - occlusion, out pixelOut.R);
+                MathEx.Saturate(1d - hitFactor, out pixelOut.R);
                 pixelOut.B = pixelOut.G = pixelOut.R;
-
                 row[x].FromRgba32(pixelOut);
             }
         }
@@ -145,11 +131,7 @@ namespace PixelGraph.Common.ImageProcessors
             public byte HeightRangeMax;
             public int HeightShift;
             public float HeightPower;
-            //public bool HeightPerceptual;
             public bool HeightInvert;
-
-            //public ISampler<Rgba32> EmissiveSampler;
-            //public ColorChannel EmissiveChannel;
 
             public float StepDistance;
             public float HitPower = 1.5f;

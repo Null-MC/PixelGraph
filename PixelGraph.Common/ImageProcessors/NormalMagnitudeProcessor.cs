@@ -52,18 +52,12 @@ namespace PixelGraph.Common.ImageProcessors
                 if (!options.InputPower.Equal(1f))
                     value = Math.Pow(value, 1d / options.InputPower);
 
-                // Input: Perceptual > Linear
-                //if (options.InputPerceptual) MathEx.PerceptualToLinear(ref value);
-
                 // Common operations
 
                 value *= options.Scale;
 
                 if (!options.OutputPower.Equal(1f))
                     value = Math.Pow(value, options.OutputPower);
-
-                // Output: Linear > Perceptual
-                //if (options.OutputPerceptual) MathEx.LinearToPerceptual(ref value);
 
                 if (options.OutputInvert) MathEx.Invert(ref value, options.OutputMinValue, options.OutputMaxValue);
 
@@ -92,7 +86,6 @@ namespace PixelGraph.Common.ImageProcessors
             public byte InputRangeMax;
             public int InputShift;
             public float InputPower;
-            //public bool InputPerceptual;
             public bool InputInvert;
 
             public float OutputMinValue;
@@ -101,7 +94,6 @@ namespace PixelGraph.Common.ImageProcessors
             public byte OutputRangeMax;
             public int OutputShift;
             public float OutputPower;
-            //public bool OutputPerceptual;
             public bool OutputInvert;
 
 
@@ -114,7 +106,6 @@ namespace PixelGraph.Common.ImageProcessors
                 InputRangeMax = channel.RangeMax ?? 255;
                 InputShift = channel.Shift ?? 0;
                 InputPower = (float?) channel.Power ?? 1f;
-                //InputPerceptual = channel.Perceptual ?? false;
                 InputInvert = channel.Invert ?? false;
             }
 
@@ -126,7 +117,6 @@ namespace PixelGraph.Common.ImageProcessors
                 OutputRangeMax = channel.RangeMax ?? 255;
                 OutputShift = channel.Shift ?? 0;
                 OutputPower = (float?) channel.Power ?? 1f;
-                //OutputPerceptual = channel.Perceptual ?? false;
                 OutputInvert = channel.Invert ?? false;
             }
         }

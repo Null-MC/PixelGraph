@@ -22,8 +22,8 @@
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <vd:OptionalEncodingFormatValues x:Key="Formats"/>
-        <vd:TextureTagValues x:Key="TextureTags"/>
-        <vd:ColorChannelValues x:Key="ColorChannels"/>
+        <vd:OptionalTextureTagValues x:Key="TextureTags"/>
+        <vd:OptionalColorChannelValues x:Key="ColorChannels"/>
         <vd:NormalColorChannelValues x:Key="NormalColorChannels"/>
         <vd:SamplerValues x:Key="Samplers"/>
         <converters:NullableConverter x:Key="NullableConverter"/>

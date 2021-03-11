@@ -101,8 +101,10 @@ namespace PixelGraph.Common.Textures
                 };
 
                 await builder.MapAsync(false, token);
-                Texture = await builder.BuildAsync<Rgb24>(false, token);
-                if (Texture != null) FrameCount = builder.FrameCount;
+                if (builder.HasMappedSources) {
+                    Texture = await builder.BuildAsync<Rgb24>(false, token);
+                    if (Texture != null) FrameCount = builder.FrameCount;
+                }
             }
 
             var autoGenNormal = context.Profile?.AutoGenerateNormal
