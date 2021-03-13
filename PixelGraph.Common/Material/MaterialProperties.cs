@@ -3,6 +3,7 @@ using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PixelGraph.Common.ConnectedTextures;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material
@@ -30,8 +31,8 @@ namespace PixelGraph.Common.Material
         [YamlIgnore]
         public string DisplayName => Alias != null ? $"{Alias}:{Name}" : Name;
 
-        [YamlIgnore]
-        public bool IsMultiPart => Parts?.Any() ?? false;
+        //[YamlIgnore]
+        //public bool IsMultiPart => Parts?.Any() ?? false;
 
         [YamlMember(Order = 0)]
         public string InputFormat {get; set;}
@@ -92,31 +93,51 @@ namespace PixelGraph.Common.Material
 
         public MaterialEmissiveProperties Emissive {get; set;}
 
-        [YamlMember(Order = 99)]
+        [YamlMember(Order = 100)]
+        public string CtmType {get; set;}
+
+        [YamlMember(Order = 101)]
         public List<MaterialPart> Parts {get; set;}
 
 
-        public bool TryGetSourceBounds(out Size size)
+        public bool TryGetSourceBounds(in int? blockSize, out Size size)
         {
-            if (!IsMultiPart) {
-                size = Size.Empty;
-                return false;
+            if (!string.IsNullOrWhiteSpace(CtmType)) {
+                var tileWidth = TextureWidth ?? TextureSize ?? blockSize;
+                var tileHeight = TextureHeight ?? TextureSize ?? blockSize;
+
+                if (tileWidth.HasValue && tileHeight.HasValue) {
+                    switch (CtmType) {
+                        case CtmTypes.Compact:
+                            size = new Size(tileWidth.Value * 5, tileHeight.Value);
+                            return true;
+                        case CtmTypes.Full:
+                        case CtmTypes.Expanded:
+                            size = new Size(tileWidth.Value * 12, tileHeight.Value * 4);
+                            return true;
+                    }
+                }
             }
 
-            size = new Size();
-            foreach (var part in Parts) {
-                if (part.Left.HasValue && part.Width.HasValue) {
-                    var partWidth = part.Left.Value + part.Width.Value;
-                    if (partWidth > size.Width) size.Width = partWidth;
+            if (Parts?.Any() ?? false) {
+                size = new Size();
+                foreach (var part in Parts) {
+                    if (part.Left.HasValue && part.Width.HasValue) {
+                        var partWidth = part.Left.Value + part.Width.Value;
+                        if (partWidth > size.Width) size.Width = partWidth;
+                    }
+
+                    if (part.Top.HasValue && part.Height.HasValue) {
+                        var partHeight = part.Top.Value + part.Height.Value;
+                        if (partHeight > size.Height) size.Height = partHeight;
+                    }
                 }
 
-                if (part.Top.HasValue && part.Height.HasValue) {
-                    var partHeight = part.Top.Value + part.Height.Value;
-                    if (partHeight > size.Height) size.Height = partHeight;
-                }
+                return true;
             }
 
-            return true;
+            size = Size.Empty;
+            return false;
         }
 
         public MaterialProperties Clone()

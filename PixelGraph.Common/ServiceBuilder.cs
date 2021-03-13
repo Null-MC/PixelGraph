@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Effects;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.IO.Publishing;
@@ -44,6 +45,8 @@ namespace PixelGraph.Common
             Services.AddScoped<ITextureNormalGraph, TextureNormalGraph>();
             Services.AddScoped<ITextureOcclusionGraph, TextureOcclusionGraph>();
             Services.AddScoped<ITextureGraphBuilder, TextureGraphBuilder>();
+            Services.AddScoped<ITextureRegionEnumerator, TextureRegionEnumerator>();
+            Services.AddScoped<IEdgeFadeImageEffect, EdgeFadeImageEffect>();
 
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
             Services.AddTransient<IMaterialImporter, MaterialImporter>();

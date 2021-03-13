@@ -92,8 +92,8 @@ namespace PixelGraph.Common.Textures
             var sampler = Sampler<Rgb24>.Create(Samplers.Samplers.Nearest);
 
             sampler.Image = normalGraph.Texture;
-            sampler.WrapX = context.WrapX;
-            sampler.WrapY = context.WrapY;
+            sampler.WrapX = context.MaterialWrapX;
+            sampler.WrapY = context.MaterialWrapY;
             sampler.FrameCount = normalGraph.FrameCount;
             sampler.Frame = 0;
 
@@ -129,8 +129,8 @@ namespace PixelGraph.Common.Textures
             var samplerName = emissiveChannel.Sampler ?? context.DefaultSampler;
             var sampler = Sampler<Rgba32>.Create(samplerName);
             sampler.Image = emissiveImage;
-            sampler.WrapX = context.WrapX;
-            sampler.WrapY = context.WrapY;
+            sampler.WrapX = context.MaterialWrapX;
+            sampler.WrapY = context.MaterialWrapY;
             sampler.FrameCount = 1; // TODO: !
             sampler.Frame = 0;
 

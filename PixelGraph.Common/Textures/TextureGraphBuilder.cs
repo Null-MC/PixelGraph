@@ -1,12 +1,17 @@
 ﻿using Microsoft.Extensions.Logging;
+using PixelGraph.Common.Effects;
 using PixelGraph.Common.Extensions;
+using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.ConnectedTextures;
 
 namespace PixelGraph.Common.Textures
 {
@@ -24,7 +29,9 @@ namespace PixelGraph.Common.Textures
         private readonly IOutputWriter writer;
         private readonly INamingStructure naming;
         private readonly IImageWriter imageWriter;
+        private readonly IEdgeFadeImageEffect edgeFadeEffect;
         private readonly IInventoryTextureGenerator itemGenerator;
+        private readonly ITextureRegionEnumerator regions;
         private readonly ILogger logger;
         private string matMetaFileIn;
 
@@ -37,7 +44,9 @@ namespace PixelGraph.Common.Textures
             IOutputWriter writer,
             INamingStructure naming,
             IImageWriter imageWriter,
-            IInventoryTextureGenerator itemGenerator)
+            IEdgeFadeImageEffect edgeFadeEffect,
+            IInventoryTextureGenerator itemGenerator,
+            ITextureRegionEnumerator regions)
         {
             this.context = context;
             this.graph = graph;
@@ -45,7 +54,9 @@ namespace PixelGraph.Common.Textures
             this.writer = writer;
             this.naming = naming;
             this.imageWriter = imageWriter;
+            this.edgeFadeEffect = edgeFadeEffect;
             this.itemGenerator = itemGenerator;
+            this.regions = regions;
             this.logger = logger;
         }
 
@@ -174,45 +185,71 @@ namespace PixelGraph.Common.Textures
 
             imageWriter.Format = context.ImageFormat;
 
+            if (context.IsMaterialMultiPart || context.IsMaterialCtm) {
+                await SaveMultiPartAsync(image, textureTag, type, token);
+            }
+            else {
+                await SaveDefaultAsync(image, textureTag, type, token);
+            }
+        }
+
+        private async Task SaveDefaultAsync(Image image, string textureTag, ImageChannels type, CancellationToken token)
+        {
             var p = context.Material.LocalPath;
             if (!context.UseGlobalOutput) p = PathEx.Join(p, context.Material.Name);
 
-            if (context.Material.TryGetSourceBounds(out var bounds)) {
-                var scaleX = (float)image.Width / bounds.Width;
+            var name = naming.GetOutputTextureName(context.Profile, context.Material.Name, textureTag, context.UseGlobalOutput);
+            var destFile = PathEx.Join(p, name);
 
-                foreach (var region in context.Material.Parts) {
-                    var name = naming.GetOutputTextureName(context.Profile, region.Name, textureTag, context.UseGlobalOutput);
-                    var destFile = PathEx.Join(p, name);
+            edgeFadeEffect.Apply(image, textureTag);
 
-                    if (image.Width == 1 && image.Height == 1) {
-                        await imageWriter.WriteAsync(image, destFile, type, token);
-                    }
-                    else {
-                        var regionBounds = region.GetRectangle();
-                        regionBounds.X = (int)MathF.Ceiling(regionBounds.X * scaleX);
-                        regionBounds.Y = (int)MathF.Ceiling(regionBounds.Y * scaleX);
-                        regionBounds.Width = (int)MathF.Ceiling(regionBounds.Width * scaleX);
-                        regionBounds.Height = (int)MathF.Ceiling(regionBounds.Height * scaleX);
+            await imageWriter.WriteAsync(image, destFile, type, token);
 
-                        using var regionImage = image.Clone(c => c.Crop(regionBounds));
+            logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", context.Material.DisplayName, textureTag);
+        }
 
-                        graph.FixEdges(regionImage, textureTag);
+        private async Task SaveMultiPartAsync<TPixel>(Image<TPixel> image, string textureTag, ImageChannels type, CancellationToken token)
+            where TPixel : unmanaged, IPixel<TPixel>
+        {
+            var p = context.Material.LocalPath;
+            if (!context.UseGlobalOutput) p = PathEx.Join(p, context.Material.Name);
 
-                        await imageWriter.WriteAsync(regionImage, destFile, type, token);
-                    }
-
-                    logger.LogInformation("Published texture region {Name} tag {textureTag}.", region.Name, textureTag);
-                }
-            }
-            else {
-                var name = naming.GetOutputTextureName(context.Profile, context.Material.Name, textureTag, context.UseGlobalOutput);
+            foreach (var region in regions.GetRegions(image)) {
+                var name = naming.GetOutputTextureName(context.Profile, region.Name, textureTag, context.UseGlobalOutput);
                 var destFile = PathEx.Join(p, name);
 
-                graph.FixEdges(image, textureTag);
+                if (image.Width == 1 && image.Height == 1) {
+                    await imageWriter.WriteAsync(image, destFile, type, token);
+                }
+                else if (region.Mappings != null) {
+                    using var regionImage = new Image<TPixel>(region.Bounds.Width, region.Bounds.Height);
 
-                await imageWriter.WriteAsync(image, destFile, type, token);
+                    regionImage.Mutate(c => {
+                        foreach (var mapping in region.Mappings) {
+                            var options = new CopyRegionProcessor<TPixel>.Options {
+                                SourceImage = image,
+                                SourceX = mapping.SourceBounds.X,
+                                SourceY = mapping.SourceBounds.Y,
+                            };
 
-                logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", context.Material.DisplayName, textureTag);
+                            var processor = new CopyRegionProcessor<TPixel>(options);
+                            c.ApplyProcessor(processor, mapping.DestBounds);
+                        }
+                    });
+
+                    edgeFadeEffect.Apply(regionImage, textureTag);
+
+                    await imageWriter.WriteAsync(regionImage, destFile, type, token);
+                }
+                else {
+                    using var regionImage = image.Clone(c => c.Crop(region.Bounds));
+
+                    edgeFadeEffect.Apply(regionImage, textureTag);
+
+                    await imageWriter.WriteAsync(regionImage, destFile, type, token);
+                }
+
+                logger.LogInformation("Published texture region {Name} tag {textureTag}.", region.Name, textureTag);
             }
         }
 
@@ -253,26 +290,56 @@ namespace PixelGraph.Common.Textures
         {
             DateTime? destinationTime = null;
 
-            if (context.Material.IsMultiPart) {
-                foreach (var part in context.Material.Parts) {
-                    var albedoOutputName = naming.GetOutputTextureName(context.Profile, part.Name, TextureTags.Albedo, true);
-                    var albedoFile = PathEx.Join(context.Material.LocalPath, albedoOutputName);
-                    var writeTime = writer.GetWriteTime(albedoFile);
-                    if (!writeTime.HasValue) continue;
+            var tags = context.OutputEncoding
+                .Select(e => e.Texture).Distinct();
 
-                    if (!destinationTime.HasValue || writeTime.Value < destinationTime.Value)
-                        destinationTime = writeTime;
-                }
-            }
-            else {
-                var albedoOutputName = naming.GetOutputTextureName(context.Profile, context.Material.Name, TextureTags.Albedo, true);
-                var albedoFile = PathEx.Join(context.Material.LocalPath, albedoOutputName);
-                destinationTime = writer.GetWriteTime(albedoFile);
+            foreach (var file in GetMaterialOutputFiles(tags)) {
+                var writeTime = writer.GetWriteTime(file);
+                if (!writeTime.HasValue) continue;
+
+                if (!destinationTime.HasValue || writeTime.Value < destinationTime.Value)
+                    destinationTime = writeTime;
             }
 
             // TODO: update from mat.mcmeta file
             
             return IsUpToDate(packWriteTime, sourceTime, destinationTime);
+        }
+
+        private IEnumerable<string> GetMaterialOutputFiles(IEnumerable<string> textureTags)
+        {
+            foreach (var tag in textureTags) {
+                if (context.IsMaterialMultiPart) {
+                    foreach (var part in context.Material.Parts) {
+                        var outputName = naming.GetOutputTextureName(context.Profile, part.Name, tag, true);
+                        yield return PathEx.Join(context.Material.LocalPath, outputName);
+                    }
+                }
+                else if (context.IsMaterialCtm) {
+                    switch (context.Material.CtmType) {
+                        case CtmTypes.Compact:
+                        case CtmTypes.Expanded:
+                            for (var x = 0; x < 5; x++) {
+                                var outputName = naming.GetOutputTextureName(context.Profile, x.ToString(), tag, true);
+                                yield return PathEx.Join(context.Material.LocalPath, outputName);
+                            }
+                            break;
+                        case CtmTypes.Full:
+                            for (var y = 0; y < 4; y++) {
+                                for (var x = 0; x < 12; x++) {
+                                    var index = y * 12 + x;
+                                    var outputName = naming.GetOutputTextureName(context.Profile, index.ToString(), tag, true);
+                                    yield return PathEx.Join(context.Material.LocalPath, outputName);
+                                }
+                            }
+                            break;
+                    }
+                }
+                else {
+                    var outputName = naming.GetOutputTextureName(context.Profile, context.Material.Name, tag, true);
+                    yield return PathEx.Join(context.Material.LocalPath, outputName);
+                }
+            }
         }
 
         private bool IsInventoryUpToDate(DateTime packWriteTime, DateTime? sourceTime)

@@ -1,4 +1,5 @@
 ﻿using SixLabors.ImageSharp;
+using System;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material
@@ -23,7 +24,22 @@ namespace PixelGraph.Common.Material
 
         public Rectangle GetRectangle()
         {
-            return new Rectangle(Left ?? 0, Top ?? 0, Width ?? 0, Height ?? 0);
+            return new Rectangle {
+                X = Left ?? 0,
+                Y = Top ?? 0,
+                Width = Width ?? 0,
+                Height = Height ?? 0,
+            };
+        }
+
+        public Rectangle GetRectangle(float scale)
+        {
+            return new Rectangle {
+                X = (int) MathF.Ceiling((Left ?? 0) * scale),
+                Y = (int) MathF.Ceiling((Top ?? 0) * scale),
+                Width = (int) MathF.Ceiling((Width ?? 0) * scale),
+                Height = (int) MathF.Ceiling((Height ?? 0) * scale),
+            };
         }
     }
 }

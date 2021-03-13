@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Effects;
 using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
@@ -51,6 +52,8 @@ namespace PixelGraph.UI.Internal
             var scope = provider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
             var graph = scope.ServiceProvider.GetRequiredService<ITextureGraph>();
+            var regions = scope.ServiceProvider.GetRequiredService<ITextureRegionEnumerator>();
+            var edgeFadeEffect = scope.ServiceProvider.GetRequiredService<IEdgeFadeImageEffect>();
 
             context.Input = Input;
             context.Profile = Profile;
@@ -75,21 +78,12 @@ namespace PixelGraph.UI.Internal
             if (image == null) return null;
 
             if (image.Width > 1 || image.Height > 1) {
-                if (context.Material.TryGetSourceBounds(out var bounds)) {
-                    var scaleX = (float)image.Width / bounds.Width;
-
-                    foreach (var region in context.Material.Parts) {
-                        var regionBounds = region.GetRectangle();
-                        regionBounds.X = (int)MathF.Ceiling(regionBounds.X * scaleX);
-                        regionBounds.Y = (int)MathF.Ceiling(regionBounds.Y * scaleX);
-                        regionBounds.Width = (int)MathF.Ceiling(regionBounds.Width * scaleX);
-                        regionBounds.Height = (int)MathF.Ceiling(regionBounds.Height * scaleX);
-
-                        graph.FixEdges(image, tag, regionBounds);
-                    }
+                if (context.IsMaterialMultiPart || context.IsMaterialCtm) {
+                    foreach (var region in regions.GetRegions(image))
+                        edgeFadeEffect.Apply(image, tag, region.Bounds);
                 }
                 else {
-                    graph.FixEdges(image, tag);
+                    edgeFadeEffect.Apply(image, tag);
                 }
             }
 

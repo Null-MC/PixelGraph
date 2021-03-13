@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Encoding;
-using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.ResourcePack;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +14,6 @@ namespace PixelGraph.Common.Textures
     public interface ITextureGraph
     {
         Task PreBuildNormalTextureAsync(CancellationToken token = default);
-        void FixEdges(Image image, string tag, Rectangle? bounds = null);
         int GetMaxFrameCount();
 
         Task MapAsync(string textureTag, bool createEmpty, int? frame = null, CancellationToken token = default);
@@ -106,32 +103,6 @@ namespace PixelGraph.Common.Textures
         public int GetMaxFrameCount()
         {
             return builderMap.Values.Max(b => b.FrameCount);
-        }
-
-        public void FixEdges(Image image, string tag, Rectangle? bounds = null)
-        {
-            var hasEdgeSizeX = context.Material.Height?.EdgeFadeX.HasValue ?? false;
-            var hasEdgeSizeY = context.Material.Height?.EdgeFadeY.HasValue ?? false;
-            if (!hasEdgeSizeX && !hasEdgeSizeY) return;
-
-            var heightChannels = context.OutputEncoding
-                .Where(c => TextureTags.Is(c.Texture, tag))
-                .Where(c => EncodingChannel.Is(c.ID, EncodingChannel.Height))
-                .Select(c => c.Color ?? ColorChannel.None).ToArray();
-
-            if (!heightChannels.Any()) return;
-
-            var options = new HeightEdgeProcessor.Options {
-                SizeX = (float?)context.Material.Height?.EdgeFadeX ?? 0f,
-                SizeY = (float?)context.Material.Height?.EdgeFadeY ?? 0f,
-                Colors = heightChannels,
-            };
-
-            var processor = new HeightEdgeProcessor(options);
-            image.Mutate(c => {
-                if (!bounds.HasValue) c.ApplyProcessor(processor);
-                else c.ApplyProcessor(processor, bounds.Value);
-            });
         }
     }
 }

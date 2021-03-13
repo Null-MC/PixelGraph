@@ -101,8 +101,8 @@ namespace PixelGraph.Common.Textures
             var samplerName = Channel?.Sampler ?? context.DefaultSampler;
             var sampler = Sampler<Rgba32>.Create(samplerName);
             sampler.Image = occlusionTexture;
-            sampler.WrapX = context.WrapX;
-            sampler.WrapY = context.WrapY;
+            sampler.WrapX = context.MaterialWrapX;
+            sampler.WrapY = context.MaterialWrapY;
             sampler.FrameCount = FrameCount;
 
             // TODO: SET THESE PROPERLY!
@@ -137,8 +137,8 @@ namespace PixelGraph.Common.Textures
             var samplerName = context.Profile?.Encoding?.Height?.Sampler ?? context.DefaultSampler;
             var heightSampler = Sampler<Rgba32>.Create(samplerName);
             heightSampler.Image = heightTexture;
-            heightSampler.WrapX = context.WrapX;
-            heightSampler.WrapY = context.WrapY;
+            heightSampler.WrapX = context.MaterialWrapX;
+            heightSampler.WrapY = context.MaterialWrapY;
             heightSampler.FrameCount = info.FrameCount;
 
             heightSampler.RangeX = (float)heightTexture.Width / occlusionWidth;

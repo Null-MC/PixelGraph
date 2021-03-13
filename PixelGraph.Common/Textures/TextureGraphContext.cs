@@ -20,8 +20,10 @@ namespace PixelGraph.Common.Textures
         bool UseGlobalOutput {get; set;}
         bool IsAnimated {get; set;}
         int MaxFrameCount {get; set;}
-        bool WrapX {get;}
-        bool WrapY {get;}
+        bool MaterialWrapX {get;}
+        bool MaterialWrapY {get;}
+        bool IsMaterialMultiPart {get;}
+        bool IsMaterialCtm {get;}
         float? TextureScale {get;}
         string DefaultSampler {get;}
         string ImageFormat {get;}
@@ -39,8 +41,6 @@ namespace PixelGraph.Common.Textures
         private static readonly Regex blockTextureExp = new Regex(@"(?:^|\/)textures\/block(?:\/|$)", RegexOptions.Compiled);
         private static readonly Regex entityTextureExp = new Regex(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
 
-        //public MaterialContext Material {get; set;}
-
         public MaterialProperties Material {get; set;}
         public ResourcePackInputProperties Input {get; set;}
         public ResourcePackProfileProperties Profile {get; set;}
@@ -50,8 +50,10 @@ namespace PixelGraph.Common.Textures
         public bool IsAnimated {get; set;}
         public int MaxFrameCount {get; set;}
 
-        public bool WrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
-        public bool WrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
+        public bool MaterialWrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
+        public bool MaterialWrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
+        public bool IsMaterialMultiPart => Material.Parts?.Any() ?? false;
+        public bool IsMaterialCtm => !string.IsNullOrWhiteSpace(Material.CtmType);
         public float? TextureScale => (float?)Profile?.TextureScale;
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
         public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
@@ -188,7 +190,9 @@ namespace PixelGraph.Common.Textures
 
         public Size? GetBufferSize(float aspect)
         {
-            if (Material.TryGetSourceBounds(out var bounds)) {
+            var blockSize = Profile?.BlockTextureSize;
+
+            if (Material.TryGetSourceBounds(in blockSize, out var bounds)) {
                 if (TextureScale.HasValue) {
                     var width = (int)MathF.Ceiling(bounds.Width * TextureScale.Value);
                     var height = (int)MathF.Ceiling(bounds.Height * TextureScale.Value);

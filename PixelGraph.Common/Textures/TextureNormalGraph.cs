@@ -174,8 +174,8 @@ namespace PixelGraph.Common.Textures
                     HeightChannel = heightChannelIn.Color ?? ColorChannel.None,
                     Filter = context.Material.Normal?.Filter ?? MaterialNormalProperties.DefaultFilter,
                     Strength = (float?)context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
-                    WrapX = context.WrapX,
-                    WrapY = context.WrapY,
+                    WrapX = context.MaterialWrapX,
+                    WrapY = context.MaterialWrapY,
 
                     // TODO: testing
                     VarianceStrength = 0.998f,
@@ -275,8 +275,8 @@ namespace PixelGraph.Common.Textures
                     var samplerName = context.Profile?.Encoding?.Height?.Sampler ?? context.DefaultSampler;
                     var sampler = Sampler<Rgba32>.Create(samplerName);
                     sampler.Image = heightTexture;
-                    sampler.WrapX = context.WrapX;
-                    sampler.WrapY = context.WrapY;
+                    sampler.WrapX = context.MaterialWrapX;
+                    sampler.WrapY = context.MaterialWrapY;
                     sampler.RangeX = sampler.RangeY = 1f / scale;
                     sampler.FrameCount = 1;
                     //sampler.Frame = 0;

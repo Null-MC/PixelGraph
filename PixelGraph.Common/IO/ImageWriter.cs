@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp;
+﻿using PixelGraph.Common.Textures;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Gif;
@@ -9,15 +10,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.IO
 {
     public interface IImageWriter
     {
         public string Format {get; set;}
-        //bool HasColor {get; set;}
-        //bool HasAlpha {get; set;}
 
         Task WriteAsync(Image image, string localFile, ImageChannels type, CancellationToken token);
     }
@@ -28,8 +26,6 @@ namespace PixelGraph.Common.IO
         private readonly IOutputWriter writer;
 
         public string Format {get; set;}
-        //public bool HasColor {get; set;}
-        //public bool HasAlpha {get; set;}
 
 
         static ImageWriter()

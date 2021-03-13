@@ -305,8 +305,8 @@ namespace PixelGraph.Common.Textures
             var samplerName = mapping.OutputSampler ?? context.DefaultSampler;
             var sampler = Sampler<Rgb24>.Create(samplerName);
             sampler.Image = normalGraph.Texture;
-            sampler.WrapX = context.WrapX;
-            sampler.WrapY = context.WrapY;
+            sampler.WrapX = context.MaterialWrapX;
+            sampler.WrapY = context.MaterialWrapY;
             sampler.FrameCount = normalGraph.FrameCount;
             sampler.RangeX = (float)normalGraph.Texture.Width / bufferSize.Width;
             sampler.RangeY = (float)normalGraph.Texture.Height / bufferSize.Height;
@@ -467,9 +467,10 @@ namespace PixelGraph.Common.Textures
         private async Task<Size> GetBufferSizeAsync(CancellationToken token = default)
         {
             var scale = context.TextureScale ?? 1f;
+            var blockSize = context.Profile?.BlockTextureSize;
 
             // Use multi-part bounds if defined
-            if (context.Material.TryGetSourceBounds(out var partBounds)) {
+            if (context.Material.TryGetSourceBounds(in blockSize, out var partBounds)) {
                 if (scale.Equal(1f)) return partBounds;
 
                 var width = (int)MathF.Ceiling(partBounds.Width * scale);
@@ -600,8 +601,8 @@ namespace PixelGraph.Common.Textures
                 var samplerName = mapping.OutputSampler ?? context.DefaultSampler;
                 var sampler = Sampler<TP>.Create(samplerName);
                 sampler.Image = sourceImage;
-                sampler.WrapX = context.WrapX;
-                sampler.WrapY = context.WrapY;
+                sampler.WrapX = context.MaterialWrapX;
+                sampler.WrapY = context.MaterialWrapY;
                 sampler.FrameCount = frameCount;
                 sampler.Frame = frame;
 
