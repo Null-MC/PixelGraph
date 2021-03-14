@@ -5,6 +5,7 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Numerics;
+using System.Threading;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -30,6 +31,8 @@ namespace PixelGraph.Common.ImageProcessors
             var position = new Vector3();
 
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
+                options.Token.ThrowIfCancellationRequested();
+
                 var (fx, fy) = GetTexCoord(in context, in x);
                 options.HeightSampler.SampleScaled(in fx, in fy, in options.HeightChannel, out var height);
 
@@ -39,13 +42,17 @@ namespace PixelGraph.Common.ImageProcessors
                 var z = height * options.ZScale + options.ZBias;
 
                 var hitFactor = 0d;
-                for (var i = 0; i < rayCount; i++) {
-                    position.X = x;
-                    position.Y = context.Y;
-                    position.Z = z;
+                if (z < options.ZScale) {
+                    for (var i = 0; i < rayCount; i++) {
+                        options.Token.ThrowIfCancellationRequested();
 
-                    if (RayTest(in context, ref position, in rayList.Value[i], out var rayHitFactor))
-                        hitFactor += rayHitFactor * rayCountFactor;
+                        position.X = x;
+                        position.Y = context.Y;
+                        position.Z = z;
+
+                        if (RayTest(in context, ref position, in rayList.Value[i], out var rayHitFactor))
+                            hitFactor += rayHitFactor * rayCountFactor;
+                    }
                 }
 
                 MathEx.Saturate(1d - hitFactor, out pixelOut.R);
@@ -100,7 +107,7 @@ namespace PixelGraph.Common.ImageProcessors
             for (var step = 1; step <= options.StepCount; step++) {
                 position += ray;
 
-                if (position.Z > options.ZScale) break;
+                if (position.Z >= options.ZScale) break;
 
                 var (fx, fy) = GetTexCoord(in context, in position.X, in position.Y);
                 options.HeightSampler.SampleScaled(in fx, in fy, options.HeightChannel, out var height);
@@ -121,6 +128,8 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
+            public CancellationToken Token;
+
             public ISampler<THeight> HeightSampler;
             public ColorChannel HeightChannel;
             public float HeightMinValue;

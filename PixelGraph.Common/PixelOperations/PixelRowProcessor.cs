@@ -50,6 +50,14 @@ namespace PixelGraph.Common.PixelOperations
             {
                 var operation = new FilterRowOperation(source, action, SourceRectangle);
                 ParallelRowIterator.IterateRows(Configuration, SourceRectangle, in operation);
+
+                //try {
+                //    ParallelRowIterator.IterateRows(Configuration, SourceRectangle, in operation);
+                //}
+                //catch (AggregateException error) {
+                //    if (error.InnerException is OperationCanceledException) throw error.InnerException;
+                //    throw;
+                //}
             }
 
             private readonly struct FilterRowOperation : IRowOperation

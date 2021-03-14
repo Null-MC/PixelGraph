@@ -502,7 +502,7 @@ namespace PixelGraph.UI.Windows
             try {
                 image = await Task.Run(() => p.BuildAsync(vm.SelectedTag), p.Token);
             }
-            catch (TaskCanceledException) {}
+            catch (OperationCanceledException) {}
             catch (HeightSourceEmptyException) {}
             catch (Exception error) {
                 logger.LogError(error, "Failed to create preview image!");
@@ -510,15 +510,17 @@ namespace PixelGraph.UI.Windows
                 ShowError($"Failed to create preview! {error.UnfoldMessageString()}");
             }
             finally {
-                lock (previewLock) {
-                    p.Dispose();
-                    if (previewBuilder == p) previewBuilder = null;
-                }
+                if (!p.Token.IsCancellationRequested) {
+                    lock (previewLock) {
+                        p.Dispose();
+                        if (previewBuilder == p) previewBuilder = null;
+                    }
 
-                await Application.Current.Dispatcher.BeginInvoke(() => {
-                    vm.LoadedTexture = image;
-                    vm.IsPreviewLoading = false;
-                });
+                    await Application.Current.Dispatcher.BeginInvoke(() => {
+                        vm.LoadedTexture = image;
+                        vm.IsPreviewLoading = false;
+                    });
+                }
             }
         }
 

@@ -287,7 +287,7 @@ namespace PixelGraph.Common.Textures
                 if (bufferSize.HasValue && info.Width != bufferSize.Value.Width) {
                     scale = (float)bufferSize.Value.Width / info.Width;
                     var scaledWidth = (int)MathF.Ceiling(info.Width * scale);
-                    var scaledHeight = (int)MathF.Ceiling(info.Height * scale);
+                    var scaledHeight = (int)MathF.Ceiling(info.Height * scale * info.FrameCount);
 
                     var samplerName = context.Profile?.Encoding?.Height?.Sampler ?? context.DefaultSampler;
                     var sampler = Sampler<Rgba32>.Create(samplerName);

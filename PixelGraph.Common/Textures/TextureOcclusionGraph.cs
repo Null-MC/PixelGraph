@@ -165,6 +165,8 @@ namespace PixelGraph.Common.Textures
                 Quality = (float?)context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
                 ZScale = (float?)context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
                 ZBias = (float?)context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias,
+
+                Token = token,
             };
 
             // adjust volume height with texture scale
@@ -180,13 +182,16 @@ namespace PixelGraph.Common.Textures
                         heightSampler.Bounds = tile.Bounds;
 
                         var outBounds = tile.Bounds.ScaleTo(occlusionWidth, occlusionHeight);
-                        options.StepCount = (int)MathF.Max(outBounds.Width * stepDistance, 1f);
+                        options.StepCount = (int) MathF.Max(outBounds.Width * stepDistance, 1f);
 
                         occlusionTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
                     }
                 }
 
                 return occlusionTexture;
+            }
+            catch (ImageProcessingException) when (token.IsCancellationRequested) {
+                throw new OperationCanceledException();
             }
             catch {
                 occlusionTexture.Dispose();
