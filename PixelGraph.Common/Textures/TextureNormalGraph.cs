@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
@@ -25,6 +26,7 @@ namespace PixelGraph.Common.Textures
 
         Task<bool> TryBuildNormalMapAsync(CancellationToken token = default);
         Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default);
+        ISampler<Rgb24> GetSampler();
     }
 
     internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
@@ -32,6 +34,7 @@ namespace PixelGraph.Common.Textures
         private readonly IServiceProvider provider;
         private readonly ITextureGraphContext context;
         private readonly ITextureSourceGraph sourceGraph;
+        private readonly ITextureRegionEnumerator regions;
         private readonly IInputReader reader;
         private readonly ILogger logger;
 
@@ -44,13 +47,15 @@ namespace PixelGraph.Common.Textures
         public TextureNormalGraph(
             ILogger<TextureNormalGraph> logger,
             IServiceProvider provider,
-            IInputReader reader,
             ITextureGraphContext context,
-            ITextureSourceGraph sourceGraph)
+            ITextureSourceGraph sourceGraph,
+            ITextureRegionEnumerator regions,
+            IInputReader reader)
         {
             this.provider = provider;
             this.context = context;
             this.sourceGraph = sourceGraph;
+            this.regions = regions;
             this.reader = reader;
             this.logger = logger;
 
@@ -161,15 +166,13 @@ namespace PixelGraph.Common.Textures
                 float scale;
                 (heightTexture, scale) = await LoadHeightTextureAsync(token);
 
-                // TODO: add frame support
-
                 if (heightTexture == null) {
                     var up = new Rgb24(127, 127, 255);
                     var size = context.GetBufferSize(1f);
                     return new Image<Rgb24>(Configuration.Default, size?.Width ?? 1, size?.Height ?? 1, up);
                 }
 
-                var builder = new NormalMapBuilder {
+                var builder = new NormalMapBuilder(regions) {
                     HeightImage = heightTexture,
                     HeightChannel = heightChannelIn.Color ?? ColorChannel.None,
                     Filter = context.Material.Normal?.Filter ?? MaterialNormalProperties.DefaultFilter,
@@ -189,11 +192,27 @@ namespace PixelGraph.Common.Textures
                 // WARN: temporary hard-coded
                 builder.LowFreqStrength = builder.Strength / 4f;
 
-                return builder.Build();
+                return builder.Build(FrameCount);
             }
             finally {
                 heightTexture?.Dispose();
             }
+        }
+
+        public ISampler<Rgb24> GetSampler()
+        {
+            if (Texture == null) return null;
+
+            var sampler = Sampler<Rgb24>.Create(Samplers.Samplers.Nearest);
+            sampler.Image = Texture;
+            sampler.WrapX = context.MaterialWrapX;
+            sampler.WrapY = context.MaterialWrapY;
+
+            // TODO: SET THESE PROPERLY!
+            sampler.RangeX = 1f;
+            sampler.RangeY = 1f;
+
+            return sampler;
         }
 
         private async Task ApplyMagnitudeAsync(ResourcePackChannelProperties magnitudeChannel, CancellationToken token)
@@ -263,10 +282,8 @@ namespace PixelGraph.Common.Textures
                 var aspect = (float)info.Height / info.Width;
                 var bufferSize = context.GetBufferSize(aspect);
                 FrameCount = info.FrameCount;
-
-                // WARN: Apply scaling per-frame to avoid edge blurring!!!
-
                 var scale = 1f;
+
                 if (bufferSize.HasValue && info.Width != bufferSize.Value.Width) {
                     scale = (float)bufferSize.Value.Width / info.Width;
                     var scaledWidth = (int)MathF.Ceiling(info.Width * scale);
@@ -278,8 +295,7 @@ namespace PixelGraph.Common.Textures
                     sampler.WrapX = context.MaterialWrapX;
                     sampler.WrapY = context.MaterialWrapY;
                     sampler.RangeX = sampler.RangeY = 1f / scale;
-                    sampler.FrameCount = 1;
-                    //sampler.Frame = 0;
+                    sampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
 
                     var options = new ResizeProcessor<Rgba32>.Options {
                         Sampler = sampler,
@@ -291,7 +307,15 @@ namespace PixelGraph.Common.Textures
                     try {
                         heightCopy = heightTexture;
                         heightTexture = new Image<Rgba32>(Configuration.Default, scaledWidth, scaledHeight);
-                        heightTexture.Mutate(c => c.ApplyProcessor(processor));
+
+                        foreach (var frame in regions.GetAllRenderRegions(null, FrameCount)) {
+                            foreach (var tile in frame.Tiles) {
+                                sampler.Bounds = tile.Bounds;
+
+                                var outBounds = tile.Bounds.ScaleTo(scaledWidth, scaledHeight);
+                                heightTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                            }
+                        }
                     }
                     finally {
                         heightCopy?.Dispose();

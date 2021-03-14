@@ -1,4 +1,6 @@
-﻿using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.Effects;
+using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
@@ -22,9 +24,11 @@ namespace PixelGraph.Common.Textures
         int FrameHeight {get;}
 
         Task<Image<Rgba32>> GetTextureAsync(CancellationToken token = default);
-        Task<ISampler<Rgba32>> GetSamplerAsync(CancellationToken token = default);
+        //Task<ISampler<Rgba32>> GetSamplerAsync(CancellationToken token = default);
         Task ApplyMagnitudeAsync(Image normalImage, ResourcePackChannelProperties magnitudeChannel, CancellationToken token = default);
         Task<Image<Rgba32>> GenerateAsync(CancellationToken token = default);
+
+        Task<ISampler<Rgba32>> GetSamplerAsync(CancellationToken token = default);
     }
     
     internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
@@ -32,6 +36,7 @@ namespace PixelGraph.Common.Textures
         private readonly IInputReader reader;
         private readonly ITextureGraphContext context;
         private readonly ITextureSourceGraph sourceGraph;
+        private readonly ITextureRegionEnumerator regions;
         private Image<Rgba32> texture;
         private bool isLoaded;
 
@@ -44,11 +49,13 @@ namespace PixelGraph.Common.Textures
         public TextureOcclusionGraph(
             IInputReader reader,
             ITextureGraphContext context,
-            ITextureSourceGraph sourceGraph)
+            ITextureSourceGraph sourceGraph,
+            ITextureRegionEnumerator regions)
         {
             this.reader = reader;
             this.context = context;
             this.sourceGraph = sourceGraph;
+            this.regions = regions;
 
             FrameCount = 1;
         }
@@ -103,7 +110,6 @@ namespace PixelGraph.Common.Textures
             sampler.Image = occlusionTexture;
             sampler.WrapX = context.MaterialWrapX;
             sampler.WrapY = context.MaterialWrapY;
-            sampler.FrameCount = FrameCount;
 
             // TODO: SET THESE PROPERLY!
             sampler.RangeX = 1f;
@@ -139,10 +145,11 @@ namespace PixelGraph.Common.Textures
             heightSampler.Image = heightTexture;
             heightSampler.WrapX = context.MaterialWrapX;
             heightSampler.WrapY = context.MaterialWrapY;
-            heightSampler.FrameCount = info.FrameCount;
 
             heightSampler.RangeX = (float)heightTexture.Width / occlusionWidth;
             heightSampler.RangeY = (float)heightTexture.Height / occlusionHeight;
+
+            var stepDistance = (float?)context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance;
 
             var options = new OcclusionProcessor<Rgba32>.Options {
                 HeightSampler = heightSampler,
@@ -155,7 +162,6 @@ namespace PixelGraph.Common.Textures
                 HeightPower = (float?)heightChannel.Power ?? 0f,
                 HeightInvert = heightChannel.Invert ?? false,
 
-                StepDistance = (float?)context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance,
                 Quality = (float?)context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
                 ZScale = (float?)context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
                 ZBias = (float?)context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias,
@@ -165,30 +171,27 @@ namespace PixelGraph.Common.Textures
             options.ZBias *= heightScale;
             options.ZScale *= heightScale;
 
+            var processor = new OcclusionProcessor<Rgba32>(options);
             var occlusionTexture = new Image<Rgba32>(Configuration.Default, occlusionWidth, occlusionHeight);
 
             try {
-                if (FrameCount > 1) {
-                    var frameHeight = occlusionHeight / FrameCount;
-                    for (var i = 0; i < FrameCount; i++) {
-                        heightSampler.Frame = i;
+                foreach (var frame in regions.GetAllRenderRegions(null, FrameCount)) {
+                    foreach (var tile in frame.Tiles) {
+                        heightSampler.Bounds = tile.Bounds;
 
-                        var processor = new OcclusionProcessor<Rgba32>(options);
-                        var frameBounds = new Rectangle(0, frameHeight * i, occlusionWidth, frameHeight);
-                        occlusionTexture.Mutate(c => c.ApplyProcessor(processor, frameBounds));
+                        var outBounds = tile.Bounds.ScaleTo(occlusionWidth, occlusionHeight);
+                        options.StepCount = (int)MathF.Max(outBounds.Width * stepDistance, 1f);
+
+                        occlusionTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
                     }
                 }
-                else {
-                    var processor = new OcclusionProcessor<Rgba32>(options);
-                    occlusionTexture.Mutate(c => c.ApplyProcessor(processor));
-                }
+
+                return occlusionTexture;
             }
             catch {
                 occlusionTexture.Dispose();
                 throw;
             }
-
-            return occlusionTexture;
         }
 
         public async Task ApplyMagnitudeAsync(Image normalImage, ResourcePackChannelProperties magnitudeChannel, CancellationToken token = default)

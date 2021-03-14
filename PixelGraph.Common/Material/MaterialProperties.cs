@@ -1,9 +1,9 @@
-﻿using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.ConnectedTextures;
+using PixelGraph.Common.Encoding;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PixelGraph.Common.ConnectedTextures;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material
@@ -30,9 +30,6 @@ namespace PixelGraph.Common.Material
 
         [YamlIgnore]
         public string DisplayName => Alias != null ? $"{Alias}:{Name}" : Name;
-
-        //[YamlIgnore]
-        //public bool IsMultiPart => Parts?.Any() ?? false;
 
         [YamlMember(Order = 0)]
         public string InputFormat {get; set;}
@@ -100,6 +97,25 @@ namespace PixelGraph.Common.Material
         public List<MaterialPart> Parts {get; set;}
 
 
+        public Size GetMultiPartBounds()
+        {
+            var size = new Size();
+
+            foreach (var part in Parts) {
+                if (part.Left.HasValue && part.Width.HasValue) {
+                    var partWidth = part.Left.Value + part.Width.Value;
+                    if (partWidth > size.Width) size.Width = partWidth;
+                }
+
+                if (part.Top.HasValue && part.Height.HasValue) {
+                    var partHeight = part.Top.Value + part.Height.Value;
+                    if (partHeight > size.Height) size.Height = partHeight;
+                }
+            }
+
+            return size;
+        }
+
         public bool TryGetSourceBounds(in int? blockSize, out Size size)
         {
             if (!string.IsNullOrWhiteSpace(CtmType)) {
@@ -120,19 +136,7 @@ namespace PixelGraph.Common.Material
             }
 
             if (Parts?.Any() ?? false) {
-                size = new Size();
-                foreach (var part in Parts) {
-                    if (part.Left.HasValue && part.Width.HasValue) {
-                        var partWidth = part.Left.Value + part.Width.Value;
-                        if (partWidth > size.Width) size.Width = partWidth;
-                    }
-
-                    if (part.Top.HasValue && part.Height.HasValue) {
-                        var partHeight = part.Top.Value + part.Height.Value;
-                        if (partHeight > size.Height) size.Height = partHeight;
-                    }
-                }
-
+                size = GetMultiPartBounds();
                 return true;
             }
 

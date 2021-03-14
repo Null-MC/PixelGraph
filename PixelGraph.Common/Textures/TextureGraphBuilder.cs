@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Effects;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
@@ -11,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.ConnectedTextures;
 
 namespace PixelGraph.Common.Textures
 {
@@ -66,7 +66,9 @@ namespace PixelGraph.Common.Textures
         public async Task ProcessInputGraphAsync(CancellationToken token = default)
         {
             context.ApplyInputEncoding();
-            prep();
+
+            matMetaFileIn = context.GetMetaInputFilename();
+            context.IsAnimated = reader.FileExists(matMetaFileIn);
 
             var sourceTime = reader.GetWriteTime(context.Material.LocalFilename);
             var packWriteTime = reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
@@ -97,8 +99,7 @@ namespace PixelGraph.Common.Textures
 
             if (context.Material.CreateInventory ?? false) {
                 if (!IsInventoryUpToDate(packWriteTime, sourceTime)) {
-                    // TODO: check item generated for up-to-date
-                    await GenerateItemTextureAsync(token);
+                    await GenerateInventoryTextureAsync(token);
                 }
                 else {
                     logger.LogDebug($"Skipping up-to-date item texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
@@ -114,16 +115,6 @@ namespace PixelGraph.Common.Textures
             context.ApplyOutputEncoding();
 
             await ProcessAllTexturesAsync(false, token);
-        }
-
-        private void prep()
-        {
-            var matPath = context.Material.UseGlobalMatching
-                ? context.Material.LocalPath
-                : PathEx.Join(context.Material.LocalPath, context.Material.Name);
-
-            matMetaFileIn = PathEx.Join(matPath, "mat.mcmeta");
-            context.IsAnimated = reader.FileExists(matMetaFileIn);
         }
 
         private async Task ProcessAllTexturesAsync(bool createEmpty, CancellationToken token)
@@ -185,75 +176,50 @@ namespace PixelGraph.Common.Textures
 
             imageWriter.Format = context.ImageFormat;
 
-            if (context.IsMaterialMultiPart || context.IsMaterialCtm) {
-                await SaveMultiPartAsync(image, textureTag, type, token);
-            }
-            else {
-                await SaveDefaultAsync(image, textureTag, type, token);
-            }
-        }
-
-        private async Task SaveDefaultAsync(Image image, string textureTag, ImageChannels type, CancellationToken token)
-        {
             var p = context.Material.LocalPath;
             if (!context.UseGlobalOutput) p = PathEx.Join(p, context.Material.Name);
 
-            var name = naming.GetOutputTextureName(context.Profile, context.Material.Name, textureTag, context.UseGlobalOutput);
-            var destFile = PathEx.Join(p, name);
-
-            edgeFadeEffect.Apply(image, textureTag);
-
-            await imageWriter.WriteAsync(image, destFile, type, token);
-
-            logger.LogInformation("Published texture {DisplayName} tag {textureTag}.", context.Material.DisplayName, textureTag);
-        }
-
-        private async Task SaveMultiPartAsync<TPixel>(Image<TPixel> image, string textureTag, ImageChannels type, CancellationToken token)
-            where TPixel : unmanaged, IPixel<TPixel>
-        {
-            var p = context.Material.LocalPath;
-            if (!context.UseGlobalOutput) p = PathEx.Join(p, context.Material.Name);
-
-            foreach (var region in regions.GetRegions(image)) {
-                var name = naming.GetOutputTextureName(context.Profile, region.Name, textureTag, context.UseGlobalOutput);
+            var maxFrameCount = graph.GetMaxFrameCount();
+            foreach (var part in regions.GetAllPublishRegions(maxFrameCount)) {
+                var name = naming.GetOutputTextureName(context.Profile, part.Name, textureTag, context.UseGlobalOutput);
                 var destFile = PathEx.Join(p, name);
+                var srcWidth = image.Width;
+                var srcHeight = image.Height;
 
-                if (image.Width == 1 && image.Height == 1) {
+                if (srcWidth == 1 && srcHeight == 1) {
                     await imageWriter.WriteAsync(image, destFile, type, token);
                 }
-                else if (region.Mappings != null) {
-                    using var regionImage = new Image<TPixel>(region.Bounds.Width, region.Bounds.Height);
-
-                    regionImage.Mutate(c => {
-                        foreach (var mapping in region.Mappings) {
-                            var options = new CopyRegionProcessor<TPixel>.Options {
-                                SourceImage = image,
-                                SourceX = mapping.SourceBounds.X,
-                                SourceY = mapping.SourceBounds.Y,
-                            };
-
-                            var processor = new CopyRegionProcessor<TPixel>(options);
-                            c.ApplyProcessor(processor, mapping.DestBounds);
-                        }
-                    });
-
-                    edgeFadeEffect.Apply(regionImage, textureTag);
-
-                    await imageWriter.WriteAsync(regionImage, destFile, type, token);
-                }
                 else {
-                    using var regionImage = image.Clone(c => c.Crop(region.Bounds));
+                    var firstFrame = part.Frames.First();
+                    var frameCount = part.Frames.Length;
+                    var partWidth = (int)(firstFrame.SourceBounds.Width * srcWidth);
+                    var partHeight = (int)(firstFrame.SourceBounds.Height * srcHeight * frameCount);
+                    using var regionImage = new Image<TPixel>(partWidth, partHeight);
+
+                    var options = new CopyRegionProcessor<TPixel>.Options {
+                        SourceImage = image,
+                    };
+
+                    var processor = new CopyRegionProcessor<TPixel>(options);
+
+                    foreach (var frame in part.Frames) {
+                        options.SourceX = (int) (frame.SourceBounds.X * srcWidth);
+                        options.SourceY = (int) (frame.SourceBounds.Y * srcHeight);
+
+                        var outBounds = frame.DestBounds.ScaleTo(partWidth, partHeight);
+                        regionImage.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                    }
 
                     edgeFadeEffect.Apply(regionImage, textureTag);
 
                     await imageWriter.WriteAsync(regionImage, destFile, type, token);
                 }
 
-                logger.LogInformation("Published texture region {Name} tag {textureTag}.", region.Name, textureTag);
+                logger.LogInformation("Published texture region {Name} tag {textureTag}.", part.Name, textureTag);
             }
         }
 
-        private async Task GenerateItemTextureAsync(CancellationToken token = default)
+        private async Task GenerateInventoryTextureAsync(CancellationToken token = default)
         {
             var name = naming.GetOutputTextureName(context.Profile, context.Material.Name, TextureTags.Inventory, true);
 
@@ -264,7 +230,7 @@ namespace PixelGraph.Common.Textures
             // Generate item image
             using var itemImage = await itemGenerator.CreateAsync(graph, token);
             if (itemImage == null) {
-                logger.LogWarning("Failed to publish item texture {DisplayName}! No sources found.", context.Material.DisplayName);
+                logger.LogWarning("Failed to publish inventory texture {DisplayName}! No sources found.", context.Material.DisplayName);
                 return;
             }
 

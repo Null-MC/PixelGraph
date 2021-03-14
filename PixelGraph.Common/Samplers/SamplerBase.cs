@@ -2,6 +2,7 @@
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
@@ -16,8 +17,7 @@ namespace PixelGraph.Common.Samplers
         public float RangeY {get; set;}
         public bool WrapX {get; set;}
         public bool WrapY {get; set;}
-        public int? Frame {get; set;}
-        public int FrameCount {get; set;}
+        public RectangleF Bounds {get; set;}
 
 
         public abstract void Sample(in float x, in float y, ref Rgba32 pixel);
@@ -44,72 +44,36 @@ namespace PixelGraph.Common.Samplers
 
         protected void GetTexCoord(in float x, in float y, out float fx, out float fy)
         {
-            if (Frame.HasValue) {
-                var bounds = GetFrameBounds();
-                fx = bounds.X + x * bounds.Width - HalfPixel;
-                fy = bounds.Y + y * bounds.Height - HalfPixel;
-            }
-            else {
-                fx = x * Image.Width - HalfPixel;
-                fy = y * Image.Height - HalfPixel;
-            }
-        }
-
-        protected Rectangle GetFrameBounds()
-        {
-            var frameHeight = Image.Height;
-            if (FrameCount > 1) frameHeight /= FrameCount;
-
-            var f = (Frame ?? 0) % FrameCount;
-            return new Rectangle(0, f * frameHeight, Image.Width, frameHeight);
+            fx = (Bounds.X + x * Bounds.Width) * Image.Width - HalfPixel;
+            fy = (Bounds.Y + y * Bounds.Height) * Image.Height - HalfPixel;
         }
 
         protected void WrapCoordX(ref int x)
         {
-            while (x < 0) x += Image.Width;
-            while (x >= Image.Width) x -= Image.Width;
-        }
-
-        protected void WrapCoordX(ref int x, ref Rectangle bounds)
-        {
-            while (x < bounds.Left) x += bounds.Width;
-            while (x >= bounds.Right) x -= bounds.Width;
+            if (Bounds.Width == 0 || Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
+            while (x < Bounds.Left * Image.Width) x += (int)(Bounds.Width * Image.Width);
+            while (x >= Bounds.Right * Image.Width) x -= (int)(Bounds.Width * Image.Width);
         }
 
         protected void WrapCoordY(ref int y)
         {
-            while (y < 0) y += Image.Height;
-            while (y >= Image.Height) y -= Image.Height;
-        }
-
-        protected void WrapCoordY(ref int y, ref Rectangle bounds)
-        {
-            while (y < bounds.Top) y += bounds.Height;
-            while (y >= bounds.Bottom) y -= bounds.Height;
+            if (Bounds.Width == 0 || Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
+            while (y < Bounds.Top * Image.Height) y += (int)(Bounds.Height * Image.Height);
+            while (y >= Bounds.Bottom * Image.Height) y -= (int)(Bounds.Height * Image.Height);
         }
 
         protected void ClampCoordX(ref int x)
         {
-            if (x < 0) x = 0;
-            if (x >= Image.Width) x = Image.Width - 1;
-        }
-
-        protected void ClampCoordX(ref int x, ref Rectangle bounds)
-        {
-            if (x < bounds.Left) x = bounds.Left;
-            if (x >= bounds.Right) x = bounds.Right - 1;
+            if (Bounds.Width == 0 || Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
+            if (x < Bounds.Left * Image.Width) x = (int)(Bounds.Left * Image.Width);
+            if (x >= Bounds.Right * Image.Width) x = (int)(Bounds.Right * Image.Width) - 1;
         }
 
         protected void ClampCoordY(ref int y)
         {
-            if (y < 0) y = 0;
-            if (y >= Image.Height) y = Image.Height - 1;
-        }
-
-        protected void ClampCoordY(ref int y, ref Rectangle bounds)
-        {
-            if (y < bounds.Top) y = bounds.Top;
-            if (y >= bounds.Bottom) y = bounds.Bottom - 1;
+            if (Bounds.Width == 0 || Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
+            if (y < Bounds.Top * Image.Height) y = (int)(Bounds.Top * Image.Height);
+            if (y >= Bounds.Bottom * Image.Height) y = (int)(Bounds.Bottom * Image.Height) - 1;
         }
     }
 }

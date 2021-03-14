@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Effects;
 using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -25,7 +27,7 @@ namespace PixelGraph.UI.Internal
         ResourcePackProfileProperties Profile {get; set;}
         CancellationToken Token {get;}
 
-        Task<ImageSource> BuildAsync(string tag);
+        Task<ImageSource> BuildAsync(string tag, int targetFrame = 0);
         void Cancel();
     }
 
@@ -47,17 +49,21 @@ namespace PixelGraph.UI.Internal
             tokenSource = new CancellationTokenSource();
         }
 
-        public async Task<ImageSource> BuildAsync(string tag)
+        public async Task<ImageSource> BuildAsync(string tag, int targetFrame = 0)
         {
             var scope = provider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
             var graph = scope.ServiceProvider.GetRequiredService<ITextureGraph>();
             var regions = scope.ServiceProvider.GetRequiredService<ITextureRegionEnumerator>();
             var edgeFadeEffect = scope.ServiceProvider.GetRequiredService<IEdgeFadeImageEffect>();
+            var reader = scope.ServiceProvider.GetRequiredService<IInputReader>();
 
             context.Input = Input;
             context.Profile = Profile;
             context.Material = Material;
+
+            var matMetaFileIn = context.GetMetaInputFilename();
+            context.IsAnimated = reader.FileExists(matMetaFileIn);
 
             var inputFormat = TextureEncoding.GetFactory(Input?.Format);
             var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
@@ -73,17 +79,16 @@ namespace PixelGraph.UI.Internal
             if (TextureTags.Is(tag, TextureTags.Normal))
                 await graph.PreBuildNormalTextureAsync(tokenSource.Token);
 
-            await graph.MapAsync(tag, true, 0, Token);
+            await graph.MapAsync(tag, true, targetFrame, Token);
             using var image = await graph.CreateImageAsync<Rgb24>(tag, true, tokenSource.Token);
             if (image == null) return null;
 
-            if (image.Width > 1 || image.Height > 1) {
-                if (context.IsMaterialMultiPart || context.IsMaterialCtm) {
-                    foreach (var region in regions.GetRegions(image))
-                        edgeFadeEffect.Apply(image, tag, region.Bounds);
-                }
-                else {
-                    edgeFadeEffect.Apply(image, tag);
+            if (TextureTags.Is(tag, TextureTags.Height) && (image.Width > 1 || image.Height > 1)) {
+                foreach (var frame in regions.GetAllRenderRegions(targetFrame, context.MaxFrameCount)) {
+                    foreach (var tile in frame.Tiles) {
+                        var outBounds = tile.Bounds.ScaleTo(image.Width, image.Height);
+                        edgeFadeEffect.Apply(image, tag, outBounds);
+                    }
                 }
             }
 

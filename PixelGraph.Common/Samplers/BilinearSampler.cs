@@ -27,45 +27,22 @@ namespace PixelGraph.Common.Samplers
             var px = fx - pxMin;
             var py = fy - pyMin;
 
-            if (Frame.HasValue) {
-                var bounds = GetFrameBounds();
-
-                if (WrapX) {
-                    WrapCoordX(ref pxMin, ref bounds);
-                    WrapCoordX(ref pxMax, ref bounds);
-                }
-                else {
-                    ClampCoordX(ref pxMin, ref bounds);
-                    ClampCoordX(ref pxMax, ref bounds);
-                }
-
-                if (WrapY) {
-                    WrapCoordY(ref pyMin, ref bounds);
-                    WrapCoordY(ref pyMax, ref bounds);
-                }
-                else {
-                    ClampCoordY(ref pyMin, ref bounds);
-                    ClampCoordY(ref pyMax, ref bounds);
-                }
+            if (WrapX) {
+                WrapCoordX(ref pxMin);
+                WrapCoordX(ref pxMax);
             }
             else {
-                if (WrapX) {
-                    WrapCoordX(ref pxMin);
-                    WrapCoordX(ref pxMax);
-                }
-                else {
-                    ClampCoordX(ref pxMin);
-                    ClampCoordX(ref pxMax);
-                }
+                ClampCoordX(ref pxMin);
+                ClampCoordX(ref pxMax);
+            }
 
-                if (WrapY) {
-                    WrapCoordY(ref pyMin);
-                    WrapCoordY(ref pyMax);
-                }
-                else {
-                    ClampCoordY(ref pyMin);
-                    ClampCoordY(ref pyMax);
-                }
+            if (WrapY) {
+                WrapCoordY(ref pyMin);
+                WrapCoordY(ref pyMax);
+            }
+            else {
+                ClampCoordY(ref pyMin);
+                ClampCoordY(ref pyMax);
             }
 
             var rowMin = Image.GetPixelRowSpan(pyMin);

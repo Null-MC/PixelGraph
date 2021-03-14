@@ -13,22 +13,11 @@ namespace PixelGraph.Common.Samplers
             var px = (int)MathF.Floor(fx + HalfPixel);
             var py = (int)MathF.Floor(fy + HalfPixel);
 
-            if (Frame.HasValue) {
-                var bounds = GetFrameBounds();
+            if (WrapX) WrapCoordX(ref px);
+            else ClampCoordX(ref px);
 
-                if (WrapX) WrapCoordX(ref px, ref bounds);
-                else ClampCoordX(ref px, ref bounds);
-
-                if (WrapY) WrapCoordY(ref py, ref bounds);
-                else ClampCoordY(ref py, ref bounds);
-            }
-            else {
-                if (WrapX) WrapCoordX(ref px);
-                else ClampCoordX(ref px);
-
-                if (WrapY) WrapCoordY(ref py);
-                else ClampCoordY(ref py);
-            }
+            if (WrapY) WrapCoordY(ref py);
+            else ClampCoordY(ref py);
 
             Image[px, py].ToRgba32(ref pixel);
         }

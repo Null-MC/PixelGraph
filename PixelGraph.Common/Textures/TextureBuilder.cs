@@ -31,6 +31,7 @@ namespace PixelGraph.Common.Textures
     {
         private readonly IInputReader reader;
         private readonly ITextureGraphContext context;
+        private readonly ITextureRegionEnumerator regions;
         private readonly ITextureSourceGraph sourceGraph;
         private readonly ITextureNormalGraph normalGraph;
         private readonly ITextureOcclusionGraph occlusionGraph;
@@ -49,12 +50,14 @@ namespace PixelGraph.Common.Textures
         public TextureBuilder(
             IInputReader reader,
             ITextureGraphContext context,
+            ITextureRegionEnumerator regions,
             ITextureSourceGraph sourceGraph,
             ITextureNormalGraph normalGraph,
             ITextureOcclusionGraph occlusionGraph)
         {
             this.reader = reader;
             this.context = context;
+            this.regions = regions;
             this.sourceGraph = sourceGraph;
             this.normalGraph = normalGraph;
             this.occlusionGraph = occlusionGraph;
@@ -297,39 +300,27 @@ namespace PixelGraph.Common.Textures
         private void ApplyNormalMapping<TPixel>(Image<TPixel> image, TextureChannelMapping mapping)
             where TPixel : unmanaged, IPixel<TPixel>
         {
-            var options = new OverlayProcessor<Rgb24>.Options {
-                Mappings = new []{mapping},
-                IsGrayscale = isGrayscale,
-            };
-
-            var samplerName = mapping.OutputSampler ?? context.DefaultSampler;
-            var sampler = Sampler<Rgb24>.Create(samplerName);
-            sampler.Image = normalGraph.Texture;
-            sampler.WrapX = context.MaterialWrapX;
-            sampler.WrapY = context.MaterialWrapY;
-            sampler.FrameCount = normalGraph.FrameCount;
+            var sampler = normalGraph.GetSampler();
             sampler.RangeX = (float)normalGraph.Texture.Width / bufferSize.Width;
             sampler.RangeY = (float)normalGraph.Texture.Height / bufferSize.Height;
 
-            options.SamplerMap = new Dictionary<ColorChannel, ISampler<Rgb24>> {
-                [ColorChannel.Red] = sampler,
-                [ColorChannel.Green] = sampler,
-                [ColorChannel.Blue] = sampler,
+            var options = new OverlayProcessor<Rgb24>.Options {
+                IsGrayscale = isGrayscale,
+                SamplerMap = new Dictionary<TextureChannelMapping, ISampler<Rgb24>> {
+                    [mapping] = sampler,
+                },
             };
 
-            if (TargetFrame.HasValue) {
-                sampler.Frame = TargetFrame.Value;
+            var processor = new OverlayProcessor<Rgb24>(options);
 
-                var processor = new OverlayProcessor<Rgb24>(options);
-                image.Mutate(c => c.ApplyProcessor(processor));
-            }
-            else {
-                for (var i = 0; i < context.MaxFrameCount; i++) {
-                    sampler.Frame = i;
+            foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                var srcFrame = regions.GetRenderRegion(frame.Index, normalGraph.FrameCount);
 
-                    var processor = new OverlayProcessor<Rgb24>(options);
-                    var frameBounds = new Rectangle(0, bufferSize.Height * i, bufferSize.Width, bufferSize.Height);
-                    image.Mutate(c => c.ApplyProcessor(processor, frameBounds));
+                foreach (var tile in frame.Tiles) {
+                    sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+
+                    var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                    image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }
             }
         }
@@ -337,38 +328,37 @@ namespace PixelGraph.Common.Textures
         private async Task ApplyOcclusionMappingAsync<TPixel>(Image<TPixel> image, TextureChannelMapping mapping, CancellationToken token)
             where TPixel : unmanaged, IPixel<TPixel>
         {
-            var occlusionTexture = await occlusionGraph.GetTextureAsync(token);
-            if (occlusionTexture == null) return;
+            var occlusionSampler = await occlusionGraph.GetSamplerAsync(token);
+            if (occlusionSampler == null) return;
 
             var options = new OverlayProcessor<Rgba32>.Options {
-                Mappings = new[] {mapping},
                 IsGrayscale = isGrayscale,
+                SamplerMap = new Dictionary<TextureChannelMapping, ISampler<Rgba32>> {
+                    [mapping] = occlusionSampler,
+                },
             };
+            
+            var processor = new OverlayProcessor<Rgba32>(options);
 
-            if (TargetFrame.HasValue) {
-                ApplySamplers(options, new[] {mapping}, occlusionTexture, TargetFrame.Value, occlusionGraph.FrameCount);
-                
-                var processor = new OverlayProcessor<Rgba32>(options);
-                image.Mutate(c => c.ApplyProcessor(processor));
-            }
-            else {
-                for (var i = 0; i < context.MaxFrameCount; i++) {
-                    ApplySamplers(options, new[] {mapping}, occlusionTexture, i, occlusionGraph.FrameCount);
-                
-                    var processor = new OverlayProcessor<Rgba32>(options);
-                    var frameBounds = new Rectangle(0, bufferSize.Height * i, bufferSize.Width, bufferSize.Height);
-                    image.Mutate(c => c.ApplyProcessor(processor, frameBounds));
+            foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                var srcFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
+
+                foreach (var tile in frame.Tiles) {
+                    occlusionSampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+
+                    var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                    image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }
             }
         }
 
-        private bool ApplyDefaultValue(TextureChannelMapping mapping)
+        private void ApplyDefaultValue(TextureChannelMapping mapping)
         {
-            if (!mapping.InputValue.HasValue && mapping.OutputShift == 0 && !mapping.OutputInverted) return false;
+            if (!mapping.InputValue.HasValue && mapping.OutputShift == 0 && !mapping.OutputInverted) return;
 
             var value = (double?)mapping.InputValue ?? 0d;
 
-            if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return false;
+            if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
             // Common Processing
             value = (value + mapping.ValueShift) * mapping.ValueScale;
@@ -398,8 +388,6 @@ namespace PixelGraph.Common.Textures
             else {
                 defaultValues.SetChannelValue(in mapping.OutputColor, in finalValue);
             }
-
-            return true;
         }
 
         private async Task ApplySourceMappingAsync<TPixel>(Image<TPixel> image, string sourceFilename, TextureChannelMapping[] mappingGroup, CancellationToken token)
@@ -414,23 +402,30 @@ namespace PixelGraph.Common.Textures
             using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
 
             var options = new OverlayProcessor<Rgba32>.Options {
-                Mappings = mappingGroup,
                 IsGrayscale = isGrayscale,
+                SamplerMap = mappingGroup.ToDictionary(m => m, m => {
+                    var samplerName = m.OutputSampler ?? context.DefaultSampler;
+                    var sampler = Sampler<Rgba32>.Create(samplerName);
+                    sampler.Image = sourceImage;
+                    sampler.WrapX = context.MaterialWrapX;
+                    sampler.WrapY = context.MaterialWrapY;
+                    sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
+                    sampler.RangeY = (float)sourceImage.Height / bufferSize.Height;
+                    return sampler;
+                }),
             };
 
-            if (TargetFrame.HasValue) {
-                ApplySamplers(options, mappingGroup, sourceImage, TargetFrame.Value, info.FrameCount);
+            var processor = new OverlayProcessor<Rgba32>(options);
 
-                var processor = new OverlayProcessor<Rgba32>(options);
-                image.Mutate(c => c.ApplyProcessor(processor));
-            }
-            else {
-                for (var i = 0; i < context.MaxFrameCount; i++) {
-                    ApplySamplers(options, mappingGroup, sourceImage, i, info.FrameCount);
+            foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                var srcFrame = regions.GetRenderRegion(frame.Index, info.FrameCount);
 
-                    var processor = new OverlayProcessor<Rgba32>(options);
-                    var frameBounds = new Rectangle(0, bufferSize.Height * i, bufferSize.Width, bufferSize.Height);
-                    image.Mutate(c => c.ApplyProcessor(processor, frameBounds));
+                foreach (var tile in frame.Tiles) {
+                    foreach (var sampler in options.SamplerMap.Values)
+                        sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+
+                    var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                    image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }
             }
         }
@@ -447,21 +442,28 @@ namespace PixelGraph.Common.Textures
                 OcclusionSampler = occlusionSampler,
             };
 
-            if (TargetFrame.HasValue) {
-                options.OcclusionSampler.Frame = TargetFrame.Value;
+            var processor = new PostOcclusionProcessor<Rgba32>(options);
 
-                var processor = new PostOcclusionProcessor<Rgba32>(options);
-                image.Mutate(c => c.ApplyProcessor(processor));
-            }
-            else {
-                for (var i = 0; i < context.MaxFrameCount; i++) {
-                    options.OcclusionSampler.Frame = i;
+            foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                var srcFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
 
-                    var processor = new PostOcclusionProcessor<Rgba32>(options);
-                    var frameBounds = new Rectangle(0, bufferSize.Height * i, bufferSize.Width, bufferSize.Height);
-                    image.Mutate(c => c.ApplyProcessor(processor, frameBounds));
+                foreach (var tile in frame.Tiles) {
+                    occlusionSampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+
+                    var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                    image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }
             }
+        }
+
+        private RectangleF GetOutBounds(TextureRenderTile tile, TextureRenderFrame frame)
+        {
+            var frameBounds = tile.Bounds;
+            if (TargetFrame.HasValue) {
+                frameBounds.Offset(frame.Bounds.X, frame.Bounds.Y);
+                frameBounds.Height *= FrameCount;
+            }
+            return frameBounds;
         }
 
         private async Task<Size> GetBufferSizeAsync(CancellationToken token = default)
@@ -590,27 +592,6 @@ namespace PixelGraph.Common.Textures
 
             if (!hasBounds) return null;
             return new Size(maxWidth, maxHeight);
-        }
-
-        private void ApplySamplers<TP>(OverlayProcessor<TP>.Options options, IEnumerable<TextureChannelMapping> mappingGroup, Image<TP> sourceImage, int frame, int frameCount)
-            where TP : unmanaged, IPixel<TP>
-        {
-            options.SamplerMap = new Dictionary<ColorChannel, ISampler<TP>>();
-
-            foreach (var mapping in mappingGroup) {
-                var samplerName = mapping.OutputSampler ?? context.DefaultSampler;
-                var sampler = Sampler<TP>.Create(samplerName);
-                sampler.Image = sourceImage;
-                sampler.WrapX = context.MaterialWrapX;
-                sampler.WrapY = context.MaterialWrapY;
-                sampler.FrameCount = frameCount;
-                sampler.Frame = frame;
-
-                sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
-                sampler.RangeY = (float)sourceImage.Height / bufferSize.Height;
-
-                options.SamplerMap[mapping.InputColor] = sampler;
-            }
         }
 
         private bool TryGetSourceFilename(string tag, out string filename)

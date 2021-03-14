@@ -62,7 +62,7 @@ namespace PixelGraph.Common.IO.Publishing
             packSampler.Image = source;
             packSampler.WrapX = false;
             packSampler.WrapY = false;
-            //packSampler.Range = 1f;
+            packSampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
 
             var (width, height) = source.Size();
 

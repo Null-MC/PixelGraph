@@ -34,6 +34,7 @@ namespace PixelGraph.Common.Textures
         void ApplyOutputEncoding();
         Size? GetTextureSize(float? defaultAspect);
         Size? GetBufferSize(float aspect);
+        string GetMetaInputFilename();
     }
 
     internal class TextureGraphContext : ITextureGraphContext
@@ -67,6 +68,15 @@ namespace PixelGraph.Common.Textures
             InputEncoding = new List<ResourcePackChannelProperties>();
             OutputEncoding = new List<ResourcePackChannelProperties>();
             MaxFrameCount = 1;
+        }
+
+        public string GetMetaInputFilename()
+        {
+            var matPath = Material.UseGlobalMatching
+                ? Material.LocalPath
+                : PathEx.Join(Material.LocalPath, Material.Name);
+
+            return PathEx.Join(matPath, "mat.mcmeta");
         }
 
         public void ApplyInputEncoding()

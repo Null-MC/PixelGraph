@@ -3,11 +3,15 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
+using PixelGraph.Common.Effects;
+using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.Common.Textures
 {
     internal class NormalMapBuilder : IDisposable
     {
+        private readonly ITextureRegionEnumerator regions;
+
         public NormalMapFilters Filter {get; set;}
         public Image<Rgba32> HeightImage {get; set;}
         public ColorChannel HeightChannel {get; set;}
@@ -23,18 +27,24 @@ namespace PixelGraph.Common.Textures
         public Image<L8> VarianceMap {get; private set;}
 
 
+        public NormalMapBuilder(ITextureRegionEnumerator regions)
+        {
+            this.regions = regions;
+        }
+
         public void Dispose()
         {
             VarianceMap?.Dispose();
         }
 
-        public Image<Rgb24> Build()
+        public Image<Rgb24> Build(int frameCount)
         {
             return Filter == NormalMapFilters.Variance
-                ? BuildVariance() : BuildSimple();
+                ? BuildVariance(frameCount)
+                : BuildSimple(frameCount);
         }
 
-        private Image<Rgb24> BuildSimple()
+        private Image<Rgb24> BuildSimple(int frameCount)
         {
             var options = new NormalMapProcessor.Options {
                 Source = HeightImage,
@@ -51,7 +61,15 @@ namespace PixelGraph.Common.Textures
                 var processor = new NormalMapProcessor(options);
 
                 resultImage = new Image<Rgb24>(Configuration.Default, HeightImage.Width, HeightImage.Height);
-                resultImage.Mutate(c => c.ApplyProcessor(processor));
+
+                //resultImage.Mutate(c => c.ApplyProcessor(processor));
+                foreach (var frame in regions.GetAllRenderRegions(null, frameCount)) {
+                    foreach (var tile in frame.Tiles) {
+                        var outBounds = tile.Bounds.ScaleTo(HeightImage.Width, HeightImage.Height);
+                        resultImage.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                    }
+                }
+
                 return resultImage;
             }
             catch {
@@ -60,7 +78,7 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private Image<Rgb24> BuildVariance()
+        private Image<Rgb24> BuildVariance(int frameCount)
         {
             if (LowFreqDownscale <= 1f) throw new ArgumentOutOfRangeException(nameof(LowFreqDownscale), "Variance downscale must be greater than 1!");
 
@@ -141,7 +159,17 @@ namespace PixelGraph.Common.Textures
                 var blendProcessor = new NormalBlendProcessor(blendOptions);
 
                 resultImage = new Image<Rgb24>(Configuration.Default, srcWidth, srcHeight);
-                resultImage.Mutate(c => c.ApplyProcessor(blendProcessor));
+
+                foreach (var frame in regions.GetAllRenderRegions(null, frameCount)) {
+                    foreach (var tile in frame.Tiles) {
+                        //sampler.Bounds = tile.Bounds;
+
+                        var outBounds = tile.Bounds.ScaleTo(srcWidth, srcHeight);
+                        resultImage.Mutate(c => c.ApplyProcessor(blendProcessor, outBounds));
+                    }
+                }
+                
+                //resultImage.Mutate(c => c.ApplyProcessor(blendProcessor));
                 return resultImage;
             }
             catch {

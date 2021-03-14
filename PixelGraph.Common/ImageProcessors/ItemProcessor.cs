@@ -24,8 +24,7 @@ namespace PixelGraph.Common.ImageProcessors
         {
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
-                var fx = (x + HalfPixel) / context.Bounds.Width;
-                var fy = (context.Y + HalfPixel) / context.Bounds.Height;
+                var (fx, fy) = GetTexCoord(in context, in x);
 
                 var occlusionValue = 1f;
                 options.OcclusionSampler?.SampleScaled(in fx, in fy, in options.OcclusionColor, out occlusionValue);

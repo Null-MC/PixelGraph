@@ -9,6 +9,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.IO;
 using System.Threading.Tasks;
+using PixelGraph.Common.Effects;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -122,7 +123,9 @@ namespace PixelGraph.Tests.GenerationTests
             var heightFile = PathEx.Join(AssemblyPath, "Data", "height.png");
             using var heightImage = await Image.LoadAsync<Rgba32>(Configuration.Default, heightFile);
 
-            using var builder = new NormalMapBuilder {
+            var context = new TextureGraphContext();
+            var regions = new TextureRegionEnumerator(context);
+            using var builder = new NormalMapBuilder(regions) {
                 HeightImage = heightImage,
                 HeightChannel = ColorChannel.Red,
                 Filter = NormalMapFilters.Variance,
@@ -135,7 +138,7 @@ namespace PixelGraph.Tests.GenerationTests
                 WrapY = false,
             };
 
-            using var normalImage = builder.Build();
+            using var normalImage = builder.Build(1);
             await SaveImageAsync("Output/final.png", normalImage);
             await SaveImageAsync("Output/variance.png", builder.VarianceMap);
         }

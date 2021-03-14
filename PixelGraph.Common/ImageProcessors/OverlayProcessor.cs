@@ -5,6 +5,7 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -24,13 +25,14 @@ namespace PixelGraph.Common.ImageProcessors
             var pixelOut = new Rgba32();
             double value;
 
-            var mappingCount = options.Mappings.Length;
+            var mappingCount = options.SamplerMap.Count;
+            var samplerKeys = options.SamplerMap.Keys.ToArray();
 
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 row[x].ToRgba32(ref pixelOut);
 
                 for (var i = 0; i < mappingCount; i++) {
-                    var mapping = options.Mappings[i];
+                    var mapping = samplerKeys[i];
                     pixelOut.GetChannelValue(in mapping.OutputColor, out var existingValue);
 
                     if (existingValue != 0) {
@@ -41,9 +43,8 @@ namespace PixelGraph.Common.ImageProcessors
                         value = (double)mapping.InputValue.Value;
                     else {
                         byte pixelValue = 0;
-                        if (options.SamplerMap.TryGetValue(mapping.InputColor, out var sampler)) {
-                            var fx = (x - context.Bounds.X + HalfPixel) / context.Bounds.Width;
-                            var fy = (context.Y - context.Bounds.Y + HalfPixel) / context.Bounds.Height;
+                        if (options.SamplerMap.TryGetValue(mapping, out var sampler)) {
+                            var (fx, fy) = GetTexCoord(in context, in x);
                             sampler.Sample(fx, fy, in mapping.InputColor, out pixelValue);
                         }
 
@@ -118,8 +119,7 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
-            public TextureChannelMapping[] Mappings;
-            public Dictionary<ColorChannel, ISampler<TPixel>> SamplerMap;
+            public Dictionary<TextureChannelMapping, ISampler<TPixel>> SamplerMap;
             public bool IsGrayscale;
         }
     }

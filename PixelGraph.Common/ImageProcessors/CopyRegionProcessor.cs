@@ -16,17 +16,17 @@ namespace PixelGraph.Common.ImageProcessors
             this.options = options;
         }
 
-        protected override void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> sourceRow)
+        protected override void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> destRow)
         {
             var offsetY = context.Y - context.Bounds.Y;
-            var destY = options.SourceY + offsetY;
-            var destRow = options.SourceImage.GetPixelRowSpan(destY);
+            var srcY = options.SourceY + offsetY;
+            var srcRow = options.SourceImage.GetPixelRowSpan(srcY);
 
             for (var x = 0; x < context.Bounds.Width; x++) {
-                var sourceX = context.Bounds.X + x;
-                var destX = options.SourceX + x;
+                var destX = context.Bounds.X + x;
+                var srcX = options.SourceX + x;
 
-                var pixel = sourceRow[sourceX].ToScaledVector4();
+                var pixel = srcRow[srcX].ToScaledVector4();
                 destRow[destX].FromScaledVector4(pixel);
             }
         }

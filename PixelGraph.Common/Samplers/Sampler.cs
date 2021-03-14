@@ -36,15 +36,12 @@ namespace PixelGraph.Common.Samplers
         float RangeY {get; set;}
         bool WrapX {get; set;}
         bool WrapY {get; set;}
-        int? Frame {get; set;}
-        int FrameCount {get; set;}
+        RectangleF Bounds {get; set;}
 
         void Sample(in float x, in float y, ref Rgba32 pixel);
         void SampleScaled(in float x, in float y, out Vector4 pixel);
 
         void Sample(in float x, in float y, in ColorChannel color, out byte pixelValue);
         void SampleScaled(in float x, in float y, in ColorChannel color, out float pixelValue);
-
-        //SamplerScope<TPixel> BeginScope();
     }
 }

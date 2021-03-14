@@ -1,85 +1,12 @@
-﻿using PixelGraph.Common.ConnectedTextures;
-using PixelGraph.Common.Textures;
-using SixLabors.ImageSharp;
+﻿using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace PixelGraph.Common.Effects
 {
-    public interface ITextureRegionEnumerator
+    class ExpandedCtmMap
     {
-        IEnumerable<ImagePart> GetRegions(Image image);
-    }
-
-    internal class TextureRegionEnumerator : ITextureRegionEnumerator
-    {
-        private readonly ITextureGraphContext context;
-
-
-        public TextureRegionEnumerator(ITextureGraphContext context)
-        {
-            this.context = context;
-        }
-
-        public IEnumerable<ImagePart> GetRegions(Image image)
-        {
-            if (context.IsMaterialMultiPart) {
-                var blockSize = context.Profile?.BlockTextureSize;
-                if (!context.Material.TryGetSourceBounds(blockSize, out var bounds))
-                    throw new ApplicationException($"Unable to determine bounds of multi-part texture '{context.Material.DisplayName}'!");
-
-                var scale = (float) image.Width / bounds.Width;
-                return GetMultiPartRegions(scale);
-            }
-
-            if (context.IsMaterialCtm) {
-                int tileWidth, tileHeight;
-                switch (context.Material.CtmType) {
-                    case CtmTypes.Compact:
-                        tileWidth = image.Width / 5;
-                        tileHeight = image.Height;
-                        return GetCompactCtmRegions(tileWidth, tileHeight);
-                    case CtmTypes.Full:
-                        tileWidth = image.Width / 12;
-                        tileHeight = image.Height / 4;
-                        return GetFullCtmRegions(tileWidth, tileHeight);
-                    case CtmTypes.Expanded:
-                        tileWidth = image.Width / 5;
-                        tileHeight = image.Height;
-                        return GetExpandedCtmRegions(tileWidth, tileHeight);
-                    default:
-                        throw new ApplicationException($"Unknown CTM type '{context.Material.CtmType}'!");
-                }
-            }
-
-            return null;
-        }
-
-        private IEnumerable<ImagePart> GetMultiPartRegions(float scale)
-        {
-            return context.Material.Parts
-                .Select(region => new ImagePart {
-                    Name = region.Name,
-                    Bounds = region.GetRectangle(scale),
-                });
-        }
-
-        private IEnumerable<ImagePart> GetCompactCtmRegions(int tileWidth, int tileHeight)
-        {
-            for (var x = 0; x < 5; x++)
-                yield return GetCompactCtmPart(in tileWidth, in tileHeight, in x);
-        }
-
-        private IEnumerable<ImagePart> GetFullCtmRegions(int tileWidth, int tileHeight)
-        {
-            for (var y = 0; y < 5; y++) {
-                for (var x = 0; x < 12; x++)
-                    yield return GetFullCtmPart(in tileWidth, in tileHeight, in x, in y);
-            }
-        }
-
-        private IEnumerable<ImagePart> GetExpandedCtmRegions(int tileWidth, int tileHeight)
+        public IEnumerable<ImagePart> GetExpandedCtmRegions(int tileWidth, int tileHeight)
         {
             var hx = tileWidth / 2;
             var hy = tileHeight / 2;
@@ -175,22 +102,6 @@ namespace PixelGraph.Common.Effects
             //...
 
             throw new NotImplementedException();
-        }
-
-        private ImagePart GetCompactCtmPart(in int tileWidth, in int tileHeight, in int x)
-        {
-            return new ImagePart {
-                Name = x.ToString(),
-                Bounds = GetTileBounds(in tileWidth, in tileHeight, x, 0),
-            };
-        }
-
-        private ImagePart GetFullCtmPart(in int tileWidth, in int tileHeight, in int x, in int y)
-        {
-            return new ImagePart {
-                Name = (y * 12 + x).ToString(),
-                Bounds = GetTileBounds(in tileWidth, in tileHeight, x, y),
-            };
         }
 
         private Rectangle GetTileBounds(in int tileWidth, in int tileHeight, in int x, in int y)
