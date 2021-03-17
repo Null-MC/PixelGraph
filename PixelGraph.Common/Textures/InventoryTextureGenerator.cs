@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.ImageProcessors;
+﻿using System;
+using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
@@ -64,43 +65,70 @@ namespace PixelGraph.Common.Textures
                 var emissiveChannel = context.InputEncoding.FirstOrDefault(c => TextureTags.Is(c.ID, TextureTags.Emissive));
                 var emissiveInfo = await GetEmissiveInfoAsync(token);
 
-                var options = new ItemProcessor<Rgba32, Rgba32>.Options {
+                var inventoryOptions = new ItemProcessor<Rgba32, Rgba32>.Options {
                     NormalSampler = normalGraph.GetSampler(),
                     OcclusionSampler = await occlusionGraph.GetSamplerAsync(token),
                     OcclusionColor = occlusionGraph.Channel?.Color ?? ColorChannel.Red,
                 };
 
                 if (emissiveInfo != null) {
-                    options.EmissiveColor = emissiveChannel?.Color ?? ColorChannel.Red;
-                    options.EmissiveSampler = await GetEmissiveSamplerAsync(emissiveInfo.LocalFile, token);
+                    inventoryOptions.EmissiveColor = emissiveChannel?.Color ?? ColorChannel.Red;
+                    inventoryOptions.EmissiveSampler = await GetEmissiveSamplerAsync(emissiveInfo.LocalFile, token);
                 }
 
-                if (options.NormalSampler != null || options.OcclusionSampler != null) {
-                    var processor = new ItemProcessor<Rgba32, Rgba32>(options);
+                if (inventoryOptions.NormalSampler != null || inventoryOptions.OcclusionSampler != null) {
+                    var processor = new ItemProcessor<Rgba32, Rgba32>(inventoryOptions);
 
                     foreach (var part in regions.GetAllPublishRegions(1)) {
                         var frame = part.Frames.FirstOrDefault();
                         if (frame == null) continue;
 
-                        if (options.NormalSampler != null) {
+                        if (inventoryOptions.NormalSampler != null) {
                             var srcFrame = regions.GetPublishPartFrame(targetFrame, normalGraph.FrameCount, part.TileIndex);
-                            options.NormalSampler.Bounds = srcFrame.SourceBounds;
+                            inventoryOptions.NormalSampler.Bounds = srcFrame.SourceBounds;
                         }
 
-                        if (options.OcclusionSampler != null) {
-                            var srcFrame = regions.GetPublishPartFrame(targetFrame, occlusionGraph.FrameCount, 0);
-                            options.OcclusionSampler.Bounds = srcFrame.SourceBounds;
+                        if (inventoryOptions.OcclusionSampler != null) {
+                            var srcFrame = regions.GetPublishPartFrame(targetFrame, occlusionGraph.FrameCount, part.TileIndex);
+                            inventoryOptions.OcclusionSampler.Bounds = srcFrame.SourceBounds;
                         }
 
                         if (emissiveChannel != null && emissiveInfo != null) {
-                            var srcFrame = regions.GetPublishPartFrame(targetFrame, emissiveInfo.FrameCount, 0);
-                            options.EmissiveSampler.Bounds = srcFrame.SourceBounds;
+                            var srcFrame = regions.GetPublishPartFrame(targetFrame, emissiveInfo.FrameCount, part.TileIndex);
+                            inventoryOptions.EmissiveSampler.Bounds = srcFrame.SourceBounds;
                         }
 
-                        var outBounds = frame.DestBounds.ScaleTo(image.Width, image.Height);
+                        var outBounds = frame.SourceBounds.ScaleTo(image.Width, image.Height);
                         image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                     }
+                }
 
+                // Make image square
+                if (image.Width != image.Height) {
+                    var size = Math.Max(image.Width, image.Height);
+                    var temp = new Image<Rgba32>(size, size);
+
+                    try {
+                        var copyOptions = new CopyRegionProcessor<Rgba32>.Options {
+                            SourceImage = image,
+                            SourceX = 0,
+                            SourceY = 0,
+                        };
+
+                        var outBounds = new Rectangle(
+                            (size - image.Width) / 2,
+                            (size - image.Height) / 2,
+                            image.Width, image.Height);
+
+                        var processor = new CopyRegionProcessor<Rgba32>(copyOptions);
+                        temp.Mutate(c => c.ApplyProcessor(processor, outBounds));
+
+                        image.Dispose();
+                        image = temp;
+                    }
+                    catch {
+                        temp.Dispose();
+                    }
                 }
 
                 return image;
