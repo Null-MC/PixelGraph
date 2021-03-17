@@ -24,7 +24,7 @@ namespace PixelGraph.Common.IO
         public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern)
         {
             var fullPath = localPath == "." ? string.Empty : localPath;
-            var start = fullPath.Length; // + 1;
+            var start = fullPath.Length;
 
             return GetPathEntries(fullPath).Select(e => {
                 var i = e.FullName.IndexOf('/', start + 1);
@@ -43,13 +43,12 @@ namespace PixelGraph.Common.IO
                 var entryName = Path.GetFileName(localEntryPath);
                 if (PathEx.MatchPattern(entryName, pattern))
                     yield return entry.FullName;
-
-                //path = Path.GetDirectoryName(entry.FullName);
             }
+        }
 
-            //return archive.Entries.Select(e => e.FullName)
-            //    .Where(f => string.Equals(Path.GetDirectoryName(f), localPath, StringComparison.InvariantCultureIgnoreCase))
-            //    .Where(d => PathEx.MatchPattern(Path.GetFileName(d), pattern));
+        public override string GetFullPath(string localFile)
+        {
+            return Path.GetFullPath(localFile);
         }
 
         public override Stream Open(string localFile)

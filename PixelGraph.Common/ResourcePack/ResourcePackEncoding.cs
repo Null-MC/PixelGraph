@@ -284,6 +284,13 @@ namespace PixelGraph.Common.ResourcePack
         public ResourcePackHeightChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Height, texture, color) {}
     }
 
+    public class ResourcePackBumpChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackBumpChannelProperties() : base(EncodingChannel.Bump) {}
+
+        public ResourcePackBumpChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Bump, texture, color) {}
+    }
+
     public class ResourcePackOcclusionChannelProperties : ResourcePackChannelProperties
     {
         public ResourcePackOcclusionChannelProperties() : base(EncodingChannel.Occlusion) {}

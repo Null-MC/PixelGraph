@@ -22,6 +22,7 @@ namespace PixelGraph.Common.IO
         public abstract IEnumerable<string> EnumerateDirectories(string localPath, string pattern);
         public abstract IEnumerable<string> EnumerateFiles(string localPath, string pattern);
         public abstract bool FileExists(string localFile);
+        public abstract string GetFullPath(string localFile);
         public abstract Stream Open(string localFile);
         public abstract DateTime? GetWriteTime(string localFile);
 

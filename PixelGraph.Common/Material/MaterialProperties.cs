@@ -69,6 +69,8 @@ namespace PixelGraph.Common.Material
 
         public MaterialHeightProperties Height {get; set;}
 
+        public MaterialBumpProperties Bump {get; set;}
+
         public MaterialNormalProperties Normal {get; set;}
 
         public MaterialOcclusionProperties Occlusion {get; set;}

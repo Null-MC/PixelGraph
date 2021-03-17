@@ -53,18 +53,13 @@ namespace PixelGraph.Common.IO
 
             while (untracked.TryPop(out var filename)) {
                 token.ThrowIfCancellationRequested();
-                if (ignored.Contains(filename)) continue;
+
+                var fullFile = reader.GetFullPath(filename);
+                if (ignored.Contains(fullFile)) continue;
+
                 yield return filename;
             }
         }
-
-        //private bool IsPathLocalMaterial(string localPath)
-        //{
-        //    var localMapFile = PathEx.Join(localPath, "pbr.yml");
-        //    if (reader.FileExists(localMapFile)) return true;
-
-        //    return false;
-        //}
 
         private async IAsyncEnumerable<object> LoadRecursiveAsync(string searchPath, [EnumeratorCancellation] CancellationToken token)
         {
@@ -78,10 +73,14 @@ namespace PixelGraph.Common.IO
 
                 try {
                     material = await materialReader.LoadLocalAsync(localMapFile, token);
-                    ignored.Add(localMapFile);
 
-                    foreach (var texture in reader.EnumerateAllTextures(material))
-                        ignored.Add(texture);
+                    var fullMapFile = reader.GetFullPath(localMapFile);
+                    ignored.Add(fullMapFile);
+
+                    foreach (var localTexture in reader.EnumerateAllTextures(material)) {
+                        var fullTextureFile = reader.GetFullPath(localTexture);
+                        ignored.Add(fullTextureFile);
+                    }
                 }
                 catch (Exception error) {
                     logger.LogWarning(error, $"Failed to load local texture map '{localMapFile}'!");
@@ -116,22 +115,25 @@ namespace PixelGraph.Common.IO
 
                 try {
                     var material = await materialReader.LoadGlobalAsync(filename, token);
-                    ignored.Add(filename);
+                    var fullFile = reader.GetFullPath(filename);
+                    ignored.Add(fullFile);
 
-                    if (materialReader.TryExpandRange(material, out var subTextureList)) {
-                        foreach (var childMaterial in subTextureList) {
-                            materialList.Add(childMaterial);
+                    //if (materialReader.TryExpandRange(material, out var subTextureList)) {
+                    //    foreach (var childMaterial in subTextureList) {
+                    //        materialList.Add(childMaterial);
 
-                            foreach (var texture in reader.EnumerateAllTextures(childMaterial))
-                                ignored.Add(texture);
-                        }
-                    }
-                    else {
+                    //        foreach (var texture in reader.EnumerateAllTextures(childMaterial))
+                    //            ignored.Add(texture);
+                    //    }
+                    //}
+                    //else {
                         materialList.Add(material);
 
-                        foreach (var texture in reader.EnumerateAllTextures(material))
-                            ignored.Add(texture);
-                    }
+                        foreach (var texture in reader.EnumerateAllTextures(material)) {
+                            var fullTextureFile = reader.GetFullPath(texture);
+                            ignored.Add(fullTextureFile);
+                        }
+                    //}
                 }
                 catch (Exception error) {
                     logger.LogWarning(error, $"Failed to load local texture map '{localMapFile}'!");

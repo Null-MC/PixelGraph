@@ -49,16 +49,17 @@ namespace PixelGraph.Common.IO
             return File.Exists(fullFile);
         }
 
+        public override string GetFullPath(string localFile)
+        {
+            var fullFile = PathEx.Join(root, localFile);
+            return Path.GetFullPath(fullFile);
+        }
+
         public override DateTime? GetWriteTime(string localFile)
         {
             var fullFile = PathEx.Join(root, localFile);
             if (!File.Exists(fullFile)) return null;
             return File.GetLastWriteTime(fullFile);
-        }
-
-        private string GetFullPath(string localPath)
-        {
-            return PathEx.Join(root, localPath);
         }
     }
 }

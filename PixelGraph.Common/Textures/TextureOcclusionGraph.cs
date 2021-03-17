@@ -1,5 +1,4 @@
-﻿using PixelGraph.Common.Effects;
-using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
@@ -24,10 +23,8 @@ namespace PixelGraph.Common.Textures
         int FrameHeight {get;}
 
         Task<Image<Rgba32>> GetTextureAsync(CancellationToken token = default);
-        //Task<ISampler<Rgba32>> GetSamplerAsync(CancellationToken token = default);
         Task ApplyMagnitudeAsync(Image normalImage, ResourcePackChannelProperties magnitudeChannel, CancellationToken token = default);
         Task<Image<Rgba32>> GenerateAsync(CancellationToken token = default);
-
         Task<ISampler<Rgba32>> GetSamplerAsync(CancellationToken token = default);
     }
     

@@ -46,7 +46,7 @@ namespace PixelGraph.Common.Textures
             [Albedo] = mat => mat.Albedo?.Texture,
             [Diffuse] = mat => mat.Diffuse?.Texture,
             [Height] = mat => mat.Height?.Texture,
-            //[Bump] = mat => mat.Bump?.Texture,
+            [Bump] = mat => mat.Bump?.Texture,
             [Normal] = mat => mat.Normal?.Texture,
             [Occlusion] = mat => mat.Occlusion?.Texture,
             [Specular] = mat => mat.Specular?.Texture,

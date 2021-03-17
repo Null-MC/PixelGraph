@@ -56,7 +56,7 @@ namespace PixelGraph.Tests.Internal
 
         public override DateTime? GetWriteTime(string localFile) => null;
 
-        private string GetFullPath(string localPath)
+        public override string GetFullPath(string localPath)
         {
             return PathEx.Join(Root, localPath);
         }

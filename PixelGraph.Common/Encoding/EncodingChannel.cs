@@ -15,6 +15,7 @@ namespace PixelGraph.Common.Encoding
         public const string AlbedoGreen = "albedo-green";
         public const string AlbedoBlue = "albedo-blue";
         public const string Height = "height";
+        public const string Bump = "bump";
         public const string Occlusion = "occlusion";
         public const string NormalX = "normal-x";
         public const string NormalY = "normal-y";

@@ -73,15 +73,6 @@ namespace PixelGraph.Common.IO
             return PathEx.Join(path, file);
         }
 
-        //public TextureTypes GetTextureType(string filename)
-        //{
-        //    var path = System.IO.Path.GetDirectoryName(filename);
-        //    if (PathEx.ContainsSegment(path, "textures", "block"))
-        //        return TextureTypes.Block;
-
-        //    return TextureTypes.Unknown;
-        //}
-
         private static string GetPath(MaterialProperties material, bool global)
         {
             return global ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
