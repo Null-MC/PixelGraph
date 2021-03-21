@@ -437,12 +437,12 @@ namespace PixelGraph.Common.Textures
 
             var options = new PostOcclusionProcessor<Rgba32, Rgba32>.Options {
                 MappingColors = mappingGroup.Select(m => m.OutputColor).ToArray(),
-                //OcclusionColor = occlusionGraph.Channel.Color ?? ColorChannel.Red,
                 OcclusionSampler = occlusionSampler,
                 OcclusionMapping = new TextureChannelMapping(),
             };
 
             options.OcclusionMapping.ApplyInputChannel(occlusionGraph.Channel);
+            options.OcclusionMapping.ValueScale = (float)(context.Profile?.DiffuseOcclusionStrength ?? ResourcePackProfileProperties.DefaultDiffuseOcclusionStrength);
 
             Image<Rgba32> emissiveImage = null;
             TextureSource emissiveInfo = null;

@@ -29,6 +29,8 @@ namespace PixelGraph.Common.ImageProcessors
                 if (!options.OcclusionMapping.TryUnmap(ref occlusionPixel, out var occlusionValue))
                     occlusionValue = 0f;
 
+                occlusionValue *= options.OcclusionMapping.ValueScale;
+
                 if (options.EmissiveSampler != null) {
                     options.EmissiveSampler.Sample(in fx, in fy, in options.EmissiveMapping.InputColor, out var emissivePixel);
 

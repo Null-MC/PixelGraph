@@ -1,10 +1,10 @@
-﻿using SixLabors.ImageSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using SixLabors.ImageSharp;
 
-namespace PixelGraph.Common.Effects
+namespace PixelGraph.Common.ConnectedTextures
 {
-    class ExpandedCtmMap
+    internal class ExpandedCtmMap
     {
         public IEnumerable<ImagePart> GetExpandedCtmRegions(int tileWidth, int tileHeight)
         {

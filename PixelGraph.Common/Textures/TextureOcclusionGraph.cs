@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.ConnectedTextures;
+using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
@@ -12,7 +13,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.ConnectedTextures;
 
 namespace PixelGraph.Common.Textures
 {
