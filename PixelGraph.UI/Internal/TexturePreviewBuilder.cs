@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace PixelGraph.UI.Internal
 {
@@ -108,7 +109,7 @@ namespace PixelGraph.UI.Internal
         private static async Task<ImageSource> CreateImageSourceAsync(Image image, CancellationToken token)
         {
             await using var stream = new MemoryStream();
-            await image.SaveAsync(stream, PngFormat.Instance, token);
+            await image.SaveAsync(stream, BmpFormat.Instance, token);
             await stream.FlushAsync(token);
             stream.Seek(0, SeekOrigin.Begin);
 

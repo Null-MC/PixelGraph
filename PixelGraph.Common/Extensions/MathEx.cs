@@ -9,15 +9,15 @@ namespace PixelGraph.Common.Extensions
         //public const float Deg2RadF = (float)Deg2Rad;
 
 
-        public static bool Equal(this float valueA, float valueB)
+        public static bool Equal(this in float valueA, in float valueB)
         {
             return MathF.Abs(valueA - valueB) < float.Epsilon;
         }
 
-        public static bool Equal(this double valueA, double valueB)
-        {
-            return Math.Abs(valueA - valueB) < double.Epsilon;
-        }
+        //public static bool Equal(this double valueA, double valueB)
+        //{
+        //    return Math.Abs(valueA - valueB) < double.Epsilon;
+        //}
 
         public static void Normalize(ref Vector3 value)
         {
@@ -53,20 +53,20 @@ namespace PixelGraph.Common.Extensions
         //    value = (byte) (255 - value);
         //}
 
-        public static void Invert(ref float value)
-        {
-            value = 1f - value;
-        }
-
-        //public static void Invert(ref float value, in float minValue, in float maxValue)
+        //public static void Invert(ref float value)
         //{
-        //    value = maxValue - (value - minValue);
+        //    value = 1f - value;
         //}
 
-        public static void Invert(ref double value, in double minValue, in double maxValue)
+        public static void Invert(ref float value, in float minValue, in float maxValue)
         {
             value = maxValue - (value - minValue);
         }
+
+        //public static void Invert(ref double value, in double minValue, in double maxValue)
+        //{
+        //    value = maxValue - (value - minValue);
+        //}
 
         //public static byte Clamp(int value)
         //{
@@ -83,9 +83,9 @@ namespace PixelGraph.Common.Extensions
         //    return (byte)Math.Clamp((int)(value + 0.5f), min, max);
         //}
 
-        public static byte ClampRound(double value, byte min, byte max)
+        public static byte ClampRound(in float value, in byte min, in byte max)
         {
-            return (byte)Math.Clamp((int)(value + 0.5d), min, max);
+            return (byte)Math.Clamp((int)(value + 0.5f), min, max);
         }
 
         //public static byte Clamp(float value)
@@ -99,21 +99,21 @@ namespace PixelGraph.Common.Extensions
             else if (value > max) value = max;
         }
 
-        public static void Clamp(ref double value, in double min, in double max)
-        {
-            if (value < min) value = min;
-            else if (value > max) value = max;
-        }
+        //public static void Clamp(ref double value, in double min, in double max)
+        //{
+        //    if (value < min) value = min;
+        //    else if (value > max) value = max;
+        //}
 
         public static void Saturate(in float value, out byte result)
         {
             result = (byte)Math.Clamp(value * 255f + 0.5f, 0f, 255f);
         }
 
-        public static void Saturate(in double value, out byte result)
-        {
-            result = (byte)Math.Clamp(value * 255d + 0.5d, 0d, 255d);
-        }
+        //public static void Saturate(in double value, out byte result)
+        //{
+        //    result = (byte)Math.Clamp(value * 255d + 0.5d, 0d, 255d);
+        //}
 
         public static void SaturateFloor(in float value, out byte result)
         {
@@ -201,14 +201,14 @@ namespace PixelGraph.Common.Extensions
             value = (byte)x;
         }
 
-        //public static void Cycle(ref float value, in int offset)
-        //{
-        //    const float r = (float)(256d / 255d);
+        public static void Cycle(ref float value, in int offset, in byte min, in byte max)
+        {
+            //const float r = (float)(256d / 255d);
 
-        //    value += offset / 255f;
-        //    while (value < 0f) value += r;
-        //    while (value >= r) value -= r;
-        //}
+            value += offset / 255f;
+            while (value < min) value += (max - min) / 255f;
+            while (value > max) value -= (max - min) / 255f;
+        }
 
         //public static void PerceptualToLinear(ref double value)
         //{

@@ -7,6 +7,7 @@ namespace PixelGraph.Common.ConnectedTextures
         public const string Compact = "compact";
         public const string Full = "full";
         public const string Expanded = "expanded";
+        public const string Repeat = "repeat";
 
 
         public static bool Is(string expected, string actual)

@@ -95,6 +95,9 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = 100)]
         public string CtmType {get; set;}
 
+        public int? CtmCountX {get; set;}
+        public int? CtmCountY {get; set;}
+
         [YamlMember(Order = 101)]
         public List<MaterialPart> Parts {get; set;}
 
@@ -118,20 +121,33 @@ namespace PixelGraph.Common.Material
             return size;
         }
 
-        public bool TryGetSourceBounds(in int? blockSize, out Size size)
+        public bool TryGetSourceBounds(in int? blockSize, in float? scale, out Size size)
         {
-            if (!string.IsNullOrWhiteSpace(CtmType)) {
-                var tileWidth = TextureWidth ?? TextureSize ?? blockSize;
-                var tileHeight = TextureHeight ?? TextureSize ?? blockSize;
+            var texWidth = TextureWidth ?? TextureSize;
+            var texHeight = TextureHeight ?? TextureSize;
+            if (texWidth.HasValue && texHeight.HasValue) {
+                size = new Size(texWidth.Value, texHeight.Value);
+                if (scale.HasValue) {
+                    size.Width = (int)MathF.Ceiling(size.Width * scale.Value);
+                    size.Height = (int)MathF.Ceiling(size.Height * scale.Value);
+                }
+                return true;
+            }
 
-                if (tileWidth.HasValue && tileHeight.HasValue) {
+            if (!string.IsNullOrWhiteSpace(CtmType)) {
+                if (blockSize.HasValue) {
                     switch (CtmType) {
                         case CtmTypes.Compact:
-                            size = new Size(tileWidth.Value * 5, tileHeight.Value);
+                            size = new Size(blockSize.Value * 5, blockSize.Value);
                             return true;
                         case CtmTypes.Full:
                         case CtmTypes.Expanded:
-                            size = new Size(tileWidth.Value * 12, tileHeight.Value * 4);
+                            size = new Size(blockSize.Value * 12, blockSize.Value * 4);
+                            return true;
+                        case CtmTypes.Repeat:
+                            var countX = CtmCountX ?? 1;
+                            var countY = CtmCountY ?? 1;
+                            size = new Size(blockSize.Value * countX, blockSize.Value * countY);
                             return true;
                     }
                 }
@@ -139,6 +155,12 @@ namespace PixelGraph.Common.Material
 
             if (Parts?.Any() ?? false) {
                 size = GetMultiPartBounds();
+
+                if (scale.HasValue) {
+                    size.Width = (int)MathF.Ceiling(size.Width * scale.Value);
+                    size.Height = (int)MathF.Ceiling(size.Height * scale.Value);
+                }
+
                 return true;
             }
 

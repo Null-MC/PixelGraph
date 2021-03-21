@@ -49,7 +49,7 @@ namespace PixelGraph.Common.Textures
                         Bounds = GetFrameTileBounds(index, frameCount, x),
                     }).ToArray();
             }
-            else if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Compact)) {
+            else if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Full)) {
                 frame.Tiles = Enumerable.Range(0, 47)
                     .Select(z => new TextureRenderTile {
                         Index = z,
@@ -121,6 +121,9 @@ namespace PixelGraph.Common.Textures
             if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Full))
                 return 47;
 
+            if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Repeat))
+                return (context.Material.CtmCountX ?? 1) * (context.Material.CtmCountY ?? 1);
+
             return 1;
         }
 
@@ -169,6 +172,21 @@ namespace PixelGraph.Common.Textures
                 return new RectangleF {
                     X = (tileIndex % 12) * tileWidth,
                     Y = wrappedIndex * frameHeight + tileIndex / 12 * tileHeight,
+                    Width = tileWidth,
+                    Height = tileHeight,
+                };
+            }
+
+            if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Repeat)) {
+                var tileCountX = context.Material.CtmCountX ?? 1;
+                var tileCountY = context.Material.CtmCountY ?? 1;
+
+                var tileWidth = 1f / tileCountX;
+                var tileHeight = frameHeight / tileCountY;
+
+                return new RectangleF {
+                    X = (tileIndex % tileCountX) * tileWidth,
+                    Y = wrappedIndex * frameHeight + tileIndex / tileCountX * tileHeight,
                     Width = tileWidth,
                     Height = tileHeight,
                 };

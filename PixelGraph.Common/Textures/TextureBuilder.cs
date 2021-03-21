@@ -164,12 +164,12 @@ namespace PixelGraph.Common.Textures
 
             mapping = new TextureChannelMapping {
                 OutputColor = outputChannel.Color ?? ColorChannel.None,
-                OutputMinValue = (double?)outputChannel.MinValue ?? 0f,
-                OutputMaxValue = (double?)outputChannel.MaxValue ?? 1f,
+                OutputMinValue = (float?)outputChannel.MinValue ?? 0f,
+                OutputMaxValue = (float?)outputChannel.MaxValue ?? 1f,
                 OutputRangeMin = outputChannel.RangeMin ?? 0,
                 OutputRangeMax = outputChannel.RangeMax ?? 255,
                 OutputShift = outputChannel.Shift ?? 0,
-                OutputPower = (double?)outputChannel.Power ?? 1,
+                OutputPower = (float?)outputChannel.Power ?? 1,
                 OutputInverted = outputChannel.Invert ?? false,
                 OutputSampler = samplerName,
 
@@ -181,7 +181,7 @@ namespace PixelGraph.Common.Textures
                 => EncodingChannel.Is(i.ID, outputChannel.ID));
 
             if (context.Material.TryGetChannelValue(outputChannel.ID, out var value)) {
-                mapping.InputValue = value;
+                mapping.InputValue = (float)value;
                 mapping.ApplyInputChannel(inputChannel);
                 return true;
             }
@@ -221,7 +221,7 @@ namespace PixelGraph.Common.Textures
             // Albedo Red > Diffuse Red
             if (isOutputDiffuseRed && TryGetInputChannel(EncodingChannel.AlbedoRed, out var albedoRedChannel)) {
                 TryGetSourceFilename(albedoRedChannel.Texture, out mapping.SourceFilename);
-                if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoRed, out value)) mapping.InputValue = value;
+                if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoRed, out value)) mapping.InputValue = (float)value;
 
                 mapping.ApplyInputChannel(albedoRedChannel);
                 mapping.OutputApplyOcclusion = true;
@@ -231,7 +231,7 @@ namespace PixelGraph.Common.Textures
             // Albedo Green > Diffuse Green
             if (isOutputDiffuseGreen && TryGetInputChannel(EncodingChannel.AlbedoGreen, out var albedoGreenChannel)) {
                 TryGetSourceFilename(albedoGreenChannel.Texture, out mapping.SourceFilename);
-                if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoGreen, out value)) mapping.InputValue = value;
+                if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoGreen, out value)) mapping.InputValue = (float)value;
 
                 mapping.ApplyInputChannel(albedoGreenChannel);
                 mapping.OutputApplyOcclusion = true;
@@ -241,7 +241,7 @@ namespace PixelGraph.Common.Textures
             // Albedo Blue > Diffuse Blue
             if (isOutputDiffuseBlue && TryGetInputChannel(EncodingChannel.AlbedoBlue, out var albedoBlueChannel)) {
                 TryGetSourceFilename(albedoBlueChannel.Texture, out mapping.SourceFilename);
-                if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoBlue, out value)) mapping.InputValue = value;
+                if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoBlue, out value)) mapping.InputValue = (float)value;
 
                 mapping.ApplyInputChannel(albedoBlueChannel);
                 mapping.OutputApplyOcclusion = true;
@@ -356,15 +356,14 @@ namespace PixelGraph.Common.Textures
         {
             if (!mapping.InputValue.HasValue && mapping.OutputShift == 0 && !mapping.OutputInverted) return;
 
-            var value = (double?)mapping.InputValue ?? 0d;
-
+            var value = mapping.InputValue ?? 0f;
             if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
             // Common Processing
             value = (value + mapping.ValueShift) * mapping.ValueScale;
 
-            if (!mapping.OutputPower.Equal(1))
-                value = Math.Pow(value, mapping.OutputPower);
+            if (!mapping.OutputPower.Equal(1f))
+                value = MathF.Pow(value, mapping.OutputPower);
 
             if (mapping.OutputInverted) MathEx.Invert(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
 
@@ -436,23 +435,63 @@ namespace PixelGraph.Common.Textures
             var occlusionSampler = await occlusionGraph.GetSamplerAsync(token);
             if (occlusionSampler == null) return;
 
-            var options = new PostOcclusionProcessor<Rgba32>.Options {
+            var options = new PostOcclusionProcessor<Rgba32, Rgba32>.Options {
                 MappingColors = mappingGroup.Select(m => m.OutputColor).ToArray(),
-                OcclusionColor = occlusionGraph.Channel.Color ?? ColorChannel.Red,
+                //OcclusionColor = occlusionGraph.Channel.Color ?? ColorChannel.Red,
                 OcclusionSampler = occlusionSampler,
+                OcclusionMapping = new TextureChannelMapping(),
             };
 
-            var processor = new PostOcclusionProcessor<Rgba32>(options);
+            options.OcclusionMapping.ApplyInputChannel(occlusionGraph.Channel);
 
-            foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
-                var srcFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
+            Image<Rgba32> emissiveImage = null;
+            TextureSource emissiveInfo = null;
+            ISampler<Rgba32> emissiveSampler = null;
+            try {
+                if (TryGetInputChannel(EncodingChannel.Emissive, out var emissiveChannel)
+                    && TryGetSourceFilename(emissiveChannel.Texture, out var emissiveFile)) {
+                    emissiveInfo = await sourceGraph.GetOrCreateAsync(emissiveFile, token);
+                    if (emissiveInfo != null) {
+                        await using var stream = reader.Open(emissiveFile);
+                        emissiveImage = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
 
-                foreach (var tile in frame.Tiles) {
-                    occlusionSampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+                        var samplerName = context.Profile?.Encoding?.Emissive?.Sampler ?? context.DefaultSampler;
+                        options.EmissiveSampler = emissiveSampler = Sampler<Rgba32>.Create(samplerName);
+                        emissiveSampler.Image = emissiveImage;
+                        emissiveSampler.WrapX = context.MaterialWrapX;
+                        emissiveSampler.WrapY = context.MaterialWrapY;
 
-                    var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
-                    image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                        // TODO: set these properly
+                        emissiveSampler.RangeX = 1;
+                        emissiveSampler.RangeY = 1;
+
+                        options.EmissiveMapping = new TextureChannelMapping();
+                        options.EmissiveMapping.ApplyInputChannel(emissiveChannel);
+
+                        if (context.Material.TryGetChannelValue(EncodingChannel.Emissive, out var value))
+                            options.EmissiveMapping.InputValue = (float)value;
+                    }
                 }
+
+                var processor = new PostOcclusionProcessor<Rgba32, Rgba32>(options);
+
+                foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                    var occlusionFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
+                    var emissiveFrame = regions.GetRenderRegion(frame.Index, emissiveInfo?.FrameCount ?? 1);
+
+                    foreach (var tile in frame.Tiles) {
+                        occlusionSampler.Bounds = occlusionFrame.Tiles[tile.Index].Bounds;
+
+                        if (emissiveSampler != null)
+                            emissiveSampler.Bounds = emissiveFrame.Tiles[tile.Index].Bounds;
+
+                        var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                        image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                    }
+                }
+            }
+            finally {
+                emissiveImage?.Dispose();
             }
         }
 
@@ -468,16 +507,16 @@ namespace PixelGraph.Common.Textures
 
         private async Task<Size> GetBufferSizeAsync(CancellationToken token = default)
         {
-            var scale = context.TextureScale ?? 1f;
+            var scale = context.TextureScale;
             var blockSize = context.Profile?.BlockTextureSize;
 
             // Use multi-part bounds if defined
-            if (context.Material.TryGetSourceBounds(in blockSize, out var partBounds)) {
-                if (scale.Equal(1f)) return partBounds;
+            if (context.Material.TryGetSourceBounds(in blockSize, in scale, out var partBounds)) {
+                //if (scale.Equal(1f)) return partBounds;
 
-                var width = (int)MathF.Ceiling(partBounds.Width * scale);
-                var height = (int)MathF.Ceiling(partBounds.Height * scale);
-                return new Size(width, height);
+                //var width = (int)MathF.Ceiling(partBounds.Width * scale);
+                //var height = (int)MathF.Ceiling(partBounds.Height * scale);
+                return partBounds;
             }
 
             var actualBounds = await GetActualBoundsAsync(token);
@@ -492,9 +531,14 @@ namespace PixelGraph.Common.Textures
                 return textureSize.Value;
 
             if (actualBounds.HasValue) {
-                var targetWidth = (int)MathF.Ceiling(actualBounds.Value.Width * scale);
-                var targetHeight = (int)MathF.Ceiling(actualBounds.Value.Height * scale);
-                return new Size(targetWidth, targetHeight);
+                var size = new Size(actualBounds.Value.Width, actualBounds.Value.Height);
+
+                if (scale.HasValue) {
+                    size.Width = (int)MathF.Ceiling(size.Width * scale.Value);
+                    size.Height = (int)MathF.Ceiling(size.Height * scale.Value);
+                }
+
+                return size;
             }
 
             return new Size(1);

@@ -239,14 +239,14 @@
                                               Placeholder="{Binding DefaultOcclusionSampler, Mode=OneWay, Converter={StaticResource SamplerLabelConverter}}"
                                               SelectedValue="{Binding OcclusionSampler, Mode=TwoWay}"/>
                         </local:PropertyGridItem>-->
-                        <local:PropertyGridItem Header="Quality" Margin="0,8,0,0">
+                        <!--<local:PropertyGridItem Header="Quality" Margin="0,8,0,0">
                             <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                              Foreground="{DynamicResource SecondaryHueMidBrush}"
                                              PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"
                                              Placeholder="{Binding DefaultOcclusionQuality, Mode=OneWay}"
                                              Text="{Binding OcclusionQuality, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
-                        </local:PropertyGridItem>
-                        <local:PropertyGridItem Header="Step Count">
+                        </local:PropertyGridItem>-->
+                        <local:PropertyGridItem Header="Step Distance">
                             <local:TextBoxEx Margin="4,2" VerticalAlignment="Center" HorizontalContentAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      PlaceholderForeground="{DynamicResource SecondaryHueDarkBrush}"

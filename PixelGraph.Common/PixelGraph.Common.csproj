@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="GpuProcessors\**" />
+    <EmbeddedResource Remove="GpuProcessors\**" />
+    <None Remove="GpuProcessors\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="ImageProcessors\ChannelActionProcessor.cs" />
     <Compile Remove="ImageProcessors\ChannelResizeProcessor.cs" />
     <Compile Remove="ImageProcessors\NormalRestoreProcessor.cs" />
@@ -24,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--<PackageReference Include="ComputeSharp" Version="1.4.1" />-->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />

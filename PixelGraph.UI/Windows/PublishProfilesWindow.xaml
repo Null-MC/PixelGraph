@@ -450,6 +450,12 @@
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
                             <Setter Property="Foreground" Value="{DynamicResource SecondaryHueMidBrush}"/>
                         </Style>
+                        <Style TargetType="controls:TextBoxEx" BasedOn="{StaticResource MaterialDesignTextBox}">
+                            <Setter Property="Width" Value="200"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="{DynamicResource SecondaryHueMidBrush}"/>
+                            <Setter Property="PlaceholderForeground" Value="{DynamicResource SecondaryHueDarkBrush}"/>
+                        </Style>
                     </StackPanel.Resources>
                     <!-- Sizing -->
                     <TextBlock Text="Sizing" Style="{StaticResource SectionLabelStyle}"/>
@@ -499,6 +505,14 @@
                     </DockPanel>
                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                Text="When enabled materials that are missing an occlusion texture will attempt to generate it from the height texture."/>
+                    <DockPanel>
+                        <controls:TextBoxEx DockPanel.Dock="Right"
+                                            Placeholder="{Binding OcclusionQualityDefault, Mode=OneTime}"
+                                            Text="{Binding OcclusionQuality, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        <TextBlock Text="Quality" Style="{StaticResource FieldLabelStyle}"/>
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                               Text="Defines the number of rays to cast per-pixel as a percentage of a hemisphere. A value of 0 will cast 5 rays, and a value of 0.1 is 348 rays."/>
                 </StackPanel>
             </TabItem>
         </TabControl>

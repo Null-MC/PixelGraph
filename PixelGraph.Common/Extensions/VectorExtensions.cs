@@ -57,5 +57,12 @@ namespace PixelGraph.Common.Extensions
             if (vector.LengthSquared() >= float.Epsilon) MathEx.Normalize(ref vector);
             else vector = Vector3.UnitZ;
         }
+
+        public static void Add(this ref Vector3 vector, in Vector3 addVector)
+        {
+            vector.X += addVector.X;
+            vector.Y += addVector.Y;
+            vector.Z += addVector.Z;
+        }
     }
 }

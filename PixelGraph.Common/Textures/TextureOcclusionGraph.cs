@@ -12,6 +12,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.ConnectedTextures;
 
 namespace PixelGraph.Common.Textures
 {
@@ -146,42 +147,83 @@ namespace PixelGraph.Common.Textures
             heightSampler.RangeX = (float)heightTexture.Width / occlusionWidth;
             heightSampler.RangeY = (float)heightTexture.Height / occlusionHeight;
 
+            var quality = (float) (context.Profile?.OcclusionQuality ?? ResourcePackProfileProperties.DefaultOcclusionQuality);
             var stepDistance = (float?)context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance;
-
-            var options = new OcclusionProcessor<Rgba32>.Options {
-                HeightSampler = heightSampler,
-                HeightChannel = heightChannel.Color ?? ColorChannel.Red,
-                HeightMinValue = (float?)heightChannel.MinValue ?? 0f,
-                HeightMaxValue = (float?)heightChannel.MaxValue ?? 1f,
-                HeightRangeMin = heightChannel.RangeMin ?? 0,
-                HeightRangeMax = heightChannel.RangeMax ?? 255,
-                HeightShift = heightChannel.Shift ?? 0,
-                HeightPower = (float?)heightChannel.Power ?? 0f,
-                HeightInvert = heightChannel.Invert ?? false,
-
-                Quality = (float?)context.Material.Occlusion?.Quality ?? MaterialOcclusionProperties.DefaultQuality,
-                ZScale = (float?)context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale,
-                ZBias = (float?)context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias,
-
-                Token = token,
-            };
+            var zScale = (float?) context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale;
+            var zBias = (float?) context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias;
 
             // adjust volume height with texture scale
-            options.ZBias *= heightScale;
-            options.ZScale *= heightScale;
+            zBias *= heightScale;
+            zScale *= heightScale;
 
-            var processor = new OcclusionProcessor<Rgba32>(options);
+            var heightMapping = new TextureChannelMapping();
+            heightMapping.ApplyInputChannel(heightChannel);
+            heightMapping.ValueScale = context.Material.GetChannelScale(EncodingChannel.Height);
+
+            OcclusionProcessor<Rgba32>.Options options = null;
+            OcclusionProcessor<Rgba32> processor = null;
+            //OcclusionGpuProcessor<Rgba32>.Options gpuOptions = null;
+            //OcclusionGpuProcessor<Rgba32> gpuProcessor = null;
+            var enableGpu = false; //Gpu.IsSupported;
+
+            if (enableGpu) {
+                //gpuOptions = new OcclusionGpuProcessor<Rgba32>.Options {
+                //    HeightImage = heightTexture,
+                //    HeightMapping = heightMapping,
+                //    Quality = quality,
+                //    ZScale = zScale,
+                //    ZBias = zBias,
+                //};
+
+                //gpuProcessor = new OcclusionGpuProcessor<Rgba32>(gpuOptions);
+            }
+            else {
+                options = new OcclusionProcessor<Rgba32>.Options {
+                    HeightSampler = heightSampler,
+                    HeightMapping = heightMapping,
+                    Quality = quality,
+                    ZScale = zScale,
+                    ZBias = zBias,
+                    Token = token,
+                };
+
+                // adjust volume height with texture scale
+                options.ZBias *= heightScale;
+                options.ZScale *= heightScale;
+
+                processor = new OcclusionProcessor<Rgba32>(options);
+            }
+
             var occlusionTexture = new Image<Rgba32>(Configuration.Default, occlusionWidth, occlusionHeight);
+
+            //var texSize = GetTileSize();
+
+            //if (!texSize.HasValue) {
+            //    texSize = context.Material.TextureWidth ?? context.Material.TextureSize;
+
+            //    if (texSize.HasValue && (context.Profile?.TextureScale.HasValue ?? false))
+            //        texSize = (int)(texSize * context.Profile.TextureScale.Value);
+            //}
 
             try {
                 foreach (var frame in regions.GetAllRenderRegions(null, FrameCount)) {
                     foreach (var tile in frame.Tiles) {
-                        heightSampler.Bounds = tile.Bounds;
-
                         var outBounds = tile.Bounds.ScaleTo(occlusionWidth, occlusionHeight);
-                        options.StepCount = (int) MathF.Max(outBounds.Width * stepDistance, 1f);
 
-                        occlusionTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                        if (enableGpu) {
+                            //gpuOptions.StepCount = (int)MathF.Max(outBounds.Width * stepDistance, 1f);
+                            //gpuOptions.HeightWidth = (int)(tile.Bounds.Width * heightTexture.Width);
+                            //gpuOptions.HeightHeight = (int)(tile.Bounds.Height * heightTexture.Height);
+
+                            //gpuProcessor.Process(occlusionTexture, outBounds);
+                        }
+                        else {
+                            var size = GetTileSize(in occlusionWidth);
+                            options.StepCount = (int) MathF.Max(size * stepDistance, 1f);
+                            heightSampler.Bounds = tile.Bounds;
+
+                            occlusionTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                        }
                     }
                 }
 
@@ -196,22 +238,41 @@ namespace PixelGraph.Common.Textures
             }
         }
 
+        private int GetTileSize(in int imageWidth)
+        {
+            var profileSize = context.Profile?.BlockTextureSize ?? context.Profile?.TextureSize;
+            if (profileSize.HasValue) return profileSize.Value;
+
+            if (CtmTypes.Is(CtmTypes.Compact, context.Material.CtmType))
+                return imageWidth / 5;
+            
+            if (CtmTypes.Is(CtmTypes.Full, context.Material.CtmType))
+                return imageWidth / 12;
+            
+            if (CtmTypes.Is(CtmTypes.Repeat, context.Material.CtmType))
+                return imageWidth / (context.Material.CtmCountX ?? 1);
+
+            return imageWidth;
+        }
+
         public async Task ApplyMagnitudeAsync(Image normalImage, ResourcePackChannelProperties magnitudeChannel, CancellationToken token = default)
         {
             var options = new NormalMagnitudeProcessor<Rgba32>.Options {
                 MagSource = await GetTextureAsync(token),
                 Scale = context.Material.GetChannelScale(magnitudeChannel.ID),
-                InputChannel = Channel?.Color ?? ColorChannel.Red,
-                InputMinValue = (float?)Channel?.MinValue ?? 0f,
-                InputMaxValue = (float?)Channel?.MaxValue ?? 1f,
-                InputRangeMin = Channel?.RangeMin ?? 0,
-                InputRangeMax = Channel?.RangeMax ?? 255,
-                InputPower = (float?)Channel?.Power ?? 1f,
-                InputInvert = Channel?.Invert ?? false,
+                Mapping = new TextureChannelMapping(),
+                //InputChannel = Channel?.Color ?? ColorChannel.Red,
+                //InputMinValue = (float?)Channel?.MinValue ?? 0f,
+                //InputMaxValue = (float?)Channel?.MaxValue ?? 1f,
+                //InputRangeMin = Channel?.RangeMin ?? 0,
+                //InputRangeMax = Channel?.RangeMax ?? 255,
+                //InputPower = (float?)Channel?.Power ?? 1f,
+                //InputInvert = Channel?.Invert ?? false,
             };
 
             if (options.MagSource == null) return;
-            options.ApplyOutputChannel(magnitudeChannel);
+            options.Mapping.ApplyInputChannel(Channel);
+            options.Mapping.ApplyOutputChannel(magnitudeChannel);
 
             var processor = new NormalMagnitudeProcessor<Rgba32>(options);
             normalImage.Mutate(c => c.ApplyProcessor(processor));

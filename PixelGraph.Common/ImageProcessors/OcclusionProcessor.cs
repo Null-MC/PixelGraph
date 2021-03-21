@@ -26,7 +26,7 @@ namespace PixelGraph.Common.ImageProcessors
         protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
             var rayCount = rayList.Value.Length;
-            var rayCountFactor = 1d / rayCount;
+            var rayCountFactor = 1f / (rayCount + 1);
             var pixelOut = new Rgba32(0, 0, 0, 255);
             var position = new Vector3();
 
@@ -34,14 +34,15 @@ namespace PixelGraph.Common.ImageProcessors
                 options.Token.ThrowIfCancellationRequested();
 
                 var (fx, fy) = GetTexCoord(in context, in x);
-                options.HeightSampler.SampleScaled(in fx, in fy, in options.HeightChannel, out var height);
+                options.HeightSampler.SampleScaled(in fx, in fy, in options.HeightMapping.InputColor, out var heightPixel);
+                if (!options.HeightMapping.TryUnmap(ref heightPixel, out var heightValue)) continue;
 
-                // TODO: range, shift, power
-                if (!options.HeightInvert) MathEx.Invert(ref height);
+                if (!options.HeightMapping.ValueScale.Equal(1f))
+                    heightValue *= options.HeightMapping.ValueScale;
 
-                var z = height * options.ZScale + options.ZBias;
+                var z = (1f - heightValue) + options.ZBias;
 
-                var hitFactor = 0d;
+                var hitFactor = 0f;
                 if (z < options.ZScale) {
                     for (var i = 0; i < rayCount; i++) {
                         options.Token.ThrowIfCancellationRequested();
@@ -55,10 +56,40 @@ namespace PixelGraph.Common.ImageProcessors
                     }
                 }
 
-                MathEx.Saturate(1d - hitFactor, out pixelOut.R);
+                MathEx.Saturate(1f - hitFactor, out pixelOut.R);
                 pixelOut.B = pixelOut.G = pixelOut.R;
                 row[x].FromRgba32(pixelOut);
             }
+        }
+
+        private bool RayTest(in PixelRowContext context, ref Vector3 position, in Vector3 ray, out float factor)
+        {
+            for (var step = 1; step <= options.StepCount; step++) {
+                position.Add(in ray);
+
+                if (position.Z >= 1f) break;
+
+                var (fx, fy) = GetTexCoord(in context, in position.X, in position.Y);
+                options.HeightSampler.Sample(in fx, in fy, options.HeightMapping.InputColor, out var heightPixel);
+
+                if (!options.HeightMapping.TryUnmap(ref heightPixel, out var heightValue)) {
+                    // no height data
+                    continue;
+                }
+
+                if (!options.HeightMapping.ValueScale.Equal(1f))
+                    heightValue *= options.HeightMapping.ValueScale;
+
+                if (!(position.Z < 1f - heightValue)) continue;
+
+                // hit, return 
+                factor = (float)step / options.StepCount;
+                factor = 1f - MathF.Pow(factor, options.HitPower);
+                return true;
+            }
+
+            factor = 0f;
+            return false;
         }
 
         private Vector3[] CreateRays()
@@ -68,6 +99,10 @@ namespace PixelGraph.Common.ImageProcessors
             if (options.StepCount < 1)
                 throw new ArgumentOutOfRangeException(nameof(options.StepCount),
                     "Occlusion Step-Count must be greater than 0!");
+
+            if (options.ZScale <= float.Epsilon)
+                throw new ArgumentOutOfRangeException(nameof(options.ZScale),
+                    "Occlusion Z-Scale must be greater than 0!");
 
             if (options.Quality < 0 || options.Quality > 1f)
                 throw new ArgumentOutOfRangeException(nameof(options.Quality), 
@@ -93,37 +128,11 @@ namespace PixelGraph.Common.ImageProcessors
                     var z = hStepCount * v + h;
                     result[z].X = MathF.Cos(hAngleRadians);
                     result[z].Y = MathF.Sin(hAngleRadians);
-                    result[z].Z = MathF.Sin(vAngleRadians);
+                    result[z].Z = MathF.Sin(vAngleRadians) / options.ZScale;
                 }
             }
 
             return result;
-        }
-
-        private bool RayTest(in PixelRowContext context, ref Vector3 position, in Vector3 ray, out float factor)
-        {
-            //var stepCount = (int)MathF.Max(context.Bounds.Width * options.StepDistance, 1f);
-
-            for (var step = 1; step <= options.StepCount; step++) {
-                position += ray;
-
-                if (position.Z >= options.ZScale) break;
-
-                var (fx, fy) = GetTexCoord(in context, in position.X, in position.Y);
-                options.HeightSampler.SampleScaled(in fx, in fy, options.HeightChannel, out var height);
-
-                // TODO: range, shift, power
-                if (!options.HeightInvert) MathEx.Invert(ref height);
-                if (!(position.Z < height * options.ZScale)) continue;
-
-                // hit, return 
-                factor = (float)step / options.StepCount;
-                factor = 1f - MathF.Pow(factor, options.HitPower);
-                return true;
-            }
-
-            factor = 0f;
-            return false;
         }
 
         public class Options
@@ -131,16 +140,8 @@ namespace PixelGraph.Common.ImageProcessors
             public CancellationToken Token;
 
             public ISampler<THeight> HeightSampler;
-            public ColorChannel HeightChannel;
-            public float HeightMinValue;
-            public float HeightMaxValue;
-            public byte HeightRangeMin;
-            public byte HeightRangeMax;
-            public int HeightShift;
-            public float HeightPower;
-            public bool HeightInvert;
+            public TextureChannelMapping HeightMapping;
 
-            //public float StepDistance;
             public int StepCount;
             public float HitPower = 1.5f;
             public float ZScale;

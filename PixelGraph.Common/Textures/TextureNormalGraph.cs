@@ -232,8 +232,8 @@ namespace PixelGraph.Common.Textures
                     Scale = context.Material.GetChannelScale(magnitudeChannel.ID),
                 };
 
-                options.ApplyInputChannel(inputChannel);
-                options.ApplyOutputChannel(magnitudeChannel);
+                options.Mapping.ApplyInputChannel(inputChannel);
+                options.Mapping.ApplyOutputChannel(magnitudeChannel);
 
                 var processor = new NormalMagnitudeProcessor<Rgba32>(options);
                 Texture.Mutate(c => c.ApplyProcessor(processor));

@@ -33,7 +33,7 @@ namespace PixelGraph.UI.ViewModels
         public string DefaultInputFormat => _packInput?.Format ?? MaterialProperties.DefaultInputFormat;
         public string DefaultNormalFilter => MaterialNormalProperties.DefaultFilter.ToString();
         //public string DefaultOcclusionSampler => MaterialOcclusionProperties.DefaultSampler;
-        public string DefaultOcclusionQuality => MaterialOcclusionProperties.DefaultQuality.ToString("N3");
+        //public string DefaultOcclusionQuality => MaterialOcclusionProperties.DefaultQuality.ToString("N3");
         public string DefaultOcclusionStepDistance => MaterialOcclusionProperties.DefaultStepDistance.ToString("N3");
         public string DefaultOcclusionZBias => MaterialOcclusionProperties.DefaultZBias.ToString("N3");
         public string DefaultOcclusionZScale => MaterialOcclusionProperties.DefaultZScale.ToString("N3");
@@ -573,15 +573,15 @@ namespace PixelGraph.UI.ViewModels
         //    }
         //}
 
-        public decimal? OcclusionQuality {
-            get => _material?.Occlusion?.Quality;
-            set {
-                _material.Occlusion ??= new MaterialOcclusionProperties();
-                _material.Occlusion.Quality = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
+        //public decimal? OcclusionQuality {
+        //    get => _material?.Occlusion?.Quality;
+        //    set {
+        //        _material.Occlusion ??= new MaterialOcclusionProperties();
+        //        _material.Occlusion.Quality = value;
+        //        OnPropertyChanged();
+        //        OnDataChanged();
+        //    }
+        //}
 
         public decimal? OcclusionZBias {
             get => _material?.Occlusion?.ZBias;
@@ -628,7 +628,7 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(OcclusionTexture));
             OnPropertyChanged(nameof(OcclusionValue));
             OnPropertyChanged(nameof(OcclusionScale));
-            OnPropertyChanged(nameof(OcclusionQuality));
+            //OnPropertyChanged(nameof(OcclusionQuality));
             OnPropertyChanged(nameof(OcclusionStepDistance));
             OnPropertyChanged(nameof(OcclusionZBias));
             OnPropertyChanged(nameof(OcclusionZScale));

@@ -40,6 +40,7 @@ namespace PixelGraph.Common.Textures
     internal class TextureGraphContext : ITextureGraphContext
     {
         private static readonly Regex blockTextureExp = new Regex(@"(?:^|\/)textures\/block(?:\/|$)", RegexOptions.Compiled);
+        private static readonly Regex ctmTextureExp = new Regex(@"(?:^|\/)optifine\/ctm(?:\/|$)", RegexOptions.Compiled);
         private static readonly Regex entityTextureExp = new Regex(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
 
         public MaterialProperties Material {get; set;}
@@ -128,6 +129,7 @@ namespace PixelGraph.Common.Textures
 
                 if (path != null) {
                     if (blockTextureExp.IsMatch(path)) return MaterialType.Block;
+                    if (ctmTextureExp.IsMatch(path)) return MaterialType.Block;
                     if (entityTextureExp.IsMatch(path)) return MaterialType.Entity;
                 }
             }
@@ -201,18 +203,17 @@ namespace PixelGraph.Common.Textures
         public Size? GetBufferSize(float aspect)
         {
             var blockSize = Profile?.BlockTextureSize;
+            var scale = (float?)Profile?.TextureScale;
 
-            if (Material.TryGetSourceBounds(in blockSize, out var bounds)) {
-                if (TextureScale.HasValue) {
-                    var width = (int)MathF.Ceiling(bounds.Width * TextureScale.Value);
-                    var height = (int)MathF.Ceiling(bounds.Height * TextureScale.Value);
-                    return new Size(width, height);
-                }
+            if (!Material.TryGetSourceBounds(in blockSize, scale, out var bounds))
+                return GetTextureSize(aspect);
 
-                return bounds;
-            }
+            return bounds;
+            //if (!TextureScale.HasValue) return bounds;
 
-            return GetTextureSize(aspect);
+            //var width = (int)MathF.Ceiling(bounds.Width * TextureScale.Value);
+            //var height = (int)MathF.Ceiling(bounds.Height * TextureScale.Value);
+            //return new Size(width, height);
         }
     }
 }

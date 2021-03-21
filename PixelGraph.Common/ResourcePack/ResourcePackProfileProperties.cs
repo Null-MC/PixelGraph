@@ -5,6 +5,7 @@ namespace PixelGraph.Common.ResourcePack
     public class ResourcePackProfileProperties
     {
         public const int DefaultFormat = 6;
+        public const decimal DefaultOcclusionQuality = 0.05m;
         public const bool AutoGenerateNormalDefault = true;
         public const bool AutoGenerateOcclusionDefault = false;
 
@@ -58,6 +59,8 @@ namespace PixelGraph.Common.ResourcePack
         public bool? AutoGenerateNormal {get; set;}
 
         public bool? AutoGenerateOcclusion {get; set;}
+
+        public decimal? OcclusionQuality {get; set;}
 
 
         public ResourcePackProfileProperties()
