@@ -14,10 +14,10 @@ namespace PixelGraph.UI.Internal
     {
         private const string FileName = "PublishLocations.txt";
 
-        private readonly IAppDataHelper appData;
+        private readonly IAppDataUtility appData;
 
 
-        public PublishLocationManager(IAppDataHelper appData)
+        public PublishLocationManager(IAppDataUtility appData)
         {
             this.appData = appData;
         }

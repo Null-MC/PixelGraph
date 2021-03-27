@@ -19,14 +19,23 @@ namespace PixelGraph.Common.Textures
 {
     public interface ITextureNormalGraph
     {
-        Image<Rgb24> Texture {get;}
-        int FrameCount {get;}
-        int FrameWidth {get;}
-        int FrameHeight {get;}
+        Image<Rgb24> NormalTexture {get;}
+        int NormalFrameCount {get;}
+        int NormalFrameWidth {get;}
+        int NormalFrameHeight {get;}
+        bool HasNormalTexture {get;}
+
+        Image<L8> MagnitudeTexture {get;}
+        int MagnitudeFrameCount {get;}
+        int MagnitudeFrameWidth {get;}
+        int MagnitudeFrameHeight {get;}
+        bool HasMagnitudeTexture {get;}
 
         Task<bool> TryBuildNormalMapAsync(CancellationToken token = default);
         Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default);
-        ISampler<Rgb24> GetSampler();
+
+        ISampler<Rgb24> GetNormalSampler();
+        ISampler<L8> GetMagnitudeSampler();
     }
 
     internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
@@ -38,10 +47,17 @@ namespace PixelGraph.Common.Textures
         private readonly IInputReader reader;
         private readonly ILogger logger;
 
-        public Image<Rgb24> Texture {get; private set;}
-        public int FrameCount {get; private set;}
-        public int FrameWidth {get; private set;}
-        public int FrameHeight {get; private set;}
+        public Image<Rgb24> NormalTexture {get; private set;}
+        public int NormalFrameCount {get; private set;}
+        public int NormalFrameWidth {get; private set;}
+        public int NormalFrameHeight {get; private set;}
+        public bool HasNormalTexture => NormalTexture != null;
+
+        public Image<L8> MagnitudeTexture {get; private set;}
+        public int MagnitudeFrameCount {get; private set;}
+        public int MagnitudeFrameWidth {get; private set;}
+        public int MagnitudeFrameHeight {get; private set;}
+        public bool HasMagnitudeTexture => MagnitudeTexture != null;
 
 
         public TextureNormalGraph(
@@ -59,12 +75,14 @@ namespace PixelGraph.Common.Textures
             this.reader = reader;
             this.logger = logger;
 
-            FrameCount = 1;
+            NormalFrameCount = 1;
+            MagnitudeFrameCount = 1;
         }
 
         public void Dispose()
         {
-            Texture?.Dispose();
+            MagnitudeTexture?.Dispose();
+            NormalTexture?.Dispose();
         }
 
         public async Task<bool> TryBuildNormalMapAsync(CancellationToken token = default)
@@ -76,6 +94,7 @@ namespace PixelGraph.Common.Textures
 
             var hasNormalX = normalXChannel?.HasMapping ?? false;
             var hasNormalY = normalYChannel?.HasMapping ?? false;
+            var hasNormalZ = normalZChannel?.HasMapping ?? false;
 
             if (hasNormalX && hasNormalY) {
                 using var scope = provider.CreateScope();
@@ -107,46 +126,50 @@ namespace PixelGraph.Common.Textures
 
                 await builder.MapAsync(false, token);
                 if (builder.HasMappedSources) {
-                    Texture = await builder.BuildAsync<Rgb24>(false, token);
-                    if (Texture != null) FrameCount = builder.FrameCount;
+                    NormalTexture = await builder.BuildAsync<Rgb24>(false, token);
+
+                    if (NormalTexture != null) {
+                        NormalFrameCount = builder.FrameCount;
+                        MagnitudeFrameCount = builder.FrameCount;
+
+                        TryExtractMagnitude();
+                    }
                 }
             }
 
             var autoGenNormal = context.Profile?.AutoGenerateNormal
                 ?? ResourcePackProfileProperties.AutoGenerateNormalDefault;
 
-            if (Texture == null && autoGenNormal)
-                Texture = await GenerateAsync(token);
+            if (NormalTexture == null && autoGenNormal)
+                NormalTexture = await GenerateAsync(token);
 
-            if (Texture == null) return false;
+            if (NormalTexture == null) return false;
 
-            FrameWidth = Texture.Width;
-            FrameHeight = Texture.Height;
-            if (FrameCount > 1) FrameHeight /= FrameCount;
+            NormalFrameWidth = NormalTexture.Width;
+            NormalFrameHeight = NormalTexture.Height;
+            if (NormalFrameCount > 1) NormalFrameHeight /= NormalFrameCount;
 
             var options = new NormalRotateProcessor.Options {
-                NormalX = ColorChannel.Red,
-                NormalY = ColorChannel.Green,
-                NormalZ = ColorChannel.Blue,
+                HasNormalZ = hasNormalZ,
                 CurveX = (float?)context.Material.Normal?.CurveX ?? 0f,
                 CurveY = (float?)context.Material.Normal?.CurveY ?? 0f,
                 Noise = (float?)context.Material.Normal?.Noise ?? 0f,
             };
 
             var processor = new NormalRotateProcessor(options);
-            Texture.Mutate(c => c.ApplyProcessor(processor));
+            NormalTexture.Mutate(c => c.ApplyProcessor(processor));
 
             // apply magnitude channels
-            var magnitudeChannels = context.OutputEncoding
+            var magnitudeOutputChannels = context.OutputEncoding
                 .Where(c => TextureTags.Is(c.Texture, TextureTags.Normal))
                 .Where(c => c.Color == ColorChannel.Magnitude).ToArray();
 
-            if (magnitudeChannels.Length > 1) {
+            if (magnitudeOutputChannels.Length > 1) {
                 logger.LogWarning("Only a single encoding channel can be mapped to normal-magnitude! using first mapping. material={DisplayName}", context.Material.DisplayName);
             }
 
-            var magnitudeChannel = magnitudeChannels.FirstOrDefault();
-            if (magnitudeChannel != null) await ApplyMagnitudeAsync(magnitudeChannel, token);
+            var magnitudeOutputChannel = magnitudeOutputChannels.FirstOrDefault();
+            if (magnitudeOutputChannel != null) await ApplyMagnitudeAsync(magnitudeOutputChannel, token);
 
             return true;
         }
@@ -192,58 +215,98 @@ namespace PixelGraph.Common.Textures
                 // WARN: temporary hard-coded
                 builder.LowFreqStrength = builder.Strength / 4f;
 
-                return builder.Build(FrameCount);
+                return builder.Build(NormalFrameCount);
             }
             finally {
                 heightTexture?.Dispose();
             }
         }
 
-        public ISampler<Rgb24> GetSampler()
+        public ISampler<Rgb24> GetNormalSampler()
         {
-            if (Texture == null) return null;
+            return NormalTexture == null ? null : context.CreateSampler(NormalTexture, Samplers.Samplers.Nearest);
+        }
 
-            var sampler = Sampler<Rgb24>.Create(Samplers.Samplers.Nearest);
-            sampler.Image = Texture;
-            sampler.WrapX = context.MaterialWrapX;
-            sampler.WrapY = context.MaterialWrapY;
+        public ISampler<L8> GetMagnitudeSampler()
+        {
+            return MagnitudeTexture == null ? null : context.CreateSampler(MagnitudeTexture, Samplers.Samplers.Nearest);
+        }
 
-            // TODO: SET THESE PROPERLY!
-            sampler.RangeX = 1f;
-            sampler.RangeY = 1f;
+        private void TryExtractMagnitude()
+        {
+            var magnitudeInputChannels = context.InputEncoding
+                .Where(c => TextureTags.Is(c.Texture, TextureTags.Normal))
+                .Where(c => c.Color == ColorChannel.Magnitude).ToArray();
 
-            return sampler;
+            if (magnitudeInputChannels.Length > 1) {
+                logger.LogWarning("Only a single encoding channel can be mapped to normal-magnitude! using first mapping. material={DisplayName}", context.Material.DisplayName);
+            }
+
+            var magnitudeInputChannel = magnitudeInputChannels.FirstOrDefault();
+            if (magnitudeInputChannel == null) return;
+
+            var options = new NormalMagnitudeReadProcessor<Rgb24>.Options {
+                Mapping = new TextureChannelMapping {
+                    OutputColor = ColorChannel.Red,
+                },
+                NormalTexture = NormalTexture,
+            };
+
+            options.Mapping.ApplyInputChannel(magnitudeInputChannel);
+
+            MagnitudeTexture = new Image<L8>(NormalTexture.Width, NormalTexture.Height);
+
+            var processor = new NormalMagnitudeReadProcessor<Rgb24>(options);
+            MagnitudeTexture.Mutate(c => c.ApplyProcessor(processor));
+
+            MagnitudeFrameWidth = MagnitudeTexture.Width;
+            MagnitudeFrameHeight = MagnitudeTexture.Height;
+            if (MagnitudeFrameCount > 1) MagnitudeFrameHeight /= MagnitudeFrameCount;
         }
 
         private async Task ApplyMagnitudeAsync(ResourcePackChannelProperties magnitudeChannel, CancellationToken token)
         {
-            var localFile = reader.EnumerateTextures(context.Material, magnitudeChannel.Texture).FirstOrDefault();
+            var inputChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, magnitudeChannel.ID));
+            if (inputChannel == null) return;
 
-            if (localFile != null) {
-                await using var sourceStream = reader.Open(localFile);
-                using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
-                if (sourceImage == null) return;
+            var options = new NormalMagnitudeWriteProcessor<L8>.Options {
+                Scale = context.Material.GetChannelScale(magnitudeChannel.ID),
+                Mapping = new TextureChannelMapping {
+                    ValueShift = context.Material.GetChannelShift(magnitudeChannel.ID),
+                    ValueScale = context.Material.GetChannelScale(magnitudeChannel.ID),
+                },
+            };
 
-                var inputChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, magnitudeChannel.ID));
-                if (inputChannel == null) return;
+            options.Mapping.ApplyInputChannel(inputChannel);
+            options.Mapping.ApplyOutputChannel(magnitudeChannel);
 
-                var options = new NormalMagnitudeProcessor<Rgba32>.Options {
-                    MagSource = sourceImage,
-                    Scale = context.Material.GetChannelScale(magnitudeChannel.ID),
-                };
-
-                options.Mapping.ApplyInputChannel(inputChannel);
-                options.Mapping.ApplyOutputChannel(magnitudeChannel);
-
-                var processor = new NormalMagnitudeProcessor<Rgba32>(options);
-                Texture.Mutate(c => c.ApplyProcessor(processor));
-            }
-            else if (EncodingChannel.Is(magnitudeChannel.ID, EncodingChannel.Occlusion)) {
+            int srcFrameCount;
+            if (EncodingChannel.Is(magnitudeChannel.ID, EncodingChannel.Occlusion)) {
                 var occlusionGraph = provider.GetRequiredService<ITextureOcclusionGraph>();
-                await occlusionGraph.ApplyMagnitudeAsync(Texture, magnitudeChannel, token);
+
+                options.MagSampler = await occlusionGraph.GetSamplerAsync(token);
+                if (options.MagSampler == null) return;
+
+                srcFrameCount = occlusionGraph.FrameCount;
+
+                // TODO: set these properly
+                options.MagSampler.RangeX = 1f;
+                options.MagSampler.RangeY = 1f;
             }
             else {
                 throw new SourceEmptyException("No sources found for applying normal magnitude!");
+            }
+
+            var processor = new NormalMagnitudeWriteProcessor<L8>(options);
+
+            foreach (var frame in regions.GetAllRenderRegions(null, NormalFrameCount)) {
+                foreach (var part in frame.Tiles) {
+                    var srcPart = regions.GetRenderRegion(frame.Index, srcFrameCount);
+                    options.MagSampler.Bounds = srcPart.Tiles[part.Index].Bounds;
+
+                    var outBounds = part.Bounds.ScaleTo(NormalTexture.Width, NormalTexture.Height);
+                    NormalTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                }
             }
         }
 
@@ -257,13 +320,9 @@ namespace PixelGraph.Common.Textures
             }
 
             file = reader.EnumerateTextures(context.Material, TextureTags.Height).FirstOrDefault();
+            if (file == null) return null;
 
-            if (file != null) {
-                var info = await sourceGraph.GetOrCreateAsync(file, token);
-                if (info != null) return info;
-            }
-
-            return null;
+            return await sourceGraph.GetOrCreateAsync(file, token);
         }
 
         private async Task<(Image<Rgba32>, float)> LoadHeightTextureAsync(CancellationToken token)
@@ -281,7 +340,7 @@ namespace PixelGraph.Common.Textures
                 // scale height texture instead of using samplers
                 var aspect = (float)info.Height / info.Width;
                 var bufferSize = context.GetBufferSize(aspect);
-                FrameCount = info.FrameCount;
+                NormalFrameCount = info.FrameCount;
                 var scale = 1f;
 
                 if (bufferSize.HasValue && info.Width != bufferSize.Value.Width) {
@@ -290,12 +349,9 @@ namespace PixelGraph.Common.Textures
                     var scaledHeight = (int)MathF.Ceiling(info.Height * scale * info.FrameCount);
 
                     var samplerName = context.Profile?.Encoding?.Height?.Sampler ?? context.DefaultSampler;
-                    var sampler = Sampler<Rgba32>.Create(samplerName);
-                    sampler.Image = heightTexture;
-                    sampler.WrapX = context.MaterialWrapX;
-                    sampler.WrapY = context.MaterialWrapY;
-                    sampler.RangeX = sampler.RangeY = 1f / scale;
+                    var sampler = context.CreateSampler(heightTexture, samplerName);
                     sampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
+                    sampler.RangeX = sampler.RangeY = 1f / scale;
 
                     var options = new ResizeProcessor<Rgba32>.Options {
                         Sampler = sampler,
@@ -308,7 +364,7 @@ namespace PixelGraph.Common.Textures
                         heightCopy = heightTexture;
                         heightTexture = new Image<Rgba32>(Configuration.Default, scaledWidth, scaledHeight);
 
-                        foreach (var frame in regions.GetAllRenderRegions(null, FrameCount)) {
+                        foreach (var frame in regions.GetAllRenderRegions(null, NormalFrameCount)) {
                             foreach (var tile in frame.Tiles) {
                                 sampler.Bounds = tile.Bounds;
 

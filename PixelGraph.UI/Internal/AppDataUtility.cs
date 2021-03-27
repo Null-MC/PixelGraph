@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
+using PixelGraph.Common.IO;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal
 {
-    public interface IAppDataHelper
+    public interface IAppDataUtility
     {
         //public string AppPath {get;}
 
@@ -20,22 +20,11 @@ namespace PixelGraph.UI.Internal
         Task WriteJsonAsync(string localFile, object data, CancellationToken token = default);
     }
 
-    internal class AppDataHelper : IAppDataHelper
+    internal class AppDataUtility : IAppDataUtility
     {
-        private const string AppName = "PixelGraph";
-
-        public string AppPath {get;}
-
-
-        public AppDataHelper()
-        {
-            var rootPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            AppPath = Path.Combine(rootPath, AppName);
-        }
-
         public Task<string[]> ReadLinesAsync(string localFile, CancellationToken token = default)
         {
-            var fullFile = Path.Join(AppPath, localFile);
+            var fullFile = Path.Join(AppDataHelper.AppDataPath, localFile);
             if (!File.Exists(fullFile)) return Task.FromResult<string[]>(null);
 
             return File.ReadAllLinesAsync(fullFile, token);
@@ -43,7 +32,7 @@ namespace PixelGraph.UI.Internal
 
         public Task WriteLinesAsync(string localFile, IEnumerable<string> lines, CancellationToken token = default)
         {
-            var fullFile = Path.Join(AppPath, localFile);
+            var fullFile = Path.Join(AppDataHelper.AppDataPath, localFile);
             var finalPath = Path.GetDirectoryName(fullFile);
 
             if (!Directory.Exists(finalPath))
@@ -76,7 +65,7 @@ namespace PixelGraph.UI.Internal
             Stream stream = null;
 
             try {
-                var fullFile = Path.Join(AppPath, localFile);
+                var fullFile = Path.Join(AppDataHelper.AppDataPath, localFile);
                 if (!File.Exists(fullFile)) return null;
 
                 stream = File.OpenRead(fullFile);
@@ -93,7 +82,7 @@ namespace PixelGraph.UI.Internal
             Stream stream = null;
 
             try {
-                var fullFile = Path.Join(AppPath, localFile);
+                var fullFile = Path.Join(AppDataHelper.AppDataPath, localFile);
                 var finalPath = Path.GetDirectoryName(fullFile);
 
                 if (!Directory.Exists(finalPath))

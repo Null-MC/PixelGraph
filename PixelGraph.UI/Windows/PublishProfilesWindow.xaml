@@ -513,6 +513,14 @@
                     </DockPanel>
                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                Text="Defines the number of rays to cast per-pixel as a percentage of a hemisphere. A value of 0 will cast 5 rays, and a value of 0.1 is 348 rays."/>
+                    <DockPanel>
+                        <controls:TextBoxEx DockPanel.Dock="Right"
+                                            Placeholder="{Binding OcclusionPowerDefault, Mode=OneTime}"
+                                            Text="{Binding OcclusionPower, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                        <TextBlock Text="Power" Style="{StaticResource FieldLabelStyle}"/>
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                               Text="Defines the power to apply to ray intersections. The default is 1 for a linear falloff; a value of 0.5 will reduce AO density, and values over 1 will increase density."/>
                 </StackPanel>
             </TabItem>
         </TabControl>

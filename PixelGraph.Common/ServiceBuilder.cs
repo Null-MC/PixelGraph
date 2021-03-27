@@ -28,7 +28,7 @@ namespace PixelGraph.Common
         public ServiceBuilder()
         {
             Services = new ServiceCollection();
-            Services.AddLogging(builder => builder.AddSerilog());
+            Services.AddLogging(builder => builder.AddSerilog(LocalLogFile.FileLogger));
 
             Services.AddSingleton<INamingStructure, JavaNamingStructure>();
             Services.AddSingleton<IResourcePackReader, ResourcePackReader>();

@@ -1,14 +1,14 @@
-﻿using System;
+﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.Common.Textures
 {
@@ -65,8 +65,8 @@ namespace PixelGraph.Common.Textures
                 var emissiveChannel = context.InputEncoding.FirstOrDefault(c => TextureTags.Is(c.ID, TextureTags.Emissive));
                 var emissiveInfo = await GetEmissiveInfoAsync(token);
 
-                var inventoryOptions = new ItemProcessor<Rgba32, Rgba32>.Options {
-                    NormalSampler = normalGraph.GetSampler(),
+                var inventoryOptions = new ItemProcessor<L8, Rgba32>.Options {
+                    NormalSampler = normalGraph.GetNormalSampler(),
                     OcclusionSampler = await occlusionGraph.GetSamplerAsync(token),
                     OcclusionColor = occlusionGraph.Channel?.Color ?? ColorChannel.Red,
                 };
@@ -77,14 +77,14 @@ namespace PixelGraph.Common.Textures
                 }
 
                 if (inventoryOptions.NormalSampler != null || inventoryOptions.OcclusionSampler != null) {
-                    var processor = new ItemProcessor<Rgba32, Rgba32>(inventoryOptions);
+                    var processor = new ItemProcessor<L8, Rgba32>(inventoryOptions);
 
                     foreach (var part in regions.GetAllPublishRegions(1)) {
                         var frame = part.Frames.FirstOrDefault();
                         if (frame == null) continue;
 
                         if (inventoryOptions.NormalSampler != null) {
-                            var srcFrame = regions.GetPublishPartFrame(targetFrame, normalGraph.FrameCount, part.TileIndex);
+                            var srcFrame = regions.GetPublishPartFrame(targetFrame, normalGraph.NormalFrameCount, part.TileIndex);
                             inventoryOptions.NormalSampler.Bounds = srcFrame.SourceBounds;
                         }
 
@@ -156,10 +156,7 @@ namespace PixelGraph.Common.Textures
             emissiveImage = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
 
             var samplerName = context.Profile?.Encoding?.Emissive?.Sampler ?? context.DefaultSampler;
-            var sampler = Sampler<Rgba32>.Create(samplerName);
-            sampler.Image = emissiveImage;
-            sampler.WrapX = context.MaterialWrapX;
-            sampler.WrapY = context.MaterialWrapY;
+            var sampler = context.CreateSampler(emissiveImage, samplerName);
 
             // TODO: SET THESE PROPERLY!
             sampler.RangeX = 1f;

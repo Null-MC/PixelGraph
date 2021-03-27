@@ -37,6 +37,8 @@ namespace PixelGraph.Common.Textures
 
         public void ApplyInputChannel(ResourcePackChannelProperties channel)
         {
+            if (channel == null) throw new ArgumentNullException(nameof(channel));
+
             InputColor = channel.Color ?? ColorChannel.None;
             InputMinValue = (float?)channel.MinValue ?? 0f;
             InputMaxValue = (float?)channel.MaxValue ?? 1f;
@@ -58,7 +60,7 @@ namespace PixelGraph.Common.Textures
             OutputInverted = channel.Invert ?? false;
         }
 
-        public bool TryUnmap(ref byte pixelValue, out float value)
+        public bool TryUnmap(in byte pixelValue, out float value)
         {
             if (InputValue.HasValue) {
                 value = InputValue.Value;
@@ -72,9 +74,10 @@ namespace PixelGraph.Common.Textures
             }
 
             // Input: cycle
-            if (InputShift != 0) MathEx.Cycle(ref pixelValue, -InputShift, in InputRangeMin, in InputRangeMax);
+            var valueIn = pixelValue;
+            if (InputShift != 0) MathEx.Cycle(ref valueIn, -InputShift, in InputRangeMin, in InputRangeMax);
 
-            value = pixelValue - InputRangeMin;
+            value = valueIn - InputRangeMin;
 
             // Convert from pixel-space to value-space
             var pixelInputRange = InputRangeMax - InputRangeMin;
@@ -95,7 +98,7 @@ namespace PixelGraph.Common.Textures
             return true;
         }
 
-        public bool TryUnmap(ref float rawValue, out float value)
+        public bool TryUnmap(in float rawValue, out float value)
         {
             if (InputValue.HasValue) {
                 value = InputValue.Value;
@@ -111,12 +114,13 @@ namespace PixelGraph.Common.Textures
             }
 
             // Input: cycle
-            if (InputShift != 0) MathEx.Cycle(ref pixelValue, -InputShift, in InputRangeMin, in InputRangeMax);
+            value = rawValue;
+            if (InputShift != 0) MathEx.Cycle(ref value, -InputShift, in InputRangeMin, in InputRangeMax);
 
-            value = pixelValue - InputRangeMin;
+            value -= InputRangeMin / 255f;
 
             // Convert from pixel-space to value-space
-            var pixelInputRange = InputRangeMax - InputRangeMin;
+            var pixelInputRange = (InputRangeMax - InputRangeMin) / 255f;
 
             if (pixelInputRange > 0) {
                 var valueInputRange = InputMaxValue - InputMinValue;
@@ -139,7 +143,7 @@ namespace PixelGraph.Common.Textures
             if (!OutputPower.Equal(1f))
                 value = MathF.Pow(value, OutputPower);
 
-            if (OutputInverted) MathEx.Invert(ref value, InputMinValue, OutputMaxValue);
+            if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
 
             // convert from value-space to pixel-space
             var valueRange = OutputMaxValue - OutputMinValue;
@@ -155,6 +159,34 @@ namespace PixelGraph.Common.Textures
             valueOut += OutputRangeMin;
 
             finalValue = MathEx.ClampRound(valueOut, OutputRangeMin, OutputRangeMax);
+
+            if (OutputShift != 0)
+                MathEx.Cycle(ref finalValue, in OutputShift, in OutputRangeMin, in OutputRangeMax);
+        }
+
+        public void Map(ref float value, out float finalValue)
+        {
+            if (!OutputPower.Equal(1f))
+                value = MathF.Pow(value, OutputPower);
+
+            if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
+
+            // convert from value-space to pixel-space
+            var valueRange = OutputMaxValue - OutputMinValue;
+            var pixelRange = (OutputRangeMax - OutputRangeMin) / 255f;
+
+            finalValue = value - OutputMinValue;
+
+            if (pixelRange == 0 || valueRange == 0)
+                finalValue = 0f;
+            else if (!valueRange.Equal(pixelRange))
+                finalValue *= pixelRange / valueRange;
+
+            finalValue += OutputRangeMin / 255f;
+
+            var rangeMin = OutputRangeMin / 255f;
+            var rangeMax = OutputRangeMax / 255f;
+            MathEx.Clamp(ref finalValue, rangeMin, rangeMax);
 
             if (OutputShift != 0)
                 MathEx.Cycle(ref finalValue, in OutputShift, in OutputRangeMin, in OutputRangeMax);

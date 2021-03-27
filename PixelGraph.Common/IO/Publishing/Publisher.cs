@@ -70,7 +70,6 @@ namespace PixelGraph.Common.IO.Publishing
         private async Task PublishContentAsync(ResourcePackContext packContext, CancellationToken token = default)
         {
             var genericPublisher = new GenericTexturePublisher(packContext.Profile, reader, writer);
-
             var packWriteTime = reader.GetWriteTime(packContext.Profile.LocalFile) ?? DateTime.Now;
 
             await foreach (var fileObj in loader.LoadAsync(token)) {

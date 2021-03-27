@@ -3,6 +3,7 @@ using PixelGraph.Common;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using PixelGraph.UI.Windows;
+using Serilog;
 using System.Windows;
 
 namespace PixelGraph.UI
@@ -19,14 +20,13 @@ namespace PixelGraph.UI
             builder.AddFileInput();
             builder.AddFileOutput();
 
-            //builder.Services.AddSingleton<IAppConfiguration, AppConfiguration>();
             builder.Services.AddSingleton<IAppSettings, AppSettings>();
             builder.Services.AddSingleton<IRecentPathManager, RecentPathManager>();
             builder.Services.AddSingleton<IPublishLocationManager, PublishLocationManager>();
             builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
 
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
-            builder.Services.AddTransient<IAppDataHelper, AppDataHelper>();
+            builder.Services.AddTransient<IAppDataUtility, AppDataUtility>();
             builder.Services.AddTransient<ITexturePreviewBuilder, TexturePreviewBuilder>();
 
             builder.Services.AddTransient<MainWindowVM>();
@@ -36,6 +36,9 @@ namespace PixelGraph.UI
 
         private void App_OnStartup(object sender, StartupEventArgs e)
         {
+            Log.Logger = LocalLogFile.FileLogger;
+            Log.Information("Application Started.");
+
             provider = builder.Build();
 
             var mainWindow = new MainWindow(provider);

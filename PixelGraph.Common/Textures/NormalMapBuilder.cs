@@ -1,10 +1,9 @@
-﻿using PixelGraph.Common.ImageProcessors;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.ImageProcessors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
-using PixelGraph.Common.Effects;
-using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.Common.Textures
 {
@@ -62,7 +61,6 @@ namespace PixelGraph.Common.Textures
 
                 resultImage = new Image<Rgb24>(Configuration.Default, HeightImage.Width, HeightImage.Height);
 
-                //resultImage.Mutate(c => c.ApplyProcessor(processor));
                 foreach (var frame in regions.GetAllRenderRegions(null, frameCount)) {
                     foreach (var tile in frame.Tiles) {
                         var outBounds = tile.Bounds.ScaleTo(HeightImage.Width, HeightImage.Height);
@@ -169,7 +167,6 @@ namespace PixelGraph.Common.Textures
                     }
                 }
                 
-                //resultImage.Mutate(c => c.ApplyProcessor(blendProcessor));
                 return resultImage;
             }
             catch {

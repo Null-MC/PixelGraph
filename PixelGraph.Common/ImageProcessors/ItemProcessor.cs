@@ -22,11 +22,12 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
         {
+            float fx, fy, occlusionValue;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
-                var (fx, fy) = GetTexCoord(in context, in x);
+                GetTexCoord(in context, in x, out fx, out fy);
 
-                var occlusionValue = 1f;
+                occlusionValue = 1f;
                 options.OcclusionSampler?.SampleScaled(in fx, in fy, in options.OcclusionColor, out occlusionValue);
 
                 var litNormal = 1f;

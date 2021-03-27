@@ -143,12 +143,12 @@ namespace PixelGraph.Common.Extensions
             Lerp(in min.Y, in max.Y, in mix, out result.Y);
         }
 
-        public static void Lerp(in Vector3 min, in Vector3 max, in float mix, out Vector3 result)
-        {
-            Lerp(in min.X, in max.X, in mix, out result.X);
-            Lerp(in min.Y, in max.Y, in mix, out result.Y);
-            Lerp(in min.Z, in max.Z, in mix, out result.Z);
-        }
+        //public static void Lerp(in Vector3 min, in Vector3 max, in float mix, out Vector3 result)
+        //{
+        //    Lerp(in min.X, in max.X, in mix, out result.X);
+        //    Lerp(in min.Y, in max.Y, in mix, out result.Y);
+        //    Lerp(in min.Z, in max.Z, in mix, out result.Z);
+        //}
 
         public static void Lerp(in Vector4 min, in Vector4 max, in float mix, out Vector4 result)
         {

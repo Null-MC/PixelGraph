@@ -9,7 +9,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.IO;
 using System.Threading.Tasks;
-using PixelGraph.Common.Effects;
 using Xunit;
 using Xunit.Abstractions;
 

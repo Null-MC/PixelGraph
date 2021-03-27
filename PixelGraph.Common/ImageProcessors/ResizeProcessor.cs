@@ -21,9 +21,10 @@ namespace PixelGraph.Common.ImageProcessors
             var srcBounds = context.Bounds;
             if (srcBounds.IsEmpty) return;
 
+            float fx, fy;
             var pixel = new Rgba32();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                var (fx, fy) = GetTexCoord(in context, in x);
+                GetTexCoord(in context, in x, out fx, out fy);
                 options.Sampler.Sample(fx, fy, ref pixel);
                 row[x].FromRgba32(pixel);
             }

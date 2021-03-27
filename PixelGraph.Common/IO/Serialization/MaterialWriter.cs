@@ -9,7 +9,7 @@ namespace PixelGraph.Common.IO.Serialization
 {
     public interface IMaterialWriter
     {
-        Task WriteAsync(MaterialProperties material, string localFile);
+        Task WriteAsync(MaterialProperties material);
     }
 
     internal class MaterialWriter : IMaterialWriter
@@ -29,9 +29,9 @@ namespace PixelGraph.Common.IO.Serialization
                 .Build();
         }
         
-        public async Task WriteAsync(MaterialProperties material, string localFile)
+        public async Task WriteAsync(MaterialProperties material)
         {
-            await using var stream = writer.Open(localFile);
+            await using var stream = writer.Open(material.LocalFilename);
             await using var streamWriter = new StreamWriter(stream);
             serializer.Serialize(streamWriter, material);
         }

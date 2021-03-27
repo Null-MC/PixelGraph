@@ -7,7 +7,7 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace PixelGraph.UI.Internal
 {
@@ -85,9 +84,9 @@ namespace PixelGraph.UI.Internal
             if (image == null) return null;
 
             if (TextureTags.Is(tag, TextureTags.Height) && (image.Width > 1 || image.Height > 1)) {
-                foreach (var frame in regions.GetAllRenderRegions(targetFrame, context.MaxFrameCount)) {
-                    foreach (var tile in frame.Tiles) {
-                        var outBounds = tile.Bounds.ScaleTo(image.Width, image.Height);
+                foreach (var part in regions.GetAllPublishRegions(context.MaxFrameCount)) {
+                    foreach (var frame in part.Frames) {
+                        var outBounds = frame.SourceBounds.ScaleTo(image.Width, image.Height);
                         edgeFadeEffect.Apply(image, tag, outBounds);
                     }
                 }

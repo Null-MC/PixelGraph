@@ -53,6 +53,7 @@ namespace PixelGraph.UI.ViewModels
         public bool HasSelectedProfile => _selectedProfileItem != null;
         public bool HasLoadedProfile => _loadedProfile != null;
         public decimal OcclusionQualityDefault => ResourcePackProfileProperties.DefaultOcclusionQuality;
+        public decimal OcclusionPowerDefault => ResourcePackProfileProperties.DefaultOcclusionPower;
 
         public string RootDirectory {
             get => _rootDirectory;
@@ -87,6 +88,7 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged(nameof(BlockTextureSize));
                 OnPropertyChanged(nameof(TextureScale));
                 OnPropertyChanged(nameof(OcclusionQuality));
+                OnPropertyChanged(nameof(OcclusionPower));
                 OnPropertyChanged(nameof(AutoGenerateNormal));
                 OnPropertyChanged(nameof(AutoGenerateOcclusion));
 
@@ -210,6 +212,16 @@ namespace PixelGraph.UI.ViewModels
             set {
                 if (_loadedProfile == null) return;
                 _loadedProfile.OcclusionQuality = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? OcclusionPower {
+            get => _loadedProfile?.OcclusionPower;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.OcclusionPower = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }

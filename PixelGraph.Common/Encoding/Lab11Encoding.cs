@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
@@ -21,7 +20,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -34,7 +32,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -47,7 +44,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -60,7 +56,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -68,12 +63,11 @@ namespace PixelGraph.Common.Encoding
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Red,
                     MinValue = 0m,
-                    MaxValue = 255m,
+                    MaxValue = 1m,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -81,12 +75,11 @@ namespace PixelGraph.Common.Encoding
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Green,
                     MinValue = 0m,
-                    MaxValue = 255m,
+                    MaxValue = 1m,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -94,25 +87,23 @@ namespace PixelGraph.Common.Encoding
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Blue,
                     MinValue = 0m,
-                    MaxValue = 255m,
+                    MaxValue = 1m,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
                 Occlusion = new ResourcePackOcclusionChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Magnitude,
-                    MinValue = 17,
-                    MaxValue = 255,
-                    RangeMin = 0,
+                    MinValue = 0m,
+                    MaxValue = 1m,
+                    RangeMin = 17,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 0.5m,
-                    //Perceptual = true,
                     Invert = true,
                 },
 
@@ -125,7 +116,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = true,
                 },
 
@@ -138,7 +128,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = true,
                     Invert = false,
                 },
 
@@ -146,12 +135,11 @@ namespace PixelGraph.Common.Encoding
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
                     MinValue = 0m,
-                    MaxValue = 0.898m,
+                    MaxValue = 0.9m,
                     RangeMin = 0,
                     RangeMax = 229,
                     Shift = 0,
                     Power = 0.5m,
-                    //Perceptual = true,
                     Invert = false,
                 },
 
@@ -165,7 +153,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -175,25 +162,23 @@ namespace PixelGraph.Common.Encoding
                     MinValue = 0m,
                     MaxValue = 1m,
                     RangeMin = 0,
-                    RangeMax = 64,
-                    Shift = 0,
-                    Power = 1m,
-                    //Perceptual = false,
-                    Invert = false,
-                },
-
-                SSS = new ResourcePackSssChannelProperties {
-                    Texture = TextureTags.Specular,
-                    Color = ColorChannel.Blue,
-                    MinValue = 0m,
-                    MaxValue = 1m,
-                    RangeMin = 65,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
+
+                //SSS = new ResourcePackSssChannelProperties {
+                //    Texture = TextureTags.Specular,
+                //    Color = ColorChannel.Alpha,
+                //    MinValue = 0m,
+                //    MaxValue = 1m,
+                //    RangeMin = 0,
+                //    RangeMax = 255,
+                //    Shift = -1,
+                //    Power = 1m,
+                //    Invert = false,
+                //},
 
                 Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Specular,
@@ -204,7 +189,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = -1,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
             };

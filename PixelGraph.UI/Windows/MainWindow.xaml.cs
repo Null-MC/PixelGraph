@@ -294,6 +294,7 @@ namespace PixelGraph.UI.Windows
                 await PopulateTextureViewerAsync(token);
             }
             catch (Exception error) {
+                logger.LogError(error, "Failed to generate normal texture!");
                 ShowError($"Failed to generate normal texture! {error.UnfoldMessageString()}");
             }
             finally {
@@ -340,13 +341,35 @@ namespace PixelGraph.UI.Windows
                     context.OutputEncoding = inputEncoding.GetMapped().ToList();
 
                     using var occlusionImage = await graph.GenerateAsync(token);
+
+                    if (occlusionImage == null) {
+                        ShowError("Unable to generate occlusion texture!");
+                        return;
+                    }
+
+                    // WARN: This only allows separate images!
+                    // TODO: Support writing to the channel of an existing image?
+                    // This could cause issues if the existing image is not the correct size
                     await occlusionImage.SaveAsync(fullName, token);
+
+                    var inputChannel = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Occlusion));
+                    if (inputChannel != null && !TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
+                        material.Occlusion ??= new MaterialOcclusionProperties();
+                        material.Occlusion.Texture = outputName;
+
+                        material.Occlusion.Input ??= new ResourcePackOcclusionChannelProperties();
+                        material.Occlusion.Input.Texture = TextureTags.Occlusion;
+                        material.Occlusion.Input.Invert = true;
+
+                        await SaveMaterialAsync(material);
+                    }
                 }, token);
 
                 // TODO: update texture sources
                 await PopulateTextureViewerAsync(token);
             }
             catch (Exception error) {
+                logger.LogError(error, "Failed to generate occlusion texture!");
                 ShowError($"Failed to generate occlusion texture! {error.UnfoldMessageString()}");
             }
             finally {
@@ -354,17 +377,18 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private async Task SaveMaterialAsync()
+        private async Task SaveMaterialAsync(MaterialProperties material = null)
         {
             var writer = provider.GetRequiredService<IOutputWriter>();
             var matWriter = provider.GetRequiredService<IMaterialWriter>();
+            var mat = material ?? vm.LoadedMaterial;
 
             try {
                 writer.SetRoot(vm.RootDirectory);
-                await matWriter.WriteAsync(vm.LoadedMaterial, vm.LoadedMaterialFilename);
+                await matWriter.WriteAsync(mat);
             }
             catch (Exception error) {
-                ShowError($"Failed to save material '{vm.LoadedMaterialFilename}'! {error.UnfoldMessageString()}");
+                ShowError($"Failed to save material '{mat.LocalFilename}'! {error.UnfoldMessageString()}");
             }
         }
 
@@ -410,7 +434,7 @@ namespace PixelGraph.UI.Windows
                 //...
             };
 
-            await matWriter.WriteAsync(material, matFile);
+            await matWriter.WriteAsync(material);
 
             var ext = Path.GetExtension(filename);
             var destFile = PathEx.Join(localPath, itemName, $"albedo{ext}");

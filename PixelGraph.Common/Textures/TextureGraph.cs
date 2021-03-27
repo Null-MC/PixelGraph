@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ResourcePack;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -57,24 +58,29 @@ namespace PixelGraph.Common.Textures
             hasPreBuiltNormals = true;
 
             if (await normalGraph.TryBuildNormalMapAsync(token)) {
-                context.InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
-                context.InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
-                context.InputEncoding.RemoveAll(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalZ));
-
-                context.InputEncoding.Add(new ResourcePackNormalXChannelProperties {
-                    Texture = TextureTags.NormalGenerated,
-                    Color = ColorChannel.Red,
+                UpsertInputChannel<ResourcePackNormalXChannelProperties>(channel => {
+                    channel.Texture = TextureTags.NormalGenerated;
+                    channel.Color = ColorChannel.Red;
                 });
 
-                context.InputEncoding.Add(new ResourcePackNormalYChannelProperties {
-                    Texture = TextureTags.NormalGenerated,
-                    Color = ColorChannel.Green,
+                UpsertInputChannel<ResourcePackNormalYChannelProperties>(channel => {
+                    channel.Texture = TextureTags.NormalGenerated;
+                    channel.Color = ColorChannel.Green;
                 });
 
-                context.InputEncoding.Add(new ResourcePackNormalZChannelProperties {
-                    Texture = TextureTags.NormalGenerated,
-                    Color = ColorChannel.Blue,
+                UpsertInputChannel<ResourcePackNormalZChannelProperties>(channel => {
+                    channel.Texture = TextureTags.NormalGenerated;
+                    channel.Color = ColorChannel.Blue;
                 });
+
+                context.InputEncoding
+                    .Where(c => TextureTags.Is(c.Texture, TextureTags.Normal))
+                    .Where(c => c.Color == ColorChannel.Magnitude)
+                    .Update(c => {
+                        c.Reset();
+                        c.Texture = TextureTags.MagnitudeBuffer;
+                        c.Color = ColorChannel.Red;
+                    });
             }
         }
 
@@ -103,6 +109,23 @@ namespace PixelGraph.Common.Textures
         public int GetMaxFrameCount()
         {
             return builderMap.Values.Max(b => b.FrameCount);
+        }
+
+        private void UpsertInputChannel<T>(Action<T> channelAction)
+            where T : ResourcePackChannelProperties, new()
+        {
+            var hasChannel = false;
+            foreach (var channel in context.InputEncoding.OfType<T>()) {
+                channel.Reset();
+                channelAction(channel);
+                hasChannel = true;
+            }
+
+            if (hasChannel) return;
+
+            var newChannel = new T();
+            channelAction(newChannel);
+            context.InputEncoding.Add(newChannel);
         }
     }
 }

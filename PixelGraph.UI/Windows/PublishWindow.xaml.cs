@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
@@ -17,6 +18,7 @@ namespace PixelGraph.UI.Windows
     public partial class PublishWindow : IDisposable
     {
         private readonly IServiceProvider provider;
+        private readonly ILogger logger;
 
 
         public PublishWindow(IServiceProvider provider)
@@ -25,9 +27,10 @@ namespace PixelGraph.UI.Windows
 
             InitializeComponent();
 
+            logger = provider.GetRequiredService<ILogger<PublishWindow>>();
             var settings = provider.GetRequiredService<IAppSettings>();
-            VM.CloseOnComplete = settings.Data.PublishCloseOnComplete;
 
+            VM.CloseOnComplete = settings.Data.PublishCloseOnComplete;
             VM.LogList.Appended += OnLogListAppended;
         }
 
@@ -71,20 +74,25 @@ namespace PixelGraph.UI.Windows
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            logger.LogInformation("Publishing profile '{Name}'...", VM.Profile.Name);
             VM.IsActive = true;
 
             try {
                 await Task.Run(() => PublishAsync(VM.Destination, VM.Token), VM.Token);
 
+                logger.LogInformation("Publish successful.");
                 VM.LogList.BeginAppend(LogLevel.None, "Publish completed successfully.");
+
                 if (VM.CloseOnComplete) DialogResult = true;
             }
             catch (TaskCanceledException) {
+                logger.LogWarning("Publish cancelled.");
                 VM.LogList.BeginAppend(LogLevel.Warning, "Publish Cancelled!");
                 DialogResult = false;
             }
             catch (Exception error) {
-                VM.LogList.BeginAppend(LogLevel.Error, $"Publish Failed! {error.Message}");
+                logger.LogError(error, "Failed to publish resource pack!");
+                VM.LogList.BeginAppend(LogLevel.Error, $"Publish Failed! {error.UnfoldMessageString()}");
             }
             finally {
                 await Application.Current.Dispatcher.BeginInvoke(() => VM.IsActive = false);

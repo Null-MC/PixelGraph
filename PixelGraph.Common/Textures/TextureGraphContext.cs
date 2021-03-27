@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using PixelGraph.Common.Samplers;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace PixelGraph.Common.Textures
 {
@@ -32,6 +34,7 @@ namespace PixelGraph.Common.Textures
         
         void ApplyInputEncoding();
         void ApplyOutputEncoding();
+        ISampler<T> CreateSampler<T>(Image<T> image, string name) where T : unmanaged, IPixel<T>;
         Size? GetTextureSize(float? defaultAspect);
         Size? GetBufferSize(float aspect);
         string GetMetaInputFilename();
@@ -107,7 +110,20 @@ namespace PixelGraph.Common.Textures
             // TODO: layer material properties on top of pack encoding?
 
             InputEncoding = inputEncoding.GetMapped().ToList();
+            if (InputEncoding.Count == 0) throw new ApplicationException("Input encoding is empty!");
+
             OutputEncoding = outputEncoding.GetMapped().ToList();
+            if (OutputEncoding.Count == 0) throw new ApplicationException("Output encoding is empty!");
+        }
+
+        public ISampler<T> CreateSampler<T>(Image<T> image, string name) where T : unmanaged, IPixel<T>
+        {
+            var sampler = Sampler<T>.Create(name);
+            sampler.Image = image;
+            sampler.WrapX = MaterialWrapX;
+            sampler.WrapY = MaterialWrapY;
+
+            return sampler;
         }
 
         public MaterialType GetMaterialType()

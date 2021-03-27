@@ -66,7 +66,7 @@ namespace PixelGraph.Common.IO.Importing
                 UseGlobalMatching = true,
             };
 
-            await writer.WriteAsync(material, matFile);
+            await writer.WriteAsync(material);
 
             context.Input = PackInput;
             context.Profile = PackProfile;

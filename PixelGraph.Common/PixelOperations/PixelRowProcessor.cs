@@ -20,18 +20,16 @@ namespace PixelGraph.Common.PixelOperations
         protected abstract void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> row)
             where TPixel : unmanaged, IPixel<TPixel>;
 
-        protected (float fx, float fy) GetTexCoord(in PixelRowContext context, in int x)
+        protected void GetTexCoord(in PixelRowContext context, in int x, out float fx, out float fy)
         {
-            var fx = (x - context.Bounds.X + HalfPixel) / context.Bounds.Width;
-            var fy = (context.Y - context.Bounds.Y + HalfPixel) / context.Bounds.Height;
-            return (fx, fy);
+            fx = (x - context.Bounds.X + HalfPixel) / context.Bounds.Width;
+            fy = (context.Y - context.Bounds.Y + HalfPixel) / context.Bounds.Height;
         }
 
-        protected (float fx, float fy) GetTexCoord(in PixelRowContext context, in float x, in float y)
+        protected void GetTexCoord(in PixelRowContext context, in float x, in float y, out float fx, out float fy)
         {
-            var fx = (x - context.Bounds.X + HalfPixel) / context.Bounds.Width;
-            var fy = (y - context.Bounds.Y + HalfPixel) / context.Bounds.Height;
-            return (fx, fy);
+            fx = (x - context.Bounds.X + HalfPixel) / context.Bounds.Width;
+            fy = (y - context.Bounds.Y + HalfPixel) / context.Bounds.Height;
         }
 
         private class Processor<TPixel> : ImageProcessor<TPixel>
@@ -50,14 +48,6 @@ namespace PixelGraph.Common.PixelOperations
             {
                 var operation = new FilterRowOperation(source, action, SourceRectangle);
                 ParallelRowIterator.IterateRows(Configuration, SourceRectangle, in operation);
-
-                //try {
-                //    ParallelRowIterator.IterateRows(Configuration, SourceRectangle, in operation);
-                //}
-                //catch (AggregateException error) {
-                //    if (error.InnerException is OperationCanceledException) throw error.InnerException;
-                //    throw;
-                //}
             }
 
             private readonly struct FilterRowOperation : IRowOperation

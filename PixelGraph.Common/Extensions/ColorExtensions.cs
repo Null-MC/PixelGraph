@@ -10,15 +10,15 @@ namespace PixelGraph.Common.Extensions
         private const float ToScaled = 1f / 255f;
         private const float ToHalfScaled = 1f / 127f;
 
-        public static void GetChannelValue(this in Rgb24 pixel, in ColorChannel channel, out byte value)
-        {
-            value = channel switch {
-                ColorChannel.Red => pixel.R,
-                ColorChannel.Green => pixel.G,
-                ColorChannel.Blue => pixel.B,
-                _ => 0,
-            };
-        }
+        //public static void GetChannelValue(this in Rgb24 pixel, in ColorChannel channel, out byte value)
+        //{
+        //    value = channel switch {
+        //        ColorChannel.Red => pixel.R,
+        //        ColorChannel.Green => pixel.G,
+        //        ColorChannel.Blue => pixel.B,
+        //        _ => 0,
+        //    };
+        //}
 
         public static void GetChannelValue(this in Rgba32 pixel, in ColorChannel channel, out byte value)
         {
@@ -31,22 +31,22 @@ namespace PixelGraph.Common.Extensions
             };
         }
 
-        public static void SetChannelValue(this ref Rgb24 pixel, in ColorChannel channel, in byte value)
-        {
-            switch (channel) {
-                case ColorChannel.Red:
-                    pixel.R = value;
-                    break;
-                case ColorChannel.Green:
-                    pixel.G = value;
-                    break;
-                case ColorChannel.Blue:
-                    pixel.B = value;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(channel), channel, "Unknown color channel!");
-            }
-        }
+        //public static void SetChannelValue(this ref Rgb24 pixel, in ColorChannel channel, in byte value)
+        //{
+        //    switch (channel) {
+        //        case ColorChannel.Red:
+        //            pixel.R = value;
+        //            break;
+        //        case ColorChannel.Green:
+        //            pixel.G = value;
+        //            break;
+        //        case ColorChannel.Blue:
+        //            pixel.B = value;
+        //            break;
+        //        default:
+        //            throw new ArgumentOutOfRangeException(nameof(channel), channel, "Unknown color channel!");
+        //    }
+        //}
 
         public static void SetChannelValue(this ref Rgba32 pixel, in ColorChannel channel, in byte value)
         {
@@ -68,11 +68,11 @@ namespace PixelGraph.Common.Extensions
             }
         }
 
-        public static void GetChannelValueScaled(this in Rgb24 pixel, in ColorChannel channel, out float fValue)
-        {
-            GetChannelValue(in pixel, in channel, out var value);
-            fValue = value * ToScaled;
-        }
+        //public static void GetChannelValueScaled(this in Rgb24 pixel, in ColorChannel channel, out float fValue)
+        //{
+        //    GetChannelValue(in pixel, in channel, out var value);
+        //    fValue = value * ToScaled;
+        //}
 
         public static void GetChannelValueScaled(this in Rgba32 pixel, in ColorChannel channel, out float fValue)
         {
@@ -85,11 +85,11 @@ namespace PixelGraph.Common.Extensions
             fValue = pixel.PackedValue * ToScaled;
         }
 
-        public static void GetChannelValueScaledF(this in Rgb24 pixel, in ColorChannel channel, out float fValue)
-        {
-            GetChannelValue(in pixel, in channel, out var value);
-            fValue = value * ToScaled;
-        }
+        //public static void GetChannelValueScaledF(this in Rgb24 pixel, in ColorChannel channel, out float fValue)
+        //{
+        //    GetChannelValue(in pixel, in channel, out var value);
+        //    fValue = value * ToScaled;
+        //}
 
         public static void GetChannelValueScaledF(this in Rgba32 pixel, in ColorChannel channel, out float fValue)
         {
@@ -103,11 +103,11 @@ namespace PixelGraph.Common.Extensions
             SetChannelValue(ref pixel, in channel, in value);
         }
 
-        public static void SetChannelValueScaledF(this ref Rgb24 pixel, in ColorChannel channel, in float fValue)
-        {
-            MathEx.SaturateFloor(in fValue, out var value);
-            SetChannelValue(ref pixel, in channel, in value);
-        }
+        //public static void SetChannelValueScaledF(this ref Rgb24 pixel, in ColorChannel channel, in float fValue)
+        //{
+        //    MathEx.SaturateFloor(in fValue, out var value);
+        //    SetChannelValue(ref pixel, in channel, in value);
+        //}
 
         public static void SetChannelValueScaledF(this ref Rgba32 pixel, in ColorChannel channel, in float fValue)
         {
@@ -115,12 +115,12 @@ namespace PixelGraph.Common.Extensions
             SetChannelValue(ref pixel, in channel, in value);
         }
 
-        public static void ToScaledVector3(this Rgb24 pixel, out Vector3 vector)
-        {
-            vector.X = pixel.R * ToScaled;
-            vector.Y = pixel.G * ToScaled;
-            vector.Z = pixel.B * ToScaled;
-        }
+        //public static void ToScaledVector3(this Rgb24 pixel, out Vector3 vector)
+        //{
+        //    vector.X = pixel.R * ToScaled;
+        //    vector.Y = pixel.G * ToScaled;
+        //    vector.Z = pixel.B * ToScaled;
+        //}
 
         public static void ToNormalVector(this in Rgb24 pixel, out Vector3 vector)
         {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.ResourcePack;
@@ -18,6 +19,7 @@ namespace PixelGraph.UI.Windows
     public partial class ImportPackWindow : IDisposable
     {
         private readonly IServiceProvider provider;
+        private readonly ILogger logger;
         private readonly CancellationTokenSource tokenSource;
 
 
@@ -25,6 +27,7 @@ namespace PixelGraph.UI.Windows
         {
             this.provider = provider;
 
+            logger = provider.GetRequiredService<ILogger<ImportPackWindow>>();
             tokenSource = new CancellationTokenSource();
 
             InitializeComponent();
@@ -161,17 +164,22 @@ namespace PixelGraph.UI.Windows
             VM.IsActive = true;
 
             try {
+                logger.LogInformation("Importing source '{ImportSource}'...", VM.ImportSource);
+
                 await Task.Run(() => RunAsync(tokenSource.Token), tokenSource.Token);
 
+                logger.LogInformation("Import successful.");
                 VM.LogList.BeginAppend(LogLevel.Information, "Import completed successfully.");
                 DialogResult = true;
             }
             catch (TaskCanceledException) {
+                logger.LogWarning("Import cancelled.");
                 VM.LogList.BeginAppend(LogLevel.Warning, "Operation Cancelled.");
                 DialogResult = false;
             }
             catch (Exception error) {
-                VM.LogList.BeginAppend(LogLevel.Error, $"ERROR! {error.Message}");
+                logger.LogError(error, "Import failed!");
+                VM.LogList.BeginAppend(LogLevel.Error, $"ERROR! {error.UnfoldMessageString()}");
             }
             finally {
                 VM.IsActive = false;

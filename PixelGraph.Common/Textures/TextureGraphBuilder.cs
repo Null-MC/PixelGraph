@@ -274,6 +274,8 @@ namespace PixelGraph.Common.Textures
 
         private IEnumerable<string> GetMaterialOutputFiles(IEnumerable<string> textureTags)
         {
+            var repeatCount = new Lazy<int>(() => (context.Material.CtmCountX ?? 1) * (context.Material.CtmCountY ?? 1));
+
             foreach (var tag in textureTags) {
                 if (context.IsMaterialMultiPart) {
                     foreach (var part in context.Material.Parts) {
@@ -282,23 +284,17 @@ namespace PixelGraph.Common.Textures
                     }
                 }
                 else if (context.IsMaterialCtm) {
-                    switch (context.Material.CtmType) {
-                        case CtmTypes.Compact:
-                        case CtmTypes.Expanded:
-                            for (var x = 0; x < 5; x++) {
-                                var outputName = naming.GetOutputTextureName(context.Profile, x.ToString(), tag, true);
-                                yield return PathEx.Join(context.Material.LocalPath, outputName);
-                            }
-                            break;
-                        case CtmTypes.Full:
-                            for (var y = 0; y < 4; y++) {
-                                for (var x = 0; x < 12; x++) {
-                                    var index = y * 12 + x;
-                                    var outputName = naming.GetOutputTextureName(context.Profile, index.ToString(), tag, true);
-                                    yield return PathEx.Join(context.Material.LocalPath, outputName);
-                                }
-                            }
-                            break;
+                    var tileCount = context.Material.CtmType switch {
+                        CtmTypes.Compact => 5,
+                        CtmTypes.Expanded => 47,
+                        CtmTypes.Full => 47,
+                        CtmTypes.Repeat => repeatCount.Value,
+                        _ => 1,
+                    };
+
+                    for (var i = 0; i < tileCount; i++) {
+                        var outputName = naming.GetOutputTextureName(context.Profile, i.ToString(), tag, true);
+                        yield return PathEx.Join(context.Material.LocalPath, outputName);
                     }
                 }
                 else {

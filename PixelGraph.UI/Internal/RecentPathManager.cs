@@ -20,12 +20,12 @@ namespace PixelGraph.UI.Internal
         private const int MaxCount = 8;
         private const string FileName = "Recent.txt";
 
-        private readonly IAppDataHelper appData;
+        private readonly IAppDataUtility appData;
 
         public ObservableCollection<string> List {get;}
 
 
-        public RecentPathManager(IAppDataHelper appData)
+        public RecentPathManager(IAppDataUtility appData)
         {
             this.appData = appData;
 

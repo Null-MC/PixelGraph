@@ -31,16 +31,23 @@ namespace PixelGraph.Common.ImageProcessors
                 GenerateNoise(context.Bounds.Width, out noiseY);
             }
 
+            float angleX, angleY;
+            var v = new Vector3();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 row[x].ToRgba32(ref pixel);
-                pixel.GetChannelValue(options.NormalX, out var normalX);
-                pixel.GetChannelValue(options.NormalY, out var normalY);
+                pixel.GetChannelValue(ColorChannel.Red, out var normalX);
+                pixel.GetChannelValue(ColorChannel.Green, out var normalY);
 
-                var cx = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
-                var cy = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
+                v.X = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
+                v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
 
-                var angleX = MathF.Asin(cx) / MathEx.Deg2Rad;
-                var angleY = MathF.Asin(cy) / MathEx.Deg2Rad;
+                if (options.HasNormalZ) {
+                    pixel.GetChannelValueScaledF(ColorChannel.Blue, out v.Z);
+                    MathEx.Normalize(ref v);
+                }
+
+                angleX = MathF.Asin(v.X) / MathEx.Deg2Rad;
+                angleY = MathF.Asin(v.Y) / MathEx.Deg2Rad;
 
                 if (hasRotation) {
                     var fx = (x + 0.5f) / context.Bounds.Width;
@@ -62,20 +69,14 @@ namespace PixelGraph.Common.ImageProcessors
                 var sinY = MathF.Sin(angleY * MathEx.Deg2Rad);
                 var cosY = MathF.Cos(angleY * MathEx.Deg2Rad);
 
-                Vector3 v;
                 v.X = sinX * cosY;
                 v.Y = sinY * cosX;
                 v.Z = cosX * cosY;
                 MathEx.Normalize(ref v);
 
-                if (options.NormalX != ColorChannel.None)
-                    pixel.SetChannelValueScaledF(options.NormalX, v.X * 0.5f + 0.5f);
-
-                if (options.NormalY != ColorChannel.None)
-                    pixel.SetChannelValueScaledF(options.NormalY, v.Y * 0.5f + 0.5f);
-
-                if (options.NormalZ != ColorChannel.None)
-                    pixel.SetChannelValueScaledF(options.NormalZ, v.Z);
+                pixel.SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
+                pixel.SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
+                pixel.SetChannelValueScaledF(ColorChannel.Blue, v.Z);
 
                 row[x].FromRgba32(pixel);
             }
@@ -90,9 +91,7 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
-            public ColorChannel NormalX = ColorChannel.None;
-            public ColorChannel NormalY = ColorChannel.None;
-            public ColorChannel NormalZ = ColorChannel.None;
+            public bool HasNormalZ;
             public float CurveX = 0f;
             public float CurveY = 0f;
             public float Noise = 0f;

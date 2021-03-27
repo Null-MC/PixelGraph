@@ -77,7 +77,7 @@ namespace PixelGraph.Common.Textures
             foreach (var channel in OutputChannels) {
                 if (channel.Color == ColorChannel.Magnitude) continue;
 
-                if (TryBuildMapping(channel, out var mapping) || createEmpty) {
+                if (TryBuildMapping(channel, createEmpty, out var mapping) || createEmpty) {
                     mappings.Add(mapping);
 
                     if (mapping.SourceFilename != null) {
@@ -91,8 +91,14 @@ namespace PixelGraph.Common.Textures
 
                     if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
                         HasMappedSources = true;
-                        if (normalGraph.FrameCount > FrameCount)
-                            FrameCount = normalGraph.FrameCount;
+                        if (normalGraph.NormalFrameCount > FrameCount)
+                            FrameCount = normalGraph.NormalFrameCount;
+                    }
+
+                    if (TextureTags.Is(mapping.SourceTag, TextureTags.MagnitudeBuffer)) {
+                        HasMappedSources = true;
+                        if (normalGraph.MagnitudeFrameCount > FrameCount)
+                            FrameCount = normalGraph.MagnitudeFrameCount;
                     }
 
                     if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated)) {
@@ -114,7 +120,10 @@ namespace PixelGraph.Common.Textures
             isGrayscale = mappings.All(x => x.OutputColor == ColorChannel.Red);
             if (isGrayscale) defaultValues.B = defaultValues.G = defaultValues.R;
 
-            bufferSize = await GetBufferSizeAsync(token);
+            var size = await GetBufferSizeAsync(token);
+            if (!size.HasValue && !createEmpty) return null;
+            bufferSize = size ?? new Size(1);
+
             var width = bufferSize.Width;
             var height = bufferSize.Height;
 
@@ -140,10 +149,13 @@ namespace PixelGraph.Common.Textures
                     await ApplySourceMappingAsync(imageResult, mappingGroup.Key, mappingGroup.ToArray(), token);
 
                 foreach (var mapping in mappingsWithoutSources) {
+                    if (TextureTags.Is(mapping.SourceTag, TextureTags.MagnitudeBuffer))
+                        ApplyMagnitudeMapping(imageResult, mapping);
+
                     if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated))
                         ApplyNormalMapping(imageResult, mapping);
 
-                    if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated))
+                    if (createEmpty && TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated))
                         await ApplyOcclusionMappingAsync(imageResult, mapping, token);
                 }
 
@@ -158,7 +170,7 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private bool TryBuildMapping(ResourcePackChannelProperties outputChannel, out TextureChannelMapping mapping)
+        private bool TryBuildMapping(ResourcePackChannelProperties outputChannel, bool createEmpty, out TextureChannelMapping mapping)
         {
             var samplerName = outputChannel.Sampler ?? context.DefaultSampler;
 
@@ -187,6 +199,12 @@ namespace PixelGraph.Common.Textures
             }
 
             if (inputChannel?.Texture != null) {
+                if (TextureTags.Is(inputChannel.Texture, TextureTags.MagnitudeBuffer)) {
+                    mapping.SourceTag = TextureTags.MagnitudeBuffer;
+                    mapping.ApplyInputChannel(inputChannel);
+                    return true;
+                }
+
                 if (TextureTags.Is(inputChannel.Texture, TextureTags.NormalGenerated)) {
                     mapping.SourceTag = TextureTags.NormalGenerated;
                     mapping.ApplyInputChannel(inputChannel);
@@ -198,7 +216,7 @@ namespace PixelGraph.Common.Textures
                     return true;
                 }
 
-                if (context.AutoGenerateOcclusion && TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
+                if (createEmpty && TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
                     mapping.SourceTag = TextureTags.OcclusionGenerated;
                     mapping.InputColor = ColorChannel.Red;
                     mapping.InputMinValue = 0f;
@@ -212,57 +230,62 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
-            var isOutputDiffuseRed = EncodingChannel.Is(outputChannel.ID, EncodingChannel.DiffuseRed);
-            var isOutputDiffuseGreen = EncodingChannel.Is(outputChannel.ID, EncodingChannel.DiffuseGreen);
-            var isOutputDiffuseBlue = EncodingChannel.Is(outputChannel.ID, EncodingChannel.DiffuseBlue);
-            var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
-            var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
+            if (createEmpty) {
+                var isOutputDiffuseRed = EncodingChannel.Is(outputChannel.ID, EncodingChannel.DiffuseRed);
+                var isOutputDiffuseGreen = EncodingChannel.Is(outputChannel.ID, EncodingChannel.DiffuseGreen);
+                var isOutputDiffuseBlue = EncodingChannel.Is(outputChannel.ID, EncodingChannel.DiffuseBlue);
 
-            // Albedo Red > Diffuse Red
-            if (isOutputDiffuseRed && TryGetInputChannel(EncodingChannel.AlbedoRed, out var albedoRedChannel)) {
-                TryGetSourceFilename(albedoRedChannel.Texture, out mapping.SourceFilename);
-                if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoRed, out value)) mapping.InputValue = (float)value;
+                // Albedo Red > Diffuse Red
+                if (isOutputDiffuseRed && TryGetInputChannel(EncodingChannel.AlbedoRed, out var albedoRedChannel)) {
+                    TryGetSourceFilename(albedoRedChannel.Texture, out mapping.SourceFilename);
+                    if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoRed, out value)) mapping.InputValue = (float)value;
 
-                mapping.ApplyInputChannel(albedoRedChannel);
-                mapping.OutputApplyOcclusion = true;
-                return true;
+                    mapping.ApplyInputChannel(albedoRedChannel);
+                    mapping.OutputApplyOcclusion = true;
+                    return true;
+                }
+
+                // Albedo Green > Diffuse Green
+                if (isOutputDiffuseGreen && TryGetInputChannel(EncodingChannel.AlbedoGreen, out var albedoGreenChannel)) {
+                    TryGetSourceFilename(albedoGreenChannel.Texture, out mapping.SourceFilename);
+                    if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoGreen, out value)) mapping.InputValue = (float)value;
+
+                    mapping.ApplyInputChannel(albedoGreenChannel);
+                    mapping.OutputApplyOcclusion = true;
+                    return true;
+                }
+
+                // Albedo Blue > Diffuse Blue
+                if (isOutputDiffuseBlue && TryGetInputChannel(EncodingChannel.AlbedoBlue, out var albedoBlueChannel)) {
+                    TryGetSourceFilename(albedoBlueChannel.Texture, out mapping.SourceFilename);
+                    if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoBlue, out value)) mapping.InputValue = (float)value;
+
+                    mapping.ApplyInputChannel(albedoBlueChannel);
+                    mapping.OutputApplyOcclusion = true;
+                    return true;
+                }
             }
-
-            // Albedo Green > Diffuse Green
-            if (isOutputDiffuseGreen && TryGetInputChannel(EncodingChannel.AlbedoGreen, out var albedoGreenChannel)) {
-                TryGetSourceFilename(albedoGreenChannel.Texture, out mapping.SourceFilename);
-                if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoGreen, out value)) mapping.InputValue = (float)value;
-
-                mapping.ApplyInputChannel(albedoGreenChannel);
-                mapping.OutputApplyOcclusion = true;
-                return true;
-            }
-
-            // Albedo Blue > Diffuse Blue
-            if (isOutputDiffuseBlue && TryGetInputChannel(EncodingChannel.AlbedoBlue, out var albedoBlueChannel)) {
-                TryGetSourceFilename(albedoBlueChannel.Texture, out mapping.SourceFilename);
-                if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoBlue, out value)) mapping.InputValue = (float)value;
-
-                mapping.ApplyInputChannel(albedoBlueChannel);
-                mapping.OutputApplyOcclusion = true;
-                return true;
-            }
-
+            
             // Rough > Smooth
-            if (isOutputSmooth && TryGetInputChannel(EncodingChannel.Rough, out var roughChannel)
-                               && TryGetSourceFilename(roughChannel.Texture, out mapping.SourceFilename)) {
+            var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
+            var hasOuputRough = context.OutputEncoding.HasChannel(EncodingChannel.Rough);
+            if (isOutputSmooth && !hasOuputRough
+                    && TryGetInputChannel(EncodingChannel.Rough, out var roughChannel)
+                    && TryGetSourceFilename(roughChannel.Texture, out mapping.SourceFilename)) {
                 mapping.ApplyInputChannel(roughChannel);
                 mapping.InputInverted = true;
                 return true;
             }
 
             // Smooth > Rough
-            if (isOutputRough && TryGetInputChannel(EncodingChannel.Smooth, out var smoothChannel)) {
-                if (TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
-                    mapping.ApplyInputChannel(smoothChannel);
-                    mapping.InputInverted = true;
-                    return true;
-                }
+            var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
+            var hasOuputSmooth = context.OutputEncoding.HasChannel(EncodingChannel.Smooth);
+            if (isOutputRough && !hasOuputSmooth
+                    && TryGetInputChannel(EncodingChannel.Smooth, out var smoothChannel)
+                    && TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
+                mapping.ApplyInputChannel(smoothChannel);
+                mapping.InputInverted = true;
+                return true;
             }
 
             //var isOutputF0 = EncodingChannel.Is(outputChannel.ID, EncodingChannel.F0);
@@ -297,12 +320,11 @@ namespace PixelGraph.Common.Textures
             return channel != null;
         }
 
-        private void ApplyNormalMapping<TPixel>(Image<TPixel> image, TextureChannelMapping mapping)
-            where TPixel : unmanaged, IPixel<TPixel>
+        private void ApplyNormalMapping(Image image, TextureChannelMapping mapping)
         {
-            var sampler = normalGraph.GetSampler();
-            sampler.RangeX = (float)normalGraph.Texture.Width / bufferSize.Width;
-            sampler.RangeY = (float)normalGraph.Texture.Height / bufferSize.Height;
+            var sampler = normalGraph.GetNormalSampler();
+            sampler.RangeX = (float)normalGraph.NormalTexture.Width / bufferSize.Width;
+            sampler.RangeY = (float)normalGraph.NormalTexture.Height / bufferSize.Height;
 
             var options = new OverlayProcessor<Rgb24>.Options {
                 IsGrayscale = isGrayscale,
@@ -314,7 +336,7 @@ namespace PixelGraph.Common.Textures
             var processor = new OverlayProcessor<Rgb24>(options);
 
             foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
-                var srcFrame = regions.GetRenderRegion(frame.Index, normalGraph.FrameCount);
+                var srcFrame = regions.GetRenderRegion(frame.Index, normalGraph.NormalFrameCount);
 
                 foreach (var tile in frame.Tiles) {
                     sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
@@ -325,20 +347,46 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task ApplyOcclusionMappingAsync<TPixel>(Image<TPixel> image, TextureChannelMapping mapping, CancellationToken token)
-            where TPixel : unmanaged, IPixel<TPixel>
+        private void ApplyMagnitudeMapping(Image image, TextureChannelMapping mapping)
+        {
+            var sampler = normalGraph.GetMagnitudeSampler();
+            sampler.RangeX = (float)normalGraph.MagnitudeTexture.Width / bufferSize.Width;
+            sampler.RangeY = (float)normalGraph.MagnitudeTexture.Height / bufferSize.Height;
+
+            var options = new OverlayProcessor<L8>.Options {
+                IsGrayscale = isGrayscale,
+                SamplerMap = new Dictionary<TextureChannelMapping, ISampler<L8>> {
+                    [mapping] = sampler,
+                },
+            };
+
+            var processor = new OverlayProcessor<L8>(options);
+
+            foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                var srcFrame = regions.GetRenderRegion(frame.Index, normalGraph.MagnitudeFrameCount);
+
+                foreach (var tile in frame.Tiles) {
+                    sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+
+                    var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                    image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                }
+            }
+        }
+
+        private async Task ApplyOcclusionMappingAsync(Image image, TextureChannelMapping mapping, CancellationToken token)
         {
             var occlusionSampler = await occlusionGraph.GetSamplerAsync(token);
             if (occlusionSampler == null) return;
 
-            var options = new OverlayProcessor<Rgba32>.Options {
+            var options = new OverlayProcessor<L8>.Options {
                 IsGrayscale = isGrayscale,
-                SamplerMap = new Dictionary<TextureChannelMapping, ISampler<Rgba32>> {
+                SamplerMap = new Dictionary<TextureChannelMapping, ISampler<L8>> {
                     [mapping] = occlusionSampler,
                 },
             };
             
-            var processor = new OverlayProcessor<Rgba32>(options);
+            var processor = new OverlayProcessor<L8>(options);
 
             foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
                 var srcFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
@@ -404,10 +452,7 @@ namespace PixelGraph.Common.Textures
                 IsGrayscale = isGrayscale,
                 SamplerMap = mappingGroup.ToDictionary(m => m, m => {
                     var samplerName = m.OutputSampler ?? context.DefaultSampler;
-                    var sampler = Sampler<Rgba32>.Create(samplerName);
-                    sampler.Image = sourceImage;
-                    sampler.WrapX = context.MaterialWrapX;
-                    sampler.WrapY = context.MaterialWrapY;
+                    var sampler = context.CreateSampler(sourceImage, samplerName);
                     sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
                     sampler.RangeY = (float)sourceImage.Height / bufferSize.Height;
                     return sampler;
@@ -435,14 +480,17 @@ namespace PixelGraph.Common.Textures
             var occlusionSampler = await occlusionGraph.GetSamplerAsync(token);
             if (occlusionSampler == null) return;
 
-            var options = new PostOcclusionProcessor<Rgba32, Rgba32>.Options {
+            var options = new PostOcclusionProcessor<L8, Rgba32>.Options {
                 MappingColors = mappingGroup.Select(m => m.OutputColor).ToArray(),
                 OcclusionSampler = occlusionSampler,
                 OcclusionMapping = new TextureChannelMapping(),
             };
 
             options.OcclusionMapping.ApplyInputChannel(occlusionGraph.Channel);
-            options.OcclusionMapping.ValueScale = (float)(context.Profile?.DiffuseOcclusionStrength ?? ResourcePackProfileProperties.DefaultDiffuseOcclusionStrength);
+            options.OcclusionMapping.ValueScale = context.Material.GetChannelScale(EncodingChannel.Occlusion);
+
+            if (context.Profile?.DiffuseOcclusionStrength.HasValue ?? false)
+                options.OcclusionMapping.ValueScale *= (float)context.Profile.DiffuseOcclusionStrength.Value;
 
             Image<Rgba32> emissiveImage = null;
             TextureSource emissiveInfo = null;
@@ -456,10 +504,7 @@ namespace PixelGraph.Common.Textures
                         emissiveImage = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
 
                         var samplerName = context.Profile?.Encoding?.Emissive?.Sampler ?? context.DefaultSampler;
-                        options.EmissiveSampler = emissiveSampler = Sampler<Rgba32>.Create(samplerName);
-                        emissiveSampler.Image = emissiveImage;
-                        emissiveSampler.WrapX = context.MaterialWrapX;
-                        emissiveSampler.WrapY = context.MaterialWrapY;
+                        options.EmissiveSampler = emissiveSampler = context.CreateSampler(emissiveImage, samplerName);
 
                         // TODO: set these properly
                         emissiveSampler.RangeX = 1;
@@ -473,7 +518,7 @@ namespace PixelGraph.Common.Textures
                     }
                 }
 
-                var processor = new PostOcclusionProcessor<Rgba32, Rgba32>(options);
+                var processor = new PostOcclusionProcessor<L8, Rgba32>(options);
 
                 foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
                     var occlusionFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
@@ -505,19 +550,14 @@ namespace PixelGraph.Common.Textures
             return frameBounds;
         }
 
-        private async Task<Size> GetBufferSizeAsync(CancellationToken token = default)
+        private async Task<Size?> GetBufferSizeAsync(CancellationToken token = default)
         {
             var scale = context.TextureScale;
             var blockSize = context.Profile?.BlockTextureSize;
 
             // Use multi-part bounds if defined
-            if (context.Material.TryGetSourceBounds(in blockSize, in scale, out var partBounds)) {
-                //if (scale.Equal(1f)) return partBounds;
-
-                //var width = (int)MathF.Ceiling(partBounds.Width * scale);
-                //var height = (int)MathF.Ceiling(partBounds.Height * scale);
+            if (context.Material.TryGetSourceBounds(in blockSize, in scale, out var partBounds))
                 return partBounds;
-            }
 
             var actualBounds = await GetActualBoundsAsync(token);
 
@@ -541,7 +581,7 @@ namespace PixelGraph.Common.Textures
                 return size;
             }
 
-            return new Size(1);
+            return null;
         }
 
         private async Task<Size?> GetActualBoundsAsync(CancellationToken token = default)
@@ -579,32 +619,57 @@ namespace PixelGraph.Common.Textures
             }
 
             foreach (var mapping in mappings.Where(m => m.SourceFilename == null)) {
-                if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated)) {
+                if (TextureTags.Is(mapping.SourceTag, TextureTags.NormalGenerated) && normalGraph.HasNormalTexture) {
                     if (!hasBounds) {
-                        maxWidth = normalGraph.FrameWidth;
-                        maxHeight = normalGraph.FrameHeight;
+                        maxWidth = normalGraph.NormalFrameWidth;
+                        maxHeight = normalGraph.NormalFrameHeight;
                         hasBounds = true;
                         continue;
                     }
 
-                    if (normalGraph.FrameWidth == maxWidth && normalGraph.FrameHeight == maxHeight) continue;
+                    if (normalGraph.NormalFrameWidth == maxWidth && normalGraph.NormalFrameHeight == maxHeight) continue;
 
-                    if (normalGraph.FrameWidth >= maxWidth) {
-                        maxWidth = normalGraph.FrameWidth;
+                    if (normalGraph.NormalFrameWidth >= maxWidth) {
+                        maxWidth = normalGraph.NormalFrameWidth;
 
-                        if (normalGraph.FrameHeight > maxHeight)
-                            maxHeight = normalGraph.FrameHeight;
+                        if (normalGraph.NormalFrameHeight > maxHeight)
+                            maxHeight = normalGraph.NormalFrameHeight;
                     }
                     else {
-                        var scale = (float)maxWidth / normalGraph.FrameWidth;
-                        var scaledHeight = (int)MathF.Ceiling(normalGraph.FrameHeight * scale);
+                        var scale = (float)maxWidth / normalGraph.NormalFrameWidth;
+                        var scaledHeight = (int)MathF.Ceiling(normalGraph.NormalFrameHeight * scale);
 
                         if (scaledHeight > maxHeight)
                             maxHeight = scaledHeight;
                     }
                 }
 
-                if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated)) {
+                if (TextureTags.Is(mapping.SourceTag, TextureTags.MagnitudeBuffer) && normalGraph.HasMagnitudeTexture) {
+                    if (!hasBounds) {
+                        maxWidth = normalGraph.MagnitudeFrameWidth;
+                        maxHeight = normalGraph.MagnitudeFrameHeight;
+                        hasBounds = true;
+                        continue;
+                    }
+
+                    if (normalGraph.MagnitudeFrameWidth == maxWidth && normalGraph.MagnitudeFrameHeight == maxHeight) continue;
+
+                    if (normalGraph.MagnitudeFrameWidth >= maxWidth) {
+                        maxWidth = normalGraph.MagnitudeFrameWidth;
+
+                        if (normalGraph.MagnitudeFrameHeight > maxHeight)
+                            maxHeight = normalGraph.MagnitudeFrameHeight;
+                    }
+                    else {
+                        var scale = (float)maxWidth / normalGraph.MagnitudeFrameWidth;
+                        var scaledHeight = (int)MathF.Ceiling(normalGraph.MagnitudeFrameHeight * scale);
+
+                        if (scaledHeight > maxHeight)
+                            maxHeight = scaledHeight;
+                    }
+                }
+
+                if (TextureTags.Is(mapping.SourceTag, TextureTags.OcclusionGenerated) && occlusionGraph.HasTexture) {
                     var occlusionTex = await occlusionGraph.GetTextureAsync(token);
 
                     if (occlusionTex != null) {

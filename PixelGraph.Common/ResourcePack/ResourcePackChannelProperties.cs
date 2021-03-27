@@ -18,7 +18,6 @@ namespace PixelGraph.Common.ResourcePack
         public byte? RangeMax {get; set;}
         public int? Shift {get; set;}
         public decimal? Power {get; set;}
-        //public bool? Perceptual {get; set;}
         public bool? Invert {get; set;}
 
         [YamlIgnore]
@@ -36,9 +35,8 @@ namespace PixelGraph.Common.ResourcePack
             ID = id;
         }
 
-        protected ResourcePackChannelProperties(string id, string texture, ColorChannel color)
+        protected ResourcePackChannelProperties(string id, string texture, ColorChannel color) : this(id)
         {
-            ID = id;
             Texture = texture;
             Color = color;
         }
@@ -58,6 +56,20 @@ namespace PixelGraph.Common.ResourcePack
             if (channel.Power.HasValue) Power = channel.Power.Value;
             //if (channel.Perceptual.HasValue) Perceptual = channel.Perceptual.Value;
             if (channel.Invert.HasValue) Invert = channel.Invert.Value;
+        }
+
+        public void Reset()
+        {
+            Texture = null;
+            Sampler = null;
+            Color = null;
+            MinValue = null;
+            MaxValue = null;
+            RangeMin = null;
+            RangeMax = null;
+            Shift = null;
+            Power = null;
+            Invert = null;
         }
 
         public virtual object Clone()

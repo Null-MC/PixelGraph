@@ -54,7 +54,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(255, 127,   0)]
         [InlineData(127,   0,   0)]
         [InlineData(127, 255,   0)]
-        [Theory] public async Task PassthroughX(byte valueX, byte valueY, byte valueZ)
+        [Theory] public async Task Passthrough(byte valueX, byte valueY, byte valueZ)
         {
             await using var graph = Graph();
 
@@ -81,7 +81,17 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.PackInput = new ResourcePackInputProperties {
+                NormalX = {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Red,
+                },
+                NormalY = {
+                    Texture = TextureTags.Normal,
+                    Color = ColorChannel.Green,
+                },
+            };
+
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",

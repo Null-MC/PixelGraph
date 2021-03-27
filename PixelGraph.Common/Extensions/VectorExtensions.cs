@@ -64,5 +64,10 @@ namespace PixelGraph.Common.Extensions
             vector.Y += addVector.Y;
             vector.Z += addVector.Z;
         }
+
+        public static float Length3(this ref Vector4 vector)
+        {
+            return MathF.Sqrt(vector.X*vector.X + vector.Y*vector.Y + vector.Z*vector.Z);
+        }
     }
 }

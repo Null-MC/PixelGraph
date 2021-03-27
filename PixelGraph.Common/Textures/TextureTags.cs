@@ -26,6 +26,7 @@ namespace PixelGraph.Common.Textures
         // Internal
         public const string Inventory = "inventory";
         public const string NormalGenerated = "normal-generated";
+        public const string MagnitudeBuffer = "magnitude-buffer";
         public const string OcclusionGenerated = "occlusion-generated";
 
         public static string[] All {get;} = {Alpha, Albedo, Diffuse, Height, Bump, Normal, Occlusion, Specular, Smooth, Rough, Metal, F0, Porosity, SubSurfaceScattering, Emissive, Inventory};

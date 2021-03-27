@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.Encoding
@@ -21,7 +20,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -34,7 +32,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -47,7 +44,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -60,7 +56,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -73,7 +68,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -86,7 +80,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -99,7 +92,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = true,
                 },
 
@@ -112,7 +104,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = true,
                 },
 
@@ -125,7 +116,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = true,
                     Invert = false,
                 },
 
@@ -133,12 +123,12 @@ namespace PixelGraph.Common.Encoding
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
                     MinValue = 0m,
-                    MaxValue = 0.898m,
+                    MaxValue = 0.9m,
                     RangeMin = 0,
                     RangeMax = 229,
                     Shift = 0,
                     Power = 1m,
-                    //Invert = false,
+                    Invert = false,
                 },
 
                 Metal = new ResourcePackMetalChannelProperties {
@@ -151,7 +141,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -164,7 +153,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 64,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -177,7 +165,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -190,7 +177,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = -1,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
             };

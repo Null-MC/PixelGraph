@@ -21,12 +21,15 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
         {
+            byte occlusionPixel;
+            float fx, fy, occlusionValue;
+            var colorCount = options.MappingColors.Length;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
-                var (fx, fy) = GetTexCoord(in context, in x);
-                options.OcclusionSampler.Sample(in fx, in fy, in options.OcclusionMapping.InputColor, out var occlusionPixel);
+                GetTexCoord(in context, in x, out fx, out fy);
+                options.OcclusionSampler.Sample(in fx, in fy, in options.OcclusionMapping.InputColor, out occlusionPixel);
 
-                if (!options.OcclusionMapping.TryUnmap(ref occlusionPixel, out var occlusionValue))
+                if (!options.OcclusionMapping.TryUnmap(in occlusionPixel, out occlusionValue))
                     occlusionValue = 0f;
 
                 occlusionValue *= options.OcclusionMapping.ValueScale;
@@ -34,19 +37,19 @@ namespace PixelGraph.Common.ImageProcessors
                 if (options.EmissiveSampler != null) {
                     options.EmissiveSampler.Sample(in fx, in fy, in options.EmissiveMapping.InputColor, out var emissivePixel);
 
-                    if (options.EmissiveMapping.TryUnmap(ref emissivePixel, out var emissiveValue))
-                        occlusionValue = Math.Max(occlusionValue - emissiveValue, 0f);
+                    if (options.EmissiveMapping.TryUnmap(in emissivePixel, out var emissiveValue))
+                        occlusionValue = MathF.Max(occlusionValue - emissiveValue, 0f);
                 }
 
                 var lit = 1f - occlusionValue;
-                foreach (var color in options.MappingColors) {
-                    albedoPixel.GetChannelValue(in color, out var value);
+                for (var c = 0; c < colorCount; c++) {
+                    albedoPixel.GetChannelValue(in options.MappingColors[c], out var value);
 
                     // TODO: currently just applying to mapping as-is
                     // ...but it SHOULD be respecting the full channel unmap>edit>remap workflow
                     value *= lit;
 
-                    albedoPixel.SetChannelValue(in color, in value);
+                    albedoPixel.SetChannelValue(in options.MappingColors[c], in value);
                 }
 
                 row[x].FromScaledVector4(albedoPixel);

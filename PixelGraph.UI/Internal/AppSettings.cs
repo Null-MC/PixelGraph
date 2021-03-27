@@ -16,12 +16,12 @@ namespace PixelGraph.UI.Internal
     {
         private const string FileName = "Settings.json";
 
-        private readonly IAppDataHelper appData;
+        private readonly IAppDataUtility appData;
 
         public SettingsDataModel Data {get; private set;}
 
 
-        public AppSettings(IAppDataHelper appData)
+        public AppSettings(IAppDataUtility appData)
         {
             this.appData = appData;
 
