@@ -120,13 +120,10 @@ namespace PixelGraph.Common.Textures
 
         public async Task<Image<L8>> GenerateAsync(CancellationToken token = default)
         {
-            int frames;
-            ResourcePackChannelProperties channel;
-            Image<Rgba32> heightImage;
-            (heightImage, frames, channel) = await GetHeightTextureAsync(token);
+            var (heightImage, heightFrames, heightChannel) = await GetChannelTextureAsync<Rgba32>(EncodingChannel.Height, token);
             if (heightImage == null) return null;
 
-            FrameCount = frames;
+            FrameCount = heightFrames;
 
             var aspect = (float)heightImage.Height / heightImage.Width;
             var bufferSize = context.GetBufferSize(aspect);
@@ -154,7 +151,7 @@ namespace PixelGraph.Common.Textures
             zScale *= heightScale;
 
             var heightMapping = new TextureChannelMapping();
-            heightMapping.ApplyInputChannel(channel);
+            heightMapping.ApplyInputChannel(heightChannel);
             heightMapping.ValueScale = context.Material.GetChannelScale(EncodingChannel.Height);
 
             OcclusionProcessor<Rgba32>.Options options = null;
@@ -265,24 +262,23 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task<(Image<Rgba32> image, int frameCount, ResourcePackChannelProperties channel)> GetHeightTextureAsync(CancellationToken token)
-        {
-            var (bumpTexture, bumpFrames, bumpChannel) = await GetChannelTextureAsync<Rgba32>(EncodingChannel.Bump, token);
-            if (bumpTexture != null) return (bumpTexture, bumpFrames, bumpChannel);
+        //private async Task<(Image<Rgba32> image, int frameCount, ResourcePackChannelProperties channel)> GetHeightTextureAsync(CancellationToken token)
+        //{
+        //    // WARN: Only use bump for normals
+        //    //var (bumpTexture, bumpFrames, bumpChannel) = await GetChannelTextureAsync<Rgba32>(EncodingChannel.Bump, token);
+        //    //if (bumpTexture != null) return (bumpTexture, bumpFrames, bumpChannel);
 
-            var (heightTexture, heightFrames, heightChannel) = await GetChannelTextureAsync<Rgba32>(EncodingChannel.Height, token);
-            if (heightTexture != null) return (heightTexture, heightFrames, heightChannel);
+        //    var (heightTexture, heightFrames, heightChannel) = await GetChannelTextureAsync<Rgba32>(EncodingChannel.Height, token);
+        //    if (heightTexture != null) return (heightTexture, heightFrames, heightChannel);
 
-            return (null, 0, null);
-        }
+        //    return (null, 0, null);
+        //}
 
         private async Task<(Image<T> image, int frameCount, ResourcePackChannelProperties channel)> GetChannelTextureAsync<T>(string encodingChannel, CancellationToken token)
             where T : unmanaged, IPixel<T>
         {
-            foreach (var channel in context.InputEncoding.Where(c => EncodingChannel.Is(c.ID, encodingChannel))) {
-                if (!channel.HasTexture) continue;
-
-                foreach (var file in reader.EnumerateTextures(context.Material, channel.Texture)) {
+            if (EncodingChannel.Is(encodingChannel, EncodingChannel.Bump)) {
+                foreach (var file in reader.EnumerateTextures(context.Material, TextureTags.Bump)) {
                     if (file == null) continue;
 
                     var info = await sourceGraph.GetOrCreateAsync(file, token);
@@ -291,7 +287,29 @@ namespace PixelGraph.Common.Textures
                     await using var stream = reader.Open(file);
 
                     var image = await Image.LoadAsync<T>(Configuration.Default, stream, token);
+                    var channel = new ResourcePackBumpChannelProperties {
+                        Color = ColorChannel.Red,
+                        Invert = true,
+                        Power = 1,
+                    };
                     return (image, info.FrameCount, channel);
+                }
+            }
+            else {
+                foreach (var channel in context.InputEncoding.Where(c => EncodingChannel.Is(c.ID, encodingChannel))) {
+                    if (!channel.HasTexture) continue;
+
+                    foreach (var file in reader.EnumerateTextures(context.Material, channel.Texture)) {
+                        if (file == null) continue;
+
+                        var info = await sourceGraph.GetOrCreateAsync(file, token);
+                        if (info == null) continue;
+
+                        await using var stream = reader.Open(file);
+
+                        var image = await Image.LoadAsync<T>(Configuration.Default, stream, token);
+                        return (image, info.FrameCount, channel);
+                    }
                 }
             }
 
