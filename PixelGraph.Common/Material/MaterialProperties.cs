@@ -31,28 +31,31 @@ namespace PixelGraph.Common.Material
         [YamlIgnore]
         public string DisplayName => Alias != null ? $"{Alias}:{Name}" : Name;
 
-        [YamlMember(Order = 0)]
+        [YamlMember(Order = -100)]
         public string InputFormat {get; set;}
 
-        [YamlMember(Order = 1)]
+        [YamlMember(Order = -99)]
         public string Type {get; set;}
 
-        [YamlMember(Order = 2)]
-        public bool? CreateInventory {get; set;}
+        [YamlMember(Order = -98)]
+        public bool? Publish {get; set;}
 
-        [YamlMember(Order = 3)]
+        [YamlMember(Order = -97)]
+        public bool? PublishInventory {get; set;}
+
+        [YamlMember(Order = -96)]
         public int? TextureSize {get; set;}
 
-        [YamlMember(Order = 4)]
+        [YamlMember(Order = -95)]
         public int? TextureWidth {get; set;}
 
-        [YamlMember(Order = 5)]
+        [YamlMember(Order = -94)]
         public int? TextureHeight {get; set;}
 
-        [YamlMember(Order = 6)]
+        [YamlMember(Order = -93)]
         public bool? WrapX {get; set;}
 
-        [YamlMember(Order = 7)]
+        [YamlMember(Order = -92)]
         public bool? WrapY {get; set;}
 
         //public bool? Resizable {get; set;}
@@ -263,5 +266,15 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Scale ?? 1m,
             [EncodingChannel.Emissive] = mat => mat.Emissive?.Scale ?? 1m,
         };
+
+        #region Deprecated
+        
+        [Obsolete("Replace usages of CreateInventory with PublishInventory.")]
+        [YamlMember] public bool? CreateInventory {
+            get => PublishInventory;
+            set => PublishInventory = value;
+        }
+
+        #endregion
     }
 }

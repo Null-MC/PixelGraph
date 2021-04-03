@@ -1,6 +1,9 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Encoding;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -19,6 +22,9 @@ namespace PixelGraph.Common.Textures
 
     internal class InventoryTextureGenerator : IInventoryTextureGenerator
     {
+        private const int TargetFrame = 0;
+
+        private readonly IServiceProvider provider;
         private readonly ITextureGraphContext context;
         private readonly ITextureSourceGraph sourceGraph;
         private readonly ITextureNormalGraph normalGraph;
@@ -30,6 +36,7 @@ namespace PixelGraph.Common.Textures
 
 
         public InventoryTextureGenerator(
+            IServiceProvider provider,
             ITextureGraphContext context,
             ITextureSourceGraph sourceGraph,
             ITextureNormalGraph normalGraph,
@@ -37,6 +44,7 @@ namespace PixelGraph.Common.Textures
             ITextureRegionEnumerator regions,
             IInputReader reader)
         {
+            this.provider = provider;
             this.context = context;
             this.sourceGraph = sourceGraph;
             this.normalGraph = normalGraph;
@@ -47,14 +55,11 @@ namespace PixelGraph.Common.Textures
 
         public async Task<Image<Rgba32>> CreateAsync(ITextureGraph graph, CancellationToken token = default)
         {
-            const int targetFrame = 0;
-
             Image<Rgba32> image = null;
 
             emissiveImage = null;
             try {
-                await graph.MapAsync(TextureTags.Albedo, false, targetFrame, token);
-                image = await graph.CreateImageAsync<Rgba32>(TextureTags.Albedo, false, token);
+                image = await BuildAlbedoBufferAsync(token);
                 if (image == null) return null;
 
                 try {
@@ -62,14 +67,18 @@ namespace PixelGraph.Common.Textures
                 }
                 catch (HeightSourceEmptyException) {}
 
-                var emissiveChannel = context.InputEncoding.FirstOrDefault(c => TextureTags.Is(c.ID, TextureTags.Emissive));
+                var emissiveChannel = context.InputEncoding.GetChannel(TextureTags.Emissive);
                 var emissiveInfo = await GetEmissiveInfoAsync(token);
 
                 var inventoryOptions = new ItemProcessor<L8, Rgba32>.Options {
                     NormalSampler = normalGraph.GetNormalSampler(),
                     OcclusionSampler = await occlusionGraph.GetSamplerAsync(token),
-                    OcclusionColor = occlusionGraph.Channel?.Color ?? ColorChannel.Red,
                 };
+
+                if (occlusionGraph.HasTexture) {
+                    inventoryOptions.OcclusionMapping = new TextureChannelMapping();
+                    inventoryOptions.OcclusionMapping.ApplyInputChannel(occlusionGraph.Channel);
+                }
 
                 if (emissiveInfo != null) {
                     inventoryOptions.EmissiveColor = emissiveChannel?.Color ?? ColorChannel.Red;
@@ -84,17 +93,17 @@ namespace PixelGraph.Common.Textures
                         if (frame == null) continue;
 
                         if (inventoryOptions.NormalSampler != null) {
-                            var srcFrame = regions.GetPublishPartFrame(targetFrame, normalGraph.NormalFrameCount, part.TileIndex);
+                            var srcFrame = regions.GetPublishPartFrame(TargetFrame, normalGraph.NormalFrameCount, part.TileIndex);
                             inventoryOptions.NormalSampler.Bounds = srcFrame.SourceBounds;
                         }
 
                         if (inventoryOptions.OcclusionSampler != null) {
-                            var srcFrame = regions.GetPublishPartFrame(targetFrame, occlusionGraph.FrameCount, part.TileIndex);
+                            var srcFrame = regions.GetPublishPartFrame(TargetFrame, occlusionGraph.FrameCount, part.TileIndex);
                             inventoryOptions.OcclusionSampler.Bounds = srcFrame.SourceBounds;
                         }
 
                         if (emissiveChannel != null && emissiveInfo != null) {
-                            var srcFrame = regions.GetPublishPartFrame(targetFrame, emissiveInfo.FrameCount, part.TileIndex);
+                            var srcFrame = regions.GetPublishPartFrame(TargetFrame, emissiveInfo.FrameCount, part.TileIndex);
                             inventoryOptions.EmissiveSampler.Bounds = srcFrame.SourceBounds;
                         }
 
@@ -142,7 +151,52 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private Task<TextureSource> GetEmissiveInfoAsync(CancellationToken token = default)
+        private async Task<Image<Rgba32>> BuildAlbedoBufferAsync(CancellationToken token)
+        {
+            using var scope = provider.CreateScope();
+            var subContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+            var builder = scope.ServiceProvider.GetRequiredService<ITextureBuilder>();
+
+            subContext.Input = context.Input;
+            subContext.Profile = context.Profile;
+            subContext.Material = context.Material;
+
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoRed, out var redInputChannel))
+                subContext.InputEncoding.Add(redInputChannel);
+
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoGreen, out var greenInputChannel))
+                subContext.InputEncoding.Add(greenInputChannel);
+
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoBlue, out var blueInputChannel))
+                subContext.InputEncoding.Add(blueInputChannel);
+
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.Alpha, out var alphaInputChannel))
+                subContext.InputEncoding.Add(alphaInputChannel);
+
+            builder.InputChannels = subContext.InputEncoding.ToArray();
+            builder.OutputChannels = new ResourcePackChannelProperties[] {
+                new ResourcePackAlbedoRedChannelProperties(TextureTags.Albedo, ColorChannel.Red) {MaxValue = 255m},
+                new ResourcePackAlbedoGreenChannelProperties(TextureTags.Albedo, ColorChannel.Green) {MaxValue = 255m},
+                new ResourcePackAlbedoBlueChannelProperties(TextureTags.Albedo, ColorChannel.Blue) {MaxValue = 255m},
+                new ResourcePackAlphaChannelProperties(TextureTags.Albedo, ColorChannel.Alpha) {MaxValue = 255m},
+            };
+
+            builder.TargetFrame = TargetFrame;
+            await builder.MapAsync(false, token);
+            //if (!builder.HasMappedSources) return null;
+
+            Image<Rgba32> image = null;
+            try {
+                image = await builder.BuildAsync<Rgba32>(false, token);
+                return image;
+            }
+            catch {
+                image?.Dispose();
+                throw;
+            }
+        }
+
+        private Task<TextureSource> GetEmissiveInfoAsync(CancellationToken token)
         {
             var emissiveFile = reader.EnumerateTextures(context.Material, TextureTags.Emissive).FirstOrDefault();
             if (emissiveFile == null) return Task.FromResult<TextureSource>(null);

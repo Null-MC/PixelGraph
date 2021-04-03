@@ -24,7 +24,7 @@ namespace PixelGraph.Common.Textures
         int? TargetFrame {get; set;}
 
         Task MapAsync(bool createEmpty, CancellationToken token = default);
-        Task<Image<TPixel>> BuildAsync<TPixel>(bool createEmpty, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
+        Task<Image<TPixel>>  BuildAsync<TPixel>(bool createEmpty, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
     }
 
     internal class TextureBuilder : ITextureBuilder
@@ -236,7 +236,7 @@ namespace PixelGraph.Common.Textures
                 var isOutputDiffuseBlue = EncodingChannel.Is(outputChannel.ID, EncodingChannel.DiffuseBlue);
 
                 // Albedo Red > Diffuse Red
-                if (isOutputDiffuseRed && TryGetInputChannel(EncodingChannel.AlbedoRed, out var albedoRedChannel)) {
+                if (isOutputDiffuseRed && context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoRed, out var albedoRedChannel)) {
                     TryGetSourceFilename(albedoRedChannel.Texture, out mapping.SourceFilename);
                     if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoRed, out value)) mapping.InputValue = (float)value;
 
@@ -246,7 +246,7 @@ namespace PixelGraph.Common.Textures
                 }
 
                 // Albedo Green > Diffuse Green
-                if (isOutputDiffuseGreen && TryGetInputChannel(EncodingChannel.AlbedoGreen, out var albedoGreenChannel)) {
+                if (isOutputDiffuseGreen && context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoGreen, out var albedoGreenChannel)) {
                     TryGetSourceFilename(albedoGreenChannel.Texture, out mapping.SourceFilename);
                     if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoGreen, out value)) mapping.InputValue = (float)value;
 
@@ -256,7 +256,7 @@ namespace PixelGraph.Common.Textures
                 }
 
                 // Albedo Blue > Diffuse Blue
-                if (isOutputDiffuseBlue && TryGetInputChannel(EncodingChannel.AlbedoBlue, out var albedoBlueChannel)) {
+                if (isOutputDiffuseBlue && context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoBlue, out var albedoBlueChannel)) {
                     TryGetSourceFilename(albedoBlueChannel.Texture, out mapping.SourceFilename);
                     if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoBlue, out value)) mapping.InputValue = (float)value;
 
@@ -270,7 +270,7 @@ namespace PixelGraph.Common.Textures
             var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
             var hasOuputRough = context.OutputEncoding.HasChannel(EncodingChannel.Rough);
             if (isOutputSmooth && !hasOuputRough
-                    && TryGetInputChannel(EncodingChannel.Rough, out var roughChannel)
+                    && context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)
                     && TryGetSourceFilename(roughChannel.Texture, out mapping.SourceFilename)) {
                 mapping.ApplyInputChannel(roughChannel);
                 mapping.InputInverted = true;
@@ -281,7 +281,7 @@ namespace PixelGraph.Common.Textures
             var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
             var hasOuputSmooth = context.OutputEncoding.HasChannel(EncodingChannel.Smooth);
             if (isOutputRough && !hasOuputSmooth
-                    && TryGetInputChannel(EncodingChannel.Smooth, out var smoothChannel)
+                    && context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
                     && TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
                 mapping.ApplyInputChannel(smoothChannel);
                 mapping.InputInverted = true;
@@ -314,11 +314,11 @@ namespace PixelGraph.Common.Textures
             return false;
         }
 
-        private bool TryGetInputChannel(string id, out ResourcePackChannelProperties channel)
-        {
-            channel = InputChannels.FirstOrDefault(i => EncodingChannel.Is(i.ID, id));
-            return channel != null;
-        }
+        //private bool TryGetInputChannel(string id, out ResourcePackChannelProperties channel)
+        //{
+        //    channel = InputChannels.FirstOrDefault(i => EncodingChannel.Is(i.ID, id));
+        //    return channel != null;
+        //}
 
         private void ApplyNormalMapping(Image image, TextureChannelMapping mapping)
         {
@@ -407,25 +407,28 @@ namespace PixelGraph.Common.Textures
             var value = mapping.InputValue ?? 0f;
             if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
+            //if (!mapping.TryUnmap(in rawValue, out var value)) return;
+            mapping.Map(ref value, out byte finalValue);
+            
             // Common Processing
-            value = (value + mapping.ValueShift) * mapping.ValueScale;
+            //value = (value + mapping.ValueShift) * mapping.ValueScale;
 
-            if (!mapping.OutputPower.Equal(1f))
-                value = MathF.Pow(value, mapping.OutputPower);
+            //if (!mapping.OutputPower.Equal(1f))
+            //    value = MathF.Pow(value, mapping.OutputPower);
 
-            if (mapping.OutputInverted) MathEx.Invert(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
+            //if (mapping.OutputInverted) MathEx.Invert(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
 
-            MathEx.Clamp(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
+            //MathEx.Clamp(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
 
-            var valueRange = mapping.OutputMaxValue - mapping.OutputMinValue;
-            var pixelRange = mapping.OutputRangeMax - mapping.OutputRangeMin;
-            var outputScale = pixelRange / valueRange;
+            //var valueRange = mapping.OutputMaxValue - mapping.OutputMinValue;
+            //var pixelRange = mapping.OutputRangeMax - mapping.OutputRangeMin;
+            //var outputScale = pixelRange / valueRange;
 
-            var valueOut = mapping.OutputRangeMin + (value - mapping.OutputMinValue) * outputScale;
-            var finalValue = MathEx.ClampRound(valueOut, mapping.OutputRangeMin, mapping.OutputRangeMax);
+            //var valueOut = mapping.OutputRangeMin + (value - mapping.OutputMinValue) * outputScale;
+            //var finalValue = MathEx.ClampRound(valueOut, mapping.OutputRangeMin, mapping.OutputRangeMax);
 
-            if (mapping.OutputShift != 0)
-                MathEx.Cycle(ref finalValue, in mapping.OutputShift, in mapping.OutputRangeMin, in mapping.OutputRangeMax);
+            //if (mapping.OutputShift != 0)
+            //    MathEx.Cycle(ref finalValue, in mapping.OutputShift, in mapping.OutputRangeMin, in mapping.OutputRangeMax);
 
             if (isGrayscale) {
                 defaultValues.R = finalValue;
@@ -496,7 +499,7 @@ namespace PixelGraph.Common.Textures
             TextureSource emissiveInfo = null;
             ISampler<Rgba32> emissiveSampler = null;
             try {
-                if (TryGetInputChannel(EncodingChannel.Emissive, out var emissiveChannel)
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Emissive, out var emissiveChannel)
                     && TryGetSourceFilename(emissiveChannel.Texture, out var emissiveFile)) {
                     emissiveInfo = await sourceGraph.GetOrCreateAsync(emissiveFile, token);
                     if (emissiveInfo != null) {

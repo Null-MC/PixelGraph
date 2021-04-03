@@ -22,28 +22,33 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
         {
-            float fx, fy, occlusionValue;
+            Vector4 normal;
+            float fx, fy, occlusionPixel, occlusionValue;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
                 GetTexCoord(in context, in x, out fx, out fy);
 
-                occlusionValue = 1f;
-                options.OcclusionSampler?.SampleScaled(in fx, in fy, in options.OcclusionColor, out occlusionValue);
+                occlusionValue = 0f;
+                if (options.OcclusionSampler != null) {
+                    options.OcclusionSampler.SampleScaled(in fx, in fy, in options.OcclusionMapping.InputColor, out occlusionPixel);
+                    options.OcclusionMapping.TryUnmap(in occlusionPixel, out occlusionValue);
+                }
 
                 var litNormal = 1f;
                 if (options.NormalSampler != null) {
-                    options.NormalSampler.SampleScaled(in fx, in fy, out var normal);
+                    options.NormalSampler.SampleScaled(in fx, in fy, out normal);
                     normal.X = normal.X * 2f - 1f;
                     normal.Y = normal.Y * 2f - 1f;
                     MathEx.Normalize(ref normal);
 
                     litNormal = Vector4.Dot(normal, options.LightDirection);
+                    litNormal = options.Ambient + litNormal * (1f - options.Ambient);
                 }
 
                 var emissiveValue = 0f;
                 options.EmissiveSampler?.SampleScaled(in fx, in fy, in options.EmissiveColor, out emissiveValue);
 
-                var lit = MathF.Min(litNormal, occlusionValue);
+                var lit = MathF.Min(litNormal, 1f - occlusionValue);
                 lit = MathF.Max(lit, emissiveValue);
 
                 albedoPixel.X *= lit;
@@ -56,12 +61,13 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
+            public float Ambient = 0.3f;
             public Vector4 LightDirection = Vector4.UnitZ;
 
             public ISampler<Rgb24> NormalSampler;
 
             public ISampler<TOcclusion> OcclusionSampler;
-            public ColorChannel OcclusionColor;
+            public TextureChannelMapping OcclusionMapping;
 
             public ISampler<TEmissive> EmissiveSampler;
             public ColorChannel EmissiveColor;

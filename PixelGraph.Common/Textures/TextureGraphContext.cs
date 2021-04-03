@@ -197,9 +197,11 @@ namespace PixelGraph.Common.Textures
 
             switch (type) {
                 case MaterialType.Block:
-                    if (Profile?.BlockTextureSize.HasValue ?? false) {
+                    var targetSize = Profile?.BlockTextureSize ?? Profile?.TextureSize;
+
+                    if (targetSize.HasValue) {
                         var aspect = defaultAspect ?? 1f;
-                        var width = Profile.BlockTextureSize.Value;
+                        var width = targetSize.Value;
                         var height = (int)MathF.Ceiling(width * aspect);
                         return new Size(width, height);
                     }

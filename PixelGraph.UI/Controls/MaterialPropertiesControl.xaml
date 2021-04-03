@@ -11,7 +11,6 @@
     <UserControl.Resources>
         <local:TextureItemList x:Key="TextureList"/>
         <vd:NormalFilterValues x:Key="NormalFilters"/>
-        <!--<vd:OcclusionSamplerValues x:Key="OcclusionSamplers"/>-->
         <vd:OptionalEncodingFormatValues x:Key="EncodingFormats"/>
         <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
         <converters:NullableConverter x:Key="NullableConverter"/>
@@ -56,7 +55,7 @@
                 <Grid Visibility="{Binding IsAlphaSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding AlphaTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -77,7 +76,7 @@
                 <Grid Visibility="{Binding IsAlbedoSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding AlbedoTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -122,7 +121,7 @@
                 <Grid Visibility="{Binding IsDiffuseSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding DiffuseTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -131,7 +130,7 @@
                 <Grid Visibility="{Binding IsHeightSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding HeightTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -170,7 +169,7 @@
                 <Grid Visibility="{Binding IsNormalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding NormalTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -216,7 +215,7 @@
                 <Grid Visibility="{Binding IsOcclusionSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding OcclusionTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -276,7 +275,7 @@
                 <Grid Visibility="{Binding IsSpecularSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding SpecularTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -285,7 +284,7 @@
                 <Grid Visibility="{Binding IsSmoothSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding SmoothTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -305,7 +304,7 @@
                 <Grid Visibility="{Binding IsRoughSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding RoughTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -325,7 +324,7 @@
                 <Grid Visibility="{Binding IsMetalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding MetalTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -345,7 +344,7 @@
                 <Grid Visibility="{Binding IsF0Selected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding F0Texture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -370,7 +369,7 @@
                 <Grid Visibility="{Binding IsPorositySelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding PorosityTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -390,7 +389,7 @@
                 <Grid Visibility="{Binding IsSssSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding SssTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>
@@ -410,7 +409,7 @@
                 <Grid Visibility="{Binding IsEmissiveSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}" d:IsHidden="True">
                     <StackPanel Orientation="Vertical">
                         <local:PropertyGridItem Header="Texture">
-                            <TextBox Margin="4,2" VerticalAlignment="Center" IsReadOnly="True"
+                            <TextBox Margin="4,2" VerticalAlignment="Center"
                                      Foreground="{DynamicResource SecondaryHueMidBrush}"
                                      Text="{Binding EmissiveTexture, Mode=TwoWay}"/>
                         </local:PropertyGridItem>

@@ -70,34 +70,36 @@ namespace PixelGraph.Common.Textures
             matMetaFileIn = context.GetMetaInputFilename();
             context.IsAnimated = reader.FileExists(matMetaFileIn);
 
-            var sourceTime = reader.GetWriteTime(context.Material.LocalFilename);
             var packWriteTime = reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
+            var sourceTime = reader.GetWriteTime(context.Material.LocalFilename);
+            
+            if (context.Material.Publish ?? true) {
+                foreach (var tag in TextureTags.All) {
+                    foreach (var texFile in reader.EnumerateTextures(context.Material, tag)) {
+                        var z = reader.GetWriteTime(texFile);
+                        if (!z.HasValue) continue;
 
-            foreach (var tag in TextureTags.All) {
-                foreach (var texFile in reader.EnumerateTextures(context.Material, tag)) {
-                    var z = reader.GetWriteTime(texFile);
-                    if (!z.HasValue) continue;
+                        if (!sourceTime.HasValue || z.Value > sourceTime.Value)
+                            sourceTime = z.Value;
+                    }
 
-                    if (!sourceTime.HasValue || z.Value > sourceTime.Value)
-                        sourceTime = z.Value;
+                    var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.UseGlobalOutput);
+                    var metaTime = reader.GetWriteTime(metaFileOut);
+
+                    if (metaTime.HasValue && (!sourceTime.HasValue || metaTime.Value > sourceTime.Value))
+                        sourceTime = metaTime.Value;
                 }
 
-                var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.UseGlobalOutput);
-                var metaTime = reader.GetWriteTime(metaFileOut);
-
-                if (metaTime.HasValue && (!sourceTime.HasValue || metaTime.Value > sourceTime.Value))
-                    sourceTime = metaTime.Value;
+                if (!IsOutputUpToDate(packWriteTime, sourceTime)) {
+                    logger.LogDebug($"Publishing texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
+                    await ProcessAllTexturesAsync(true, token);
+                }
+                else {
+                    logger.LogDebug($"Skipping up-to-date texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
+                }
             }
 
-            if (!IsOutputUpToDate(packWriteTime, sourceTime)) {
-                logger.LogDebug($"Publishing texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
-                await ProcessAllTexturesAsync(true, token);
-            }
-            else {
-                logger.LogDebug($"Skipping up-to-date texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
-            }
-
-            if (context.Material.CreateInventory ?? false) {
+            if (context.Material.PublishInventory ?? false) {
                 if (!IsInventoryUpToDate(packWriteTime, sourceTime)) {
                     await GenerateInventoryTextureAsync(token);
                 }

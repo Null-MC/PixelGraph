@@ -82,7 +82,7 @@ namespace PixelGraph.Common.Textures
                 texture = image;
                 FrameCount = frames;
 
-                var outputChannel = context.OutputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Occlusion));
+                var outputChannel = context.OutputEncoding.GetChannel(EncodingChannel.Occlusion);
 
                 Channel = new ResourcePackOcclusionChannelProperties {
                     Sampler = outputChannel?.Sampler,
@@ -190,7 +190,7 @@ namespace PixelGraph.Common.Textures
             }
 
             var occlusionTexture = new Image<L8>(Configuration.Default, occlusionWidth, occlusionHeight);
-            var outputChannel = context.OutputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Occlusion));
+            var outputChannel = context.OutputEncoding.GetChannel(EncodingChannel.Occlusion);
 
             Channel = new ResourcePackOcclusionChannelProperties {
                 Sampler = outputChannel?.Sampler,
@@ -234,7 +234,7 @@ namespace PixelGraph.Common.Textures
         private async Task<(Image<TPixel> image, int frameCount)> ExtractInputAsync<TPixel>(string inputEncodingChannel, ResourcePackChannelProperties outputChannel, CancellationToken token)
             where TPixel : unmanaged, IPixel<TPixel>
         {
-            var inputChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, inputEncodingChannel));
+            var inputChannel = context.InputEncoding.GetChannel(inputEncodingChannel);
             if (!(inputChannel?.HasMapping ?? false)) return (null, 0);
 
             using var scope = provider.CreateScope();
@@ -261,18 +261,6 @@ namespace PixelGraph.Common.Textures
                 throw;
             }
         }
-
-        //private async Task<(Image<Rgba32> image, int frameCount, ResourcePackChannelProperties channel)> GetHeightTextureAsync(CancellationToken token)
-        //{
-        //    // WARN: Only use bump for normals
-        //    //var (bumpTexture, bumpFrames, bumpChannel) = await GetChannelTextureAsync<Rgba32>(EncodingChannel.Bump, token);
-        //    //if (bumpTexture != null) return (bumpTexture, bumpFrames, bumpChannel);
-
-        //    var (heightTexture, heightFrames, heightChannel) = await GetChannelTextureAsync<Rgba32>(EncodingChannel.Height, token);
-        //    if (heightTexture != null) return (heightTexture, heightFrames, heightChannel);
-
-        //    return (null, 0, null);
-        //}
 
         private async Task<(Image<T> image, int frameCount, ResourcePackChannelProperties channel)> GetChannelTextureAsync<T>(string encodingChannel, CancellationToken token)
             where T : unmanaged, IPixel<T>
