@@ -59,33 +59,33 @@ namespace PixelGraph.Tests.EncodingChannelTests
             PixelAssert.RedEquals(value, image);
         }
 
-        [InlineData(0.000, 0.00, 255)]
-        [InlineData(1.000, 0.00, 255)]
-        [InlineData(0.392, 1.00, 155)]
-        [InlineData(0.392, 0.50, 205)]
-        [InlineData(0.392, 2.00,  55)]
-        [InlineData(0.392, 3.00,   0)]
-        [InlineData(0.784, 0.01, 253)]
-        [Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
-        {
-            await using var graph = Graph();
+        //[InlineData(0.000, 0.00, 255)]
+        //[InlineData(1.000, 0.00, 255)]
+        //[InlineData(0.392, 1.00, 155)]
+        //[InlineData(0.392, 0.50, 205)]
+        //[InlineData(0.392, 2.00,  55)]
+        //[InlineData(0.392, 3.00,   0)]
+        //[InlineData(0.784, 0.01, 253)]
+        //[Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
+        //{
+        //    await using var graph = Graph();
 
-            graph.PackInput = packInput;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-                Height = new MaterialHeightProperties {
-                    Value = value,
-                    Scale = scale,
-                },
-            };
+        //    graph.PackInput = packInput;
+        //    graph.PackProfile = packProfile;
+        //    graph.Material = new MaterialProperties {
+        //        Name = "test",
+        //        LocalPath = "assets",
+        //        Height = new MaterialHeightProperties {
+        //            Value = value,
+        //            Scale = scale,
+        //        },
+        //    };
 
-            await graph.ProcessAsync();
+        //    await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_h.png");
-            PixelAssert.RedEquals(expected, image);
-        }
+        //    using var image = await graph.GetImageAsync("assets/test_h.png");
+        //    PixelAssert.RedEquals(expected, image);
+        //}
 
         [InlineData(  0, 0.00, 255)]
         [InlineData(255, 0.00, 255)]
