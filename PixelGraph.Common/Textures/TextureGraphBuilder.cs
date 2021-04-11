@@ -236,7 +236,10 @@ namespace PixelGraph.Common.Textures
         private async Task CopyMetaAsync(string tag, CancellationToken token)
         {
             var metaFileIn = naming.GetInputMetaName(context.Material, tag);
-            if (!reader.FileExists(metaFileIn)) return;
+            if (!reader.FileExists(metaFileIn)) {
+                metaFileIn = naming.GetInputMetaName(context.Material);
+                if (!reader.FileExists(metaFileIn)) return;
+            }
 
             var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.PublishAsGlobal);
 

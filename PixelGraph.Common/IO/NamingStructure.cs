@@ -12,6 +12,7 @@ namespace PixelGraph.Common.IO
         string GetInputTextureName(MaterialProperties texture, string tag);
         string GetInputPropertiesName(MaterialProperties material);
         string GetInputMetaName(MaterialProperties texture, string tag);
+        string GetInputMetaName(MaterialProperties material);
         string GetOutputTextureName(ResourcePackProfileProperties pack, string name, string tag, bool global);
         string GetOutputPropertiesName(MaterialProperties material, bool global);
         string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties texture, string tag, bool global);
@@ -52,6 +53,12 @@ namespace PixelGraph.Common.IO
         public string GetInputTextureName(MaterialProperties material, string tag)
         {
             return Get(tag, material.Name, "*", material.UseGlobalMatching);
+        }
+
+        public string GetInputMetaName(MaterialProperties material)
+        {
+            var path = GetPath(material, material.UseGlobalMatching);
+            return PathEx.Join(path, "mat.mcmeta");
         }
 
         public string GetInputMetaName(MaterialProperties material, string tag)

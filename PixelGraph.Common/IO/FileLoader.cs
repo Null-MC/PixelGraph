@@ -108,7 +108,10 @@ namespace PixelGraph.Common.IO
             }
 
             var materialList = new List<MaterialProperties>();
-            foreach (var filename in reader.EnumerateFiles(searchPath, "*.pbr.yml")) {
+            foreach (var filename in reader.EnumerateFiles(searchPath, "*.*.yml")) {
+                if (!filename.EndsWith(".mat.yml", StringComparison.InvariantCultureIgnoreCase)
+                    && !filename.EndsWith(".pbr.yml", StringComparison.InvariantCultureIgnoreCase)) continue;
+
                 materialList.Clear();
 
                 try {
