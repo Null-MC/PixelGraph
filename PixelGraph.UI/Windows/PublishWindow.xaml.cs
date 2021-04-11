@@ -60,7 +60,7 @@ namespace PixelGraph.UI.Windows
             var context = new ResourcePackContext {
                 Input = await packReader.ReadInputAsync("input.yml"),
                 Profile = await packReader.ReadProfileAsync(VM.Profile.LocalFile),
-                UseGlobalOutput = true,
+                //UseGlobalOutput = true,
             };
 
             VM.LogList.BeginAppend(LogLevel.None, "Publishing content...");

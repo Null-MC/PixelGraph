@@ -55,10 +55,6 @@ namespace PixelGraph.CLI.CommandLine
                 new [] {"-c", "--clean"},
                 () => false,
                 "Generates a compressed ZIP archive of the published contents."));
-
-            //Command.AddOption(new Option<string[]>(
-            //    new[] {"--property" },
-            //    "Override a pack property."));
         }
 
         private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, FileInfo zip, bool clean)
@@ -75,7 +71,6 @@ namespace PixelGraph.CLI.CommandLine
 
                 var executor = provider.GetRequiredService<Executor>();
                 executor.CleanDestination = clean;
-                //executor.Properties = property;
 
                 await executor.ExecuteAsync(profile.FullName, destPath, lifetime.Token);
 
@@ -99,7 +94,6 @@ namespace PixelGraph.CLI.CommandLine
             private readonly IResourcePackReader packReader;
             private readonly IPublisher publisher;
 
-            //public string[] Properties {get; set;}
             public bool CleanDestination {get; set;}
 
 
@@ -141,14 +135,9 @@ namespace PixelGraph.CLI.CommandLine
                     var packProfile = await packReader.ReadProfileAsync(localFile);
                     var packInput = await packReader.ReadInputAsync("input.yml");
 
-                    //foreach (var property in Properties) {
-                    //    // TODO
-                    //}
-
                     var context = new ResourcePackContext {
                         Input = packInput,
                         Profile = packProfile,
-                        UseGlobalOutput = true,
                     };
 
                     await publisher.PublishAsync(context, CleanDestination, token);

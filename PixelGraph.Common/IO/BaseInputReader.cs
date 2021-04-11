@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace PixelGraph.Common.IO
         public abstract Stream Open(string localFile);
         public abstract DateTime? GetWriteTime(string localFile);
 
-        public IEnumerable<string> EnumerateTextures(MaterialProperties material, string tag)
+        public IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag)
         {
             if (material == null) throw new ArgumentNullException(nameof(material));
             if (tag == null) throw new ArgumentNullException(nameof(tag));
@@ -51,19 +52,37 @@ namespace PixelGraph.Common.IO
 
             var matchName = naming.GetInputTextureName(material, tag);
 
+            foreach (var file in FilesMatching(srcPath, matchName))
+                yield return file;
+        }
+
+        public IEnumerable<string> EnumerateOutputTextures(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global)
+        {
+            if (material == null) throw new ArgumentNullException(nameof(material));
+            if (tag == null) throw new ArgumentNullException(nameof(tag));
+
+            var srcPath = global
+                ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
+
+            var matchName = naming.GetOutputTextureName(pack, material.Name, tag, global);
+            return FilesMatching(srcPath, matchName);
+        }
+
+        public IEnumerable<string> EnumerateAllTextures(MaterialProperties material)
+        {
+            return TextureTags.All
+                .SelectMany(tag => EnumerateInputTextures(material, tag))
+                .Where(file => file != null).Distinct();
+        }
+
+        private IEnumerable<string> FilesMatching(string srcPath, string matchName)
+        {
             foreach (var file in EnumerateFiles(srcPath, matchName)) {
                 var ext = Path.GetExtension(file);
 
                 if (ImageExtensions.Supports(ext))
                     yield return file;
             }
-        }
-
-        public IEnumerable<string> EnumerateAllTextures(MaterialProperties material)
-        {
-            return TextureTags.All
-                .SelectMany(tag => EnumerateTextures(material, tag))
-                .Where(file => file != null).Distinct();
         }
     }
 }

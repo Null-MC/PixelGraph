@@ -66,9 +66,7 @@ namespace PixelGraph.Common.IO
             if (searchPath.EndsWith(".ignore", StringComparison.InvariantCultureIgnoreCase))
                 yield break;
 
-            var localMapFile = PathEx.Join(searchPath, "pbr.yml");
-
-            if (reader.FileExists(localMapFile)) {
+            if (TryFindLocalFile(searchPath, out var localMapFile)) {
                 MaterialProperties material = null;
 
                 try {
@@ -94,7 +92,7 @@ namespace PixelGraph.Common.IO
 
             if (EnableAutoMaterial && IsLocalMaterialPath(searchPath)) {
                 yield return new MaterialProperties {
-                    LocalFilename = localMapFile,
+                    LocalFilename = PathEx.Join(searchPath, "mat.yml"),
                     LocalPath = Path.GetDirectoryName(searchPath),
                     Name = Path.GetFileName(searchPath),
                 };
@@ -136,7 +134,7 @@ namespace PixelGraph.Common.IO
                     //}
                 }
                 catch (Exception error) {
-                    logger.LogWarning(error, $"Failed to load local texture map '{localMapFile}'!");
+                    logger.LogWarning(error, $"Failed to load global texture map '{filename}'!");
                 }
 
                 foreach (var texture in materialList)
@@ -151,6 +149,17 @@ namespace PixelGraph.Common.IO
 
                 untracked.Push(filename);
             }
+        }
+
+        private bool TryFindLocalFile(string searchPath, out string filename)
+        {
+            filename = PathEx.Join(searchPath, "mat.yml");
+            if (reader.FileExists(filename)) return true;
+
+            filename = PathEx.Join(searchPath, "pbr.yml");
+            if (reader.FileExists(filename)) return true;
+
+            return false;
         }
 
         public bool IsLocalMaterialPath(string localPath)
@@ -168,6 +177,6 @@ namespace PixelGraph.Common.IO
         }
 
         public static string[] AllLocalTextures = {"alpha", "diffuse", "albedo", "height", "occlusion", "normal", "specular", "smooth", "rough", "metal", "f0", "porosity", "sss", "emissive"};
-        private static readonly string[] IgnoredExtensions = {".pack.yml", ".pbr.yml", ".zip", ".db", ".cmd", ".sh", ".xcf", ".psd", ".bak"};
+        private static readonly string[] IgnoredExtensions = {".pack.yml", ".mat.yml", ".pbr.yml", ".zip", ".db", ".cmd", ".sh", ".xcf", ".psd", ".bak"};
     }
 }

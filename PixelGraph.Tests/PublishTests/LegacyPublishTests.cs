@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.EncodingFormatTests
+namespace PixelGraph.Tests.PublishTests
 {
-    public class Lab13Tests : ImageTestBase
+    public class LegacyPublishTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public Lab13Tests(ITestOutputHelper output) : base(output)
+        public LegacyPublishTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
                 Format = TextureEncoding.Format_Raw,
@@ -22,7 +22,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Format = TextureEncoding.Format_Lab13,
+                    Format = TextureEncoding.Format_Legacy,
                 },
             };
         }
@@ -95,29 +95,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
             using var image = await graph.GetImageAsync("assets/test_n.png");
             PixelAssert.RedEquals(red, image);
             PixelAssert.GreenEquals(green, image);
-            PixelAssert.BlueEquals(255, image);
-        }
-
-        [InlineData(  0)]
-        [InlineData(100)]
-        [InlineData(155)]
-        [InlineData(255)]
-        [Theory] public async Task OcclusionTextureTest(byte value)
-        {
-            await using var graph = Graph();
-
-            graph.PackInput = packInput;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
-
-            await graph.CreateImageAsync("assets/test/occlusion.png", value);
-            await graph.ProcessAsync();
-
-            using var image = await graph.GetImageAsync("assets/test_n.png");
-            PixelAssert.BlueEquals(value, image);
+            PixelAssert.BlueEquals(blue, image);
         }
 
         [InlineData(  0)]
@@ -164,31 +142,7 @@ namespace PixelGraph.Tests.EncodingFormatTests
             PixelAssert.RedEquals(value, image);
         }
 
-        [InlineData(  0)]
-        [InlineData(100)]
-        [InlineData(155)]
-        [InlineData(229)]
-        [Theory] public async Task F0TextureTest(byte value)
-        {
-            await using var graph = Graph();
-
-            graph.PackInput = packInput;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
-
-            await graph.CreateImageAsync("assets/test/f0.png", value);
-            await graph.ProcessAsync();
-
-            using var image = await graph.GetImageAsync("assets/test_s.png");
-            PixelAssert.GreenEquals(value, image);
-        }
-
-        [InlineData(230)]
-        [InlineData(231)]
-        [InlineData(240)]
+        [InlineData(0)]
         [InlineData(255)]
         [Theory] public async Task MetalTextureTest(byte value)
         {
@@ -208,11 +162,12 @@ namespace PixelGraph.Tests.EncodingFormatTests
             PixelAssert.GreenEquals(value, image);
         }
 
-        [InlineData(  0,  0)]
-        [InlineData(100, 25)]
-        [InlineData(155, 39)]
-        [InlineData(255, 64)]
-        [Theory] public async Task PorosityTextureTest(byte actualValue, byte expectedValue)
+        [InlineData(  0)]
+        [InlineData(  1)]
+        [InlineData(100)]
+        [InlineData(155)]
+        [InlineData(255)]
+        [Theory] public async Task EmissiveTextureTest(byte value)
         {
             await using var graph = Graph();
 
@@ -223,56 +178,11 @@ namespace PixelGraph.Tests.EncodingFormatTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/porosity.png", actualValue);
+            await graph.CreateImageAsync("assets/test/emissive.png", value);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_s.png");
-            PixelAssert.BlueEquals(expectedValue, image);
-        }
-
-        [InlineData(  0,  65)]
-        [InlineData(100, 140)]
-        [InlineData(155, 180)]
-        [InlineData(255, 255)]
-        [Theory] public async Task SubSurfaceScatteringTextureTest(byte actualValue, byte expectedValue)
-        {
-            await using var graph = Graph();
-
-            graph.PackInput = packInput;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
-
-            await graph.CreateImageAsync("assets/test/sss.png", actualValue);
-            await graph.ProcessAsync();
-
-            using var image = await graph.GetImageAsync("assets/test_s.png");
-            PixelAssert.BlueEquals(expectedValue, image);
-        }
-
-        [InlineData(  0, 255)]
-        [InlineData(  1,   0)]
-        [InlineData(100,  99)]
-        [InlineData(155, 154)]
-        [InlineData(255, 254)]
-        [Theory] public async Task EmissiveTextureTest(byte actualValue, byte expectedValue)
-        {
-            await using var graph = Graph();
-
-            graph.PackInput = packInput;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
-
-            await graph.CreateImageAsync("assets/test/emissive.png", actualValue);
-            await graph.ProcessAsync();
-
-            using var image = await graph.GetImageAsync("assets/test_s.png");
-            PixelAssert.AlphaEquals(expectedValue, image);
+            PixelAssert.BlueEquals(value, image);
         }
     }
 }

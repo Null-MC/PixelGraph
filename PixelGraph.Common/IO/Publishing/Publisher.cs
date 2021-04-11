@@ -84,7 +84,6 @@ namespace PixelGraph.Common.IO.Publishing
                         graphContext.Input = packContext.Input;
                         graphContext.Profile = packContext.Profile;
                         graphContext.Material = material;
-                        graphContext.UseGlobalOutput = packContext.UseGlobalOutput;
 
                         await graphBuilder.ProcessInputGraphAsync(token);
                         break;

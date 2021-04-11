@@ -105,6 +105,7 @@ namespace PixelGraph.Common.Textures
                 normalContext.Input = context.Input;
                 normalContext.Profile = context.Profile;
                 normalContext.Material = context.Material;
+                normalContext.IsImport = context.IsImport;
                 
                 builder.InputChannels = new [] {normalXChannel, normalYChannel, normalZChannel}
                     .Where(x => x != null).ToArray();
@@ -140,7 +141,7 @@ namespace PixelGraph.Common.Textures
             var autoGenNormal = context.Profile?.AutoGenerateNormal
                 ?? ResourcePackProfileProperties.AutoGenerateNormalDefault;
 
-            if (NormalTexture == null && autoGenNormal)
+            if (NormalTexture == null && autoGenNormal && !context.IsImport)
                 NormalTexture = await GenerateAsync(token);
 
             if (NormalTexture == null) return false;
@@ -312,14 +313,14 @@ namespace PixelGraph.Common.Textures
 
         private async Task<TextureSource> GetHeightSourceAsync(CancellationToken token)
         {
-            var file = reader.EnumerateTextures(context.Material, TextureTags.Bump).FirstOrDefault();
+            var file = reader.EnumerateInputTextures(context.Material, TextureTags.Bump).FirstOrDefault();
 
             if (file != null) {
                 var info = await sourceGraph.GetOrCreateAsync(file, token);
                 if (info != null) return info;
             }
 
-            file = reader.EnumerateTextures(context.Material, TextureTags.Height).FirstOrDefault();
+            file = reader.EnumerateInputTextures(context.Material, TextureTags.Height).FirstOrDefault();
             if (file == null) return null;
 
             return await sourceGraph.GetOrCreateAsync(file, token);

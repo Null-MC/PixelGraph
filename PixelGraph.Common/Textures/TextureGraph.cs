@@ -54,8 +54,10 @@ namespace PixelGraph.Common.Textures
 
         public async Task PreBuildNormalTextureAsync(CancellationToken token = default)
         {
-            if (hasPreBuiltNormals || !HasOutputNormals()) return;
+            if (hasPreBuiltNormals) return;
             hasPreBuiltNormals = true;
+
+            if (!HasOutputNormals()) return;
 
             if (await normalGraph.TryBuildNormalMapAsync(token)) {
                 UpsertInputChannel<ResourcePackNormalXChannelProperties>(channel => {

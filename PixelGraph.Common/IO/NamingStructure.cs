@@ -10,8 +10,10 @@ namespace PixelGraph.Common.IO
     public interface INamingStructure
     {
         string GetInputTextureName(MaterialProperties texture, string tag);
+        string GetInputPropertiesName(MaterialProperties material);
         string GetInputMetaName(MaterialProperties texture, string tag);
         string GetOutputTextureName(ResourcePackProfileProperties pack, string name, string tag, bool global);
+        string GetOutputPropertiesName(MaterialProperties material, bool global);
         string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties texture, string tag, bool global);
         string Get(string tag, string textureName, string extension, bool global);
     }
@@ -59,15 +61,28 @@ namespace PixelGraph.Common.IO
             return PathEx.Join(path, file);
         }
 
+        public string GetInputPropertiesName(MaterialProperties material)
+        {
+            var path = GetPath(material, material.UseGlobalMatching);
+            var name = material.UseGlobalMatching ? $"{material.Name}.properties" : "mat.properties";
+            return PathEx.Join(path, name);
+        }
+
         public string GetOutputTextureName(ResourcePackProfileProperties pack, string name, string tag, bool global)
         {
             var ext = GetExtension(pack);
             return Get(tag, name, ext, global);
         }
 
+        public string GetOutputPropertiesName(MaterialProperties material, bool global)
+        {
+            var path = GetPath(material, global && material.CtmType == null);
+            return PathEx.Join(path, $"{material.Name}.properties");
+        }
+
         public string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global)
         {
-            var path = GetPath(material, global);
+            var path = GetPath(material, global && material.CtmType == null);
             var ext = GetExtension(pack);
             var file = Get(tag, material.Name, $"{ext}.mcmeta", global);
             return PathEx.Join(path, file);

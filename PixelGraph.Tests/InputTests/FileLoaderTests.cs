@@ -4,6 +4,7 @@ using PixelGraph.Tests.Internal;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using PixelGraph.Tests.Internal.Mocks;
 using Xunit;
 using Xunit.Abstractions;
 

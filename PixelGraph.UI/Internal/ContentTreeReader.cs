@@ -12,9 +12,6 @@ namespace PixelGraph.UI.Internal
     internal interface IContentTreeReader
     {
         void Update(ContentTreeNode parentNode);
-
-        //ContentTreeNode GetRootNode();
-        //ContentTreeNode GetPathNode(ContentTreeNode parent, string localPath);
     }
 
     internal class ContentTreeReader : IContentTreeReader
@@ -36,7 +33,7 @@ namespace PixelGraph.UI.Internal
             var existingNodes = parentNode.Nodes.ToList();
 
             foreach (var childPath in reader.EnumerateDirectories(parentNode.LocalPath, "*")) {
-                var isMat = IsLocalMaterialPath(childPath);
+                var isMat = IsLocalMaterialPath(childPath, out var matFile);
 
                 var existingNode = TryRemove(existingNodes, x => {
                     if (isMat && !(x is ContentTreeMaterialDirectory)) return false;
@@ -48,7 +45,7 @@ namespace PixelGraph.UI.Internal
                 if (existingNode == null) {
                     existingNode = isMat
                         ? new ContentTreeMaterialDirectory(parentNode) {
-                            MaterialFilename = PathEx.Join(childPath, "pbr.yml"),
+                            MaterialFilename = matFile,
                         }
                         : new ContentTreeDirectory(parentNode);
 
@@ -63,6 +60,7 @@ namespace PixelGraph.UI.Internal
             var isParentMat = parentNode is ContentTreeMaterialDirectory;
             foreach (var file in reader.EnumerateFiles(parentNode.LocalPath, "*.*")) {
                 var fileName = Path.GetFileName(file);
+                if (isParentMat && string.Equals(fileName, "mat.yml", StringComparison.InvariantCultureIgnoreCase)) continue;
                 if (isParentMat && string.Equals(fileName, "pbr.yml", StringComparison.InvariantCultureIgnoreCase)) continue;
 
                 var existingNode = TryRemove(existingNodes, x => {
@@ -100,53 +98,22 @@ namespace PixelGraph.UI.Internal
 
             return null;
         }
-
-
-        //public ContentTreeNode GetRootNode() => GetPathNode(null, ".");
-
-        private bool IsLocalMaterialPath(string localPath)
+        
+        private bool IsLocalMaterialPath(string localPath, out string filename)
         {
-            var matFile = PathEx.Join(localPath, "pbr.yml");
-            if (reader.FileExists(matFile)) return true;
+            filename = PathEx.Join(localPath, "mat.yml");
+            if (reader.FileExists(filename)) return true;
 
-            return loader.EnableAutoMaterial && loader.IsLocalMaterialPath(localPath);
+            filename = PathEx.Join(localPath, "pbr.yml");
+            if (reader.FileExists(filename)) return true;
+
+            if (loader.EnableAutoMaterial && loader.IsLocalMaterialPath(localPath)) {
+                filename = PathEx.Join(localPath, "mat.yml");
+                return true;
+            }
+
+            return false;
         }
-
-        //public ContentTreeNode GetPathNode(ContentTreeNode parent, string localPath)
-        //{
-        //    var isMat = IsLocalMaterialPath(localPath);
-
-        //    var node = isMat
-        //        ? new ContentTreeMaterialDirectory(parent) {
-        //            MaterialFilename = PathEx.Join(localPath, "pbr.yml"),
-        //        }
-        //        : new ContentTreeDirectory(parent);
-
-        //    node.Name = Path.GetFileName(localPath);
-        //    node.LocalPath = localPath;
-
-        //    foreach (var childPath in reader.EnumerateDirectories(localPath, "*")) {
-        //        var childNode = GetPathNode(node, childPath);
-        //        node.Nodes.Add(childNode);
-        //    }
-
-        //    foreach (var file in reader.EnumerateFiles(localPath, "*.*")) {
-        //        var fileName = Path.GetFileName(file);
-
-        //        if (isMat && string.Equals(fileName, "pbr.yml", StringComparison.InvariantCultureIgnoreCase)) continue;
-
-        //        var childNode = new ContentTreeFile(node) {
-        //            Name = fileName,
-        //            Filename = file,
-        //            Type = GetNodeType(fileName),
-        //            Icon = GetNodeIcon(fileName),
-        //        };
-
-        //        node.Nodes.Add(childNode);
-        //    }
-
-        //    return node;
-        //}
 
         private static ContentNodeType GetNodeType(string fileName)
         {
@@ -155,6 +122,10 @@ namespace PixelGraph.UI.Internal
 
             if (fileName.EndsWith(".pack.yml", StringComparison.InvariantCultureIgnoreCase))
                 return ContentNodeType.PackProfile;
+
+            if (string.Equals("mat.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
+                || fileName.EndsWith(".mat.yml", StringComparison.InvariantCultureIgnoreCase))
+                return ContentNodeType.Material;
 
             if (string.Equals("pbr.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
                 || fileName.EndsWith(".pbr.yml", StringComparison.InvariantCultureIgnoreCase))
@@ -173,6 +144,10 @@ namespace PixelGraph.UI.Internal
 
             if (fileName.EndsWith(".pack.yml", StringComparison.InvariantCultureIgnoreCase))
                 return PackIconKind.Export;
+
+            if (string.Equals("mat.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
+                || fileName.EndsWith(".mat.yml", StringComparison.InvariantCultureIgnoreCase))
+                return PackIconKind.FileChart;
 
             if (string.Equals("pbr.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
                 || fileName.EndsWith(".pbr.yml", StringComparison.InvariantCultureIgnoreCase))

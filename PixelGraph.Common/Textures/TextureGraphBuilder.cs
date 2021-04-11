@@ -74,22 +74,6 @@ namespace PixelGraph.Common.Textures
             var sourceTime = reader.GetWriteTime(context.Material.LocalFilename);
             
             if (context.Material.Publish ?? true) {
-                foreach (var tag in TextureTags.All) {
-                    foreach (var texFile in reader.EnumerateTextures(context.Material, tag)) {
-                        var z = reader.GetWriteTime(texFile);
-                        if (!z.HasValue) continue;
-
-                        if (!sourceTime.HasValue || z.Value > sourceTime.Value)
-                            sourceTime = z.Value;
-                    }
-
-                    var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.UseGlobalOutput);
-                    var metaTime = reader.GetWriteTime(metaFileOut);
-
-                    if (metaTime.HasValue && (!sourceTime.HasValue || metaTime.Value > sourceTime.Value))
-                        sourceTime = metaTime.Value;
-                }
-
                 if (!IsOutputUpToDate(packWriteTime, sourceTime)) {
                     logger.LogDebug($"Publishing texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
                     await ProcessAllTexturesAsync(true, token);
@@ -153,16 +137,11 @@ namespace PixelGraph.Common.Textures
                     }
                 }
 
-                await CopyMetaAsync(tag, token);
-
-                if (context.IsAnimated) {
-                    var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.UseGlobalOutput);
-
-                    await using var sourceStream = reader.Open(matMetaFileIn);
-                    await using var destStream = writer.Open(metaFileOut);
-                    await sourceStream.CopyToAsync(destStream, token);
-                }
+                if (context.IsAnimated)
+                    await CopyMetaAsync(tag, token);
             }
+
+            await CopyPropertiesAsync(token);
         }
 
         private async Task PublishImageAsync<TPixel>(string textureTag, ImageChannels type, bool createEmpty, CancellationToken token = default)
@@ -179,11 +158,11 @@ namespace PixelGraph.Common.Textures
             imageWriter.Format = context.ImageFormat;
 
             var p = context.Material.LocalPath;
-            if (!context.UseGlobalOutput) p = PathEx.Join(p, context.Material.Name);
+            if (!context.PublishAsGlobal || context.IsMaterialCtm) p = PathEx.Join(p, context.Material.Name);
 
             var maxFrameCount = graph.GetMaxFrameCount();
             foreach (var part in regions.GetAllPublishRegions(maxFrameCount)) {
-                var name = naming.GetOutputTextureName(context.Profile, part.Name, textureTag, context.UseGlobalOutput);
+                var name = naming.GetOutputTextureName(context.Profile, part.Name, textureTag, context.PublishAsGlobal);
                 var destFile = PathEx.Join(p, name);
                 var srcWidth = image.Width;
                 var srcHeight = image.Height;
@@ -226,7 +205,7 @@ namespace PixelGraph.Common.Textures
             var name = naming.GetOutputTextureName(context.Profile, context.Material.Name, TextureTags.Inventory, true);
 
             var path = context.Material.LocalPath;
-            if (!context.UseGlobalOutput) path = PathEx.Join(path, context.Material.Name);
+            if (!context.PublishAsGlobal || context.IsMaterialCtm) path = PathEx.Join(path, context.Material.Name);
             var destFile = PathEx.Join(path, name);
 
             // Generate item image
@@ -242,12 +221,24 @@ namespace PixelGraph.Common.Textures
             logger.LogInformation("Published item texture {DisplayName}.", context.Material.DisplayName);
         }
 
+        private async Task CopyPropertiesAsync(CancellationToken token)
+        {
+            var propsFileIn = naming.GetInputPropertiesName(context.Material);
+            if (!reader.FileExists(propsFileIn)) return;
+
+            var propsFileOut = naming.GetOutputPropertiesName(context.Material, context.PublishAsGlobal);
+
+            await using var sourceStream = reader.Open(propsFileIn);
+            await using var destStream = writer.Open(propsFileOut);
+            await sourceStream.CopyToAsync(destStream, token);
+        }
+
         private async Task CopyMetaAsync(string tag, CancellationToken token)
         {
             var metaFileIn = naming.GetInputMetaName(context.Material, tag);
             if (!reader.FileExists(metaFileIn)) return;
 
-            var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.UseGlobalOutput);
+            var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.PublishAsGlobal);
 
             await using var sourceStream = reader.Open(metaFileIn);
             await using var destStream = writer.Open(metaFileOut);
@@ -259,7 +250,7 @@ namespace PixelGraph.Common.Textures
             DateTime? destinationTime = null;
 
             var tags = context.OutputEncoding
-                .Select(e => e.Texture).Distinct();
+                .Select(e => e.Texture).Distinct().ToArray();
 
             foreach (var file in GetMaterialOutputFiles(tags)) {
                 var writeTime = writer.GetWriteTime(file);
@@ -269,8 +260,14 @@ namespace PixelGraph.Common.Textures
                     destinationTime = writeTime;
             }
 
-            // TODO: update from mat.mcmeta file
-            
+            foreach (var tag in tags) {
+                var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.PublishAsGlobal);
+                var metaTime = reader.GetWriteTime(metaFileOut);
+
+                if (metaTime.HasValue && (!sourceTime.HasValue || metaTime.Value > sourceTime.Value))
+                    sourceTime = metaTime.Value;
+            }
+
             return IsUpToDate(packWriteTime, sourceTime, destinationTime);
         }
 
@@ -296,7 +293,7 @@ namespace PixelGraph.Common.Textures
 
                     for (var i = 0; i < tileCount; i++) {
                         var outputName = naming.GetOutputTextureName(context.Profile, i.ToString(), tag, true);
-                        yield return PathEx.Join(context.Material.LocalPath, outputName);
+                        yield return PathEx.Join(context.Material.LocalPath, context.Material.Name, outputName);
                     }
                 }
                 else {

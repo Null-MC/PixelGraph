@@ -457,7 +457,7 @@ namespace PixelGraph.Common.Textures
                     var samplerName = m.OutputSampler ?? context.DefaultSampler;
                     var sampler = context.CreateSampler(sourceImage, samplerName);
                     sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
-                    sampler.RangeY = (float)sourceImage.Height / bufferSize.Height;
+                    sampler.RangeY = (float)(sourceImage.Height / info.FrameCount) / bufferSize.Height;
                     return sampler;
                 }),
             };
@@ -548,7 +548,9 @@ namespace PixelGraph.Common.Textures
             var frameBounds = tile.Bounds;
             if (TargetFrame.HasValue) {
                 frameBounds.Offset(frame.Bounds.X, frame.Bounds.Y);
-                frameBounds.Height *= FrameCount;
+
+                // WARN: Removed for testing, seems to break animations
+                //frameBounds.Height *= FrameCount;
             }
             return frameBounds;
         }
@@ -710,7 +712,11 @@ namespace PixelGraph.Common.Textures
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));
 
-            foreach (var file in reader.EnumerateTextures(context.Material, tag)) {
+            var textureList = context.IsImport
+                ? reader.EnumerateOutputTextures(context.Profile, context.Material, tag, true)
+                : reader.EnumerateInputTextures(context.Material, tag);
+
+            foreach (var file in textureList) {
                 if (!reader.FileExists(file)) continue;
 
                 filename = file;

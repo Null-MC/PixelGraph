@@ -91,7 +91,7 @@ namespace PixelGraph.Common.Textures
                 };
             }
 
-            if (context.AutoGenerateOcclusion)
+            if (context.AutoGenerateOcclusion && !context.IsImport)
                 texture ??= await GenerateAsync(token);
 
             if (texture != null) {
@@ -244,6 +244,7 @@ namespace PixelGraph.Common.Textures
             subContext.Input = context.Input;
             subContext.Profile = context.Profile;
             subContext.Material = context.Material;
+            subContext.IsAnimated = context.IsAnimated;
             subContext.InputEncoding.Add(inputChannel);
             builder.InputChannels = new [] {inputChannel};
             builder.OutputChannels = new[] {outputChannel};
@@ -266,7 +267,7 @@ namespace PixelGraph.Common.Textures
             where T : unmanaged, IPixel<T>
         {
             if (EncodingChannel.Is(encodingChannel, EncodingChannel.Bump)) {
-                foreach (var file in reader.EnumerateTextures(context.Material, TextureTags.Bump)) {
+                foreach (var file in reader.EnumerateInputTextures(context.Material, TextureTags.Bump)) {
                     if (file == null) continue;
 
                     var info = await sourceGraph.GetOrCreateAsync(file, token);
@@ -287,7 +288,7 @@ namespace PixelGraph.Common.Textures
                 foreach (var channel in context.InputEncoding.Where(c => EncodingChannel.Is(c.ID, encodingChannel))) {
                     if (!channel.HasTexture) continue;
 
-                    foreach (var file in reader.EnumerateTextures(context.Material, channel.Texture)) {
+                    foreach (var file in reader.EnumerateInputTextures(context.Material, channel.Texture)) {
                         if (file == null) continue;
 
                         var info = await sourceGraph.GetOrCreateAsync(file, token);

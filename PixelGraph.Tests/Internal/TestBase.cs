@@ -5,6 +5,7 @@ using PixelGraph.Common.IO;
 using System;
 using System.IO;
 using System.Reflection;
+using PixelGraph.Tests.Internal.Mocks;
 using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.Internal

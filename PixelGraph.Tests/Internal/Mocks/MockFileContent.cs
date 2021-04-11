@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace PixelGraph.Tests.Internal
+namespace PixelGraph.Tests.Internal.Mocks
 {
     public class MockFileContent : IDisposable, IAsyncDisposable
     {

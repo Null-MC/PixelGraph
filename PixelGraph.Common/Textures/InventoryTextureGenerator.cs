@@ -198,7 +198,7 @@ namespace PixelGraph.Common.Textures
 
         private Task<TextureSource> GetEmissiveInfoAsync(CancellationToken token)
         {
-            var emissiveFile = reader.EnumerateTextures(context.Material, TextureTags.Emissive).FirstOrDefault();
+            var emissiveFile = reader.EnumerateInputTextures(context.Material, TextureTags.Emissive).FirstOrDefault();
             if (emissiveFile == null) return Task.FromResult<TextureSource>(null);
 
             return sourceGraph.GetOrCreateAsync(emissiveFile, token);

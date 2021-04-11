@@ -1,10 +1,10 @@
-﻿using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO;
 
-namespace PixelGraph.Tests.Internal
+namespace PixelGraph.Tests.Internal.Mocks
 {
     internal class MockOutputWriter : IOutputWriter
     {

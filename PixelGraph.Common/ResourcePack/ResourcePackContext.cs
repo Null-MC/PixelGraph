@@ -4,7 +4,6 @@
     {
         public ResourcePackInputProperties Input {get; set;}
         public ResourcePackProfileProperties Profile {get; set;}
-        public bool UseGlobalOutput {get; set;}
 
         public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
     }

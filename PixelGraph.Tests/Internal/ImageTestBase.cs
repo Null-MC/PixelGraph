@@ -2,9 +2,11 @@
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
+using PixelGraph.Tests.Internal.Mocks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
@@ -26,6 +28,7 @@ namespace PixelGraph.Tests.Internal
     {
         private readonly ServiceProvider provider;
 
+        public IServiceProvider Provider => provider;
         public ResourcePackInputProperties PackInput {get; set;}
         public ResourcePackProfileProperties PackProfile {get; set;}
         public MaterialProperties Material {get; set;}
@@ -74,7 +77,7 @@ namespace PixelGraph.Tests.Internal
             graphContext.Input = PackInput;
             graphContext.Profile = PackProfile;
             graphContext.Material = Material;
-            graphContext.UseGlobalOutput = true;
+            //graphContext.UseGlobalOutput = true;
 
             await graphBuilder.ProcessInputGraphAsync(token);
         }
@@ -83,6 +86,12 @@ namespace PixelGraph.Tests.Internal
         {
             var content = provider.GetRequiredService<MockFileContent>();
             return content.OpenImageAsync(localFile);
+        }
+
+        public Stream GetFile(string localFile)
+        {
+            var content = provider.GetRequiredService<MockFileContent>();
+            return content.OpenRead(localFile);
         }
     }
 }

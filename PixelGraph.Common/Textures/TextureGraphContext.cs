@@ -2,13 +2,13 @@
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using PixelGraph.Common.Samplers;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace PixelGraph.Common.Textures
 {
@@ -19,9 +19,10 @@ namespace PixelGraph.Common.Textures
         ResourcePackProfileProperties Profile {get; set;}
         List<ResourcePackChannelProperties> InputEncoding {get; set;}
         List<ResourcePackChannelProperties> OutputEncoding {get; set;}
-        bool UseGlobalOutput {get; set;}
         bool IsAnimated {get; set;}
         int MaxFrameCount {get; set;}
+        bool PublishAsGlobal {get; set;}
+        bool IsImport {get; set;}
         bool MaterialWrapX {get;}
         bool MaterialWrapY {get;}
         bool IsMaterialMultiPart {get;}
@@ -29,9 +30,9 @@ namespace PixelGraph.Common.Textures
         float? TextureScale {get;}
         string DefaultSampler {get;}
         string ImageFormat {get;}
-        bool AutoMaterial {get;}
+        //bool AutoMaterial {get;}
         bool AutoGenerateOcclusion {get;}
-        
+
         void ApplyInputEncoding();
         void ApplyOutputEncoding();
         ISampler<T> CreateSampler<T>(Image<T> image, string name) where T : unmanaged, IPixel<T>;
@@ -51,9 +52,10 @@ namespace PixelGraph.Common.Textures
         public ResourcePackProfileProperties Profile {get; set;}
         public List<ResourcePackChannelProperties> InputEncoding {get; set;}
         public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
-        public bool UseGlobalOutput {get; set;}
         public bool IsAnimated {get; set;}
         public int MaxFrameCount {get; set;}
+        public bool PublishAsGlobal {get; set;}
+        public bool IsImport {get; set;}
 
         public bool MaterialWrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool MaterialWrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
@@ -63,14 +65,15 @@ namespace PixelGraph.Common.Textures
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
         public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
 
-        public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
+        //public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
         public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
 
-
+        
         public TextureGraphContext()
         {
             InputEncoding = new List<ResourcePackChannelProperties>();
             OutputEncoding = new List<ResourcePackChannelProperties>();
+            PublishAsGlobal = true;
             MaxFrameCount = 1;
         }
 
@@ -233,5 +236,10 @@ namespace PixelGraph.Common.Textures
             //var height = (int)MathF.Ceiling(bounds.Height * TextureScale.Value);
             //return new Size(width, height);
         }
+
+        //public string GetOutputMetaName(string textureTag)
+        //{
+        //    return naming.GetOutputMetaName(Profile, Material, textureTag, PublishGlobal);
+        //}
     }
 }

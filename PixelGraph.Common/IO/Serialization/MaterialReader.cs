@@ -37,7 +37,8 @@ namespace PixelGraph.Common.IO.Serialization
         public Task<MaterialProperties> LoadAsync(string localFile, CancellationToken token = default)
         {
             var name = Path.GetFileName(localFile);
-            var global = !string.Equals(name, "pbr.yml", StringComparison.InvariantCultureIgnoreCase);
+            var global = !(string.Equals(name, "pbr.yml", StringComparison.InvariantCultureIgnoreCase)
+                    || string.Equals(name, "mat.yml", StringComparison.InvariantCultureIgnoreCase));
             return global ? LoadGlobalAsync(localFile, token) : LoadLocalAsync(localFile, token);
         }
 
@@ -53,6 +54,9 @@ namespace PixelGraph.Common.IO.Serialization
 
             if (string.IsNullOrWhiteSpace(material.Name)) {
                 material.Name = Path.GetFileName(localFile);
+
+                if (material.Name.EndsWith(".mat.yml", StringComparison.InvariantCultureIgnoreCase))
+                    material.Name = material.Name[..^8];
 
                 if (material.Name.EndsWith(".pbr.yml", StringComparison.InvariantCultureIgnoreCase))
                     material.Name = material.Name[..^8];

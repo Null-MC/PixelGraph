@@ -1,10 +1,10 @@
-﻿using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO;
 
-namespace PixelGraph.Tests.Internal
+namespace PixelGraph.Tests.Internal.Mocks
 {
     internal class MockInputReader : BaseInputReader
     {

@@ -56,14 +56,14 @@ namespace PixelGraph.Common.IO.Importing
             var graphBuilder = scope.ServiceProvider.GetRequiredService<ITextureGraphBuilder>();
 
             var matFile = AsGlobal
-                ? PathEx.Join(LocalPath, $"{name}.pbr.yml")
-                : PathEx.Join(LocalPath, name, "pbr.yml");
+                ? PathEx.Join(LocalPath, $"{name}.mat.yml")
+                : PathEx.Join(LocalPath, name, "mat.yml");
 
             var material = new MaterialProperties {
                 Name = name,
                 LocalPath = LocalPath,
                 LocalFilename = matFile,
-                UseGlobalMatching = true,
+                UseGlobalMatching = AsGlobal,
             };
 
             await writer.WriteAsync(material);
@@ -71,7 +71,8 @@ namespace PixelGraph.Common.IO.Importing
             context.Input = PackInput;
             context.Profile = PackProfile;
             context.Material = material;
-            context.UseGlobalOutput = AsGlobal;
+            context.PublishAsGlobal = AsGlobal;
+            context.IsImport = true;
 
             await graphBuilder.ProcessOutputGraphAsync(token);
         }
