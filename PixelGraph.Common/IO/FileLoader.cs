@@ -75,10 +75,19 @@ namespace PixelGraph.Common.IO
                     var fullMapFile = reader.GetFullPath(localMapFile);
                     ignored.Add(fullMapFile);
 
+                    // add all input textures to ignored
                     foreach (var localTexture in reader.EnumerateAllTextures(material)) {
                         var fullTextureFile = reader.GetFullPath(localTexture);
                         ignored.Add(fullTextureFile);
                     }
+
+                    // add properties file to ignored
+                    var propsFile = PathEx.Join(material.Name, "mat.properties");
+                    propsFile = PathEx.Join(material.LocalPath, propsFile);
+                    var fullPropsFile = reader.GetFullPath(propsFile);
+                    ignored.Add(fullPropsFile);
+
+                    // TODO: add mcmeta files to ignored
                 }
                 catch (Exception error) {
                     logger.LogWarning(error, $"Failed to load local texture map '{localMapFile}'!");
@@ -135,6 +144,13 @@ namespace PixelGraph.Common.IO
                             ignored.Add(fullTextureFile);
                         }
                     //}
+
+                    // add properties file to ignored
+                    var propsFile = PathEx.Join(material.LocalPath, $"{material.Name}.properties");
+                    var fullPropsFile = reader.GetFullPath(propsFile);
+                    ignored.Add(fullPropsFile);
+
+                    // TODO: add mcmeta files to ignored
                 }
                 catch (Exception error) {
                     logger.LogWarning(error, $"Failed to load global texture map '{filename}'!");

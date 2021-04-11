@@ -83,7 +83,8 @@ namespace PixelGraph.Common.IO
 
         public string GetOutputPropertiesName(MaterialProperties material, bool global)
         {
-            var path = GetPath(material, global && material.CtmType == null);
+            var isLocalCtm = material.CtmType != null && !material.UseGlobalMatching;
+            var path = GetPath(material, global && !isLocalCtm);
             return PathEx.Join(path, $"{material.Name}.properties");
         }
 

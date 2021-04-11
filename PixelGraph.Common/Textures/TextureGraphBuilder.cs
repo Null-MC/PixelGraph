@@ -158,7 +158,7 @@ namespace PixelGraph.Common.Textures
             imageWriter.Format = context.ImageFormat;
 
             var p = context.Material.LocalPath;
-            if (!context.PublishAsGlobal || context.IsMaterialCtm) p = PathEx.Join(p, context.Material.Name);
+            if (!context.PublishAsGlobal || (context.IsMaterialCtm && !context.Material.UseGlobalMatching)) p = PathEx.Join(p, context.Material.Name);
 
             var maxFrameCount = graph.GetMaxFrameCount();
             foreach (var part in regions.GetAllPublishRegions(maxFrameCount)) {
@@ -205,7 +205,7 @@ namespace PixelGraph.Common.Textures
             var name = naming.GetOutputTextureName(context.Profile, context.Material.Name, TextureTags.Inventory, true);
 
             var path = context.Material.LocalPath;
-            if (!context.PublishAsGlobal || context.IsMaterialCtm) path = PathEx.Join(path, context.Material.Name);
+            if (!context.PublishAsGlobal || (context.IsMaterialCtm && !context.Material.UseGlobalMatching)) path = PathEx.Join(path, context.Material.Name);
             var destFile = PathEx.Join(path, name);
 
             // Generate item image
