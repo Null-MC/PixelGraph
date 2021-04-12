@@ -296,7 +296,8 @@ namespace PixelGraph.Common.Textures
 
                     for (var i = 0; i < tileCount; i++) {
                         var outputName = naming.GetOutputTextureName(context.Profile, i.ToString(), tag, true);
-                        yield return PathEx.Join(context.Material.LocalPath, context.Material.Name, outputName);
+                        if (!context.Material.UseGlobalMatching) outputName = PathEx.Join(context.Material.Name, outputName);
+                        yield return PathEx.Join(context.Material.LocalPath, outputName);
                     }
                 }
                 else {
