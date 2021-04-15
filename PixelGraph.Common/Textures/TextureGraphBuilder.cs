@@ -252,10 +252,21 @@ namespace PixelGraph.Common.Textures
         {
             DateTime? destinationTime = null;
 
-            var tags = context.OutputEncoding
+            var inputTags = context.InputEncoding
                 .Select(e => e.Texture).Distinct().ToArray();
 
-            foreach (var file in GetMaterialOutputFiles(tags)) {
+            foreach (var file in GetMaterialInputFiles(inputTags)) {
+                var writeTime = reader.GetWriteTime(file);
+                if (!writeTime.HasValue) continue;
+
+                if (!sourceTime.HasValue || writeTime.Value > sourceTime.Value)
+                    sourceTime = writeTime;
+            }
+
+            var outputTags = context.OutputEncoding
+                .Select(e => e.Texture).Distinct().ToArray();
+
+            foreach (var file in GetMaterialOutputFiles(outputTags)) {
                 var writeTime = writer.GetWriteTime(file);
                 if (!writeTime.HasValue) continue;
 
@@ -263,7 +274,7 @@ namespace PixelGraph.Common.Textures
                     destinationTime = writeTime;
             }
 
-            foreach (var tag in tags) {
+            foreach (var tag in outputTags) {
                 var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.PublishAsGlobal);
                 var metaTime = reader.GetWriteTime(metaFileOut);
 
@@ -272,6 +283,14 @@ namespace PixelGraph.Common.Textures
             }
 
             return IsUpToDate(packWriteTime, sourceTime, destinationTime);
+        }
+
+        private IEnumerable<string> GetMaterialInputFiles(IEnumerable<string> textureTags)
+        {
+            foreach (var tag in textureTags) {
+                foreach (var file in reader.EnumerateInputTextures(context.Material, tag))
+                    yield return file;
+            }
         }
 
         private IEnumerable<string> GetMaterialOutputFiles(IEnumerable<string> textureTags)
