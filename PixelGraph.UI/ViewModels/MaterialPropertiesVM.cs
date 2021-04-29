@@ -31,7 +31,7 @@ namespace PixelGraph.UI.ViewModels
         public bool IsEmissiveSelected => TextureTags.Is(_selectedTag, TextureTags.Emissive);
 
         public string DefaultInputFormat => _packInput?.Format ?? MaterialProperties.DefaultInputFormat;
-        public string DefaultNormalFilter => MaterialNormalProperties.DefaultFilter.ToString();
+        public string DefaultNormalMethod => MaterialNormalProperties.DefaultMethod.ToString();
         //public string DefaultOcclusionSampler => MaterialOcclusionProperties.DefaultSampler;
         //public string DefaultOcclusionQuality => MaterialOcclusionProperties.DefaultQuality.ToString("N3");
         public string DefaultOcclusionStepDistance => MaterialOcclusionProperties.DefaultStepDistance.ToString("N3");
@@ -466,41 +466,41 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public decimal? NormalNoise {
-            get => _material?.Normal?.Noise;
-            set {
-                _material.Normal ??= new MaterialNormalProperties();
-                _material.Normal.Noise = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
+        //public decimal? NormalNoise {
+        //    get => _material?.Normal?.Noise;
+        //    set {
+        //        _material.Normal ??= new MaterialNormalProperties();
+        //        _material.Normal.Noise = value;
+        //        OnPropertyChanged();
+        //        OnDataChanged();
+        //    }
+        //}
 
-        public decimal? NormalCurveX {
-            get => _material?.Normal?.CurveX;
-            set {
-                _material.Normal ??= new MaterialNormalProperties();
-                _material.Normal.CurveX = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
+        //public decimal? NormalCurveX {
+        //    get => _material?.Normal?.CurveX;
+        //    set {
+        //        _material.Normal ??= new MaterialNormalProperties();
+        //        _material.Normal.CurveX = value;
+        //        OnPropertyChanged();
+        //        OnDataChanged();
+        //    }
+        //}
 
-        public decimal? NormalCurveY {
-            get => _material?.Normal?.CurveY;
-            set {
-                _material.Normal ??= new MaterialNormalProperties();
-                _material.Normal.CurveY = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
+        //public decimal? NormalCurveY {
+        //    get => _material?.Normal?.CurveY;
+        //    set {
+        //        _material.Normal ??= new MaterialNormalProperties();
+        //        _material.Normal.CurveY = value;
+        //        OnPropertyChanged();
+        //        OnDataChanged();
+        //    }
+        //}
 
-        public NormalMapFilters? NormalFilter {
-            get => _material?.Normal?.Filter;
+        public NormalMapMethods? NormalMethod {
+            get => _material?.Normal?.Method;
             set {
                 _material.Normal ??= new MaterialNormalProperties();
-                _material.Normal.Filter = value;
+                _material.Normal.Method = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
@@ -522,10 +522,10 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(NormalValueX));
             OnPropertyChanged(nameof(NormalValueY));
             OnPropertyChanged(nameof(NormalValueZ));
-            OnPropertyChanged(nameof(NormalNoise));
-            OnPropertyChanged(nameof(NormalCurveX));
-            OnPropertyChanged(nameof(NormalCurveY));
-            OnPropertyChanged(nameof(NormalFilter));
+            //OnPropertyChanged(nameof(NormalNoise));
+            //OnPropertyChanged(nameof(NormalCurveX));
+            //OnPropertyChanged(nameof(NormalCurveY));
+            OnPropertyChanged(nameof(NormalMethod));
             OnPropertyChanged(nameof(NormalStrength));
         }
 

@@ -15,7 +15,7 @@ using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
-    public partial class PublishWindow : IDisposable
+    public partial class PublishWindow : Window, IDisposable
     {
         private readonly IServiceProvider provider;
         private readonly ILogger logger;

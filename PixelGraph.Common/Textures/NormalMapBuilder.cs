@@ -11,7 +11,7 @@ namespace PixelGraph.Common.Textures
     {
         private readonly ITextureRegionEnumerator regions;
 
-        public NormalMapFilters Filter {get; set;}
+        public NormalMapMethods Method {get; set;}
         public Image<Rgba32> HeightImage {get; set;}
         public ColorChannel HeightChannel {get; set;}
         public float Strength {get; set;}
@@ -38,7 +38,7 @@ namespace PixelGraph.Common.Textures
 
         public Image<Rgb24> Build(int frameCount)
         {
-            return Filter == NormalMapFilters.Variance
+            return Method == NormalMapMethods.Variance
                 ? BuildVariance(frameCount)
                 : BuildSimple(frameCount);
         }
@@ -49,7 +49,7 @@ namespace PixelGraph.Common.Textures
                 Source = HeightImage,
                 HeightChannel = HeightChannel,
                 Strength = Strength,
-                Filter = Filter,
+                Method = Method,
                 WrapX = WrapX,
                 WrapY = WrapY,
             };

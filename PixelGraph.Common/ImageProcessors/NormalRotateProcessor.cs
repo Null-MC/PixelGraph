@@ -17,7 +17,9 @@ namespace PixelGraph.Common.ImageProcessors
         {
             this.options = options;
 
-            hasRotation = options.CurveX > float.Epsilon || options.CurveY > float.Epsilon;
+            var hasCurveX = MathF.Abs(options.CurveX) > float.Epsilon;
+            var hasCurveY = MathF.Abs(options.CurveY) > float.Epsilon;
+            hasRotation = hasCurveX || hasCurveY;
             hasNoise = options.Noise > float.Epsilon;
         }
 
@@ -41,38 +43,45 @@ namespace PixelGraph.Common.ImageProcessors
                 v.X = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
                 v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
 
-                if (options.HasNormalZ) {
+                if (!options.RestoreNormalZ) {
                     pixel.GetChannelValueScaledF(ColorChannel.Blue, out v.Z);
                     MathEx.Normalize(ref v);
                 }
 
-                angleX = MathF.Asin(v.X) / MathEx.Deg2Rad;
-                angleY = MathF.Asin(v.Y) / MathEx.Deg2Rad;
+                if (hasRotation || hasNoise) {
+                    angleX = MathF.Asin(v.X) / MathEx.Deg2Rad;
+                    angleY = MathF.Asin(v.Y) / MathEx.Deg2Rad;
 
-                if (hasRotation) {
-                    var fx = (x + 0.5f) / context.Bounds.Width;
-                    var fy = (context.Y + 0.5f) / context.Bounds.Height;
-                    angleX += options.CurveX * (fx - 0.5f);
-                    angleY += options.CurveY * (fy - 0.5f);
+                    if (hasRotation) {
+                        var fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width;
+                        var fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height;
+                        angleX += options.CurveX * (fx - 0.5f);
+                        angleY += options.CurveY * (fy - 0.5f);
+                    }
+
+                    if (hasNoise) {
+                        angleX += (noiseX[x] / 127f - 1f) * options.Noise;
+                        angleY += (noiseY[x] / 127f - 1f) * options.Noise;
+                    }
+
+                    MathEx.Clamp(ref angleX, -90f, 90f);
+                    MathEx.Clamp(ref angleY, -90f, 90f);
+
+                    var sinX = MathF.Sin(angleX * MathEx.Deg2Rad);
+                    var cosX = MathF.Cos(angleX * MathEx.Deg2Rad);
+                    var sinY = MathF.Sin(angleY * MathEx.Deg2Rad);
+                    var cosY = MathF.Cos(angleY * MathEx.Deg2Rad);
+
+                    v.X = sinX * cosY;
+                    v.Y = sinY * cosX;
+                    v.Z = cosX * cosY;
+                    MathEx.Normalize(ref v);
                 }
-
-                if (hasNoise) {
-                    angleX += (noiseX[x] / 127f - 1f) * options.Noise;
-                    angleY += (noiseY[x] / 127f - 1f) * options.Noise;
+                else if (options.RestoreNormalZ) {
+                    var v2 = new Vector2(v.X, v.Y);
+                    var d = Vector2.Dot(v2, v2);
+                    v.Z = MathF.Sqrt(1f - d);
                 }
-
-                MathEx.Clamp(ref angleX, -90f, 90f);
-                MathEx.Clamp(ref angleY, -90f, 90f);
-
-                var sinX = MathF.Sin(angleX * MathEx.Deg2Rad);
-                var cosX = MathF.Cos(angleX * MathEx.Deg2Rad);
-                var sinY = MathF.Sin(angleY * MathEx.Deg2Rad);
-                var cosY = MathF.Cos(angleY * MathEx.Deg2Rad);
-
-                v.X = sinX * cosY;
-                v.Y = sinY * cosX;
-                v.Z = cosX * cosY;
-                MathEx.Normalize(ref v);
 
                 pixel.SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
                 pixel.SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
@@ -91,7 +100,7 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
-            public bool HasNormalZ;
+            public bool RestoreNormalZ;
             public float CurveX = 0f;
             public float CurveY = 0f;
             public float Noise = 0f;

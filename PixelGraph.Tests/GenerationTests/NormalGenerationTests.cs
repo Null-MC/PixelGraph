@@ -81,7 +81,7 @@ namespace PixelGraph.Tests.GenerationTests
             var options = new NormalMapProcessor.Options {
                 Source = heightImage,
                 HeightChannel = ColorChannel.Red,
-                Filter = NormalMapFilters.SobelHigh,
+                Method = NormalMapMethods.SobelHigh,
                 Strength = 1.0f,
                 WrapX = true,
                 WrapY = true,
@@ -103,7 +103,7 @@ namespace PixelGraph.Tests.GenerationTests
             var options = new NormalMapProcessor.Options {
                 Source = heightImage,
                 HeightChannel = ColorChannel.Red,
-                Filter = NormalMapFilters.SobelLow,
+                Method = NormalMapMethods.SobelLow,
                 Strength = 0.4f,
                 WrapX = true,
                 WrapY = true,
@@ -127,7 +127,7 @@ namespace PixelGraph.Tests.GenerationTests
             using var builder = new NormalMapBuilder(regions) {
                 HeightImage = heightImage,
                 HeightChannel = ColorChannel.Red,
-                Filter = NormalMapFilters.Variance,
+                Method = NormalMapMethods.Variance,
                 LowFreqDownscale = 4,
                 VarianceBlur = 3f,
                 VarianceStrength = 0.997f,

@@ -1,11 +1,11 @@
-﻿using MaterialDesignThemes.Wpf;
-using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using FontAwesome5;
 
 namespace PixelGraph.UI.Internal
 {
@@ -137,26 +137,26 @@ namespace PixelGraph.UI.Internal
             return ContentNodeType.Unknown;
         }
 
-        private static PackIconKind GetNodeIcon(string fileName)
+        private static EFontAwesomeIcon GetNodeIcon(string fileName)
         {
             if (string.Equals("input.yml", fileName, StringComparison.InvariantCultureIgnoreCase))
-                return PackIconKind.Palette;
+                return EFontAwesomeIcon.Solid_Map;
 
             if (fileName.EndsWith(".pack.yml", StringComparison.InvariantCultureIgnoreCase))
-                return PackIconKind.Export;
+                return EFontAwesomeIcon.Solid_FileExport;
 
             if (string.Equals("mat.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
                 || fileName.EndsWith(".mat.yml", StringComparison.InvariantCultureIgnoreCase))
-                return PackIconKind.FileChart;
+                return EFontAwesomeIcon.Solid_ChartBar;
 
             if (string.Equals("pbr.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
                 || fileName.EndsWith(".pbr.yml", StringComparison.InvariantCultureIgnoreCase))
-                return PackIconKind.FileChart;
+                return EFontAwesomeIcon.Solid_ChartBar;
 
             var ext = Path.GetExtension(fileName);
-            if (ImageExtensions.Supports(ext)) return PackIconKind.Image;
+            if (ImageExtensions.Supports(ext)) return EFontAwesomeIcon.Solid_Image;
 
-            return PackIconKind.File;
+            return EFontAwesomeIcon.Solid_File;
         }
     }
 }

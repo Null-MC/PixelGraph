@@ -8,8 +8,11 @@
 
   <ItemGroup>
     <Compile Remove="GpuProcessors\**" />
+    <Compile Remove="Material\Filters\**" />
     <EmbeddedResource Remove="GpuProcessors\**" />
+    <EmbeddedResource Remove="Material\Filters\**" />
     <None Remove="GpuProcessors\**" />
+    <None Remove="Material\Filters\**" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,15 +1,15 @@
-﻿<mde:MaterialWindow x:Class="PixelGraph.UI.Windows.PackProfilesWindow"
+﻿<Window x:Class="PixelGraph.UI.Windows.PackProfilesWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
-        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
         xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
-        xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
         xmlns:textures="clr-namespace:PixelGraph.Common.Textures;assembly=PixelGraph.Common"
         xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
+        xmlns:fa5="http://schemas.fontawesome.com/icons/"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         Title="Publishing Profiles" Width="1000" Height="800" mc:Ignorable="d"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
@@ -41,16 +41,14 @@
         </Grid.ColumnDefinitions>
         <DockPanel>
             <ToolBar DockPanel.Dock="Top" ToolBarTray.IsLocked="True">
-                <Button ToolTip="New Profile" Width="32" Height="28" Padding="0" Click="OnNewProfileClick" Foreground="LawnGreen">
-                    <md:PackIcon Kind="Plus" Height="20"/>
-                </Button>
+                <Button ToolTip="New Profile" Width="32" Height="28" Padding="0" Click="OnNewProfileClick" Foreground="LawnGreen"
+                        Content="{iconPacks:FontAwesome Kind=PlusSolid}"/>
                 <Button ToolTip="Duplicate Profile" Width="32" Height="28" Padding="0" Click="OnDuplicateProfileClick" Foreground="DeepSkyBlue"
-                        IsEnabled="{Binding HasSelectedProfile, Mode=OneWay}">
-                    <md:PackIcon Kind="ContentCopy" Height="18"/>
-                </Button>
+                        Content="{iconPacks:FontAwesome Kind=CopySolid}"
+                        IsEnabled="{Binding HasSelectedProfile, Mode=OneWay}"/>
                 <Button ToolTip="Delete Profile" Width="32" Height="28" Padding="0" Click="OnDeleteProfileClick" Foreground="Red"
+                        Content="{iconPacks:FontAwesome Kind=TrashSolid}"
                         IsEnabled="{Binding HasSelectedProfile, Mode=OneWay}">
-                    <md:PackIcon Kind="Trash" Height="20"/>
                 </Button>
             </ToolBar>
             <ListBox x:Name="ProfileListBox" DisplayMemberPath="Name" Width="320" Background="Black" MouseDown="OnProfileListBoxMouseDown" SelectionChanged="OnProfileSelectionChanged"
@@ -121,7 +119,7 @@
                                                  SelectedValue="{Binding EncodingSampler, Mode=TwoWay}"/>
                         </DockPanel>
                     </Grid>
-                    <DataGrid AutoGenerateColumns="False" Margin="4" md:DataGridAssist.CellPadding="4,2" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False"
+                    <DataGrid AutoGenerateColumns="False" Margin="4" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False"
                               CanUserResizeRows="False" CanUserResizeColumns="True" CanUserSortColumns="False"
                               ItemsSource="{Binding EncodingChannels, Mode=OneTime}">
                         <DataGrid.ColumnHeaderStyle>
@@ -157,7 +155,7 @@
                                     <DataTemplate DataType="vm:OutputChannelMapping">
                                         <StackPanel Orientation="Horizontal">
                                             <Button Width="16" Height="16" Margin="2" Padding="0" ToolTip="Clear Values" Click="OnTextureResetButtonClick">
-                                                <md:PackIcon Kind="Eraser" Width="12"/>
+                                                <fa5:SvgAwesome Icon="Solid_Eraser" VerticalAlignment="Center" HorizontalAlignment="Center" Width="12" />
                                                 <Button.Style>
                                                     <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatAccentButton}">
                                                         <Setter Property="Foreground" Value="{DynamicResource MaterialDesignToolForeground}"/>
@@ -525,4 +523,4 @@
             </TabItem>
         </TabControl>
     </Grid>
-</mde:MaterialWindow>
+</Window>

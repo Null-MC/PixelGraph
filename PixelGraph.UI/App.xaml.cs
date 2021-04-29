@@ -5,6 +5,7 @@ using PixelGraph.UI.ViewModels;
 using PixelGraph.UI.Windows;
 using Serilog;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace PixelGraph.UI
 {
@@ -48,6 +49,12 @@ namespace PixelGraph.UI
         private void App_OnExit(object sender, ExitEventArgs e)
         {
             provider?.Dispose();
+            Log.CloseAndFlush();
+        }
+
+        private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            Log.Fatal(e.Exception, "An unhandled exception occurred!");
         }
     }
 }

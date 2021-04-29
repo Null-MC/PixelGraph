@@ -104,6 +104,9 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = 101)]
         public List<MaterialPart> Parts {get; set;}
 
+        [YamlMember(Order = 102)]
+        public List<MaterialFilter> Filters {get; set;}
+
 
         public Size GetMultiPartBounds()
         {
@@ -271,7 +274,7 @@ namespace PixelGraph.Common.Material
         
         [Obsolete("Replace usages of CreateInventory with PublishInventory.")]
         [YamlMember] public bool? CreateInventory {
-            get => PublishInventory;
+            get => null;
             set => PublishInventory = value;
         }
 

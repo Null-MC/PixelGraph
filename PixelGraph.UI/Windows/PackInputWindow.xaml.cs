@@ -10,7 +10,7 @@ using System.Windows.Controls;
 
 namespace PixelGraph.UI.Windows
 {
-    public partial class PackInputWindow
+    public partial class PackInputWindow : Window
     {
         private readonly IServiceProvider provider;
 

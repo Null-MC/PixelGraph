@@ -15,7 +15,7 @@ using System.Windows;
 
 namespace PixelGraph.UI.Windows
 {
-    public partial class NewProjectWindow
+    public partial class NewProjectWindow : Window
     {
         private readonly IServiceProvider provider;
         private readonly ILogger logger;
@@ -46,7 +46,7 @@ namespace PixelGraph.UI.Windows
 
                 var existingFiles = Directory.EnumerateFiles(VM.Location, "*", SearchOption.AllDirectories);
                 if (existingFiles.Any()) {
-                    var result = MessageBox.Show(this, "There is existing content in the chosen directory! Are you sure you want to proceed?", "Warning!", MessageBoxButton.YesNo);
+                    var result = MessageBox.Show(this, "There is existing content in the chosen directory! Are you sure you want to proceed?", "Warning!", MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
                     if (result == MessageBoxResult.No) return false;
                 }
 
@@ -54,7 +54,7 @@ namespace PixelGraph.UI.Windows
             }
             catch (Exception error) {
                 logger.LogError(error, $"Failed to create new project directory \"{VM.Location}\"!");
-                MessageBox.Show(this, "Failed to create new project directory!", "Error!", MessageBoxButton.OK);
+                MessageBox.Show(this, "Failed to create new project directory!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                 VM.SetState(NewProjectStates.Location);
                 return false;
             }

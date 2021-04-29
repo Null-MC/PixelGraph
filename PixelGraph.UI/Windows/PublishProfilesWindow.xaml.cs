@@ -19,7 +19,7 @@ using System.Windows.Media;
 
 namespace PixelGraph.UI.Windows
 {
-    public partial class PackProfilesWindow
+    public partial class PackProfilesWindow : Window
     {
         private readonly IServiceProvider provider;
         private readonly ILogger logger;

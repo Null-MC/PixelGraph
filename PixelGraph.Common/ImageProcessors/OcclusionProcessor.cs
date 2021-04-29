@@ -32,6 +32,7 @@ namespace PixelGraph.Common.ImageProcessors
             var position = new Vector3();
 
             var zScale = options.ZScale; // * options.HeightMapping.ValueScale;
+            var hasZScale = !zScale.Equal(1f);
 
             float fx, fy, heightPixel, heightValue, rayHitFactor;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
@@ -41,8 +42,8 @@ namespace PixelGraph.Common.ImageProcessors
                 options.HeightSampler.SampleScaled(in fx, in fy, in options.HeightMapping.InputColor, out heightPixel);
                 if (!options.HeightMapping.TryUnmap(in heightPixel, out heightValue)) continue;
 
-                if (!zScale.Equal(1f)) heightValue *= zScale;
-                MathEx.Invert(ref heightValue, 0f, in zScale);
+                MathEx.Invert(ref heightValue, 0f, 1f);
+                if (hasZScale) heightValue *= zScale;
 
                 heightValue += bias * zScale;
 
@@ -69,6 +70,8 @@ namespace PixelGraph.Common.ImageProcessors
         private bool RayTest(in PixelRowContext context, ref Vector3 position, in Vector3 ray, out float factor)
         {
             var zScale = options.ZScale; // * options.HeightMapping.ValueScale;
+            var hasZScale = !zScale.Equal(1f);
+            var hasHitPower = !options.HitPower.Equal(1f);
 
             float fx, fy, heightPixel, heightValue;
             for (var step = 1; step <= options.StepCount; step++) {
@@ -78,21 +81,17 @@ namespace PixelGraph.Common.ImageProcessors
 
                 GetTexCoord(in context, in position.X, in position.Y, out fx, out fy);
                 options.HeightSampler.SampleScaled(in fx, in fy, options.HeightMapping.InputColor, out heightPixel);
+                if (!options.HeightMapping.TryUnmap(in heightPixel, out heightValue)) continue;
 
-                if (!options.HeightMapping.TryUnmap(in heightPixel, out heightValue)) {
-                    // no height data
-                    continue;
-                }
+                MathEx.Invert(ref heightValue, 0f, 1f);
+                if (hasZScale) heightValue *= zScale;
 
-                if (!zScale.Equal(1f)) heightValue *= zScale;
-                MathEx.Invert(ref heightValue, 0f, in zScale);
-
-                if (position.Z >= heightValue) continue;
+                if (position.Z - heightValue > -float.Epsilon) continue;
 
                 // hit, return 
                 var hit = (float)step / options.StepCount;
 
-                if (!options.HitPower.Equal(1f))
+                if (hasHitPower)
                     factor = 1 - MathF.Pow(hit, options.HitPower);
                 else
                     factor = 1 - hit;

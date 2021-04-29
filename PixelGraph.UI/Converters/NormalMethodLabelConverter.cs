@@ -6,19 +6,19 @@ using System.Windows.Data;
 
 namespace PixelGraph.UI.Converters
 {
-    public class NormalFilterLabelConverter : IValueConverter
+    public class NormalMethodLabelConverter : IValueConverter
     {
-        private static readonly Dictionary<NormalMapFilters, string> map = new Dictionary<NormalMapFilters, string> {
-            [NormalMapFilters.Sobel3] = "Sobel-3",
-            [NormalMapFilters.SobelHigh] = "Sobel-High",
-            [NormalMapFilters.SobelLow] = "Sobel-Low",
-            //[NormalMapFilters.Spline] = "Spline",
+        private static readonly Dictionary<NormalMapMethods, string> map = new Dictionary<NormalMapMethods, string> {
+            [NormalMapMethods.Sobel3] = "Sobel-3",
+            [NormalMapMethods.SobelHigh] = "Sobel-High",
+            [NormalMapMethods.SobelLow] = "Sobel-Low",
+            [NormalMapMethods.Variance] = "Variance",
         };
 
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is NormalMapFilters filter && map.TryGetValue(filter, out var label)) return label;
+            if (value is NormalMapMethods filter && map.TryGetValue(filter, out var label)) return label;
             return value;
         }
 

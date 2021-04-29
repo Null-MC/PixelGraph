@@ -1,32 +1,24 @@
-﻿<mde:MaterialWindow x:Class="PixelGraph.UI.Windows.NewProjectWindow"
+﻿<Window x:Class="PixelGraph.UI.Windows.NewProjectWindow"
                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
-                    xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
-                    xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
                     xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
                     xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
-                    TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-                    TextElement.FontWeight="Regular"
-                    TextElement.FontSize="13"
-                    TextOptions.TextFormattingMode="Ideal" 
-                    TextOptions.TextRenderingMode="Auto"        
-                    Background="{DynamicResource MaterialDesignPaper}"
-                    FontFamily="{DynamicResource MaterialDesignFont}"
-                    WindowStartupLocation="CenterOwner"
+                    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                     d:DataContext="{d:DesignInstance vm:NewProjectDesignVM, IsDesignTimeCreatable=True}"
-                    Title="Create a New Project" Width="500" Height="380" mc:Ignorable="d">
+                    Title="Create a New Project" Width="500" Height="380" mc:Ignorable="d" WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <vd:OptionalEncodingFormatValues x:Key="Formats"/>
         <converters:FormatDescriptionConverter x:Key="FormatDescriptionConverter"/>
+        <converters:VisibilityConverter x:Key="VisibilityConverter"/>
     </Window.Resources>
     <Window.DataContext>
         <vm:NewProjectVM x:Name="VM"/>
     </Window.DataContext>
     <Grid>
-        <DockPanel Visibility="{Binding IsLocationPage, Mode=OneWay, Converter={StaticResource boolToVisibilityConverter}}">
+        <DockPanel Visibility="{Binding IsLocationPage, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
             <Grid DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignSnackbarBackground}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -39,20 +31,19 @@
             </Grid>
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="12" Orientation="Vertical">
-                    <TextBlock Text="Root Directory:" FontSize="16" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                    <TextBlock Text="Root Directory:" FontSize="16"/>
                     <DockPanel>
-                        <Button DockPanel.Dock="Right" Width="28" Height="24" Padding="0" Content="{md:PackIcon FolderOpen}" ToolTip="Browse"
-                                Click="OnLocationBrowseClick"/>
-                        <TextBox Margin="0,0,4,0" FontFamily="Global Monospace" Text="{Binding Location, Mode=TwoWay}"
-                                 Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                        <Button DockPanel.Dock="Right" Width="28" Height="24" Padding="0" ToolTip="Browse" Click="OnLocationBrowseClick"
+                                Content="{iconPacks:FontAwesome Kind=FolderOpenSolid}"/>
+                        <TextBox Margin="0,0,4,0" FontFamily="Global Monospace" Text="{Binding Location, Mode=TwoWay}"/>
                     </DockPanel>
                     <TextBlock Margin="12,20,12,12" TextWrapping="Wrap"
                         Text="Select a folder where the content of the project should be stored. This should be an empty folder with no existing content."/>
-                    <CheckBox Margin="12,20,12,4" Content="Create Minecraft folders" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"
+                    <CheckBox Margin="12,20,12,4" Content="Create Minecraft folders" FontSize="14"
                               IsChecked="{Binding CreateMinecraftFolders, Mode=TwoWay}"/>
-                    <CheckBox Margin="12,4,12,4" Content="Create Optifine folders" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"
+                    <CheckBox Margin="12,4,12,4" Content="Create Optifine folders" FontSize="14"
                               IsChecked="{Binding CreateOptifineFolders, Mode=TwoWay}"/>
-                    <CheckBox Margin="12,4,12,12" Content="Create Realms folders" FontSize="14" Foreground="{DynamicResource PrimaryHueMidBrush}"
+                    <CheckBox Margin="12,4,12,12" Content="Create Realms folders" FontSize="14"
                               IsChecked="{Binding CreateRealmsFolders, Mode=TwoWay}"/>
                 </StackPanel>
             </ScrollViewer>
@@ -76,10 +67,11 @@
                         <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="Project Format:" FontSize="18"
                                    Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
                         <ComboBox HorizontalContentAlignment="Center" MinWidth="180" FontSize="16" DisplayMemberPath="Text" SelectedValuePath="Value"
-                                  ItemsSource="{StaticResource Formats}" Foreground="{DynamicResource SecondaryHueMidBrush}"
+                                  ItemsSource="{StaticResource Formats}"
                                   SelectedValue="{Binding ContentFormat, Mode=TwoWay}"/>
-                        <Button DockPanel.Dock="Right" VerticalAlignment="Center" Width="28" Height="24" Margin="4,0,0,0" Padding="0" Content="{md:PackIcon Palette}" ToolTip="Advanced"
-                                Style="{StaticResource MaterialDesignFlatButton}" IsEnabled="False"/>
+                        <Button DockPanel.Dock="Right" VerticalAlignment="Center" Width="28" Height="24" Margin="4,0,0,0" Padding="0" ToolTip="Advanced" IsEnabled="False"
+                                Content="{iconPacks:FontAwesome Kind=PaletteSolid}"
+                                Style="{StaticResource MaterialDesignFlatButton}"/>
                     </StackPanel>
                     <TextBlock Margin="20,0" TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource SecondaryHueLightBrush}"
                                Text="{Binding ContentFormat, Mode=OneWay, Converter={StaticResource FormatDescriptionConverter}}"/>
@@ -113,4 +105,4 @@
             </ScrollViewer>
         </DockPanel>
     </Grid>
-</mde:MaterialWindow>
+</Window>

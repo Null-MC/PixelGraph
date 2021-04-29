@@ -21,18 +21,18 @@ namespace PixelGraph.Common.ImageProcessors
         protected override void ProcessPixel(ref Rgba32 pixel, in PixelContext context)
         {
             Vector3 normal;
-            switch (options.Filter) {
-                case NormalMapFilters.SobelHigh:
+            switch (options.Method) {
+                case NormalMapMethods.SobelHigh:
                     CalculateSobel3HighPass(in context, out normal);
                     break;
-                case NormalMapFilters.SobelLow:
+                case NormalMapMethods.SobelLow:
                     CalculateSobel3LowPass(in context, out normal);
                     break;
-                case NormalMapFilters.Sobel3:
+                case NormalMapMethods.Sobel3:
                     CalculateSobel3(in context, out normal);
                     break;
                 default:
-                    throw new ApplicationException($"Unsupported filter '{options.Filter}'!");
+                    throw new ApplicationException($"Unsupported filter '{options.Method}'!");
             }
             
             pixel.SetChannelValueScaledF(ColorChannel.Red, normal.X * 0.5f + 0.5f);
@@ -139,7 +139,7 @@ namespace PixelGraph.Common.ImageProcessors
         {
             public Image<Rgba32> Source;
             public ColorChannel HeightChannel;
-            public NormalMapFilters Filter;
+            public NormalMapMethods Method;
             public float Strength = 1f;
             public bool WrapX = true;
             public bool WrapY = true;

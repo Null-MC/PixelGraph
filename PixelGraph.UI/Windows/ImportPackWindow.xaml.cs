@@ -16,7 +16,7 @@ using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
-    public partial class ImportPackWindow : IDisposable
+    public partial class ImportPackWindow : Window, IDisposable
     {
         private readonly IServiceProvider provider;
         private readonly ILogger logger;

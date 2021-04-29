@@ -676,7 +676,7 @@ namespace PixelGraph.UI.Windows
         private void OnInputEncodingClick(object sender, RoutedEventArgs e)
         {
             var window = new PackInputWindow(provider) {
-                Owner = this,
+                //Owner = this,
                 VM = {
                     RootDirectory = vm.RootDirectory,
                     PackInput = (ResourcePackInputProperties)vm.PackInput.Clone(),
@@ -730,6 +730,21 @@ namespace PixelGraph.UI.Windows
 
         //    window.ShowDialog();
         //}
+
+        private void OnNewMaterialMenuClick(object sender, RoutedEventArgs e)
+        {
+            ShowError("Not Yet Implemented");
+        }
+
+        private void OnMaterialConnectionsMenuClick(object sender, RoutedEventArgs e)
+        {
+            ShowError("Not Yet Implemented");
+        }
+
+        private void OnMaterialFiltersMenuClick(object sender, RoutedEventArgs e)
+        {
+            ShowError("Not Yet Implemented");
+        }
 
         private void OnPublishMenuItemClick(object sender, RoutedEventArgs e)
         {

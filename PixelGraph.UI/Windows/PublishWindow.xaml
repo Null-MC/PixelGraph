@@ -1,35 +1,32 @@
-﻿<mde:MaterialWindow x:Class="PixelGraph.UI.Windows.PublishWindow"
+﻿<Window x:Class="PixelGraph.UI.Windows.PublishWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
-        xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
         xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
+        xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
         d:DataContext="{d:DesignInstance vm:PublishWindowDesignVM, IsDesignTimeCreatable=True}"
         Title="Publishing Resource Pack" Width="640" Height="360" mc:Ignorable="d"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight="Regular"
-        TextElement.FontSize="13"
-        TextOptions.TextFormattingMode="Ideal" 
-        TextOptions.TextRenderingMode="Auto"        
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{DynamicResource MaterialDesignFont}"
         ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="OnWindowLoaded">
     <Window.DataContext>
         <vm:PublishWindowVM x:Name="VM" />
     </Window.DataContext>
+    <Window.Resources>
+        <converters:VisibilityConverter x:Key="VisibilityConverter"/>
+        <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
+    </Window.Resources>
     <DockPanel>
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignCardBackground}">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="4,4,4,4">
                 <CheckBox Content="Close when complete" Margin="4,4,12,4" FontSize="12" Checked="OnCloseCheckBoxChecked"
                           IsChecked="{Binding CloseOnComplete, Mode=TwoWay}"/>
                 <Button Content="Cancel" Margin="4" Click="OnCancelButtonClick"
-                        Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
                 <Button Content="Close" Margin="4" Click="OnCloseButtonClick"
-                        Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource InverseBoolToVisConverter}}"/>
+                        Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
             </StackPanel>
         </Border>
         <controls:LogListControl x:Name="LogList" Log="{Binding LogList, Mode=OneWay}"/>
     </DockPanel>
-</mde:MaterialWindow>
+</Window>

@@ -1,4 +1,4 @@
-﻿using MaterialDesignThemes.Wpf;
+﻿using FontAwesome5;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -128,12 +128,12 @@ namespace PixelGraph.UI.ViewModels
     {
         public string Filename {get; set;}
         public ContentNodeType Type {get; set;}
-        public PackIconKind Icon {get; set;}
+        public EFontAwesomeIcon Icon {get; set;}
 
 
         public ContentTreeFile(ContentTreeNode parent) : base(parent)
         {
-            Icon = PackIconKind.File;
+            Icon = EFontAwesomeIcon.Solid_File;
         }
 
         public override void UpdateVisibility(ISearchParameters search)

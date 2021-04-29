@@ -2,7 +2,7 @@
 
 namespace PixelGraph.Common.Textures
 {
-    public enum NormalMapFilters
+    public enum NormalMapMethods
     {
         [EnumMember(Value = "sobel3")]
         Sobel3,

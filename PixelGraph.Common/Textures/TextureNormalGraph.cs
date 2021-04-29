@@ -151,7 +151,7 @@ namespace PixelGraph.Common.Textures
             if (NormalFrameCount > 1) NormalFrameHeight /= NormalFrameCount;
 
             var options = new NormalRotateProcessor.Options {
-                HasNormalZ = hasNormalZ,
+                RestoreNormalZ = !hasNormalZ,
                 CurveX = (float?)context.Material.Normal?.CurveX ?? 0f,
                 CurveY = (float?)context.Material.Normal?.CurveY ?? 0f,
                 Noise = (float?)context.Material.Normal?.Noise ?? 0f,
@@ -159,6 +159,10 @@ namespace PixelGraph.Common.Textures
 
             var processor = new NormalRotateProcessor(options);
             NormalTexture.Mutate(c => c.ApplyProcessor(processor));
+
+            // Apply filtering
+            if (context.Material.Filters != null)
+                ApplyFiltering();
 
             // apply magnitude channels
             var magnitudeOutputChannels = context.OutputEncoding
@@ -199,7 +203,7 @@ namespace PixelGraph.Common.Textures
                 var builder = new NormalMapBuilder(regions) {
                     HeightImage = heightTexture,
                     HeightChannel = heightChannelIn.Color ?? ColorChannel.None,
-                    Filter = context.Material.Normal?.Filter ?? MaterialNormalProperties.DefaultFilter,
+                    Method = context.Material.Normal?.Method ?? MaterialNormalProperties.DefaultMethod,
                     Strength = (float?)context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
                     WrapX = context.MaterialWrapX,
                     WrapY = context.MaterialWrapY,
@@ -231,6 +235,26 @@ namespace PixelGraph.Common.Textures
         public ISampler<L8> GetMagnitudeSampler()
         {
             return MagnitudeTexture == null ? null : context.CreateSampler(MagnitudeTexture, Samplers.Samplers.Nearest);
+        }
+
+        private void ApplyFiltering()
+        {
+            foreach (var filter in context.Material.Filters) {
+                filter.GetRectangle(NormalTexture.Width, NormalTexture.Height, out var region);
+
+                if (filter.HasNormalRotation) {
+                    var curveOptions = new NormalRotateProcessor.Options {
+                        CurveX = (float?)filter.NormalCurveX ?? 0f,
+                        CurveY = (float?)filter.NormalCurveY ?? 0f,
+                        Noise = (float?)filter.NormalNoise ?? 0f,
+                    };
+
+                    var curveProcessor = new NormalRotateProcessor(curveOptions);
+                    NormalTexture.Mutate(c => c.ApplyProcessor(curveProcessor, region));
+                }
+
+                //...
+            }
         }
 
         private void TryExtractMagnitude()

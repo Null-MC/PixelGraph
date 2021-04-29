@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
+using System;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material
@@ -7,15 +8,11 @@ namespace PixelGraph.Common.Material
     public class MaterialNormalProperties
     {
         public const float DefaultStrength = 1f;
-        public const float DefaultNoise = 0f;
-        public const NormalMapFilters DefaultFilter = NormalMapFilters.Sobel3;
+        public const NormalMapMethods DefaultMethod = NormalMapMethods.Sobel3;
 
         public string Texture {get; set;}
         public decimal? Strength {get; set;}
-        public decimal? Noise {get; set;}
-        public decimal? CurveX {get; set;}
-        public decimal? CurveY {get; set;}
-        public NormalMapFilters? Filter {get; set;}
+        public NormalMapMethods? Method {get; set;}
         
         public ResourcePackNormalXChannelProperties InputX {get; set;}
 
@@ -31,5 +28,24 @@ namespace PixelGraph.Common.Material
 
         [YamlMember(Alias = "value-z", ApplyNamingConventions = false)]
         public decimal? ValueZ {get; set;}
+
+        #region Deprecated
+
+        [Obsolete("Rename usages of Filter to Method.")]
+        public NormalMapMethods? Filter {
+            get => null;
+            set => Method = value;
+        }
+
+        [Obsolete("Replace usages with Material-Filters.")]
+        public decimal? Noise { get; set; }
+
+        [Obsolete("Replace usages with Material-Filters.")]
+        public decimal? CurveX { get; set; }
+
+        [Obsolete("Replace usages with Material-Filters.")]
+        public decimal? CurveY { get; set; }
+
+        #endregion
     }
 }
