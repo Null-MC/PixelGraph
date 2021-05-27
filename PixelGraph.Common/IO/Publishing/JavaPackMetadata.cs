@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace PixelGraph.Common
+namespace PixelGraph.Common.IO.Publishing
 {
-    internal class PackMetadata
+    internal class JavaPackMetadata
     {
         [JsonProperty("pack_format")]
         public int PackFormat {get; set;}
@@ -11,7 +11,7 @@ namespace PixelGraph.Common
         public string Description {get; set;}
 
 
-        public PackMetadata()
+        public JavaPackMetadata()
         {
             PackFormat = 5;
         }

@@ -1,4 +1,4 @@
-﻿using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.TextureFormats;
 using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData

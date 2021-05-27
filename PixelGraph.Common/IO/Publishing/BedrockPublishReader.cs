@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace PixelGraph.Common.IO
 {
-    public interface IFileLoader
+    public interface IBedrockPublishReader
     {
         bool EnableAutoMaterial {get; set;}
 
@@ -19,7 +19,7 @@ namespace PixelGraph.Common.IO
         bool IsLocalMaterialPath(string localPath);
     }
 
-    internal class FileLoader : IFileLoader
+    internal class BedrockPublishReader : IBedrockPublishReader
     {
         private readonly IInputReader reader;
         private readonly IMaterialReader materialReader;

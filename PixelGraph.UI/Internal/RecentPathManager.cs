@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PixelGraph.UI.Internal.Utilities;
+using System;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;

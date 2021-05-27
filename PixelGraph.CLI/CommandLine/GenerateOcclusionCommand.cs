@@ -20,9 +20,9 @@ namespace PixelGraph.CLI.CommandLine
 {
     internal class GenerateOcclusionCommand
     {
+        private readonly ILogger<GenerateOcclusionCommand> logger;
         private readonly IServiceBuilder factory;
         private readonly IAppLifetime lifetime;
-        private readonly ILogger logger;
 
         public Command Command {get;}
 
@@ -85,7 +85,7 @@ namespace PixelGraph.CLI.CommandLine
         private class Executor
         {
             private readonly IServiceProvider provider;
-            private readonly INamingStructure naming;
+            //private readonly INamingStructure naming;
             private readonly IInputReader reader;
             private readonly IResourcePackReader packReader;
             private readonly IMaterialReader materialReader;
@@ -95,13 +95,13 @@ namespace PixelGraph.CLI.CommandLine
             public Executor(
                 ILogger<Executor> logger,
                 IServiceProvider provider,
-                INamingStructure naming,
+                //INamingStructure naming,
                 IInputReader reader,
                 IResourcePackReader packReader,
                 IMaterialReader materialReader)
             {
                 this.provider = provider;
-                this.naming = naming;
+                //this.naming = naming;
                 this.reader = reader;
                 this.packReader = packReader;
                 this.materialReader = materialReader;
@@ -133,7 +133,13 @@ namespace PixelGraph.CLI.CommandLine
                 }
 
                 var timer = Stopwatch.StartNew();
-                var outputName = occlusionFilename ?? naming.GetOutputTextureName(packProfile, material.Name, TextureTags.Occlusion, material.UseGlobalMatching);
+
+                if (occlusionFilename == null) {
+                    //var outputName = occlusionFilename ?? NamingStructure.GetOutputTextureName(packProfile, material.Name, TextureTags.Occlusion, material.UseGlobalMatching);
+                    var ext = NamingStructure.GetExtension(packProfile);
+                    occlusionFilename = NamingStructure.Get(TextureTags.Occlusion, material.Name, ext, material.UseGlobalMatching);
+                }
+
                 logger.LogDebug("Generating ambient occlusion for texture {DisplayName}.", material.DisplayName);
 
                 try {
@@ -149,14 +155,14 @@ namespace PixelGraph.CLI.CommandLine
 
                     using var occlusionImage = await occlusionGraph.GenerateAsync(token);
 
-                    await occlusionImage.SaveAsync(outputName, token);
-                    logger.LogInformation("Ambient Occlusion texture {outputName} generated successfully.", outputName);
+                    await occlusionImage.SaveAsync(occlusionFilename, token);
+                    logger.LogInformation("Ambient Occlusion texture {outputName} generated successfully.", occlusionFilename);
                 }
                 catch (SourceEmptyException) {
                     logger.LogError("Unable to locate valid height source for ambient occlusion generation!");
                 }
                 catch (Exception error) {
-                    logger.LogError(error, "Failed to generate Ambient Occlusion texture {outputName}!", outputName);
+                    logger.LogError(error, "Failed to generate Ambient Occlusion texture {outputName}!", occlusionFilename);
                 }
 
                 timer.Stop();

@@ -1,8 +1,8 @@
-﻿using System;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO;
 
 namespace PixelGraph.Tests.Internal.Mocks
 {
@@ -12,7 +12,7 @@ namespace PixelGraph.Tests.Internal.Mocks
         public string Root {get; set;} = ".";
 
 
-        public MockInputReader(MockFileContent content, INamingStructure naming) : base(naming)
+        public MockInputReader(MockFileContent content)
         {
             Content = content;
         }

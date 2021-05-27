@@ -9,7 +9,10 @@
                  xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
                  xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                  d:DataContext="{d:DesignInstance vm:MainWindowDesignVM, IsDesignTimeCreatable=True}"
-                 Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" Loaded="OnWindowLoaded" WindowState="Maximized" Background="#FF1B1B1B">
+                 Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" Loaded="OnWindowLoaded" WindowState="Maximized"
+                 ShowIconOnTitleBar="True" IconScalingMode="NoScaleSmallerFrame" TitleForeground="Transparent"
+                 Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                 Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
@@ -18,101 +21,117 @@
     <Window.DataContext>
         <vm:MainWindowVM x:Name="vm"/>
     </Window.DataContext>
+    <mah:MetroWindow.IconTemplate>
+        <DataTemplate>
+            <Grid Width="{TemplateBinding Width}"
+                  Height="{TemplateBinding Height}"
+                  Margin="4"
+                  Background="Transparent"
+                  RenderOptions.EdgeMode="Aliased"
+                  RenderOptions.BitmapScalingMode="HighQuality">
+                <Image Source="/icon.ico"/>
+            </Grid>
+        </DataTemplate>
+    </mah:MetroWindow.IconTemplate>
+    <mah:MetroWindow.LeftWindowCommands>
+        <mah:WindowCommands>
+            <Menu IsMainMenu="True" Background="Transparent">
+                <MenuItem Header="Project" Background="Transparent">
+                    <MenuItem Header="New" Icon="{iconPacks:FontAwesome FolderPlusSolid}" Click="OnNewProjectClick"/>
+                    <MenuItem Header="Open" Icon="{iconPacks:FontAwesome FolderOpenSolid}" Click="OnOpenClick"/>
+                    <MenuItem Header="Close" Icon="{iconPacks:FontAwesome DoorClosedSolid}" Click="OnCloseProjectClick"
+                              IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
+                    <Separator/>
+                    <!--<MenuItem Header="App Settings" Icon="{md:PackIcon Settings}" Click="OnSettingsClick"/>-->
+                    <MenuItem Header="Exit" Icon="{iconPacks:FontAwesome WindowCloseSolid}" Click="OnExitClick"/>
+                </MenuItem>
+                <MenuItem Header="Pack" Background="Transparent">
+                    <MenuItem Header="Publish Locations" Icon="{iconPacks:FontAwesome FolderSolid}" Click="OnLocationsClick"/>
+                    <MenuItem Header="Import" Icon="{iconPacks:FontAwesome FileImportSolid}"
+                              IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}">
+                        <MenuItem Header="From Folder" Icon="{iconPacks:FontAwesome FolderSolid}" Click="OnImportFolderClick"/>
+                        <MenuItem Header="From Archive" Icon="{iconPacks:FontAwesome FileArchiveSolid}" Click="OnImportZipClick"/>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="Pack Input" Icon="{iconPacks:FontAwesome PaletteSolid}" Click="OnInputEncodingClick"
+                              IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
+                    <MenuItem Header="Publish Profiles" Icon="{iconPacks:FontAwesome BookSolid}" Click="OnProfilesClick"
+                              IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
+                </MenuItem>
+                <MenuItem Header="Material" Background="Transparent">
+                    <MenuItem Header="New" Icon="{iconPacks:FontAwesome PlusSolid}" Click="OnNewMaterialMenuClick"
+                              IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
+                    <Separator/>
+                    <MenuItem Header="Connections" Icon="{iconPacks:FontAwesome PuzzlePieceSolid}" Click="OnMaterialConnectionsMenuClick"
+                              IsEnabled="{Binding HasLoadedMaterial, Mode=OneWay}"/>
+                    <MenuItem Header="Filters" Icon="{iconPacks:FontAwesome FilterSolid}" Click="OnMaterialFiltersMenuClick"
+                              IsEnabled="{Binding HasLoadedMaterial, Mode=OneWay}"/>
+                </MenuItem>
+                <!--<MenuItem Header="Help">
+                    <MenuItem Header="Documentation" Icon="{iconPacks:FontAwesome QuestionSolid}" Click="OnDocumentationButtonClick"/>
+                </MenuItem>-->
+            </Menu>
+            <!--<Button Click="OnDocumentationButtonClick" ToolTip="Open up the GitHub wiki">
+                <iconPacks:PackIconFontAwesome Kind="QuestionSolid" Width="16" Height="16"/>
+            </Button>-->
+        </mah:WindowCommands>
+    </mah:MetroWindow.LeftWindowCommands>
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands Margin="0,0,16,0" Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+            <ComboBox MaxWidth="200" DisplayMemberPath="Name" ToolTip="Pack Profile" Background="Transparent" BorderThickness="0"
+                      ItemsSource="{Binding PublishProfiles, Mode=OneWay}"
+                      SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
+            <ComboBox MaxWidth="200" DisplayMemberPath="DisplayName" ToolTip="Publish Location" Background="Transparent" BorderThickness="0"
+                      SelectedItem="{Binding SelectedLocation, Mode=TwoWay}"
+                      SelectionChanged="OnPublishLocationSelectionChanged">
+                <ComboBox.ItemsSource>
+                    <CompositeCollection>
+                        <vm:LocationViewModel x:Name="ManualLocation" DisplayName="Manual" IsManualSelect="True"/>
+                        <CollectionContainer Collection="{Binding Source={StaticResource PublishLocationsView}}"/>
+                    </CompositeCollection>
+                </ComboBox.ItemsSource>
+            </ComboBox>
+            <Button Content="Publish" Click="OnPublishMenuItemClick"
+                    IsEnabled="{Binding HasProfileSelection, Mode=OneWay}"/>
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Menu IsMainMenu="True" FontSize="14" Padding="0,2">
-            <MenuItem Header="Project">
-                <MenuItem Header="New" Icon="{iconPacks:FontAwesome FolderPlusSolid}" Click="OnNewProjectClick"/>
-                <MenuItem Header="Open" Icon="{iconPacks:FontAwesome FolderOpenSolid}" Click="OnOpenClick"/>
-                <MenuItem Header="Close" Icon="{iconPacks:FontAwesome DoorClosedSolid}" Click="OnCloseProjectClick"
-                          IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
-                <Separator/>
-                <!--<MenuItem Header="App Settings" Icon="{md:PackIcon Settings}" Click="OnSettingsClick"/>-->
-                <MenuItem Header="Exit" Icon="{iconPacks:FontAwesome WindowCloseSolid}" Click="OnExitClick"/>
-            </MenuItem>
-            <MenuItem Header="Pack">
-                <MenuItem Header="Publish Locations" Icon="{iconPacks:FontAwesome FolderSolid}" Click="OnLocationsClick"/>
-                <MenuItem Header="Import" Icon="{iconPacks:FontAwesome FileImportSolid}"
-                          IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}">
-                    <MenuItem Header="From Folder" Icon="{iconPacks:FontAwesome FolderSolid}" Click="OnImportFolderClick"/>
-                    <MenuItem Header="From Archive" Icon="{iconPacks:FontAwesome FileArchiveSolid}" Click="OnImportZipClick"/>
-                </MenuItem>
-                <Separator/>
-                <MenuItem Header="Pack Input" Icon="{iconPacks:FontAwesome PaletteSolid}" Click="OnInputEncodingClick"
-                          IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
-                <MenuItem Header="Publish Profiles" Icon="{iconPacks:FontAwesome BookSolid}" Click="OnProfilesClick"
-                          IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
-            </MenuItem>
-            <MenuItem Header="Material"
-                      IsEnabled="{Binding HasLoadedMaterial, Mode=OneWay}">
-                <MenuItem Header="New" Icon="{iconPacks:FontAwesome PlusSolid}" Click="OnNewMaterialMenuClick"/>
-                <Separator/>
-                <MenuItem Header="Connections" Icon="{iconPacks:FontAwesome PuzzlePieceSolid}" Click="OnMaterialConnectionsMenuClick"/>
-                <MenuItem Header="Filters" Icon="{iconPacks:FontAwesome FilterSolid}" Click="OnMaterialFiltersMenuClick"/>
-            </MenuItem>
-            <MenuItem Header="Help">
-                <MenuItem Header="Documentation" Icon="{iconPacks:FontAwesome QuestionSolid}" Click="OnDocumentationButtonClick"/>
-            </MenuItem>
-        </Menu>
-        <ToolBarTray Grid.Row="1">
-            <ToolBar Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                <ComboBox Width="180" DisplayMemberPath="Name" ToolTip="Pack Profile"
-                          ItemsSource="{Binding PublishProfiles, Mode=OneWay}"
-                          SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
-                <ComboBox Width="180" DisplayMemberPath="DisplayName" ToolTip="Publish Location"
-                          SelectedItem="{Binding SelectedLocation, Mode=TwoWay}"
-                          SelectionChanged="OnPublishLocationSelectionChanged">
-                    <ComboBox.ItemsSource>
-                        <CompositeCollection>
-                            <vm:LocationViewModel x:Name="ManualLocation" DisplayName="Manual" IsManualSelect="True"/>
-                            <CollectionContainer Collection="{Binding Source={StaticResource PublishLocationsView}}"/>
-                        </CompositeCollection>
-                    </ComboBox.ItemsSource>
-                </ComboBox>
-                <Button Content="Publish" Click="OnPublishMenuItemClick"
-                        IsEnabled="{Binding HasProfileSelection, Mode=OneWay}"/>
-            </ToolBar>
-        </ToolBarTray>
-        <Grid Grid.Row="2">
-            <Border HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="16" MaxWidth="800" CornerRadius="12"
-                    Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,6,0" Orientation="Vertical">
-                        <Button Margin="2" Padding="6,2" FontSize="14" HorizontalContentAlignment="Left" Click="OnNewProjectClick">
-                            <StackPanel Orientation="Horizontal">
-                                <!--<fa5:SvgAwesome Icon="Solid_FolderPlus" VerticalAlignment="Center" HorizontalAlignment="Left" Height="14" />-->
-                                <iconPacks:PackIconFontAwesome Kind="FolderPlusSolid" Margin="0,0,6,0"/>
-                                <TextBlock Text="New Project"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Margin="2" Padding="6,2" FontSize="14" HorizontalContentAlignment="Left" Click="OnOpenClick">
-                            <StackPanel Orientation="Horizontal">
-                                <!--<fa5:SvgAwesome Icon="Solid_FolderOpen" Margin="0,0,6,0" VerticalAlignment="Center" HorizontalAlignment="Left" Height="14" />-->
-                                <iconPacks:PackIconFontAwesome Kind="FolderOpenSolid" Margin="0,0,6,0"/>
-                                <TextBlock Text="Open Existing"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                    <TextBlock Grid.Column="1" Grid.Row="0" Margin="6,6,0,0" Text="Recent Projects" FontStyle="Italic" Foreground="Blue" FontSize="16"/>
-                    <Rectangle Grid.Column="1" Grid.Row="0" VerticalAlignment="Bottom" Height="1" Fill="#333"/>
-                    <ListView Grid.Column="1" Grid.Row="1" Margin="0,0,6,6" x:Name="RecentList" SelectionChanged="OnRecentSelectionChanged"
-                              Background="Transparent" BorderThickness="0" Foreground="White"
-                              ItemsSource="{Binding RecentDirectories, Mode=OneWay}"/>
-                </Grid>
-            </Border>
+        <Grid Grid.Row="0">
+            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="16" MaxWidth="800"
+                  Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,6,0" Orientation="Vertical">
+                    <Button Margin="4" Padding="8" FontSize="14" HorizontalContentAlignment="Left" Click="OnNewProjectClick" Style="{DynamicResource MahApps.Styles.Button.Square.Accent}">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconFontAwesome Kind="FolderPlusSolid" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="New Project" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Margin="4" Padding="8" FontSize="14" HorizontalContentAlignment="Left" Click="OnOpenClick" Style="{DynamicResource MahApps.Styles.Button.Square.Accent}">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconFontAwesome Kind="FolderOpenSolid" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Open Existing" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Grid.Row="0" Margin="6,6,0,0" Text="Recent Projects" FontWeight="Bold" FontSize="16"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                <Rectangle Grid.Column="1" Grid.Row="0" VerticalAlignment="Bottom" Height="1" Fill="#333"/>
+                <ListView Grid.Column="1" Grid.Row="1" Margin="0,0,6,6" x:Name="RecentList" SelectionChanged="OnRecentSelectionChanged"
+                          Background="Transparent" BorderThickness="0" FontSize="14"
+                          ItemsSource="{Binding RecentDirectories, Mode=OneWay}"/>
+            </Grid>
             <Grid Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="280"/>
@@ -120,25 +139,29 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <DockPanel Grid.Column="0" Background="#FF1B1B1B">
-                    <DockPanel DockPanel.Dock="Top">
-                        <controls:ToggleButtonEx DockPanel.Dock="Right" ToolTip="Show All Files" Height="20" Width="20" Margin="2,2,4,1" BorderThickness="1" Padding="2"
-                                                 Content="{iconPacks:FontAwesome Kind=FileSolid}"
-                                                 IsChecked="{Binding ShowAllFiles, Mode=TwoWay}"/>
-                        <Button DockPanel.Dock="Right" ToolTip="Refresh" Height="20" Width="20" Margin="6,2,4,1" BorderThickness="1" Padding="2" Click="OnContentRefreshClick"
+                    <Grid DockPanel.Dock="Top" Height="34">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Margin="2" Padding="4,0,12,0" VerticalContentAlignment="Center" Height="26"
+                                 Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <iconPacks:PackIconFontAwesome Grid.Column="0" Kind="SearchSolid" Margin="4,0" Height="12" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False" Foreground="#FFC9C9C9"/>
+                        <Button Grid.Column="1" ToolTip="Refresh" Width="26" Height="26" Margin="2,4" BorderThickness="0" Padding="2" Click="OnContentRefreshClick"
                                 Content="{iconPacks:FontAwesome Kind=RedoSolid}"/>
-                        <Grid>
-                            <TextBox Padding="4,0,12,0" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                            <iconPacks:PackIconFontAwesome Kind="SearchSolid" Margin="2,0" IsHitTestVisible="False"/>
-                        </Grid>
-                    </DockPanel>
-                    <TreeView x:Name="ContentTree" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"
+                        <ToggleButton Grid.Column="2" Width="26" Height="26" Margin="2,4,4,4" BorderThickness="0" Padding="2" ToolTip="Show All Files"
+                                      Content="{iconPacks:FontAwesome Kind=FileSolid}"
+                                      IsChecked="{Binding ShowAllFiles, Mode=TwoWay}"/>
+                    </Grid>
+                    <TreeView x:Name="ContentTree" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling" FontSize="14"
                               SelectedItemChanged="OnTextureTreeSelectedItemChanged"
                               PreviewMouseRightButtonDown="OnContentTreePreviewMouseRightButtonDown"
                               ItemsSource="{Binding TreeRoot.Nodes, Mode=OneWay}">
                         <TreeView.Resources>
                             <DataTemplate DataType="{x:Type vm:ContentTreeFile}">
                                 <StackPanel Orientation="Horizontal">
-                                    <iconPacks:PackIconFontAwesome Margin="0,0,4,0" Height="12"
+                                    <iconPacks:PackIconFontAwesome Margin="0,0,4,0" Height="10" VerticalAlignment="Center"
                                                     Kind="{Binding Icon, Mode=OneWay}">
                                         <iconPacks:PackIconFontAwesome.Style>
                                             <Style TargetType="iconPacks:PackIconFontAwesome">
@@ -159,14 +182,14 @@
                             <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeMaterialDirectory}"
                                                       ItemsSource="{Binding Nodes, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal">
-                                    <iconPacks:PackIconFontAwesome Kind="PaletteSolid" Margin="0,0,4,0"/>
+                                    <iconPacks:PackIconFontAwesome Kind="PaletteSolid" Margin="0,0,4,0" Height="10" VerticalAlignment="Center" Foreground="#69ADE2"/>
                                     <TextBlock Text="{Binding Name}"/>
                                 </StackPanel>
                             </HierarchicalDataTemplate>
                             <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeDirectory}"
                                                       ItemsSource="{Binding Nodes, Mode=OneWay}">
                                 <StackPanel Orientation="Horizontal">
-                                    <iconPacks:PackIconFontAwesome Kind="FolderSolid" Margin="0,0,4,0"/>
+                                    <iconPacks:PackIconFontAwesome Kind="FolderSolid" Margin="0,0,4,0" Height="10" VerticalAlignment="Center" Foreground="#C4C4C4"/>
                                     <TextBlock Text="{Binding Name}"/>
                                 </StackPanel>
                             </HierarchicalDataTemplate>
@@ -193,9 +216,7 @@
                     </TreeView>
                 </DockPanel>
                 <GridSplitter Grid.Column="1" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
-                <TabControl>
-
-                </TabControl>
+                <!--<TabControl></TabControl>-->
                 <Grid Grid.Column="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*"/>
@@ -204,10 +225,10 @@
                     </Grid.ColumnDefinitions>
                     <Grid Grid.Column="0">
                         <DockPanel Visibility="{Binding HasPreviewImage, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                            <DockPanel DockPanel.Dock="Top" Margin="4,2" LastChildFill="False">
-                                <CheckBox DockPanel.Dock="Left" Content="Tile"
+                            <DockPanel DockPanel.Dock="Top" LastChildFill="False" Background="#FF1B1B1B" Height="34">
+                                <CheckBox DockPanel.Dock="Left" Content="Tile" Margin="4"
                                           IsChecked="{Binding EnableTiling, ElementName=TextureViewer}"/>
-                                <ComboBox IsEditable="True" DockPanel.Dock="Right"
+                                <ComboBox IsEditable="True" DockPanel.Dock="Right" Margin="4" BorderThickness="0"
                                           Text="{Binding ZoomText, Mode=TwoWay, ElementName=TextureViewer}">
                                     <ComboBoxItem Content="10%"/>
                                     <ComboBoxItem Content="25%"/>
@@ -251,14 +272,14 @@
                         </StackPanel>
                     </Grid>
                     <GridSplitter Grid.Column="1" Grid.Row="0" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"/>
-                    <controls:MaterialPropertiesControl Grid.Column="2" DataChanged="OnMaterialChanged" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
-                                                   Material="{Binding LoadedMaterial, Mode=OneWay}"
-                                                   SelectedTag="{Binding SelectedTag, Mode=TwoWay}"
-                                                   Visibility="{Binding HasLoadedMaterial, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
+                    <controls:MaterialPropertiesControl Grid.Column="2" DataChanged="OnMaterialChanged" EditLayer="OnEditLayer" GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
+                                                        Material="{Binding LoadedMaterial, Mode=OneWay}"
+                                                        SelectedTag="{Binding SelectedTag, Mode=TwoWay}"
+                                                        Visibility="{Binding HasLoadedMaterial, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
                 </Grid>
             </Grid>
         </Grid>
-        <StatusBar Grid.Row="3">
+        <StatusBar Grid.Row="1">
             <StatusBar.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <GradientStop Color="Black"/>

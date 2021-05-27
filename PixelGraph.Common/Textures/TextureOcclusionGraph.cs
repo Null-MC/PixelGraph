@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.ConnectedTextures;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
@@ -14,6 +13,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.Common.Textures
 {
@@ -152,7 +152,7 @@ namespace PixelGraph.Common.Textures
 
             var heightMapping = new TextureChannelMapping();
             heightMapping.ApplyInputChannel(heightChannel);
-            heightMapping.ValueScale = context.Material.GetChannelScale(EncodingChannel.Height);
+            heightMapping.ValueScale = (float)context.Material.GetChannelScale(EncodingChannel.Height);
 
             OcclusionProcessor<Rgba32>.Options options = null;
             OcclusionProcessor<Rgba32> processor = null;
@@ -310,14 +310,14 @@ namespace PixelGraph.Common.Textures
             var profileSize = context.Profile?.BlockTextureSize ?? context.Profile?.TextureSize;
             if (profileSize.HasValue) return profileSize.Value;
 
-            if (CtmTypes.Is(CtmTypes.Compact, context.Material.CtmType))
+            if (CtmTypes.Is(CtmTypes.Compact, context.Material.CTM?.Type))
                 return imageWidth / 5;
             
-            if (CtmTypes.Is(CtmTypes.Full, context.Material.CtmType))
+            if (CtmTypes.Is(CtmTypes.Full, context.Material.CTM?.Type))
                 return imageWidth / 12;
             
-            if (CtmTypes.Is(CtmTypes.Repeat, context.Material.CtmType))
-                return imageWidth / (context.Material.CtmCountX ?? 1);
+            if (CtmTypes.Is(CtmTypes.Repeat, context.Material.CTM?.Type))
+                return imageWidth / (context.Material.CTM?.CountX ?? 1);
 
             return imageWidth;
         }

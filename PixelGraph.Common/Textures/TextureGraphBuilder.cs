@@ -19,20 +19,20 @@ namespace PixelGraph.Common.Textures
     {
         Task ProcessInputGraphAsync(CancellationToken token = default);
         Task ProcessOutputGraphAsync(CancellationToken token = default);
+        Task PublishInventoryAsync(string suffix, CancellationToken token = default);
     }
 
     internal class TextureGraphBuilder : ITextureGraphBuilder
     {
+        private readonly ILogger<TextureGraphBuilder> logger;
         private readonly ITextureGraphContext context;
         private readonly ITextureGraph graph;
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
-        private readonly INamingStructure naming;
         private readonly IImageWriter imageWriter;
         private readonly IEdgeFadeImageEffect edgeFadeEffect;
         private readonly IInventoryTextureGenerator itemGenerator;
         private readonly ITextureRegionEnumerator regions;
-        private readonly ILogger logger;
         private string matMetaFileIn;
 
 
@@ -42,7 +42,6 @@ namespace PixelGraph.Common.Textures
             ITextureGraph graph,
             IInputReader reader,
             IOutputWriter writer,
-            INamingStructure naming,
             IImageWriter imageWriter,
             IEdgeFadeImageEffect edgeFadeEffect,
             IInventoryTextureGenerator itemGenerator,
@@ -52,7 +51,6 @@ namespace PixelGraph.Common.Textures
             this.graph = graph;
             this.reader = reader;
             this.writer = writer;
-            this.naming = naming;
             this.imageWriter = imageWriter;
             this.edgeFadeEffect = edgeFadeEffect;
             this.itemGenerator = itemGenerator;
@@ -63,6 +61,7 @@ namespace PixelGraph.Common.Textures
         /// <summary>
         /// Input -> Output; for publishing textures
         /// </summary>
+        /// <returns>An array of all published texture tags.</returns>
         public async Task ProcessInputGraphAsync(CancellationToken token = default)
         {
             context.ApplyInputEncoding();
@@ -75,21 +74,27 @@ namespace PixelGraph.Common.Textures
             
             if (context.Material.Publish ?? true) {
                 if (!IsOutputUpToDate(packWriteTime, sourceTime)) {
-                    logger.LogDebug($"Publishing texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
+                    logger.LogDebug("Publishing material '{DisplayName}'.", context.Material.DisplayName);
                     await ProcessAllTexturesAsync(true, token);
                 }
                 else {
-                    logger.LogDebug($"Skipping up-to-date texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
+                    logger.LogDebug("Skipping up-to-date material '{DisplayName}'.", context.Material.DisplayName);
                 }
             }
+        }
 
-            if (context.Material.PublishInventory ?? false) {
-                if (!IsInventoryUpToDate(packWriteTime, sourceTime)) {
-                    await GenerateInventoryTextureAsync(token);
-                }
-                else {
-                    logger.LogDebug($"Skipping up-to-date item texture {context.Material.LocalPath}:{{DisplayName}}.", context.Material.DisplayName);
-                }
+        public async Task PublishInventoryAsync(string suffix, CancellationToken token = default)
+        {
+            if (!(context.Material.PublishInventory ?? false)) return;
+
+            var packWriteTime = reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
+            var sourceTime = reader.GetWriteTime(context.Material.LocalFilename);
+            
+            if (!IsInventoryUpToDate(suffix, packWriteTime, sourceTime)) {
+                await GenerateInventoryTextureAsync(suffix, token);
+            }
+            else {
+                logger.LogDebug("Skipping up-to-date inventory texture for material '{DisplayName}.", context.Material.DisplayName);
             }
         }
 
@@ -103,6 +108,10 @@ namespace PixelGraph.Common.Textures
             await ProcessAllTexturesAsync(false, token);
         }
 
+        /// <summary>
+        /// Publishes all textures with mapped output.
+        /// </summary>
+        /// <returns>An array of all published texture tags.</returns>
         private async Task ProcessAllTexturesAsync(bool createEmpty, CancellationToken token)
         {
             var allOutputTags = context.OutputEncoding
@@ -150,20 +159,36 @@ namespace PixelGraph.Common.Textures
             using var image = await graph.CreateImageAsync<TPixel>(textureTag, createEmpty, token);
 
             if (image == null) {
-                // TODO: log
                 logger.LogWarning("No texture sources found for item {DisplayName} texture {textureTag}.", context.Material.DisplayName, textureTag);
                 return;
             }
 
-            imageWriter.Format = context.ImageFormat;
+            //imageWriter.Format = context.ImageFormat;
 
-            var p = context.Material.LocalPath;
-            if (!context.PublishAsGlobal || (context.IsMaterialCtm && !context.Material.UseGlobalMatching)) p = PathEx.Join(p, context.Material.Name);
+            var sourcePath = context.Material.LocalPath;
+            //var destPath = context.DestinationPath;
+            //if (!context.PublishAsGlobal || (context.IsMaterialCtm && !context.Material.UseGlobalMatching)) destPath = PathEx.Join(destPath, context.DestinationName);
 
             var maxFrameCount = graph.GetMaxFrameCount();
+            var usePlaceholder = context.Material.CTM?.Placeholder ?? false;
+            var ext = NamingStructure.GetExtension(context.Profile);
+
             foreach (var part in regions.GetAllPublishRegions(maxFrameCount)) {
-                var name = naming.GetOutputTextureName(context.Profile, part.Name, textureTag, context.PublishAsGlobal);
-                var destFile = PathEx.Join(p, name);
+                string destFile;
+                if (usePlaceholder && part.TileIndex == 0) {
+                    var placeholderPath = PathEx.Join("assets", "minecraft", "textures", "block");
+                    if (!context.Mapping.TryMap(placeholderPath, context.Material.Name, out var destPath, out var destName)) continue;
+
+                    var destTagName = NamingStructure.Get(textureTag, destName, ext, true);
+                    destFile = PathEx.Join(destPath, destTagName);
+                }
+                else {
+                    if (!context.Mapping.TryMap(sourcePath, part.Name, out var destPath, out var destName)) continue;
+
+                    var destTagName = NamingStructure.Get(textureTag, destName, ext, true);
+                    destFile = PathEx.Join(destPath, destTagName);
+                }
+
                 var srcWidth = image.Width;
                 var srcHeight = image.Height;
 
@@ -200,33 +225,29 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task GenerateInventoryTextureAsync(CancellationToken token = default)
+        private async Task GenerateInventoryTextureAsync(string suffix, CancellationToken token = default)
         {
-            var name = naming.GetOutputTextureName(context.Profile, context.Material.Name, TextureTags.Inventory, true);
-
-            var path = context.Material.LocalPath;
-            if (!context.PublishAsGlobal || (context.IsMaterialCtm && !context.Material.UseGlobalMatching)) path = PathEx.Join(path, context.Material.Name);
-            var destFile = PathEx.Join(path, name);
+            if (!GetMappedInventoryName(suffix, out var destFile)) return;
 
             // Generate item image
             using var itemImage = await itemGenerator.CreateAsync(graph, token);
             if (itemImage == null) {
-                logger.LogWarning("Failed to publish inventory texture {DisplayName}! No sources found.", context.Material.DisplayName);
+                logger.LogWarning("Failed to publish inventory texture {destFile}! No sources found.", destFile);
                 return;
             }
 
-            imageWriter.Format = context.ImageFormat;
+            //imageWriter.Format = context.ImageFormat;
             await imageWriter.WriteAsync(itemImage, destFile, ImageChannels.ColorAlpha, token);
 
-            logger.LogInformation("Published item texture {DisplayName}.", context.Material.DisplayName);
+            logger.LogInformation("Published item texture {destFile}.", destFile);
         }
 
         private async Task CopyPropertiesAsync(CancellationToken token)
         {
-            var propsFileIn = naming.GetInputPropertiesName(context.Material);
+            var propsFileIn = NamingStructure.GetInputPropertiesName(context.Material);
             if (!reader.FileExists(propsFileIn)) return;
 
-            var propsFileOut = naming.GetOutputPropertiesName(context.Material, context.PublishAsGlobal);
+            var propsFileOut = NamingStructure.GetOutputPropertiesName(context.Material, context.PublishAsGlobal);
 
             await using var sourceStream = reader.Open(propsFileIn);
             await using var destStream = writer.Open(propsFileOut);
@@ -235,13 +256,13 @@ namespace PixelGraph.Common.Textures
 
         private async Task CopyMetaAsync(string tag, CancellationToken token)
         {
-            var metaFileIn = naming.GetInputMetaName(context.Material, tag);
+            var metaFileIn = NamingStructure.GetInputMetaName(context.Material, tag);
             if (!reader.FileExists(metaFileIn)) {
-                metaFileIn = naming.GetInputMetaName(context.Material);
+                metaFileIn = NamingStructure.GetInputMetaName(context.Material);
                 if (!reader.FileExists(metaFileIn)) return;
             }
 
-            var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.PublishAsGlobal);
+            var metaFileOut = NamingStructure.GetOutputMetaName(context.Profile, context.Material, tag, context.PublishAsGlobal);
 
             await using var sourceStream = reader.Open(metaFileIn);
             await using var destStream = writer.Open(metaFileOut);
@@ -275,7 +296,7 @@ namespace PixelGraph.Common.Textures
             }
 
             foreach (var tag in outputTags) {
-                var metaFileOut = naming.GetOutputMetaName(context.Profile, context.Material, tag, context.PublishAsGlobal);
+                var metaFileOut = NamingStructure.GetOutputMetaName(context.Profile, context.Material, tag, context.PublishAsGlobal);
                 var metaTime = reader.GetWriteTime(metaFileOut);
 
                 if (metaTime.HasValue && (!sourceTime.HasValue || metaTime.Value > sourceTime.Value))
@@ -287,25 +308,32 @@ namespace PixelGraph.Common.Textures
 
         private IEnumerable<string> GetMaterialInputFiles(IEnumerable<string> textureTags)
         {
-            foreach (var tag in textureTags) {
-                foreach (var file in reader.EnumerateInputTextures(context.Material, tag))
-                    yield return file;
-            }
+            return textureTags.SelectMany(tag => reader.EnumerateInputTextures(context.Material, tag));
         }
 
         private IEnumerable<string> GetMaterialOutputFiles(IEnumerable<string> textureTags)
         {
-            var repeatCount = new Lazy<int>(() => (context.Material.CtmCountX ?? 1) * (context.Material.CtmCountY ?? 1));
+            var repeatCount = new Lazy<int>(() => (context.Material.CTM?.CountX ?? 1) * (context.Material.CTM?.CountY ?? 1));
+
+            //var sourcePath = context.
+            //var ext = NamingStructure.GetExtension(context.Profile);
+
+            var ext = NamingStructure.GetExtension(context.Profile);
+            var sourcePath = context.Material.LocalPath;
+            if (!context.PublishAsGlobal || (context.IsMaterialCtm && !context.Material.UseGlobalMatching))
+                sourcePath = PathEx.Join(sourcePath, context.Material.Name);
 
             foreach (var tag in textureTags) {
                 if (context.IsMaterialMultiPart) {
                     foreach (var part in context.Material.Parts) {
-                        var outputName = naming.GetOutputTextureName(context.Profile, part.Name, tag, true);
-                        yield return PathEx.Join(context.Material.LocalPath, outputName);
+                        var sourceName = NamingStructure.Get(tag, part.Name, ext, true);
+
+                        if (context.Mapping.TryMap(sourcePath, sourceName, out var destPath, out var destName))
+                            yield return PathEx.Join(destPath, destName);
                     }
                 }
                 else if (context.IsMaterialCtm) {
-                    var tileCount = context.Material.CtmType switch {
+                    var tileCount = context.Material.CTM?.Type switch {
                         CtmTypes.Compact => 5,
                         CtmTypes.Expanded => 47,
                         CtmTypes.Full => 47,
@@ -314,32 +342,58 @@ namespace PixelGraph.Common.Textures
                     };
 
                     for (var i = 0; i < tileCount; i++) {
-                        var outputName = naming.GetOutputTextureName(context.Profile, i.ToString(), tag, true);
-                        if (!context.Material.UseGlobalMatching) outputName = PathEx.Join(context.Material.Name, outputName);
-                        yield return PathEx.Join(context.Material.LocalPath, outputName);
+                        var usePlaceholder = context.Material.CTM?.Placeholder ?? false;
+                        var name = usePlaceholder ? context.Material.Name : i.ToString();
+                        var sourceName = NamingStructure.Get(tag, name, ext, true);
+
+                        if (!context.Material.UseGlobalMatching && !usePlaceholder)
+                            sourceName = PathEx.Join(context.Material.Name, sourceName);
+
+                        var outputPath = usePlaceholder
+                            ? PathEx.Join("assets", "minecraft", "textures", "block")
+                            : context.Material.LocalPath;
+
+                        yield return PathEx.Join(outputPath, sourceName);
                     }
                 }
                 else {
-                    var outputName = naming.GetOutputTextureName(context.Profile, context.Material.Name, tag, true);
-                    yield return PathEx.Join(context.Material.LocalPath, outputName);
+                    var sourceName = NamingStructure.Get(tag, context.Material.Name, ext, true);
+
+                    if (context.Mapping.TryMap(sourcePath, sourceName, out var destPath, out var destName))
+                        yield return PathEx.Join(destPath, destName);
                 }
             }
         }
 
-        private bool IsInventoryUpToDate(DateTime packWriteTime, DateTime? sourceTime)
+        private bool IsInventoryUpToDate(in string suffix, in DateTime packWriteTime, in DateTime? sourceTime)
         {
-            var albedoOutputName = naming.GetOutputTextureName(context.Profile, context.Material.Name, TextureTags.Inventory, true);
-            var albedoFile = PathEx.Join(context.Material.LocalPath, albedoOutputName);
-            var destinationTime = writer.GetWriteTime(albedoFile);
+            if (!GetMappedInventoryName(suffix, out var destFile)) return false;
 
+            var destinationTime = writer.GetWriteTime(destFile);
             return IsUpToDate(packWriteTime, sourceTime, destinationTime);
         }
 
-        private static bool IsUpToDate(DateTime profileWriteTime, DateTime? sourceWriteTime, DateTime? destWriteTime)
+        private static bool IsUpToDate(in DateTime profileWriteTime, in DateTime? sourceWriteTime, in DateTime? destWriteTime)
         {
             if (!destWriteTime.HasValue || !sourceWriteTime.HasValue) return false;
             if (profileWriteTime > destWriteTime.Value) return false;
             return sourceWriteTime <= destWriteTime.Value;
+        }
+
+        private bool GetMappedInventoryName(in string suffix, out string destFile)
+        {
+            var sourcePath = context.Material.LocalPath;
+
+            if (!context.PublishAsGlobal || (context.IsMaterialCtm && !context.Material.UseGlobalMatching))
+                sourcePath = PathEx.Join(sourcePath, context.Material.Name);
+
+            if (!context.Mapping.TryMap(sourcePath, context.Material.Name, out var destPath, out var destName)) {
+                destFile = null;
+                return false;
+            }
+
+            destFile = PathEx.Join(destPath, $"{destName}{suffix}");
+            return true;
         }
     }
 }

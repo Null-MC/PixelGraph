@@ -2,10 +2,10 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using PixelGraph.Common;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
@@ -19,7 +19,7 @@ using System.Windows.Media;
 
 namespace PixelGraph.UI.Windows
 {
-    public partial class PackProfilesWindow : Window
+    public partial class PackProfilesWindow
     {
         private readonly IServiceProvider provider;
         private readonly ILogger logger;
@@ -211,6 +211,27 @@ namespace PixelGraph.UI.Windows
             var mapping = (OutputChannelMapping) cell?.DataContext;
             mapping?.Clear();
         }
+
+        private void OnGenerateHeaderUuid(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show(this, "A value already exists! Are you sure you want to replace it?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                VM.PackHeaderUuid = Guid.NewGuid();
+        }
+
+        private void OnGenerateModuleUuid(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show(this, "A value already exists! Are you sure you want to replace it?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                VM.PackModuleUuid = Guid.NewGuid();
+        }
+
+        //private void OnFilterTextureFormats(object sender, FilterEventArgs e)
+        //{
+        //    if (VM.LoadedProfile == null) return;
+        //    if (e.Item is not TextureFormatValueItem item) return;
+        //    if (item.GameEditions == null) return;
+
+        //    e.Accepted = item.GameEditions.Contains(VM.LoadedProfile.Edition);
+        //}
 
         #endregion
     }

@@ -11,14 +11,6 @@ namespace PixelGraph.Common.IO
 {
     public abstract class BaseInputReader : IInputReader
     {
-        private readonly INamingStructure naming;
-
-
-        protected BaseInputReader(INamingStructure naming)
-        {
-            this.naming = naming;
-        }
-
         public abstract void SetRoot(string absolutePath);
         public abstract IEnumerable<string> EnumerateDirectories(string localPath, string pattern);
         public abstract IEnumerable<string> EnumerateFiles(string localPath, string pattern);
@@ -46,26 +38,26 @@ namespace PixelGraph.Common.IO
             }
 
             if (!string.IsNullOrEmpty(localName)) {
-                localName = PathEx.Normalize(localName);
+                localName = PathEx.Localize(localName);
                 yield return PathEx.Join(srcPath, localName);
             }
 
-            var matchName = naming.GetInputTextureName(material, tag);
+            var matchName = NamingStructure.GetInputTextureName(material, tag);
 
             foreach (var file in FilesMatching(srcPath, matchName))
                 yield return file;
         }
 
-        public IEnumerable<string> EnumerateOutputTextures(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global)
+        public IEnumerable<string> EnumerateOutputTextures(ResourcePackProfileProperties pack, string destName, string destPath, string tag, bool global)
         {
-            if (material == null) throw new ArgumentNullException(nameof(material));
             if (tag == null) throw new ArgumentNullException(nameof(tag));
 
             var srcPath = global
-                ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
+                ? destPath : PathEx.Join(destPath, destName);
 
-            var matchName = naming.GetOutputTextureName(pack, material.Name, tag, global);
-            return FilesMatching(srcPath, matchName);
+            var ext = NamingStructure.GetExtension(pack);
+            var tagFileName = NamingStructure.Get(tag, destName, ext, true);
+            return FilesMatching(srcPath, tagFileName);
         }
 
         public IEnumerable<string> EnumerateAllTextures(MaterialProperties material)

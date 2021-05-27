@@ -12,13 +12,13 @@ namespace PixelGraph.Common.Extensions
             return Path.Join(parts);
         }
 
-        public static string Normalize(string filename)
+        public static string Localize(string filename)
         {
             if (Path.DirectorySeparatorChar == '/') return filename;
             return filename.Replace('/', Path.DirectorySeparatorChar);
         }
 
-        public static string ToUnixStyle(string filename)
+        public static string Normalize(string filename)
         {
             return filename.Replace('\\', '/');
         }

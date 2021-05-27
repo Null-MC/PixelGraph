@@ -1,11 +1,11 @@
 ﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
-namespace PixelGraph.Common.Encoding
+namespace PixelGraph.Common.TextureFormats.Java
 {
-    public class Lab11Encoding : ITextureEncodingFactory
+    public class OldPbrFormat : ITextureFormatFactory
     {
-        public const string Description = "The first LabPBR standard.";
+        public const string Description = "The pre-Lab standard for PBR, also known as \"Old PBR\".";
 
 
         public ResourcePackEncoding Create()
@@ -14,8 +14,8 @@ namespace PixelGraph.Common.Encoding
                 Alpha = new ResourcePackAlphaChannelProperties {
                     Texture = TextureTags.Albedo,
                     Color = ColorChannel.Alpha,
-                    MinValue = 0m,
-                    MaxValue = 255m,
+                    MinValue = 0,
+                    MaxValue = 255,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
@@ -26,8 +26,8 @@ namespace PixelGraph.Common.Encoding
                 AlbedoRed = new ResourcePackAlbedoRedChannelProperties {
                     Texture = TextureTags.Albedo,
                     Color = ColorChannel.Red,
-                    MinValue = 0m,
-                    MaxValue = 255m,
+                    MinValue = 0,
+                    MaxValue = 255,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
@@ -38,8 +38,8 @@ namespace PixelGraph.Common.Encoding
                 AlbedoGreen = new ResourcePackAlbedoGreenChannelProperties {
                     Texture = TextureTags.Albedo,
                     Color = ColorChannel.Green,
-                    MinValue = 0m,
-                    MaxValue = 255m,
+                    MinValue = 0,
+                    MaxValue = 255,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
@@ -50,8 +50,8 @@ namespace PixelGraph.Common.Encoding
                 AlbedoBlue = new ResourcePackAlbedoBlueChannelProperties {
                     Texture = TextureTags.Albedo,
                     Color = ColorChannel.Blue,
-                    MinValue = 0m,
-                    MaxValue = 255m,
+                    MinValue = 0,
+                    MaxValue = 255,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
@@ -62,8 +62,8 @@ namespace PixelGraph.Common.Encoding
                 NormalX = new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Red,
-                    MinValue = 0m,
-                    MaxValue = 1m,
+                    MinValue = 0,
+                    MaxValue = 1,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
@@ -74,8 +74,8 @@ namespace PixelGraph.Common.Encoding
                 NormalY = new ResourcePackNormalYChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Green,
-                    MinValue = 0m,
-                    MaxValue = 1m,
+                    MinValue = 0,
+                    MaxValue = 1,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
@@ -86,8 +86,8 @@ namespace PixelGraph.Common.Encoding
                 NormalZ = new ResourcePackNormalZChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Blue,
-                    MinValue = 0m,
-                    MaxValue = 1m,
+                    MinValue = 0,
+                    MaxValue = 1,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
@@ -95,23 +95,11 @@ namespace PixelGraph.Common.Encoding
                     Invert = false,
                 },
 
-                Occlusion = new ResourcePackOcclusionChannelProperties {
-                    Texture = TextureTags.Normal,
-                    Color = ColorChannel.Magnitude,
-                    MinValue = 0m,
-                    MaxValue = 1m,
-                    RangeMin = 17,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 0.5m,
-                    Invert = true,
-                },
-
                 Height = new ResourcePackHeightChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Alpha,
-                    MinValue = 0m,
-                    MaxValue = 1m,
+                    MinValue = 0,
+                    MaxValue = 1,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
@@ -122,72 +110,35 @@ namespace PixelGraph.Common.Encoding
                 Smooth = new ResourcePackSmoothChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Red,
-                    MinValue = 0m,
-                    MaxValue = 1m,
+                    MinValue = 0,
+                    MaxValue = 1,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    Invert = false,
-                },
-
-                F0 = new ResourcePackF0ChannelProperties {
-                    Texture = TextureTags.Specular,
-                    Color = ColorChannel.Green,
-                    MinValue = 0m,
-                    MaxValue = 0.9m,
-                    RangeMin = 0,
-                    RangeMax = 229,
-                    Shift = 0,
-                    Power = 0.5m,
                     Invert = false,
                 },
 
                 Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
-                    Sampler = Samplers.Samplers.Nearest,
-                    MinValue = 230m,
-                    MaxValue = 255m,
-                    RangeMin = 230,
+                    MinValue = 255,
+                    MaxValue = 255,
+                    RangeMin = 255,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
                 },
-
-                Porosity = new ResourcePackPorosityChannelProperties {
-                    Texture = TextureTags.Specular,
-                    Color = ColorChannel.Blue,
-                    MinValue = 0m,
-                    MaxValue = 1m,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
-                },
-
-                //SSS = new ResourcePackSssChannelProperties {
-                //    Texture = TextureTags.Specular,
-                //    Color = ColorChannel.Alpha,
-                //    MinValue = 0m,
-                //    MaxValue = 1m,
-                //    RangeMin = 0,
-                //    RangeMax = 255,
-                //    Shift = -1,
-                //    Power = 1m,
-                //    Invert = false,
-                //},
 
                 Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Specular,
-                    Color = ColorChannel.Alpha,
-                    MinValue = 0m,
-                    MaxValue = 1m,
+                    Color = ColorChannel.Blue,
+                    MinValue = 0,
+                    MaxValue = 1,
                     RangeMin = 0,
                     RangeMax = 255,
-                    Shift = -1,
+                    Shift = 0,
                     Power = 1m,
                     Invert = false,
                 },

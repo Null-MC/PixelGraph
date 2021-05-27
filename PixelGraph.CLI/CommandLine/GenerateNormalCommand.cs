@@ -20,9 +20,9 @@ namespace PixelGraph.CLI.CommandLine
 {
     internal class GenerateNormalCommand
     {
+        private readonly ILogger<GenerateNormalCommand> logger;
         private readonly IServiceBuilder factory;
         private readonly IAppLifetime lifetime;
-        private readonly ILogger logger;
 
         public Command Command {get;}
 
@@ -86,7 +86,7 @@ namespace PixelGraph.CLI.CommandLine
         internal class Executor
         {
             private readonly IServiceProvider provider;
-            private readonly INamingStructure naming;
+            //private readonly INamingStructure naming;
             private readonly IInputReader reader;
             private readonly IResourcePackReader packReader;
             private readonly IMaterialReader materialReader;
@@ -95,14 +95,14 @@ namespace PixelGraph.CLI.CommandLine
 
             public Executor(
                 IServiceProvider provider,
-                INamingStructure naming,
+                //INamingStructure naming,
                 IInputReader reader,
                 IResourcePackReader packReader,
                 IMaterialReader materialReader,
                 ILogger<Executor> logger)
             {
                 this.provider = provider;
-                this.naming = naming;
+                //this.naming = naming;
                 this.reader = reader;
                 this.packReader = packReader;
                 this.materialReader = materialReader;
@@ -135,8 +135,13 @@ namespace PixelGraph.CLI.CommandLine
 
                 var timer = Stopwatch.StartNew();
 
+                if (normalFilename == null) {
+                    //var finalName = normalFilename ?? NamingStructure.GetOutputTextureName(packProfile, material.Name, TextureTags.Normal, material.UseGlobalMatching);
+                    var ext = NamingStructure.GetExtension(packProfile);
+                    normalFilename = NamingStructure.Get(TextureTags.Normal, material.Name, ext, material.UseGlobalMatching);
+                }
+
                 logger.LogDebug("Generating normals for texture {DisplayName}.", material.DisplayName);
-                var finalName = normalFilename ?? naming.GetOutputTextureName(packProfile, material.Name, TextureTags.Normal, material.UseGlobalMatching);
 
                 try {
                     using var scope = provider.CreateScope();
@@ -150,15 +155,15 @@ namespace PixelGraph.CLI.CommandLine
                     context.OutputEncoding = packInput.GetMapped().ToList();
 
                     using var image = await graph.GenerateAsync(token);
-                    await image.SaveAsync(finalName, token);
+                    await image.SaveAsync(normalFilename, token);
 
-                    logger.LogInformation("Normal texture {finalName} generated successfully.", finalName);
+                    logger.LogInformation("Normal texture {finalName} generated successfully.", normalFilename);
                 }
                 catch (SourceEmptyException error) {
-                    logger.LogError($"Failed to generate Normal texture {{finalName}}! {error.Message}", finalName);
+                    logger.LogError($"Failed to generate Normal texture {{finalName}}! {error.Message}", normalFilename);
                 }
                 catch (Exception error) {
-                    logger.LogError(error, "Failed to generate Normal texture {finalName}!", finalName);
+                    logger.LogError(error, "Failed to generate Normal texture {finalName}!", normalFilename);
                 }
 
                 timer.Stop();

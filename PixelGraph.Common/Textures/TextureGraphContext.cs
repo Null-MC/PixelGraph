@@ -1,8 +1,9 @@
-﻿using PixelGraph.Common.Encoding;
-using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
+using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -19,6 +20,10 @@ namespace PixelGraph.Common.Textures
         ResourcePackProfileProperties Profile {get; set;}
         List<ResourcePackChannelProperties> InputEncoding {get; set;}
         List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        IPublisherMapping Mapping {get; set;}
+
+        //string DestinationName {get; set;}
+        //string DestinationPath {get; set;}
         bool IsAnimated {get; set;}
         int MaxFrameCount {get; set;}
         bool PublishAsGlobal {get; set;}
@@ -43,15 +48,18 @@ namespace PixelGraph.Common.Textures
 
     internal class TextureGraphContext : ITextureGraphContext
     {
-        private static readonly Regex blockTextureExp = new Regex(@"(?:^|\/)textures\/block(?:\/|$)", RegexOptions.Compiled);
-        private static readonly Regex ctmTextureExp = new Regex(@"(?:^|\/)optifine\/ctm(?:\/|$)", RegexOptions.Compiled);
-        private static readonly Regex entityTextureExp = new Regex(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
+        private static readonly Regex blockTextureExp = new(@"(?:^|\/)textures\/block(?:\/|$)", RegexOptions.Compiled);
+        private static readonly Regex ctmTextureExp = new(@"(?:^|\/)optifine\/ctm(?:\/|$)", RegexOptions.Compiled);
+        private static readonly Regex entityTextureExp = new(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
 
         public MaterialProperties Material {get; set;}
         public ResourcePackInputProperties Input {get; set;}
         public ResourcePackProfileProperties Profile {get; set;}
         public List<ResourcePackChannelProperties> InputEncoding {get; set;}
         public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        public IPublisherMapping Mapping {get; set;}
+        public string DestinationName {get; set;}
+        public string DestinationPath {get; set;}
         public bool IsAnimated {get; set;}
         public int MaxFrameCount {get; set;}
         public bool PublishAsGlobal {get; set;}
@@ -60,7 +68,7 @@ namespace PixelGraph.Common.Textures
         public bool MaterialWrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool MaterialWrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
         public bool IsMaterialMultiPart => Material.Parts?.Any() ?? false;
-        public bool IsMaterialCtm => !string.IsNullOrWhiteSpace(Material.CtmType);
+        public bool IsMaterialCtm => !string.IsNullOrWhiteSpace(Material.CTM?.Type);
         public float? TextureScale => (float?)Profile?.TextureScale;
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
         public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
@@ -144,7 +152,7 @@ namespace PixelGraph.Common.Textures
             var type = GetMaterialType();
 
             if (type == MaterialType.Automatic) {
-                var path = PathEx.ToUnixStyle(Material.LocalPath);
+                var path = PathEx.Normalize(Material.LocalPath);
 
                 if (path != null) {
                     if (blockTextureExp.IsMatch(path)) return MaterialType.Block;
@@ -236,10 +244,5 @@ namespace PixelGraph.Common.Textures
             //var height = (int)MathF.Ceiling(bounds.Height * TextureScale.Value);
             //return new Size(width, height);
         }
-
-        //public string GetOutputMetaName(string textureTag)
-        //{
-        //    return naming.GetOutputMetaName(Profile, Material, textureTag, PublishGlobal);
-        //}
     }
 }

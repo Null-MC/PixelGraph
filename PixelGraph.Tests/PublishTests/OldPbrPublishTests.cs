@@ -1,6 +1,6 @@
-﻿using PixelGraph.Common.Encoding;
-using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
 using System.Threading.Tasks;
 using Xunit;
@@ -8,13 +8,13 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.PublishTests
 {
-    public class LegacyPublishTests : ImageTestBase
+    public class OldPbrPublishTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public LegacyPublishTests(ITestOutputHelper output) : base(output)
+        public OldPbrPublishTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
                 Format = TextureEncoding.Format_Raw,
@@ -22,7 +22,7 @@ namespace PixelGraph.Tests.PublishTests
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Format = TextureEncoding.Format_Legacy,
+                    Format = TextureEncoding.Format_OldPbr,
                 },
             };
         }

@@ -1,4 +1,6 @@
-﻿using PixelGraph.Common.Encoding;
+﻿using PixelGraph.Common.TextureFormats;
+using PixelGraph.Common.TextureFormats.Bedrock;
+using PixelGraph.Common.TextureFormats.Java;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,14 +13,14 @@ namespace PixelGraph.UI.Converters
         public const string NoneDescription = "No channel mappings. Do not use this without manually specifying encoding channels.";
 
         private static readonly Dictionary<string, string> map = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
-            [TextureEncoding.Format_Raw] = RawEncoding.Description,
-            [TextureEncoding.Format_Albedo] = AlbedoEncoding.Description,
-            [TextureEncoding.Format_Diffuse] = DiffuseEncoding.Description,
-            [TextureEncoding.Format_Specular] = SpecularEncoding.Description,
-            [TextureEncoding.Format_Legacy] = LegacyEncoding.Description,
-            [TextureEncoding.Format_Lab11] = Lab11Encoding.Description,
-            [TextureEncoding.Format_Lab12] = Lab12Encoding.Description,
-            [TextureEncoding.Format_Lab13] = Lab13Encoding.Description,
+            [TextureEncoding.Format_Raw] = RawFormat.Description,
+            [TextureEncoding.Format_Diffuse] = DiffuseFormat.Description,
+            [TextureEncoding.Format_Specular] = SpecularFormat.Description,
+            [TextureEncoding.Format_OldPbr] = OldPbrFormat.Description,
+            [TextureEncoding.Format_Lab11] = LabPbr11Format.Description,
+            [TextureEncoding.Format_Lab12] = LabPbr12Format.Description,
+            [TextureEncoding.Format_Lab13] = LabPbr13Format.Description,
+            [TextureEncoding.Format_Rtx] = RtxFormat.Description,
         };
 
 

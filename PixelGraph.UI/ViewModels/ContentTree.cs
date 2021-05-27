@@ -1,4 +1,4 @@
-﻿using FontAwesome5;
+﻿using MahApps.Metro.IconPacks;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -128,12 +128,12 @@ namespace PixelGraph.UI.ViewModels
     {
         public string Filename {get; set;}
         public ContentNodeType Type {get; set;}
-        public EFontAwesomeIcon Icon {get; set;}
+        public PackIconFontAwesomeKind Icon {get; set;}
 
 
         public ContentTreeFile(ContentTreeNode parent) : base(parent)
         {
-            Icon = EFontAwesomeIcon.Solid_File;
+            Icon = PackIconFontAwesomeKind.FileSolid;
         }
 
         public override void UpdateVisibility(ISearchParameters search)

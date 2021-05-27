@@ -12,7 +12,7 @@ namespace PixelGraph.Common.IO
         IEnumerable<string> EnumerateDirectories(string localPath, string pattern);
         IEnumerable<string> EnumerateFiles(string localPath, string pattern);
         IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag);
-        IEnumerable<string> EnumerateOutputTextures(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global);
+        IEnumerable<string> EnumerateOutputTextures(ResourcePackProfileProperties pack, string destName, string destPath, string tag, bool global);
         IEnumerable<string> EnumerateAllTextures(MaterialProperties material);
         bool FileExists(string localFile);
         string GetFullPath(string localFile);

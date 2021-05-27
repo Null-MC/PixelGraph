@@ -1,11 +1,12 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using MahApps.Metro.IconPacks;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Publishing;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FontAwesome5;
 
 namespace PixelGraph.UI.Internal
 {
@@ -17,12 +18,12 @@ namespace PixelGraph.UI.Internal
     internal class ContentTreeReader : IContentTreeReader
     {
         private readonly IInputReader reader;
-        private readonly IFileLoader loader;
+        private readonly IPublishReader loader;
 
 
         public ContentTreeReader(
             IInputReader reader,
-            IFileLoader loader)
+            IPublishReader loader)
         {
             this.reader = reader;
             this.loader = loader;
@@ -137,26 +138,26 @@ namespace PixelGraph.UI.Internal
             return ContentNodeType.Unknown;
         }
 
-        private static EFontAwesomeIcon GetNodeIcon(string fileName)
+        private static PackIconFontAwesomeKind GetNodeIcon(string fileName)
         {
             if (string.Equals("input.yml", fileName, StringComparison.InvariantCultureIgnoreCase))
-                return EFontAwesomeIcon.Solid_Map;
+                return PackIconFontAwesomeKind.PaletteSolid;
 
             if (fileName.EndsWith(".pack.yml", StringComparison.InvariantCultureIgnoreCase))
-                return EFontAwesomeIcon.Solid_FileExport;
+                return PackIconFontAwesomeKind.FileExportSolid;
 
             if (string.Equals("mat.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
                 || fileName.EndsWith(".mat.yml", StringComparison.InvariantCultureIgnoreCase))
-                return EFontAwesomeIcon.Solid_ChartBar;
+                return PackIconFontAwesomeKind.ChartAreaSolid;
 
             if (string.Equals("pbr.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
                 || fileName.EndsWith(".pbr.yml", StringComparison.InvariantCultureIgnoreCase))
-                return EFontAwesomeIcon.Solid_ChartBar;
+                return PackIconFontAwesomeKind.ChartAreaSolid;
 
             var ext = Path.GetExtension(fileName);
-            if (ImageExtensions.Supports(ext)) return EFontAwesomeIcon.Solid_Image;
+            if (ImageExtensions.Supports(ext)) return PackIconFontAwesomeKind.ImageSolid;
 
-            return EFontAwesomeIcon.Solid_File;
+            return PackIconFontAwesomeKind.FileSolid;
         }
     }
 }

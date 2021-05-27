@@ -10,7 +10,7 @@ namespace PixelGraph.Common.IO
         private string root;
 
 
-        public FileInputReader(INamingStructure naming) : base(naming) {}
+        //public FileInputReader() : base() {}
 
         public override void SetRoot(string absolutePath)
         {

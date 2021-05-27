@@ -42,6 +42,7 @@ namespace PixelGraph.Tests.Internal
         public void Dispose()
         {
             provider?.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public async ValueTask DisposeAsync()
@@ -80,6 +81,7 @@ namespace PixelGraph.Tests.Internal
             //graphContext.UseGlobalOutput = true;
 
             await graphBuilder.ProcessInputGraphAsync(token);
+            await graphBuilder.PublishInventoryAsync("inventory", token);
         }
 
         public Task<Image<Rgba32>> GetImageAsync(string localFile)

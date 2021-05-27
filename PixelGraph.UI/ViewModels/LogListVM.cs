@@ -47,4 +47,15 @@ namespace PixelGraph.UI.ViewModels
             [LogLevel.Trace] = Brushes.Purple,
         };
     }
+
+    public class LogListDesignVM : LogListVM
+    {
+        public LogListDesignVM()
+        {
+            Append(LogLevel.Debug, "DEBUG");
+            Append(LogLevel.Information, "INFO");
+            Append(LogLevel.Warning, "WARNING");
+            Append(LogLevel.Critical, "CRITICAL");
+        }
+    }
 }

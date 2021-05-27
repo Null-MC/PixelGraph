@@ -89,24 +89,24 @@ namespace PixelGraph.CLI.CommandLine
 
         private class Executor
         {
+            private readonly IServiceProvider provider;
             private readonly IInputReader reader;
             private readonly IOutputWriter writer;
             private readonly IResourcePackReader packReader;
-            private readonly IPublisher publisher;
 
             public bool CleanDestination {get; set;}
 
 
             public Executor(
+                IServiceProvider provider,
                 IResourcePackReader packReader,
                 IInputReader reader,
-                IOutputWriter writer,
-                IPublisher publisher)
+                IOutputWriter writer)
             {
+                this.provider = provider;
                 this.packReader = packReader;
                 this.reader = reader;
                 this.writer = writer;
-                this.publisher = publisher;
             }
 
             public async Task ExecuteAsync(string packFilename, string destFilename, CancellationToken token = default)
@@ -140,6 +140,7 @@ namespace PixelGraph.CLI.CommandLine
                         Profile = packProfile,
                     };
 
+                    var publisher = GetPublisher(packProfile);
                     await publisher.PublishAsync(context, CleanDestination, token);
                 }
                 finally {
@@ -148,6 +149,17 @@ namespace PixelGraph.CLI.CommandLine
                     ConsoleEx.Write("\nPublish Duration: ", ConsoleColor.Gray);
                     ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
                 }
+            }
+
+            private IPublisher GetPublisher(ResourcePackProfileProperties profile)
+            {
+                if (GameEditions.Is(profile.Edition, GameEditions.Java))
+                    return provider.GetRequiredService<IJavaPublisher>();
+
+                if (GameEditions.Is(profile.Edition, GameEditions.Bedrock))
+                    return provider.GetRequiredService<IBedrockPublisher>();
+
+                throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");
             }
         }
     }

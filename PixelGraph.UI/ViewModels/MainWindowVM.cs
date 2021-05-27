@@ -1,4 +1,4 @@
-﻿using FontAwesome5;
+﻿using MahApps.Metro.IconPacks;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -310,22 +310,22 @@ namespace PixelGraph.UI.ViewModels
                             new ContentTreeFile(null) {
                                 Name = "Dirt",
                                 Type = ContentNodeType.Texture,
-                                Icon = EFontAwesomeIcon.Solid_Image,
+                                Icon = PackIconFontAwesomeKind.ImageSolid,
                             },
                             new ContentTreeFile(null) {
                                 Name = "Grass",
                                 Type = ContentNodeType.Texture,
-                                Icon = EFontAwesomeIcon.Solid_Image,
+                                Icon = PackIconFontAwesomeKind.ImageSolid,
                             },
                             new ContentTreeFile(null) {
                                 Name = "Glass",
                                 Type = ContentNodeType.Texture,
-                                Icon = EFontAwesomeIcon.Solid_Image,
+                                Icon = PackIconFontAwesomeKind.ImageSolid,
                             },
                             new ContentTreeFile(null) {
                                 Name = "Stone",
                                 Type = ContentNodeType.Texture,
-                                Icon = EFontAwesomeIcon.Solid_Image,
+                                Icon = PackIconFontAwesomeKind.ImageSolid,
                             },
                         },
                     },

@@ -1,11 +1,11 @@
 ﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
-namespace PixelGraph.Common.Encoding
+namespace PixelGraph.Common.TextureFormats
 {
-    public class DiffuseEncoding : ITextureEncodingFactory
+    public class DiffuseFormat : ITextureFormatFactory
     {
-        public const string Description = "Uses only a diffuse color map.";
+        public const string Description = "Uses only a diffuse color map and alpha channel.";
 
 
         public ResourcePackEncoding Create()
@@ -20,7 +20,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -33,7 +32,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -46,7 +44,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -59,7 +56,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
             };

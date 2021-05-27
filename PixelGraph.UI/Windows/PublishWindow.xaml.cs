@@ -15,7 +15,7 @@ using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
-    public partial class PublishWindow : Window, IDisposable
+    public partial class PublishWindow : IDisposable
     {
         private readonly IServiceProvider provider;
         private readonly ILogger logger;
@@ -31,7 +31,7 @@ namespace PixelGraph.UI.Windows
             var settings = provider.GetRequiredService<IAppSettings>();
 
             VM.CloseOnComplete = settings.Data.PublishCloseOnComplete;
-            VM.LogList.Appended += OnLogListAppended;
+            VM.LogEvent += OnLogMessage;
         }
 
         private async Task PublishAsync(string destination, CancellationToken token)
@@ -42,6 +42,14 @@ namespace PixelGraph.UI.Windows
             if (VM.Archive) builder.AddArchiveOutput();
             else builder.AddFileOutput();
 
+            //if (GameEditions.Is(profile.Edition, GameEditions.Java)) {
+            //    //return provider.GetRequiredService<IJavaPublisher>();
+            //}
+            //else if (GameEditions.Is(profile.Edition, GameEditions.Bedrock)) {
+            //    //return provider.GetRequiredService<IBedrockPublisher>();
+            //}
+            //else throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");
+            
             var logReceiver = builder.AddLoggingRedirect();
             logReceiver.LogMessage += OnLogMessage;
 
@@ -49,12 +57,11 @@ namespace PixelGraph.UI.Windows
             var reader = scope.GetRequiredService<IInputReader>();
             var writer = scope.GetRequiredService<IOutputWriter>();
             var packReader = scope.GetRequiredService<IResourcePackReader>();
-            var publisher = scope.GetRequiredService<IPublisher>();
 
             reader.SetRoot(VM.RootDirectory);
             writer.SetRoot(destination);
 
-            VM.LogList.BeginAppend(LogLevel.None, "Preparing output directory...");
+            LogList.Append(LogLevel.None, "Preparing output directory...");
             writer.Prepare();
 
             var context = new ResourcePackContext {
@@ -63,13 +70,15 @@ namespace PixelGraph.UI.Windows
                 //UseGlobalOutput = true,
             };
 
-            VM.LogList.BeginAppend(LogLevel.None, "Publishing content...");
+            LogList.Append(LogLevel.None, "Publishing content...");
+            var publisher = GetPublisher(scope, context.Profile);
             await publisher.PublishAsync(context, VM.Clean, token);
         }
 
         public void Dispose()
         {
             VM?.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
@@ -81,18 +90,18 @@ namespace PixelGraph.UI.Windows
                 await Task.Run(() => PublishAsync(VM.Destination, VM.Token), VM.Token);
 
                 logger.LogInformation("Publish successful.");
-                VM.LogList.BeginAppend(LogLevel.None, "Publish completed successfully.");
+                LogList.Append(LogLevel.None, "Publish completed successfully.");
 
                 if (VM.CloseOnComplete) DialogResult = true;
             }
-            catch (TaskCanceledException) {
+            catch (OperationCanceledException) {
                 logger.LogWarning("Publish cancelled.");
-                VM.LogList.BeginAppend(LogLevel.Warning, "Publish Cancelled!");
+                LogList.Append(LogLevel.Warning, "Publish Cancelled!");
                 DialogResult = false;
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to publish resource pack!");
-                VM.LogList.BeginAppend(LogLevel.Error, $"Publish Failed! {error.UnfoldMessageString()}");
+                LogList.Append(LogLevel.Error, $"Publish Failed! {error.UnfoldMessageString()}");
             }
             finally {
                 await Application.Current.Dispatcher.BeginInvoke(() => VM.IsActive = false);
@@ -111,12 +120,7 @@ namespace PixelGraph.UI.Windows
 
         private void OnLogMessage(object sender, LogEventArgs e)
         {
-            VM.LogList.BeginAppend(e.Level, e.Message);
-        }
-
-        private void OnLogListAppended(object sender, EventArgs e)
-        {
-            LogList.ScrollToEnd();
+            LogList.Append(e.Level, e.Message);
         }
 
         private async void OnCloseCheckBoxChecked(object sender, RoutedEventArgs e)
@@ -125,6 +129,17 @@ namespace PixelGraph.UI.Windows
             settings.Data.PublishCloseOnComplete = VM.CloseOnComplete;
 
             await settings.SaveAsync();
+        }
+
+        private static IPublisher GetPublisher(IServiceProvider provider, ResourcePackProfileProperties profile)
+        {
+            if (GameEditions.Is(profile.Edition, GameEditions.Java))
+                return provider.GetRequiredService<IJavaPublisher>();
+
+            if (GameEditions.Is(profile.Edition, GameEditions.Bedrock))
+                return provider.GetRequiredService<IBedrockPublisher>();
+
+            throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");
         }
     }
 }

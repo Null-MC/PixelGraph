@@ -6,7 +6,7 @@
           xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
           d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d">
      <CheckBox.Style>
-         <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource MaterialDesignCheckBox}">
+         <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource MahApps.Styles.CheckBox}">
              <Style.Triggers>
                  <Trigger Property="IsChecked" Value="{x:Null}">
                     <Setter Property="Background" Value="#30BBB9B9"/>

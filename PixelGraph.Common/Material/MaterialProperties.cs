@@ -1,5 +1,5 @@
 ﻿using PixelGraph.Common.ConnectedTextures;
-using PixelGraph.Common.Encoding;
+using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
@@ -95,11 +95,8 @@ namespace PixelGraph.Common.Material
 
         public MaterialEmissiveProperties Emissive {get; set;}
 
-        [YamlMember(Order = 100)]
-        public string CtmType {get; set;}
-
-        public int? CtmCountX {get; set;}
-        public int? CtmCountY {get; set;}
+        [YamlMember(Alias = "ctm", Order = 100)]
+        public MaterialConnectionProperties CTM {get; set;}
 
         [YamlMember(Order = 101)]
         public List<MaterialPart> Parts {get; set;}
@@ -140,9 +137,9 @@ namespace PixelGraph.Common.Material
                 return true;
             }
 
-            if (!string.IsNullOrWhiteSpace(CtmType)) {
+            if (!string.IsNullOrWhiteSpace(CTM?.Type)) {
                 if (blockSize.HasValue) {
-                    switch (CtmType) {
+                    switch (CTM.Type) {
                         case CtmTypes.Compact:
                             size = new Size(blockSize.Value * 5, blockSize.Value);
                             return true;
@@ -151,8 +148,8 @@ namespace PixelGraph.Common.Material
                             size = new Size(blockSize.Value * 12, blockSize.Value * 4);
                             return true;
                         case CtmTypes.Repeat:
-                            var countX = CtmCountX ?? 1;
-                            var countY = CtmCountY ?? 1;
+                            var countX = CTM.CountX ?? 1;
+                            var countY = CTM.CountY ?? 1;
                             size = new Size(blockSize.Value * countX, blockSize.Value * countY);
                             return true;
                     }
@@ -198,16 +195,16 @@ namespace PixelGraph.Common.Material
             return result.HasValue;
         }
 
-        public float GetChannelScale(string channel)
+        public decimal GetChannelScale(string encodingChannel)
         {
-            if (EncodingChannel.IsEmpty(channel)) return 1f;
-            return scaleMap.TryGetValue(channel, out var value) ? (float)value(this) : 1f;
+            if (EncodingChannel.IsEmpty(encodingChannel)) return 1m;
+            return scaleMap.TryGetValue(encodingChannel, out var valueFunc) ? valueFunc(this) : 1m;
         }
 
-        public float GetChannelShift(string channel)
+        public decimal GetChannelShift(string encodingChannel)
         {
-            if (EncodingChannel.IsEmpty(channel)) return 0f;
-            return shiftMap.TryGetValue(channel, out var value) ? (float)value(this) : 0f;
+            if (EncodingChannel.IsEmpty(encodingChannel)) return 0m;
+            return shiftMap.TryGetValue(encodingChannel, out var valueFunc) ? valueFunc(this) : 0m;
         }
 
         private static readonly Dictionary<string, Func<MaterialProperties, decimal?>> valueMap = new Dictionary<string, Func<MaterialProperties, decimal?>>(StringComparer.OrdinalIgnoreCase) {
@@ -272,10 +269,37 @@ namespace PixelGraph.Common.Material
 
         #region Deprecated
         
-        [Obsolete("Replace usages of CreateInventory with PublishInventory.")]
+        [Obsolete("Replace usages of CreateInventory with PublishInventory")]
         [YamlMember] public bool? CreateInventory {
             get => null;
             set => PublishInventory = value;
+        }
+
+        [Obsolete("Replace usages of CtmType with CTM.Type")]
+        public string CtmType {
+            get => null;
+            set {
+                CTM ??= new MaterialConnectionProperties();
+                CTM.Type = value;
+            }
+        }
+
+        [Obsolete("Replace usages of CtmCountX with CTM.CountX")]
+        public int? CtmCountX {
+            get => null;
+            set {
+                CTM ??= new MaterialConnectionProperties();
+                CTM.CountX = value;
+            }
+        }
+
+        [Obsolete("Replace usages of CtmCountY with CTM.CountY")]
+        public int? CtmCountY {
+            get => null;
+            set {
+                CTM ??= new MaterialConnectionProperties();
+                CTM.CountY = value;
+            }
         }
 
         #endregion

@@ -1,10 +1,12 @@
-﻿using YamlDotNet.Serialization;
+﻿using System;
+using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
 {
     public class ResourcePackProfileProperties
     {
-        public const int DefaultFormat = 6;
+        public const int DefaultJavaFormat = 6;
+        public const int DefaultBedrockFormat = 2;
         public const decimal DefaultDiffuseOcclusionStrength = 1.0m;
         public const decimal DefaultOcclusionQuality = 0.06m;
         public const decimal DefaultOcclusionPower = 1.0m;
@@ -20,8 +22,22 @@ namespace PixelGraph.Common.ResourcePack
         /// <remarks>
         /// Supports Java and Bedrock.
         /// </remarks>
-        [YamlMember(Order = 1)]
+        [YamlMember(Order = -99)]
         public string Edition {get; set;}
+
+        /// <summary>
+        /// Gets or sets the Header UUID.
+        /// For Bedrock only!
+        /// </summary>
+        [YamlMember(Order = -98)]
+        public Guid? HeaderUuid {get; set;}
+
+        /// <summary>
+        /// Gets or sets the Module UUID.
+        /// For Bedrock only!
+        /// </summary>
+        [YamlMember(Order = -97)]
+        public Guid? ModuleUuid {get; set;}
 
         /// <summary>
         /// Gets or sets the revision of the RP formatting.
@@ -35,13 +51,18 @@ namespace PixelGraph.Common.ResourcePack
         ///   6: 1.16.2 – 1.16.5,
         ///   7: 1.17+
         /// </remarks>
-        [YamlMember(Order = 0)]
+        [YamlMember(Order = -97)]
         public int? Format {get; set;}
+
+        /// <summary>
+        /// Gets or sets the name that will be shown next to the RP in-game.
+        /// For Bedrock only!
+        /// </summary>
+        public string Name {get; set;}
 
         /// <summary>
         /// Gets or sets the text description that will be shown next to the RP in-game.
         /// </summary>
-        [YamlMember(Order = 0)]
         public string Description {get; set;}
 
         /// <summary>

@@ -15,10 +15,7 @@ namespace PixelGraph.UI.Internal
 
         public void Log(LogLevel level, string message)
         {
-            LogMessage?.Invoke(this, new LogEventArgs {
-                Level = level,
-                Message = message,
-            });
+            LogMessage?.Invoke(this, new LogEventArgs(level, message));
         }
     }
 }

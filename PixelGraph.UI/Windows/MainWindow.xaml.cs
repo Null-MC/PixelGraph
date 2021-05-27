@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.Common;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
@@ -10,6 +9,7 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using SixLabors.ImageSharp;
@@ -26,6 +26,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using PixelGraph.Common.IO.Publishing;
+using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.UI.Windows
 {
@@ -82,7 +84,7 @@ namespace PixelGraph.UI.Windows
             if (!vm.TryStartBusy()) return;
 
             var reader = provider.GetRequiredService<IInputReader>();
-            var loader = provider.GetRequiredService<IFileLoader>();
+            var loader = provider.GetRequiredService<IPublishReader>();
             var treeReader = provider.GetRequiredService<IContentTreeReader>();
 
             try {
@@ -125,17 +127,15 @@ namespace PixelGraph.UI.Windows
             if (!vm.TryStartBusy()) return;
 
             var reader = provider.GetRequiredService<IInputReader>();
-            var loader = provider.GetRequiredService<IFileLoader>();
+            var loader = provider.GetRequiredService<IPublishReader>();
             var treeReader = provider.GetRequiredService<IContentTreeReader>();
 
             try {
                 reader.SetRoot(vm.RootDirectory);
-                //loader.EnableAutoMaterial = settings.AutoMaterial;
                 loader.EnableAutoMaterial = vm.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
 
-                //vm.TreeRoot = treeReader.GetRootNode();
-                vm.TreeRoot.UpdateVisibility(vm);
                 treeReader.Update(vm.TreeRoot);
+                vm.TreeRoot.UpdateVisibility(vm);
             }
             finally {
                 vm.EndBusy();
@@ -255,8 +255,8 @@ namespace PixelGraph.UI.Windows
             var outputName = TextureTags.Get(material, TextureTags.Normal);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
-                var naming = provider.GetRequiredService<INamingStructure>();
-                outputName = naming.Get(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
+                //var naming = provider.GetRequiredService<INamingStructure>();
+                outputName = NamingStructure.Get(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
             }
 
             var path = PathEx.Join(vm.RootDirectory, material.LocalPath);
@@ -308,8 +308,8 @@ namespace PixelGraph.UI.Windows
             var outputName = TextureTags.Get(material, TextureTags.Occlusion);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
-                var naming = provider.GetRequiredService<INamingStructure>();
-                outputName = naming.Get(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
+                //var naming = provider.GetRequiredService<INamingStructure>();
+                outputName = NamingStructure.Get(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
             }
 
             var path = PathEx.Join(vm.RootDirectory, material.LocalPath);
@@ -478,15 +478,15 @@ namespace PixelGraph.UI.Windows
         //        ? folderDialog.SelectedPath : null;
         //}
 
-        private void OpenDocumentation()
-        {
-            var info = new ProcessStartInfo {
-                FileName = @"https://github.com/null511/PixelGraph/wiki",
-                UseShellExecute = true,
-            };
+        //private void OpenDocumentation()
+        //{
+        //    var info = new ProcessStartInfo {
+        //        FileName = @"https://github.com/null511/PixelGraph/wiki",
+        //        UseShellExecute = true,
+        //    };
 
-            Process.Start(info);
-        }
+        //    Process.Start(info);
+        //}
 
         private async Task UpdatePreviewAsync(bool clear)
         {
@@ -518,13 +518,13 @@ namespace PixelGraph.UI.Windows
                 }
                 catch (Exception error) {
                     logger.LogError(error, "Failed to load profile!");
-                    // TODO: display warning
+                    ShowError($"Failed to load profile! {error.UnfoldMessageString()}");
                 }
             }
 
             ImageSource image = null;
             try {
-                image = await Task.Run(() => p.BuildAsync(vm.SelectedTag), p.Token);
+                image = await Task.Run(() => p.BuildSourceAsync(vm.SelectedTag), p.Token);
             }
             catch (OperationCanceledException) {}
             catch (HeightSourceEmptyException) {}
@@ -831,10 +831,10 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private void OnDocumentationButtonClick(object sender, RoutedEventArgs e)
-        {
-            OpenDocumentation();
-        }
+        //private void OnDocumentationButtonClick(object sender, RoutedEventArgs e)
+        //{
+        //    OpenDocumentation();
+        //}
 
         private async void OnImportMaterialClick(object sender, RoutedEventArgs e)
         {
@@ -937,7 +937,7 @@ namespace PixelGraph.UI.Windows
                 fullPath += Path.DirectorySeparatorChar;
 
             try {
-                Process.Start("explorer.exe", fullPath);
+                using var _ = Process.Start("explorer.exe", fullPath);
             }
             catch (Exception error) {
                 logger.LogError(error, $"Failed to open external directory \"{fullPath}\"!");
@@ -950,12 +950,31 @@ namespace PixelGraph.UI.Windows
             var fullFile = PathEx.Join(vm.RootDirectory, file);
 
             try {
-                Process.Start("explorer.exe", $"/select,\"{fullFile}\"");
+                using var _ = Process.Start("explorer.exe", $"/select,\"{fullFile}\"");
             }
             catch (Exception error) {
                 logger.LogError(error, $"Failed to open directory with file \"{fullFile}\"!");
                 ShowError($"Failed to open directory! {error.UnfoldMessageString()}");
             }
+        }
+
+        private async void OnEditLayer(object sender, EventArgs e)
+        {
+            if (!vm.HasLoadedMaterial) return;
+            if (!vm.HasTagSelection) return;
+
+            var editUtility = provider.GetRequiredService<ITextureEditUtility>();
+
+            try {
+                var success = await editUtility.EditLayerAsync(vm.LoadedMaterial, vm.SelectedTag);
+                if (!success) return;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to launch external image editor!");
+                ShowError($"Failed to launch external image editor! {error.UnfoldMessageString()}");
+            }
+
+            await UpdatePreviewAsync(false);
         }
 
         private void OnExitClick(object sender, RoutedEventArgs e)

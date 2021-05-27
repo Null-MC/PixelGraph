@@ -14,11 +14,14 @@
                 <TextBox x:Name="text"
                          Foreground="{TemplateBinding Foreground}"
                          Padding="{TemplateBinding Padding}"
+                         BorderThickness="{TemplateBinding BorderThickness}"
                          Text="{Binding Text, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=controls:TextBoxEx}}"
                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                          TextAlignment="{TemplateBinding TextAlignment}"/>
-                <TextBlock x:Name="overlay" IsHitTestVisible="False" VerticalAlignment="Center" Visibility="Hidden" Opacity="0.6" FontStyle="Italic"
+                <TextBlock x:Name="overlay" IsHitTestVisible="False" Visibility="Hidden" Opacity="0.6" FontStyle="Italic"
+                           Padding="{TemplateBinding Padding}"
                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                            Foreground="{Binding PlaceholderForeground, Mode=OneWay, RelativeSource={RelativeSource AncestorType=controls:TextBoxEx}}"
                            Text="{Binding Placeholder, Mode=OneWay, RelativeSource={RelativeSource AncestorType=controls:TextBoxEx}}"
                            TextAlignment="{TemplateBinding TextAlignment}"/>

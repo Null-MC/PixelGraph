@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewData;
 using System;
 using System.Threading;
@@ -11,12 +12,13 @@ namespace PixelGraph.UI.ViewModels
         private volatile bool _isActive;
         private bool _closeOnComplete;
 
+        public event EventHandler<LogEventArgs> LogEvent;
+
         public ProfileItem Profile {get; set;}
         public string RootDirectory {get; set;}
         public string Destination {get; set;}
         public bool Archive {get; set;}
         public bool Clean {get; set;}
-        public LogListVM LogList {get;}
 
         public CancellationToken Token => tokenSource.Token;
 
@@ -39,7 +41,6 @@ namespace PixelGraph.UI.ViewModels
 
         public PublishWindowVM()
         {
-            LogList = new LogListVM();
             tokenSource = new CancellationTokenSource();
         }
 
@@ -52,6 +53,12 @@ namespace PixelGraph.UI.ViewModels
         {
             tokenSource?.Dispose();
         }
+
+        public void AppendLog(LogLevel level, string text)
+        {
+            var e = new LogEventArgs(level, text);
+            LogEvent?.Invoke(this, e);
+        }
     }
 
     internal class PublishWindowDesignVM : PublishWindowVM
@@ -59,9 +66,9 @@ namespace PixelGraph.UI.ViewModels
         public PublishWindowDesignVM()
         {
             IsActive = true;
-            LogList.Append(LogLevel.Debug, "Hello World!");
-            LogList.Append(LogLevel.Warning, "Something is wrong...");
-            LogList.Append(LogLevel.Error, "DANGER Will Robinson");
+            AppendLog(LogLevel.Debug, "Hello World!");
+            AppendLog(LogLevel.Warning, "Something is wrong...");
+            AppendLog(LogLevel.Error, "DANGER Will Robinson");
         }
     }
 }

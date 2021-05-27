@@ -16,7 +16,7 @@ using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
-    public partial class ImportPackWindow : Window, IDisposable
+    public partial class ImportPackWindow : IDisposable
     {
         private readonly IServiceProvider provider;
         private readonly ILogger logger;
@@ -32,7 +32,7 @@ namespace PixelGraph.UI.Windows
 
             InitializeComponent();
 
-            VM.LogList.Appended += OnLogListAppended;
+            VM.LogEvent += OnLogListAppended;
         }
 
         private async Task LoadSourceAsync(CancellationToken token)
@@ -152,7 +152,7 @@ namespace PixelGraph.UI.Windows
         private void OnCancelClick(object sender, RoutedEventArgs e)
         {
             tokenSource.Cancel();
-            VM.LogList.Append(LogLevel.Warning, "Cancelling...");
+            LogList.Append(LogLevel.Warning, "Cancelling...");
 
             //DialogResult = false;
             //Close();
@@ -169,17 +169,17 @@ namespace PixelGraph.UI.Windows
                 await Task.Run(() => RunAsync(tokenSource.Token), tokenSource.Token);
 
                 logger.LogInformation("Import successful.");
-                VM.LogList.BeginAppend(LogLevel.Information, "Import completed successfully.");
+                LogList.Append(LogLevel.Information, "Import completed successfully.");
                 DialogResult = true;
             }
-            catch (TaskCanceledException) {
+            catch (OperationCanceledException) {
                 logger.LogWarning("Import cancelled.");
-                VM.LogList.BeginAppend(LogLevel.Warning, "Operation Cancelled.");
+                LogList.Append(LogLevel.Warning, "Operation Cancelled.");
                 DialogResult = false;
             }
             catch (Exception error) {
                 logger.LogError(error, "Import failed!");
-                VM.LogList.BeginAppend(LogLevel.Error, $"ERROR! {error.UnfoldMessageString()}");
+                LogList.Append(LogLevel.Error, $"ERROR! {error.UnfoldMessageString()}");
             }
             finally {
                 VM.IsActive = false;
@@ -188,12 +188,12 @@ namespace PixelGraph.UI.Windows
 
         private void OnLogMessage(object sender, LogEventArgs e)
         {
-            VM.LogList.BeginAppend(e.Level, e.Message);
+            LogList.Append(e.Level, e.Message);
         }
 
-        private void OnLogListAppended(object sender, EventArgs e)
+        private void OnLogListAppended(object sender, LogEventArgs e)
         {
-            LogList.ScrollToEnd();
+            LogList.Append(e.Level, e.Message);
         }
 
         #endregion

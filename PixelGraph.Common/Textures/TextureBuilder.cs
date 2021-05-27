@@ -1,9 +1,9 @@
-﻿using PixelGraph.Common.Encoding;
-using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
+using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -185,8 +185,8 @@ namespace PixelGraph.Common.Textures
                 OutputInverted = outputChannel.Invert ?? false,
                 OutputSampler = samplerName,
 
-                ValueShift = context.Material.GetChannelShift(outputChannel.ID),
-                ValueScale = context.Material.GetChannelScale(outputChannel.ID),
+                ValueShift = (float)context.Material.GetChannelShift(outputChannel.ID),
+                ValueScale = (float)context.Material.GetChannelScale(outputChannel.ID),
             };
 
             var inputChannel = InputChannels.FirstOrDefault(i
@@ -314,12 +314,6 @@ namespace PixelGraph.Common.Textures
             return false;
         }
 
-        //private bool TryGetInputChannel(string id, out ResourcePackChannelProperties channel)
-        //{
-        //    channel = InputChannels.FirstOrDefault(i => EncodingChannel.Is(i.ID, id));
-        //    return channel != null;
-        //}
-
         private void ApplyNormalMapping(Image image, TextureChannelMapping mapping)
         {
             var sampler = normalGraph.GetNormalSampler();
@@ -407,29 +401,8 @@ namespace PixelGraph.Common.Textures
             var value = mapping.InputValue ?? 0f;
             if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
-            //if (!mapping.TryUnmap(in rawValue, out var value)) return;
             mapping.Map(ref value, out byte finalValue);
             
-            // Common Processing
-            //value = (value + mapping.ValueShift) * mapping.ValueScale;
-
-            //if (!mapping.OutputPower.Equal(1f))
-            //    value = MathF.Pow(value, mapping.OutputPower);
-
-            //if (mapping.OutputInverted) MathEx.Invert(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
-
-            //MathEx.Clamp(ref value, mapping.OutputMinValue, mapping.OutputMaxValue);
-
-            //var valueRange = mapping.OutputMaxValue - mapping.OutputMinValue;
-            //var pixelRange = mapping.OutputRangeMax - mapping.OutputRangeMin;
-            //var outputScale = pixelRange / valueRange;
-
-            //var valueOut = mapping.OutputRangeMin + (value - mapping.OutputMinValue) * outputScale;
-            //var finalValue = MathEx.ClampRound(valueOut, mapping.OutputRangeMin, mapping.OutputRangeMax);
-
-            //if (mapping.OutputShift != 0)
-            //    MathEx.Cycle(ref finalValue, in mapping.OutputShift, in mapping.OutputRangeMin, in mapping.OutputRangeMax);
-
             if (isGrayscale) {
                 defaultValues.R = finalValue;
                 defaultValues.G = finalValue;
@@ -490,7 +463,7 @@ namespace PixelGraph.Common.Textures
             };
 
             options.OcclusionMapping.ApplyInputChannel(occlusionGraph.Channel);
-            options.OcclusionMapping.ValueScale = context.Material.GetChannelScale(EncodingChannel.Occlusion);
+            options.OcclusionMapping.ValueScale = (float)context.Material.GetChannelScale(EncodingChannel.Occlusion);
 
             if (context.Profile?.DiffuseOcclusionStrength.HasValue ?? false)
                 options.OcclusionMapping.ValueScale *= (float)context.Profile.DiffuseOcclusionStrength.Value;
@@ -713,7 +686,7 @@ namespace PixelGraph.Common.Textures
             if (tag == null) throw new ArgumentNullException(nameof(tag));
 
             var textureList = context.IsImport
-                ? reader.EnumerateOutputTextures(context.Profile, context.Material, tag, true)
+                ? reader.EnumerateOutputTextures(context.Profile, context.Material.Name, context.Material.LocalPath, tag, true)
                 : reader.EnumerateInputTextures(context.Material, tag);
 
             foreach (var file in textureList) {

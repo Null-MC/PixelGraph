@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Effects;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
@@ -17,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.UI.Internal
 {
@@ -27,7 +27,8 @@ namespace PixelGraph.UI.Internal
         ResourcePackProfileProperties Profile {get; set;}
         CancellationToken Token {get;}
 
-        Task<ImageSource> BuildAsync(string tag, int targetFrame = 0);
+        Task<Image> BuildAsync(string tag, int targetFrame = 0);
+        Task<ImageSource> BuildSourceAsync(string tag, int targetFrame = 0);
         void Cancel();
     }
 
@@ -49,7 +50,7 @@ namespace PixelGraph.UI.Internal
             tokenSource = new CancellationTokenSource();
         }
 
-        public async Task<ImageSource> BuildAsync(string tag, int targetFrame = 0)
+        public async Task<Image> BuildAsync(string tag, int targetFrame = 0)
         {
             var scope = provider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
@@ -80,18 +81,31 @@ namespace PixelGraph.UI.Internal
                 await graph.PreBuildNormalTextureAsync(tokenSource.Token);
 
             await graph.MapAsync(tag, true, targetFrame, Token);
-            using var image = await graph.CreateImageAsync<Rgb24>(tag, true, tokenSource.Token);
+
+            var image = await graph.CreateImageAsync<Rgb24>(tag, true, tokenSource.Token);
             if (image == null) return null;
 
-            if (TextureTags.Is(tag, TextureTags.Height) && (image.Width > 1 || image.Height > 1)) {
-                foreach (var part in regions.GetAllPublishRegions(context.MaxFrameCount)) {
-                    foreach (var frame in part.Frames) {
-                        var outBounds = frame.SourceBounds.ScaleTo(image.Width, image.Height);
-                        edgeFadeEffect.Apply(image, tag, outBounds);
+            try {
+                if (TextureTags.Is(tag, TextureTags.Height) && (image.Width > 1 || image.Height > 1)) {
+                    foreach (var part in regions.GetAllPublishRegions(context.MaxFrameCount)) {
+                        foreach (var frame in part.Frames) {
+                            var outBounds = frame.SourceBounds.ScaleTo(image.Width, image.Height);
+                            edgeFadeEffect.Apply(image, tag, outBounds);
+                        }
                     }
                 }
-            }
 
+                return image;
+            }
+            catch {
+                image.Dispose();
+                throw;
+            }
+        }
+
+        public async Task<ImageSource> BuildSourceAsync(string tag, int targetFrame = 0)
+        {
+            using var image = await BuildAsync(tag, targetFrame);
             return await CreateImageSourceAsync(image, tokenSource.Token);
         }
 

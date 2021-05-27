@@ -1,8 +1,8 @@
-﻿using PixelGraph.Common.Encoding;
-using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Tests.Internal;
 using System.Threading.Tasks;
+using PixelGraph.Common.TextureFormats;
 using Xunit;
 using Xunit.Abstractions;
 

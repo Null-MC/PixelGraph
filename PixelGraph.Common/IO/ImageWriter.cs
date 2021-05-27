@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Tga;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,8 +16,6 @@ namespace PixelGraph.Common.IO
 {
     public interface IImageWriter
     {
-        public string Format {get; set;}
-
         Task WriteAsync(Image image, string localFile, ImageChannels type, CancellationToken token);
     }
 
@@ -24,8 +23,6 @@ namespace PixelGraph.Common.IO
     {
         private static readonly Dictionary<string, Func<ImageChannels, IImageEncoder>> map;
         private readonly IOutputWriter writer;
-
-        public string Format {get; set;}
 
 
         static ImageWriter()
@@ -49,15 +46,17 @@ namespace PixelGraph.Common.IO
         {
             if (image == null) throw new ArgumentNullException(nameof(image));
 
-            var encoder = GetEncoder(type);
+            var ext = Path.GetExtension(localFile)?.TrimStart('.');
+
+            var encoder = GetEncoder(ext, type);
             await using var stream = writer.Open(localFile);
             await image.SaveAsync(stream, encoder, token);
         }
 
-        private IImageEncoder GetEncoder(ImageChannels type)
+        private IImageEncoder GetEncoder(string ext, ImageChannels type)
         {
-            if (map.TryGetValue(Format, out var encoderFunc)) return encoderFunc(type);
-            throw new ApplicationException($"Unsupported image encoding '{Format}'!");
+            if (map.TryGetValue(ext, out var encoderFunc)) return encoderFunc(type);
+            throw new ApplicationException($"Unsupported image encoding '{ext}'!");
         }
 
         private static BmpEncoder GetBitmapEncoder(ImageChannels type)
@@ -74,7 +73,7 @@ namespace PixelGraph.Common.IO
 
         private static PngEncoder GetPngEncoder(ImageChannels type)
         {
-            return new PngEncoder {
+            return new() {
                 FilterMethod = PngFilterMethod.Adaptive,
                 CompressionLevel = PngCompressionLevel.BestCompression,
                 BitDepth = PngBitDepth.Bit8,
@@ -91,7 +90,7 @@ namespace PixelGraph.Common.IO
 
         private static TgaEncoder GetTgaEncoder(ImageChannels type)
         {
-            return new TgaEncoder {
+            return new() {
                 Compression = TgaCompression.RunLength,
                 BitsPerPixel = TgaBitsPerPixel.Pixel32,
             };
@@ -99,7 +98,7 @@ namespace PixelGraph.Common.IO
 
         private static JpegEncoder GetJpegEncoder(ImageChannels type)
         {
-            return new JpegEncoder {
+            return new() {
                 Subsample = JpegSubsample.Ratio444,
                 Quality = 100,
             };
@@ -107,7 +106,7 @@ namespace PixelGraph.Common.IO
 
         private static GifEncoder GetGifEncoder(ImageChannels type)
         {
-            return new GifEncoder {
+            return new() {
                 ColorTableMode = GifColorTableMode.Global,
             };
         }

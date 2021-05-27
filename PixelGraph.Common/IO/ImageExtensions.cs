@@ -5,7 +5,12 @@ namespace PixelGraph.Common.IO
 {
     public static class ImageExtensions
     {
-        public const string Default = "png";
+        public const string Bmp = "bmp";
+        public const string Jpg = "tga";
+        public const string Png = "png";
+        public const string Tga = "tga";
+
+        public const string Default = Png;
 
         public static readonly string[] Supported = {
             "bmp",

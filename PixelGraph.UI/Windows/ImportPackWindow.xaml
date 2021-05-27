@@ -12,7 +12,7 @@
                     d:DataContext="{d:DesignInstance vm:ImportPackDesignVM, IsDesignTimeCreatable=True}"
                     WindowStartupLocation="CenterOwner" Loaded="OnWindowLoaded" Closed="OnWindowClosed">
     <Window.Resources>
-        <vd:OptionalEncodingFormatValues x:Key="Formats"/>
+        <vd:OptionalAllTextureFormatValues x:Key="AllTextureFormats"/>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
     </Window.Resources>
@@ -48,7 +48,7 @@
                             <Button DockPanel.Dock="Right" Padding="2,0,2,0" ToolTip="Edit Encoding" Height="20"
                                     Content="{iconPacks:FontAwesome Kind=EditSolid}"/>
                             <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
-                                      ItemsSource="{StaticResource Formats}"
+                                      ItemsSource="{StaticResource AllTextureFormats}"
                                       SelectedValue="{Binding SourceFormat, Mode=TwoWay}" Padding="4,2" Margin="0,0,4,0"/>
                         </DockPanel>
                     </StackPanel>
@@ -72,8 +72,7 @@
                 </Grid>
             </DockPanel>
             <controls:LogListControl x:Name="LogList"
-                Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"
-                Log="{Binding LogList, Mode=OneWay}"/>
+                Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
         </Grid>
     </DockPanel>
 </Window>

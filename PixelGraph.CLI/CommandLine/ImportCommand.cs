@@ -158,8 +158,9 @@ namespace PixelGraph.CLI.CommandLine
                     };
 
                     await graphBuilder.ProcessInputGraphAsync(token);
+                    //await graphBuilder.PublishInventoryAsync(token);
 
-                    const string localFile = "pbr.yml";
+                    const string localFile = "mat.yml";
                     await packWriter.WriteAsync(localFile, packProfile);
                 }
                 finally {

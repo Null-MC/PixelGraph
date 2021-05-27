@@ -1,12 +1,11 @@
 ﻿using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 
-namespace PixelGraph.Common.Encoding
+namespace PixelGraph.Common.TextureFormats.Java
 {
-    public class Lab12Encoding : ITextureEncodingFactory
+    public class LabPbr13Format : ITextureFormatFactory
     {
-        public const string Description = "The second LabPBR standard.";
+        public const string Description = "The latest LabPbr standard.";
 
 
         public ResourcePackEncoding Create()
@@ -128,7 +127,7 @@ namespace PixelGraph.Common.Encoding
                     RangeMin = 0,
                     RangeMax = 229,
                     Shift = 0,
-                    Power = 0.5m,
+                    Power = 1m,
                     Invert = false,
                 },
 
@@ -171,7 +170,7 @@ namespace PixelGraph.Common.Encoding
 
                 Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Specular,
-                    Color = ColorChannel.Blue,
+                    Color = ColorChannel.Alpha,
                     MinValue = 0m,
                     MaxValue = 1m,
                     RangeMin = 0,

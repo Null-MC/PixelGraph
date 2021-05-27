@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Version>1.3.2</Version>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>PixelGraph</AssemblyName>
     <OutputType>Exe</OutputType>
     <Platforms>AnyCPU;x64</Platforms>

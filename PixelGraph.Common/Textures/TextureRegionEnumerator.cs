@@ -42,14 +42,14 @@ namespace PixelGraph.Common.Textures
                 Bounds = GetFrameBounds(index, frameCount),
             };
 
-            if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Compact)) {
+            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Compact)) {
                 frame.Tiles = Enumerable.Range(0, 5)
                     .Select(x => new TextureRenderTile {
                         Index = x,
                         Bounds = GetFrameTileBounds(index, frameCount, x),
                     }).ToArray();
             }
-            else if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Full)) {
+            else if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Full)) {
                 frame.Tiles = Enumerable.Range(0, 47)
                     .Select(z => new TextureRenderTile {
                         Index = z,
@@ -115,14 +115,14 @@ namespace PixelGraph.Common.Textures
             if (context.IsMaterialMultiPart)
                 return context.Material.Parts.Count;
 
-            if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Compact))
+            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Compact))
                 return 5;
 
-            if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Full))
+            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Full))
                 return 47;
 
-            if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Repeat))
-                return (context.Material.CtmCountX ?? 1) * (context.Material.CtmCountY ?? 1);
+            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Repeat))
+                return (context.Material.CTM?.CountX ?? 1) * (context.Material.CTM?.CountY ?? 1);
 
             return 1;
         }
@@ -154,7 +154,7 @@ namespace PixelGraph.Common.Textures
                 };
             }
 
-            if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Compact)) {
+            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Compact)) {
                 const float tileWidth = 1f / 5f;
 
                 return new RectangleF {
@@ -165,7 +165,7 @@ namespace PixelGraph.Common.Textures
                 };
             }
 
-            if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Full)) {
+            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Full)) {
                 const float tileWidth = 1f / 12f;
                 var tileHeight = frameHeight / 4f;
 
@@ -177,9 +177,9 @@ namespace PixelGraph.Common.Textures
                 };
             }
 
-            if (CtmTypes.Is(context.Material.CtmType, CtmTypes.Repeat)) {
-                var tileCountX = context.Material.CtmCountX ?? 1;
-                var tileCountY = context.Material.CtmCountY ?? 1;
+            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Repeat)) {
+                var tileCountX = context.Material.CTM?.CountX ?? 1;
+                var tileCountY = context.Material.CTM?.CountY ?? 1;
 
                 var tileWidth = 1f / tileCountX;
                 var tileHeight = frameHeight / tileCountY;

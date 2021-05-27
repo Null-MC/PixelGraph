@@ -2,11 +2,11 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.CLI.Extensions;
 using PixelGraph.Common;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using System;
 using System.CommandLine;
@@ -151,6 +151,7 @@ namespace PixelGraph.CLI.CommandLine
                     context.Material = material;
 
                     await graphBuilder.ProcessInputGraphAsync(token);
+                    //await graphBuilder.PublishInventoryAsync(token);
                 }
                 finally {
                     timer.Stop();

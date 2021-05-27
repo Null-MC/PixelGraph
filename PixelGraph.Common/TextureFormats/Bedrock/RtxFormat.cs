@@ -1,31 +1,18 @@
 ﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
-namespace PixelGraph.Common.Encoding
+namespace PixelGraph.Common.TextureFormats.Bedrock
 {
-    public class SpecularEncoding : ITextureEncodingFactory
+    public class RtxFormat : ITextureFormatFactory
     {
-        public const string Description = "Uses a diffuse color map, normal XYZ, and legacy grayscale specular channels.";
+        public const string Description = "The NVidia standard for Bedrock RTX PBR.";
 
 
         public ResourcePackEncoding Create()
         {
             return new ResourcePackEncoding {
-                Alpha = new ResourcePackAlphaChannelProperties {
-                    Texture = TextureTags.Diffuse,
-                    Color = ColorChannel.Alpha,
-                    MinValue = 0,
-                    MaxValue = 255,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    //Perceptual = false,
-                    Invert = false,
-                },
-
-                DiffuseRed = new ResourcePackDiffuseRedChannelProperties {
-                    Texture = TextureTags.Diffuse,
+                AlbedoRed = new ResourcePackAlbedoRedChannelProperties {
+                    Texture = TextureTags.Albedo,
                     Color = ColorChannel.Red,
                     MinValue = 0,
                     MaxValue = 255,
@@ -33,12 +20,11 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
-                DiffuseGreen = new ResourcePackDiffuseGreenChannelProperties {
-                    Texture = TextureTags.Diffuse,
+                AlbedoGreen = new ResourcePackAlbedoGreenChannelProperties {
+                    Texture = TextureTags.Albedo,
                     Color = ColorChannel.Green,
                     MinValue = 0,
                     MaxValue = 255,
@@ -46,12 +32,11 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
-                DiffuseBlue = new ResourcePackDiffuseBlueChannelProperties {
-                    Texture = TextureTags.Diffuse,
+                AlbedoBlue = new ResourcePackAlbedoBlueChannelProperties {
+                    Texture = TextureTags.Albedo,
                     Color = ColorChannel.Blue,
                     MinValue = 0,
                     MaxValue = 255,
@@ -59,7 +44,18 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
+                    Invert = false,
+                },
+
+                Alpha = new ResourcePackAlphaChannelProperties {
+                    Texture = TextureTags.Albedo,
+                    Color = ColorChannel.Alpha,
+                    MinValue = 0,
+                    MaxValue = 255,
+                    RangeMin = 0,
+                    RangeMax = 255,
+                    Shift = 0,
+                    Power = 1m,
                     Invert = false,
                 },
 
@@ -72,7 +68,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -85,7 +80,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -98,12 +92,11 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
-                Specular = new ResourcePackSpecularChannelProperties {
-                    Texture = TextureTags.Specular,
+                Metal = new ResourcePackMetalChannelProperties {
+                    Texture = TextureTags.MER,
                     Color = ColorChannel.Red,
                     MinValue = 0,
                     MaxValue = 1,
@@ -111,7 +104,30 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
+                    Invert = false,
+                },
+
+                Emissive = new ResourcePackEmissiveChannelProperties {
+                    Texture = TextureTags.MER,
+                    Color = ColorChannel.Green,
+                    MinValue = 0,
+                    MaxValue = 1,
+                    RangeMin = 0,
+                    RangeMax = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
+                },
+
+                Rough = new ResourcePackRoughChannelProperties {
+                    Texture = TextureTags.MER,
+                    Color = ColorChannel.Blue,
+                    MinValue = 0,
+                    MaxValue = 1,
+                    RangeMin = 0,
+                    RangeMax = 255,
+                    Shift = 0,
+                    Power = 1m,
                     Invert = false,
                 },
             };

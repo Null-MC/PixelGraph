@@ -22,7 +22,7 @@ namespace PixelGraph.Tests.Internal.Mocks
         public void Add(string filename, MockStream content = null)
         {
             var f = new MockFile {
-                Filename = PathEx.Normalize(filename),
+                Filename = PathEx.Localize(filename),
                 Content = content?.BaseStream,
             };
 
@@ -56,7 +56,7 @@ namespace PixelGraph.Tests.Internal.Mocks
 
         public Stream OpenRead(string filename)
         {
-            var file = PathEx.Normalize(filename);
+            var file = PathEx.Localize(filename);
             bool Match(MockFile f) => string.Equals(f.Filename, file, StringComparison.InvariantCultureIgnoreCase);
             var content = Files.FirstOrDefault(Match)?.Content;
             if (content == null) return null;

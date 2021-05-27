@@ -7,101 +7,130 @@ using System.Collections.Generic;
 
 namespace PixelGraph.Common.IO
 {
-    public interface INamingStructure
+    public static class NamingStructure
     {
-        string GetInputTextureName(MaterialProperties texture, string tag);
-        string GetInputPropertiesName(MaterialProperties material);
-        string GetInputMetaName(MaterialProperties texture, string tag);
-        string GetInputMetaName(MaterialProperties material);
-        string GetOutputTextureName(ResourcePackProfileProperties pack, string name, string tag, bool global);
-        string GetOutputPropertiesName(MaterialProperties material, bool global);
-        string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties texture, string tag, bool global);
-        string Get(string tag, string textureName, string extension, bool global);
-    }
-
-    internal abstract class NamingStructureBase : INamingStructure
-    {
-        protected static readonly Dictionary<string, Func<string, string>> LocalMap;
+        private static readonly Dictionary<string, Func<string>> LocalMap;
+        private static readonly Dictionary<string, Func<string, string>> GlobalMap;
 
 
-        static NamingStructureBase()
+        static NamingStructure()
         {
-            LocalMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase) {
-                [TextureTags.Alpha] = ext => $"alpha.{ext}",
-                [TextureTags.Albedo] = ext => $"albedo.{ext}",
-                [TextureTags.Diffuse] = ext => $"diffuse.{ext}",
-                [TextureTags.Height] = ext => $"height.{ext}",
-                [TextureTags.Bump] = ext => $"bump.{ext}",
-                [TextureTags.Normal] = ext => $"normal.{ext}",
-                [TextureTags.Occlusion] = ext => $"occlusion.{ext}",
-                [TextureTags.Specular] = ext => $"specular.{ext}",
-                [TextureTags.Smooth] = ext => $"smooth.{ext}",
-                [TextureTags.Rough] = ext => $"rough.{ext}",
-                [TextureTags.Metal] = ext => $"metal.{ext}",
-                [TextureTags.F0] = ext => $"f0.{ext}",
-                [TextureTags.Porosity] = ext => $"porosity.{ext}",
-                [TextureTags.SubSurfaceScattering] = ext => $"sss.{ext}",
-                [TextureTags.Emissive] = ext => $"emissive.{ext}",
+            LocalMap = new Dictionary<string, Func<string>>(StringComparer.InvariantCultureIgnoreCase) {
+                [TextureTags.Alpha] = () => "alpha",
+                [TextureTags.Albedo] = () => "albedo",
+                [TextureTags.Diffuse] = () => "diffuse",
+                [TextureTags.Height] = () => "height",
+                [TextureTags.Bump] = () => "bump",
+                [TextureTags.Normal] = () => "normal",
+                [TextureTags.Occlusion] = () => "occlusion",
+                [TextureTags.Specular] = () => "specular",
+                [TextureTags.Smooth] = () => "smooth",
+                [TextureTags.Rough] = () => "rough",
+                [TextureTags.Metal] = () => "metal",
+                [TextureTags.F0] = () => "f0",
+                [TextureTags.Porosity] = () => "porosity",
+                [TextureTags.SubSurfaceScattering] = () => "sss",
+                [TextureTags.Emissive] = () => "emissive",
+                [TextureTags.MER] = () => "mer",
                 
                 // Internal
-                [TextureTags.Inventory] = ext => $"inventory.{ext}",
+                [TextureTags.Inventory] = () => "inventory",
+            };
+
+            GlobalMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase) {
+                [TextureTags.Albedo] = name => name,
+                [TextureTags.Alpha] = name => $"{name}_a",
+                [TextureTags.Diffuse] = name => $"{name}_d",
+                [TextureTags.Height] = name => $"{name}_h",
+                [TextureTags.Bump] = name => $"{name}_b",
+                [TextureTags.Normal] = name => $"{name}_n",
+                [TextureTags.Occlusion] = name => $"{name}_ao",
+                [TextureTags.Specular] = name => $"{name}_s",
+                [TextureTags.Smooth] = name => $"{name}_smooth",
+                [TextureTags.Rough] = name => $"{name}_rough",
+                [TextureTags.Metal] = name => $"{name}_metal",
+                [TextureTags.F0] = name => $"{name}_f0",
+                [TextureTags.Porosity] = name => $"{name}_p",
+                [TextureTags.SubSurfaceScattering] = name => $"{name}_sss",
+                [TextureTags.Emissive] = name => $"{name}_e",
+                [TextureTags.MER] = name => $"{name}_mer",
+
+                // Internal
+                [TextureTags.Inventory] = name => $"{name}_inventory",
             };
         }
 
-        public abstract string Get(string tag, string textureName, string extension, bool global);
+        private static string BuildName(string name, string ext)
+        {
+            var result = name;
+            if (ext != null) result += $".{ext}";
+            return result;
+        }
 
-        public string GetInputTextureName(MaterialProperties material, string tag)
+        public static string Get(string tag, string textureName, string extension, bool global)
+        {
+            if (global) {
+                if (GlobalMap.TryGetValue(tag, out var func)) {
+                    var name = func(textureName);
+                    return BuildName(name, extension);
+                }
+            }
+            else {
+                if (LocalMap.TryGetValue(tag, out var func)) {
+                    var name = func();
+                    return BuildName(name, extension);
+                }
+            }
+
+            throw new ApplicationException($"Unknown texture tag '{tag}'!");
+        }
+
+        public static string GetInputTextureName(MaterialProperties material, string tag)
         {
             return Get(tag, material.Name, "*", material.UseGlobalMatching);
         }
 
-        public string GetInputMetaName(MaterialProperties material)
+        public static string GetInputMetaName(MaterialProperties material)
         {
             var path = GetPath(material, material.UseGlobalMatching);
             return PathEx.Join(path, "mat.mcmeta");
         }
 
-        public string GetInputMetaName(MaterialProperties material, string tag)
+        public static string GetInputMetaName(MaterialProperties material, string tag)
         {
             var path = GetPath(material, material.UseGlobalMatching);
             var file = Get(tag, material.Name, "mcmeta", material.UseGlobalMatching);
             return PathEx.Join(path, file);
         }
 
-        public string GetInputPropertiesName(MaterialProperties material)
+        public static string GetInputPropertiesName(MaterialProperties material)
         {
             var path = GetPath(material, material.UseGlobalMatching);
             var name = material.UseGlobalMatching ? $"{material.Name}.properties" : "mat.properties";
             return PathEx.Join(path, name);
         }
 
-        public string GetOutputTextureName(ResourcePackProfileProperties pack, string name, string tag, bool global)
+        public static string GetOutputPropertiesName(MaterialProperties material, bool global)
         {
-            var ext = GetExtension(pack);
-            return Get(tag, name, ext, global);
-        }
-
-        public string GetOutputPropertiesName(MaterialProperties material, bool global)
-        {
-            var isLocalCtm = material.CtmType != null && !material.UseGlobalMatching;
+            var isLocalCtm = material.CTM?.Type != null && !material.UseGlobalMatching;
             var path = GetPath(material, global && !isLocalCtm);
             return PathEx.Join(path, $"{material.Name}.properties");
         }
 
-        public string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global)
+        public static string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global)
         {
-            var path = GetPath(material, global && material.CtmType == null);
+            var path = GetPath(material, global && material.CTM?.Type == null);
             var ext = GetExtension(pack);
             var file = Get(tag, material.Name, $"{ext}.mcmeta", global);
             return PathEx.Join(path, file);
         }
 
-        private static string GetPath(MaterialProperties material, bool global)
+        public static string GetPath(MaterialProperties material, bool global)
         {
             return global ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
         }
 
-        private static string GetExtension(ResourcePackProfileProperties pack)
+        public static string GetExtension(ResourcePackProfileProperties pack)
         {
             var encoding = pack.Encoding.Image ?? ImageExtensions.Default;
 

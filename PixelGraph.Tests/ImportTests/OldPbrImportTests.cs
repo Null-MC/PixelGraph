@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
 using System.Threading.Tasks;
 using Xunit;
@@ -10,13 +10,13 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImportTests
 {
-    public class LegacyImportTests : ImageTestBase
+    public class OldPbrImportTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public LegacyImportTests(ITestOutputHelper output) : base(output)
+        public OldPbrImportTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
                 Format = TextureEncoding.Format_Raw,
@@ -24,7 +24,7 @@ namespace PixelGraph.Tests.ImportTests
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Format = TextureEncoding.Format_Legacy,
+                    Format = TextureEncoding.Format_OldPbr,
                 },
             };
         }
@@ -39,7 +39,7 @@ namespace PixelGraph.Tests.ImportTests
             await graph.CreateImageAsync("assets/minecraft/textures/block/bricks_s.png", 16, 0, 0);
 
             var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
-            importer.LocalPath = PathEx.Normalize("assets/minecraft/textures/block");
+            importer.LocalPath = PathEx.Localize("assets/minecraft/textures/block");
             importer.PackInput = packInput;
             importer.PackProfile = packProfile;
             importer.AsGlobal = false;

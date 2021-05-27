@@ -1,9 +1,9 @@
-﻿using PixelGraph.Common.Encoding;
-using PixelGraph.Common.ImageProcessors;
+﻿using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System.Linq;
+using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.Common.Effects
 {

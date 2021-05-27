@@ -22,6 +22,7 @@ namespace PixelGraph.Common.Textures
         public const string Porosity = "porosity";
         public const string SubSurfaceScattering = "sss";
         public const string Emissive = "emissive";
+        public const string MER = "mer";
 
         // Internal
         public const string Inventory = "inventory";
@@ -29,7 +30,7 @@ namespace PixelGraph.Common.Textures
         public const string MagnitudeBuffer = "magnitude-buffer";
         public const string OcclusionGenerated = "occlusion-generated";
 
-        public static string[] All {get;} = {Alpha, Albedo, Diffuse, Height, Bump, Normal, Occlusion, Specular, Smooth, Rough, Metal, F0, Porosity, SubSurfaceScattering, Emissive, Inventory};
+        public static string[] All {get;} = {Alpha, Albedo, Diffuse, Height, Bump, Normal, Occlusion, Specular, Smooth, Rough, Metal, F0, Porosity, SubSurfaceScattering, Emissive, Inventory, MER};
 
 
         public static string Get(MaterialProperties material, string tag)
@@ -41,8 +42,7 @@ namespace PixelGraph.Common.Textures
 
         public static bool Is(string tagActual, string tagExpected) => string.Equals(tagActual, tagExpected, StringComparison.InvariantCultureIgnoreCase);
 
-        private static readonly Dictionary<string, Func<MaterialProperties, string>> map = new Dictionary<string, Func<MaterialProperties, string>>(StringComparer.InvariantCultureIgnoreCase)
-        {
+        private static readonly Dictionary<string, Func<MaterialProperties, string>> map = new Dictionary<string, Func<MaterialProperties, string>>(StringComparer.InvariantCultureIgnoreCase) {
             [Alpha] = mat => mat.Alpha?.Texture,
             [Albedo] = mat => mat.Albedo?.Texture,
             [Diffuse] = mat => mat.Diffuse?.Texture,

@@ -1,8 +1,8 @@
-﻿using PixelGraph.Common.Encoding;
-using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.ResourcePack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.Common.Extensions
 {

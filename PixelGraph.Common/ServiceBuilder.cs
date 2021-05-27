@@ -30,14 +30,16 @@ namespace PixelGraph.Common
             Services = new ServiceCollection();
             Services.AddLogging(builder => builder.AddSerilog(LocalLogFile.FileLogger));
 
-            Services.AddSingleton<INamingStructure, JavaNamingStructure>();
             Services.AddSingleton<IResourcePackReader, ResourcePackReader>();
             Services.AddSingleton<IResourcePackWriter, ResourcePackWriter>();
             Services.AddSingleton<IMaterialReader, MaterialReader>();
             Services.AddSingleton<IMaterialWriter, MaterialWriter>();
-            Services.AddSingleton<IPublisher, Publisher>();
+            Services.AddSingleton<IJavaPublisher, JavaPublisher>();
+            Services.AddSingleton<IBedrockPublisher, BedrockPublisher>();
             Services.AddSingleton<IImageWriter, ImageWriter>();
-            Services.AddSingleton<IFileLoader, FileLoader>();
+            Services.AddSingleton<IPublishReader, PublishReader>();
+            Services.AddSingleton<IDefaultPublishMapping, DefaultPublishMapping>();
+            Services.AddSingleton<IJavaToBedrockPublishMapping, JavaToBedrockPublishMapping>();
 
             Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
             Services.AddScoped<ITextureGraph, TextureGraph>();

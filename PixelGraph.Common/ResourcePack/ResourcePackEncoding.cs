@@ -1,8 +1,8 @@
-﻿using PixelGraph.Common.Encoding;
-using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
 using System.Collections.Generic;
 using System.Linq;
+using PixelGraph.Common.TextureFormats;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
@@ -75,6 +75,11 @@ namespace PixelGraph.Common.ResourcePack
             SSS = new ResourcePackSssChannelProperties();
 
             Emissive = new ResourcePackEmissiveChannelProperties();
+        }
+
+        public ResourcePackChannelProperties Get(string encodingChannel)
+        {
+            return GetAll().FirstOrDefault(e => EncodingChannel.Is(e.ID, encodingChannel));
         }
 
         public IEnumerable<ResourcePackChannelProperties> GetMapped()

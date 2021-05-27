@@ -1,12 +1,10 @@
-﻿using PixelGraph.Common.Extensions;
-using PixelGraph.Common.ImageProcessors;
+﻿using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,18 +27,18 @@ namespace PixelGraph.Common.IO.Publishing
             Writer = writer;
         }
 
-        public async Task PublishAsync(string filename, CancellationToken token)
-        {
-            var path = Path.GetDirectoryName(filename);
-            var name = Path.GetFileNameWithoutExtension(filename);
-            var newName = $"{name}.png";
+        //public async Task PublishAsync(string filename, CancellationToken token)
+        //{
+        //    var path = Path.GetDirectoryName(filename);
+        //    var name = Path.GetFileNameWithoutExtension(filename);
+        //    var newName = $"{name}.png";
 
-            var destinationFile = path == null ? newName : PathEx.Join(path, newName);
+        //    var destinationFile = path == null ? newName : PathEx.Join(path, newName);
 
-            await PublishAsync(filename, null, destinationFile, token);
-        }
+        //    await PublishAsync(filename, null, destinationFile, token);
+        //}
 
-        protected async Task PublishAsync(string sourceFile, Rgba32? sourceColor, string destinationFile, CancellationToken token = default)
+        public async Task PublishAsync(string sourceFile, Rgba32? sourceColor, string destinationFile, CancellationToken token = default)
         {
             if (string.IsNullOrEmpty(destinationFile))
                 throw new ArgumentException("Value cannot be null or empty!", nameof(destinationFile));

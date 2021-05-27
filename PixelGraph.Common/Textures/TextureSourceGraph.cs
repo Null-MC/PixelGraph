@@ -37,17 +37,22 @@ namespace PixelGraph.Common.Textures
 
         public async Task<TextureSource> GetOrCreateAsync(string localFile, CancellationToken token = default)
         {
+            if (localFile == null) throw new ArgumentNullException(nameof(localFile));
+
             if (sourceMap.TryGetValue(localFile, out var source)) return source;
 
             await using var stream = fileReader.Open(localFile);
+            if (stream == null) throw new ApplicationException($"Failed to open image '{localFile}'!");
+
             var info = await Image.IdentifyAsync(Configuration.Default, stream, token);
+            if (info == null) throw new ApplicationException($"Unable to locate decoder for image '{localFile}'!");
 
             source = new TextureSource {
                 LocalFile = localFile,
                 FrameCount = 1,
+                Width = info.Width,
+                Height = info.Height,
             };
-
-            (source.Width, source.Height) = info.Size();
 
             if (context.IsAnimated) {
                 source.FrameCount = source.Height / source.Width;

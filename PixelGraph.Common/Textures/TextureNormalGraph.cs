@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
+using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -295,10 +295,10 @@ namespace PixelGraph.Common.Textures
             if (inputChannel == null) return;
 
             var options = new NormalMagnitudeWriteProcessor<L8>.Options {
-                Scale = context.Material.GetChannelScale(magnitudeChannel.ID),
+                Scale = (float)context.Material.GetChannelScale(magnitudeChannel.ID),
                 Mapping = new TextureChannelMapping {
-                    ValueShift = context.Material.GetChannelShift(magnitudeChannel.ID),
-                    ValueScale = context.Material.GetChannelScale(magnitudeChannel.ID),
+                    ValueShift = (float)context.Material.GetChannelShift(magnitudeChannel.ID),
+                    ValueScale = (float)context.Material.GetChannelScale(magnitudeChannel.ID),
                 },
             };
 

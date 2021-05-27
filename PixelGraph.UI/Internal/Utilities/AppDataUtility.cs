@@ -6,16 +6,12 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal
+namespace PixelGraph.UI.Internal.Utilities
 {
     public interface IAppDataUtility
     {
-        //public string AppPath {get;}
-
         Task<string[]> ReadLinesAsync(string localFile, CancellationToken token = default);
         Task WriteLinesAsync(string localFile, IEnumerable<string> lines, CancellationToken token = default);
-        //StreamReader GetReader(string localFile);
-        //StreamWriter GetWriter(string localFile);
         Task<T> ReadJsonAsync<T>(string localFile, CancellationToken token = default);
         Task WriteJsonAsync(string localFile, object data, CancellationToken token = default);
     }
@@ -60,7 +56,7 @@ namespace PixelGraph.UI.Internal
             await jsonData.WriteToAsync(jsonWriter, token);
         }
 
-        private StreamReader GetReader(string localFile)
+        private static StreamReader GetReader(string localFile)
         {
             Stream stream = null;
 
@@ -77,7 +73,7 @@ namespace PixelGraph.UI.Internal
             }
         }
 
-        private StreamWriter GetWriter(string localFile)
+        private static StreamWriter GetWriter(string localFile)
         {
             Stream stream = null;
 

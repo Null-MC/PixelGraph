@@ -4,14 +4,20 @@
           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
           xmlns:local="clr-namespace:PixelGraph.UI.Controls"
+          xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
           d:DesignWidth="200" d:DesignHeight="32" mc:Ignorable="d">
+    <ComboBox.Resources>
+        <converters:EmptyToBooleanConverter x:Key="EmptyToBooleanConverter"/>
+    </ComboBox.Resources>
     <ComboBox.Template>
         <ControlTemplate TargetType="ComboBox">
             <Grid
                 Margin="{TemplateBinding Margin}">
                 <ComboBox x:Name="list"
                           Padding="{TemplateBinding Padding}"
+                          Background="{TemplateBinding Background}"
                           Foreground="{TemplateBinding Foreground}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
                           HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                           VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                           DisplayMemberPath="{TemplateBinding DisplayMemberPath}"
@@ -26,9 +32,15 @@
                            Text="{Binding Placeholder, Mode=OneWay, RelativeSource={RelativeSource AncestorType=local:ComboBoxEx}}"/>
             </Grid>
             <ControlTemplate.Triggers>
-                <Trigger SourceName="list" Property="SelectedValue" Value="{x:Null}">
+                <DataTrigger Binding="{Binding Path=SelectedValue, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource EmptyToBooleanConverter}}" Value="True">
+                    <Setter TargetName="overlay" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+                <!--<Trigger SourceName="list" Property="SelectedValue" Value="">
                     <Setter TargetName="overlay" Property="Visibility" Value="Visible"/>
                 </Trigger>
+                <Trigger SourceName="list" Property="SelectedValue" Value="{x:Null}">
+                    <Setter TargetName="overlay" Property="Visibility" Value="Visible"/>
+                </Trigger>-->
             </ControlTemplate.Triggers>
         </ControlTemplate>
     </ComboBox.Template>

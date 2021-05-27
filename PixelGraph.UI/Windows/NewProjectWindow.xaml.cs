@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
@@ -15,7 +15,7 @@ using System.Windows;
 
 namespace PixelGraph.UI.Windows
 {
-    public partial class NewProjectWindow : Window
+    public partial class NewProjectWindow
     {
         private readonly IServiceProvider provider;
         private readonly ILogger logger;

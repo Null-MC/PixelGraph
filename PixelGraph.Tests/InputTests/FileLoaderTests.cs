@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Tests.Internal;
+using PixelGraph.Tests.Internal.Mocks;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using PixelGraph.Tests.Internal.Mocks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -55,7 +55,7 @@ namespace PixelGraph.Tests.InputTests
             //await using var provider = Builder.Build();
 
             var items = new List<object>();
-            var loader = provider.GetRequiredService<IFileLoader>();
+            var loader = provider.GetRequiredService<IPublishReader>();
             await foreach (var item in loader.LoadAsync()) items.Add(item);
             return items.ToArray();
         }

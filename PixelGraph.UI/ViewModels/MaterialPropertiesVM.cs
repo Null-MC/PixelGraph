@@ -9,6 +9,7 @@ namespace PixelGraph.UI.ViewModels
     {
         private MaterialProperties _material;
         private ResourcePackInputProperties _packInput;
+        private string _gameEdition;
         private string _selectedTag;
 
         public event EventHandler DataChanged;
@@ -37,6 +38,15 @@ namespace PixelGraph.UI.ViewModels
         public string DefaultOcclusionStepDistance => MaterialOcclusionProperties.DefaultStepDistance.ToString("N3");
         public string DefaultOcclusionZBias => MaterialOcclusionProperties.DefaultZBias.ToString("N3");
         public string DefaultOcclusionZScale => MaterialOcclusionProperties.DefaultZScale.ToString("N3");
+
+
+        public string GameEdition {
+            get => _gameEdition;
+            set {
+                _gameEdition = value;
+                OnPropertyChanged();
+            }
+        }
 
         public ResourcePackInputProperties PackInput {
             get => _packInput;

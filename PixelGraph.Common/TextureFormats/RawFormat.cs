@@ -1,12 +1,11 @@
 ﻿using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 
-namespace PixelGraph.Common.Encoding
+namespace PixelGraph.Common.TextureFormats
 {
-    public class RawEncoding : ITextureEncodingFactory
+    public class RawFormat : ITextureFormatFactory
     {
-        public const string Description = "Manages each encoding channel in its own texture. Supports all encoding channels.";
+        public const string Description = "Separates all encoding channels as separate textures.";
 
 
         public ResourcePackEncoding Create()
@@ -21,7 +20,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -34,7 +32,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -47,7 +44,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -60,7 +56,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -73,7 +68,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -86,7 +80,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -99,7 +92,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -112,7 +104,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = true,
                 },
 
@@ -125,7 +116,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = true,
                 },
 
@@ -138,7 +128,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -151,7 +140,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -164,7 +152,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -177,7 +164,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -190,7 +176,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -203,7 +188,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -217,7 +201,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -230,7 +213,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -243,7 +225,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -256,7 +237,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
 
@@ -269,7 +249,6 @@ namespace PixelGraph.Common.Encoding
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
-                    //Perceptual = false,
                     Invert = false,
                 },
             };

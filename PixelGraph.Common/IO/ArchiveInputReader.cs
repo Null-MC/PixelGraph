@@ -13,7 +13,7 @@ namespace PixelGraph.Common.IO
         private ZipArchive archive;
 
 
-        public ArchiveInputReader(INamingStructure naming) : base(naming) {}
+        //public ArchiveInputReader(INamingStructure naming) : base(naming) {}
 
         public override void SetRoot(string absolutePath)
         {

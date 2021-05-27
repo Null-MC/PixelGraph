@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PixelGraph.Common.Encoding
+namespace PixelGraph.Common.TextureFormats
 {
     public class EncodingChannel
     {

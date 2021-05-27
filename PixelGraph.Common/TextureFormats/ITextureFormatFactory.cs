@@ -1,8 +1,8 @@
 ﻿using PixelGraph.Common.ResourcePack;
 
-namespace PixelGraph.Common.Encoding
+namespace PixelGraph.Common.TextureFormats
 {
-    public interface ITextureEncodingFactory
+    public interface ITextureFormatFactory
     {
         ResourcePackEncoding Create();
     }

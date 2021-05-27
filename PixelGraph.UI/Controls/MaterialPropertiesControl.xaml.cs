@@ -9,6 +9,7 @@ namespace PixelGraph.UI.Controls
     public partial class MaterialPropertiesControl
     {
         public event EventHandler DataChanged;
+        public event EventHandler EditLayer;
         public event EventHandler GenerateNormal;
         public event EventHandler GenerateOcclusion;
 
@@ -21,6 +22,11 @@ namespace PixelGraph.UI.Controls
             get => (string)GetValue(SelectedTagProperty);
             set => SetValue(SelectedTagProperty, value);
         }
+
+        //public string GameEdition {
+        //    get => (string)GetValue(GameEditionProperty);
+        //    set => SetValue(GameEditionProperty, value);
+        //}
 
 
         public MaterialPropertiesControl()
@@ -43,6 +49,13 @@ namespace PixelGraph.UI.Controls
             DataChanged?.Invoke(this, EventArgs.Empty);
         }
 
+        //private static void OnGameEditionPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        //{
+        //    if (!(sender is MaterialPropertiesControl control)) return;
+
+        //    control.vm.GameEdition = e.NewValue as string;
+        //}
+
         private static void OnMaterialPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
             if (!(sender is MaterialPropertiesControl control)) return;
@@ -57,6 +70,9 @@ namespace PixelGraph.UI.Controls
             control.vm.SelectedTag = e.NewValue as string;
         }
 
+        //public static readonly DependencyProperty GameEditionProperty = DependencyProperty
+        //    .Register("GameEdition", typeof(string), typeof(MaterialPropertiesControl), new PropertyMetadata(OnGameEditionPropertyChanged));
+
         public static readonly DependencyProperty MaterialProperty = DependencyProperty
             .Register("Material", typeof(MaterialProperties), typeof(MaterialPropertiesControl), new PropertyMetadata(OnMaterialPropertyChanged));
 
@@ -67,6 +83,11 @@ namespace PixelGraph.UI.Controls
         {
             public string Name {get; set;}
             public string Key {get; set;}
+        }
+
+        private void OnEditButtonClick(object sender, RoutedEventArgs e)
+        {
+            EditLayer?.Invoke(this, EventArgs.Empty);
         }
     }
 

@@ -36,5 +36,11 @@ namespace PixelGraph.UI.Internal
     {
         public LogLevel Level {get; set;}
         public string Message {get; set;}
+
+        public LogEventArgs(LogLevel level, string message)
+        {
+            Level = level;
+            Message = message;
+        }
     }
 }

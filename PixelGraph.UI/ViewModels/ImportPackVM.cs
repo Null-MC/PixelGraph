@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using PixelGraph.Common.Encoding;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.UI.Internal;
+using System;
+using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -13,12 +15,13 @@ namespace PixelGraph.UI.ViewModels
         private volatile bool _isActive;
         private volatile bool _showLog;
 
+        public event EventHandler<LogEventArgs> LogEvent;
+
         public bool IsArchive {get; set;}
         public bool AsGlobal {get; set;}
         public bool CopyUntracked {get; set;}
         public string SourceFormat {get; set;}
         public ResourcePackInputProperties PackInput {get; set;}
-        public LogListVM LogList {get;}
 
         public bool IsReady {
             get => _isReady;
@@ -71,11 +74,15 @@ namespace PixelGraph.UI.ViewModels
 
         public ImportPackVM()
         {
-            LogList = new LogListVM();
-
             SourceFormat = TextureEncoding.DefaultFormat;
             CopyUntracked = true;
             AsGlobal = false;
+        }
+
+        public void AppendLog(LogLevel level, string text)
+        {
+            var e = new LogEventArgs(level, text);
+            LogEvent?.Invoke(this, e);
         }
     }
 
@@ -86,7 +93,7 @@ namespace PixelGraph.UI.ViewModels
             ImportSource = "C:\\SomePath\\File.zip";
             IsArchive = true;
 
-            LogList.Append(LogLevel.Information, "Hello World!");
+            AppendLog(LogLevel.Information, "Hello World!");
 
             ShowLog = true;
         }

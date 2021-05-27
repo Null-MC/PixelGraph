@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Version>1.3.2</Version>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
@@ -21,8 +21,13 @@
     <Compile Remove="ImageProcessors\NormalRestoreProcessor.cs" />
     <Compile Remove="ImageProcessors\OverwriteProcessor.cs" />
     <Compile Remove="ImageProcessors\RegionProcessor.cs" />
+    <Compile Remove="IO\BedrockNamingStructure.cs" />
+    <Compile Remove="IO\JavaNamingStructure.cs" />
+    <Compile Remove="IO\Publishing\BedrockPublishReader.cs" />
+    <Compile Remove="IO\Publishing\JavaToBedrockMap.cs" />
     <Compile Remove="IO\Publishing\PublishOptions.cs" />
     <Compile Remove="MaterialContext.cs" />
+    <Compile Remove="Material\IMaterialChannel.cs" />
     <Compile Remove="PixelOperations\PixelFilterProcessor.cs" />
     <Compile Remove="ResourcePack\ResourcePackInputAlphaProperties.cs" />
     <Compile Remove="ResourcePack\ResourcePackInputDiffuseBlueProperties.cs" />
