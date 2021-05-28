@@ -326,10 +326,10 @@ namespace PixelGraph.Common.Textures
             foreach (var tag in textureTags) {
                 if (context.IsMaterialMultiPart) {
                     foreach (var part in context.Material.Parts) {
-                        var sourceName = NamingStructure.Get(tag, part.Name, ext, true);
+                        var sourceName = NamingStructure.Get(tag, part.Name, null, true);
 
                         if (context.Mapping.TryMap(sourcePath, sourceName, out var destPath, out var destName))
-                            yield return PathEx.Join(destPath, destName);
+                            yield return PathEx.Join(destPath, $"{destName}.{ext}");
                     }
                 }
                 else if (context.IsMaterialCtm) {
@@ -357,10 +357,10 @@ namespace PixelGraph.Common.Textures
                     }
                 }
                 else {
-                    var sourceName = NamingStructure.Get(tag, context.Material.Name, ext, true);
+                    var sourceName = NamingStructure.Get(tag, context.Material.Name, null, true);
 
                     if (context.Mapping.TryMap(sourcePath, sourceName, out var destPath, out var destName))
-                        yield return PathEx.Join(destPath, destName);
+                        yield return PathEx.Join(destPath, $"{destName}.{ext}");
                 }
             }
         }

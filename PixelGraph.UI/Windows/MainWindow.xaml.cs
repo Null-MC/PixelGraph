@@ -4,9 +4,11 @@ using Ookii.Dialogs.Wpf;
 using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Utilities;
@@ -26,8 +28,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using PixelGraph.Common.IO.Publishing;
-using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.UI.Windows
 {
@@ -255,7 +255,6 @@ namespace PixelGraph.UI.Windows
             var outputName = TextureTags.Get(material, TextureTags.Normal);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
-                //var naming = provider.GetRequiredService<INamingStructure>();
                 outputName = NamingStructure.Get(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
             }
 
@@ -308,7 +307,6 @@ namespace PixelGraph.UI.Windows
             var outputName = TextureTags.Get(material, TextureTags.Occlusion);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
-                //var naming = provider.GetRequiredService<INamingStructure>();
                 outputName = NamingStructure.Get(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
             }
 
@@ -447,46 +445,34 @@ namespace PixelGraph.UI.Windows
             return material;
         }
 
-        private string GetArchiveFilename()
+        private string GetArchiveFilename(bool isBedrock)
         {
+            string defaultExt;
             var saveFileDialog = new VistaSaveFileDialog {
                 Title = "Save published archive",
-                Filter = "ZIP Archive|*.zip|All Files|*.*",
-                FileName = $"{vm.SelectedProfile?.Name}.zip",
                 AddExtension = true,
             };
+
+            if (isBedrock) {
+                defaultExt = ".mcpack";
+                saveFileDialog.Filter = "MCPACK Archive|*.mcpack|All Files|*.*";
+                saveFileDialog.FileName = $"{vm.SelectedProfile?.Name}.mcpack";
+            }
+            else {
+                defaultExt = ".zip";
+                saveFileDialog.Filter = "ZIP Archive|*.zip|All Files|*.*";
+                saveFileDialog.FileName = $"{vm.SelectedProfile?.Name}.zip";
+            }
 
             var result = saveFileDialog.ShowDialog();
             if (result != true) return null;
 
             var filename = saveFileDialog.FileName;
-            if (saveFileDialog.FilterIndex == 1 && !filename.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase))
-                filename += ".zip";
+            if (saveFileDialog.FilterIndex == 1 && !filename.EndsWith(defaultExt, StringComparison.InvariantCultureIgnoreCase))
+                filename += defaultExt;
 
             return filename;
         }
-
-        //private static string GetDirectoryName()
-        //{
-        //    var folderDialog = new VistaFolderBrowserDialog {
-        //        Description = "Destination for published resource pack content.",
-        //        UseDescriptionForTitle = true,
-        //        ShowNewFolderButton = true,
-        //    };
-
-        //    return folderDialog.ShowDialog() == true
-        //        ? folderDialog.SelectedPath : null;
-        //}
-
-        //private void OpenDocumentation()
-        //{
-        //    var info = new ProcessStartInfo {
-        //        FileName = @"https://github.com/null511/PixelGraph/wiki",
-        //        UseShellExecute = true,
-        //    };
-
-        //    Process.Start(info);
-        //}
 
         private async Task UpdatePreviewAsync(bool clear)
         {
@@ -676,7 +662,7 @@ namespace PixelGraph.UI.Windows
         private void OnInputEncodingClick(object sender, RoutedEventArgs e)
         {
             var window = new PackInputWindow(provider) {
-                //Owner = this,
+                Owner = this,
                 VM = {
                     RootDirectory = vm.RootDirectory,
                     PackInput = (ResourcePackInputProperties)vm.PackInput.Clone(),
@@ -767,16 +753,11 @@ namespace PixelGraph.UI.Windows
 
                 window.VM.Destination = Path.Combine(vm.SelectedLocation.Path, name);
                 window.VM.Archive = vm.SelectedLocation.Archive;
-                //window.VM.Clean = vm.PublishClean;
             }
             else {
-                //window.VM.Clean = vm.PublishClean;
-                //window.VM.Archive = vm.PublishArchive;
-                //window.VM.Destination = vm.PublishArchive
-                //    ? GetArchiveFilename() : GetDirectoryName();
-
-                // TODO: Add option to publish folder/archive when manually selecting destination
-                window.VM.Destination = GetArchiveFilename();
+                // TODO: Finish bedrock mcpack support
+                var isBedrock = false;
+                window.VM.Destination = GetArchiveFilename(isBedrock);
                 window.VM.Archive = true;
 
                 if (window.VM.Destination == null) return;
@@ -831,14 +812,10 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        //private void OnDocumentationButtonClick(object sender, RoutedEventArgs e)
-        //{
-        //    OpenDocumentation();
-        //}
-
         private async void OnImportMaterialClick(object sender, RoutedEventArgs e)
         {
-            if (!(vm.SelectedNode is ContentTreeFile fileNode) || fileNode.Type != ContentNodeType.Texture) return;
+            if (vm.SelectedNode is not ContentTreeFile fileNode) return;
+            if (fileNode.Type != ContentNodeType.Texture) return;
 
             var material = await Task.Run(() => ImportTextureAsync(fileNode.Filename, CancellationToken.None));
 
@@ -846,12 +823,9 @@ namespace PixelGraph.UI.Windows
             var parent = fileNode.Parent;
 
             if (parent == null) {
-                // refresh root
                 await LoadRootDirectoryAsync();
             }
             else {
-                //parent.Nodes.Clear();
-
                 await Application.Current.Dispatcher.BeginInvoke(() => {
                     contentReader.Update(parent);
 
@@ -877,15 +851,7 @@ namespace PixelGraph.UI.Windows
 
         private void OnContentRefreshClick(object sender, RoutedEventArgs e)
         {
-            var reselectPath = vm.SelectedNode?.LocalPath;
-
             ReloadContent();
-
-            if (reselectPath != null) {
-                
-                //vm.SelectedNode = vm.TreeRoot.FindNode(n => string.Equals(n.LocalPath, reselectPath, StringComparison.InvariantCultureIgnoreCase));
-                // TODO
-            }
         }
 
         private async void OnSelectedTagChanged(object sender, EventArgs e)

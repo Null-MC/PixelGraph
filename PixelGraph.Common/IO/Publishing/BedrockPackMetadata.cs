@@ -15,11 +15,15 @@ namespace PixelGraph.Common.IO.Publishing
         [JsonProperty("modules")]
         public List<BedrockPackModuleMetadata> Modules {get; set;}
 
+        [JsonProperty("capabilities")]
+        public List<string> Capabilities {get; set;}
+
 
         public BedrockPackMetadata()
         {
             Header = new BedrockPackHeaderMetadata();
             Modules = new List<BedrockPackModuleMetadata>();
+            Capabilities = new List<string>();
         }
     }
 

@@ -173,6 +173,7 @@ namespace PixelGraph.Common.Textures
         private bool TryBuildMapping(ResourcePackChannelProperties outputChannel, bool createEmpty, out TextureChannelMapping mapping)
         {
             var samplerName = outputChannel.Sampler ?? context.DefaultSampler;
+            decimal value;
 
             mapping = new TextureChannelMapping {
                 OutputColor = outputChannel.Color ?? ColorChannel.None,
@@ -192,7 +193,7 @@ namespace PixelGraph.Common.Textures
             var inputChannel = InputChannels.FirstOrDefault(i
                 => EncodingChannel.Is(i.ID, outputChannel.ID));
 
-            if (context.Material.TryGetChannelValue(outputChannel.ID, out var value)) {
+            if (context.Material.TryGetChannelValue(outputChannel.ID, out value)) {
                 mapping.InputValue = (float)value;
                 mapping.ApplyInputChannel(inputChannel);
                 return true;
@@ -269,23 +270,39 @@ namespace PixelGraph.Common.Textures
             // Rough > Smooth
             var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
             var hasOuputRough = context.OutputEncoding.HasChannel(EncodingChannel.Rough);
-            if (isOutputSmooth && !hasOuputRough
-                    && context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)
+            if (isOutputSmooth && !hasOuputRough) {
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)
                     && TryGetSourceFilename(roughChannel.Texture, out mapping.SourceFilename)) {
-                mapping.ApplyInputChannel(roughChannel);
-                mapping.InputInverted = true;
-                return true;
+                    mapping.ApplyInputChannel(roughChannel);
+                    mapping.InputInverted = true;
+                    return true;
+                }
+
+                if (context.Material.TryGetChannelValue(EncodingChannel.Rough, out value)) {
+                    mapping.ApplyInputChannel(inputChannel);
+                    mapping.InputValue = (float)value;
+                    mapping.InputInverted = true;
+                    return true;
+                }
             }
 
             // Smooth > Rough
             var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
             var hasOuputSmooth = context.OutputEncoding.HasChannel(EncodingChannel.Smooth);
-            if (isOutputRough && !hasOuputSmooth
-                    && context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
+            if (isOutputRough && !hasOuputSmooth) {
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
                     && TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
-                mapping.ApplyInputChannel(smoothChannel);
-                mapping.InputInverted = true;
-                return true;
+                    mapping.ApplyInputChannel(smoothChannel);
+                    mapping.InputInverted = true;
+                    return true;
+                }
+
+                if (context.Material.TryGetChannelValue(EncodingChannel.Smooth, out value)) {
+                    mapping.ApplyInputChannel(inputChannel);
+                    mapping.InputValue = (float)value;
+                    mapping.InputInverted = true;
+                    return true;
+                }
             }
 
             //var isOutputF0 = EncodingChannel.Is(outputChannel.ID, EncodingChannel.F0);
@@ -401,8 +418,10 @@ namespace PixelGraph.Common.Textures
             var value = mapping.InputValue ?? 0f;
             if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
+            if (mapping.InputInverted) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
+
             mapping.Map(ref value, out byte finalValue);
-            
+
             if (isGrayscale) {
                 defaultValues.R = finalValue;
                 defaultValues.G = finalValue;

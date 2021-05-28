@@ -4,7 +4,7 @@ using System;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class OutputChannelMapping : ViewModelBase
+    internal class TextureChannelMapping : ViewModelBase
     {
         private ResourcePackChannelProperties _channel;
         private string _textureDefault;
@@ -14,130 +14,142 @@ namespace PixelGraph.UI.ViewModels
         private decimal? _maxValueDefault;
         private byte? _rangeMinDefault;
         private byte? _rangeMaxDefault;
-        private decimal? _shiftDefault;
+        private int? _shiftDefault;
         private decimal? _powerDefault;
         private bool? _invertDefault;
 
         public event EventHandler DataChanged;
 
+        public string Texture => _channel?.Texture;
+        public ColorChannel? Color => _channel?.Color;
+        public string Sampler => _channel?.Sampler;
+        public decimal? MinValue => _channel?.MinValue;
+        public decimal? MaxValue => _channel?.MaxValue;
+        public byte? RangeMin => _channel?.RangeMin;
+        public byte? RangeMax => _channel?.RangeMax;
+        public int? Shift => _channel?.Shift;
+        public decimal? Power => _channel?.Power;
+        public bool? Invert => _channel?.Invert;
+
         public string Label {get;}
 
-        public string Texture {
-            get => _channel?.Texture;
+        public string EditTexture {
+            get => _channel?.Texture ?? _textureDefault;
             set {
                 if (_channel == null) return;
                 if (_channel.Texture == value) return;
                 _channel.Texture = value;
                 OnPropertyChanged();
-
+                OnPropertyChanged(nameof(Texture));
                 OnDataChanged();
             }
         }
-
-        public ColorChannel? Color {
-            get => _channel?.Color;
+        
+        public ColorChannel? EditColor {
+            get => _channel?.Color ?? _colorDefault;
             set {
                 if (_channel == null) return;
                 if (_channel.Color == value) return;
                 _channel.Color = value;
                 OnPropertyChanged();
-
+                OnPropertyChanged(nameof(Color));
                 OnDataChanged();
             }
         }
-
-        public string Sampler {
-            get => _channel?.Sampler;
+        
+        public string EditSampler {
+            get => _channel?.Sampler ?? _samplerDefault;
             set {
                 if (_channel == null) return;
                 if (_channel.Sampler == value) return;
                 _channel.Sampler = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(Sampler));
 
                 OnDataChanged();
             }
         }
 
-        public decimal? MinValue {
-            get => _channel?.MinValue;
+        public decimal? EditMinValue {
+            get => _channel?.MinValue ?? _minValueDefault;
             set {
                 if (_channel == null) return;
                 if (_channel.MinValue == value) return;
                 _channel.MinValue = value;
                 OnPropertyChanged();
-
+                OnPropertyChanged(nameof(MinValue));
                 OnDataChanged();
             }
         }
-
-        public decimal? MaxValue {
-            get => _channel?.MaxValue;
+        
+        public decimal? EditMaxValue {
+            get => _channel?.MaxValue ?? _maxValueDefault;
             set {
                 if (_channel == null) return;
                 if (_channel.MaxValue == value) return;
                 _channel.MaxValue = value;
                 OnPropertyChanged();
-
+                OnPropertyChanged(nameof(MaxValue));
                 OnDataChanged();
             }
         }
 
-        public byte? RangeMin {
-            get => _channel?.RangeMin;
+        public byte? EditRangeMin {
+            get => _channel?.RangeMin ?? _rangeMinDefault;
             set {
                 if (_channel == null) return;
                 if (_channel.RangeMin == value) return;
                 _channel.RangeMin = value;
                 OnPropertyChanged();
-
+                OnPropertyChanged(nameof(RangeMin));
                 OnDataChanged();
             }
         }
 
-        public byte? RangeMax {
-            get => _channel?.RangeMax;
+        public byte? EditRangeMax {
+            get => _channel?.RangeMax ?? _rangeMaxDefault;
             set {
                 if (_channel == null) return;
                 if (_channel.RangeMax == value) return;
                 _channel.RangeMax = value;
                 OnPropertyChanged();
-
+                OnPropertyChanged(nameof(RangeMax));
                 OnDataChanged();
             }
         }
 
-        public int? Shift {
-            get => _channel?.Shift;
+        public int? EditShift {
+            get => _channel?.Shift ?? _shiftDefault;
             set {
                 if (_channel == null) return;
                 if (_channel.Shift == value) return;
                 _channel.Shift = value;
                 OnPropertyChanged();
-
+                OnPropertyChanged(nameof(Shift));
                 OnDataChanged();
             }
         }
 
-        public decimal? Power {
-            get => _channel?.Power;
+        public decimal? EditPower {
+            get => _channel?.Power ?? _powerDefault;
             set {
                 if (_channel == null) return;
                 if (_channel.Power == value) return;
                 _channel.Power = value;
                 OnPropertyChanged();
-
+                OnPropertyChanged(nameof(Power));
                 OnDataChanged();
             }
         }
 
-        public bool? Invert {
-            get => _channel?.Invert;
+        public bool? EditInvert {
+            get => _channel?.Invert ?? _invertDefault ?? false;
             set {
                 if (_channel == null) return;
                 if (_channel.Invert == value) return;
                 _channel.Invert = value;
                 OnPropertyChanged();
-
+                OnPropertyChanged(nameof(Invert));
                 OnDataChanged();
             }
         }
@@ -148,6 +160,7 @@ namespace PixelGraph.UI.ViewModels
                 if (_textureDefault == value) return;
                 _textureDefault = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(EditTexture));
             }
         }
 
@@ -157,6 +170,7 @@ namespace PixelGraph.UI.ViewModels
                 if (_colorDefault == value) return;
                 _colorDefault = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(EditColor));
             }
         }
 
@@ -175,6 +189,7 @@ namespace PixelGraph.UI.ViewModels
                 if (_minValueDefault == value) return;
                 _minValueDefault = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(EditMinValue));
             }
         }
 
@@ -184,6 +199,7 @@ namespace PixelGraph.UI.ViewModels
                 if (_maxValueDefault == value) return;
                 _maxValueDefault = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(EditMaxValue));
             }
         }
 
@@ -193,6 +209,7 @@ namespace PixelGraph.UI.ViewModels
                 if (_rangeMinDefault == value) return;
                 _rangeMinDefault = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(EditRangeMin));
             }
         }
 
@@ -202,15 +219,17 @@ namespace PixelGraph.UI.ViewModels
                 if (_rangeMaxDefault == value) return;
                 _rangeMaxDefault = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(EditRangeMax));
             }
         }
 
-        public decimal? ShiftDefault {
+        public int? ShiftDefault {
             get => _shiftDefault;
             set {
                 if (_shiftDefault == value) return;
                 _shiftDefault = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(EditShift));
             }
         }
 
@@ -220,6 +239,7 @@ namespace PixelGraph.UI.ViewModels
                 if (_powerDefault == value) return;
                 _powerDefault = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(EditPower));
             }
         }
 
@@ -229,11 +249,12 @@ namespace PixelGraph.UI.ViewModels
                 if (_invertDefault == value) return;
                 _invertDefault = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(EditInvert));
             }
         }
 
 
-        public OutputChannelMapping(string label)
+        public TextureChannelMapping(string label)
         {
             Label = label;
         }
@@ -243,18 +264,28 @@ namespace PixelGraph.UI.ViewModels
             _channel = channel;
 
             OnPropertyChanged(nameof(Texture));
+            OnPropertyChanged(nameof(EditTexture));
             OnPropertyChanged(nameof(Color));
+            OnPropertyChanged(nameof(EditColor));
             OnPropertyChanged(nameof(Sampler));
+            OnPropertyChanged(nameof(EditSampler));
             OnPropertyChanged(nameof(MinValue));
+            OnPropertyChanged(nameof(EditMinValue));
             OnPropertyChanged(nameof(MaxValue));
+            OnPropertyChanged(nameof(EditMaxValue));
             OnPropertyChanged(nameof(RangeMin));
+            OnPropertyChanged(nameof(EditRangeMin));
             OnPropertyChanged(nameof(RangeMax));
+            OnPropertyChanged(nameof(EditRangeMax));
             OnPropertyChanged(nameof(Shift));
+            OnPropertyChanged(nameof(EditShift));
             OnPropertyChanged(nameof(Power));
+            OnPropertyChanged(nameof(EditPower));
             OnPropertyChanged(nameof(Invert));
+            OnPropertyChanged(nameof(EditInvert));
         }
 
-        public void ApplyDefaultValues(ResourcePackChannelProperties encodingDefaults, string sampler)
+        public void ApplyDefaultValues(ResourcePackChannelProperties encodingDefaults, string sampler = null)
         {
             TextureDefault = encodingDefaults?.Texture;
             ColorDefault = encodingDefaults?.Color;
@@ -270,16 +301,16 @@ namespace PixelGraph.UI.ViewModels
 
         public void Clear()
         {
-            Texture = null;
-            Color = null;
-            Sampler = null;
-            MinValue = null;
-            MaxValue = null;
-            RangeMin = null;
-            RangeMax = null;
-            Shift = null;
-            Power = null;
-            Invert = null;
+            EditTexture = null;
+            EditColor = null;
+            EditSampler = null;
+            EditMinValue = null;
+            EditMaxValue = null;
+            EditRangeMin = null;
+            EditRangeMax = null;
+            EditShift = null;
+            EditPower = null;
+            EditInvert = null;
         }
 
         private void OnDataChanged()

@@ -10,7 +10,7 @@ namespace PixelGraph.Common.TextureFormats.Bedrock
 
         public ResourcePackEncoding Create()
         {
-            return new ResourcePackEncoding {
+            return new() {
                 AlbedoRed = new ResourcePackAlbedoRedChannelProperties {
                     Texture = TextureTags.Albedo,
                     Color = ColorChannel.Red,

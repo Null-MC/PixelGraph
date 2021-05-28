@@ -67,13 +67,7 @@
                     <MenuItem Header="Filters" Icon="{iconPacks:FontAwesome FilterSolid}" Click="OnMaterialFiltersMenuClick"
                               IsEnabled="{Binding HasLoadedMaterial, Mode=OneWay}"/>
                 </MenuItem>
-                <!--<MenuItem Header="Help">
-                    <MenuItem Header="Documentation" Icon="{iconPacks:FontAwesome QuestionSolid}" Click="OnDocumentationButtonClick"/>
-                </MenuItem>-->
             </Menu>
-            <!--<Button Click="OnDocumentationButtonClick" ToolTip="Open up the GitHub wiki">
-                <iconPacks:PackIconFontAwesome Kind="QuestionSolid" Width="16" Height="16"/>
-            </Button>-->
         </mah:WindowCommands>
     </mah:MetroWindow.LeftWindowCommands>
     <mah:MetroWindow.RightWindowCommands>

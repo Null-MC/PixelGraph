@@ -93,11 +93,6 @@ namespace PixelGraph.Common.IO.Publishing
                             graphContext.Profile = packContext.Profile;
                             graphContext.Material = material;
                             graphContext.Mapping = Mapping;
-                            //graphContext.DestinationName = destName;
-                            //graphContext.DestinationPath = destPath;
-            
-                            //return graphBuilder.ProcessInputGraphAsync(token);
-                            //graphBuilder.OnMaterialPartPublishedAsync = OnPartPublishedAsync;
 
                             await graphBuilder.ProcessInputGraphAsync(token);
                             await OnMaterialPublishedAsync(scope.ServiceProvider, token);

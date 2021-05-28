@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using PixelGraph.Common.TextureFormats.Bedrock;
+﻿using PixelGraph.Common.TextureFormats.Bedrock;
 using PixelGraph.Common.TextureFormats.Java;
+using System;
+using System.Collections.Generic;
 
 namespace PixelGraph.Common.TextureFormats
 {
@@ -19,6 +19,9 @@ namespace PixelGraph.Common.TextureFormats
         public const string Format_Rtx = "rtx";
 
 
+        public static bool Is(string formatActual, string formatExpected) =>
+            string.Equals(formatActual, formatExpected, StringComparison.InvariantCultureIgnoreCase);
+
         public static ITextureFormatFactory GetFactory(string format)
         {
             if (format == null) return null;
@@ -26,7 +29,7 @@ namespace PixelGraph.Common.TextureFormats
         }
 
         private static readonly Dictionary<string, ITextureFormatFactory> formatMap =
-            new Dictionary<string, ITextureFormatFactory>(StringComparer.InvariantCultureIgnoreCase) {
+            new(StringComparer.InvariantCultureIgnoreCase) {
                 [Format_Raw] = new RawFormat(),
                 [Format_Diffuse] = new DiffuseFormat(),
                 [Format_Specular] = new SpecularFormat(),

@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
-using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace PixelGraph.UI.Windows
 {
@@ -22,13 +21,21 @@ namespace PixelGraph.UI.Windows
             InitializeComponent();
         }
 
-        private async Task SavePackInputAsync()
+        private async Task<bool> SavePackInputAsync()
         {
-            var writer = provider.GetRequiredService<IOutputWriter>();
-            writer.SetRoot(VM.RootDirectory);
+            try {
+                var writer = provider.GetRequiredService<IOutputWriter>();
+                writer.SetRoot(VM.RootDirectory);
 
-            var packWriter = provider.GetRequiredService<IResourcePackWriter>();
-            await packWriter.WriteAsync("input.yml", VM.PackInput);
+                var packWriter = provider.GetRequiredService<IResourcePackWriter>();
+                await packWriter.WriteAsync("input.yml", VM.PackInput);
+
+                return true;
+            }
+            catch (Exception error) {
+                ShowError($"Failed to save pack input! {error.Message}");
+                return false;
+            }
         }
 
         private void ShowError(string message)
@@ -40,12 +47,12 @@ namespace PixelGraph.UI.Windows
 
         #region Events
 
-        private void OnTextureResetButtonClick(object sender, RoutedEventArgs e)
+        private void OnDataGridKeyUp(object sender, KeyEventArgs e)
         {
-            if (!(e.Source is Button button)) return;
-            var cell = button.FindParent<DataGridCell>();
-            var mapping = (InputChannelMapping) cell?.DataContext;
-            mapping?.Clear();
+            if (e.Key != Key.Delete) return;
+            if (EncodingDataGrid.SelectedValue is not TextureChannelMapping channel) return;
+
+            channel.Clear();
         }
 
         private void OnCancelButtonClick(object sender, RoutedEventArgs e)
@@ -55,14 +62,8 @@ namespace PixelGraph.UI.Windows
 
         private async void OnOkButtonClick(object sender, RoutedEventArgs e)
         {
-            try {
-                await SavePackInputAsync();
-
+            if (await SavePackInputAsync())
                 Application.Current.Dispatcher.Invoke(() => DialogResult = true);
-            }
-            catch (Exception error) {
-                ShowError($"Failed to save pack input! {error.Message}");
-            }
         }
 
         #endregion

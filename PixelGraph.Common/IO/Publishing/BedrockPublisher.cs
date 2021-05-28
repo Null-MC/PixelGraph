@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.Common.IO.Publishing
 {
@@ -44,6 +45,9 @@ namespace PixelGraph.Common.IO.Publishing
                     },
                 },
             };
+
+            var isRtx = TextureEncoding.Is(pack.Encoding.Format, TextureEncoding.Format_Rtx);
+            if (isRtx) packMeta.Capabilities.Add("raytraced");
 
             await using var stream = Writer.Open("manifest.json");
             await WriteJsonAsync(stream, packMeta, Formatting.Indented, token);

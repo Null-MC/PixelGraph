@@ -1,45 +1,44 @@
 ﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
-using PixelGraph.Common.Textures;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class PackInputVM : ViewModelBase
     {
         public string RootDirectory {get; set;}
-        public InputChannelMapping[] Channels {get;}
+        public TextureChannelMapping[] Channels {get;}
 
-        public InputChannelMapping Alpha {get;}
+        public TextureChannelMapping Alpha {get;}
 
-        public InputChannelMapping DiffuseRed {get;}
-        public InputChannelMapping DiffuseGreen {get;}
-        public InputChannelMapping DiffuseBlue {get;}
+        public TextureChannelMapping DiffuseRed {get;}
+        public TextureChannelMapping DiffuseGreen {get;}
+        public TextureChannelMapping DiffuseBlue {get;}
 
-        public InputChannelMapping AlbedoRed {get;}
-        public InputChannelMapping AlbedoGreen {get;}
-        public InputChannelMapping AlbedoBlue {get;}
+        public TextureChannelMapping AlbedoRed {get;}
+        public TextureChannelMapping AlbedoGreen {get;}
+        public TextureChannelMapping AlbedoBlue {get;}
 
-        public InputChannelMapping Height {get; set;}
+        public TextureChannelMapping Height {get; set;}
 
-        public InputChannelMapping Occlusion {get; set;}
+        public TextureChannelMapping Occlusion {get; set;}
 
-        public InputChannelMapping NormalX {get; set;}
-        public InputChannelMapping NormalY {get; set;}
-        public InputChannelMapping NormalZ {get; set;}
+        public TextureChannelMapping NormalX {get; set;}
+        public TextureChannelMapping NormalY {get; set;}
+        public TextureChannelMapping NormalZ {get; set;}
 
-        public InputChannelMapping Specular {get; set;}
+        public TextureChannelMapping Specular {get; set;}
 
-        public InputChannelMapping Smooth {get; set;}
-        public InputChannelMapping Rough {get; set;}
+        public TextureChannelMapping Smooth {get; set;}
+        public TextureChannelMapping Rough {get; set;}
 
-        public InputChannelMapping Metal {get; set;}
-        public InputChannelMapping F0 {get; set;}
+        public TextureChannelMapping Metal {get; set;}
+        public TextureChannelMapping F0 {get; set;}
 
-        public InputChannelMapping Porosity {get; set;}
+        public TextureChannelMapping Porosity {get; set;}
 
-        public InputChannelMapping SSS {get; set;}
+        public TextureChannelMapping SSS {get; set;}
 
-        public InputChannelMapping Emissive {get; set;}
+        public TextureChannelMapping Emissive {get; set;}
 
         private ResourcePackInputProperties _packInput;
 
@@ -72,37 +71,37 @@ namespace PixelGraph.UI.ViewModels
         public PackInputVM()
         {
             Channels = new []{
-                Alpha = new InputChannelMapping("Alpha"),
+                Alpha = new TextureChannelMapping("Alpha"),
 
-                DiffuseRed = new InputChannelMapping("Diffuse Red"),
-                DiffuseGreen = new InputChannelMapping("Diffuse Green"),
-                DiffuseBlue = new InputChannelMapping("Diffuse Blue"),
+                DiffuseRed = new TextureChannelMapping("Diffuse Red"),
+                DiffuseGreen = new TextureChannelMapping("Diffuse Green"),
+                DiffuseBlue = new TextureChannelMapping("Diffuse Blue"),
 
-                AlbedoRed = new InputChannelMapping("Albedo Red"),
-                AlbedoGreen = new InputChannelMapping("Albedo Green"),
-                AlbedoBlue = new InputChannelMapping("Albedo Blue"),
+                AlbedoRed = new TextureChannelMapping("Albedo Red"),
+                AlbedoGreen = new TextureChannelMapping("Albedo Green"),
+                AlbedoBlue = new TextureChannelMapping("Albedo Blue"),
 
-                Height = new InputChannelMapping("Height"),
+                Height = new TextureChannelMapping("Height"),
 
-                Occlusion = new InputChannelMapping("Ambient Occlusion"),
+                Occlusion = new TextureChannelMapping("Ambient Occlusion"),
 
-                NormalX = new InputChannelMapping("Normal-X"),
-                NormalY = new InputChannelMapping("Normal-Y"),
-                NormalZ = new InputChannelMapping("Normal-Z"),
+                NormalX = new TextureChannelMapping("Normal-X"),
+                NormalY = new TextureChannelMapping("Normal-Y"),
+                NormalZ = new TextureChannelMapping("Normal-Z"),
 
-                Specular = new InputChannelMapping("Specular"),
+                Specular = new TextureChannelMapping("Specular"),
 
-                Smooth = new InputChannelMapping("Smooth"),
-                Rough = new InputChannelMapping("Rough"),
+                Smooth = new TextureChannelMapping("Smooth"),
+                Rough = new TextureChannelMapping("Rough"),
 
-                Metal = new InputChannelMapping("Metal"),
-                F0 = new InputChannelMapping("F0"),
+                Metal = new TextureChannelMapping("Metal"),
+                F0 = new TextureChannelMapping("F0"),
 
-                Porosity = new InputChannelMapping("Porosity"),
+                Porosity = new TextureChannelMapping("Porosity"),
 
-                SSS = new InputChannelMapping("Sub-Surface-Scattering"),
+                SSS = new TextureChannelMapping("Sub-Surface-Scattering"),
 
-                Emissive = new InputChannelMapping("Emissive"),
+                Emissive = new TextureChannelMapping("Emissive"),
             };
         }
 
@@ -188,263 +187,6 @@ namespace PixelGraph.UI.ViewModels
                     MinValue = 100,
                 },
             };
-        }
-    }
-
-    internal class InputChannelMapping : ViewModelBase
-    {
-        private ResourcePackChannelProperties _channel;
-        private string _textureDefault;
-        private ColorChannel? _colorDefault;
-        private decimal? _minValueDefault;
-        private decimal? _maxValueDefault;
-        private byte? _rangeMinDefault;
-        private byte? _rangeMaxDefault;
-        private int? _shiftDefault;
-        private decimal? _powerDefault;
-        //private bool? _perceptualDefault;
-        private bool? _invertDefault;
-
-        public string Label {get;}
-
-        public string Texture {
-            get => _channel?.Texture;
-            set {
-                if (_channel == null) return;
-                if (_channel.Texture == value) return;
-                _channel.Texture = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public ColorChannel? Color {
-            get => _channel?.Color;
-            set {
-                if (_channel == null) return;
-                if (_channel.Color == value) return;
-                _channel.Color = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public decimal? MinValue {
-            get => _channel?.MinValue;
-            set {
-                if (_channel == null) return;
-                if (_channel.MinValue == value) return;
-                _channel.MinValue = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public decimal? MaxValue {
-            get => _channel?.MaxValue;
-            set {
-                if (_channel == null) return;
-                if (_channel.MaxValue == value) return;
-                _channel.MaxValue = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public byte? RangeMin {
-            get => _channel?.RangeMin;
-            set {
-                if (_channel == null) return;
-                if (_channel.RangeMin == value) return;
-                _channel.RangeMin = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public byte? RangeMax {
-            get => _channel?.RangeMax;
-            set {
-                if (_channel == null) return;
-                if (_channel.RangeMax == value) return;
-                _channel.RangeMax = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int? Shift {
-            get => _channel?.Shift;
-            set {
-                if (_channel == null) return;
-                if (_channel.Shift == value) return;
-                _channel.Shift = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public decimal? Power {
-            get => _channel?.Power;
-            set {
-                if (_channel == null) return;
-                if (_channel.Power == value) return;
-                _channel.Power = value;
-                OnPropertyChanged();
-            }
-        }
-
-        //public bool? Perceptual {
-        //    get => _channel?.Perceptual;
-        //    set {
-        //        if (_channel == null) return;
-        //        if (_channel.Perceptual == value) return;
-        //        _channel.Perceptual = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
-        public bool? Invert {
-            get => _channel?.Invert;
-            set {
-                if (_channel == null) return;
-                if (_channel.Invert == value) return;
-                _channel.Invert = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string TextureDefault {
-            get => _textureDefault;
-            set {
-                if (_textureDefault == value) return;
-                _textureDefault = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public ColorChannel? ColorDefault {
-            get => _colorDefault;
-            set {
-                if (_colorDefault == value) return;
-                _colorDefault = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public decimal? MinValueDefault {
-            get => _minValueDefault;
-            set {
-                if (_minValueDefault == value) return;
-                _minValueDefault = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public decimal? MaxValueDefault {
-            get => _maxValueDefault;
-            set {
-                if (_maxValueDefault == value) return;
-                _maxValueDefault = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public byte? RangeMinDefault {
-            get => _rangeMinDefault;
-            set {
-                if (_rangeMinDefault == value) return;
-                _rangeMinDefault = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public byte? RangeMaxDefault {
-            get => _rangeMaxDefault;
-            set {
-                if (_rangeMaxDefault == value) return;
-                _rangeMaxDefault = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int? ShiftDefault {
-            get => _shiftDefault;
-            set {
-                if (_shiftDefault == value) return;
-                _shiftDefault = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public decimal? PowerDefault {
-            get => _powerDefault;
-            set {
-                if (_powerDefault == value) return;
-                _powerDefault = value;
-                OnPropertyChanged();
-            }
-        }
-
-        //public bool? PerceptualDefault {
-        //    get => _perceptualDefault;
-        //    set {
-        //        if (_perceptualDefault == value) return;
-        //        _perceptualDefault = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
-        public bool? InvertDefault {
-            get => _invertDefault;
-            set {
-                if (_invertDefault == value) return;
-                _invertDefault = value;
-                OnPropertyChanged();
-            }
-        }
-
-
-        public InputChannelMapping(string label)
-        {
-            Label = label;
-        }
-
-        public void SetChannel(ResourcePackChannelProperties channel)
-        {
-            _channel = channel;
-
-            OnPropertyChanged(nameof(Texture));
-            OnPropertyChanged(nameof(Color));
-            OnPropertyChanged(nameof(MinValue));
-            OnPropertyChanged(nameof(MaxValue));
-            OnPropertyChanged(nameof(RangeMin));
-            OnPropertyChanged(nameof(RangeMax));
-            OnPropertyChanged(nameof(Shift));
-            OnPropertyChanged(nameof(Power));
-            //OnPropertyChanged(nameof(Perceptual));
-            OnPropertyChanged(nameof(Invert));
-        }
-
-        public void ApplyDefaultValues(ResourcePackChannelProperties encodingDefaults)
-        {
-            TextureDefault = encodingDefaults?.Texture;
-            ColorDefault = encodingDefaults?.Color;
-            MinValueDefault = encodingDefaults?.MinValue;
-            MaxValueDefault = encodingDefaults?.MaxValue;
-            RangeMinDefault = encodingDefaults?.RangeMin;
-            RangeMaxDefault = encodingDefaults?.RangeMax;
-            ShiftDefault = encodingDefaults?.Shift;
-            PowerDefault = encodingDefaults?.Power;
-            //PerceptualDefault = encodingDefaults?.Perceptual;
-            InvertDefault = encodingDefaults?.Invert;
-        }
-
-        public void Clear()
-        {
-            Texture = null;
-            Color = null;
-            MinValue = null;
-            MaxValue = null;
-            RangeMin = null;
-            RangeMax = null;
-            Shift = null;
-            Power = null;
-            //Perceptual = null;
-            Invert = null;
         }
     }
 }

@@ -6,7 +6,6 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
-using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using System;
@@ -204,14 +203,6 @@ namespace PixelGraph.UI.Windows
             await SaveAsync(VM.LoadedProfile);
         }
 
-        private void OnTextureResetButtonClick(object sender, RoutedEventArgs e)
-        {
-            if (!(e.Source is Button button)) return;
-            var cell = button.FindParent<DataGridCell>();
-            var mapping = (OutputChannelMapping) cell?.DataContext;
-            mapping?.Clear();
-        }
-
         private void OnGenerateHeaderUuid(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show(this, "A value already exists! Are you sure you want to replace it?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
@@ -224,14 +215,31 @@ namespace PixelGraph.UI.Windows
                 VM.PackModuleUuid = Guid.NewGuid();
         }
 
-        //private void OnFilterTextureFormats(object sender, FilterEventArgs e)
-        //{
-        //    if (VM.LoadedProfile == null) return;
-        //    if (e.Item is not TextureFormatValueItem item) return;
-        //    if (item.GameEditions == null) return;
+        private void OnEncodingSamplerKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Delete) return;
+            VM.EditEncodingSampler = null;
+        }
 
-        //    e.Accepted = item.GameEditions.Contains(VM.LoadedProfile.Edition);
-        //}
+        private void OnImageEncodingKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Delete) return;
+            VM.EditImageEncoding = null;
+        }
+
+        private void OnEncodingDataGridMouseWheelPreview(object sender, MouseWheelEventArgs e)
+        {
+            EncodingScrollViewer.ScrollToVerticalOffset(EncodingScrollViewer.ContentVerticalOffset - e.Delta);
+            e.Handled = true;
+        }
+
+        private void OnEncodingDataGridKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Delete) return;
+            if (TextureEncodingDataGrid.SelectedValue is not TextureChannelMapping channel) return;
+
+            channel.Clear();
+        }
 
         #endregion
     }

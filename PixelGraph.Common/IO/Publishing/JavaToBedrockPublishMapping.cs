@@ -541,7 +541,7 @@ namespace PixelGraph.Common.IO.Publishing
             ["assets/minecraft/textures/block/sweet_berry_bush_stage1"] = "textures/blocks/sweet_berry_bush_stage1",
             ["assets/minecraft/textures/block/sweet_berry_bush_stage2"] = "textures/blocks/sweet_berry_bush_stage2",
             ["assets/minecraft/textures/block/sweet_berry_bush_stage3"] = "textures/blocks/sweet_berry_bush_stage3",
-            //["assets/minecraft/textures/block/tallgrass"] = "textures/blocks/tallgrass",
+            ["assets/minecraft/textures/block/grass"] = "textures/blocks/tallgrass",
             ["assets/minecraft/textures/block/target_side"] = "textures/blocks/target_side",
             ["assets/minecraft/textures/block/target_top"] = "textures/blocks/target_top",
             ["assets/minecraft/textures/block/tnt_bottom"] = "textures/blocks/tnt_bottom",

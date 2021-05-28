@@ -18,6 +18,7 @@
     <Compile Remove="Internal\ImagePreviewCache.cs" />
     <Compile Remove="ViewModels\InputVMX.cs" />
     <Compile Remove="ViewModels\LogListVM.cs" />
+    <Compile Remove="ViewModels\OutputChannelMapping.cs" />
     <Compile Remove="ViewModels\PackEncodingVM.cs" />
     <Compile Remove="ViewModels\TreeSearchFilter.cs" />
   </ItemGroup>

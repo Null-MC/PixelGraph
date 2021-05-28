@@ -4,9 +4,8 @@ using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.ViewData;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.IO;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -19,41 +18,39 @@ namespace PixelGraph.UI.ViewModels
 
         public event EventHandler DataChanged;
 
-        public OutputChannelMapping[] EncodingChannels {get;}
+        public TextureChannelMapping[] EncodingChannels {get;}
 
-        public OutputChannelMapping Alpha {get;}
+        public TextureChannelMapping Alpha {get;}
 
-        public OutputChannelMapping DiffuseRed {get;}
-        public OutputChannelMapping DiffuseGreen {get;}
-        public OutputChannelMapping DiffuseBlue {get;}
+        public TextureChannelMapping DiffuseRed {get;}
+        public TextureChannelMapping DiffuseGreen {get;}
+        public TextureChannelMapping DiffuseBlue {get;}
 
-        public OutputChannelMapping AlbedoRed {get;}
-        public OutputChannelMapping AlbedoGreen {get;}
-        public OutputChannelMapping AlbedoBlue {get;}
+        public TextureChannelMapping AlbedoRed {get;}
+        public TextureChannelMapping AlbedoGreen {get;}
+        public TextureChannelMapping AlbedoBlue {get;}
 
-        public OutputChannelMapping Height {get; set;}
+        public TextureChannelMapping Height {get; set;}
 
-        public OutputChannelMapping Occlusion {get; set;}
+        public TextureChannelMapping Occlusion {get; set;}
 
-        public OutputChannelMapping NormalX {get; set;}
-        public OutputChannelMapping NormalY {get; set;}
-        public OutputChannelMapping NormalZ {get; set;}
+        public TextureChannelMapping NormalX {get; set;}
+        public TextureChannelMapping NormalY {get; set;}
+        public TextureChannelMapping NormalZ {get; set;}
 
-        public OutputChannelMapping Specular {get; set;}
+        public TextureChannelMapping Specular {get; set;}
 
-        public OutputChannelMapping Smooth {get; set;}
-        public OutputChannelMapping Rough {get; set;}
+        public TextureChannelMapping Smooth {get; set;}
+        public TextureChannelMapping Rough {get; set;}
 
-        public OutputChannelMapping Metal {get; set;}
-        public OutputChannelMapping F0 {get; set;}
+        public TextureChannelMapping Metal {get; set;}
+        public TextureChannelMapping F0 {get; set;}
 
-        public OutputChannelMapping Porosity {get; set;}
+        public TextureChannelMapping Porosity {get; set;}
 
-        public OutputChannelMapping SSS {get; set;}
+        public TextureChannelMapping SSS {get; set;}
 
-        public OutputChannelMapping Emissive {get; set;}
-
-        public IEnumerable<TextureFormatValueItem> TextureFormatOptions => GetTextureFormatOptions(GameEdition);
+        public TextureChannelMapping Emissive {get; set;}
 
         public bool HasSelectedProfile => _selectedProfileItem != null;
         public bool HasLoadedProfile => _loadedProfile != null;
@@ -61,6 +58,9 @@ namespace PixelGraph.UI.ViewModels
         public bool IsBedrockProfile => GameEditions.Is(_loadedProfile?.Edition, GameEditions.Bedrock);
         public decimal OcclusionQualityDefault => ResourcePackProfileProperties.DefaultOcclusionQuality;
         public decimal OcclusionPowerDefault => ResourcePackProfileProperties.DefaultOcclusionPower;
+        public string PackName => _loadedProfile?.Name;
+        public string EncodingSampler => _loadedProfile?.Encoding?.Sampler;
+        public string ImageEncoding => _loadedProfile?.Encoding?.Image;
 
         public string RootDirectory {
             get => _rootDirectory;
@@ -83,31 +83,8 @@ namespace PixelGraph.UI.ViewModels
             set {
                 _loadedProfile = value;
                 OnPropertyChanged();
-                
-                OnPropertyChanged(nameof(TextureFormatOptions));
-                OnPropertyChanged(nameof(IsBedrockProfile));
-                OnPropertyChanged(nameof(IsJavaProfile));
-                OnPropertyChanged(nameof(HasLoadedProfile));
-                OnPropertyChanged(nameof(PackName));
-                OnPropertyChanged(nameof(GameEdition));
-                OnPropertyChanged(nameof(PackDescription));
-                OnPropertyChanged(nameof(PackTags));
-                OnPropertyChanged(nameof(PackFormat));
-                OnPropertyChanged(nameof(PackHeaderUuid));
-                OnPropertyChanged(nameof(PackModuleUuid));
-                OnPropertyChanged(nameof(TextureFormat));
-                OnPropertyChanged(nameof(EncodingSampler));
-                OnPropertyChanged(nameof(TextureSize));
-                OnPropertyChanged(nameof(BlockTextureSize));
-                OnPropertyChanged(nameof(TextureScale));
-                OnPropertyChanged(nameof(OcclusionQuality));
-                OnPropertyChanged(nameof(OcclusionPower));
-                OnPropertyChanged(nameof(AutoGenerateNormal));
-                OnPropertyChanged(nameof(AutoGenerateOcclusion));
 
-                UpdateChannels();
-                //UpdateTextureFormatOptions();
-                UpdateDefaultValues();
+                InvalidateValues();
             }
         }
 
@@ -121,12 +98,13 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public string PackName {
-            get => _loadedProfile?.Name;
+        public string EditPackName {
+            get => _loadedProfile?.Name ?? GetDefaultPackName();
             set {
                 if (_loadedProfile == null) return;
                 _loadedProfile.Name = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(PackName));
 
                 OnDataChanged();
             }
@@ -141,8 +119,6 @@ namespace PixelGraph.UI.ViewModels
 
                 OnPropertyChanged(nameof(IsJavaProfile));
                 OnPropertyChanged(nameof(IsBedrockProfile));
-                OnPropertyChanged(nameof(TextureFormatOptions));
-                //UpdateTextureFormatOptions();
                 OnDataChanged();
             }
         }
@@ -215,26 +191,28 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public string ImageEncoding {
-            get => _loadedProfile?.Encoding?.Image;
+        public string EditImageEncoding {
+            get => _loadedProfile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
             set {
                 if (_loadedProfile == null) return;
                 _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
                 _loadedProfile.Encoding.Image = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(ImageEncoding));
 
                 UpdateDefaultValues();
                 OnDataChanged();
             }
         }
 
-        public string EncodingSampler {
-            get => _loadedProfile?.Encoding?.Sampler;
+        public string EditEncodingSampler {
+            get => _loadedProfile?.Encoding?.Sampler ?? Samplers.Nearest;
             set {
                 if (_loadedProfile == null) return;
                 _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
                 _loadedProfile.Encoding.Sampler = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(EncodingSampler));
 
                 UpdateDefaultValues();
                 OnDataChanged();
@@ -317,39 +295,37 @@ namespace PixelGraph.UI.ViewModels
             _profiles = new ObservableCollection<ProfileItem>();
 
             EncodingChannels = new []{
-                Alpha = new OutputChannelMapping("Alpha"),
+                Alpha = new TextureChannelMapping("Alpha"),
 
-                DiffuseRed = new OutputChannelMapping("Diffuse Red"),
-                DiffuseGreen = new OutputChannelMapping("Diffuse Green"),
-                DiffuseBlue = new OutputChannelMapping("Diffuse Blue"),
+                DiffuseRed = new TextureChannelMapping("Diffuse Red"),
+                DiffuseGreen = new TextureChannelMapping("Diffuse Green"),
+                DiffuseBlue = new TextureChannelMapping("Diffuse Blue"),
 
-                AlbedoRed = new OutputChannelMapping("Albedo Red"),
-                AlbedoGreen = new OutputChannelMapping("Albedo Green"),
-                AlbedoBlue = new OutputChannelMapping("Albedo Blue"),
+                AlbedoRed = new TextureChannelMapping("Albedo Red"),
+                AlbedoGreen = new TextureChannelMapping("Albedo Green"),
+                AlbedoBlue = new TextureChannelMapping("Albedo Blue"),
 
-                Height = new OutputChannelMapping("Height"),
-                Occlusion = new OutputChannelMapping("Ambient Occlusion"),
+                Height = new TextureChannelMapping("Height"),
+                Occlusion = new TextureChannelMapping("Occlusion"),
 
-                NormalX = new OutputChannelMapping("Normal-X"),
-                NormalY = new OutputChannelMapping("Normal-Y"),
-                NormalZ = new OutputChannelMapping("Normal-Z"),
+                NormalX = new TextureChannelMapping("Normal-X"),
+                NormalY = new TextureChannelMapping("Normal-Y"),
+                NormalZ = new TextureChannelMapping("Normal-Z"),
 
-                Specular = new OutputChannelMapping("Specular"),
+                Specular = new TextureChannelMapping("Specular"),
 
-                Smooth = new OutputChannelMapping("Smooth"),
-                Rough = new OutputChannelMapping("Rough"),
+                Smooth = new TextureChannelMapping("Smooth"),
+                Rough = new TextureChannelMapping("Rough"),
 
-                Metal = new OutputChannelMapping("Metal"),
-                F0 = new OutputChannelMapping("F0"),
+                Metal = new TextureChannelMapping("Metal"),
+                F0 = new TextureChannelMapping("F0"),
 
-                Porosity = new OutputChannelMapping("Porosity"),
+                Porosity = new TextureChannelMapping("Porosity"),
 
-                SSS = new OutputChannelMapping("Sub-Surface-Scattering"),
+                SSS = new TextureChannelMapping("SubSurface Scattering"),
 
-                Emissive = new OutputChannelMapping("Emissive"),
+                Emissive = new TextureChannelMapping("Emissive"),
             };
-
-            //TextureFormatOptions = new ObservableCollection<TextureFormatValueItem>();
 
             Alpha.DataChanged += OnPropertyDataChanged;
             
@@ -381,6 +357,36 @@ namespace PixelGraph.UI.ViewModels
             SSS.DataChanged += OnPropertyDataChanged;
 
             Emissive.DataChanged += OnPropertyDataChanged;
+        }
+
+        private void InvalidateValues()
+        {
+            OnPropertyChanged(nameof(IsBedrockProfile));
+            OnPropertyChanged(nameof(IsJavaProfile));
+            OnPropertyChanged(nameof(HasLoadedProfile));
+            OnPropertyChanged(nameof(PackName));
+            OnPropertyChanged(nameof(EditPackName));
+            OnPropertyChanged(nameof(GameEdition));
+            OnPropertyChanged(nameof(PackDescription));
+            OnPropertyChanged(nameof(PackTags));
+            OnPropertyChanged(nameof(PackFormat));
+            OnPropertyChanged(nameof(PackHeaderUuid));
+            OnPropertyChanged(nameof(PackModuleUuid));
+            OnPropertyChanged(nameof(TextureFormat));
+            OnPropertyChanged(nameof(ImageEncoding));
+            OnPropertyChanged(nameof(EditImageEncoding));
+            OnPropertyChanged(nameof(EncodingSampler));
+            OnPropertyChanged(nameof(EditEncodingSampler));
+            OnPropertyChanged(nameof(TextureSize));
+            OnPropertyChanged(nameof(BlockTextureSize));
+            OnPropertyChanged(nameof(TextureScale));
+            OnPropertyChanged(nameof(OcclusionQuality));
+            OnPropertyChanged(nameof(OcclusionPower));
+            OnPropertyChanged(nameof(AutoGenerateNormal));
+            OnPropertyChanged(nameof(AutoGenerateOcclusion));
+
+            UpdateChannels();
+            UpdateDefaultValues();
         }
 
         private void UpdateChannels()
@@ -455,29 +461,17 @@ namespace PixelGraph.UI.ViewModels
             Emissive.ApplyDefaultValues(encodingDefaults?.Emissive, sampler);
         }
 
-        //private void UpdateTextureFormatOptions()
-        //{
-        //    isTextureFormatOptionsUpdating = true;
+        private string GetDefaultPackName()
+        {
+            var name = _loadedProfile?.LocalFile;
+            if (string.IsNullOrWhiteSpace(name)) return null;
 
-        //    TextureFormatOptions.Clear();
+            name = Path.GetFileName(name);
+            if (string.IsNullOrWhiteSpace(name)) return null;
 
-        //    TextureFormatOptions.Add(new TextureFormatValueItem {Text = "Raw", Value = TextureEncoding.Format_Raw, Hint = RawFormat.Description});
-        //    TextureFormatOptions.Add(new TextureFormatValueItem {Text = "Diffuse", Value = TextureEncoding.Format_Diffuse, Hint = DiffuseFormat.Description});
-
-        //    if (GameEditions.Is(GameEdition, GameEditions.Java)) {
-        //        TextureFormatOptions.Add(new TextureFormatValueItem {Text = "Specular", Value = TextureEncoding.Format_Specular, Hint = SpecularFormat.Description});
-        //        TextureFormatOptions.Add(new TextureFormatValueItem {Text = "OldPbr", Value = TextureEncoding.Format_OldPbr, Hint = OldPbrFormat.Description});
-        //        TextureFormatOptions.Add(new TextureFormatValueItem {Text = "LabPbr 1.1", Value = TextureEncoding.Format_Lab11, Hint = LabPbr11Format.Description});
-        //        TextureFormatOptions.Add(new TextureFormatValueItem {Text = "LabPbr 1.2", Value = TextureEncoding.Format_Lab12, Hint = LabPbr12Format.Description});
-        //        TextureFormatOptions.Add(new TextureFormatValueItem {Text = "LabPbr 1.3", Value = TextureEncoding.Format_Lab13, Hint = LabPbr13Format.Description});
-        //    }
-
-        //    if (GameEditions.Is(GameEdition, GameEditions.Bedrock)) {
-        //        TextureFormatOptions.Add(new TextureFormatValueItem {Text = "RTX", Value = TextureEncoding.Format_Rtx, Hint = RtxFormat.Description});
-        //    }
-
-        //    isTextureFormatOptionsUpdating = false;
-        //}
+            if (name.EndsWith(".pack.yml")) name = name[..^9];
+            return string.IsNullOrWhiteSpace(name) ? null : name;
+        }
 
         private void OnPropertyDataChanged(object sender, EventArgs e)
         {
@@ -488,14 +482,6 @@ namespace PixelGraph.UI.ViewModels
         {
             DataChanged?.Invoke(this, EventArgs.Empty);
         }
-
-        //protected virtual void OnCollectionChanged([CallerMemberName] string propertyName = null)
-        //{
-        //    CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset, propertyName));
-        //}
-
-        private static IEnumerable<TextureFormatValueItem> GetTextureFormatOptions(string edition) =>
-            new AllTextureFormatValues().Where(i => i.GameEditions.Contains(edition));
     }
 
     internal class ProfilesDesignVM : PublishProfilesVM
