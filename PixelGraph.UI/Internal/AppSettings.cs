@@ -5,11 +5,12 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal
 {
-    internal interface IAppSettings
+    public interface IAppSettings
     {
         SettingsDataModel Data {get;}
 
-        Task LoadAsync(CancellationToken token = default);
+        void Load();
+        //Task LoadAsync(CancellationToken token = default);
         Task SaveAsync(CancellationToken token = default);
     }
 
@@ -29,10 +30,15 @@ namespace PixelGraph.UI.Internal
             Data = new SettingsDataModel();
         }
 
-        public async Task LoadAsync(CancellationToken token = default)
+        public void Load()
         {
-            Data = await appData.ReadJsonAsync<SettingsDataModel>(FileName, token) ?? new SettingsDataModel();
+            Data = appData.ReadJson<SettingsDataModel>(FileName) ?? new SettingsDataModel();
         }
+
+        //public async Task LoadAsync(CancellationToken token = default)
+        //{
+        //    Data = await appData.ReadJsonAsync<SettingsDataModel>(FileName, token) ?? new SettingsDataModel();
+        //}
 
         public Task SaveAsync(CancellationToken token = default)
         {

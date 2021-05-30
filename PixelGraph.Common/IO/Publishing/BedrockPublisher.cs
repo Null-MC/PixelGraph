@@ -2,14 +2,15 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PixelGraph.Common.Extensions;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.Common.IO.Publishing
 {
@@ -82,6 +83,32 @@ namespace PixelGraph.Common.IO.Publishing
         protected override bool TryMapFile(in string sourceFile, out string destinationFile)
         {
             return fileMap.TryGetValue(sourceFile, out destinationFile);
+        }
+
+        protected override bool TryMapMaterial(in MaterialProperties material)
+        {
+            if (Mapping == null) return true;
+
+            var sourcePath = material.LocalPath;
+            string sourceFile;
+
+            if (material.Parts?.Any(part => {
+                sourceFile = PathEx.Join(sourcePath, part.Name);
+                sourceFile = PathEx.Normalize(sourceFile);
+
+                // TODO: replace with contains
+                return Mapping.TryMap(sourceFile, out _);
+            }) ?? false) return true;
+
+            if (material.CTM?.Type != null) {
+                // TODO
+                return false;
+            }
+
+            sourceFile = PathEx.Join(sourcePath, material.Name);
+            sourceFile = PathEx.Normalize(sourceFile);
+
+            return Mapping.TryMap(sourceFile, out _);
         }
 
         private async Task CreateMaterialMetadataAsync(string matPath, string matName, CancellationToken token)

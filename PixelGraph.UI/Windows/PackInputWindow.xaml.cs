@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
+using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Threading.Tasks;
@@ -19,6 +20,9 @@ namespace PixelGraph.UI.Windows
             this.provider = provider;
 
             InitializeComponent();
+
+            var themeHelper = provider.GetRequiredService<IThemeHelper>();
+            themeHelper.ApplyCurrent(this);
         }
 
         private async Task<bool> SavePackInputAsync()

@@ -7,12 +7,12 @@ namespace PixelGraph.Common.Material
 {
     public class MaterialNormalProperties
     {
-        public const float DefaultStrength = 1f;
-        public const NormalMapMethods DefaultMethod = NormalMapMethods.Sobel3;
+        public const decimal DefaultStrength = 1.0m;
+        public const string DefaultMethod = NormalMapMethod.Sobel3;
 
         public string Texture {get; set;}
         public decimal? Strength {get; set;}
-        public NormalMapMethods? Method {get; set;}
+        public string Method {get; set;}
         
         public ResourcePackNormalXChannelProperties InputX {get; set;}
 
@@ -32,7 +32,7 @@ namespace PixelGraph.Common.Material
         #region Deprecated
 
         [Obsolete("Rename usages of Filter to Method.")]
-        public NormalMapMethods? Filter {
+        public string? Filter {
             get => null;
             set => Method = value;
         }

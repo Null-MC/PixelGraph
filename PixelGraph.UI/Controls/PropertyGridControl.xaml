@@ -1,0 +1,69 @@
+﻿<DataGrid x:Class="PixelGraph.UI.Controls.PropertyGridControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:convert="clr-namespace:PixelGraph.UI.Converters"
+             xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
+             xmlns:viewModels="clr-namespace:PixelGraph.UI.ViewModels"
+             mc:Ignorable="d" d:DesignHeight="120" d:DesignWidth="240"
+             AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="None"
+             PreparingCellForEdit="OnPreparingCellForEdit">
+    <DataGrid.Resources>
+        <convert:NullableConverter x:Key="NullableConverter"/>
+        <controls:PropertyGridCellTemplateSelector x:Key="DisplayCellTemplateSelector">
+            <controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
+                <DataTemplate DataType="{x:Type viewModels:ITextPropertyRow}">
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Text="{Binding EditValue, Mode=OneWay}"/>
+                </DataTemplate>
+            </controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
+            <controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
+                <DataTemplate DataType="{x:Type viewModels:ISelectPropertyRow}">
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Text="{Binding DisplayValue, Mode=OneWay}"/>
+                </DataTemplate>
+            </controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
+        </controls:PropertyGridCellTemplateSelector>
+        <controls:PropertyGridCellTemplateSelector x:Key="EditCellTemplateSelector">
+            <controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
+                <DataTemplate DataType="{x:Type viewModels:ITextPropertyRow}">
+                    <TextBox HorizontalContentAlignment="Center" Margin="0" Padding="6,0" VerticalContentAlignment="Center" IsTabStop="False"
+                             BorderThickness="0" BorderBrush="{x:Null}" Background="Transparent"
+                             Text="{Binding EditValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                </DataTemplate>
+            </controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
+            <controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
+                <DataTemplate DataType="{x:Type viewModels:ISelectPropertyRow}">
+                    <ComboBox HorizontalContentAlignment="Center" Margin="0" Padding="6,0" IsTabStop="False"
+                              BorderThickness="0" BorderBrush="{x:Null}" Background="Transparent"
+                              DisplayMemberPath="{Binding Options.DisplayMemberPath, Mode=OneWay}"
+                              SelectedValuePath="{Binding Options.SelectedValuePath, Mode=OneWay}"
+                              ItemsSource="{Binding Options.Items, Mode=OneWay}"
+                              SelectedValue="{Binding EditValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                </DataTemplate>
+            </controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
+        </controls:PropertyGridCellTemplateSelector>
+    </DataGrid.Resources>
+    <DataGrid.Columns>
+        <DataGridTextColumn Width="1*" Binding="{Binding Name, Mode=OneTime}" IsReadOnly="True"/>
+        <DataGridTemplateColumn Width="1*"
+                                CellTemplateSelector="{StaticResource DisplayCellTemplateSelector}"
+                                CellEditingTemplateSelector="{StaticResource EditCellTemplateSelector}">
+            <DataGridTemplateColumn.CellStyle>
+                <Style TargetType="DataGridCell" BasedOn="{StaticResource MahApps.Styles.DataGridCell}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ActualValue}" Value="{x:Null}">
+                            <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
+                            <Setter Property="FontStyle" Value="Italic"/>
+                        </DataTrigger>
+                        <Trigger Property="IsEditing" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                            <Setter Property="FontStyle" Value="Normal"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGridTemplateColumn.CellStyle>
+        </DataGridTemplateColumn>
+    </DataGrid.Columns>
+</DataGrid>

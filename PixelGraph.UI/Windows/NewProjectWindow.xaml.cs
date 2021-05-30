@@ -6,6 +6,7 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
+using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
@@ -27,6 +28,9 @@ namespace PixelGraph.UI.Windows
             logger = provider.GetRequiredService<ILogger<NewProjectWindow>>();
 
             InitializeComponent();
+
+            var themeHelper = provider.GetRequiredService<IThemeHelper>();
+            themeHelper.ApplyCurrent(this);
         }
 
         private bool CreateDirectory()

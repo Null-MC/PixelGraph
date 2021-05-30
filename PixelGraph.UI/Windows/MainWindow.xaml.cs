@@ -34,9 +34,11 @@ namespace PixelGraph.UI.Windows
     public partial class MainWindow
     {
         private readonly IServiceProvider provider;
+        private readonly ITextureEditUtility editUtility;
         private readonly ILogger logger;
 
         private readonly object previewLock;
+        private readonly IThemeHelper themeHelper;
         private ITexturePreviewBuilder previewBuilder;
 
 
@@ -44,11 +46,15 @@ namespace PixelGraph.UI.Windows
         {
             this.provider = provider;
 
+            themeHelper = provider.GetRequiredService<IThemeHelper>();
+            editUtility = provider.GetRequiredService<ITextureEditUtility>();
             logger = provider.GetRequiredService<ILogger<MainWindow>>();
 
             previewLock = new object();
 
             InitializeComponent();
+
+            themeHelper.ApplyCurrent(this);
 
             var recent = provider.GetRequiredService<IRecentPathManager>();
             vm.RecentDirectories = recent.List;
@@ -567,6 +573,13 @@ namespace PixelGraph.UI.Windows
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            var settings = provider.GetRequiredService<IAppSettings>();
+
+            if (settings.Data.SelectedPublishLocation != null) {
+                var location = vm.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
+                if (location != null) vm.SelectedLocation = location;
+            }
+
             try {
                 await LoadPublishLocationsAsync();
             }
@@ -582,20 +595,6 @@ namespace PixelGraph.UI.Windows
             catch (Exception error) {
                 logger.LogError(error, "Failed to load recent projects list!");
                 ShowError($"Failed to load recent projects list! {error.UnfoldMessageString()}");
-            }
-
-            try {
-                var settings = provider.GetRequiredService<IAppSettings>();
-                await settings.LoadAsync();
-
-                if (settings.Data.SelectedPublishLocation != null) {
-                    var location = vm.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
-                    if (location != null) vm.SelectedLocation = location;
-                }
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to load application settings!");
-                ShowError($"Failed to load application settings! {error.UnfoldMessageString()}");
             }
         }
 
@@ -708,14 +707,15 @@ namespace PixelGraph.UI.Windows
             vm.SelectedLocation = window.VM.SelectedLocationItem;
         }
 
-        //private void OnSettingsClick(object sender, RoutedEventArgs e)
-        //{
-        //    var window = new SettingsWindow {
-        //        Owner = this,
-        //    };
+        private void OnSettingsClick(object sender, RoutedEventArgs e)
+        {
+            var window = provider.GetRequiredService<SettingsWindow>();
+            window.Owner = this;
 
-        //    window.ShowDialog();
-        //}
+            if (window.ShowDialog() == true) {
+                themeHelper.ApplyCurrent(this);
+            }
+        }
 
         private void OnNewMaterialMenuClick(object sender, RoutedEventArgs e)
         {
@@ -929,9 +929,11 @@ namespace PixelGraph.UI.Windows
             if (!vm.HasLoadedMaterial) return;
             if (!vm.HasTagSelection) return;
 
-            var editUtility = provider.GetRequiredService<ITextureEditUtility>();
+            //var editUtility = provider.GetRequiredService<ITextureEditUtility>();
 
             try {
+                vm.IsImageEditorOpen = true;
+
                 var success = await editUtility.EditLayerAsync(vm.LoadedMaterial, vm.SelectedTag);
                 if (!success) return;
             }
@@ -939,8 +941,18 @@ namespace PixelGraph.UI.Windows
                 logger.LogError(error, "Failed to launch external image editor!");
                 ShowError($"Failed to launch external image editor! {error.UnfoldMessageString()}");
             }
+            finally {
+                //await Application.Current.Dispatcher.BeginInvoke(() => IsEnabled = true);
+                vm.IsImageEditorOpen = false;
+            }
 
             await UpdatePreviewAsync(false);
+        }
+
+        private void OnImageEditorCompleteClick(object sender, RoutedEventArgs e)
+        {
+            editUtility.Cancel();
+            vm.IsImageEditorOpen = false;
         }
 
         private void OnExitClick(object sender, RoutedEventArgs e)

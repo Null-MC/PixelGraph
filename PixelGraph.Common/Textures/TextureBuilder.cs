@@ -106,9 +106,9 @@ namespace PixelGraph.Common.Textures
                         if (occlusionGraph.FrameCount > FrameCount)
                             FrameCount = occlusionGraph.FrameCount;
                     }
-
-                    ApplyDefaultValue(mapping);
                 }
+
+                ApplyDefaultValue(mapping);
             }
         }
         
@@ -328,6 +328,7 @@ namespace PixelGraph.Common.Textures
             //    }
             //}
 
+            mapping.InputValue = (float) EncodingChannel.GetDefaultValue(outputChannel.ID);
             return false;
         }
 
@@ -416,9 +417,9 @@ namespace PixelGraph.Common.Textures
             if (!mapping.InputValue.HasValue && mapping.OutputShift == 0 && !mapping.OutputInverted) return;
 
             var value = mapping.InputValue ?? 0f;
-            if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
+            //if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
-            if (mapping.InputInverted) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
+            //if (mapping.InputInverted) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
 
             mapping.Map(ref value, out byte finalValue);
 

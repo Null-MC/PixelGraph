@@ -16,7 +16,7 @@ namespace PixelGraph.UI.ViewModels
         #region Properties
 
         private readonly object busyLock;
-        private volatile bool _isBusy, _isPreviewLoading;
+        private volatile bool _isBusy, _isPreviewLoading, _isImageEditorOpen;
         private ObservableCollection<string> _recentDirectories;
         private List<LocationViewModel> _publishLocations;
         private ResourcePackInputProperties _packInput;
@@ -211,6 +211,14 @@ namespace PixelGraph.UI.ViewModels
             get => _isPreviewLoading;
             set {
                 _isPreviewLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsImageEditorOpen {
+            get => _isImageEditorOpen;
+            set {
+                _isImageEditorOpen = value;
                 OnPropertyChanged();
             }
         }

@@ -7,9 +7,9 @@ namespace PixelGraph.Common.Material
     {
         //public const string DefaultSampler = Samplers.Samplers.Nearest;
         //public const float DefaultQuality = 0.1f;
-        public const float DefaultStepDistance = 0.2f;
-        public const float DefaultZScale = 6f;
-        public const float DefaultZBias = 0f;
+        public const decimal DefaultStepDistance = 0.2m;
+        public const decimal DefaultZScale = 6.0m;
+        public const decimal DefaultZBias = 0.0m;
 
         public ResourcePackOcclusionChannelProperties Input {get; set;}
         public string Texture {get; set;}

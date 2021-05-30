@@ -7,16 +7,16 @@ namespace PixelGraph.UI.ViewData
     {
         public NormalMethodValues()
         {
-            Add(new Item {Text = "Sobel-3", Value = NormalMapMethods.Sobel3});
-            Add(new Item {Text = "Sobel-High", Value = NormalMapMethods.SobelHigh});
-            Add(new Item {Text = "Sobel-Low", Value = NormalMapMethods.SobelLow});
-            Add(new Item {Text = "Variance", Value = NormalMapMethods.Variance});
+            Add(new Item {Text = "Sobel 3x3", Value = NormalMapMethod.Sobel3});
+            Add(new Item {Text = "Sobel-High", Value = NormalMapMethod.SobelHigh});
+            Add(new Item {Text = "Sobel-Low", Value = NormalMapMethod.SobelLow});
+            Add(new Item {Text = "Variance", Value = NormalMapMethod.Variance});
         }
 
         public class Item
         {
             public string Text {get; set;}
-            public NormalMapMethods Value {get; set;}
+            public string Value {get; set;}
         }
     }
 }

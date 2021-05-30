@@ -8,7 +8,7 @@ namespace PixelGraph.UI.Converters
 {
     public class NormalMethodLabelConverter : IValueConverter
     {
-        private static readonly Dictionary<NormalMapMethods, string> map = new Dictionary<NormalMapMethods, string> {
+        private static readonly Dictionary<NormalMapMethods, string> map = new() {
             [NormalMapMethods.Sobel3] = "Sobel-3",
             [NormalMapMethods.SobelHigh] = "Sobel-High",
             [NormalMapMethods.SobelLow] = "Sobel-Low",

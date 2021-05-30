@@ -182,9 +182,14 @@ namespace PixelGraph.Common.Material
 
         public bool TryGetChannelValue(string encodingChannel, out decimal value)
         {
+            if (encodingChannel == null) throw new ArgumentNullException(nameof(encodingChannel));
+
             decimal? result = null;
 
-            if (decimal.TryParse(encodingChannel, out value)) return true;
+            if (decimal.TryParse(encodingChannel, out var valueT)) {
+                value = valueT;
+                return true;
+            }
 
             if (valueMap.TryGetValue(encodingChannel, out var valueFunc)) {
                 result = valueFunc(this);

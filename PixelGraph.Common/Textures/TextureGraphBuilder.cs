@@ -179,11 +179,17 @@ namespace PixelGraph.Common.Textures
                     var placeholderPath = PathEx.Join("assets", "minecraft", "textures", "block");
                     if (!context.Mapping.TryMap(placeholderPath, context.Material.Name, out var destPath, out var destName)) continue;
 
+                    if (!context.PublishAsGlobal || (context.IsMaterialCtm && !context.Material.UseGlobalMatching))
+                        destPath = PathEx.Join(destPath, context.Material.Name);
+
                     var destTagName = NamingStructure.Get(textureTag, destName, ext, true);
                     destFile = PathEx.Join(destPath, destTagName);
                 }
                 else {
                     if (!context.Mapping.TryMap(sourcePath, part.Name, out var destPath, out var destName)) continue;
+
+                    if (!context.PublishAsGlobal || (context.IsMaterialCtm && !context.Material.UseGlobalMatching))
+                        destPath = PathEx.Join(destPath, context.Material.Name);
 
                     var destTagName = NamingStructure.Get(textureTag, destName, ext, true);
                     destFile = PathEx.Join(destPath, destTagName);

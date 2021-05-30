@@ -58,14 +58,14 @@ namespace PixelGraph.UI.Controls
 
         private static void OnMaterialPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            if (!(sender is MaterialPropertiesControl control)) return;
+            if (sender is not MaterialPropertiesControl control) return;
 
             control.vm.Material = e.NewValue as MaterialProperties;
         }
 
         private static void OnSelectedTagPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            if (!(sender is MaterialPropertiesControl control)) return;
+            if (sender is not MaterialPropertiesControl control) return;
 
             control.vm.SelectedTag = e.NewValue as string;
         }
@@ -88,6 +88,11 @@ namespace PixelGraph.UI.Controls
         private void OnEditButtonClick(object sender, RoutedEventArgs e)
         {
             EditLayer?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnIorToFoConvert(object sender, RoutedEventArgs e)
+        {
+            vm.ConvertIorToF0();
         }
     }
 

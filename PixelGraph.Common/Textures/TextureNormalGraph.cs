@@ -200,11 +200,14 @@ namespace PixelGraph.Common.Textures
                     return new Image<Rgb24>(Configuration.Default, size?.Width ?? 1, size?.Height ?? 1, up);
                 }
 
+                if (!NormalMapMethod.TryParse(context.Material.Normal?.Method, out var normalMethod))
+                    normalMethod = NormalMapMethods.Sobel3;
+
                 var builder = new NormalMapBuilder(regions) {
                     HeightImage = heightTexture,
                     HeightChannel = heightChannelIn.Color ?? ColorChannel.None,
-                    Method = context.Material.Normal?.Method ?? MaterialNormalProperties.DefaultMethod,
-                    Strength = (float?)context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength,
+                    Strength = (float)(context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength),
+                    Method = normalMethod,
                     WrapX = context.MaterialWrapX,
                     WrapY = context.MaterialWrapY,
 

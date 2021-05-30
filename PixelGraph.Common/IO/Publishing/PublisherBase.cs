@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -124,28 +123,29 @@ namespace PixelGraph.Common.IO.Publishing
 
         protected virtual bool TryMapMaterial(in MaterialProperties material)
         {
-            if (Mapping == null) return true;
+            return true;
+            //if (Mapping == null) return true;
 
-            var sourcePath = material.LocalPath;
-            string sourceFile;
+            //var sourcePath = material.LocalPath;
+            //string sourceFile;
 
-            if (material.Parts?.Any(part => {
-                sourceFile = PathEx.Join(sourcePath, part.Name);
-                sourceFile = PathEx.Normalize(sourceFile);
+            //if (material.Parts?.Any(part => {
+            //    sourceFile = PathEx.Join(sourcePath, part.Name);
+            //    sourceFile = PathEx.Normalize(sourceFile);
 
-                // TODO: replace with contains
-                return Mapping.TryMap(sourceFile, out _);
-            }) ?? false) return true;
+            //    // TODO: replace with contains
+            //    return Mapping.TryMap(sourceFile, out _);
+            //}) ?? false) return true;
 
-            if (material.CTM?.Type != null) {
-                // TODO
-                return false;
-            }
+            //if (material.CTM?.Type != null) {
+            //    // TODO
+            //    return false;
+            //}
 
-            sourceFile = PathEx.Join(sourcePath, material.Name);
-            sourceFile = PathEx.Normalize(sourceFile);
+            //sourceFile = PathEx.Join(sourcePath, material.Name);
+            //sourceFile = PathEx.Normalize(sourceFile);
 
-            return Mapping.TryMap(sourceFile, out _);
+            //return Mapping.TryMap(sourceFile, out _);
         }
 
         protected virtual async Task PublishFileAsync(GenericTexturePublisher genericPublisher, DateTime packWriteTime, string sourceFile, string destFile, CancellationToken token)

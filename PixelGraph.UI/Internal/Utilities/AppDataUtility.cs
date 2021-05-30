@@ -14,6 +14,7 @@ namespace PixelGraph.UI.Internal.Utilities
         Task WriteLinesAsync(string localFile, IEnumerable<string> lines, CancellationToken token = default);
         Task<T> ReadJsonAsync<T>(string localFile, CancellationToken token = default);
         Task WriteJsonAsync(string localFile, object data, CancellationToken token = default);
+        T ReadJson<T>(string localFile);
     }
 
     internal class AppDataUtility : IAppDataUtility
@@ -54,6 +55,16 @@ namespace PixelGraph.UI.Internal.Utilities
 
             var jsonData = JToken.FromObject(data);
             await jsonData.WriteToAsync(jsonWriter, token);
+        }
+
+        public T ReadJson<T>(string localFile)
+        {
+            using var reader = GetReader(localFile);
+            if (reader == null) return default;
+
+            using var jsonReader = new JsonTextReader(reader);
+            var jsonData = JToken.ReadFrom(jsonReader);
+            return jsonData.ToObject<T>();
         }
 
         private static StreamReader GetReader(string localFile)

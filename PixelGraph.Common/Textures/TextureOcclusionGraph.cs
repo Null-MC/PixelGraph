@@ -141,9 +141,9 @@ namespace PixelGraph.Common.Textures
             heightSampler.RangeY = (float)heightImage.Height / occlusionHeight;
 
             var quality = (float) (context.Profile?.OcclusionQuality ?? ResourcePackProfileProperties.DefaultOcclusionQuality);
-            var stepDistance = (float?)context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance;
-            var zScale = (float?) context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale;
-            var zBias = (float?) context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias;
+            var stepDistance = (float)(context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance);
+            var zScale = (float) (context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale);
+            var zBias = (float) (context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias);
             var hitPower = (float)(context.Profile?.OcclusionPower ?? ResourcePackProfileProperties.DefaultOcclusionPower);
 
             // adjust volume height with texture scale

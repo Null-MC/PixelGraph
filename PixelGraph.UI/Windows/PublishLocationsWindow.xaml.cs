@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.ComponentModel;
@@ -21,6 +22,9 @@ namespace PixelGraph.UI.Windows
             this.provider = provider;
 
             InitializeComponent();
+
+            var themeHelper = provider.GetRequiredService<IThemeHelper>();
+            themeHelper.ApplyCurrent(this);
         }
 
         private void ShowError(string message)

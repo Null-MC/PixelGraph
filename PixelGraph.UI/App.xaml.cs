@@ -2,9 +2,9 @@
 using PixelGraph.Common;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Utilities;
-using PixelGraph.UI.ViewModels;
 using PixelGraph.UI.Windows;
 using Serilog;
+using System;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -26,23 +26,30 @@ namespace PixelGraph.UI
             builder.Services.AddSingleton<IRecentPathManager, RecentPathManager>();
             builder.Services.AddSingleton<IPublishLocationManager, PublishLocationManager>();
             builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
+            builder.Services.AddSingleton<ITextureEditUtility, TextureEditUtility>();
 
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
             builder.Services.AddTransient<ITexturePreviewBuilder, TexturePreviewBuilder>();
             builder.Services.AddTransient<IAppDataUtility, AppDataUtility>();
-            builder.Services.AddTransient<ITextureEditUtility, TextureEditUtility>();
+            builder.Services.AddTransient<IThemeHelper, ThemeHelper>();
 
-            builder.Services.AddTransient<MainWindowVM>();
-            builder.Services.AddTransient<SettingsWindowVM>();
-            builder.Services.AddTransient<PublishWindowVM>();
+            builder.Services.AddTransient<SettingsWindow>();
         }
 
         private void App_OnStartup(object sender, StartupEventArgs e)
         {
             Log.Logger = LocalLogFile.FileLogger;
             Log.Information("Application Started.");
-
             provider = builder.Build();
+
+            try {
+                var settings = provider.GetRequiredService<IAppSettings>();
+                settings.Load();
+            }
+            catch (Exception error) {
+                Log.Fatal(error, "Failed to load application settings!");
+                throw;
+            }
 
             var mainWindow = new MainWindow(provider);
             mainWindow.Show();

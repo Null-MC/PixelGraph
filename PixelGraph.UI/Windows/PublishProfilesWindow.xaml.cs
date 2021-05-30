@@ -6,6 +6,7 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
+using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using System;
@@ -31,6 +32,9 @@ namespace PixelGraph.UI.Windows
             logger = provider.GetRequiredService<ILogger<PackProfilesWindow>>();
 
             InitializeComponent();
+
+            var themeHelper = provider.GetRequiredService<IThemeHelper>();
+            themeHelper.ApplyCurrent(this);
         }
 
         private async Task CreateNewProfile()

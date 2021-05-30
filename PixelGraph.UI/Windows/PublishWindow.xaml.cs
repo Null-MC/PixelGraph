@@ -7,6 +7,7 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Utilities;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,9 @@ namespace PixelGraph.UI.Windows
             this.provider = provider;
 
             InitializeComponent();
+
+            var themeHelper = provider.GetRequiredService<IThemeHelper>();
+            themeHelper.ApplyCurrent(this);
 
             logger = provider.GetRequiredService<ILogger<PublishWindow>>();
             var settings = provider.GetRequiredService<IAppSettings>();

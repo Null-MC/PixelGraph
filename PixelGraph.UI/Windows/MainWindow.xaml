@@ -35,15 +35,33 @@
     </mah:MetroWindow.IconTemplate>
     <mah:MetroWindow.LeftWindowCommands>
         <mah:WindowCommands>
+            <mah:WindowCommands.Resources>
+                <Style TargetType="iconPacks:PackIconFontAwesome">
+                    <Setter Property="Padding" Value="1,0"/>
+                </Style>
+            </mah:WindowCommands.Resources>
             <Menu IsMainMenu="True" Background="Transparent">
+                <MenuItem Header="App" Background="Transparent">
+                    <MenuItem Header="Settings" Click="OnSettingsClick">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconFontAwesome Kind="CogSolid"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Exit" Click="OnExitClick">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconFontAwesome Kind="WindowCloseSolid"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
                 <MenuItem Header="Project" Background="Transparent">
-                    <MenuItem Header="New" Icon="{iconPacks:FontAwesome FolderPlusSolid}" Click="OnNewProjectClick"/>
+                    <MenuItem Header="New" Click="OnNewProjectClick">
+                        <MenuItem.Icon>
+                            <iconPacks:PackIconFontAwesome Kind="FolderPlusSolid"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <MenuItem Header="Open" Icon="{iconPacks:FontAwesome FolderOpenSolid}" Click="OnOpenClick"/>
                     <MenuItem Header="Close" Icon="{iconPacks:FontAwesome DoorClosedSolid}" Click="OnCloseProjectClick"
                               IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
-                    <Separator/>
-                    <!--<MenuItem Header="App Settings" Icon="{md:PackIcon Settings}" Click="OnSettingsClick"/>-->
-                    <MenuItem Header="Exit" Icon="{iconPacks:FontAwesome WindowCloseSolid}" Click="OnExitClick"/>
                 </MenuItem>
                 <MenuItem Header="Pack" Background="Transparent">
                     <MenuItem Header="Publish Locations" Icon="{iconPacks:FontAwesome FolderSolid}" Click="OnLocationsClick"/>
@@ -61,7 +79,6 @@
                 <MenuItem Header="Material" Background="Transparent">
                     <MenuItem Header="New" Icon="{iconPacks:FontAwesome PlusSolid}" Click="OnNewMaterialMenuClick"
                               IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
-                    <Separator/>
                     <MenuItem Header="Connections" Icon="{iconPacks:FontAwesome PuzzlePieceSolid}" Click="OnMaterialConnectionsMenuClick"
                               IsEnabled="{Binding HasLoadedMaterial, Mode=OneWay}"/>
                     <MenuItem Header="Filters" Icon="{iconPacks:FontAwesome FilterSolid}" Click="OnMaterialFiltersMenuClick"
@@ -219,7 +236,7 @@
                     </Grid.ColumnDefinitions>
                     <Grid Grid.Column="0">
                         <DockPanel Visibility="{Binding HasPreviewImage, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                            <DockPanel DockPanel.Dock="Top" LastChildFill="False" Background="#FF1B1B1B" Height="34">
+                            <DockPanel DockPanel.Dock="Top" LastChildFill="False" Background="{DynamicResource MahApps.Brushes.Highlight}" Height="34">
                                 <CheckBox DockPanel.Dock="Left" Content="Tile" Margin="4"
                                           IsChecked="{Binding EnableTiling, ElementName=TextureViewer}"/>
                                 <ComboBox IsEditable="True" DockPanel.Dock="Right" Margin="4" BorderThickness="0"
@@ -287,5 +304,14 @@
                 <ProgressBar Width="90" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}"/>
             </StatusBarItem>
         </StatusBar>
+        <Grid Grid.Row="0"
+              Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+              Visibility="{Binding IsImageEditorOpen, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+            <StackPanel Orientation="Vertical" MaxWidth="400" VerticalAlignment="Center">
+                <TextBlock Text="Waiting for external image editor to close..." HorizontalAlignment="Center" FontSize="16" FontStyle="Italic"
+                           Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                <Button Content="Complete" HorizontalAlignment="Center" Margin="0,16,0,0" Padding="6,2" Click="OnImageEditorCompleteClick"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </mah:MetroWindow>

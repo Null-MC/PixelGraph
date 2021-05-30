@@ -15,5 +15,17 @@ namespace PixelGraph.UI.Internal
                 child = parentObject;
             }
         }
+
+        public static T FindChild<T>(this DependencyObject parent) where T : DependencyObject
+        {
+            var count = VisualTreeHelper.GetChildrenCount(parent);
+
+            for (var i = 0; i < count; i++) {
+                var childObject = VisualTreeHelper.GetChild(parent, i);
+                if (childObject is T child) return child;
+            }
+
+            return null;
+        }
     }
 }
