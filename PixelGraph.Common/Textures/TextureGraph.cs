@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -8,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.Common.Textures
 {
@@ -110,6 +110,7 @@ namespace PixelGraph.Common.Textures
 
         public int GetMaxFrameCount()
         {
+            if (builderMap.Count == 0) return 1;
             return builderMap.Values.Max(b => b.FrameCount);
         }
 
