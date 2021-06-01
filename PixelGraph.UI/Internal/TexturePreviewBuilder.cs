@@ -66,7 +66,7 @@ namespace PixelGraph.UI.Internal
             var matMetaFileIn = context.GetMetaInputFilename();
             context.IsAnimated = reader.FileExists(matMetaFileIn);
 
-            var inputFormat = TextureEncoding.GetFactory(Input?.Format);
+            var inputFormat = TextureFormat.GetFactory(Input?.Format);
             var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
             inputEncoding.Merge(Input);
             inputEncoding.Merge(Material);

@@ -24,13 +24,14 @@
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="4*"/>
         </Grid.ColumnDefinitions>
-        <StackPanel Orientation="Horizontal" Background="{DynamicResource MahApps.Brushes.Highlight}">
-            <Button Margin="2" Padding="4" Click="OnAddClick"
-                    Style="{DynamicResource MahApps.Styles.Button.Flat}">
+        <StackPanel Orientation="Horizontal"
+                    Background="{DynamicResource MahApps.Brushes.Accent4}">
+            <Button Margin="2" Padding="4" BorderThickness="1" Click="OnAddClick"
+                    Style="{DynamicResource MahApps.Styles.Button.Square.Accent}">
                 <iconPacks:PackIconFontAwesome Kind="PlusSolid" VerticalAlignment="Center"/>
             </Button>
-            <Button Margin="2" Padding="4" Click="OnRemoveClick"
-                    Style="{DynamicResource MahApps.Styles.Button.Flat}"
+            <Button Margin="2" Padding="4" BorderThickness="1" Click="OnRemoveClick"
+                    Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"
                     IsEnabled="{Binding HasSelectedLocation, Mode=OneWay}">
                 <iconPacks:PackIconFontAwesome Kind="TrashSolid" VerticalAlignment="Center"/>
             </Button>
@@ -41,21 +42,24 @@
         <GridSplitter Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" ResizeDirection="Columns" Width="2" HorizontalAlignment="Left" ResizeBehavior="PreviousAndCurrent"/>
         <StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Margin="8,6"
               IsEnabled="{Binding HasSelectedLocation, Mode=OneWay}">
-            <TextBlock Text="Display Name" FontWeight="Bold" Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+            <TextBlock Text="Display Name" FontWeight="Bold"
+                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
             <TextBox x:Name="EditNameTextBox" Margin="0,0,6,0"
                      Text="{Binding EditName, Mode=TwoWay}"/>
             <TextBlock Text="Location" FontWeight="Bold" Margin="0,16,0,0"
-                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
             <DockPanel>
-                <Button DockPanel.Dock="Right" Padding="6,0" ToolTip="Browse" Click="OnPathBrowseClick" Height="26"
-                        Content="{iconPacks:FontAwesome Kind=FolderOpenSolid}"/>
+                <Button DockPanel.Dock="Right" Padding="6,0" Height="26" BorderThickness="1"
+                        ToolTip="Browse" Click="OnPathBrowseClick"
+                        Content="{iconPacks:FontAwesome Kind=FolderOpenSolid}"
+                        Style="{StaticResource MahApps.Styles.Button.Square}"/>
                 <TextBox Margin="0,0,4,0"
                          Text="{Binding EditPath, Mode=TwoWay}"/>
             </DockPanel>
             <CheckBox Margin="4,20,0,0" Content="Archive"
                       IsChecked="{Binding EditArchive, Mode=TwoWay}"/>
         </StackPanel>
-        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="{DynamicResource MahApps.Brushes.Highlight}">
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="{DynamicResource MahApps.Brushes.Accent4}">
             <Rectangle Fill="{DynamicResource MaterialDesignCardBackground}"/>
             <Button Content="Cancel" HorizontalAlignment="Left" Margin="6" Click="OnCancelButtonClick" Width="80"/>
             <Button Content="Save" HorizontalAlignment="Right" Margin="6" Click="OnOkButtonClick" Width="80"/>

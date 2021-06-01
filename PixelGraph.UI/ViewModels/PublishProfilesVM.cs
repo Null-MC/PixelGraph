@@ -425,7 +425,7 @@ namespace PixelGraph.UI.ViewModels
 
         public void UpdateDefaultValues()
         {
-            var encoding = TextureEncoding.GetFactory(_loadedProfile?.Encoding?.Format);
+            var encoding = Common.TextureFormats.TextureFormat.GetFactory(_loadedProfile?.Encoding?.Format);
             var encodingDefaults = encoding?.Create();
             var sampler = _loadedProfile?.Encoding?.Sampler ?? Samplers.Nearest;
 

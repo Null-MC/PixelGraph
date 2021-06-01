@@ -11,7 +11,7 @@ namespace PixelGraph.Common.Material
     public class MaterialProperties
     {
         public const bool DefaultWrap = true;
-        public const string DefaultInputFormat = TextureEncoding.Format_Raw;
+        public const string DefaultInputFormat = TextureFormat.Format_Raw;
 
         [YamlIgnore]
         public string Name {get; set;}
@@ -104,6 +104,25 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = 102)]
         public List<MaterialFilter> Filters {get; set;}
 
+
+        public MaterialProperties()
+        {
+            Alpha = new MaterialAlphaProperties();
+            Albedo = new MaterialAlbedoProperties();
+            Diffuse = new MaterialDiffuseProperties();
+            Height = new MaterialHeightProperties();
+            Bump = new MaterialBumpProperties();
+            Normal = new MaterialNormalProperties();
+            Occlusion = new MaterialOcclusionProperties();
+            Specular = new MaterialSpecularProperties();
+            Smooth = new MaterialSmoothProperties();
+            Rough = new MaterialRoughProperties();
+            Metal = new MaterialMetalProperties();
+            F0 = new MaterialF0Properties();
+            Porosity = new MaterialPorosityProperties();
+            SSS = new MaterialSssProperties();
+            Emissive = new MaterialEmissiveProperties();
+        }
 
         public Size GetMultiPartBounds()
         {

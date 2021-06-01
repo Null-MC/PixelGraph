@@ -3,6 +3,7 @@ using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Input;
 
 namespace PixelGraph.UI.Controls
 {
@@ -85,14 +86,22 @@ namespace PixelGraph.UI.Controls
             public string Key {get; set;}
         }
 
-        private void OnEditButtonClick(object sender, RoutedEventArgs e)
+        private void OnChannelEditImageButtonClick(object sender, RoutedEventArgs e)
         {
             EditLayer?.Invoke(this, EventArgs.Empty);
         }
 
-        private void OnIorToFoConvert(object sender, RoutedEventArgs e)
+        private void OnIorToFoConvertButtonClick(object sender, RoutedEventArgs e)
         {
             vm.ConvertIorToF0();
+        }
+
+        private void OnF0ConverterTextBoxKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) {
+                IorToF0ConvertButton.Focus();
+                vm.ConvertIorToF0();
+            }
         }
     }
 

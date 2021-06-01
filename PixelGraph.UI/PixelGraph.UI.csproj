@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.3.2</Version>
+    <Version>1.4.0</Version>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <AssemblyName>PixelGraph</AssemblyName>
@@ -13,6 +13,7 @@
   <ItemGroup>
     <Compile Remove="Controls\DataGridComboBoxExColumn.xaml.cs" />
     <Compile Remove="Controls\DataGridComboBoxExColumn2.cs" />
+    <Compile Remove="Controls\PropertyGridItem.xaml.cs" />
     <Compile Remove="Converters\InverseBooleanConverter.cs" />
     <Compile Remove="Internal\AppConfiguration.cs" />
     <Compile Remove="Internal\ImagePreviewCache.cs" />
@@ -33,19 +34,19 @@
 
   <ItemGroup>
     <Page Remove="Controls\DataGridComboBoxExColumn.xaml" />
+    <Page Remove="Controls\PropertyGridItem.xaml" />
     <Page Remove="Resources\MaterialDesignTheme.CheckBoxEx.xaml" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MahApps.Metro" Version="2.4.5" />
     <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.8.0" />
-    <!--<PackageReference Include="MaterialDesignExtensions" Version="3.3.0" />
-    <PackageReference Include="MaterialDesignThemes" Version="4.0.0" />-->
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="3.1.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MinecraftMappings\MinecraftMappings.csproj" />
     <ProjectReference Include="..\PixelGraph.Common\PixelGraph.Common.csproj" />
   </ItemGroup>
 

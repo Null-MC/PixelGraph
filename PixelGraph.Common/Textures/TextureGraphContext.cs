@@ -96,12 +96,12 @@ namespace PixelGraph.Common.Textures
 
         public void ApplyInputEncoding()
         {
-            var inputFormat = TextureEncoding.GetFactory(Input.Format);
+            var inputFormat = TextureFormat.GetFactory(Input.Format);
             var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
             inputEncoding.Merge(Input);
             inputEncoding.Merge(Material);
 
-            var outputFormat = TextureEncoding.GetFactory(Profile.Encoding.Format);
+            var outputFormat = TextureFormat.GetFactory(Profile.Encoding.Format);
             var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
             outputEncoding.Merge(Profile.Encoding);
 
@@ -111,11 +111,11 @@ namespace PixelGraph.Common.Textures
 
         public void ApplyOutputEncoding()
         {
-            var inputFormat = TextureEncoding.GetFactory(Profile.Encoding.Format);
+            var inputFormat = TextureFormat.GetFactory(Profile.Encoding.Format);
             var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
             inputEncoding.Merge(Profile.Encoding);
 
-            var outputFormat = TextureEncoding.GetFactory(Input.Format);
+            var outputFormat = TextureFormat.GetFactory(Input.Format);
             var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
             outputEncoding.Merge(Input);
             // TODO: layer material properties on top of pack encoding?

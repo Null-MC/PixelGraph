@@ -16,7 +16,8 @@ namespace PixelGraph.UI.ViewModels
         #region Properties
 
         private readonly object busyLock;
-        private volatile bool _isBusy, _isPreviewLoading, _isImageEditorOpen;
+        private volatile bool _isBusy, _isInitializing;
+        private volatile bool _isPreviewLoading, _isImageEditorOpen;
         private ObservableCollection<string> _recentDirectories;
         private List<LocationViewModel> _publishLocations;
         private ResourcePackInputProperties _packInput;
@@ -38,6 +39,7 @@ namespace PixelGraph.UI.ViewModels
 
         public ObservableCollection<ProfileItem> PublishProfiles {get;}
 
+        public bool IsInitializing => _isInitializing;
         public bool IsProjectLoaded => _rootDirectory != null;
         //public bool IsProjectUnloaded => _rootDirectory == null;
         public bool HasTreeSelection => _selectedNode is ContentTreeFile;
@@ -234,7 +236,13 @@ namespace PixelGraph.UI.ViewModels
             _treeRoot = new ContentTreeNode(null);
             busyLock = new object();
 
+            _isInitializing = true;
             _selectedTag = TextureTags.Albedo;
+        }
+
+        public void EndInit()
+        {
+            _isInitializing = false;
         }
 
         public bool TryStartBusy()
@@ -263,6 +271,12 @@ namespace PixelGraph.UI.ViewModels
             RootDirectory = null;
 
             PublishProfiles.Clear();
+        }
+
+        public void SetSelectedLocation(LocationViewModel location)
+        {
+            _selectedLocation = location;
+            OnPropertyChanged(nameof(SelectedLocation));
         }
 
         private void OnSelectedTagChanged()

@@ -23,6 +23,22 @@ namespace PixelGraph.Common.Material
         public bool? ClipEmissive {get; set;}
 
 
+        public bool HasAnyData()
+        {
+            if (Input != null && Input.HasAnyData()) return true;
+            if (Texture != null) return true;
+            if (Value.HasValue) return true;
+            if (Scale.HasValue) return true;
+
+            if (ZBias.HasValue) return true;
+            if (ZScale.HasValue) return true;
+            if (StepDistance.HasValue) return true;
+            if (ClipEmissive.HasValue) return true;
+            return false;
+        }
+
+        #region Deprecated
+
         [Obsolete] public int? Steps {
             get => null;
             set {}
@@ -32,5 +48,7 @@ namespace PixelGraph.Common.Material
             get => null;
             set {}
         }
+
+        #endregion
     }
 }

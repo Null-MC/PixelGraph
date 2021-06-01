@@ -1,5 +1,4 @@
-﻿using PixelGraph.UI.DataModels;
-using PixelGraph.UI.Internal.Utilities;
+﻿using PixelGraph.UI.Internal.Utilities;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,6 +43,31 @@ namespace PixelGraph.UI.Internal
         {
             if (Data == null) return Task.CompletedTask;
             return appData.WriteJsonAsync(FileName, Data, token);
+        }
+    }
+
+    public class SettingsDataModel
+    {
+        public const string DefaultImageEditorExe = "mspaint";
+        public const string DefaultImageEditorArgs = "\"$1\"";
+        public const string DefaultThemeBaseColor = "dark";
+        public const string DefaultThemeAccentColor = "emerald";
+
+        public string SelectedPublishLocation {get; set;}
+        public bool PublishCloseOnComplete {get; set;}
+        public string TextureEditorExecutable {get; set;}
+        public string TextureEditorArguments {get; set;}
+
+        public string ThemeBaseColor {get; set;}
+        public string ThemeAccentColor {get; set;}
+
+
+        public SettingsDataModel()
+        {
+            TextureEditorExecutable = DefaultImageEditorExe;
+            TextureEditorArguments = DefaultImageEditorArgs;
+            ThemeBaseColor = DefaultThemeBaseColor;
+            ThemeAccentColor = DefaultThemeAccentColor;
         }
     }
 }

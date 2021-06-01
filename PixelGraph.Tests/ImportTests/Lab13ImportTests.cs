@@ -19,12 +19,12 @@ namespace PixelGraph.Tests.ImportTests
         public Lab13ImportTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Format = TextureEncoding.Format_Raw,
+                Format = TextureFormat.Format_Raw,
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Format = TextureEncoding.Format_Lab13,
+                    Format = TextureFormat.Format_Lab13,
                 },
             };
         }

@@ -26,6 +26,7 @@ namespace PixelGraph.Common.IO.Serialization
                 .WithTypeConverter(new YamlStringEnumConverter())
                 .WithNamingConvention(HyphenatedNamingConvention.Instance)
                 .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults)
+                .WithEmissionPhaseObjectGraphVisitor(args => new CustomObjectGraphVisitor(args.InnerVisitor))
                 .Build();
         }
         

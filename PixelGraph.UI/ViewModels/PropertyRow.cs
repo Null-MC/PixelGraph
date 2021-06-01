@@ -16,6 +16,8 @@ namespace PixelGraph.UI.ViewModels
 
     public interface ITextPropertyRow : IPropertyRow {}
 
+    public interface IBoolPropertyRow : IPropertyRow {}
+
     public interface ISelectPropertyRow : IPropertyRow
     {
         string DisplayValue {get;}
@@ -30,11 +32,18 @@ namespace PixelGraph.UI.ViewModels
 
     public interface IEditTextPropertyRow<in TProperty> : ITextPropertyRow, IEditPropertyRow<TProperty> {}
 
+    public interface IEditBoolPropertyRow<in TProperty> : IBoolPropertyRow, IEditPropertyRow<TProperty> {}
+
     public interface IEditSelectPropertyRow<in TProperty> : ISelectPropertyRow, IEditPropertyRow<TProperty> {}
 
     public class EditTextPropertyRow<TProperty, TValue> : EditPropertyRowBase<TProperty, TValue>, IEditTextPropertyRow<TProperty>
     {
         public EditTextPropertyRow(string name, string propertyName, object defaultValue = null) : base(name, propertyName, defaultValue) {}
+    }
+
+    public class EditBoolPropertyRow<TProperty, TValue> : EditPropertyRowBase<TProperty, TValue>, IEditBoolPropertyRow<TProperty>
+    {
+        public EditBoolPropertyRow(string name, string propertyName, object defaultValue = null) : base(name, propertyName, defaultValue) {}
     }
 
     public class EditSelectPropertyRow<TProperty, TValue> : EditPropertyRowBase<TProperty, TValue>, IEditSelectPropertyRow<TProperty>

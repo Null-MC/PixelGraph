@@ -14,6 +14,20 @@ namespace PixelGraph.Common.Material
         public decimal? EdgeFadeY {get; set;}
 
 
+        public bool HasAnyData()
+        {
+            if (Input != null && Input.HasAnyData()) return true;
+            if (Texture != null) return true;
+            if (Value.HasValue) return true;
+            if (Shift.HasValue) return true;
+            if (Scale.HasValue) return true;
+            if (EdgeFadeX.HasValue) return true;
+            if (EdgeFadeY.HasValue) return true;
+            return false;
+        }
+
+        #region Deprecated
+
         [Obsolete] public int? EdgeFadeSizeX {
             get => null;
             set {}
@@ -23,5 +37,7 @@ namespace PixelGraph.Common.Material
             get => null;
             set {}
         }
+
+        #endregion
     }
 }

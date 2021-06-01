@@ -15,22 +15,24 @@ namespace PixelGraph.UI.ViewModels
 
         public event EventHandler DataChanged;
 
-        public AlphaProperties Alpha {get;}
-        public AlbedoProperties Albedo {get;}
-        public DiffuseProperties Diffuse {get;}
-        public HeightProperties Height {get;}
-        public NormalProperties Normal {get;}
-        public NormalGeneratorProperties NormalGeneration {get;}
-        public OcclusionProperties Occlusion {get;}
-        public OcclusionGeneratorProperties OcclusionGeneration {get;}
-        public SpecularProperties Specular {get;}
-        public SmoothProperties Smooth {get;}
-        public RoughProperties Rough {get;}
-        public MetalProperties Metal {get;}
-        public F0Properties F0 {get;}
-        public PorosityProperties Porosity {get;}
-        public SssProperties Sss {get; set;}
-        public EmissiveProperties Emissive {get;}
+        public GeneralPropertyCollection GeneralProperties {get;}
+        public AlphaPropertyCollection AlphaProperties {get;}
+        public AlbedoPropertyCollection AlbedoProperties {get;}
+        public DiffusePropertyCollection DiffuseProperties {get;}
+        public HeightPropertyCollection Height {get;}
+        public HeightEdgeFadingPropertyCollection HeightEdgeFading {get;}
+        public NormalPropertyCollection Normal {get;}
+        public NormalGeneratorPropertyCollection NormalGeneration {get;}
+        public OcclusionPropertyCollection Occlusion {get;}
+        public OcclusionGeneratorPropertyCollection OcclusionGeneration {get;}
+        public SpecularPropertyCollection Specular {get;}
+        public SmoothPropertyCollection Smooth {get;}
+        public RoughPropertyCollection Rough {get;}
+        public MetalPropertyCollection Metal {get;}
+        public F0PropertyCollection F0 {get;}
+        public PorosityPropertyCollection Porosity {get;}
+        public SssPropertyCollection Sss {get; set;}
+        public EmissivePropertyCollection Emissive {get;}
 
         public bool HasMaterial => _material != null;
         //public bool IsGeneralSelected => _selectedTag == null;
@@ -49,8 +51,6 @@ namespace PixelGraph.UI.ViewModels
         public bool IsSssSelected => TextureTags.Is(_selectedTag, TextureTags.SubSurfaceScattering);
         public bool IsEmissiveSelected => TextureTags.Is(_selectedTag, TextureTags.Emissive);
 
-        public string DefaultInputFormat => MaterialProperties.DefaultInputFormat;
-
         public decimal? IorActualValue => _iorToF0Value;
 
         public MaterialProperties Material {
@@ -60,11 +60,12 @@ namespace PixelGraph.UI.ViewModels
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasMaterial));
 
-                UpdateGeneralProperties();
-                Alpha.SetData(Material?.Alpha);
-                Albedo.SetData(Material?.Albedo);
-                Diffuse.SetData(Material?.Diffuse);
+                GeneralProperties.SetData(Material);
+                AlphaProperties.SetData(Material?.Alpha);
+                AlbedoProperties.SetData(Material?.Albedo);
+                DiffuseProperties.SetData(Material?.Diffuse);
                 Height.SetData(Material?.Height);
+                HeightEdgeFading.SetData(Material?.Height);
                 Normal.SetData(Material?.Normal);
                 NormalGeneration.SetData(Material?.Normal);
                 Occlusion.SetData(Material?.Occlusion);
@@ -118,93 +119,61 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        #region General
-
-        public string InputFormat {
-            get => _material?.InputFormat;
-            set {
-                _material.InputFormat = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public bool? WrapX {
-            get => _material?.WrapX;
-            set {
-                _material.WrapX = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public bool? WrapY {
-            get => _material?.WrapY;
-            set {
-                _material.WrapY = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        private void UpdateGeneralProperties()
-        {
-            OnPropertyChanged(nameof(InputFormat));
-            OnPropertyChanged(nameof(WrapX));
-            OnPropertyChanged(nameof(WrapY));
-        }
-
-        #endregion
-
 
         public MaterialPropertiesVM()
         {
-            Alpha = new AlphaProperties();
-            Alpha.PropertyChanged += OnPropertyValueChanged;
+            GeneralProperties = new GeneralPropertyCollection();
+            GeneralProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Albedo = new AlbedoProperties();
-            Albedo.PropertyChanged += OnPropertyValueChanged;
+            AlphaProperties = new AlphaPropertyCollection();
+            AlphaProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Diffuse = new DiffuseProperties();
-            Diffuse.PropertyChanged += OnPropertyValueChanged;
+            AlbedoProperties = new AlbedoPropertyCollection();
+            AlbedoProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Height = new HeightProperties();
+            DiffuseProperties = new DiffusePropertyCollection();
+            DiffuseProperties.PropertyChanged += OnPropertyValueChanged;
+
+            Height = new HeightPropertyCollection();
             Height.PropertyChanged += OnPropertyValueChanged;
 
-            Normal = new NormalProperties();
+            HeightEdgeFading = new HeightEdgeFadingPropertyCollection();
+            HeightEdgeFading.PropertyChanged += OnPropertyValueChanged;
+
+            Normal = new NormalPropertyCollection();
             Normal.PropertyChanged += OnPropertyValueChanged;
 
-            NormalGeneration = new NormalGeneratorProperties();
+            NormalGeneration = new NormalGeneratorPropertyCollection();
             NormalGeneration.PropertyChanged += OnPropertyValueChanged;
 
-            Occlusion = new OcclusionProperties();
+            Occlusion = new OcclusionPropertyCollection();
             Occlusion.PropertyChanged += OnPropertyValueChanged;
 
-            OcclusionGeneration = new OcclusionGeneratorProperties();
+            OcclusionGeneration = new OcclusionGeneratorPropertyCollection();
             OcclusionGeneration.PropertyChanged += OnPropertyValueChanged;
 
-            Specular = new SpecularProperties();
+            Specular = new SpecularPropertyCollection();
             Specular.PropertyChanged += OnPropertyValueChanged;
 
-            Smooth = new SmoothProperties();
+            Smooth = new SmoothPropertyCollection();
             Smooth.PropertyChanged += OnPropertyValueChanged;
 
-            Rough = new RoughProperties();
+            Rough = new RoughPropertyCollection();
             Rough.PropertyChanged += OnPropertyValueChanged;
 
-            Metal = new MetalProperties();
+            Metal = new MetalPropertyCollection();
             Metal.PropertyChanged += OnPropertyValueChanged;
 
-            F0 = new F0Properties();
+            F0 = new F0PropertyCollection();
             F0.PropertyChanged += OnF0PropertyValueChanged;
 
-            Porosity = new PorosityProperties();
+            Porosity = new PorosityPropertyCollection();
             Porosity.PropertyChanged += OnPropertyValueChanged;
 
-            Sss = new SssProperties();
+            Sss = new SssPropertyCollection();
             Sss.PropertyChanged += OnPropertyValueChanged;
 
-            Emissive = new EmissiveProperties();
+            Emissive = new EmissivePropertyCollection();
             Emissive.PropertyChanged += OnPropertyValueChanged;
         }
 
@@ -259,9 +228,21 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class AlphaProperties : PropertyCollectionBase<MaterialAlphaProperties>
+    public class GeneralPropertyCollection : PropertyCollectionBase<MaterialProperties>
     {
-        public AlphaProperties()
+        public GeneralPropertyCollection()
+        {
+            var options = new SelectPropertyRowOptions(new AllTextureFormatValues(), "Text", "Value");
+
+            AddSelect("Input Format", nameof(MaterialProperties.InputFormat), options, MaterialProperties.DefaultInputFormat);
+            AddBool<bool?>("Wrap Horizontally", nameof(MaterialProperties.WrapX), MaterialProperties.DefaultWrap);
+            AddBool<bool?>("Wrap Vertically", nameof(MaterialProperties.WrapY), MaterialProperties.DefaultWrap);
+        }
+    }
+
+    public class AlphaPropertyCollection : PropertyCollectionBase<MaterialAlphaProperties>
+    {
+        public AlphaPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialAlphaProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialAlphaProperties.Value), 255m);
@@ -269,9 +250,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class AlbedoProperties : PropertyCollectionBase<MaterialAlbedoProperties>
+    public class AlbedoPropertyCollection : PropertyCollectionBase<MaterialAlbedoProperties>
     {
-        public AlbedoProperties()
+        public AlbedoPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialAlbedoProperties.Texture));
             AddText<decimal?>("Red Value", nameof(MaterialAlbedoProperties.ValueRed), 0);
@@ -283,9 +264,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class DiffuseProperties : PropertyCollectionBase<MaterialDiffuseProperties>
+    public class DiffusePropertyCollection : PropertyCollectionBase<MaterialDiffuseProperties>
     {
-        public DiffuseProperties()
+        public DiffusePropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialDiffuseProperties.Texture));
             AddText<decimal?>("Red Value", nameof(MaterialDiffuseProperties.ValueRed), 0);
@@ -297,30 +278,37 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class HeightProperties : PropertyCollectionBase<MaterialHeightProperties>
+    public class HeightPropertyCollection : PropertyCollectionBase<MaterialHeightProperties>
     {
-        public HeightProperties()
+        public HeightPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialHeightProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialHeightProperties.Value), 0m);
             AddText<decimal?>("Shift", nameof(MaterialHeightProperties.Shift), 0m);
             AddText<decimal?>("Scale", nameof(MaterialHeightProperties.Scale), 1m);
-            AddText<decimal?>("Horizontal Edge-Fade", nameof(MaterialHeightProperties.EdgeFadeX));
-            AddText<decimal?>("Vertical Edge-Fade", nameof(MaterialHeightProperties.EdgeFadeY));
         }
     }
 
-    public class NormalProperties : PropertyCollectionBase<MaterialNormalProperties>
+    public class HeightEdgeFadingPropertyCollection : PropertyCollectionBase<MaterialHeightProperties>
     {
-        public NormalProperties()
+        public HeightEdgeFadingPropertyCollection()
+        {
+            AddText<decimal?>("Horizontal", nameof(MaterialHeightProperties.EdgeFadeX));
+            AddText<decimal?>("Vertical", nameof(MaterialHeightProperties.EdgeFadeY));
+        }
+    }
+
+    public class NormalPropertyCollection : PropertyCollectionBase<MaterialNormalProperties>
+    {
+        public NormalPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialNormalProperties.Texture));
         }
     }
 
-    public class NormalGeneratorProperties : PropertyCollectionBase<MaterialNormalProperties>
+    public class NormalGeneratorPropertyCollection : PropertyCollectionBase<MaterialNormalProperties>
     {
-        public NormalGeneratorProperties()
+        public NormalGeneratorPropertyCollection()
         {
             var methodOptions = new SelectPropertyRowOptions(new NormalMethodValues(), "Text", "Value");
 
@@ -329,9 +317,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class OcclusionProperties : PropertyCollectionBase<MaterialOcclusionProperties>
+    public class OcclusionPropertyCollection : PropertyCollectionBase<MaterialOcclusionProperties>
     {
-        public OcclusionProperties()
+        public OcclusionPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialOcclusionProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialOcclusionProperties.Value), 0m);
@@ -340,9 +328,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class OcclusionGeneratorProperties : PropertyCollectionBase<MaterialOcclusionProperties>
+    public class OcclusionGeneratorPropertyCollection : PropertyCollectionBase<MaterialOcclusionProperties>
     {
-        public OcclusionGeneratorProperties()
+        public OcclusionGeneratorPropertyCollection()
         {
             AddText<decimal?>("Step Length", nameof(MaterialOcclusionProperties.StepDistance), MaterialOcclusionProperties.DefaultStepDistance);
             AddText<decimal?>("Z Bias", nameof(MaterialOcclusionProperties.ZBias), MaterialOcclusionProperties.DefaultZBias);
@@ -350,9 +338,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class SpecularProperties : PropertyCollectionBase<MaterialSpecularProperties>
+    public class SpecularPropertyCollection : PropertyCollectionBase<MaterialSpecularProperties>
     {
-        public SpecularProperties()
+        public SpecularPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialSpecularProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialSpecularProperties.Value), 0m);
@@ -360,9 +348,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class SmoothProperties : PropertyCollectionBase<MaterialSmoothProperties>
+    public class SmoothPropertyCollection : PropertyCollectionBase<MaterialSmoothProperties>
     {
-        public SmoothProperties()
+        public SmoothPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialSmoothProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialSmoothProperties.Value), 0m);
@@ -370,9 +358,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class RoughProperties : PropertyCollectionBase<MaterialRoughProperties>
+    public class RoughPropertyCollection : PropertyCollectionBase<MaterialRoughProperties>
     {
-        public RoughProperties()
+        public RoughPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialRoughProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialRoughProperties.Value), 0m);
@@ -380,9 +368,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class MetalProperties : PropertyCollectionBase<MaterialMetalProperties>
+    public class MetalPropertyCollection : PropertyCollectionBase<MaterialMetalProperties>
     {
-        public MetalProperties()
+        public MetalPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialMetalProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialMetalProperties.Value), 0m);
@@ -390,9 +378,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class F0Properties : PropertyCollectionBase<MaterialF0Properties>
+    public class F0PropertyCollection : PropertyCollectionBase<MaterialF0Properties>
     {
-        public F0Properties()
+        public F0PropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialF0Properties.Texture));
             AddText<decimal?>("Value", nameof(MaterialF0Properties.Value), 0m);
@@ -400,9 +388,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class PorosityProperties : PropertyCollectionBase<MaterialPorosityProperties>
+    public class PorosityPropertyCollection : PropertyCollectionBase<MaterialPorosityProperties>
     {
-        public PorosityProperties()
+        public PorosityPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialPorosityProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialPorosityProperties.Value), 0m);
@@ -410,9 +398,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class SssProperties : PropertyCollectionBase<MaterialSssProperties>
+    public class SssPropertyCollection : PropertyCollectionBase<MaterialSssProperties>
     {
-        public SssProperties()
+        public SssPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialSssProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialSssProperties.Value), 0m);
@@ -420,9 +408,9 @@ namespace PixelGraph.UI.ViewModels
         }
     }
 
-    public class EmissiveProperties : PropertyCollectionBase<MaterialEmissiveProperties>
+    public class EmissivePropertyCollection : PropertyCollectionBase<MaterialEmissiveProperties>
     {
-        public EmissiveProperties()
+        public EmissivePropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialEmissiveProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialEmissiveProperties.Value), 0m);

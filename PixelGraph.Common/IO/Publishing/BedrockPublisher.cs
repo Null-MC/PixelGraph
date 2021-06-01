@@ -47,7 +47,7 @@ namespace PixelGraph.Common.IO.Publishing
                 },
             };
 
-            var isRtx = TextureEncoding.Is(pack.Encoding.Format, TextureEncoding.Format_Rtx);
+            var isRtx = TextureFormat.Is(pack.Encoding.Format, TextureFormat.Format_Rtx);
             if (isRtx) packMeta.Capabilities.Add("raytraced");
 
             await using var stream = Writer.Open("manifest.json");

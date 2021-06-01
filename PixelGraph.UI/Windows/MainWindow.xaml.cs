@@ -154,7 +154,7 @@ namespace PixelGraph.UI.Windows
 
             var packInput = await packReader.ReadInputAsync("input.yml")
                 ?? new ResourcePackInputProperties {
-                    Format = TextureEncoding.Format_Raw,
+                    Format = TextureFormat.Format_Raw,
                 };
 
             Application.Current.Dispatcher.Invoke(() => vm.PackInput = packInput);
@@ -276,7 +276,7 @@ namespace PixelGraph.UI.Windows
             if (!vm.TryStartBusy()) return;
 
             try {
-                var inputFormat = TextureEncoding.GetFactory(vm.PackInput.Format);
+                var inputFormat = TextureFormat.GetFactory(vm.PackInput.Format);
                 var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
                 inputEncoding.Merge(vm.PackInput);
                 inputEncoding.Merge(material);
@@ -328,7 +328,7 @@ namespace PixelGraph.UI.Windows
             if (!vm.TryStartBusy()) return;
 
             try {
-                var inputFormat = TextureEncoding.GetFactory(vm.PackInput.Format);
+                var inputFormat = TextureFormat.GetFactory(vm.PackInput.Format);
                 var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
                 inputEncoding.Merge(vm.PackInput);
                 inputEncoding.Merge(material);
@@ -358,7 +358,7 @@ namespace PixelGraph.UI.Windows
 
                     var inputChannel = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Occlusion));
                     if (inputChannel != null && !TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
-                        material.Occlusion ??= new MaterialOcclusionProperties();
+                        //material.Occlusion ??= new MaterialOcclusionProperties();
                         material.Occlusion.Texture = outputName;
 
                         material.Occlusion.Input ??= new ResourcePackOcclusionChannelProperties();
@@ -575,17 +575,17 @@ namespace PixelGraph.UI.Windows
         {
             var settings = provider.GetRequiredService<IAppSettings>();
 
-            if (settings.Data.SelectedPublishLocation != null) {
-                var location = vm.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
-                if (location != null) vm.SelectedLocation = location;
-            }
-
             try {
                 await LoadPublishLocationsAsync();
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to load publishing locations!");
                 ShowError($"Failed to load publishing locations! {error.UnfoldMessageString()}");
+            }
+
+            if (settings.Data.SelectedPublishLocation != null) {
+                var location = vm.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
+                if (location != null) vm.SelectedLocation = location;
             }
 
             try {
@@ -596,11 +596,13 @@ namespace PixelGraph.UI.Windows
                 logger.LogError(error, "Failed to load recent projects list!");
                 ShowError($"Failed to load recent projects list! {error.UnfoldMessageString()}");
             }
+
+            vm.EndInit();
         }
 
         private async void OnRecentSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (!(RecentList.SelectedItem is string item)) return;
+            if (RecentList.SelectedItem is not string item) return;
 
             try {
                 await SetRootDirectoryAsync(item, CancellationToken.None);
@@ -709,17 +711,53 @@ namespace PixelGraph.UI.Windows
 
         private void OnSettingsClick(object sender, RoutedEventArgs e)
         {
-            var window = provider.GetRequiredService<SettingsWindow>();
-            window.Owner = this;
+            var window = new SettingsWindow(provider) {
+                Owner = this,
+            };
 
             if (window.ShowDialog() == true) {
                 themeHelper.ApplyCurrent(this);
             }
         }
 
-        private void OnNewMaterialMenuClick(object sender, RoutedEventArgs e)
+        private async void OnNewMaterialMenuClick(object sender, RoutedEventArgs e)
         {
-            ShowError("Not Yet Implemented");
+            var window = new NewMaterialWindow(provider) {
+                Owner = this,
+            };
+
+            if (window.ShowDialog() != true) return;
+
+            try {
+                if (string.IsNullOrWhiteSpace(window.VM.Location))
+                    throw new ApplicationException("New material Location cannot be empty!");
+
+                var name = Path.GetFileName(window.VM.Location);
+                var localPath = Path.GetDirectoryName(window.VM.Location);
+                var localFile = PathEx.Join(localPath, name, "mat.yml");
+
+                var material = new MaterialProperties {
+                    Name = name,
+                    LocalPath = localPath,
+                    LocalFilename = localFile,
+                    UseGlobalMatching = false,
+                };
+
+                var writer = provider.GetRequiredService<IOutputWriter>();
+                var materialWriter = provider.GetRequiredService<IMaterialWriter>();
+
+                writer.SetRoot(vm.RootDirectory);
+                await materialWriter.WriteAsync(material);
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to create new material definition!");
+                ShowError("Failed to create new material definition!");
+                return;
+            }
+
+            ReloadContent();
+
+            // TODO: select the new TreeView node
         }
 
         private void OnMaterialConnectionsMenuClick(object sender, RoutedEventArgs e)
@@ -830,7 +868,7 @@ namespace PixelGraph.UI.Windows
                     contentReader.Update(parent);
 
                     var selected = parent.Nodes.FirstOrDefault(n => {
-                        if (!(n is ContentTreeMaterialDirectory materialNode)) return false;
+                        if (n is not ContentTreeMaterialDirectory materialNode) return false;
                         return string.Equals(materialNode.MaterialFilename, material.LocalFilename);
                     });
 
@@ -843,7 +881,7 @@ namespace PixelGraph.UI.Windows
         {
             var source = e.OriginalSource as DependencyObject;
 
-            while (source != null && !(source is TreeViewItem))
+            while (source != null && source is not TreeViewItem)
                 source = VisualTreeHelper.GetParent(source);
 
             (source as TreeViewItem)?.Focus();
@@ -862,6 +900,9 @@ namespace PixelGraph.UI.Windows
         private async void OnSelectedProfileChanged(object sender, EventArgs e)
         {
             await UpdatePreviewAsync(true);
+
+            // TODO: update recent 
+
         }
 
         private void OnPreviewCancelClick(object sender, RoutedEventArgs e)
@@ -873,12 +914,14 @@ namespace PixelGraph.UI.Windows
 
         private async void OnPublishLocationSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var settings = provider.GetRequiredService<IAppSettings>();
-            var hasSelection = !vm.SelectedLocation?.IsManualSelect ?? true;
-            var newValue = hasSelection ? vm.SelectedLocation?.DisplayName : null;
-            if (newValue == settings.Data.SelectedPublishLocation) return;
+            if (vm.IsInitializing) return;
 
-            settings.Data.SelectedPublishLocation = newValue;
+            var settings = provider.GetRequiredService<IAppSettings>();
+            var hasSelection = !(vm.SelectedLocation?.IsManualSelect ?? true);
+
+            settings.Data.SelectedPublishLocation = hasSelection
+                ? vm.SelectedLocation?.DisplayName : null;
+
             await settings.SaveAsync();
         }
 
@@ -929,8 +972,6 @@ namespace PixelGraph.UI.Windows
             if (!vm.HasLoadedMaterial) return;
             if (!vm.HasTagSelection) return;
 
-            //var editUtility = provider.GetRequiredService<ITextureEditUtility>();
-
             try {
                 vm.IsImageEditorOpen = true;
 
@@ -942,7 +983,6 @@ namespace PixelGraph.UI.Windows
                 ShowError($"Failed to launch external image editor! {error.UnfoldMessageString()}");
             }
             finally {
-                //await Application.Current.Dispatcher.BeginInvoke(() => IsEnabled = true);
                 vm.IsImageEditorOpen = false;
             }
 

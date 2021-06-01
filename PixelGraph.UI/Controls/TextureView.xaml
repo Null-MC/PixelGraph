@@ -6,7 +6,7 @@
               xmlns:local="clr-namespace:PixelGraph.UI.Controls"
               d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" d:DataContext="{x:Null}"
               HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-    <Border Background="#222" MouseWheel="OnMouseWheel">
+    <Border MouseWheel="OnMouseWheel">
         <Border HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                 DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:TextureView}}">
             <Border.Background>

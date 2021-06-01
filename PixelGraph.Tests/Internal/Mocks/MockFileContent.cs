@@ -129,5 +129,7 @@ namespace PixelGraph.Tests.Internal.Mocks
         {
             if (Content != null) await Content.DisposeAsync();
         }
+
+        public override string ToString() => $"File: {Filename}";
     }
 }

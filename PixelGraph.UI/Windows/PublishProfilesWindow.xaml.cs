@@ -45,7 +45,7 @@ namespace PixelGraph.UI.Windows
             var profile = new ResourcePackProfileProperties {
                 LocalFile = filename[VM.RootDirectory.Length..].TrimStart('\\', '/'),
                 Encoding = {
-                    Format = TextureEncoding.Format_Lab13,
+                    Format = TextureFormat.Format_Lab13,
                 },
             };
 

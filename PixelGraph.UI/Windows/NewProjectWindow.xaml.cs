@@ -160,22 +160,27 @@ namespace PixelGraph.UI.Windows
             writer.SetRoot(VM.Location);
 
             var packInput = new ResourcePackInputProperties {
-                Format = VM.ContentFormat,
+                Format = TextureFormat.Format_Raw,
             };
 
             await packWriter.WriteAsync("input.yml", packInput);
 
             if (VM.CreateDefaultProfile) {
                 var packProfile = new ResourcePackProfileProperties {
-                    Description = "My new resource pack",
+                    Name = VM.PackName,
+                    Description = "A short description of the RP content.",
                     Encoding = {
-                        Format = TextureEncoding.Format_Lab13,
+                        Format = TextureFormat.Format_Lab13,
                     },
                     Edition = "Java",
                     Format = 6,
                 };
 
-                await packWriter.WriteAsync("default.pack.yml", packProfile);
+                var safeName = VM.PackName
+                    .Replace('/', '_')
+                    .Replace('\\', '_');
+
+                await packWriter.WriteAsync($"{safeName}.pack.yml", packProfile);
             }
         }
 
@@ -204,22 +209,22 @@ namespace PixelGraph.UI.Windows
                 return;
             }
 
-            VM.SetState(NewProjectStates.Format);
-        }
-
-        private void OnFormatBackClick(object sender, RoutedEventArgs e)
-        {
-            VM.SetState(NewProjectStates.Location);
-        }
-
-        private void OnFormatNextClick(object sender, RoutedEventArgs e)
-        {
             VM.SetState(NewProjectStates.Review);
         }
 
+        //private void OnFormatBackClick(object sender, RoutedEventArgs e)
+        //{
+        //    VM.SetState(NewProjectStates.Location);
+        //}
+
+        //private void OnFormatNextClick(object sender, RoutedEventArgs e)
+        //{
+        //    VM.SetState(NewProjectStates.Review);
+        //}
+
         private void OnReviewBackClick(object sender, RoutedEventArgs e)
         {
-            VM.SetState(NewProjectStates.Format);
+            VM.SetState(NewProjectStates.Location);
         }
 
         private async void OnReviewCreateClick(object sender, RoutedEventArgs e)

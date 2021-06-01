@@ -1,11 +1,10 @@
-﻿using PixelGraph.Common.TextureFormats;
-
-namespace PixelGraph.UI.ViewModels
+﻿namespace PixelGraph.UI.ViewModels
 {
     internal class NewProjectVM : ViewModelBase
     {
         private NewProjectStates _state;
-        private string _contentFormat;
+        //private string _contentFormat;
+        private string _packName;
         private string _location;
         private bool _createMinecraftFolders;
         private bool _createRealmsFolders;
@@ -15,11 +14,20 @@ namespace PixelGraph.UI.ViewModels
         private bool _importFromDirectory;
         private bool _importFromArchive;
 
-        public string ContentFormat {
-            get => _contentFormat;
+        //public string ContentFormat {
+        //    get => _contentFormat;
+        //    set {
+        //        if (_contentFormat == value) return;
+        //        _contentFormat = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
+
+        public string PackName {
+            get => _packName;
             set {
-                if (_contentFormat == value) return;
-                _contentFormat = value;
+                if (_packName == value) return;
+                _packName = value;
                 OnPropertyChanged();
             }
         }
@@ -96,7 +104,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public bool IsFormatPage => _state == NewProjectStates.Format;
+        //public bool IsFormatPage => _state == NewProjectStates.Format;
         public bool IsLocationPage => _state == NewProjectStates.Location;
         public bool IsReviewPage => _state == NewProjectStates.Review;
 
@@ -104,7 +112,8 @@ namespace PixelGraph.UI.ViewModels
         public NewProjectVM()
         {
             _state = NewProjectStates.Location;
-            _contentFormat = TextureEncoding.Format_Raw;
+            _packName = "My New RP";
+            //_contentFormat = TextureEncoding.Format_Raw;
             _createMinecraftFolders = true;
             _createRealmsFolders = true;
             _createOptifineFolders = true;
@@ -117,7 +126,7 @@ namespace PixelGraph.UI.ViewModels
             if (state == _state) return;
 
             _state = state;
-            OnPropertyChanged(nameof(IsFormatPage));
+            //OnPropertyChanged(nameof(IsFormatPage));
             OnPropertyChanged(nameof(IsLocationPage));
             OnPropertyChanged(nameof(IsReviewPage));
         }
@@ -127,7 +136,8 @@ namespace PixelGraph.UI.ViewModels
     {
         public NewProjectDesignVM()
         {
-            ContentFormat = TextureEncoding.Format_Raw;
+            //ContentFormat = TextureEncoding.Format_Raw;
+            PackName = "Sample RP";
             Location = "C:\\Somewhere\\over\\the\\rainbow";
             SetState(NewProjectStates.Location);
         }
@@ -136,7 +146,7 @@ namespace PixelGraph.UI.ViewModels
     internal enum NewProjectStates
     {
         Location,
-        Format,
+        //Format,
         Review,
     }
 }

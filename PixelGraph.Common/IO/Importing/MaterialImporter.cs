@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
@@ -73,6 +74,8 @@ namespace PixelGraph.Common.IO.Importing
             context.Material = material;
             context.PublishAsGlobal = AsGlobal;
             context.IsImport = true;
+
+            context.Mapping = new DefaultPublishMapping();
 
             await graphBuilder.ProcessOutputGraphAsync(token);
         }

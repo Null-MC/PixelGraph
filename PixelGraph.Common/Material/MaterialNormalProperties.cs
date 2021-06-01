@@ -29,10 +29,26 @@ namespace PixelGraph.Common.Material
         [YamlMember(Alias = "value-z", ApplyNamingConventions = false)]
         public decimal? ValueZ {get; set;}
 
+
+        public bool HasAnyData()
+        {
+            if (InputX?.HasAnyData() ?? false) return true;
+            if (InputY?.HasAnyData() ?? false) return true;
+            if (InputZ?.HasAnyData() ?? false) return true;
+
+            if (Texture != null) return true;
+            if (Strength.HasValue) return true;
+            if (Method != null) return true;
+            if (ValueX.HasValue) return true;
+            if (ValueY.HasValue) return true;
+            if (ValueZ.HasValue) return true;
+            return false;
+        }
+
         #region Deprecated
 
         [Obsolete("Rename usages of Filter to Method.")]
-        public string? Filter {
+        public string Filter {
             get => null;
             set => Method = value;
         }

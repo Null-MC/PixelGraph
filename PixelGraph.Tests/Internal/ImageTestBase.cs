@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -79,6 +80,7 @@ namespace PixelGraph.Tests.Internal
             graphContext.Profile = PackProfile;
             graphContext.Material = Material;
             //graphContext.UseGlobalOutput = true;
+            graphContext.Mapping = new DefaultPublishMapping();
 
             await graphBuilder.ProcessInputGraphAsync(token);
             await graphBuilder.PublishInventoryAsync("inventory", token);

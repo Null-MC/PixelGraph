@@ -5,14 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:PixelGraph.UI.Controls"
              xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
-             xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
              d:DesignWidth="280" d:DesignHeight="500" mc:Ignorable="d"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
     <UserControl.Resources>
         <local:TextureItemList x:Key="TextureList"/>
-        <vd:OptionalAllTextureFormatValues x:Key="AllTextureFormats"/>
         <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
         <converters:NullableConverter x:Key="NullableConverter"/>
     </UserControl.Resources>
@@ -20,31 +18,23 @@
         <DockPanel.DataContext>
             <vm:MaterialPropertiesVM x:Name="vm" DataChanged="OnDataChanged"/>
         </DockPanel.DataContext>
-        <Border DockPanel.Dock="Top" Background="{DynamicResource MahApps.Brushes.Highlight}" Height="34">
+        <Border DockPanel.Dock="Top" Background="{DynamicResource MahApps.Brushes.Accent4}" Height="34">
             <DockPanel Margin="2">
-                <Button DockPanel.Dock="Right" Margin="2" Padding="4,0" BorderThickness="0" Style="{DynamicResource MahApps.Styles.Button.Flat}"
-                        Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnEditButtonClick"/>
+                <Button DockPanel.Dock="Right" Margin="2" Padding="6,2" BorderThickness="0"
+                        ToolTip="Edit Layer Image" Click="OnChannelEditImageButtonClick"
+                        Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"
+                        Content="{iconPacks:FontAwesome Kind=EditSolid}"/>
                 <ComboBox DisplayMemberPath="Name" SelectedValuePath="Key" Margin="2" Padding="4,0" FontSize="16" Grid.IsSharedSizeScope="True"
                           ItemsSource="{StaticResource TextureList}"
                           SelectedValue="{Binding SelectedTag, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
             </DockPanel>
         </Border>
-        <Border DockPanel.Dock="Bottom" Background="{DynamicResource MahApps.Brushes.Gray1}" Margin="0,8,0,0">
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
             <StackPanel Orientation="Vertical">
-                <local:PropertyGridItem Header="Input Format">
-                    <local:ComboBoxEx DisplayMemberPath="Text" SelectedValuePath="Value" Padding="4,0"
-                                      ItemsSource="{StaticResource AllTextureFormats}"
-                                      Placeholder="{Binding DefaultInputFormat, Mode=OneWay}"
-                                      SelectedValue="{Binding InputFormat, Mode=TwoWay}"/>
-                </local:PropertyGridItem>
-                <local:PropertyGridItem Header="Horizontal Wrapping">
-                    <CheckBox Margin="4,2" HorizontalAlignment="Center" VerticalAlignment="Center"
-                              IsChecked="{Binding WrapX, Mode=TwoWay}"/>
-                </local:PropertyGridItem>
-                <local:PropertyGridItem Header="Vertical Wrapping">
-                    <CheckBox Margin="4,2" HorizontalAlignment="Center" VerticalAlignment="Center"
-                              IsChecked="{Binding WrapY, Mode=TwoWay}"/>
-                </local:PropertyGridItem>
+                <TextBlock Margin="8,2" Text="General Properties" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
+                                           ItemsSource="{Binding GeneralProperties, Mode=OneWay}"/>
             </StackPanel>
         </Border>
         <ScrollViewer VerticalScrollBarVisibility="Auto" Background="{DynamicResource MahApps.Brushes.Gray8}">
@@ -54,13 +44,13 @@
                         <Style TargetType="DataGrid" BasedOn="{StaticResource MahApps.Styles.DataGrid}">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsAlphaSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Alpha, Mode=OneWay}"/>
+                                    <Setter Property="ItemsSource" Value="{Binding AlphaProperties, Mode=OneWay}"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding IsAlbedoSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Albedo}"/>
+                                    <Setter Property="ItemsSource" Value="{Binding AlbedoProperties}"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding IsDiffuseSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Diffuse}"/>
+                                    <Setter Property="ItemsSource" Value="{Binding DiffuseProperties}"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding IsHeightSelected, Mode=OneWay}" Value="True">
                                     <Setter Property="ItemsSource" Value="{Binding Height}"/>
@@ -99,33 +89,44 @@
                         </Style>
                     </DataGrid.Style>
                 </local:PropertyGridControl>
-                <Border Margin="0,20,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                        Visibility="{Binding IsHeightSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Margin="8,2" Text="Edge Fading" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                        <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
+                                                   ItemsSource="{Binding HeightEdgeFading, Mode=OneWay}"/>
+                    </StackPanel>
+                </Border>
+                <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                         Visibility="{Binding IsNormalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                     <StackPanel Orientation="Vertical">
                         <DockPanel>
-                            <Button DockPanel.Dock="Right" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                    Content="Bake" Click="OnGenerateNormalClick" Style="{DynamicResource MahApps.Styles.Button.Flat}"/>
+                            <Button DockPanel.Dock="Right" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Center" BorderThickness="0"
+                                    Content="Bake" ToolTip="Generates the normal texture and saves the result to the project source content." Click="OnGenerateNormalClick"
+                                    Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
                             <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                         </DockPanel>
                         <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
                                                    ItemsSource="{Binding NormalGeneration, Mode=OneWay}"/>
                     </StackPanel>
                 </Border>
-                <Border Margin="0,20,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                         Visibility="{Binding IsOcclusionSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                     <StackPanel Orientation="Vertical">
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Center"
                                     Content="Bake" Click="OnGenerateOcclusionClick" Style="{DynamicResource MahApps.Styles.Button.Flat}"/>
                             <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                         </DockPanel>
                         <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
                                                    ItemsSource="{Binding OcclusionGeneration, Mode=OneWay}"/>
                     </StackPanel>
                 </Border>
-                <Border Margin="0,20,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                <Border Margin="0,20,0,0"
+                        Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                         Visibility="{Binding IsF0Selected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -134,8 +135,8 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Margin="8,2" Text="IOR" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
-                        <TextBox Grid.Column="1" HorizontalContentAlignment="Center"
+                                   Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                        <TextBox Grid.Column="1" HorizontalContentAlignment="Center" KeyUp="OnF0ConverterTextBoxKeyUp"
                             Text="{Binding IorEditValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}">
                             <TextBox.Style>
                                 <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
@@ -152,8 +153,9 @@
                                 </Style>
                             </TextBox.Style>
                         </TextBox>
-                        <Button Grid.Column="2" DockPanel.Dock="Right" Padding="8,0"
-                                Content="Convert" Click="OnIorToFoConvert"  Style="{DynamicResource MahApps.Styles.Button.Flat}"/>
+                        <Button x:Name="IorToF0ConvertButton" Grid.Column="2" DockPanel.Dock="Right" Padding="8,0" BorderThickness="0"
+                                Content="Convert" Click="OnIorToFoConvertButtonClick"
+                                Style="{StaticResource MahApps.Styles.Button.Square.Accent}"/>
                     </Grid>
                 </Border>
             </StackPanel>

@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace PixelGraph.Common.TextureFormats
 {
-    public class TextureEncoding
+    public class TextureFormat
     {
-        public const string DefaultFormat = Format_Raw;
+        public const string Default = Format_Raw;
 
         public const string Format_Raw = "raw";
         public const string Format_Diffuse = "diffuse";

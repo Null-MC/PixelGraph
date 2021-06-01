@@ -15,6 +15,13 @@ namespace PixelGraph.UI.ViewModels
             Add(row);
         }
 
+        public void AddBool<TValue>(string displayName, string propertyName, TValue defaultValue = default)
+        {
+            var row = new EditBoolPropertyRow<TSource, TValue>(displayName, propertyName, defaultValue);
+            row.ValueChanged += OnRowValueChanged;
+            Add(row);
+        }
+
         public void AddSelect<TValue>(string displayName, string propertyName, SelectPropertyRowOptions options, TValue defaultValue = default)
         {
             var row = new EditSelectPropertyRow<TSource, TValue>(displayName, propertyName, options, defaultValue);

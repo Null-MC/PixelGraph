@@ -19,12 +19,12 @@ namespace PixelGraph.Tests.ImportTests
         public OldPbrImportTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Format = TextureEncoding.Format_Raw,
+                Format = TextureFormat.Format_Raw,
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Format = TextureEncoding.Format_OldPbr,
+                    Format = TextureFormat.Format_OldPbr,
                 },
             };
         }

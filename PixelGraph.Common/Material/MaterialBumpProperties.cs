@@ -7,5 +7,14 @@ namespace PixelGraph.Common.Material
         public ResourcePackBumpChannelProperties Input {get; set;}
         public string Texture {get; set;}
         public decimal? Scale {get; set;}
+
+
+        public bool HasAnyData()
+        {
+            if (Input != null && Input.HasAnyData()) return true;
+            if (Texture != null) return true;
+            if (Scale.HasValue) return true;
+            return false;
+        }
     }
 }

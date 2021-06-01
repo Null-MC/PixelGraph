@@ -107,7 +107,7 @@ namespace PixelGraph.UI.ViewModels
 
         public void UpdateDefaultValues()
         {
-            var encoding = TextureEncoding.GetFactory(_packInput?.Format);
+            var encoding = TextureFormat.GetFactory(_packInput?.Format);
             var encodingDefaults = encoding?.Create();
 
             Alpha.ApplyDefaultValues(encodingDefaults?.Alpha);
@@ -182,7 +182,7 @@ namespace PixelGraph.UI.ViewModels
         public PackInput2DesignVM()
         {
             PackInput = new ResourcePackInputProperties {
-                Format = TextureEncoding.Format_Raw,
+                Format = TextureFormat.Format_Raw,
                 Alpha = {
                     MinValue = 100,
                 },

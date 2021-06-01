@@ -72,6 +72,21 @@ namespace PixelGraph.Common.ResourcePack
             Invert = null;
         }
 
+        public virtual bool HasAnyData()
+        {
+            if (Texture != null) return true;
+            if (Sampler != null) return true;
+            if (Color.HasValue) return true;
+            if (MinValue.HasValue) return true;
+            if (MaxValue.HasValue) return true;
+            if (RangeMin.HasValue) return true;
+            if (RangeMax.HasValue) return true;
+            if (Shift.HasValue) return true;
+            if (Power.HasValue) return true;
+            if (Invert.HasValue) return true;
+            return false;
+        }
+
         public virtual object Clone()
         {
             return MemberwiseClone();

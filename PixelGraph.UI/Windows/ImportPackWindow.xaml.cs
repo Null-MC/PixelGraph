@@ -6,6 +6,7 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
@@ -31,6 +32,9 @@ namespace PixelGraph.UI.Windows
             tokenSource = new CancellationTokenSource();
 
             InitializeComponent();
+
+            var themeHelper = provider.GetRequiredService<IThemeHelper>();
+            themeHelper.ApplyCurrent(this);
 
             VM.LogEvent += OnLogListAppended;
         }
@@ -194,6 +198,11 @@ namespace PixelGraph.UI.Windows
         private void OnLogListAppended(object sender, LogEventArgs e)
         {
             LogList.Append(e.Level, e.Message);
+        }
+
+        private void OnCancelButtonClick(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
         }
 
         #endregion

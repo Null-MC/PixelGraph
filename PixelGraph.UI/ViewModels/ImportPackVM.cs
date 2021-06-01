@@ -2,7 +2,6 @@
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
 using System;
-using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -74,7 +73,7 @@ namespace PixelGraph.UI.ViewModels
 
         public ImportPackVM()
         {
-            SourceFormat = TextureEncoding.DefaultFormat;
+            SourceFormat = null;
             CopyUntracked = true;
             AsGlobal = false;
         }

@@ -70,14 +70,11 @@ namespace PixelGraph.UI.Internal.Utilities
                     await newImage.SaveAsPngAsync(tempFile, token);
                 }
 
-                var (exe, args) = ParseCommand(appSettings.Data.TextureEditCommand);
-
-                args = args.Replace("$1", tempFile);
-
                 var info = new ProcessStartInfo {
                     UseShellExecute = false,
-                    FileName = exe,
-                    Arguments = args,
+                    FileName = appSettings.Data.TextureEditorExecutable,
+                    Arguments = appSettings.Data.TextureEditorArguments
+                        .Replace("$1", tempFile),
                 };
 
                 var srcTime = File.GetLastWriteTimeUtc(tempFile);

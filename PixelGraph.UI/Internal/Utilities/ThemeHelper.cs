@@ -20,7 +20,7 @@ namespace PixelGraph.UI.Internal.Utilities
 
         public void ApplyCurrent(FrameworkElement target)
         {
-            var name = $"{settings.Data.AppThemeBase}.{settings.Data.AppThemeAccent}";
+            var name = $"{settings.Data.ThemeBaseColor}.{settings.Data.ThemeAccentColor}";
             ThemeManager.Current.ChangeTheme(target, name);
         }
     }

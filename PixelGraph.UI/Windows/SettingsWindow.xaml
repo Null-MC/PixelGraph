@@ -8,7 +8,7 @@
         xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
         xmlns:viewData="clr-namespace:PixelGraph.UI.ViewData"
         d:DataContext="{d:DesignInstance vm:AppSettingsDesignVM, IsDesignTimeCreatable=True}"
-        Title="Settings" Height="450" Width="800" mc:Ignorable="d"
+        Title="App Settings" Height="450" Width="800" mc:Ignorable="d"
         WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal" SaveWindowPosition="True"
         Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
         Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
@@ -38,13 +38,32 @@
                         <TextBlock Text="Textures" Margin="6,0" VerticalAlignment="Center"/>
                     </StackPanel>
                 </TabItem.Header>
-                <StackPanel Orientation="Vertical" Margin="8">
-                    <TextBlock Text="Image Editor" FontWeight="Bold" FontSize="14"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                    <TextBox Text="{Binding Texture_ImageEditor}"/>
-                    <TextBlock Text="The command used to edit images. Use $1 as the image filename argument." FontSize="12"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
-                </StackPanel>
+                <ScrollViewer Background="{DynamicResource MahApps.Brushes.Gray10}">
+                    <StackPanel Orientation="Vertical">
+                        <GroupBox Header="Image Editor" Margin="4">
+                            <StackPanel Orientation="Vertical" Margin="4">
+                                <TextBlock Text="Executable" FontWeight="Bold" FontSize="14"/>
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" ToolTip="Browse" Margin="1,0,0,0" Padding="6,2" BorderThickness="1"
+                                            Content="{iconPacks:FontAwesome Kind=FolderOpenSolid}"
+                                            Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
+                                    <TextBox Text="{Binding Texture_ImageEditorExe}"/>
+                                </DockPanel>
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Text="The command used to edit images."
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
+                                <TextBlock Text="Arguments" FontWeight="Bold" FontSize="14" Margin="0,12,0,0"/>
+                                <TextBox Text="{Binding Texture_ImageEditorArgs}"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Text="The list of arguments passed to the executable. Use $1 as the image filename argument."
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
+                                <Button HorizontalAlignment="Right" Margin="0,16,0,0" Width="60"
+                                        Content="Reset" Click="OnResetImageEditorClick"
+                                        Style="{DynamicResource MahApps.Styles.Button}"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
             <TabItem>
                 <TabItem.Header>
@@ -53,20 +72,29 @@
                         <TextBlock Text="Theme" Margin="6,0" VerticalAlignment="Center"/>
                     </StackPanel>
                 </TabItem.Header>
-                <StackPanel Orientation="Vertical" Margin="8">
-                    <TextBlock Text="Base Color" FontSize="14" FontWeight="Bold"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                    <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" ItemsSource="{StaticResource AppThemeBases}"
-                              SelectedValue="{Binding Theme_BaseColor}"/>
-                    <TextBlock Text="The primary background color for the application." FontSize="12"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
-                    <TextBlock Text="Accent Color" Margin="0,16,0,0" FontSize="14" FontWeight="Bold"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                    <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" ItemsSource="{StaticResource AppThemeAccents}"
-                              SelectedValue="{Binding Theme_AccentColor}"/>
-                    <TextBlock Text="The secondary accent color for the application." FontSize="12"
-                               Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
-                </StackPanel>
+                <ScrollViewer Background="{DynamicResource MahApps.Brushes.Gray10}">
+                    <StackPanel Orientation="Vertical" Margin="4">
+                        <GroupBox Header="Colors">
+                            <StackPanel Orientation="Vertical" Margin="4">
+                                <TextBlock Text="Base" FontSize="14" FontWeight="Bold"/>
+                                <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" ItemsSource="{StaticResource AppThemeBases}"
+                                          SelectedValue="{Binding Theme_BaseColor}"/>
+                                <TextBlock FontSize="12" TextWrapping="Wrap"
+                                           Text="The primary background color for the application."
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
+                                <TextBlock Text="Accent" Margin="0,16,0,0" FontSize="14" FontWeight="Bold"/>
+                                <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" ItemsSource="{StaticResource AppThemeAccents}"
+                                          SelectedValue="{Binding Theme_AccentColor}"/>
+                                <TextBlock FontSize="12" TextWrapping="Wrap"
+                                           Text="The secondary accent color for the application."
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
+                                <Button HorizontalAlignment="Right" Margin="0,16,0,0" Width="60"
+                                        Content="Reset" Click="OnResetThemeColorsClick"
+                                        Style="{DynamicResource MahApps.Styles.Button}"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
     </DockPanel>

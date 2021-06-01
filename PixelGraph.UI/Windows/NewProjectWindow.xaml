@@ -5,7 +5,6 @@
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
                     xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
-                    xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
                     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
                     d:DataContext="{d:DesignInstance vm:NewProjectDesignVM, IsDesignTimeCreatable=True}"
@@ -14,8 +13,6 @@
                     Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                     Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
-        <vd:OptionalAllTextureFormatValues x:Key="AllTextureFormats"/>
-        <converters:FormatDescriptionConverter x:Key="FormatDescriptionConverter"/>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
     </Window.Resources>
     <Window.DataContext>
@@ -35,7 +32,10 @@
             </Grid>
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="12" Orientation="Vertical">
-                    <TextBlock Text="Source Directory:" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                    <TextBlock Text="Resource Pack Name:" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                    <TextBox Margin="0,0,4,0" Text="{Binding PackName, Mode=TwoWay}"/>
+                    <TextBlock Text="Source Directory:" FontSize="14" FontWeight="Bold" Margin="12,20,12,12"
+                               Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Width="28" Height="24" Padding="0" ToolTip="Browse" Click="OnLocationBrowseClick"
                                 Content="{iconPacks:FontAwesome Kind=FolderOpenSolid}"/>
@@ -49,35 +49,6 @@
                               IsChecked="{Binding CreateOptifineFolders, Mode=TwoWay}"/>
                     <CheckBox Margin="12,4,12,12" Content="Create Realms folders" FontSize="14"
                               IsChecked="{Binding CreateRealmsFolders, Mode=TwoWay}"/>
-                </StackPanel>
-            </ScrollViewer>
-        </DockPanel>
-        <DockPanel Visibility="{Binding IsFormatPage, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-            <Grid DockPanel.Dock="Bottom" Background="{DynamicResource MahApps.Brushes.Highlight}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Margin="8" Content="Back" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80"
-                        Click="OnFormatBackClick"/>
-                <Button Grid.Column="1" Margin="8" Content="Next" HorizontalAlignment="Right" VerticalAlignment="Center" Width="80"
-                        Click="OnFormatNextClick"/>
-            </Grid>
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="12" Orientation="Vertical">
-                    <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseLow}"
-                               Text="Choose a texture encoding for your project workspace. This will be the format used for editing your resource pack content."/>
-                    <StackPanel Margin="0,20,0,8" HorizontalAlignment="Center" Orientation="Horizontal">
-                        <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Text="Project Format:" FontSize="18" FontWeight="Bold"
-                                   Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
-                        <ComboBox HorizontalContentAlignment="Center" MinWidth="180" FontSize="16" DisplayMemberPath="Text" SelectedValuePath="Value"
-                                  ItemsSource="{StaticResource AllTextureFormats}"
-                                  SelectedValue="{Binding ContentFormat, Mode=TwoWay}"/>
-                        <!--<Button DockPanel.Dock="Right" VerticalAlignment="Center" Width="28" Height="24" Margin="4,0,0,0" Padding="0" ToolTip="Advanced" IsEnabled="False"
-                                Content="{iconPacks:FontAwesome Kind=PaletteSolid}"/>-->
-                    </StackPanel>
-                    <TextBlock Margin="20,0" TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
-                               Text="{Binding ContentFormat, Mode=OneWay, Converter={StaticResource FormatDescriptionConverter}}"/>
                 </StackPanel>
             </ScrollViewer>
         </DockPanel>

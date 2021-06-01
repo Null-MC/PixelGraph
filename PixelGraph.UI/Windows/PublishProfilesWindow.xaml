@@ -58,7 +58,7 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Orientation="Vertical" Margin="12">
                             <TextBlock Text="Pack Name" FontSize="12" FontWeight="Bold"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                             <TextBox Text="{Binding EditPackName}">
                                 <TextBox.Style>
                                     <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
@@ -67,42 +67,47 @@
                                                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
                                                 <Setter Property="FontStyle" Value="Italic"/>
                                             </DataTrigger>
+                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                                                <Setter Property="FontStyle" Value="Normal"/>
+                                            </Trigger>
                                         </Style.Triggers>
                                     </Style>
                                 </TextBox.Style>
                             </TextBox>
                             <TextBlock Text="Game Edition" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                             <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
                                       ItemsSource="{StaticResource GameEditions}"
                                       SelectedValue="{Binding GameEdition}"/>
                             <TextBlock Text="Description" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                             <TextBox Text="{Binding PackDescription}"/>
                             <TextBlock Text="Tags" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"
                                        Visibility="{Binding IsJavaProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             <TextBox Text="{Binding PackTags}"
                                      Visibility="{Binding IsJavaProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             <TextBlock Text="Pack Version" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                             <TextBox Text="{Binding PackFormat}"/>
                             <TextBlock Text="Header UUID" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"
                                        Visibility="{Binding IsBedrockProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             <DockPanel Visibility="{Binding IsBedrockProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateHeaderUuid"/>
                                 <TextBox Text="{Binding PackHeaderUuid, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                             </DockPanel>
                             <TextBlock Text="Module UUID" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"
                                        Visibility="{Binding IsBedrockProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             <DockPanel Visibility="{Binding IsBedrockProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateModuleUuid"/>
+                                <Button DockPanel.Dock="Right" Margin="6,0,0,0"
+                                        Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateModuleUuid"/>
                                 <TextBox Text="{Binding PackModuleUuid, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                             </DockPanel>
                             <TextBlock Text="Image Encoding" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                             <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" KeyUp="OnImageEncodingKeyUp"
                                       ItemsSource="{StaticResource ImageEncodings}"
                                       SelectedValue="{Binding EditImageEncoding}">
@@ -113,6 +118,10 @@
                                                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
                                                 <Setter Property="FontStyle" Value="Italic"/>
                                             </DataTrigger>
+                                            <Trigger Property="IsDropDownOpen" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                                                <Setter Property="FontStyle" Value="Normal"/>
+                                            </Trigger>
                                         </Style.Triggers>
                                     </Style>
                                 </ComboBox.Style>
@@ -134,12 +143,12 @@
                         </Grid.RowDefinitions>
                         <StackPanel Orientation="Vertical">
                             <TextBlock Text="Format" FontSize="12" FontWeight="Bold"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                             <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
                                       ItemsSource="{StaticResource AllTextureFormats}"
                                       SelectedValue="{Binding TextureFormat, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Default Sampler" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                             <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" KeyUp="OnEncodingSamplerKeyUp"
                                                  ItemsSource="{StaticResource Samplers}"
                                                  SelectedValue="{Binding EditEncodingSampler, Mode=TwoWay}">
@@ -150,6 +159,10 @@
                                                 <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
                                                 <Setter Property="FontStyle" Value="Italic"/>
                                             </DataTrigger>
+                                            <Trigger Property="IsDropDownOpen" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                                                <Setter Property="FontStyle" Value="Normal"/>
+                                            </Trigger>
                                         </Style.Triggers>
                                     </Style>
                                 </ComboBox.Style>

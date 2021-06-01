@@ -4,16 +4,26 @@ namespace PixelGraph.UI.ViewModels
 {
     public class SettingsWindowVM : ViewModelBase
     {
-        private string _texture_imageEditor = "dark";
-        private string _theme_baseColor = "dark";
-        private string _theme_accentColor = "emerald";
+        private string _texture_imageEditorExe;
+        private string _texture_imageEditorArgs;
+        private string _theme_baseColor;
+        private string _theme_accentColor;
 
         public event EventHandler DataChanged;
 
-        public string Texture_ImageEditor {
-            get => _texture_imageEditor;
+        public string Texture_ImageEditorExe {
+            get => _texture_imageEditorExe;
             set {
-                _texture_imageEditor = value;
+                _texture_imageEditorExe = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public string Texture_ImageEditorArgs {
+            get => _texture_imageEditorArgs;
+            set {
+                _texture_imageEditorArgs = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }

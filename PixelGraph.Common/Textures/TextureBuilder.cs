@@ -328,7 +328,9 @@ namespace PixelGraph.Common.Textures
             //    }
             //}
 
-            mapping.InputValue = (float) EncodingChannel.GetDefaultValue(outputChannel.ID);
+            var defaultValue = EncodingChannel.GetDefaultValue(outputChannel.ID);
+            if (defaultValue.HasValue) mapping.InputValue = defaultValue.Value;
+
             return false;
         }
 

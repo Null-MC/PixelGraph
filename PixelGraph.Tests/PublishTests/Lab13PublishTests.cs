@@ -17,12 +17,12 @@ namespace PixelGraph.Tests.PublishTests
         public Lab13PublishTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Format = TextureEncoding.Format_Raw,
+                Format = TextureFormat.Format_Raw,
             };
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Format = TextureEncoding.Format_Lab13,
+                    Format = TextureFormat.Format_Lab13,
                 },
             };
         }

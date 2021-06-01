@@ -32,8 +32,6 @@ namespace PixelGraph.UI
             builder.Services.AddTransient<ITexturePreviewBuilder, TexturePreviewBuilder>();
             builder.Services.AddTransient<IAppDataUtility, AppDataUtility>();
             builder.Services.AddTransient<IThemeHelper, ThemeHelper>();
-
-            builder.Services.AddTransient<SettingsWindow>();
         }
 
         private void App_OnStartup(object sender, StartupEventArgs e)

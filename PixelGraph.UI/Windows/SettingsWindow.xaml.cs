@@ -23,9 +23,10 @@ namespace PixelGraph.UI.Windows
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
             themeHelper.ApplyCurrent(this);
 
-            VM.Texture_ImageEditor = appSettings.Data.TextureEditCommand;
-            VM.Theme_BaseColor = appSettings.Data.AppThemeBase;
-            VM.Theme_AccentColor = appSettings.Data.AppThemeAccent;
+            VM.Texture_ImageEditorExe = appSettings.Data.TextureEditorExecutable;
+            VM.Texture_ImageEditorArgs = appSettings.Data.TextureEditorArguments;
+            VM.Theme_BaseColor = appSettings.Data.ThemeBaseColor;
+            VM.Theme_AccentColor = appSettings.Data.ThemeAccentColor;
 
             VM.DataChanged += OnVMDataChanged;
         }
@@ -33,9 +34,10 @@ namespace PixelGraph.UI.Windows
         private async Task<bool> SaveSettingsAsync(CancellationToken token)
         {
             try {
-                appSettings.Data.TextureEditCommand = VM.Texture_ImageEditor;
-                appSettings.Data.AppThemeBase = VM.Theme_BaseColor;
-                appSettings.Data.AppThemeAccent = VM.Theme_AccentColor;
+                appSettings.Data.TextureEditorExecutable = VM.Texture_ImageEditorExe;
+                appSettings.Data.TextureEditorArguments = VM.Texture_ImageEditorArgs;
+                appSettings.Data.ThemeBaseColor = VM.Theme_BaseColor;
+                appSettings.Data.ThemeAccentColor = VM.Theme_AccentColor;
 
                 await appSettings.SaveAsync(token);
                 return true;
@@ -61,6 +63,18 @@ namespace PixelGraph.UI.Windows
         {
             if (await SaveSettingsAsync(CancellationToken.None))
                 Application.Current.Dispatcher.Invoke(() => DialogResult = true);
+        }
+
+        private void OnResetImageEditorClick(object sender, RoutedEventArgs e)
+        {
+            VM.Texture_ImageEditorExe = SettingsDataModel.DefaultImageEditorExe;
+            VM.Texture_ImageEditorArgs = SettingsDataModel.DefaultImageEditorArgs;
+        }
+
+        private void OnResetThemeColorsClick(object sender, RoutedEventArgs e)
+        {
+            VM.Theme_BaseColor = SettingsDataModel.DefaultThemeBaseColor;
+            VM.Theme_AccentColor = SettingsDataModel.DefaultThemeAccentColor;
         }
     }
 }

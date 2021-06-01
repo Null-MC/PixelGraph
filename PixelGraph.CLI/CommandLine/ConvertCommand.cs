@@ -130,7 +130,7 @@ namespace PixelGraph.CLI.CommandLine
                 packProfile.Encoding.Format = outputFormat;
 
                 var packInput = new ResourcePackInputProperties {
-                    Format = TextureEncoding.Format_Raw,
+                    Format = TextureFormat.Format_Raw,
                 };
 
                 var material = new MaterialProperties {
