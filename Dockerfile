@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:5.0 as build
+FROM mcr.microsoft.com/dotnet/sdk:5.0 as build
 WORKDIR /src
 COPY ./PixelGraph.sln ./
 COPY ./MinecraftMappings/MinecraftMappings.csproj ./MinecraftMappings/
@@ -10,9 +10,10 @@ COPY ./MinecraftMappings ./MinecraftMappings/
 COPY ./PixelGraph.Common ./PixelGraph.Common/
 COPY ./PixelGraph.CLI ./PixelGraph.CLI/
 WORKDIR /src/PixelGraph.CLI
-RUN dotnet publish -c Release -o /publish
+RUN dotnet publish -c Release -o /publish \
+	--runtime alpine-x64 --self-contained true
 
-FROM mcr.microsoft.com/dotnet/core/runtime:5.0
+FROM mcr.microsoft.com/dotnet/runtime:5.0-alpine
 WORKDIR /app
 COPY --from=build /publish ./
 ENTRYPOINT ["./PixelGraph"]
