@@ -94,13 +94,11 @@ namespace PixelGraph.Common.Textures
 
         public void ApplyInputEncoding()
         {
-            var inputFormat = TextureFormat.GetFactory(Input.Format);
-            var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+            var inputEncoding = BuildEncoding(Input.Format);
             inputEncoding.Merge(Input);
             inputEncoding.Merge(Material);
 
-            var outputFormat = TextureFormat.GetFactory(Profile.Encoding.Format);
-            var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
+            var outputEncoding = BuildEncoding(Profile.Encoding.Format);
             outputEncoding.Merge(Profile.Encoding);
 
             InputEncoding = inputEncoding.GetMapped().ToList();
@@ -109,12 +107,10 @@ namespace PixelGraph.Common.Textures
 
         public void ApplyOutputEncoding()
         {
-            var inputFormat = TextureFormat.GetFactory(Profile.Encoding.Format);
-            var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+            var inputEncoding = BuildEncoding(Profile.Encoding.Format);
             inputEncoding.Merge(Profile.Encoding);
 
-            var outputFormat = TextureFormat.GetFactory(Input.Format);
-            var outputEncoding = outputFormat?.Create() ?? new ResourcePackEncoding();
+            var outputEncoding = BuildEncoding(Input.Format);
             outputEncoding.Merge(Input);
             // TODO: layer material properties on top of pack encoding?
 
@@ -241,6 +237,17 @@ namespace PixelGraph.Common.Textures
             //var width = (int)MathF.Ceiling(bounds.Width * TextureScale.Value);
             //var height = (int)MathF.Ceiling(bounds.Height * TextureScale.Value);
             //return new Size(width, height);
+        }
+
+        private static ResourcePackEncoding BuildEncoding(string format)
+        {
+            ResourcePackEncoding encoding = null;
+            if (!string.IsNullOrWhiteSpace(format)) {
+                var formatFactory = TextureFormat.GetFactory(format);
+                encoding = formatFactory?.Create();
+            }
+
+            return encoding ?? new ResourcePackEncoding();
         }
     }
 }
