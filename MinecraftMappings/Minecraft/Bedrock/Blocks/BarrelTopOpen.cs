@@ -10,10 +10,9 @@ namespace MinecraftMappings.Minecraft.Bedrock.Blocks
 
         public BarrelTopOpen() : base(BlockName)
         {
-            Versions.Add(new BedrockBlockDataVersion {
-                Id = BlockId,
-                MapsToJavaId = Java.Blocks.BarrelTopOpen.BlockId,
-                MinVersion = "1.9.0",
+            AddVersion(BlockId, version => {
+                version.MapsToJavaId = Java.Blocks.BarrelTopOpen.BlockId;
+                version.MinVersion = new GameVersion(1, 9);
             });
         }
     }

@@ -11,7 +11,7 @@ namespace MinecraftMappings.Internal
     //}
     
     public abstract class BlockData<TVersion> //: IBlockData
-        where TVersion : BlockDataVersion
+        where TVersion : BlockDataVersion, new()
     {
         public string Name {get;}
         public List<TVersion> Versions {get;}
@@ -30,6 +30,16 @@ namespace MinecraftMappings.Internal
             return Versions.FirstOrDefault();
         }
 
+        protected void AddVersion(string id, Action<TVersion> versionAction)
+        {
+            var version = new TVersion {
+                Id = id,
+            };
+
+            versionAction(version);
+            Versions.Add(version);
+        }
+
         public static IEnumerable<T> FindBlockData<T>()
             where T : BlockData<TVersion>
         {
@@ -43,8 +53,8 @@ namespace MinecraftMappings.Internal
     public abstract class BlockDataVersion
     {
         public string Id {get; set;}
-        public string MinVersion {get; set;}
-        public string MaxVersion {get; set;}
+        public GameVersion MinVersion {get; set;}
+        public GameVersion MaxVersion {get; set;}
         public int FrameCount {get; set;} = 1;
     }
 }

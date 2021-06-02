@@ -14,7 +14,7 @@ namespace MinecraftMappings.Minecraft.Java.Blocks
             Versions.Add(new JavaBlockDataVersion {
                 Id = BlockId,
                 MapsToBedrockId = BedrockBlocks.BarrelTopOpen.BlockId,
-                MinVersion = "1.14",
+                MinVersion = new GameVersion(1, 14),
             });
         }
     }

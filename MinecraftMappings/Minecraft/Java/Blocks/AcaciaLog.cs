@@ -11,9 +11,8 @@ namespace MinecraftMappings.Minecraft.Java.Blocks
 
         public AcaciaLog() : base(BlockName)
         {
-            Versions.Add(new JavaBlockDataVersion {
-                Id = BlockId,
-                MapsToBedrockId = BedrockBlocks.LogAcacia.BlockId,
+            AddVersion(BlockId, version => {
+                version.MapsToBedrockId = BedrockBlocks.LogAcacia.BlockId;
             });
         }
     }

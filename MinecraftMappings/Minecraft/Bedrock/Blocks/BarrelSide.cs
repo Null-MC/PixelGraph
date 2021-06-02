@@ -13,7 +13,7 @@ namespace MinecraftMappings.Minecraft.Bedrock.Blocks
             Versions.Add(new BedrockBlockDataVersion {
                 Id = BlockId,
                 MapsToJavaId = Java.Blocks.BarrelSide.BlockId,
-                MinVersion = "1.9.0",
+                MinVersion = new GameVersion(1, 9),
             });
         }
     }

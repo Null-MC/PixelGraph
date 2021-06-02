@@ -1,13 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net5.0;netstandard2.0;net4.8</TargetFrameworks>
     <Authors>Null511</Authors>
     <Description>A collection of Block and Entity mappings for Minecraft Java and Bedrock.</Description>
     <Copyright>Copyright 2021 Joshua Miller</Copyright>
-    <AssemblyVersion>0.0.1</AssemblyVersion>
-    <FileVersion>0.0.1</FileVersion>
-    <Version>0.0.1</Version>
+    <AssemblyVersion>0.0.2</AssemblyVersion>
+    <FileVersion>0.0.2</FileVersion>
+    <Version>0.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>

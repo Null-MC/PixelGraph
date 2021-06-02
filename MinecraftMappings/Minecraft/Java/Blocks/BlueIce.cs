@@ -11,9 +11,8 @@ namespace MinecraftMappings.Minecraft.Java.Blocks
 
         public BlueIce() : base(BlockName)
         {
-            Versions.Add(new JavaBlockDataVersion {
-                Id = BlockId,
-                MapsToBedrockId = BedrockBlocks.BlueIce.BlockId,
+            AddVersion(BlockId, version => {
+                version.MapsToBedrockId = BedrockBlocks.BlueIce.BlockId;
             });
         }
     }

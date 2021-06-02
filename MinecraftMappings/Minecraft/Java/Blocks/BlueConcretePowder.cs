@@ -11,9 +11,8 @@ namespace MinecraftMappings.Minecraft.Java.Blocks
 
         public BlueConcretePowder() : base(BlockName)
         {
-            Versions.Add(new JavaBlockDataVersion {
-                Id = BlockId,
-                MapsToBedrockId = BedrockBlocks.ConcretePowderBlue.BlockId,
+            AddVersion(BlockId, version => {
+                version.MapsToBedrockId = BedrockBlocks.ConcretePowderBlue.BlockId;
             });
         }
     }

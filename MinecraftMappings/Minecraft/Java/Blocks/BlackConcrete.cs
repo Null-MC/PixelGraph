@@ -13,7 +13,7 @@ namespace MinecraftMappings.Minecraft.Java.Blocks
         {
             Versions.Add(new JavaBlockDataVersion {
                 Id = BlockId,
-                MinVersion = "1.12",
+                MinVersion = new GameVersion(1, 12),
                 MapsToBedrockId = BedrockBlocks.ConcreteBlack.BlockId,
             });
         }

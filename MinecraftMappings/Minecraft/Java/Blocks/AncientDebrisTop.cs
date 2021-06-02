@@ -14,7 +14,7 @@ namespace MinecraftMappings.Minecraft.Java.Blocks
             Versions.Add(new JavaBlockDataVersion {
                 Id = BlockId,
                 MapsToBedrockId = BedrockBlocks.AncientDebrisTop.BlockId,
-                MinVersion = "1.16",
+                MinVersion = new GameVersion(1, 16),
             });
         }
     }

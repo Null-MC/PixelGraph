@@ -10,9 +10,8 @@ namespace MinecraftMappings.Minecraft.Bedrock.Blocks
 
         public ConcreteBlack() : base(BlockName)
         {
-            Versions.Add(new BedrockBlockDataVersion {
-                Id = BlockId,
-                MapsToJavaId = Java.Blocks.BlackConcrete.BlockId,
+            AddVersion(BlockId, version => {
+                version.MapsToJavaId = Java.Blocks.BlackConcrete.BlockId;
             });
         }
     }

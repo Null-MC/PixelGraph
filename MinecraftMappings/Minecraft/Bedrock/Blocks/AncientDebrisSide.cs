@@ -10,10 +10,9 @@ namespace MinecraftMappings.Minecraft.Bedrock.Blocks
 
         public AncientDebrisSide() : base(BlockName)
         {
-            Versions.Add(new BedrockBlockDataVersion {
-                Id = BlockId,
-                MapsToJavaId = Java.Blocks.AncientDebrisSide.BlockId,
-                MinVersion = "1.16.0",
+            AddVersion(BlockId, version => {
+                version.MapsToJavaId = Java.Blocks.AncientDebrisSide.BlockId;
+                version.MinVersion = new GameVersion(1, 16);
             });
         }
     }

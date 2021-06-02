@@ -6,7 +6,7 @@ namespace MinecraftMappings.Internal
     public abstract class MinecraftGameEdition<TBlock, TBlockVersion, TEntity, TEntityVersion>
         where TBlock : BlockData<TBlockVersion>
         where TEntity : EntityData<TEntityVersion>
-        where TBlockVersion : BlockDataVersion
+        where TBlockVersion : BlockDataVersion, new()
         where TEntityVersion : EntityDataVersion
     {
         private static readonly Lazy<IEnumerable<TBlock>> allBlocksLazy = new Lazy<IEnumerable<TBlock>>(BlockData<TBlockVersion>.FindBlockData<TBlock>);

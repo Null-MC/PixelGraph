@@ -24,8 +24,10 @@ namespace PixelGraph.Common.TextureFormats
 
         public static ITextureFormatFactory GetFactory(string format)
         {
-            if (format == null) return null;
-            return formatMap.TryGetValue(format, out var textureFormat) ? textureFormat : null;
+            if (format == null) throw new ArgumentNullException(nameof(format));
+
+            return formatMap.TryGetValue(format, out var textureFormat) ? textureFormat
+                : throw new ApplicationException($"Unsupported texture format '{format}'!");
         }
 
         private static readonly Dictionary<string, ITextureFormatFactory> formatMap =
@@ -38,6 +40,9 @@ namespace PixelGraph.Common.TextureFormats
                 [Format_Lab12] = new LabPbr12Format(),
                 [Format_Lab13] = new LabPbr13Format(),
                 [Format_Rtx] = new RtxFormat(),
+
+                // Deprecated fallback
+                ["legacy"] = new OldPbrFormat(),
             };
     }
 }

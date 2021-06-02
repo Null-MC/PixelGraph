@@ -34,7 +34,7 @@ namespace PixelGraph.Common.Textures
         bool IsMaterialCtm {get;}
         float? TextureScale {get;}
         string DefaultSampler {get;}
-        string ImageFormat {get;}
+        //string ImageFormat {get;}
         //bool AutoMaterial {get;}
         bool AutoGenerateOcclusion {get;}
 
@@ -58,8 +58,6 @@ namespace PixelGraph.Common.Textures
         public List<ResourcePackChannelProperties> InputEncoding {get; set;}
         public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
         public IPublisherMapping Mapping {get; set;}
-        public string DestinationName {get; set;}
-        public string DestinationPath {get; set;}
         public bool IsAnimated {get; set;}
         public int MaxFrameCount {get; set;}
         public bool PublishAsGlobal {get; set;}
@@ -71,7 +69,7 @@ namespace PixelGraph.Common.Textures
         public bool IsMaterialCtm => !string.IsNullOrWhiteSpace(Material.CTM?.Type);
         public float? TextureScale => (float?)Profile?.TextureScale;
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
-        public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
+        //public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
 
         //public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
         public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;

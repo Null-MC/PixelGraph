@@ -10,7 +10,7 @@ namespace PixelGraph.Common.TextureFormats.Java
 
         public ResourcePackEncoding Create()
         {
-            return new ResourcePackEncoding {
+            return new() {
                 Alpha = new ResourcePackAlphaChannelProperties {
                     Texture = TextureTags.Albedo,
                     Color = ColorChannel.Alpha,

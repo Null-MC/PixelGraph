@@ -11,9 +11,8 @@ namespace MinecraftMappings.Minecraft.Java.Blocks
 
         public BlueGlazedTerracotta() : base(BlockName)
         {
-            Versions.Add(new JavaBlockDataVersion {
-                Id = BlockId,
-                MapsToBedrockId = BedrockBlocks.GlazedTerracottaBlue.BlockId,
+            AddVersion(BlockId, version => {
+                version.MapsToBedrockId = BedrockBlocks.GlazedTerracottaBlue.BlockId;
             });
         }
     }
