@@ -22,6 +22,7 @@ namespace PixelGraph.Common.Textures
         bool HasMappedSources {get;}
         int FrameCount {get;}
         int? TargetFrame {get; set;}
+        int? TargetPart {get; set;}
 
         Task MapAsync(bool createEmpty, CancellationToken token = default);
         Task<Image<TPixel>>  BuildAsync<TPixel>(bool createEmpty, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
@@ -45,6 +46,7 @@ namespace PixelGraph.Common.Textures
         public bool HasMappedSources {get; private set;}
         public int FrameCount {get; private set;}
         public int? TargetFrame {get; set;}
+        public int? TargetPart {get; set;}
 
 
         public TextureBuilder(
@@ -130,6 +132,13 @@ namespace PixelGraph.Common.Textures
             if (!TargetFrame.HasValue && context.MaxFrameCount > 1)
                 height *= context.MaxFrameCount;
 
+            if (TargetPart.HasValue) {
+                var f = TargetFrame ?? 0;
+                var part = regions.GetPublishPartFrame(f, FrameCount, TargetPart.Value);
+                width = (int) MathF.Ceiling(part.SourceBounds.Width * width);
+                height = (int) MathF.Ceiling(part.SourceBounds.Height * height);
+            }
+
             var pixel = new TPixel();
             pixel.FromRgba32(defaultValues);
             var imageResult = new Image<TPixel>(Configuration.Default, width, height, pixel);
@@ -187,7 +196,7 @@ namespace PixelGraph.Common.Textures
                 OutputSampler = samplerName,
 
                 ValueShift = (float)context.Material.GetChannelShift(outputChannel.ID),
-                ValueScale = (float)context.Material.GetChannelScale(outputChannel.ID),
+                OutputScale = (float)context.Material.GetChannelScale(outputChannel.ID),
             };
 
             var inputChannel = InputChannels.FirstOrDefault(i
@@ -274,14 +283,16 @@ namespace PixelGraph.Common.Textures
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)
                     && TryGetSourceFilename(roughChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(roughChannel);
-                    mapping.InputInverted = true;
+                    mapping.InputScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
+                    mapping.Invert = true;
                     return true;
                 }
 
                 if (context.Material.TryGetChannelValue(EncodingChannel.Rough, out value)) {
                     mapping.ApplyInputChannel(inputChannel);
                     mapping.InputValue = (float)value;
-                    mapping.InputInverted = true;
+                    mapping.InputScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
+                    mapping.Invert = true;
                     return true;
                 }
             }
@@ -293,14 +304,16 @@ namespace PixelGraph.Common.Textures
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
                     && TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(smoothChannel);
-                    mapping.InputInverted = true;
+                    mapping.InputScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
+                    mapping.Invert = true;
                     return true;
                 }
 
                 if (context.Material.TryGetChannelValue(EncodingChannel.Smooth, out value)) {
                     mapping.ApplyInputChannel(inputChannel);
                     mapping.InputValue = (float)value;
-                    mapping.InputInverted = true;
+                    mapping.InputScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
+                    mapping.Invert = true;
                     return true;
                 }
             }
@@ -352,10 +365,12 @@ namespace PixelGraph.Common.Textures
             foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
                 var srcFrame = regions.GetRenderRegion(frame.Index, normalGraph.NormalFrameCount);
 
-                foreach (var tile in frame.Tiles) {
+                foreach (var tile in frame.GetAllTiles(TargetPart)) {
                     sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
 
-                    var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                    var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
+                        : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+
                     image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }
             }
@@ -379,10 +394,12 @@ namespace PixelGraph.Common.Textures
             foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
                 var srcFrame = regions.GetRenderRegion(frame.Index, normalGraph.MagnitudeFrameCount);
 
-                foreach (var tile in frame.Tiles) {
+                foreach (var tile in frame.GetAllTiles(TargetPart)) {
                     sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
 
-                    var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                    var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
+                        : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+
                     image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }
             }
@@ -405,10 +422,12 @@ namespace PixelGraph.Common.Textures
             foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
                 var srcFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
 
-                foreach (var tile in frame.Tiles) {
+                foreach (var tile in frame.GetAllTiles(TargetPart)) {
                     occlusionSampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
 
-                    var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                    var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
+                        : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+
                     image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }
             }
@@ -421,7 +440,9 @@ namespace PixelGraph.Common.Textures
             var value = mapping.InputValue ?? 0f;
             //if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
-            //if (mapping.InputInverted) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
+            if (mapping.Invert) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
+
+            // TODO: scale
 
             mapping.Map(ref value, out byte finalValue);
 
@@ -462,11 +483,13 @@ namespace PixelGraph.Common.Textures
             foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
                 var srcFrame = regions.GetRenderRegion(frame.Index, info.FrameCount);
 
-                foreach (var tile in frame.Tiles) {
+                foreach (var tile in frame.GetAllTiles(TargetPart)) {
                     foreach (var sampler in options.SamplerMap.Values)
                         sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
 
-                    var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                    var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
+                        : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+
                     image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }
             }
@@ -485,10 +508,10 @@ namespace PixelGraph.Common.Textures
             };
 
             options.OcclusionMapping.ApplyInputChannel(occlusionGraph.Channel);
-            options.OcclusionMapping.ValueScale = (float)context.Material.GetChannelScale(EncodingChannel.Occlusion);
+            options.OcclusionMapping.OutputScale = (float)context.Material.GetChannelScale(EncodingChannel.Occlusion);
 
             if (context.Profile?.DiffuseOcclusionStrength.HasValue ?? false)
-                options.OcclusionMapping.ValueScale *= (float)context.Profile.DiffuseOcclusionStrength.Value;
+                options.OcclusionMapping.OutputScale *= (float)context.Profile.DiffuseOcclusionStrength.Value;
 
             Image<Rgba32> emissiveImage = null;
             TextureSource emissiveInfo = null;
@@ -522,13 +545,15 @@ namespace PixelGraph.Common.Textures
                     var occlusionFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
                     var emissiveFrame = regions.GetRenderRegion(frame.Index, emissiveInfo?.FrameCount ?? 1);
 
-                    foreach (var tile in frame.Tiles) {
+                    foreach (var tile in frame.GetAllTiles(TargetPart)) {
                         occlusionSampler.Bounds = occlusionFrame.Tiles[tile.Index].Bounds;
 
                         if (emissiveSampler != null)
                             emissiveSampler.Bounds = emissiveFrame.Tiles[tile.Index].Bounds;
 
-                        var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                        var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
+                            : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+
                         image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                     }
                 }

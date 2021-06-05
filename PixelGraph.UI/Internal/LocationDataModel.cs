@@ -1,6 +1,6 @@
 ﻿namespace PixelGraph.UI.Internal
 {
-    internal class LocationDataModel
+    public class LocationDataModel
     {
         public string Name {get; set;}
         public string Path {get; set;}

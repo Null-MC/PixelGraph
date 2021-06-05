@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class ContentTreeNode : INotifyPropertyChanged
+    public class ContentTreeNode : INotifyPropertyChanged
     {
         protected ObservableCollection<ContentTreeNode> _nodes;
 

@@ -3,7 +3,7 @@ using System.Windows.Data;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal interface ISearchParameters
+    public interface ISearchParameters
     {
         string SearchText {get;}
         bool ShowAllFiles {get;}

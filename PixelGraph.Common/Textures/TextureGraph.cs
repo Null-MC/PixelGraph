@@ -17,7 +17,7 @@ namespace PixelGraph.Common.Textures
         Task PreBuildNormalTextureAsync(CancellationToken token = default);
         int GetMaxFrameCount();
 
-        Task MapAsync(string textureTag, bool createEmpty, int? frame = null, CancellationToken token = default);
+        Task MapAsync(string textureTag, bool createEmpty, int? frame = null, int? part = null, CancellationToken token = default);
         Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, bool createEmpty, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
     }
 
@@ -86,11 +86,12 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        public async Task MapAsync(string textureTag, bool createEmpty, int? frame = null, CancellationToken token = default)
+        public async Task MapAsync(string textureTag, bool createEmpty, int? frame = null, int? part = null, CancellationToken token = default)
         {
             var builder = provider.GetRequiredService<ITextureBuilder>();
 
             builder.TargetFrame = frame;
+            builder.TargetPart = part;
             builder.InputChannels = context.InputEncoding.ToArray();
             builder.OutputChannels = context.OutputEncoding
                 .Where(e => TextureTags.Is(e.Texture, textureTag)).ToArray();

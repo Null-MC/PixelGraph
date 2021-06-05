@@ -8,7 +8,9 @@
                  xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
                  xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
                  xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-                 d:DataContext="{d:DesignInstance vm:MainWindowDesignVM, IsDesignTimeCreatable=True}"
+                 xmlns:hx="http://helix-toolkit.org/wpf/SharpDX"
+                 xmlns:models="clr-namespace:PixelGraph.UI.Models"
+                 d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
                  Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" Loaded="OnWindowLoaded" WindowState="Maximized"
                  ShowIconOnTitleBar="True" IconScalingMode="NoScaleSmallerFrame" TitleForeground="Transparent"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
@@ -19,7 +21,7 @@
         <CollectionViewSource x:Key="PublishLocationsView" Source="{Binding Path=PublishLocations}" />
     </Window.Resources>
     <Window.DataContext>
-        <vm:MainWindowVM x:Name="vm"/>
+        <models:MainModel x:Name="Model"/>
     </Window.DataContext>
     <mah:MetroWindow.IconTemplate>
         <DataTemplate>
@@ -36,20 +38,20 @@
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands Margin="0,0,16,0" Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
             <ComboBox MaxWidth="200" DisplayMemberPath="Name" ToolTip="Pack Profile" Background="Transparent" BorderThickness="0"
-                      ItemsSource="{Binding PublishProfiles, Mode=OneWay}"
-                      SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
+                      ItemsSource="{Binding Profile.List, Mode=OneWay}"
+                      SelectedItem="{Binding Profile.Selected, Mode=TwoWay}"/>
             <ComboBox MaxWidth="200" DisplayMemberPath="DisplayName" ToolTip="Publish Location" Background="Transparent" BorderThickness="0"
                       SelectedItem="{Binding SelectedLocation, Mode=TwoWay}"
                       SelectionChanged="OnPublishLocationSelectionChanged">
                 <ComboBox.ItemsSource>
                     <CompositeCollection>
-                        <vm:LocationViewModel x:Name="ManualLocation" DisplayName="Manual" IsManualSelect="True"/>
+                        <models:LocationModel x:Name="ManualLocation" DisplayName="Manual" IsManualSelect="True"/>
                         <CollectionContainer Collection="{Binding Source={StaticResource PublishLocationsView}}"/>
                     </CompositeCollection>
                 </ComboBox.ItemsSource>
             </ComboBox>
             <Button Content="Publish" Click="OnPublishMenuItemClick"
-                    IsEnabled="{Binding HasProfileSelection, Mode=OneWay}"/>
+                    IsEnabled="{Binding Profile.HasSelection, Mode=OneWay}"/>
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>
     <Grid>
@@ -111,10 +113,10 @@
                           IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
                 <MenuItem Header="Connections" Visibility="Collapsed" Click="OnMaterialConnectionsMenuClick"
                           Icon="{iconPacks:FontAwesome PuzzlePieceSolid}"
-                          IsEnabled="{Binding HasLoadedMaterial, Mode=OneWay}"/>
+                          IsEnabled="{Binding Material.HasLoaded, Mode=OneWay}"/>
                 <MenuItem Header="Filters" Visibility="Collapsed" Click="OnMaterialFiltersMenuClick"
                           Icon="{iconPacks:FontAwesome FilterSolid}"
-                          IsEnabled="{Binding HasLoadedMaterial, Mode=OneWay}"/>
+                          IsEnabled="{Binding Material.HasLoaded, Mode=OneWay}"/>
             </MenuItem>
             <MenuItem Header="Tools" Visibility="Collapsed">
                 <MenuItem Header="Generate External Normal Map"/>
@@ -292,13 +294,22 @@
                         <ColumnDefinition Width="280"/>
                     </Grid.ColumnDefinitions>
                     <Grid Grid.Column="0">
-                        <DockPanel IsEnabled="{Binding HasPreviewImage, Mode=OneWay}">
+                        <DockPanel IsEnabled="{Binding HasTreeMaterialOrTextureSelection, Mode=OneWay}">
                             <DockPanel DockPanel.Dock="Top" LastChildFill="False" Height="34"
                                        Background="{DynamicResource MahApps.Brushes.Accent4}">
+                                <CheckBox DockPanel.Dock="Left" Content="3D" Margin="4" FontWeight="Bold"
+                                          Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                                          IsChecked="{Binding Preview.EnableRender}"/>
                                 <CheckBox DockPanel.Dock="Left" Content="Tile" Margin="4" FontWeight="Bold"
                                           Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                                          Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityInverseConverter}}"
                                           IsChecked="{Binding EnableTiling, ElementName=TextureViewer}"/>
+                                <CheckBox DockPanel.Dock="Left" Content="Environment" Margin="4" FontWeight="Bold"
+                                          Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                                          Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
+                                          IsChecked="{Binding Preview.EnableEnvironment, Mode=TwoWay}"/>
                                 <ComboBox IsEditable="True" DockPanel.Dock="Right" Margin="4" BorderThickness="0"
+                                          Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityInverseConverter}}"
                                           Text="{Binding ZoomText, Mode=TwoWay, ElementName=TextureViewer}">
                                     <ComboBoxItem Content="10%"/>
                                     <ComboBoxItem Content="25%"/>
@@ -309,15 +320,83 @@
                                     <ComboBoxItem Content="800%"/>
                                 </ComboBox>
                             </DockPanel>
-                            <Grid Visibility="{Binding HasPreviewImage, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                            <Grid Visibility="{Binding HasTreeMaterialOrTextureSelection, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                 <controls:TextureView x:Name="TextureViewer"
-                                                      Texture="{Binding LoadedTexture, Mode=OneWay}"/>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                            Visibility="{Binding IsPreviewLoading, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                                                      Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityInverseConverter}}"
+                                                      Texture="{Binding Preview.LayerImage, Mode=OneWay}"/>
+                                <hx:Viewport3DX
+                                    DataContext="{Binding Preview, Mode=OneTime}"
+                                    Title="Hello World!"
+                                    BackgroundColor="#222"
+                                    Camera="{Binding Camera}"
+                                    CoordinateSystemLabelForeground="White"
+                                    EffectsManager="{Binding EffectsManager}"
+                                    EnableD2DRendering="False"
+                                    EnableSwapChainRendering="True"
+                                    IsShadowMappingEnabled="True"
+                                    MSAA="Two"
+                                    ShowCoordinateSystem="True"
+                                    SubTitle="This is just a test..."
+                                    TextBrush="White"
+                                    UseDefaultGestures="False"
+                                    ZoomExtentsWhenLoaded="True"
+                                    Visibility="{Binding EnableRender, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <hx:Viewport3DX.InputBindings>
+                                        <KeyBinding Key="B" Command="hx:ViewportCommands.BackView" />
+                                        <KeyBinding Key="F" Command="hx:ViewportCommands.FrontView" />
+                                        <KeyBinding Key="U" Command="hx:ViewportCommands.TopView" />
+                                        <KeyBinding Key="D" Command="hx:ViewportCommands.BottomView" />
+                                        <KeyBinding Key="L" Command="hx:ViewportCommands.LeftView" />
+                                        <KeyBinding Key="R" Command="hx:ViewportCommands.RightView" />
+                                        <KeyBinding Command="hx:ViewportCommands.ZoomExtents" Gesture="Control+E" />
+                                        <MouseBinding Command="hx:ViewportCommands.Rotate" Gesture="RightClick" />
+                                        <MouseBinding Command="hx:ViewportCommands.Zoom" Gesture="MiddleClick" />
+                                        <MouseBinding Command="hx:ViewportCommands.Pan" Gesture="LeftClick" />
+                                    </hx:Viewport3DX.InputBindings>
+                                    <hx:AmbientLight3D Color="#191816"
+                                                       Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
+                                    <hx:AmbientLight3D Color="#0A0A0A"
+                                                       Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
+                                    <!--<hx:DirectionalLight3D Direction="-2,-1,1" Color="White" />-->
+                                    <hx:EnvironmentMap3D
+                                        Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"
+                                        Texture="{Binding SkyTexture, Mode=OneWay}" />
+                                    <hx:SpotLight3D
+                                        Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"
+                                        OuterAngle="{Binding SunCamera.FieldOfView}"
+                                        Position="{Binding SunCamera.Position, Mode=OneWay}"
+                                        Range="{Binding SunCamera.FarPlaneDistance}"
+                                        Color="White" />
+                                    <hx:ShadowMap3D Resolution="1024,1024"
+                                                    LightCamera="{Binding SunCamera}"/>
+                                    <hx:CameraModel3D x:Name="lightCamera"
+                                                      Camera="{Binding SunCamera}" />
+                                    <hx:MeshGeometryModel3D CullMode="Back" FillMode="Solid"
+                                        Geometry="{Binding Model}"
+                                        Material="{Binding ModelMaterial}" />
+                                    <hx:UICompositeManipulator3D Diameter="2"
+                                        CanRotateX="true" CanRotateY="true" CanRotateZ="true"
+                                        CanTranslateX="False" CanTranslateY="False" CanTranslateZ="False"
+                                        TargetTransform="{Binding Transform, ElementName=lightCamera}" />
+                                    <hx:ContinuousRender3D/>
+                                    <!--<hx:BillboardTextModel3D FixedSize="True" IsHitTestVisible="False"
+                                        Geometry="{Binding RenderLoadingText}"/>-->
+                                </hx:Viewport3DX>
+                                <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Visibility="{Binding Preview.IsLoading, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                     <Button Width="20" Height="20" Margin="0,0,4,0" ToolTip="Cancel" Click="OnPreviewCancelClick" Padding="0" VerticalAlignment="Center"
                                             Content="{iconPacks:FontAwesome Kind=WindowCloseSolid}"/>
                                     <TextBlock HorizontalAlignment="Center" FontSize="18" FontStyle="Italic" Text="Generating Preview..." VerticalAlignment="Center"/>
-                                </StackPanel>
+                                </StackPanel>-->
+                                <Border Margin="8" HorizontalAlignment="Left" VerticalAlignment="Bottom" BorderThickness="1" CornerRadius="4"
+                                        Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                                        BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
+                                        Visibility="{Binding Preview.IsLoading, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <iconPacks:PackIconFontAwesome Kind="SpinnerSolid" Spin="True" SpinDuration="1.8" Margin="6" Width="16" Height="16" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Loading" Margin="2,0,8,0" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
                             </Grid>
                         </DockPanel>
                         <StackPanel Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Vertical">
@@ -329,8 +408,8 @@
                                     <Style.Triggers>
                                         <MultiDataTrigger>
                                             <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding HasLoadedMaterial, Mode=OneWay}" Value="True"/>
-                                                <Condition Binding="{Binding HasTagSelection, Mode=OneWay}" Value="False"/>
+                                                <Condition Binding="{Binding Material.HasLoaded, Mode=OneWay}" Value="True"/>
+                                                <Condition Binding="{Binding Preview.HasSelectedTag, Mode=OneWay}" Value="False"/>
                                             </MultiDataTrigger.Conditions>
                                             <MultiDataTrigger.Setters>
                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -345,9 +424,9 @@
                                   Background="{DynamicResource MahApps.Brushes.Accent3}"/>
                     <controls:MaterialPropertiesControl Grid.Column="2" DataChanged="OnMaterialChanged" EditLayer="OnEditLayer"
                                                         GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
-                                                        Material="{Binding LoadedMaterial, Mode=OneWay}"
-                                                        SelectedTag="{Binding SelectedTag, Mode=TwoWay}"
-                                                        Visibility="{Binding HasLoadedMaterial, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
+                                                        Material="{Binding Material.Loaded, Mode=OneWay}"
+                                                        SelectedTag="{Binding Preview.SelectedTag, Mode=TwoWay}"
+                                                        Visibility="{Binding Material.HasLoaded, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
                 </Grid>
             </Grid>
         </Grid>

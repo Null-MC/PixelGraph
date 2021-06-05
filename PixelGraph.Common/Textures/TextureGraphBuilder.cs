@@ -123,7 +123,7 @@ namespace PixelGraph.Common.Textures
             catch (HeightSourceEmptyException) {}
 
             foreach (var tag in allOutputTags)
-                await graph.MapAsync(tag, createEmpty, null, token);
+                await graph.MapAsync(tag, createEmpty, null, null, token);
 
             context.MaxFrameCount = graph.GetMaxFrameCount();
             

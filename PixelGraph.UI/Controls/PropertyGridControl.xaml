@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:convert="clr-namespace:PixelGraph.UI.Converters"
              xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
-             xmlns:viewModels="clr-namespace:PixelGraph.UI.ViewModels"
+             xmlns:propertyGrid="clr-namespace:PixelGraph.UI.Models.PropertyGrid"
              mc:Ignorable="d" d:DesignHeight="120" d:DesignWidth="240"
              AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="None"
              PreparingCellForEdit="OnPreparingCellForEdit" PreviewKeyUp="OnPreviewKeyUp"
@@ -14,19 +14,19 @@
         <convert:NullableConverter x:Key="NullableConverter"/>
         <controls:PropertyGridCellTemplateSelector x:Key="DisplayCellTemplateSelector">
             <controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
-                <DataTemplate DataType="{x:Type viewModels:ITextPropertyRow}">
+                <DataTemplate DataType="{x:Type propertyGrid:ITextPropertyRow}">
                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
                                Text="{Binding EditValue, Mode=OneWay}"/>
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
-                <DataTemplate DataType="{x:Type viewModels:IBoolPropertyRow}">
+                <DataTemplate DataType="{x:Type propertyGrid:IBoolPropertyRow}">
                     <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
                               IsChecked="{Binding EditValue, Mode=OneWay}"/>
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
-                <DataTemplate DataType="{x:Type viewModels:ISelectPropertyRow}">
+                <DataTemplate DataType="{x:Type propertyGrid:ISelectPropertyRow}">
                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
                                Text="{Binding DisplayValue, Mode=OneWay}"/>
                 </DataTemplate>
@@ -34,20 +34,20 @@
         </controls:PropertyGridCellTemplateSelector>
         <controls:PropertyGridCellTemplateSelector x:Key="EditCellTemplateSelector">
             <controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
-                <DataTemplate DataType="{x:Type viewModels:ITextPropertyRow}">
+                <DataTemplate DataType="{x:Type propertyGrid:ITextPropertyRow}">
                     <TextBox HorizontalContentAlignment="Center" Margin="0" Padding="6,0" VerticalContentAlignment="Center" IsTabStop="False"
                              BorderThickness="0" BorderBrush="{x:Null}" Background="Transparent"
                              Text="{Binding EditValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
-                <DataTemplate DataType="{x:Type viewModels:IBoolPropertyRow}">
+                <DataTemplate DataType="{x:Type propertyGrid:IBoolPropertyRow}">
                     <CheckBox HorizontalAlignment="Center" Margin="0" Padding="6,0" VerticalAlignment="Center" IsTabStop="False"
                               IsChecked="{Binding EditValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableConverter}}"/>
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
-                <DataTemplate DataType="{x:Type viewModels:ISelectPropertyRow}">
+                <DataTemplate DataType="{x:Type propertyGrid:ISelectPropertyRow}">
                     <ComboBox HorizontalContentAlignment="Center" Margin="0" Padding="6,0" IsTabStop="False"
                               BorderThickness="0" BorderBrush="{x:Null}" Background="Transparent"
                               DisplayMemberPath="{Binding Options.DisplayMemberPath, Mode=OneWay}"

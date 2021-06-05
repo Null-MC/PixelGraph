@@ -5,15 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-        xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
         xmlns:viewData="clr-namespace:PixelGraph.UI.ViewData"
-        d:DataContext="{d:DesignInstance vm:AppSettingsDesignVM, IsDesignTimeCreatable=True}"
+        xmlns:models="clr-namespace:PixelGraph.UI.Models"
+        d:DataContext="{d:DesignInstance models:AppSettingsDesignVM, IsDesignTimeCreatable=True}"
         Title="App Settings" Height="450" Width="800" mc:Ignorable="d"
         WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal" SaveWindowPosition="True"
         Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
         Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.DataContext>
-        <vm:SettingsWindowVM x:Name="VM"/>
+        <models:SettingsWindowModel x:Name="Model" DataChanged="OnVMDataChanged"/>
     </Window.DataContext>
     <Window.Resources>
         <viewData:AppThemeBaseValues x:Key="AppThemeBases"/>

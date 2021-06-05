@@ -9,7 +9,7 @@ namespace PixelGraph.Common.Textures
     public interface ITextureRegionEnumerator
     {
         IEnumerable<TextureRenderFrame> GetAllRenderRegions(int? index, int frameCount);
-        IEnumerable<TexturePublishPart> GetAllPublishRegions(int frameCount);
+        IEnumerable<TexturePublishPart> GetAllPublishRegions(int frameCount, int? frame = null, int? part = null);
         TextureRenderFrame GetRenderRegion(int index, int frameCount);
         TexturePublishFrame GetPublishPartFrame(int frameIndex, int frameCount, int tileIndex);
     }
@@ -42,15 +42,10 @@ namespace PixelGraph.Common.Textures
                 Bounds = GetFrameBounds(index, frameCount),
             };
 
-            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Compact)) {
-                frame.Tiles = Enumerable.Range(0, 5)
-                    .Select(x => new TextureRenderTile {
-                        Index = x,
-                        Bounds = GetFrameTileBounds(index, frameCount, x),
-                    }).ToArray();
-            }
-            else if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Full)) {
-                frame.Tiles = Enumerable.Range(0, 47)
+            var tileCount = GetPublishTileCount();
+
+            if (context.IsMaterialCtm) {
+                frame.Tiles = Enumerable.Range(0, tileCount)
                     .Select(z => new TextureRenderTile {
                         Index = z,
                         Bounds = GetFrameTileBounds(index, frameCount, z),
@@ -68,9 +63,26 @@ namespace PixelGraph.Common.Textures
             return frame;
         }
 
-        public IEnumerable<TexturePublishPart> GetAllPublishRegions(int frameCount)
+        public IEnumerable<TexturePublishPart> GetAllPublishRegions(int frameCount, int? frame = null, int? part = null)
         {
             if (frameCount <= 0) throw new ArgumentOutOfRangeException(nameof(frameCount));
+
+            IEnumerable<TexturePublishFrame> GetFrames(int partIndex) {
+                if (frame.HasValue) return new [] {GetPublishPartFrame(frame.Value, frameCount, partIndex)};
+
+                return Enumerable.Range(0, frameCount)
+                    .Select(f => GetPublishPartFrame(f, frameCount, partIndex));
+            }
+
+            if (part.HasValue) {
+                return new TexturePublishPart[] {
+                    new() {
+                        Name = GetTileName(part.Value),
+                        TileIndex = part.Value,
+                        Frames = GetFrames(part.Value).ToArray(),
+                    }
+                };
+            }
 
             var tileCount = GetPublishTileCount();
 
@@ -78,8 +90,7 @@ namespace PixelGraph.Common.Textures
                 .Select(t => new TexturePublishPart {
                     Name = GetTileName(t),
                     TileIndex = t,
-                    Frames = Enumerable.Range(0, frameCount)
-                        .Select(f => GetPublishPartFrame(f, frameCount, t)).ToArray(),
+                    Frames = GetFrames(t).ToArray(),
                 });
         }
 
@@ -201,6 +212,18 @@ namespace PixelGraph.Common.Textures
         public int Index {get; set;}
         public RectangleF Bounds {get; set;}
         public TextureRenderTile[] Tiles {get; set;}
+
+
+        public IEnumerable<TextureRenderTile> GetAllTiles(int? part = null)
+        {
+            if (part.HasValue) {
+                yield return Tiles[part.Value];
+                yield break;
+            }
+
+            foreach (var tile in Tiles)
+                yield return tile;
+        }
     }
 
     public class TextureRenderTile

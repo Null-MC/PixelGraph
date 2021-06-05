@@ -15,6 +15,7 @@ namespace PixelGraph.Common.Textures
         public int InputShift;
         public float InputPower;
         public bool InputInverted;
+        public float InputScale = 1f;
 
         public ColorChannel OutputColor;
         public string OutputSampler;
@@ -26,13 +27,15 @@ namespace PixelGraph.Common.Textures
         public float OutputPower;
         public bool OutputInverted;
         public bool OutputApplyOcclusion;
+        public float OutputScale = 1f;
 
         public string SourceTag;
         public string SourceFilename;
         public float ValueShift;
-        public float ValueScale;
+        //public float ValueScale;
         //public bool IsMetalToF0;
         //public bool IsF0ToMetal;
+        public bool Invert;
 
 
         public void ApplyInputChannel(ResourcePackChannelProperties channel)

@@ -61,14 +61,14 @@ namespace PixelGraph.UI.Controls
         {
             if (sender is not MaterialPropertiesControl control) return;
 
-            control.vm.Material = e.NewValue as MaterialProperties;
+            control.Model.Material = e.NewValue as MaterialProperties;
         }
 
         private static void OnSelectedTagPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
             if (sender is not MaterialPropertiesControl control) return;
 
-            control.vm.SelectedTag = e.NewValue as string;
+            control.Model.SelectedTag = e.NewValue as string;
         }
 
         //public static readonly DependencyProperty GameEditionProperty = DependencyProperty
@@ -93,14 +93,14 @@ namespace PixelGraph.UI.Controls
 
         private void OnIorToFoConvertButtonClick(object sender, RoutedEventArgs e)
         {
-            vm.ConvertIorToF0();
+            Model.ConvertIorToF0();
         }
 
         private void OnF0ConverterTextBoxKeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter) {
                 IorToF0ConvertButton.Focus();
-                vm.ConvertIorToF0();
+                Model.ConvertIorToF0();
             }
         }
     }

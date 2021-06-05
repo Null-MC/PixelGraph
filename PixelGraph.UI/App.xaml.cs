@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Windows;
 using Serilog;
@@ -29,7 +30,8 @@ namespace PixelGraph.UI
             builder.Services.AddSingleton<ITextureEditUtility, TextureEditUtility>();
 
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
-            builder.Services.AddTransient<ITexturePreviewBuilder, TexturePreviewBuilder>();
+            builder.Services.AddTransient<ILayerPreviewBuilder, LayerPreviewBuilder>();
+            builder.Services.AddTransient<IRenderPreviewBuilder, RenderPreviewBuilder>();
             builder.Services.AddTransient<IAppDataUtility, AppDataUtility>();
             builder.Services.AddTransient<IThemeHelper, ThemeHelper>();
         }

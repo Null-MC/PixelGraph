@@ -4,6 +4,6 @@
                           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
                           xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
                           d:DesignWidth="220" d:DesignHeight="199" mc:Ignorable="d"
-                          Background="#FF0A0A0A" Padding="4,2">
+                          Background="#FF0A0A0A" Foreground="White" Padding="4,2">
     <FlowDocument IsOptimalParagraphEnabled="True" PagePadding="0" FontFamily="Consolas" FontSize="12"/>
 </FlowDocumentScrollViewer>

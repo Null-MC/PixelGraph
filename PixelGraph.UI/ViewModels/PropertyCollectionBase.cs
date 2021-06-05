@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using PixelGraph.UI.Models.PropertyGrid;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace PixelGraph.UI.ViewModels
@@ -10,21 +12,21 @@ namespace PixelGraph.UI.ViewModels
 
         public void AddText<TValue>(string displayName, string propertyName, TValue defaultValue = default)
         {
-            var row = new EditTextPropertyRow<TSource, TValue>(displayName, propertyName, defaultValue);
+            var row = new EditTextPropertyRowModel<TSource, TValue>(displayName, propertyName, defaultValue);
             row.ValueChanged += OnRowValueChanged;
             Add(row);
         }
 
         public void AddBool<TValue>(string displayName, string propertyName, TValue defaultValue = default)
         {
-            var row = new EditBoolPropertyRow<TSource, TValue>(displayName, propertyName, defaultValue);
+            var row = new EditBoolPropertyRowModel<TSource, TValue>(displayName, propertyName, defaultValue);
             row.ValueChanged += OnRowValueChanged;
             Add(row);
         }
 
         public void AddSelect<TValue>(string displayName, string propertyName, SelectPropertyRowOptions options, TValue defaultValue = default)
         {
-            var row = new EditSelectPropertyRow<TSource, TValue>(displayName, propertyName, options, defaultValue);
+            var row = new EditSelectPropertyRowModel<TSource, TValue>(displayName, propertyName, options, defaultValue);
             row.ValueChanged += OnRowValueChanged;
             Add(row);
         }
@@ -45,5 +47,10 @@ namespace PixelGraph.UI.ViewModels
             foreach (var row in this)
                 row.Invalidate();
         }
+    }
+
+    public class PropertyValueChangedEventArgs : EventArgs
+    {
+        public string PropertyName {get; set;}
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal.Utilities;
+using PixelGraph.UI.ViewModels;
 using System;
 using System.Windows;
 
@@ -7,12 +8,30 @@ namespace PixelGraph.UI.Windows
 {
     public partial class NewMaterialWindow
     {
+        private readonly NewMaterialViewModel viewModel;
+
+
         public NewMaterialWindow(IServiceProvider provider)
         {
-            InitializeComponent();
-
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
+
+            InitializeComponent();
             themeHelper.ApplyCurrent(this);
+
+            viewModel = new NewMaterialViewModel {
+                Model = Model,
+            };
+        }
+
+        private void OnGameObjectTypeChanged(object sender, EventArgs e)
+        {
+            viewModel.UpdateBlockList();
+            viewModel.UpdateLocation();
+        }
+
+        private void OnGameObjectNameChanged(object sender, EventArgs e)
+        {
+            viewModel.UpdateLocation();
         }
 
         private void OnCancelButtonClick(object sender, RoutedEventArgs e)
@@ -22,8 +41,6 @@ namespace PixelGraph.UI.Windows
 
         private void OnCreateButtonClick(object sender, RoutedEventArgs e)
         {
-            // TODO
-
             DialogResult = true;
         }
     }

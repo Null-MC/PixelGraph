@@ -10,6 +10,29 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Internal\dx\**" />
+    <EmbeddedResource Remove="Internal\dx\**" />
+    <None Remove="Internal\dx\**" />
+    <Page Remove="Internal\dx\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Remove="Controls\DataGridComboBoxExColumn.xaml.cs" />
     <Compile Remove="Controls\DataGridComboBoxExColumn2.cs" />
@@ -29,6 +52,7 @@
 
   <ItemGroup>
     <None Remove="icon.ico" />
+    <None Remove="Resources\sky.dds" />
     <None Remove="Resources\tiled_bg.png" />
   </ItemGroup>
 
@@ -39,6 +63,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\sky.dds">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.16.1" />
     <PackageReference Include="MahApps.Metro" Version="2.4.5" />
     <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.8.0" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="3.1.0" />

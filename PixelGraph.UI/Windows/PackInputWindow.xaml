@@ -3,17 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
              xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-             d:DataContext="{d:DesignInstance vm:PackInput2DesignVM, IsDesignTimeCreatable=True}"
+             xmlns:models="clr-namespace:PixelGraph.UI.Models"
+             d:DataContext="{d:DesignInstance models:PackInputDesignerModel, IsDesignTimeCreatable=True}"
              Title="Project Configuration" Width="800" Height="480" mc:Ignorable="d"
              WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal" SaveWindowPosition="True"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
              Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.DataContext>
-        <vm:PackInputVM x:Name="VM"/>
+        <models:PackInputModel x:Name="Model"/>
     </Window.DataContext>
     <Window.Resources>
         <vd:OptionalAllTextureFormatValues x:Key="AllTextureFormats"/>

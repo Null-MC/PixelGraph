@@ -6,13 +6,14 @@
                     xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
                     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                    xmlns:models="clr-namespace:PixelGraph.UI.Models"
                     Title="Publish Locations" Width="800" Height="460" mc:Ignorable="d"
-                    d:DataContext="{d:DesignInstance vm:ProfilesDesignVM, IsDesignTimeCreatable=True}"
+                    d:DataContext="{d:DesignInstance models:PublishProfilesDesignerModel, IsDesignTimeCreatable=True}"
                     WindowStartupLocation="CenterOwner" Closing="OnWindowClosing" TitleCharacterCasing="Normal"
                     Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                     Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.DataContext>
-        <vm:PublishLocationsVM x:Name="VM"/>
+        <models:PublishLocationsModel x:Name="Model"/>
     </Window.DataContext>
     <Grid>
         <Grid.RowDefinitions>

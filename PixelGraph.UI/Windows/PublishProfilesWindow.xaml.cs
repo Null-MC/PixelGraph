@@ -7,8 +7,8 @@ using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal.Utilities;
+using PixelGraph.UI.Models;
 using PixelGraph.UI.ViewData;
-using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -39,11 +39,11 @@ namespace PixelGraph.UI.Windows
 
         private async Task CreateNewProfile()
         {
-            var filename = GetSaveName(VM.RootDirectory, "default");
+            var filename = GetSaveName(Model.RootDirectory, "default");
             if (filename == null) return;
 
             var profile = new ResourcePackProfileProperties {
-                LocalFile = filename[VM.RootDirectory.Length..].TrimStart('\\', '/'),
+                LocalFile = filename[Model.RootDirectory.Length..].TrimStart('\\', '/'),
                 Encoding = {
                     Format = TextureFormat.Format_Lab13,
                 },
@@ -53,42 +53,42 @@ namespace PixelGraph.UI.Windows
 
             var profileItem = CreateProfileItem(profile.LocalFile);
             Application.Current.Dispatcher.Invoke(() => {
-                VM.Profiles.Add(profileItem);
-                VM.SelectedProfileItem = profileItem;
+                Model.Profiles.Add(profileItem);
+                Model.SelectedProfileItem = profileItem;
             });
         }
 
         private void CloneSelectedProfile()
         {
-            var profileItem = VM.SelectedProfileItem;
+            var profileItem = Model.SelectedProfileItem;
             if (profileItem?.LocalFile == null) return;
 
             var path = Path.GetDirectoryName(profileItem.LocalFile);
             var filename = GetSaveName(path, profileItem.Name);
             if (filename == null) return;
 
-            var srcFullFile = Path.Join(VM.RootDirectory, profileItem.LocalFile);
+            var srcFullFile = Path.Join(Model.RootDirectory, profileItem.LocalFile);
             File.Copy(srcFullFile, filename);
 
-            var cloneLocalFile = filename[VM.RootDirectory.Length..].TrimStart('\\', '/');
+            var cloneLocalFile = filename[Model.RootDirectory.Length..].TrimStart('\\', '/');
 
             var cloneProfileItem = CreateProfileItem(cloneLocalFile);
             Application.Current.Dispatcher.Invoke(() => {
-                VM.Profiles.Add(cloneProfileItem);
-                VM.SelectedProfileItem = cloneProfileItem;
+                Model.Profiles.Add(cloneProfileItem);
+                Model.SelectedProfileItem = cloneProfileItem;
             });
         }
 
         private void DeleteSelectedProfile()
         {
-            var profile = VM.SelectedProfileItem;
+            var profile = Model.SelectedProfileItem;
             if (profile?.LocalFile == null) return;
 
             var writer = provider.GetRequiredService<IOutputWriter>();
-            writer.SetRoot(VM.RootDirectory);
+            writer.SetRoot(Model.RootDirectory);
             writer.Delete(profile.LocalFile);
 
-            VM.Profiles.Remove(profile);
+            Model.Profiles.Remove(profile);
         }
 
         private static ProfileItem CreateProfileItem(string filename)
@@ -113,7 +113,7 @@ namespace PixelGraph.UI.Windows
                 var writer = scope.GetRequiredService<IOutputWriter>();
                 var packWriter = scope.GetRequiredService<IResourcePackWriter>();
 
-                writer.SetRoot(VM.RootDirectory);
+                writer.SetRoot(Model.RootDirectory);
                 await packWriter.WriteAsync(packProfile.LocalFile, packProfile);
             }
             catch (Exception error) {
@@ -135,7 +135,7 @@ namespace PixelGraph.UI.Windows
             var result = dialog.ShowDialog(this);
             if (result != true) return null;
 
-            if (!dialog.FileName.StartsWith(VM.RootDirectory)) {
+            if (!dialog.FileName.StartsWith(Model.RootDirectory)) {
                 ShowError("Pack profile should be saved in project root directory!");
                 return null;
             }
@@ -180,19 +180,19 @@ namespace PixelGraph.UI.Windows
         {
             // TODO: Wait for existing save!
 
-            if (VM.SelectedProfileItem != null) {
+            if (Model.SelectedProfileItem != null) {
                 try {
                     var packReader = provider.GetRequiredService<IResourcePackReader>();
-                    VM.LoadedProfile = await packReader.ReadProfileAsync(VM.SelectedProfileItem.LocalFile);
+                    Model.LoadedProfile = await packReader.ReadProfileAsync(Model.SelectedProfileItem.LocalFile);
                     //vm.LoadedFilename = vm.SelectedProfileItem.Filename;
                 }
                 catch (Exception error) {
                     logger.LogError(error, "Failed to delete pack profile!");
-                    ShowError($"Failed to load pack profile '{VM.SelectedProfileItem.LocalFile}'! {error.Message}");
+                    ShowError($"Failed to load pack profile '{Model.SelectedProfileItem.LocalFile}'! {error.Message}");
                 }
             }
             else {
-                VM.LoadedProfile = null;
+                Model.LoadedProfile = null;
             }
         }
 
@@ -204,31 +204,31 @@ namespace PixelGraph.UI.Windows
 
         private async void OnDataChanged(object sender, EventArgs e)
         {
-            await SaveAsync(VM.LoadedProfile);
+            await SaveAsync(Model.LoadedProfile);
         }
 
         private void OnGenerateHeaderUuid(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show(this, "A value already exists! Are you sure you want to replace it?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                VM.PackHeaderUuid = Guid.NewGuid();
+                Model.PackHeaderUuid = Guid.NewGuid();
         }
 
         private void OnGenerateModuleUuid(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show(this, "A value already exists! Are you sure you want to replace it?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                VM.PackModuleUuid = Guid.NewGuid();
+                Model.PackModuleUuid = Guid.NewGuid();
         }
 
         private void OnEncodingSamplerKeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Delete) return;
-            VM.EditEncodingSampler = null;
+            Model.EditEncodingSampler = null;
         }
 
         private void OnImageEncodingKeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Delete) return;
-            VM.EditImageEncoding = null;
+            Model.EditImageEncoding = null;
         }
 
         private void OnEncodingDataGridMouseWheelPreview(object sender, MouseWheelEventArgs e)

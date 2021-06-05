@@ -1,5 +1,5 @@
 ﻿using PixelGraph.UI.Internal;
-using PixelGraph.UI.ViewModels;
+using PixelGraph.UI.Models.PropertyGrid;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;

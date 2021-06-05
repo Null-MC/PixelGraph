@@ -48,11 +48,15 @@ namespace PixelGraph.Common.ImageProcessors
 
                     if (!mapping.TryUnmap(in pixelValue, out value)) continue;
 
-                    if (!mapping.ValueShift.Equal(0f))
-                        value += mapping.ValueShift;
+                    value *= mapping.InputScale;
 
-                    if (!mapping.ValueScale.Equal(1f))
-                        value *= mapping.ValueScale;
+                    if (mapping.Invert) {
+                        MathEx.Invert(ref value, 0f, 1f);
+                    }
+
+                    value += mapping.ValueShift;
+
+                    value *= mapping.OutputScale;
 
                     mapping.Map(ref value, out finalValue);
 

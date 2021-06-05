@@ -36,7 +36,7 @@ namespace PixelGraph.UI.Windows
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
             themeHelper.ApplyCurrent(this);
 
-            VM.LogEvent += OnLogListAppended;
+            Model.LogEvent += OnLogListAppended;
         }
 
         private async Task LoadSourceAsync(CancellationToken token)
@@ -44,13 +44,13 @@ namespace PixelGraph.UI.Windows
             await using var scope = BuildScope();
             var reader = scope.GetRequiredService<IInputReader>();
 
-            reader.SetRoot(VM.ImportSource);
+            reader.SetRoot(Model.ImportSource);
 
             var root = await Task.Run(() => GetPathNode(reader, ".", token), token);
 
             await Application.Current.Dispatcher.BeginInvoke(() => {
-                VM.RootNode = root;
-                VM.IsReady = true;
+                Model.RootNode = root;
+                Model.IsReady = true;
             });
         }
 
@@ -59,7 +59,7 @@ namespace PixelGraph.UI.Windows
             var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
             scopeBuilder.AddFileOutput();
 
-            if (VM.IsArchive) scopeBuilder.AddArchiveInput();
+            if (Model.IsArchive) scopeBuilder.AddArchiveInput();
             else scopeBuilder.AddFileInput();
 
             var logReceiver = scopeBuilder.AddLoggingRedirect();
@@ -71,16 +71,16 @@ namespace PixelGraph.UI.Windows
             var writer = scope.GetRequiredService<IOutputWriter>();
             var importer = scope.GetRequiredService<IResourcePackImporter>();
 
-            reader.SetRoot(VM.ImportSource);
-            writer.SetRoot(VM.RootDirectory);
+            reader.SetRoot(Model.ImportSource);
+            writer.SetRoot(Model.RootDirectory);
 
-            importer.AsGlobal = VM.AsGlobal;
-            importer.CopyUntracked = VM.CopyUntracked;
-            importer.PackInput = VM.PackInput;
+            importer.AsGlobal = Model.AsGlobal;
+            importer.CopyUntracked = Model.CopyUntracked;
+            importer.PackInput = Model.PackInput;
 
             importer.PackProfile = new ResourcePackProfileProperties {
                 Encoding = new ResourcePackOutputProperties {
-                    Format = VM.SourceFormat,
+                    Format = Model.SourceFormat,
                     //...
                 },
             };
@@ -93,7 +93,7 @@ namespace PixelGraph.UI.Windows
             var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
             scopeBuilder.AddFileOutput();
 
-            if (VM.IsArchive) scopeBuilder.AddArchiveInput();
+            if (Model.IsArchive) scopeBuilder.AddArchiveInput();
             else scopeBuilder.AddFileInput();
 
             return scopeBuilder.Build();
@@ -164,11 +164,11 @@ namespace PixelGraph.UI.Windows
 
         private async void OnImportClick(object sender, RoutedEventArgs e)
         {
-            VM.ShowLog = true;
-            VM.IsActive = true;
+            Model.ShowLog = true;
+            Model.IsActive = true;
 
             try {
-                logger.LogInformation("Importing source '{ImportSource}'...", VM.ImportSource);
+                logger.LogInformation("Importing source '{ImportSource}'...", Model.ImportSource);
 
                 await Task.Run(() => RunAsync(tokenSource.Token), tokenSource.Token);
 
@@ -186,7 +186,7 @@ namespace PixelGraph.UI.Windows
                 LogList.Append(LogLevel.Error, $"ERROR! {error.UnfoldMessageString()}");
             }
             finally {
-                VM.IsActive = false;
+                Model.IsActive = false;
             }
         }
 

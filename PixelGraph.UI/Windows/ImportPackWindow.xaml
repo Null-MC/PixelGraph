@@ -8,8 +8,9 @@
                     xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
                     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                     xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
+                    xmlns:models="clr-namespace:PixelGraph.UI.Models"
                     Title="Import Resource Pack" Width="800" Height="450" mc:Ignorable="d"
-                    d:DataContext="{d:DesignInstance vm:ImportPackDesignVM, IsDesignTimeCreatable=True}"
+                    d:DataContext="{d:DesignInstance models:ImportPackDesignVM, IsDesignTimeCreatable=True}"
                     WindowStartupLocation="CenterOwner" Loaded="OnWindowLoaded" Closed="OnWindowClosed"
                     Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                     Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
@@ -19,7 +20,7 @@
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
     </Window.Resources>
     <Window.DataContext>
-        <vm:ImportPackVM x:Name="VM"/>
+        <models:ImportPackModel x:Name="Model"/>
     </Window.DataContext>
     <DockPanel>
         <Grid DockPanel.Dock="Bottom">

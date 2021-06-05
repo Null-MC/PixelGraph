@@ -4,9 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:PixelGraph.UI.Controls"
-             xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
+             xmlns:models="clr-namespace:PixelGraph.UI.Models"
              d:DesignWidth="280" d:DesignHeight="500" mc:Ignorable="d"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
     <UserControl.Resources>
@@ -16,7 +16,7 @@
     </UserControl.Resources>
     <DockPanel>
         <DockPanel.DataContext>
-            <vm:MaterialPropertiesVM x:Name="vm" DataChanged="OnDataChanged"/>
+            <models:MaterialPropertiesModel x:Name="Model" DataChanged="OnDataChanged"/>
         </DockPanel.DataContext>
         <Border DockPanel.Dock="Top" Background="{DynamicResource MahApps.Brushes.Accent4}" Height="34">
             <DockPanel Margin="2">

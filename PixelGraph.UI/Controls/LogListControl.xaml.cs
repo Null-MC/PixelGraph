@@ -14,7 +14,7 @@ namespace PixelGraph.UI.Controls
         private const int LinesPerParagraph = 20;
 
         private readonly Lazy<ScrollViewer> scrollViewerTask;
-        private readonly FontFamily fontFamily;
+        //private readonly FontFamily fontFamily;
         private readonly Thickness marginSize;
         private Paragraph currentParagraph;
         private int paragraphLineCount;
@@ -25,7 +25,7 @@ namespace PixelGraph.UI.Controls
             InitializeComponent();
 
             scrollViewerTask = new Lazy<ScrollViewer>(GetScrollViewer);
-            fontFamily = new FontFamily("Consolas");
+            //fontFamily = new FontFamily("Consolas");
             marginSize = new Thickness(0);
         }
 
@@ -80,12 +80,12 @@ namespace PixelGraph.UI.Controls
                 else
                     return null;
             }
-            while (!(obj is ScrollViewer));
+            while (obj is not ScrollViewer);
 
             return obj as ScrollViewer;
         }
 
-        private static readonly Dictionary<LogLevel, Brush> logBrushMap = new Dictionary<LogLevel, Brush> {
+        private static readonly Dictionary<LogLevel, Brush> logBrushMap = new() {
             [LogLevel.None] = Brushes.LightGray,
             [LogLevel.Debug] = Brushes.LimeGreen,
             [LogLevel.Information] = Brushes.LightSkyBlue,

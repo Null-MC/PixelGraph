@@ -28,6 +28,11 @@ namespace PixelGraph.UI.Controls
             set => SetValue(EnableTilingProperty, value);
         }
 
+        //public bool Enable3D {
+        //    get => (bool)GetValue(Enable3DProperty);
+        //    set => SetValue(Enable3DProperty, value);
+        //}
+
 
         public TextureView()
         {
@@ -58,15 +63,18 @@ namespace PixelGraph.UI.Controls
         }
 
         public static readonly DependencyProperty TextureProperty = DependencyProperty
-            .Register("Texture", typeof(BitmapSource), typeof(TextureView));
+            .Register(nameof(Texture), typeof(BitmapSource), typeof(TextureView));
 
         public static readonly DependencyProperty ZoomProperty = DependencyProperty
-            .Register("Zoom", typeof(double), typeof(TextureView), new PropertyMetadata(1d, OnZoomChanged));
+            .Register(nameof(Zoom), typeof(double), typeof(TextureView), new PropertyMetadata(1d, OnZoomChanged));
 
         public static readonly DependencyProperty ZoomTextProperty = DependencyProperty
-            .Register("ZoomText", typeof(string), typeof(TextureView), new PropertyMetadata("100%", OnZoomTextChanged));
+            .Register(nameof(ZoomText), typeof(string), typeof(TextureView), new PropertyMetadata("100%", OnZoomTextChanged));
+
+        //public static readonly DependencyProperty Enable3DProperty = DependencyProperty
+        //    .Register(nameof(Enable3D), typeof(bool), typeof(TextureView), new PropertyMetadata(false));
 
         public static readonly DependencyProperty EnableTilingProperty = DependencyProperty
-            .Register("EnableTiling", typeof(bool), typeof(TextureView), new PropertyMetadata(false));
+            .Register(nameof(EnableTiling), typeof(bool), typeof(TextureView), new PropertyMetadata(false));
     }
 }

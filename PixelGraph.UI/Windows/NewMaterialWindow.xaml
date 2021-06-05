@@ -4,15 +4,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-        xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
         xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
-        d:DataContext="{d:DesignInstance vm:NewMaterialDesignVM, IsDesignTimeCreatable=True}"
+        xmlns:models="clr-namespace:PixelGraph.UI.Models"
+        d:DataContext="{d:DesignInstance models:NewMaterialDesignVM, IsDesignTimeCreatable=True}"
         Title="New Material" Width="420" Height="360" mc:Ignorable="d"
         WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal" WindowStyle="ToolWindow"
         Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
         Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.DataContext>
-        <vm:NewMaterialVM x:Name="VM"/>
+        <models:NewMaterialModel x:Name="Model"
+                                 GameObjectTypeChanged="OnGameObjectTypeChanged"
+                                 GameObjectNameChanged="OnGameObjectNameChanged"/>
     </Window.DataContext>
     <Window.Resources>
         <vd:GameObjectTypeValues x:Key="GameObjectTypes"/>

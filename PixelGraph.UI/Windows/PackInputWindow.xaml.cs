@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.IO;
-using PixelGraph.Common.IO.Serialization;
+using Microsoft.Extensions.Logging;
+using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Internal.Utilities;
+using PixelGraph.UI.Models;
 using PixelGraph.UI.ViewModels;
 using System;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -12,40 +12,27 @@ namespace PixelGraph.UI.Windows
 {
     public partial class PackInputWindow
     {
-        private readonly IServiceProvider provider;
+        private readonly ILogger<PackInputWindow> logger;
+        private readonly PackInputViewModel viewModel;
 
 
         public PackInputWindow(IServiceProvider provider)
         {
-            this.provider = provider;
+            logger = provider.GetRequiredService<ILogger<PackInputWindow>>();
+            var themeHelper = provider.GetRequiredService<IThemeHelper>();
 
             InitializeComponent();
-
-            var themeHelper = provider.GetRequiredService<IThemeHelper>();
             themeHelper.ApplyCurrent(this);
-        }
 
-        private async Task<bool> SavePackInputAsync()
-        {
-            try {
-                var writer = provider.GetRequiredService<IOutputWriter>();
-                writer.SetRoot(VM.RootDirectory);
-
-                var packWriter = provider.GetRequiredService<IResourcePackWriter>();
-                await packWriter.WriteAsync("input.yml", VM.PackInput);
-
-                return true;
-            }
-            catch (Exception error) {
-                ShowError($"Failed to save pack input! {error.Message}");
-                return false;
-            }
+            viewModel = new PackInputViewModel(provider) {
+                Model = Model,
+            };
         }
 
         private void ShowError(string message)
         {
             Application.Current.Dispatcher.Invoke(() => {
-                MessageBox.Show(this, message, "Error!");
+                MessageBox.Show(this, message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             });
         }
 
@@ -66,8 +53,14 @@ namespace PixelGraph.UI.Windows
 
         private async void OnOkButtonClick(object sender, RoutedEventArgs e)
         {
-            if (await SavePackInputAsync())
+            try {
+                await viewModel.SavePackInputAsync();
                 Application.Current.Dispatcher.Invoke(() => DialogResult = true);
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to save pack input!");
+                ShowError($"Failed to save pack input! {error.UnfoldMessageString()}");
+            }
         }
 
         #endregion
