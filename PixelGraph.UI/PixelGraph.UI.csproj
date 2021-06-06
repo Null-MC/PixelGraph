@@ -27,10 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Internal\dx\**" />
-    <EmbeddedResource Remove="Internal\dx\**" />
-    <None Remove="Internal\dx\**" />
-    <Page Remove="Internal\dx\**" />
+    <Folder Include="Resources\Shaders\compiled\" />
     <EmbeddedResource Include="Resources\Shaders\compiled\**" />
   </ItemGroup>
 
@@ -105,10 +102,6 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\tiled_bg.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\Shaders\compiled\" />
   </ItemGroup>
 
   <ItemGroup>
