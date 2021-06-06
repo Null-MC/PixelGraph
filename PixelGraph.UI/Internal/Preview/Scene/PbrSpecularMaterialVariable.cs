@@ -1,11 +1,11 @@
-﻿using System.Runtime.CompilerServices;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.SharpDX.Core.ShaderManager;
 using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.SharpDX.Core.Utilities;
 using SharpDX.Direct3D11;
+using System.Runtime.CompilerServices;
 using PixelShader = HelixToolkit.SharpDX.Core.Shaders.PixelShader;
 
 namespace PixelGraph.UI.Internal.Preview.Scene
@@ -18,7 +18,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
         private const int
             AlbedoAlphaMapIdx = 0,
             NormalHeightMapIdx = 1,
-            SmoothF0OcclusionMapIdx = 2,
+            RoughF0OcclusionMapIdx = 2,
             PorositySssEmissiveMapIdx = 3;
 
         private const int
@@ -32,7 +32,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
         private readonly ShaderResourceViewProxy[] TextureResources;
         private readonly SamplerStateProxy[] SamplerResources;
 
-        private int texAlbedoAlphaSlot, texNormalHeightSlot, texSmoothF0OcclusionSlot, texPorositySssEmissiveSlot, texShadowSlot;
+        private int texAlbedoAlphaSlot, texNormalHeightSlot, texRoughF0OcclusionSlot, texPorositySssEmissiveSlot, texShadowSlot;
         private int samplerSurfaceSlot, samplerShadowSlot;
         private uint textureIndex;
 
@@ -94,14 +94,14 @@ namespace PixelGraph.UI.Internal.Preview.Scene
                 //TriggerPropertyAction(nameof(PbrSpecularMaterialCore.RenderNormalHeightMap));
             });
             
-            AddPropertyBinding(nameof(PbrSpecularMaterialCore.SmoothF0OcclusionMap), () => {
-                CreateTextureView(material.SmoothF0OcclusionMap, SmoothF0OcclusionMapIdx);
-                TriggerPropertyAction(nameof(PBRMaterialCore.RenderRoughnessMetallicMap));
+            AddPropertyBinding(nameof(PbrSpecularMaterialCore.RoughF0OcclusionMap), () => {
+                CreateTextureView(material.RoughF0OcclusionMap, RoughF0OcclusionMapIdx);
+                //TriggerPropertyAction(nameof(PBRMaterialCore.RenderRoughnessMetallicMap));
             });
 
             AddPropertyBinding(nameof(PbrSpecularMaterialCore.PorositySssEmissiveMap), () => {
                 CreateTextureView(material.PorositySssEmissiveMap, PorositySssEmissiveMapIdx);
-                TriggerPropertyAction(nameof(PBRMaterialCore.RenderEmissiveMap));
+                //TriggerPropertyAction(nameof(PBRMaterialCore.RenderEmissiveMap));
             });
 
             AddPropertyBinding(nameof(PbrSpecularMaterialCore.SurfaceMapSampler), () => {
@@ -157,7 +157,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             if (material != null) {
                 CreateTextureView(material.AlbedoAlphaMap, AlbedoAlphaMapIdx);
                 CreateTextureView(material.NormalHeightMap, NormalHeightMapIdx);
-                CreateTextureView(material.SmoothF0OcclusionMap, SmoothF0OcclusionMapIdx);
+                CreateTextureView(material.RoughF0OcclusionMap, RoughF0OcclusionMapIdx);
                 CreateTextureView(material.PorositySssEmissiveMap, PorositySssEmissiveMapIdx);
             }
             else {
@@ -210,7 +210,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
         {
             texAlbedoAlphaSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot("tex_albedo_alpha");
             texNormalHeightSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot("tex_normal_height");
-            texSmoothF0OcclusionSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot("tex_smooth_f0_occlusion");
+            texRoughF0OcclusionSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot("tex_rough_f0_occlusion");
             texPorositySssEmissiveSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot("tex_porosity_sss_emissive");
             texShadowSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot("tex_shadow");
 
@@ -225,7 +225,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             
             shader.BindTexture(deviceContext, texAlbedoAlphaSlot, TextureResources[AlbedoAlphaMapIdx]);
             shader.BindTexture(deviceContext, texNormalHeightSlot, TextureResources[NormalHeightMapIdx]);
-            shader.BindTexture(deviceContext, texSmoothF0OcclusionSlot, TextureResources[SmoothF0OcclusionMapIdx]);
+            shader.BindTexture(deviceContext, texRoughF0OcclusionSlot, TextureResources[RoughF0OcclusionMapIdx]);
             shader.BindTexture(deviceContext, texPorositySssEmissiveSlot, TextureResources[PorositySssEmissiveMapIdx]);
 
             shader.BindSampler(deviceContext, samplerSurfaceSlot, SamplerResources[SurfaceSamplerIdx]);

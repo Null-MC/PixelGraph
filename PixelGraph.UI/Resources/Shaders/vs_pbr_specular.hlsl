@@ -5,10 +5,9 @@ ps_input main(const vs_input input)
 {
 	ps_input output;
 
-	//output.wp = mul(input.p, mWorld);
-	const float4 wp = mul(input.p, mWorld);
-    output.pos = mul(wp, mViewProjection);
-    //output.eye = wp - float4(vEyePos, 1);
+	output.wp = mul(input.p, mWorld);
+    output.pos = mul(output.wp, mViewProjection);
+    output.eye = output.wp - float4(vEyePos, 1);
 	
 	output.nor = normalize(mul(input.n, (float3x3) mWorld));
 

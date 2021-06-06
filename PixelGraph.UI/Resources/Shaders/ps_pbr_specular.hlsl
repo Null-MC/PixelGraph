@@ -12,8 +12,8 @@
  *     g=normal-y
  *     b=normal-z
  *     a=height
- *   tex_smooth_f0_occlusion
- *     r=smooth
+ *   tex_rough_f0_occlusion
+ *     r=rough
  *     g=f0
  *     b=occlusion
  *   tex_porosity_sss_emissive

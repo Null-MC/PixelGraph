@@ -9,7 +9,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
     {
         private TextureModel _albedoAlphaMap;
         private TextureModel _normalHeightMap;
-        private TextureModel _smoothF0OcclusionMap;
+        private TextureModel _roughF0OcclusionMap;
         private TextureModel _porositySssEmissive;
         private SamplerStateDescription _surfaceMapSampler;
         private bool _renderShadowMap;
@@ -25,9 +25,9 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             set => Set(ref _normalHeightMap, value);
         }
 
-        public TextureModel SmoothF0OcclusionMap {
-            get => _smoothF0OcclusionMap;
-            set => Set(ref _smoothF0OcclusionMap, value);
+        public TextureModel RoughF0OcclusionMap {
+            get => _roughF0OcclusionMap;
+            set => Set(ref _roughF0OcclusionMap, value);
         }
 
         public TextureModel PorositySssEmissiveMap {

@@ -13,7 +13,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         {
             TextureMap[TextureTags.Albedo] = null;
             TextureMap[TextureTags.Normal] = null;
-            TextureMap[TextureTags.Smooth] = null;
+            TextureMap[TextureTags.Rough] = null;
             TextureMap[TextureTags.Porosity] = null;
         }
 
@@ -31,8 +31,8 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             if (TextureMap.TryGetValue(TextureTags.Normal, out var normalStream) && normalStream != null)
                 mat.NormalHeightMap = TextureModel.Create(normalStream);
 
-            if (TextureMap.TryGetValue(TextureTags.Smooth, out var smoothStream) && smoothStream != null)
-                mat.SmoothF0OcclusionMap = TextureModel.Create(smoothStream);
+            if (TextureMap.TryGetValue(TextureTags.Rough, out var roughStream) && roughStream != null)
+                mat.RoughF0OcclusionMap = TextureModel.Create(roughStream);
 
             if (TextureMap.TryGetValue(TextureTags.Porosity, out var porosityStream) && porosityStream != null)
                 mat.PorositySssEmissiveMap = TextureModel.Create(porosityStream);

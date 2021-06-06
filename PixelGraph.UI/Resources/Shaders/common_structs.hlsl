@@ -86,6 +86,8 @@ struct vs_input
 struct ps_input
 {
 	float4 pos : SV_POSITION;
+	float4 wp  : POSITION0;
+	float4 eye  : POSITION1;
     float3 nor : NORMAL;
 	float3 tan : TANGENT;
 	float3 bin : BINORMAL;
@@ -94,7 +96,7 @@ struct ps_input
 
 Texture2D tex_albedo_alpha : register(t0);
 Texture2D tex_normal_height : register(t1);
-Texture2D tex_smooth_f0_occlusion : register(t2);
+Texture2D tex_rough_f0_occlusion : register(t2);
 Texture2D tex_porosity_sss_emissive : register(t3);
 Texture2D<float> tex_shadow : register(t30);
 

@@ -19,9 +19,9 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             set => SetValue(NormalHeightMapProperty, value);
         }
 
-        public TextureModel SmoothF0OcclusionMap {
-            get => (TextureModel)GetValue(SmoothF0OcclusionMapProperty);
-            set => SetValue(SmoothF0OcclusionMapProperty, value);
+        public TextureModel RoughF0OcclusionMap {
+            get => (TextureModel)GetValue(RoughF0OcclusionMapProperty);
+            set => SetValue(RoughF0OcclusionMapProperty, value);
         }
 
         public TextureModel PorositySssEmissiveMap {
@@ -51,7 +51,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
         {
             AlbedoAlphaMap = core.AlbedoAlphaMap;
             NormalHeightMap = core.NormalHeightMap;
-            SmoothF0OcclusionMap = core.SmoothF0OcclusionMap;
+            RoughF0OcclusionMap = core.RoughF0OcclusionMap;
             PorositySssEmissiveMap = core.PorositySssEmissiveMap;
             SurfaceMapSampler = core.SurfaceMapSampler;
 
@@ -66,7 +66,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             return new() {
                 AlbedoAlphaMap = AlbedoAlphaMap,
                 NormalHeightMap = NormalHeightMap,
-                SmoothF0OcclusionMap = SmoothF0OcclusionMap,
+                RoughF0OcclusionMap = RoughF0OcclusionMap,
                 PorositySssEmissiveMap = PorositySssEmissiveMap,
                 SurfaceMapSampler = SurfaceMapSampler,
 
@@ -84,7 +84,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
 
                 AlbedoAlphaMap = AlbedoAlphaMap,
                 NormalHeightMap = NormalHeightMap,
-                SmoothF0OcclusionMap = SmoothF0OcclusionMap,
+                RoughF0OcclusionMap = RoughF0OcclusionMap,
                 PorositySssEmissiveMap = PorositySssEmissiveMap,
                 SurfaceMapSampler = SurfaceMapSampler,
             
@@ -97,9 +97,6 @@ namespace PixelGraph.UI.Internal.Preview.Scene
 
         protected override Freezable CreateInstanceCore()
         {
-            //return new PbrSpecularMaterial {
-            //    Name = Name,
-            //};
             return CloneMaterial();
         }
 
@@ -113,9 +110,9 @@ namespace PixelGraph.UI.Internal.Preview.Scene
                 ((PbrSpecularMaterialCore)((Material)d).Core).NormalHeightMap = e.NewValue as TextureModel;
             }));
 
-        public static readonly DependencyProperty SmoothF0OcclusionMapProperty =
-            DependencyProperty.Register(nameof(SmoothF0OcclusionMap), typeof(TextureModel), typeof(PbrSpecularMaterial), new PropertyMetadata(null, (d, e) => {
-                ((PbrSpecularMaterialCore)((Material)d).Core).SmoothF0OcclusionMap = e.NewValue as TextureModel;
+        public static readonly DependencyProperty RoughF0OcclusionMapProperty =
+            DependencyProperty.Register(nameof(RoughF0OcclusionMap), typeof(TextureModel), typeof(PbrSpecularMaterial), new PropertyMetadata(null, (d, e) => {
+                ((PbrSpecularMaterialCore)((Material)d).Core).RoughF0OcclusionMap = e.NewValue as TextureModel;
             }));
 
         public static readonly DependencyProperty PorositySssEmissiveMapProperty =

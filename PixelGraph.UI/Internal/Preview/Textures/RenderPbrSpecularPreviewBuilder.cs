@@ -43,10 +43,10 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         Invert = true,
                     },
                 },
-                [TextureTags.Smooth] = _ => new ResourcePackChannelProperties[] {
-                    new ResourcePackSmoothChannelProperties(TextureTags.Smooth, ColorChannel.Red),
-                    new ResourcePackF0ChannelProperties(TextureTags.Smooth, ColorChannel.Green),
-                    new ResourcePackOcclusionChannelProperties(TextureTags.Smooth, ColorChannel.Blue) {
+                [TextureTags.Rough] = _ => new ResourcePackChannelProperties[] {
+                    new ResourcePackRoughChannelProperties(TextureTags.Rough, ColorChannel.Red),
+                    new ResourcePackF0ChannelProperties(TextureTags.Rough, ColorChannel.Green),
+                    new ResourcePackOcclusionChannelProperties(TextureTags.Rough, ColorChannel.Blue) {
                         Invert = true,
                     },
                 },
