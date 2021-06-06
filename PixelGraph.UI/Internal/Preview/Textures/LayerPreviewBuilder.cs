@@ -1,13 +1,13 @@
-﻿using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Textures;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Textures;
 
-namespace PixelGraph.UI.Internal.Preview
+namespace PixelGraph.UI.Internal.Preview.Textures
 {
     public interface ILayerPreviewBuilder : ITexturePreviewBuilder {}
 
-    internal class LayerPreviewBuilder : TexturePreviewBuilder, ILayerPreviewBuilder
+    internal class LayerPreviewBuilder : TexturePreviewBuilderBase, ILayerPreviewBuilder
     {
         public LayerPreviewBuilder(IServiceProvider provider) : base(provider)
         {

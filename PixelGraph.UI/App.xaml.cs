@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.Internal.Preview;
+using PixelGraph.UI.Internal.Preview.Textures;
+using PixelGraph.UI.Internal.Shaders;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Windows;
 using Serilog;
@@ -15,6 +16,7 @@ namespace PixelGraph.UI
     {
         private readonly ServiceBuilder builder;
         private ServiceProvider provider;
+        private MainWindow window;
 
 
         public App()
@@ -28,10 +30,13 @@ namespace PixelGraph.UI
             builder.Services.AddSingleton<IPublishLocationManager, PublishLocationManager>();
             builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
             builder.Services.AddSingleton<ITextureEditUtility, TextureEditUtility>();
+            builder.Services.AddSingleton<IShaderByteCodeManager, ShaderByteCodeManager>();
 
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
             builder.Services.AddTransient<ILayerPreviewBuilder, LayerPreviewBuilder>();
-            builder.Services.AddTransient<IRenderPreviewBuilder, RenderPreviewBuilder>();
+            builder.Services.AddTransient<IRenderDiffusePreviewBuilder, RenderDiffusePreviewBuilder>();
+            builder.Services.AddTransient<IRenderPbrMetalPreviewBuilder, RenderPbrMetalPreviewBuilder>();
+            builder.Services.AddTransient<IRenderPbrSpecularPreviewBuilder, RenderPbrSpecularPreviewBuilder>();
             builder.Services.AddTransient<IAppDataUtility, AppDataUtility>();
             builder.Services.AddTransient<IThemeHelper, ThemeHelper>();
         }
@@ -51,14 +56,18 @@ namespace PixelGraph.UI
                 throw;
             }
 
-            var mainWindow = new MainWindow(provider);
-            mainWindow.Show();
+            window = new MainWindow(provider);
+            window.Show();
         }
 
         private void App_OnExit(object sender, ExitEventArgs e)
         {
-            provider?.Dispose();
-            Log.CloseAndFlush();
+            try {
+                provider?.Dispose();
+            }
+            finally {
+                Log.CloseAndFlush();
+            }
         }
 
         private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

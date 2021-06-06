@@ -1,16 +1,17 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.Textures;
-using PixelGraph.UI.Internal.Preview;
+using PixelGraph.UI.Internal.Preview.Materials;
+using PixelGraph.UI.Internal.Preview.Scene;
+using PixelGraph.UI.Internal.Preview.Textures;
+using PixelGraph.UI.Internal.Shaders;
+using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using SharpDX;
-using SharpDX.Direct3D11;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 using System;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -27,12 +28,12 @@ namespace PixelGraph.UI.ViewModels
         private readonly Dispatcher uiDispatcher;
         private readonly object lockHandle;
 
+        private DiffuseMaterialBuilder builderDiffuse;
+        private PbrMetalMaterialBuilder builderPbrMetal;
+        private PbrSpecularMaterialBuilder builderPbrSpecular;
         private Stream _skyImageStream;
-        private Stream _albedoImageStream;
-        private Stream _heightImageStream;
-        private Stream _normalImageStream;
-        private Stream _occlusionRoughMetalImageStream;
-        private Stream _emissiveImageStream;
+
+        public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
 
         public MainModel Model {get; set;}
 
@@ -47,26 +48,29 @@ namespace PixelGraph.UI.ViewModels
 
         public void Dispose()
         {
-            _albedoImageStream?.Dispose();
-            _heightImageStream?.Dispose();
-            _normalImageStream?.Dispose();
-            _occlusionRoughMetalImageStream?.Dispose();
-            _emissiveImageStream?.Dispose();
+            builderDiffuse?.Dispose();
+            builderPbrMetal?.Dispose();
+            builderPbrSpecular?.Dispose();
         }
 
         public async ValueTask DisposeAsync()
         {
-            await ClearAlbedoAsync();
-            await ClearHeightAsync();
-            await ClearNormalAsync();
-            await ClearOcclusionRoughMetalAsync();
-            await ClearEmissiveAsync();
+            if (builderDiffuse != null)
+                await builderDiffuse.DisposeAsync();
+
+            if (builderPbrMetal != null)
+                await builderPbrMetal.DisposeAsync();
+
+            if (builderPbrSpecular != null)
+                await builderPbrSpecular.DisposeAsync();
         }
 
-        public async Task InitializeAsync()
+        public void Initialize()
         {
-            Model.Preview.EffectsManager = new DefaultEffectsManager();
+            InitializeShaders();
 
+            ReloadShaders();
+            
             Model.Preview.Camera = new PerspectiveCamera();
 
             Model.Preview.SunCamera = new PerspectiveCamera { 
@@ -78,24 +82,47 @@ namespace PixelGraph.UI.ViewModels
 
             ResetViewport();
 
-            _skyImageStream = await LoadFileToMemoryAsync("PixelGraph.UI.Resources.sky.dds");
+            _skyImageStream = ResourceLoader.Open("PixelGraph.UI.Resources.sky.dds");
             Model.Preview.SkyTexture = _skyImageStream;
 
             Model.Preview.Model = BuildCube(4);
 
-            //Model.Preview.RenderLoadingText = new BillboardText3D {
-            //    TextInfo = {
-            //        new TextInfo("Updating Material...", Vector3.UnitZ * 4) {
-            //            Background = Color4.Black,
-            //            Foreground = Color.White,
-            //            Scale = 2,
-            //        },
-            //    },
-            //};
+            builderDiffuse = new DiffuseMaterialBuilder(provider) {Model = Model};
+            builderPbrMetal = new PbrMetalMaterialBuilder(provider) {Model = Model};
+            builderPbrSpecular = new PbrSpecularMaterialBuilder(provider) {Model = Model};
 
             Model.Preview.EnableRenderChanged += OnEnableRenderChanged;
+            Model.Preview.RenderModeChanged += OnRenderModeChanged;
             Model.Preview.RenderSceneChanged += OnRenderSceneChanged;
             Model.Preview.SelectedTagChanged += OnSelectedTagChanged;
+        }
+
+        private void InitializeShaders()
+        {
+            var shaderMgr = provider.GetRequiredService<IShaderByteCodeManager>();
+
+            shaderMgr.Add(CustomShaderNames.PbrSpecularVertex, new ShaderSourceDescription {
+                Profile = "vs_4_0",
+                RawFileName = "vs_pbr_specular.hlsl",
+                CompiledResourceName = "vs_pbr_specular.cso",
+            });
+
+            shaderMgr.Add(CustomShaderNames.PbrSpecularPixel, new ShaderSourceDescription {
+                Profile = "ps_4_0",
+                RawFileName = "ps_pbr_specular.hlsl",
+                CompiledResourceName = "ps_pbr_specular.cso",
+            });
+        }
+
+        public void ReloadShaders()
+        {
+            var shaderMgr = provider.GetRequiredService<IShaderByteCodeManager>();
+
+            if (!shaderMgr.LoadAll(out var compileErrors))
+                OnShaderCompileErrors(compileErrors);
+
+            Model.Preview.EffectsManager?.Dispose();
+            Model.Preview.EffectsManager = new CustomEffectsManager(shaderMgr);
         }
 
         public void ResetViewport()
@@ -112,11 +139,9 @@ namespace PixelGraph.UI.ViewModels
         {
             await uiDispatcher.BeginInvoke(() => Model.Preview.LayerImage = null);
 
-            await ClearAlbedoAsync();
-            await ClearHeightAsync();
-            await ClearNormalAsync();
-            await ClearOcclusionRoughMetalAsync();
-            await ClearEmissiveAsync();
+            await builderDiffuse.ClearAllTexturesAsync();
+            await builderPbrMetal.ClearAllTexturesAsync();
+            await builderPbrSpecular.ClearAllTexturesAsync();
         }
 
         public async Task SetFromFileAsync(string filename)
@@ -148,11 +173,8 @@ namespace PixelGraph.UI.ViewModels
             if (!hasContent) return;
 
             if (Model.Preview.EnableRender) {
-                await UpdateAlbedoAsync(token);
-                await UpdateHeightAsync(token);
-                await UpdateNormalAsync(token);
-                await UpdateOcclusionRoughMetalAsync(token);
-                await UpdateEmissiveAsync(token);
+                var builder = GetMaterialBuilder();
+                await builder.UpdateAllTexturesAsync(token);
 
                 await uiDispatcher.BeginInvoke(() => {
                     UpdateMaterial();
@@ -160,8 +182,7 @@ namespace PixelGraph.UI.ViewModels
                 });
             }
             else {
-                using var previewBuilder = GetPreviewBuilder<ILayerPreviewBuilder>();
-                var img = await GetLayerImageSourceAsync(previewBuilder, Model.Preview.SelectedTag, token);
+                var img = await GetLayerImageSourceAsync(Model.Preview.SelectedTag, token);
 
                 await uiDispatcher.BeginInvoke(() => {
                     Model.Preview.LayerImage = img;
@@ -175,16 +196,8 @@ namespace PixelGraph.UI.ViewModels
             await uiDispatcher.BeginInvoke(() => Model.Preview.IsLoading = true);
 
             if (Model.Preview.EnableRender) {
-                if (TextureTags.Is(Model.Preview.SelectedTag, TextureTags.Albedo))
-                    await UpdateAlbedoAsync(token);
-                else if (TextureTags.Is(Model.Preview.SelectedTag, TextureTags.Height))
-                    await UpdateHeightAsync(token);
-                else if (TextureTags.Is(Model.Preview.SelectedTag, TextureTags.Normal))
-                    await UpdateNormalAsync(token);
-                else if (TextureTags.Is(Model.Preview.SelectedTag, TextureTags.Rough))
-                    await UpdateOcclusionRoughMetalAsync(token);
-                else if (TextureTags.Is(Model.Preview.SelectedTag, TextureTags.Emissive))
-                    await UpdateEmissiveAsync(token);
+                var builder = GetMaterialBuilder();
+                await builder.UpdateTexturesByTagAsync(Model.Preview.SelectedTag, token);
 
                 await uiDispatcher.BeginInvoke(() => {
                     UpdateMaterial();
@@ -192,8 +205,7 @@ namespace PixelGraph.UI.ViewModels
                 });
             }
             else {
-                using var previewBuilder = GetPreviewBuilder<ILayerPreviewBuilder>();
-                var img = await GetLayerImageSourceAsync(previewBuilder, Model.Preview.SelectedTag, token);
+                var img = await GetLayerImageSourceAsync(Model.Preview.SelectedTag, token);
 
                 await uiDispatcher.BeginInvoke(() => {
                     Model.Preview.LayerImage = img;
@@ -204,7 +216,11 @@ namespace PixelGraph.UI.ViewModels
 
         public void UpdateMaterial()
         {
-            Model.Preview.ModelMaterial = BuildMaterial();
+            var builder = GetMaterialBuilder();
+            var mat = builder.BuildMaterial();
+            mat.Freeze();
+
+            Model.Preview.ModelMaterial = mat;
         }
 
         public void Cancel()
@@ -214,136 +230,23 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        private async Task UpdateAlbedoAsync(CancellationToken token = default)
+        private IMaterialBuilder GetMaterialBuilder()
         {
-            await ClearAlbedoAsync();
-            using var previewBuilder = GetPreviewBuilder<IRenderPreviewBuilder>();
-            _albedoImageStream = await GetTextureStreamAsync(previewBuilder, TextureTags.Albedo, 0, 0, token);
+            return Model.Preview.RenderMode switch {
+                RenderPreviewModes.Diffuse => builderDiffuse,
+                RenderPreviewModes.PbrMetal => builderPbrMetal,
+                RenderPreviewModes.PbrSpecular => builderPbrSpecular,
+                _ => throw new ApplicationException(),
+            };
         }
 
-        private async Task UpdateHeightAsync(CancellationToken token = default)
+        private void OnShaderCompileErrors(ShaderCompileError[] errors)
         {
-            await ClearHeightAsync();
-            using var previewBuilder = GetPreviewBuilder<IRenderPreviewBuilder>();
-            _heightImageStream = await GetTextureStreamAsync(previewBuilder, TextureTags.Height, 0, 0, token);
-        }
-
-        private async Task UpdateNormalAsync(CancellationToken token = default)
-        {
-            await ClearNormalAsync();
-            using var previewBuilder = GetPreviewBuilder<IRenderPreviewBuilder>();
-            _normalImageStream = await GetTextureStreamAsync(previewBuilder, TextureTags.Normal, 0, 0, token);
-        }
-
-        private async Task UpdateOcclusionRoughMetalAsync(CancellationToken token = default)
-        {
-            await ClearOcclusionRoughMetalAsync();
-            using var previewBuilder = GetPreviewBuilder<IRenderPreviewBuilder>();
-            _occlusionRoughMetalImageStream = await GetTextureStreamAsync(previewBuilder, TextureTags.Rough, 0, 0, token);
-        }
-
-        private async Task UpdateEmissiveAsync(CancellationToken token = default)
-        {
-            await ClearEmissiveAsync();
-            using var previewBuilder = GetPreviewBuilder<IRenderPreviewBuilder>();
-            _emissiveImageStream = await GetTextureStreamAsync(previewBuilder, TextureTags.Emissive, 0, 0, token);
-        }
-
-        private PBRMaterial BuildMaterial()
-        {
-            var mat = new PBRMaterial {
-                EnableTessellation = false,
-                EnableAutoTangent = true,
-                RenderDisplacementMap = true,
-                RenderEnvironmentMap = Model.Preview.EnableEnvironment,
-                RenderShadowMap = true,
-
-                MetallicFactor = 1.0,
-                RoughnessFactor = 1.0,
-                ReflectanceFactor = 0.8,
-                //AmbientOcclusionFactor = 0.8,
-                EmissiveColor = new Color4(1f, 1f, 1f, 0f),
-
-                //MinTessellationDistance = 1,
-                //MinDistanceTessellationFactor = 128,
-                //MaxTessellationDistance = 48,
-                //MaxDistanceTessellationFactor = 8,
-                //DisplacementMapScaleMask = new Vector4(0.1f, 0.1f, 0.1f, 0f),
-                SurfaceMapSampler = new SamplerStateDescription {
-                    Filter = Filter.MinMagPointMipLinear,
-                    AddressU = TextureAddressMode.Wrap,
-                    AddressV = TextureAddressMode.Wrap,
-                    AddressW = TextureAddressMode.Clamp,
-                    ComparisonFunction = Comparison.Never,
-                    MaximumLod = int.MaxValue,
-                    MinimumLod = 0,
-                    MaximumAnisotropy = 16,
-                },
+            var e = new ShaderCompileErrorEventArgs {
+                Errors = errors,
             };
 
-            if (_albedoImageStream != null)
-                mat.AlbedoMap = TextureModel.Create(_albedoImageStream);
-
-            if (_heightImageStream != null)
-                mat.DisplacementMap = TextureModel.Create(_heightImageStream);
-
-            if (_normalImageStream != null)
-                mat.NormalMap = TextureModel.Create(_normalImageStream);
-
-            if (_occlusionRoughMetalImageStream != null)
-                mat.AmbientOcculsionMap = mat.RoughnessMetallicMap = TextureModel.Create(_occlusionRoughMetalImageStream);
-
-            if (_emissiveImageStream != null)
-                mat.EmissiveMap = TextureModel.Create(_emissiveImageStream);
-
-            return mat;
-        }
-
-        private async Task ClearAlbedoAsync()
-        {
-            if (_albedoImageStream == null) return;
-            await _albedoImageStream.DisposeAsync();
-            _albedoImageStream = null;
-        }
-
-        private async Task ClearHeightAsync()
-        {
-            if (_heightImageStream == null) return;
-            await _heightImageStream.DisposeAsync();
-            _heightImageStream = null;
-        }
-
-        private async Task ClearNormalAsync()
-        {
-            if (_normalImageStream == null) return;
-            await _normalImageStream.DisposeAsync();
-            _normalImageStream = null;
-        }
-
-        private async Task ClearOcclusionRoughMetalAsync()
-        {
-            if (_occlusionRoughMetalImageStream == null) return;
-            await _occlusionRoughMetalImageStream.DisposeAsync();
-            _occlusionRoughMetalImageStream = null;
-        }
-
-        private async Task ClearEmissiveAsync()
-        {
-            if (_emissiveImageStream == null) return;
-            await _emissiveImageStream.DisposeAsync();
-            _emissiveImageStream = null;
-        }
-
-        private T GetPreviewBuilder<T>()
-            where T : ITexturePreviewBuilder
-        {
-            var previewBuilder = provider.GetRequiredService<T>();
-
-            previewBuilder.Input = Model.PackInput;
-            previewBuilder.Profile = Model.Profile.Loaded;
-            previewBuilder.Material = Model.Material.Loaded;
-            
-            return previewBuilder;
+            ShaderCompileErrors?.Invoke(this, e);
         }
 
         private async void OnEnableRenderChanged(object sender, EventArgs e)
@@ -356,6 +259,13 @@ namespace PixelGraph.UI.ViewModels
                     await UpdateLayerAsync();
                 }
             });
+        }
+
+        private async void OnRenderModeChanged(object sender, EventArgs e)
+        {
+            if (!Model.Preview.EnableRender) return;
+
+            await Task.Run(() => UpdateAsync(false));
         }
 
         private void OnRenderSceneChanged(object sender, EventArgs e)
@@ -371,6 +281,18 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        private async Task<ImageSource> GetLayerImageSourceAsync(string tag, CancellationToken token)
+        {
+            using var previewBuilder = provider.GetRequiredService<ILayerPreviewBuilder>();
+
+            previewBuilder.Input = Model.PackInput;
+            previewBuilder.Profile = Model.Profile.Loaded;
+            previewBuilder.Material = Model.Material.Loaded;
+
+            using var image = await previewBuilder.BuildAsync(tag, 0);
+            return await CreateImageSourceAsync(image, token);
+        }
+
         private static MeshGeometry3D BuildCube(int size)
         {
             var builder = new MeshBuilder(true, true, true);
@@ -381,12 +303,6 @@ namespace PixelGraph.UI.ViewModels
             builder.AddCubeFace(Vector3.Zero, new Vector3( 0,  1,  0), Vector3.UnitZ, size, size, size);
             builder.AddCubeFace(Vector3.Zero, new Vector3( 0, -1,  0), Vector3.UnitZ, size, size, size);
             return builder.ToMeshGeometry3D();
-        }
-
-        private static async Task<ImageSource> GetLayerImageSourceAsync(ITexturePreviewBuilder previewBuilder, string tag, CancellationToken token)
-        {
-            using var image = await previewBuilder.BuildAsync(tag, 0);
-            return await CreateImageSourceAsync(image, token);
         }
 
         private static async Task<ImageSource> CreateImageSourceAsync(Image image, CancellationToken token)
@@ -405,42 +321,10 @@ namespace PixelGraph.UI.ViewModels
 
             return imageSource;
         }
+    }
 
-        private static async Task<Stream> GetTextureStreamAsync(ITexturePreviewBuilder previewBuilder, string textureTag, int? frame = null, int? part = null, CancellationToken token = default)
-        {
-            var stream = new MemoryStream();
-
-            try {
-                using var image = await previewBuilder.BuildAsync(textureTag, frame, part);
-                await image.SaveAsBmpAsync(stream, token);
-                await stream.FlushAsync(token);
-                stream.Position = 0;
-                return stream;
-            }
-            catch {
-                await stream.DisposeAsync();
-                throw;
-            }
-        }
-
-        public static async Task<MemoryStream> LoadFileToMemoryAsync(string filePath)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            await using var stream = assembly.GetManifestResourceStream(filePath);
-            if (stream == null) throw new ApplicationException($"Unable to locate resource '{filePath}'!");
-
-            //await using var file = new FileStream(filePath, FileMode.Open);
-
-            var buffer = new MemoryStream();
-
-            try {
-                await stream.CopyToAsync(buffer);
-                return buffer;
-            }
-            catch {
-                await buffer.DisposeAsync();
-                throw;
-            }
-        }
+    internal class ShaderCompileErrorEventArgs : EventArgs
+    {
+        public ShaderCompileError[] Errors {get; set;}
     }
 }

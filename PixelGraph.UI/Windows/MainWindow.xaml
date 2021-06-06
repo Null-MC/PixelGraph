@@ -10,12 +10,15 @@
                  xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                  xmlns:hx="http://helix-toolkit.org/wpf/SharpDX"
                  xmlns:models="clr-namespace:PixelGraph.UI.Models"
+                 xmlns:viewData="clr-namespace:PixelGraph.UI.ViewData"
                  d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
-                 Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" Loaded="OnWindowLoaded" WindowState="Maximized"
+                 Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" WindowState="Maximized"
+                 Loaded="OnWindowLoaded" Closed="OnWindowClosed" PreviewKeyUp="OnWindowPreviewKeyUp"
                  ShowIconOnTitleBar="True" IconScalingMode="NoScaleSmallerFrame" TitleForeground="Transparent"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                  Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
+        <viewData:RenderModeValues x:Key="RenderModes"/>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
         <CollectionViewSource x:Key="PublishLocationsView" Source="{Binding Path=PublishLocations}" />
@@ -304,6 +307,10 @@
                                           Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityInverseConverter}}"
                                           IsChecked="{Binding EnableTiling, ElementName=TextureViewer}"/>
+                                <ComboBox DockPanel.Dock="Left" Margin="4" BorderThickness="0" DisplayMemberPath="Text" SelectedValuePath="Value"
+                                          ItemsSource="{StaticResource RenderModes}"
+                                          Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
+                                          SelectedValue="{Binding Preview.RenderMode, Mode=TwoWay}"/>
                                 <CheckBox DockPanel.Dock="Left" Content="Environment" Margin="4" FontWeight="Bold"
                                           Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
@@ -371,9 +378,9 @@
                                                     LightCamera="{Binding SunCamera}"/>
                                     <hx:CameraModel3D x:Name="lightCamera"
                                                       Camera="{Binding SunCamera}" />
-                                    <hx:MeshGeometryModel3D CullMode="Back" FillMode="Solid"
-                                        Geometry="{Binding Model}"
-                                        Material="{Binding ModelMaterial}" />
+                                    <hx:MeshGeometryModel3D
+                                        Geometry="{Binding Model, Mode=OneWay}"
+                                        Material="{Binding ModelMaterial, Mode=OneWay}"/>
                                     <hx:UICompositeManipulator3D Diameter="2"
                                         CanRotateX="true" CanRotateY="true" CanRotateZ="true"
                                         CanTranslateX="False" CanTranslateY="False" CanTranslateZ="False"

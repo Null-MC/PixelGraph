@@ -2,8 +2,10 @@
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Preview;
 using System;
 using System.Windows.Media;
+using PixelGraph.UI.Internal.Preview.Scene;
 
 namespace PixelGraph.UI.Models
 {
@@ -14,16 +16,15 @@ namespace PixelGraph.UI.Models
         private MeshGeometry3D _model;
         private PerspectiveCamera _camera, _sunCamera;
         private TextureModel _skyTexture;
-        //private BillboardText3D _renderLoadingText;
         private ImageSource _layerImage;
-        //private Vector3 _sunDirection;
         private string _selectedTag;
         private bool _enableRender;
         private bool _enableEnvironment;
-        //private bool _hasContent;
+        private RenderPreviewModes _renderMode;
         private bool _isLoading;
 
         public event EventHandler EnableRenderChanged;
+        public event EventHandler RenderModeChanged;
         public event EventHandler RenderSceneChanged;
         public event EventHandler SelectedTagChanged;
 
@@ -36,14 +37,6 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
             }
         }
-
-        //public bool HasContent {
-        //    get => _hasContent;
-        //    set {
-        //        _hasContent = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
         public bool EnableRender {
             get => _enableRender;
@@ -122,13 +115,15 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        //public BillboardText3D RenderLoadingText {
-        //    get => _renderLoadingText;
-        //    set {
-        //        _renderLoadingText = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
+        public RenderPreviewModes RenderMode {
+            get => _renderMode;
+            set {
+                _renderMode = value;
+                OnPropertyChanged();
+                OnRenderModeChanged();
+                //OnRenderSceneChanged();
+            }
+        }
 
         public bool EnableEnvironment {
             get => _enableEnvironment;
@@ -139,26 +134,20 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        //public Vector3 SunDirection {
-        //    get => _sunDirection;
-        //    set {
-        //        _sunDirection = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
 
         public PreviewContextModel()
         {
             _selectedTag = TextureTags.Albedo;
-
-            //_sunDirection = new Vector3(-1, -4, 2);
-            //_sunDirection.Normalize();
         }
 
         private void OnEnableRenderChanged()
         {
             EnableRenderChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnRenderModeChanged()
+        {
+            RenderModeChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void OnSelectedTagChanged()

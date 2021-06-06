@@ -31,6 +31,7 @@
     <EmbeddedResource Remove="Internal\dx\**" />
     <None Remove="Internal\dx\**" />
     <Page Remove="Internal\dx\**" />
+    <EmbeddedResource Include="Resources\Shaders\compiled\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +41,9 @@
     <Compile Remove="Converters\InverseBooleanConverter.cs" />
     <Compile Remove="Internal\AppConfiguration.cs" />
     <Compile Remove="Internal\ImagePreviewCache.cs" />
+    <Compile Remove="Internal\Preview\PbrSpecularMeshModel3D.cs" />
+    <Compile Remove="Internal\Preview\Scene\CustomPSShaderDescriptions.cs" />
+    <Compile Remove="Internal\Preview\Scene\CustomVSShaderDescriptions.cs" />
     <Compile Remove="ViewData\BedrockTextureFormatValues.cs" />
     <Compile Remove="ViewData\JavaTextureFormatValues.cs" />
     <Compile Remove="ViewModels\InputVMX.cs" />
@@ -52,6 +56,9 @@
 
   <ItemGroup>
     <None Remove="icon.ico" />
+    <None Remove="Resources\Shaders\compile.cmd" />
+    <None Remove="Resources\Shaders\ps_pbr_specular.hlsl" />
+    <None Remove="Resources\Shaders\vs_pbr_specular.hlsl" />
     <None Remove="Resources\sky.dds" />
     <None Remove="Resources\tiled_bg.png" />
   </ItemGroup>
@@ -69,7 +76,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <HLSLShader Include="Resources\Shaders\vs_pbr_specular.hlsl">
+      <ShaderProfile>vs_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\vs_pbr_specular.cso</ObjectFileOutput>
+    </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\ps_pbr_specular.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\ps_pbr_specular.cso</ObjectFileOutput>
+    </HLSLShader>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.16.1" />
+    <PackageReference Include="JeremyAnsel.HLSL.Targets" Version="1.0.10" />
     <PackageReference Include="MahApps.Metro" Version="2.4.5" />
     <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.8.0" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="3.1.0" />
@@ -86,6 +105,14 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\tiled_bg.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\Shaders\compiled\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\Shaders\common_structs.hlsl" />
   </ItemGroup>
 
 </Project>

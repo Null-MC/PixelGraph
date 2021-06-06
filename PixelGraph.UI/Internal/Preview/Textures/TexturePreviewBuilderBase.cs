@@ -1,4 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Effects;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
@@ -8,13 +13,8 @@ using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal.Preview
+namespace PixelGraph.UI.Internal.Preview.Textures
 {
     public interface ITexturePreviewBuilder : IDisposable
     {
@@ -27,7 +27,7 @@ namespace PixelGraph.UI.Internal.Preview
         void Cancel();
     }
 
-    internal abstract class TexturePreviewBuilder : ITexturePreviewBuilder
+    internal abstract class TexturePreviewBuilderBase : ITexturePreviewBuilder
     {
         private readonly IServiceProvider provider;
         private readonly CancellationTokenSource tokenSource;
@@ -40,7 +40,7 @@ namespace PixelGraph.UI.Internal.Preview
         public CancellationToken Token => tokenSource.Token;
 
 
-        protected TexturePreviewBuilder(IServiceProvider provider)
+        protected TexturePreviewBuilderBase(IServiceProvider provider)
         {
             this.provider = provider;
             tokenSource = new CancellationTokenSource();

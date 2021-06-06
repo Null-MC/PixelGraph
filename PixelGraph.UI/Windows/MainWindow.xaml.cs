@@ -45,8 +45,6 @@ namespace PixelGraph.UI.Windows
             InitializeComponent();
             themeHelper.ApplyCurrent(this);
 
-            Model.Profile.SelectionChanged += OnSelectedProfileChanged;
-
             viewModel = new MainViewModel(provider) {
                 Model = Model,
             };
@@ -54,6 +52,9 @@ namespace PixelGraph.UI.Windows
             previewViewModel = new PreviewViewModel(provider) {
                 Model = Model,
             };
+
+            Model.Profile.SelectionChanged += OnSelectedProfileChanged;
+            previewViewModel.ShaderCompileErrors += OnShaderCompileErrors;
 
             Model.SelectedLocation = ManualLocation;
         }
@@ -217,7 +218,7 @@ namespace PixelGraph.UI.Windows
             }
 
             try {
-                await previewViewModel.InitializeAsync();
+                previewViewModel.Initialize();
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to initialize render preview!");
@@ -231,6 +232,12 @@ namespace PixelGraph.UI.Windows
                 logger.LogError(error, "Failed to initialize main window!");
                 ShowError($"Errors occurred during startup! {error.UnfoldMessageString()}");
             }
+        }
+
+        private void OnWindowClosed(object sender, EventArgs e)
+        {
+            //viewModel.Dispose();
+            previewViewModel.Dispose();
         }
 
         private async void OnRecentSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -649,6 +656,25 @@ namespace PixelGraph.UI.Windows
         private void OnImageEditorCompleteClick(object sender, RoutedEventArgs e)
         {
             viewModel.CancelExternalImageEdit();
+        }
+
+        private void OnWindowPreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.R) {
+                var leftCtrl = e.KeyboardDevice.IsKeyDown(Key.LeftCtrl);
+                var rightCtrl = e.KeyboardDevice.IsKeyDown(Key.RightCtrl);
+
+                if (leftCtrl || rightCtrl) {
+                    previewViewModel.ReloadShaders();
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void OnShaderCompileErrors(object sender, ShaderCompileErrorEventArgs e)
+        {
+            ShowError("Errors occurred while compiling shaders!");
+            // WARN: Find a more useful way to display details!
         }
 
         private void OnExitClick(object sender, RoutedEventArgs e)
