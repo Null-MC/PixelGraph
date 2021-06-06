@@ -179,78 +179,6 @@ namespace PixelGraph.UI.ViewModels
             Application.Current.Dispatcher.Invoke(() => Model.PublishLocations = list);
         }
 
-        //public async Task PopulateTextureViewerAsync(CancellationToken token = default)
-        //{
-        //    if (Model.SelectedNode is ContentTreeFile {Type: ContentNodeType.Texture} texFile) {
-        //        var fullFile = PathEx.Join(Model.RootDirectory, texFile.Filename);
-        //        await previewMgr.SetFromFileAsync(fullFile);
-
-        //        //var texImage = new BitmapImage();
-        //        //texImage.BeginInit();
-        //        //texImage.CacheOption = BitmapCacheOption.OnLoad;
-        //        //texImage.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-        //        //texImage.UriSource = new Uri(fullFile);
-        //        //texImage.EndInit();
-        //        //texImage.Freeze();
-
-        //        //vm.LoadedTexture = texImage;
-        //        Model.LoadedMaterial = null;
-        //        //vm.IsPreviewLoading = false;
-        //        return;
-        //    }
-
-        //    //vm.LoadedTexture = null;
-        //    await previewMgr.ClearAsync();
-
-        //    bool isMat;
-        //    string matFile;
-        //    if (Model.SelectedNode is ContentTreeMaterialDirectory matFolder) {
-        //        isMat = true;
-        //        matFile = matFolder.MaterialFilename;
-        //    }
-        //    else {
-        //        var fileNode = Model.SelectedNode as ContentTreeFile;
-        //        isMat = fileNode?.Type == ContentNodeType.Material;
-        //        matFile = fileNode?.Filename;
-        //    }
-
-        //    if (!isMat) {
-        //        Model.LoadedMaterial = null;
-        //        return;
-        //    }
-
-        //    // TODO: wait for texture busy
-        //    var reader = provider.GetRequiredService<IInputReader>();
-        //    var matReader = provider.GetRequiredService<IMaterialReader>();
-
-        //    reader.SetRoot(Model.RootDirectory);
-        //    Model.LoadedMaterialFilename = matFile;
-
-        //    try {
-        //        Model.LoadedMaterial = await matReader.LoadAsync(matFile, token);
-        //    }
-        //    catch (Exception error) {
-        //        Model.LoadedMaterial = null;
-        //        logger.LogError(error, "Failed to load material properties!");
-        //        ShowError($"Failed to load material properties! {error.UnfoldMessageString()}");
-        //    }
-
-        //    var enableAutoMaterial = Model.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
-
-        //    if (Model.LoadedMaterial == null && enableAutoMaterial) {
-        //        var localPath = Path.GetDirectoryName(matFile);
-
-        //        Model.LoadedMaterial = new MaterialProperties {
-        //            LocalFilename = matFile,
-        //            LocalPath = Path.GetDirectoryName(localPath),
-        //            Name = Path.GetFileName(localPath),
-        //        };
-        //    }
-
-        //    Model.Preview.Material = ;
-        //    await UpdatePreviewAsync(true, token);
-        //}
-
         public async Task GenerateNormalAsync(string filename, CancellationToken token = default)
         {
             if (!Model.TryStartBusy()) return;
@@ -417,9 +345,6 @@ namespace PixelGraph.UI.ViewModels
             finally {
                 Model.IsImageEditorOpen = false;
             }
-
-            //await UpdatePreviewAsync(false);
-            //await previewMgr.UpdateLayerAsync(token);
         }
 
         public void CancelExternalImageEdit()

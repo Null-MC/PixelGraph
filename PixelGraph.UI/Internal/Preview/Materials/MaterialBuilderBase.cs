@@ -1,14 +1,13 @@
 ﻿using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.UI.Internal.Preview.Textures;
 using PixelGraph.UI.Models;
-using SharpDX.Direct3D11;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.UI.Internal.Preview.Textures;
 
 namespace PixelGraph.UI.Internal.Preview.Materials
 {
@@ -24,27 +23,11 @@ namespace PixelGraph.UI.Internal.Preview.Materials
     internal abstract class MaterialBuilderBase<T> : IMaterialBuilder, IDisposable, IAsyncDisposable
         where T : ITexturePreviewBuilder
     {
-        protected static readonly SamplerStateDescription DefaultSampler;
-
         private readonly IServiceProvider provider;
 
         protected Dictionary<string, Stream> TextureMap {get;}
         public MainModel Model {get; set;}
 
-
-        static MaterialBuilderBase()
-        {
-            DefaultSampler = new SamplerStateDescription {
-                Filter = Filter.MinMagPointMipLinear,
-                AddressU = TextureAddressMode.Wrap,
-                AddressV = TextureAddressMode.Wrap,
-                AddressW = TextureAddressMode.Clamp,
-                ComparisonFunction = Comparison.Never,
-                MaximumLod = int.MaxValue,
-                MinimumLod = 0,
-                MaximumAnisotropy = 16,
-            };
-        }
 
         protected MaterialBuilderBase(IServiceProvider provider)
         {
@@ -91,7 +74,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
         public virtual async Task ClearAllTexturesAsync()
         {
-            foreach (var (key, stream) in TextureMap) {
+            foreach (var stream in TextureMap.Values) {
                 if (stream == null) continue;
                 await stream.DisposeAsync();
             }

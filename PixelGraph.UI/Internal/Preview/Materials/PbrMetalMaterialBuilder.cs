@@ -1,6 +1,7 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Textures;
+using PixelGraph.UI.Internal.Preview.Scene;
 using PixelGraph.UI.Internal.Preview.Textures;
 using SharpDX;
 using System;
@@ -21,7 +22,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public override Material BuildMaterial()
         {
             var mat = new PBRMaterial {
-                SurfaceMapSampler = DefaultSampler,
+                SurfaceMapSampler = CustomSamplerStates.Default,
                 RenderEnvironmentMap = Model.Preview.EnableEnvironment,
                 RenderShadowMap = true,
                 EnableAutoTangent = true,

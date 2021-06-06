@@ -148,6 +148,7 @@ namespace PixelGraph.UI.Windows
                 return;
             }
 
+            previewViewModel.Cancel();
             await previewViewModel.ClearAsync();
 
             bool isMat;
@@ -650,7 +651,10 @@ namespace PixelGraph.UI.Windows
             catch (Exception error) {
                 logger.LogError(error, "Failed to launch external image editor!");
                 ShowError($"Failed to launch external image editor! {error.UnfoldMessageString()}");
+                return;
             }
+
+            await previewViewModel.UpdateLayerAsync();
         }
 
         private void OnImageEditorCompleteClick(object sender, RoutedEventArgs e)

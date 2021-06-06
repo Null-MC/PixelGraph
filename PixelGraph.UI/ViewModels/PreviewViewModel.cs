@@ -27,6 +27,7 @@ namespace PixelGraph.UI.ViewModels
         private readonly IServiceProvider provider;
         private readonly Dispatcher uiDispatcher;
         private readonly object lockHandle;
+        private CancellationTokenSource tokenSource;
 
         private DiffuseMaterialBuilder builderDiffuse;
         private PbrMetalMaterialBuilder builderPbrMetal;
@@ -51,6 +52,7 @@ namespace PixelGraph.UI.ViewModels
             builderDiffuse?.Dispose();
             builderPbrMetal?.Dispose();
             builderPbrSpecular?.Dispose();
+            tokenSource?.Dispose();
         }
 
         public async ValueTask DisposeAsync()
@@ -63,6 +65,8 @@ namespace PixelGraph.UI.ViewModels
 
             if (builderPbrSpecular != null)
                 await builderPbrSpecular.DisposeAsync();
+
+            tokenSource?.Dispose();
         }
 
         public void Initialize()
@@ -164,31 +168,50 @@ namespace PixelGraph.UI.ViewModels
             });
         }
 
+        private CancellationToken StartNewToken(CancellationToken token)
+        {
+            lock (lockHandle) {
+                tokenSource?.Cancel();
+                tokenSource?.Dispose();
+
+                tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+                return tokenSource.Token;
+            }
+        }
+
         public async Task UpdateAsync(bool clear, CancellationToken token = default)
         {
+            var mergedToken = StartNewToken(token);
             if (clear) await ClearAsync();
 
             var hasContent = Model.Material.HasLoaded; // && VM.HasSelectedTag;
             await uiDispatcher.BeginInvoke(() => Model.Preview.IsLoading = hasContent);
             if (!hasContent) return;
 
-            if (Model.Preview.EnableRender) {
-                var builder = GetMaterialBuilder();
-                await builder.UpdateAllTexturesAsync(token);
+            try {
+                if (Model.Preview.EnableRender) {
+                    var builder = GetMaterialBuilder();
+                    await builder.UpdateAllTexturesAsync(mergedToken);
 
-                await uiDispatcher.BeginInvoke(() => {
-                    UpdateMaterial();
-                    Model.Preview.IsLoading = false;
-                });
-            }
-            else {
-                var img = await GetLayerImageSourceAsync(Model.Preview.SelectedTag, token);
+                    await uiDispatcher.BeginInvoke(() => {
+                        mergedToken.ThrowIfCancellationRequested();
 
-                await uiDispatcher.BeginInvoke(() => {
-                    Model.Preview.LayerImage = img;
-                    Model.Preview.IsLoading = false;
-                });
+                        UpdateMaterial();
+                        Model.Preview.IsLoading = false;
+                    });
+                }
+                else {
+                    var img = await GetLayerImageSourceAsync(Model.Preview.SelectedTag, mergedToken);
+
+                    await uiDispatcher.BeginInvoke(() => {
+                        mergedToken.ThrowIfCancellationRequested();
+
+                        Model.Preview.LayerImage = img;
+                        Model.Preview.IsLoading = false;
+                    });
+                }
             }
+            catch (OperationCanceledException) {}
         }
 
         public async Task UpdateLayerAsync(CancellationToken token = default)
@@ -226,7 +249,7 @@ namespace PixelGraph.UI.ViewModels
         public void Cancel()
         {
             lock (lockHandle) {
-                throw new NotImplementedException();
+                tokenSource?.Cancel();
             }
         }
 
