@@ -1,5 +1,45 @@
+#define LIGHTS 8
 #pragma pack_matrix( row_major )
 
+
+struct vs_input
+{
+	float4 p : POSITION;
+	float3 n : NORMAL;
+	float3 tan : TANGENT;
+	float3 bin : BINORMAL;
+	float2 tex : TEXCOORD;
+    float4 c : COLOR;
+	float4 mr0 : TEXCOORD1;
+	float4 mr1 : TEXCOORD2;
+	float4 mr2 : TEXCOORD3;
+	float4 mr3 : TEXCOORD4;
+};
+
+struct ps_input
+{
+	float4 pos : SV_POSITION;
+	float4 wp  : POSITION0;
+	float4 eye  : POSITION1;
+    float3 nor : NORMAL;
+	float3 tan : TANGENT;
+	float3 bin : BINORMAL;
+	float2 tex : TEXCOORD0;
+};
+
+struct LightStruct
+{
+    int iLightType; //4
+    float3 paddingL;
+	// the light direction is here the vector which looks towards the light
+    float4 vLightDir; //8
+    float4 vLightPos; //12
+    float4 vLightAtt; //16
+    float4 vLightSpot; //(outer angle , inner angle, falloff, free), 20
+    float4 vLightColor; //24
+    matrix mLightView; //40
+    matrix mLightProj; //56
+};
 
 cbuffer cbTransforms : register(b0)
 {
@@ -69,29 +109,14 @@ cbuffer cbMesh : register(b1)
     float3 padding4;
 };
 
-struct vs_input
+cbuffer cbLights : register(b3)
 {
-	float4 p : POSITION;
-	float3 n : NORMAL;
-	float3 tan : TANGENT;
-	float3 bin : BINORMAL;
-	float2 tex : TEXCOORD;
-    float4 c : COLOR;
-	float4 mr0 : TEXCOORD1;
-	float4 mr1 : TEXCOORD2;
-	float4 mr2 : TEXCOORD3;
-	float4 mr3 : TEXCOORD4;
-};
-
-struct ps_input
-{
-	float4 pos : SV_POSITION;
-	float4 wp  : POSITION0;
-	float4 eye  : POSITION1;
-    float3 nor : NORMAL;
-	float3 tan : TANGENT;
-	float3 bin : BINORMAL;
-	float2 tex : TEXCOORD0;
+    LightStruct Lights[LIGHTS];
+    float4 vLightAmbient = float4(0.2f, 0.2f, 0.2f, 1.0f);
+    int NumLights;
+    bool bHasEnvironmentMap;
+    int NumEnvironmentMapMipLevels;
+    float padding;
 };
 
 Texture2D tex_albedo_alpha : register(t0);
