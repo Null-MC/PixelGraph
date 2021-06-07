@@ -7,9 +7,9 @@ using System;
 
 namespace PixelGraph.UI.Internal.Preview.Materials
 {
-    internal class PbrSpecularMaterialBuilder : MaterialBuilderBase<IRenderPbrSpecularPreviewBuilder>
+    internal class PbrMaterialBuilder : MaterialBuilderBase<IRenderPbrPreviewBuilder>
     {
-        public PbrSpecularMaterialBuilder(IServiceProvider provider) : base(provider)
+        public PbrMaterialBuilder(IServiceProvider provider) : base(provider)
         {
             TextureMap[TextureTags.Albedo] = null;
             TextureMap[TextureTags.Normal] = null;
@@ -17,9 +17,10 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             TextureMap[TextureTags.Porosity] = null;
         }
 
-        public override Material BuildMaterial()
+        public override Material BuildMaterial(string passName = null)
         {
-            var mat = new PbrSpecularMaterial {
+            var mat = new CustomPbrMaterial {
+                MaterialPassName = passName,
                 SurfaceMapSampler = CustomSamplerStates.Default,
                 RenderEnvironmentMap = Model.Preview.EnableEnvironment,
                 RenderShadowMap = true,

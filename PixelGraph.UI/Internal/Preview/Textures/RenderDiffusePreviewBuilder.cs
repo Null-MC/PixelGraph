@@ -29,7 +29,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         Sampler = profile?.Encoding?.AlbedoBlue?.Sampler,
                         MaxValue = 255,
                     },
-                    new ResourcePackAlphaChannelProperties(TextureTags.Albedo, ColorChannel.Alpha) {
+                    new ResourcePackAlphaChannelProperties(TextureTags.Diffuse, ColorChannel.Alpha) {
                         Sampler = profile?.Encoding?.Alpha?.Sampler,
                         MaxValue = 255,
                     },

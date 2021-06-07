@@ -75,7 +75,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
 
             await graph.MapAsync(tag, true, targetFrame, targetPart, Token);
 
-            var image = await graph.CreateImageAsync<Rgb24>(tag, true, tokenSource.Token);
+            var image = await graph.CreateImageAsync<Rgba32>(tag, true, tokenSource.Token);
             if (image == null) return null;
 
             try {

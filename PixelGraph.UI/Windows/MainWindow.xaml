@@ -221,7 +221,7 @@
                                     <iconPacks:PackIconFontAwesome Padding="2" VerticalAlignment="Center"
                                                                    Kind="{Binding Icon, Mode=OneWay}"
                                                                    Foreground="{DynamicResource MahApps.Brushes.Gray4}"
-                                                                   Width="{TemplateBinding ActualHeight}">
+                                                                   Width="16">
                                         <iconPacks:PackIconFontAwesome.Style>
                                             <Style TargetType="iconPacks:PackIconFontAwesome">
                                                 <Style.Triggers>
@@ -246,7 +246,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <iconPacks:PackIconFontAwesome Kind="PaletteSolid" Padding="2" VerticalAlignment="Center"
                                                                    Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                                                                   Width="{TemplateBinding ActualHeight}"/>
+                                                                   Width="16"/>
                                     <TextBlock Padding="4,0,8,2" VerticalAlignment="Center"
                                                FontSize="{TemplateBinding TreeViewItem.FontSize}"
                                                Foreground="{TemplateBinding TreeViewItem.Foreground}"
@@ -258,7 +258,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <iconPacks:PackIconFontAwesome Kind="FolderSolid" Padding="2" VerticalAlignment="Center"
                                                                    Foreground="{DynamicResource MahApps.Brushes.Gray}"
-                                                                   Width="{TemplateBinding ActualHeight}"/>
+                                                                   Width="16"/>
                                     <TextBlock Padding="4,0,8,2" VerticalAlignment="Center"
                                                FontSize="{TemplateBinding TreeViewItem.FontSize}"
                                                Foreground="{TemplateBinding TreeViewItem.Foreground}"

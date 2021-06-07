@@ -1,6 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Shaders;
-using PixelGraph.UI.Internal.Shaders;
+using PixelGraph.UI.Internal.Preview.Shaders;
 
 namespace PixelGraph.UI.Internal.Preview.Scene
 {
@@ -10,10 +10,32 @@ namespace PixelGraph.UI.Internal.Preview.Scene
         {
             var meshTechnique = GetTechnique(DefaultRenderTechniqueNames.Mesh);
 
-            meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.PBRSpecular) {
+            meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.Diffuse) {
                 ShaderList = new[] {
-                    shaderMgr.BuildDescription(CustomShaderNames.PbrSpecularVertex, ShaderStage.Vertex),
-                    shaderMgr.BuildDescription(CustomShaderNames.PbrSpecularPixel, ShaderStage.Pixel),
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_DiffuseVertex, ShaderStage.Vertex),
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_DiffusePixel, ShaderStage.Pixel),
+                },
+                BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
+                DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+            });
+
+            // TODO: Diffuse OIT
+
+            meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.PbrMetal) {
+                ShaderList = new[] {
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_PbrMetalPixel, ShaderStage.Pixel),
+                },
+                BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
+                DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+            });
+
+            // TODO: PBR-Metal OIT
+
+            meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.PbrSpecular) {
+                ShaderList = new[] {
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_PbrSpecularPixel, ShaderStage.Pixel),
                 },
                 BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
                 DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,

@@ -29,10 +29,6 @@ namespace PixelGraph.UI.ViewModels
         private readonly IRecentPathManager recentMgr;
         private readonly ITextureEditUtility editUtility;
         private readonly Dispatcher uiDispatcher;
-        //private readonly PreviewManager previewMgr;
-
-        //private readonly object previewLock;
-        //private ITexturePreviewBuilder previewBuilder;
 
         public MainModel Model {get; set;}
 
@@ -44,7 +40,6 @@ namespace PixelGraph.UI.ViewModels
             recentMgr = provider.GetRequiredService<IRecentPathManager>();
             editUtility = provider.GetRequiredService<ITextureEditUtility>();
 
-            //previewLock = new object();
             uiDispatcher = Application.Current.Dispatcher;
         }
 
@@ -72,9 +67,7 @@ namespace PixelGraph.UI.ViewModels
 
         public void Clear()
         {
-            //Model.CloseProject();
             Model.SelectedNode = null;
-            //LoadedTexture = null;
             Model.Material.Loaded = null;
             Model.PackInput = null;
             Model.TreeRoot = null;
@@ -86,6 +79,7 @@ namespace PixelGraph.UI.ViewModels
         public async Task SetRootDirectoryAsync(string path, CancellationToken token = default)
         {
             Model.RootDirectory = path;
+
             await LoadRootDirectoryAsync();
 
             await recentMgr.InsertAsync(path, token);
@@ -106,8 +100,6 @@ namespace PixelGraph.UI.ViewModels
                     await LoadPackInputAsync();
                 }
                 catch (Exception error) {
-                    //logger.LogError(error, "Failed to load pack input definitions!");
-                    //ShowError($"Failed to load pack input definitions! {error.UnfoldMessageString()}");
                     throw new ApplicationException("Failed to load pack input definitions!", error);
                 }
 
@@ -118,21 +110,27 @@ namespace PixelGraph.UI.ViewModels
                     UpdateProfileList();
                 }
                 catch (Exception error) {
-                    //logger.LogError(error, "Failed to load pack profile definitions!");
-                    //ShowError($"Failed to load pack profile definitions! {error.UnfoldMessageString()}");
                     throw new ApplicationException("Failed to load pack profile definitions!", error);
                 }
 
                 Model.TreeRoot = new ContentTreeDirectory(null) {
                     LocalPath = null,
                 };
-                treeReader.Update(Model.TreeRoot);
 
-                Model.TreeRoot.UpdateVisibility(Model);
-                Model.Profile.Selected = Model.Profile.List.FirstOrDefault();
+                await uiDispatcher.BeginInvoke(() => {
+                    treeReader.Update(Model.TreeRoot);
+                    Model.TreeRoot.UpdateVisibility(Model);
+
+                    Model.Profile.Selected = Model.Profile.List.FirstOrDefault();
+                    Model.EndBusy();
+                });
             }
-            finally {
-                Model.EndBusy();
+            catch {
+                await uiDispatcher.BeginInvoke(() => {
+                    Model.EndBusy();
+                });
+
+                throw;
             }
         }
 
@@ -195,8 +193,8 @@ namespace PixelGraph.UI.ViewModels
                     var graph = scope.ServiceProvider.GetRequiredService<ITextureNormalGraph>();
 
                     context.Input = Model.PackInput;
-                    //context.Profile = null;
                     context.Material = Model.Material.Loaded;
+
                     context.InputEncoding = inputEncoding.GetMapped().ToList();
                     context.OutputEncoding = inputEncoding.GetMapped().ToList();
 
@@ -228,8 +226,8 @@ namespace PixelGraph.UI.ViewModels
                     var graph = scope.ServiceProvider.GetRequiredService<ITextureOcclusionGraph>();
 
                     context.Input = Model.PackInput;
-                    //context.Profile = null;
                     context.Material = material;
+
                     context.InputEncoding = inputEncoding.GetMapped().ToList();
                     context.OutputEncoding = inputEncoding.GetMapped().ToList();
 

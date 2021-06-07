@@ -8,7 +8,7 @@ using System;
 
 namespace PixelGraph.UI.Internal.Preview.Materials
 {
-    internal class PbrMetalMaterialBuilder : MaterialBuilderBase<IRenderPbrMetalPreviewBuilder>
+    internal class PbrMetalMaterialBuilder : MaterialBuilderBase<IRenderPbrPreviewBuilder>
     {
         public PbrMetalMaterialBuilder(IServiceProvider provider) : base(provider)
         {

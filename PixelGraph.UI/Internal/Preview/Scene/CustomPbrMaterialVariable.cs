@@ -10,10 +10,10 @@ using PixelShader = HelixToolkit.SharpDX.Core.Shaders.PixelShader;
 
 namespace PixelGraph.UI.Internal.Preview.Scene
 {
-    internal class PbrSpecularMaterialVariable : MaterialVariable
+    internal class CustomPbrMaterialVariable : MaterialVariable
     {
         private const int NUMTEXTURES = 4;
-        private const int NUMSAMPLERS = 2;
+        private const int NUMSAMPLERS = 3;
 
         private const int
             AlbedoAlphaMapIdx = 0,
@@ -23,9 +23,10 @@ namespace PixelGraph.UI.Internal.Preview.Scene
 
         private const int
             SurfaceSamplerIdx = 0,
-            ShadowSamplerIdx = 1;
+            IBLSamplerIdx = 1,
+            ShadowSamplerIdx = 2;
 
-        private readonly PbrSpecularMaterialCore material;
+        private readonly CustomPbrMaterialCore material;
 
         private readonly ITextureResourceManager textureManager;
         private readonly IStatePoolManager statePoolManager;
@@ -33,7 +34,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
         private readonly SamplerStateProxy[] SamplerResources;
 
         private int texAlbedoAlphaSlot, texNormalHeightSlot, texRoughF0OcclusionSlot, texPorositySssEmissiveSlot, texShadowSlot;
-        private int samplerSurfaceSlot, samplerShadowSlot;
+        private int samplerSurfaceSlot, samplerIBLSlot, samplerShadowSlot;
         private uint textureIndex;
 
         public ShaderPass MaterialPass { private set; get; }
@@ -46,9 +47,9 @@ namespace PixelGraph.UI.Internal.Preview.Scene
         private bool HasTextures => textureIndex != 0;
 
 
-        public PbrSpecularMaterialVariable(IEffectsManager manager, IRenderTechnique technique, PbrSpecularMaterialCore core,
-            string materialPassName = CustomPassNames.PBRSpecular, string wireframePassName = DefaultPassNames.Wireframe,
-            string materialOITPassName = CustomPassNames.PBRSpecularOIT, string wireframeOITPassName = DefaultPassNames.WireframeOITPass,
+        public CustomPbrMaterialVariable(IEffectsManager manager, IRenderTechnique technique, CustomPbrMaterialCore core,
+            string materialPassName = CustomPassNames.PbrSpecular, string wireframePassName = DefaultPassNames.Wireframe,
+            string materialOITPassName = CustomPassNames.PbrSpecularOIT, string wireframeOITPassName = DefaultPassNames.WireframeOITPass,
             string shadowPassName = DefaultPassNames.ShadowPass,
             string depthPassName = DefaultPassNames.DepthPrepass)
             : base(manager, technique, DefaultMeshConstantBufferDesc, core)
@@ -74,38 +75,36 @@ namespace PixelGraph.UI.Internal.Preview.Scene
 
         protected override void OnInitialPropertyBindings()
         {
-            //AddPropertyBinding(nameof(PbrSpecularMaterialCore.EnableAutoTangent), () => WriteValue(PhongPBRMaterialStruct.EnableAutoTangent, material.EnableAutoTangent));
-            //AddPropertyBinding(nameof(PbrSpecularMaterialCore.RenderShadowMap), () => { WriteValue(PhongPBRMaterialStruct.RenderShadowMapStr, material.RenderShadowMap ? 1 : 0); });
-            //AddPropertyBinding(nameof(PbrSpecularMaterialCore.RenderEnvironmentMap), () => { WriteValue(PhongPBRMaterialStruct.HasCubeMapStr, material.RenderEnvironmentMap ? 1 : 0); });
-
-            //AddPropertyBinding(nameof(PBRMaterialCore.UVTransform), () => {
-            //    var m = material.UVTransform;
-            //    WriteValue(PhongPBRMaterialStruct.UVTransformR1Str, m.Column1);
-            //    WriteValue(PhongPBRMaterialStruct.UVTransformR2Str, m.Column2);
-            //});
-
-            AddPropertyBinding(nameof(PbrSpecularMaterialCore.AlbedoAlphaMap), () => {
-                CreateTextureView(material.AlbedoAlphaMap, AlbedoAlphaMapIdx);
-                //TriggerPropertyAction(nameof(PbrSpecularMaterialCore.RenderAlbedoAlphaMap));
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.RenderShadowMap), () => {
+                WriteValue(PhongPBRMaterialStruct.RenderShadowMapStr, material.RenderShadowMap ? 1 : 0);
             });
 
-            AddPropertyBinding(nameof(PbrSpecularMaterialCore.NormalHeightMap), () => {
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.RenderEnvironmentMap), () => {
+                WriteValue(PhongPBRMaterialStruct.HasCubeMapStr, material.RenderEnvironmentMap ? 1 : 0);
+            });
+
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.AlbedoAlphaMap), () => {
+                CreateTextureView(material.AlbedoAlphaMap, AlbedoAlphaMapIdx);
+            });
+
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.NormalHeightMap), () => {
                 CreateTextureView(material.NormalHeightMap, NormalHeightMapIdx);
-                //TriggerPropertyAction(nameof(PbrSpecularMaterialCore.RenderNormalHeightMap));
             });
             
-            AddPropertyBinding(nameof(PbrSpecularMaterialCore.RoughF0OcclusionMap), () => {
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.RoughF0OcclusionMap), () => {
                 CreateTextureView(material.RoughF0OcclusionMap, RoughF0OcclusionMapIdx);
-                //TriggerPropertyAction(nameof(PBRMaterialCore.RenderRoughnessMetallicMap));
             });
 
-            AddPropertyBinding(nameof(PbrSpecularMaterialCore.PorositySssEmissiveMap), () => {
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.PorositySssEmissiveMap), () => {
                 CreateTextureView(material.PorositySssEmissiveMap, PorositySssEmissiveMapIdx);
-                //TriggerPropertyAction(nameof(PBRMaterialCore.RenderEmissiveMap));
             });
 
-            AddPropertyBinding(nameof(PbrSpecularMaterialCore.SurfaceMapSampler), () => {
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.SurfaceMapSampler), () => {
                 CreateSampler(material.SurfaceMapSampler, SurfaceSamplerIdx);
+            });
+
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.IBLSampler), () => {
+                CreateSampler(material.IBLSampler, IBLSamplerIdx);
             });
 
             WriteValue(PhongPBRMaterialStruct.RenderPBR, true);
@@ -171,12 +170,15 @@ namespace PixelGraph.UI.Internal.Preview.Scene
         private void CreateSamplers()
         {
             var newSurfaceSampler = statePoolManager.Register(material.SurfaceMapSampler);
+            var newIBLSampler = statePoolManager.Register(material.IBLSampler);
             var newShadowSampler = statePoolManager.Register(DefaultSamplers.ShadowSampler);
             RemoveAndDispose(ref SamplerResources[SurfaceSamplerIdx]);
+            RemoveAndDispose(ref SamplerResources[IBLSamplerIdx]);
             RemoveAndDispose(ref SamplerResources[ShadowSamplerIdx]);
 
             if (material != null) {
                 SamplerResources[SurfaceSamplerIdx] = Collect(newSurfaceSampler);
+                SamplerResources[IBLSamplerIdx] = Collect(newIBLSampler);
                 SamplerResources[ShadowSamplerIdx] = Collect(newShadowSampler);
             }
         }
@@ -215,6 +217,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             texShadowSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot("tex_shadow");
 
             samplerSurfaceSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot("sampler_surface");
+            samplerIBLSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(DefaultSamplerStateNames.IBLSampler);
             samplerShadowSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot("sampler_shadow");
         }
 
@@ -229,6 +232,7 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             shader.BindTexture(deviceContext, texPorositySssEmissiveSlot, TextureResources[PorositySssEmissiveMapIdx]);
 
             shader.BindSampler(deviceContext, samplerSurfaceSlot, SamplerResources[SurfaceSamplerIdx]);
+            shader.BindSampler(deviceContext, samplerIBLSlot, SamplerResources[IBLSamplerIdx]);
         }
     }
 }

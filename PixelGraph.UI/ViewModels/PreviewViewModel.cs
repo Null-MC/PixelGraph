@@ -1,10 +1,11 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Preview.Materials;
 using PixelGraph.UI.Internal.Preview.Scene;
+using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Textures;
-using PixelGraph.UI.Internal.Shaders;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using SharpDX;
@@ -30,8 +31,7 @@ namespace PixelGraph.UI.ViewModels
         private CancellationTokenSource tokenSource;
 
         private DiffuseMaterialBuilder builderDiffuse;
-        private PbrMetalMaterialBuilder builderPbrMetal;
-        private PbrSpecularMaterialBuilder builderPbrSpecular;
+        private PbrMaterialBuilder builderPbr;
         private Stream _skyImageStream;
 
         public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
@@ -50,8 +50,7 @@ namespace PixelGraph.UI.ViewModels
         public void Dispose()
         {
             builderDiffuse?.Dispose();
-            builderPbrMetal?.Dispose();
-            builderPbrSpecular?.Dispose();
+            builderPbr?.Dispose();
             tokenSource?.Dispose();
         }
 
@@ -60,19 +59,15 @@ namespace PixelGraph.UI.ViewModels
             if (builderDiffuse != null)
                 await builderDiffuse.DisposeAsync();
 
-            if (builderPbrMetal != null)
-                await builderPbrMetal.DisposeAsync();
+            if (builderPbr != null)
+                await builderPbr.DisposeAsync();
 
-            if (builderPbrSpecular != null)
-                await builderPbrSpecular.DisposeAsync();
-
+            // ReSharper disable once InconsistentlySynchronizedField
             tokenSource?.Dispose();
         }
 
         public void Initialize()
         {
-            InitializeShaders();
-
             ReloadShaders();
             
             Model.Preview.Camera = new PerspectiveCamera();
@@ -91,9 +86,13 @@ namespace PixelGraph.UI.ViewModels
 
             Model.Preview.Model = BuildCube(4);
 
-            builderDiffuse = new DiffuseMaterialBuilder(provider) {Model = Model};
-            builderPbrMetal = new PbrMetalMaterialBuilder(provider) {Model = Model};
-            builderPbrSpecular = new PbrSpecularMaterialBuilder(provider) {Model = Model};
+            builderDiffuse = new DiffuseMaterialBuilder(provider) {
+                Model = Model,
+            };
+
+            builderPbr = new PbrMaterialBuilder(provider) {
+                Model = Model,
+            };
 
             Model.Preview.EnableRenderChanged += OnEnableRenderChanged;
             Model.Preview.RenderModeChanged += OnRenderModeChanged;
@@ -101,26 +100,9 @@ namespace PixelGraph.UI.ViewModels
             Model.Preview.SelectedTagChanged += OnSelectedTagChanged;
         }
 
-        private void InitializeShaders()
-        {
-            var shaderMgr = provider.GetRequiredService<IShaderByteCodeManager>();
-
-            shaderMgr.Add(CustomShaderNames.PbrSpecularVertex, new ShaderSourceDescription {
-                Profile = "vs_4_0",
-                RawFileName = "vs_pbr_specular.hlsl",
-                CompiledResourceName = "vs_pbr_specular.cso",
-            });
-
-            shaderMgr.Add(CustomShaderNames.PbrSpecularPixel, new ShaderSourceDescription {
-                Profile = "ps_4_0",
-                RawFileName = "ps_pbr_specular.hlsl",
-                CompiledResourceName = "ps_pbr_specular.cso",
-            });
-        }
-
         public void ReloadShaders()
         {
-            var shaderMgr = provider.GetRequiredService<IShaderByteCodeManager>();
+            var shaderMgr = provider.GetRequiredService<ICustomShaderManager>();
 
             if (!shaderMgr.LoadAll(out var compileErrors))
                 OnShaderCompileErrors(compileErrors);
@@ -144,8 +126,7 @@ namespace PixelGraph.UI.ViewModels
             await uiDispatcher.BeginInvoke(() => Model.Preview.LayerImage = null);
 
             await builderDiffuse.ClearAllTexturesAsync();
-            await builderPbrMetal.ClearAllTexturesAsync();
-            await builderPbrSpecular.ClearAllTexturesAsync();
+            await builderPbr.ClearAllTexturesAsync();
         }
 
         public async Task SetFromFileAsync(string filename)
@@ -239,8 +220,14 @@ namespace PixelGraph.UI.ViewModels
 
         public void UpdateMaterial()
         {
+            var passName = Model.Preview.RenderMode switch {
+                RenderPreviewModes.PbrMetal => CustomPassNames.PbrMetal,
+                RenderPreviewModes.PbrSpecular => CustomPassNames.PbrSpecular,
+                _ => null,
+            };
+
             var builder = GetMaterialBuilder();
-            var mat = builder.BuildMaterial();
+            var mat = builder.BuildMaterial(passName);
             mat.Freeze();
 
             Model.Preview.ModelMaterial = mat;
@@ -257,8 +244,8 @@ namespace PixelGraph.UI.ViewModels
         {
             return Model.Preview.RenderMode switch {
                 RenderPreviewModes.Diffuse => builderDiffuse,
-                RenderPreviewModes.PbrMetal => builderPbrMetal,
-                RenderPreviewModes.PbrSpecular => builderPbrSpecular,
+                RenderPreviewModes.PbrMetal => builderPbr,
+                RenderPreviewModes.PbrSpecular => builderPbr,
                 _ => throw new ApplicationException(),
             };
         }
@@ -319,12 +306,13 @@ namespace PixelGraph.UI.ViewModels
         private static MeshGeometry3D BuildCube(int size)
         {
             var builder = new MeshBuilder(true, true, true);
-            builder.AddCubeFace(Vector3.Zero, new Vector3( 1,  0,  0), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(Vector3.Zero, new Vector3(-1,  0,  0), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(Vector3.Zero, new Vector3( 0,  0,  1), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(Vector3.Zero, new Vector3( 0,  0, -1), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(Vector3.Zero, new Vector3( 0,  1,  0), Vector3.UnitZ, size, size, size);
-            builder.AddCubeFace(Vector3.Zero, new Vector3( 0, -1,  0), Vector3.UnitZ, size, size, size);
+            builder.AddCubeFace(Vector3.Zero, new Vector3(1, 0, 0), Vector3.UnitY, size, size, size);
+            builder.AddCubeFace(Vector3.Zero, new Vector3(-1, 0, 0), Vector3.UnitY, size, size, size);
+            builder.AddCubeFace(Vector3.Zero, new Vector3(0, 0, 1), Vector3.UnitY, size, size, size);
+            builder.AddCubeFace(Vector3.Zero, new Vector3(0, 0, -1), Vector3.UnitY, size, size, size);
+            builder.AddCubeFace(Vector3.Zero, new Vector3(0, 1, 0), Vector3.UnitX, size, size, size);
+            builder.AddCubeFace(Vector3.Zero, new Vector3(0, -1, 0), Vector3.UnitX, size, size, size);
+            builder.ComputeTangents(MeshFaces.Default);
             return builder.ToMeshGeometry3D();
         }
 

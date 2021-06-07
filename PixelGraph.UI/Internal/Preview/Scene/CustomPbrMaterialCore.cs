@@ -2,16 +2,20 @@
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using SharpDX.Direct3D11;
+using System;
 
 namespace PixelGraph.UI.Internal.Preview.Scene
 {
-    public class PbrSpecularMaterialCore : MaterialCore
+    public class CustomPbrMaterialCore : MaterialCore
     {
+        private readonly string materialPassName;
+
         private TextureModel _albedoAlphaMap;
         private TextureModel _normalHeightMap;
         private TextureModel _roughF0OcclusionMap;
         private TextureModel _porositySssEmissive;
         private SamplerStateDescription _surfaceMapSampler;
+        private SamplerStateDescription _iblSampler;
         private bool _renderShadowMap;
         private bool _renderEnvironmentMap;
 
@@ -50,15 +54,23 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             set => Set(ref _surfaceMapSampler, value); 
         }
 
+        public SamplerStateDescription IBLSampler {
+            set => Set(ref _iblSampler, value); 
+            get => _iblSampler; 
+        }
 
-        public PbrSpecularMaterialCore()
+
+        public CustomPbrMaterialCore(string materialPassName)
         {
+            this.materialPassName = materialPassName ?? throw new ArgumentNullException(nameof(materialPassName));
+
             _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni4;
+            _iblSampler = DefaultSamplers.IBLSampler;
         }
 
         public override MaterialVariable CreateMaterialVariables(IEffectsManager manager, IRenderTechnique technique)
         {
-            return new PbrSpecularMaterialVariable(manager, technique, this);
+            return new CustomPbrMaterialVariable(manager, technique, this, materialPassName);
         }
     }
 }

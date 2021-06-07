@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace PixelGraph.UI.Internal.Preview.Textures
 {
-    public interface IRenderPbrSpecularPreviewBuilder : ITexturePreviewBuilder {}
+    public interface IRenderPbrPreviewBuilder : ITexturePreviewBuilder {}
 
-    internal class RenderPbrSpecularPreviewBuilder : TexturePreviewBuilderBase, IRenderPbrSpecularPreviewBuilder
+    internal class RenderPbrPreviewBuilder : TexturePreviewBuilderBase, IRenderPbrPreviewBuilder
     {
-        public RenderPbrSpecularPreviewBuilder(IServiceProvider provider) : base(provider)
+        public RenderPbrPreviewBuilder(IServiceProvider provider) : base(provider)
         {
             TagMap = tagMap;
         }

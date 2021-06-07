@@ -4,12 +4,12 @@
 
 struct vs_input
 {
-	float4 p : POSITION;
-	float3 n : NORMAL;
+	float4 pos : POSITION;
+	float3 nor : NORMAL;
 	float3 tan : TANGENT;
 	float3 bin : BINORMAL;
 	float2 tex : TEXCOORD;
-    float4 c : COLOR;
+    float4 col : COLOR;
 	float4 mr0 : TEXCOORD1;
 	float4 mr1 : TEXCOORD2;
 	float4 mr2 : TEXCOORD3;
@@ -18,13 +18,16 @@ struct vs_input
 
 struct ps_input
 {
-	float4 pos : SV_POSITION;
-	float4 wp  : POSITION0;
-	float4 eye  : POSITION1;
-    float3 nor : NORMAL;
-	float3 tan : TANGENT;
-	float3 bin : BINORMAL;
-	float2 tex : TEXCOORD0;
+	float4 pos  : SV_POSITION;
+	float4 wp   : POSITION0;
+	float3 eye  : POSITION1;
+	float3 eyeT : POSITION2;
+	float2 poT  : POSITION3;
+    float3 nor  : NORMAL;
+	float3 tan  : TANGENT;
+	float3 bin  : BINORMAL;
+	float2 tex  : TEXCOORD0;
+	float4 sp   : TEXCOORD1;
 };
 
 struct LightStruct
@@ -119,13 +122,28 @@ cbuffer cbLights : register(b3)
     float padding;
 };
 
+cbuffer cbShadow : register(b5)
+{
+    float2 vShadowMapSize = float2(1024, 1024);
+    bool bHasShadowMap = false;
+    float paddingShadow0;
+    float4 vShadowMapInfo = float4(0.005, 1.0, 0.5, 0.0);
+    float4x4 vLightViewProjection;
+};
+
 Texture2D tex_albedo_alpha : register(t0);
 Texture2D tex_normal_height : register(t1);
 Texture2D tex_rough_f0_occlusion : register(t2);
 Texture2D tex_porosity_sss_emissive : register(t3);
+
+Texture2D tex_diffuse_alpha : register(t0);
+Texture2D tex_emissive : register(t1);
+
+TextureCube<float3> tex_cube : register(t20);
 Texture2D<float> tex_shadow : register(t30);
 
 SamplerState sampler_surface : register(s0);
+SamplerState sampler_IBL : register(s1);
 SamplerState sampler_cube : register(s4);
 
 SamplerComparisonState sampler_shadow : register(s5);

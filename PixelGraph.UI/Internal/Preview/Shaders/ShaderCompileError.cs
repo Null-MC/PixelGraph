@@ -1,4 +1,4 @@
-﻿namespace PixelGraph.UI.Internal.Shaders
+﻿namespace PixelGraph.UI.Internal.Preview.Shaders
 {
     public class ShaderCompileError
     {

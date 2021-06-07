@@ -17,7 +17,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         Task UpdateTexturesByTagAsync(string textureTag, CancellationToken token = default);
         Task ClearAllTexturesAsync();
         void ClearAllTextures();
-        Material BuildMaterial();
+        Material BuildMaterial(string passName = null);
     }
 
     internal abstract class MaterialBuilderBase<T> : IMaterialBuilder, IDisposable, IAsyncDisposable
@@ -80,7 +80,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             }
         }
 
-        public abstract Material BuildMaterial();
+        public abstract Material BuildMaterial(string passName = null);
 
         protected ITexturePreviewBuilder GetPreviewBuilder()
         {
@@ -99,6 +99,28 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
             try {
                 using var image = await previewBuilder.BuildAsync(textureTag, frame, part);
+
+                //if (!image.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
+                //    throw new VeldridException("Unable to get image pixelspan.");
+
+                //fixed (void* pin = &MemoryMarshal.GetReference(pixelSpan))
+                //{
+                //    gd.UpdateTexture(
+                //        tex,
+                //        (IntPtr)pin,
+                //        (uint)(PixelSizeInBytes * image.Width * image.Height),
+                //        0,
+                //        0,
+                //        0,
+                //        (uint)image.Width,
+                //        (uint)image.Height,
+                //        1,
+                //        (uint)level,
+                //        0);
+                //}
+
+                //var info = new TextureInfo(stream, Format.R8G8B8A8_UInt, image.Width, image.Height, true);
+                
                 await image.SaveAsPngAsync(stream, token);
                 await stream.FlushAsync(token);
                 stream.Position = 0;

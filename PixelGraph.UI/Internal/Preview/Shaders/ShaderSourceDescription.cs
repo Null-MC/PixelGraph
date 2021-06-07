@@ -1,10 +1,10 @@
-﻿using PixelGraph.UI.Internal.Utilities;
-using SharpDX.D3DCompiler;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using PixelGraph.UI.Internal.Utilities;
+using SharpDX.D3DCompiler;
 
-namespace PixelGraph.UI.Internal.Shaders
+namespace PixelGraph.UI.Internal.Preview.Shaders
 {
     public class ShaderSourceDescription : IDisposable
     {
@@ -77,7 +77,12 @@ namespace PixelGraph.UI.Internal.Shaders
 
         public Stream Open(IncludeType type, string fileName, Stream parentStream)
         {
-            var fullFile = Path.Combine(SourcePath, fileName);
+            var path = SourcePath;
+
+            if (parentStream is FileStream fileStream)
+                path = Path.GetDirectoryName(fileStream.Name);
+
+            var fullFile = Path.Combine(path, fileName).Replace('/', '\\');
             return File.Open(fullFile, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 

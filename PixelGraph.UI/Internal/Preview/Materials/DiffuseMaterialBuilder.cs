@@ -3,7 +3,6 @@ using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal.Preview.Scene;
 using PixelGraph.UI.Internal.Preview.Textures;
-using SharpDX;
 using System;
 
 namespace PixelGraph.UI.Internal.Preview.Materials
@@ -15,27 +14,18 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             TextureMap[TextureTags.Diffuse] = null;
         }
 
-        public override Material BuildMaterial()
+        public override Material BuildMaterial(string passName = null)
         {
-            var mat = new PhongMaterial {
-                DiffuseMapSampler = CustomSamplerStates.Default,
-                RenderDiffuseMap = false,
-                RenderDiffuseAlphaMap = true,
-                RenderNormalMap = false,
-                RenderSpecularColorMap = false,
-                RenderEmissiveMap = false,
-                RenderEnvironmentMap = false,
+            var mat = new CustomDiffuseMaterial {
+                SurfaceMapSampler = CustomSamplerStates.Default,
                 RenderShadowMap = true,
-
-                EnableTessellation = false,
-                RenderDisplacementMap = false,
-
-                AmbientColor = Color.White,
-                SpecularColor = Color.Black,
             };
 
             if (TextureMap.TryGetValue(TextureTags.Diffuse, out var diffuseStream) && diffuseStream != null)
                 mat.DiffuseAlphaMap = TextureModel.Create(diffuseStream);
+
+            if (TextureMap.TryGetValue(TextureTags.Emissive, out var emissiveStream) && emissiveStream != null)
+                mat.EmissiveMap = TextureModel.Create(emissiveStream);
 
             return mat;
         }

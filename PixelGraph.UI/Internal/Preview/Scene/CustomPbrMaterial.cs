@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace PixelGraph.UI.Internal.Preview.Scene
 {
-    public class PbrSpecularMaterial : Material
+    public class CustomPbrMaterial : Material
     {
         public TextureModel AlbedoAlphaMap {
             get => (TextureModel)GetValue(AlbedoAlphaMapProperty);
@@ -44,10 +44,12 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             set => SetValue(SurfaceMapSamplerProperty, value);
         }
 
+        public string MaterialPassName {get; set;}
 
-        public PbrSpecularMaterial() {}
 
-        public PbrSpecularMaterial(PbrSpecularMaterialCore core) : base(core)
+        public CustomPbrMaterial() {}
+
+        public CustomPbrMaterial(CustomPbrMaterialCore core) : base(core)
         {
             AlbedoAlphaMap = core.AlbedoAlphaMap;
             NormalHeightMap = core.NormalHeightMap;
@@ -57,11 +59,9 @@ namespace PixelGraph.UI.Internal.Preview.Scene
 
             RenderEnvironmentMap = core.RenderEnvironmentMap;
             RenderShadowMap = core.RenderShadowMap;
-            //EnableAutoTangent = core.EnableAutoTangent;
-            //UVTransform = core.UVTransform;
         }
 
-        public virtual PbrSpecularMaterial CloneMaterial()
+        public virtual CustomPbrMaterial CloneMaterial()
         {
             return new() {
                 AlbedoAlphaMap = AlbedoAlphaMap,
@@ -69,29 +69,22 @@ namespace PixelGraph.UI.Internal.Preview.Scene
                 RoughF0OcclusionMap = RoughF0OcclusionMap,
                 PorositySssEmissiveMap = PorositySssEmissiveMap,
                 SurfaceMapSampler = SurfaceMapSampler,
-
                 RenderEnvironmentMap = RenderEnvironmentMap,
                 RenderShadowMap = RenderShadowMap,
-                //EnableAutoTangent = EnableAutoTangent,
-                //UVTransform = UVTransform,
             };
         }
 
         protected override MaterialCore OnCreateCore()
         {
-            return new PbrSpecularMaterialCore {
+            return new CustomPbrMaterialCore(MaterialPassName) {
                 Name = Name,
-
                 AlbedoAlphaMap = AlbedoAlphaMap,
                 NormalHeightMap = NormalHeightMap,
                 RoughF0OcclusionMap = RoughF0OcclusionMap,
                 PorositySssEmissiveMap = PorositySssEmissiveMap,
                 SurfaceMapSampler = SurfaceMapSampler,
-            
                 RenderEnvironmentMap = RenderEnvironmentMap,
                 RenderShadowMap = RenderShadowMap,
-                //EnableAutoTangent = EnableAutoTangent,
-                //UVTransform = UVTransform,
             };
         }
 
@@ -101,38 +94,38 @@ namespace PixelGraph.UI.Internal.Preview.Scene
         }
 
         public static readonly DependencyProperty AlbedoAlphaMapProperty =
-            DependencyProperty.Register(nameof(AlbedoAlphaMap), typeof(TextureModel), typeof(PbrSpecularMaterial), new PropertyMetadata(null, (d, e) => {
-                ((PbrSpecularMaterialCore)((Material)d).Core).AlbedoAlphaMap = e.NewValue as TextureModel;
+            DependencyProperty.Register(nameof(AlbedoAlphaMap), typeof(TextureModel), typeof(CustomPbrMaterial), new PropertyMetadata(null, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).AlbedoAlphaMap = e.NewValue as TextureModel;
             }));
 
         public static readonly DependencyProperty NormalHeightMapProperty =
-            DependencyProperty.Register(nameof(NormalHeightMap), typeof(TextureModel), typeof(PbrSpecularMaterial), new PropertyMetadata(null, (d, e) => {
-                ((PbrSpecularMaterialCore)((Material)d).Core).NormalHeightMap = e.NewValue as TextureModel;
+            DependencyProperty.Register(nameof(NormalHeightMap), typeof(TextureModel), typeof(CustomPbrMaterial), new PropertyMetadata(null, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).NormalHeightMap = e.NewValue as TextureModel;
             }));
 
         public static readonly DependencyProperty RoughF0OcclusionMapProperty =
-            DependencyProperty.Register(nameof(RoughF0OcclusionMap), typeof(TextureModel), typeof(PbrSpecularMaterial), new PropertyMetadata(null, (d, e) => {
-                ((PbrSpecularMaterialCore)((Material)d).Core).RoughF0OcclusionMap = e.NewValue as TextureModel;
+            DependencyProperty.Register(nameof(RoughF0OcclusionMap), typeof(TextureModel), typeof(CustomPbrMaterial), new PropertyMetadata(null, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).RoughF0OcclusionMap = e.NewValue as TextureModel;
             }));
 
         public static readonly DependencyProperty PorositySssEmissiveMapProperty =
-            DependencyProperty.Register(nameof(PorositySssEmissiveMap), typeof(TextureModel), typeof(PbrSpecularMaterial), new PropertyMetadata(null, (d, e) => {
-                ((PbrSpecularMaterialCore)((Material)d).Core).PorositySssEmissiveMap = e.NewValue as TextureModel;
+            DependencyProperty.Register(nameof(PorositySssEmissiveMap), typeof(TextureModel), typeof(CustomPbrMaterial), new PropertyMetadata(null, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).PorositySssEmissiveMap = e.NewValue as TextureModel;
             }));
 
         public static readonly DependencyProperty RenderShadowMapProperty =
-            DependencyProperty.Register(nameof(RenderShadowMap), typeof(bool), typeof(PbrSpecularMaterial), new PropertyMetadata(false, (d, e) => {
-                ((PbrSpecularMaterialCore)((Material)d).Core).RenderShadowMap = (bool)e.NewValue;
+            DependencyProperty.Register(nameof(RenderShadowMap), typeof(bool), typeof(CustomPbrMaterial), new PropertyMetadata(false, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).RenderShadowMap = (bool)e.NewValue;
             }));
 
         public static readonly DependencyProperty RenderEnvironmentMapProperty =
-            DependencyProperty.Register(nameof(RenderEnvironmentMap), typeof(bool), typeof(PbrSpecularMaterial), new PropertyMetadata(false, (d, e) => {
-                ((PbrSpecularMaterialCore)((Material)d).Core).RenderEnvironmentMap = (bool)e.NewValue;
+            DependencyProperty.Register(nameof(RenderEnvironmentMap), typeof(bool), typeof(CustomPbrMaterial), new PropertyMetadata(false, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).RenderEnvironmentMap = (bool)e.NewValue;
             }));
 
         public static readonly DependencyProperty SurfaceMapSamplerProperty =
-            DependencyProperty.Register(nameof(SurfaceMapSampler), typeof(SamplerStateDescription), typeof(PbrSpecularMaterial), new PropertyMetadata(DefaultSamplers.LinearSamplerWrapAni4, (d, e) => {
-                ((PbrSpecularMaterialCore)((Material)d).Core).SurfaceMapSampler = (SamplerStateDescription)e.NewValue;
+            DependencyProperty.Register(nameof(SurfaceMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(DefaultSamplers.LinearSamplerWrapAni4, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).SurfaceMapSampler = (SamplerStateDescription)e.NewValue;
             }));
     }
 }
