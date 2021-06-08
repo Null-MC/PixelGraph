@@ -39,13 +39,13 @@
 
 float4 main(const ps_input input) : SV_TARGET
 {
-	const float2 parallax_tex = get_parallax_texcoord(input);
+	const float3 eye = normalize(input.eye.xyz);
+	const float2 parallax_tex = get_parallax_texcoord(input.tex, input.poT, input.nor, eye);
 
 	const float4 albedo_alpha = tex_albedo_alpha.Sample(sampler_surface, parallax_tex);
 	const float3 rough_f0_occlusion = tex_rough_f0_occlusion.Sample(sampler_surface, parallax_tex).rgb;
 	const float3 porosity_sss_emissive = tex_porosity_sss_emissive.Sample(sampler_surface, parallax_tex).rgb;
 
-	const float3 eye = normalize(input.eye.xyz);
 	const float3 normal = calc_normal(parallax_tex, input.nor, input.tan, input.bin);
 
 	const float rough = pow(rough_f0_occlusion.r, 2.0f);

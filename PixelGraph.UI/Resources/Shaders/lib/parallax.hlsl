@@ -1,26 +1,23 @@
-#define MIN_PARALLAX_SAMPLES 64
-#define MAX_PARALLAX_SAMPLES 512
+#define MIN_PARALLAX_SAMPLES 4
+#define MAX_PARALLAX_SAMPLES 256
 
 #pragma pack_matrix( row_major )
 
 
-float2 get_parallax_texcoord(const ps_input input) {
-	const float2 dx = ddx(input.tex);
-	const float2 dy = ddy(input.tex);
+float2 get_parallax_texcoord(const float2 tex, const float2 offsetT, const float3 normal, const float3 eye) {
+	const float2 dx = ddx(tex);
+	const float2 dy = ddy(tex);
 
-	const float3 nor = normalize(input.nor);
-	const float3 eye = normalize(input.eye);
-	
-	const int step_count = (int)lerp(MAX_PARALLAX_SAMPLES, MIN_PARALLAX_SAMPLES, dot(-eye, nor));
+	const int step_count = (int)lerp(MAX_PARALLAX_SAMPLES, MIN_PARALLAX_SAMPLES, dot(-eye, normal));
 
-	const float step_size = 1.0 / (float) step_count;
+	const float step_size = 1.0 / (float)step_count;
 
-	const float2 step_offset = step_size * input.poT;
-	
+	const float2 step_offset = step_size * offsetT;
+
 	float current_bound = 1.0;
 	float current_height = 0.0;
-	float2 current_offset = input.tex;
-	float2 prev_offset = input.tex;
+	float2 current_offset = tex;
+	float2 prev_offset = tex;
 	float prev_surface_height = 0.0;
 	float prev_height = 1.0;
 
@@ -34,7 +31,7 @@ float2 get_parallax_texcoord(const ps_input input) {
 
 		if (current_height > current_bound)
 			return current_offset;
-		
+
 		step_index++;
 		prev_height = current_height;
 		prev_offset = current_offset;

@@ -69,17 +69,62 @@ float3 srgbToLinear(const float3 color) {
 	return pow(color, 2.2f);
 }
 
+float3 diffuseIBL(const in float3 N, const in float3 V, const in float lodBias)
+{
+	const float3 dir = reflect(-V, N);
+	const float mip = lodBias * NumEnvironmentMapMipLevels;
+	return tex_cube.SampleLevel(sampler_IBL, dir, mip).rgb;
+}
+
+float radicalInverse_VdC(uint bits) {
+	bits = (bits << 16u) | (bits >> 16u);
+	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+	return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+}
+
+float2 hammersley2d(uint i, uint N) {
+	return float2(float(i) / float(N), radicalInverse_VdC(i));
+}
+
+float3 generateUnitVector(float2 hash) {
+	hash.x *= 2.0 * pi; hash.y = hash.y * 2.0 - 1.0;
+	return float3(float2(sin(hash.x), cos(hash.x)) * sqrt(1.0 - hash.y * hash.y), hash.y);
+}
+
+float3 diffuseIBL(const float3 albedo, const float3 normal, const float3 eye, const float f0, const float alpha) {
+	uint N = 256u;
+	float3 result = float3(0.0f, 0.0f, 0.0f);
+	for (uint i = 0u; i < N; ++i) {
+		float3 dir = generateUnitVector(hammersley2d(i, N));
+
+		const float nDotV = dot(normal, eye);
+		const float nDotL = saturate(dot(normal, dir));
+		const float nDotH = abs(dot(normal, normalize(dir + eye))) + 1e-5;
+		const float lDotV = dot(dir, eye);
+		const float vDotH = dot(eye, normalize(dir + eye));
+
+		float3 diffuse = hammonDiffuse(albedo, f0, nDotV, nDotL, nDotH, lDotV, alpha);
+		float specular = specularBRDF(nDotL, nDotV, nDotH, vDotH, f0, alpha);
+		result += diffuse * tex_cube.Sample(sampler_IBL, dir).rgb;
+		//result += specular * tex_cube.Sample(sampler_IBL, dir).rgb;
+	}
+	return result / (float)N;
+}
+
 float4 main(const ps_input input) : SV_TARGET
 {
-	const float2 parallax_tex = input.tex;// get_parallax_texcoord(input);
+	const float3 eye = normalize(input.eye.xyz);
+	const float2 parallax_tex = get_parallax_texcoord(input.tex, input.poT, input.nor, eye);
 	
 	const float4 albedo_alpha = tex_albedo_alpha.Sample(sampler_surface, parallax_tex);
 	const float3 linearAlbedo = srgbToLinear(albedo_alpha.xyz);
 	const float3 rough_f0_occlusion = tex_rough_f0_occlusion.Sample(sampler_surface, parallax_tex).rgb;
 	const float3 porosity_sss_emissive = tex_porosity_sss_emissive.Sample(sampler_surface, parallax_tex).rgb;
 
-	const float3 eye = normalize(input.eye.xyz);
-	const float3 normal = input.nor;// calc_normal(parallax_tex, input.nor, input.tan, input.bin);
+	const float3 normal = calc_normal(parallax_tex, input.nor, input.tan, input.bin);
 
 	const float rough = rough_f0_occlusion.r * rough_f0_occlusion.r;
 	const float f0r = rough_f0_occlusion.g;
@@ -101,15 +146,15 @@ float4 main(const ps_input input) : SV_TARGET
 
 	float3 lightColor = float3(10.0f, 10.0f, 10.0f) * attenuation;
 
-	float3 lit  = lightColor * hammonDiffuse(linearAlbedo, f0r, nDotV, nDotL, nDotH, lDotV, alpha);
-		   lit += lightColor * specularBRDF(nDotL, nDotV, nDotH, vDotH, f0r, alpha);
+	float3 lit  = diffuseIBL(linearAlbedo, normal, eye, f0r, alpha);
 
     if (bRenderShadowMap)
         lit *= shadow_strength(input.sp);
 
 	//const float3 ambient = albedo_alpha.rgb * (emissive + vLightAmbient.rgb);
 
-	lit = lit / (1.0 + lit);
+	lit *= 10.0f;
+	lit = lit / (1.0f + lit);
 
 	lit = linearToSrgb(lit);
 	
