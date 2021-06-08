@@ -3,16 +3,7 @@
 #include "lib/parallax.hlsl"
 #include "lib/pbr.hlsl"
 
-//#define IRON float3(2.9114, 2.9497, 2.5845)
-//#define GOLD float3(0.18299, 0.42108, 1.3734)
-//#define ALUMINUM float3(1.3456, 0.96521, 0.61722)
-//#define CHROME float3(3.1071, 3.1812, 2.3230)
-//#define COPPER float3(0.27105, 0.67693, 1.3164)
-//#define LEAD float3(1.9100, 1.8300, 1.4400)
-//#define PLATINUM float3(2.3757, 2.0847, 1.8453)
-//#define SILVER float3(0.15943, 0.14512, 0.13547)
-
-#pragma pack_matrix( row_major )
+#pragma pack_matrix(row_major)
 
 /* TEXTURE PACKING
  *   tex_albedo_alpha
@@ -42,10 +33,10 @@ float4 main(const ps_input input) : SV_TARGET
     const float3 tangent = normalize(input.tan);
     const float3 bitangent = normalize(input.bin);
 	const float3 eye = normalize(input.eye.xyz);
-
+	
 	const float2 parallax_tex = get_parallax_texcoord(input.tex, input.poT, normal, eye);
 	const float3 normalT = calc_normal(parallax_tex, normal, tangent, bitangent);
-	
+
 	const float4 albedo_alpha = tex_albedo_alpha.Sample(sampler_surface, parallax_tex);
 	const float3 rough_f0_occlusion = tex_rough_f0_occlusion.Sample(sampler_surface, parallax_tex).rgb;
 	const float3 porosity_sss_emissive = tex_porosity_sss_emissive.Sample(sampler_surface, parallax_tex).rgb;
@@ -58,7 +49,7 @@ float4 main(const ps_input input) : SV_TARGET
     
     // Blend base colors
 	const float metal = f0r > 0.5 ? 1 : 0;
-    const float3 diffuse = lerp(albedo_alpha.rgb, float3(0, 0, 0), metal); //* occlusion;
+    const float3 diffuse = lerp(albedo_alpha.rgb, float3(0, 0, 0), metal);
 
 	
 	float3 metal_albedo = albedo_alpha.rgb;
@@ -88,7 +79,7 @@ float4 main(const ps_input input) : SV_TARGET
     	metal_albedo = float3(0.97, 0.96, 0.91);
     }
 	
-	const float3 f0 = f0r * (1 - metal) + metal_albedo * metal;
+	const float3 f0 = f0r * (1 - metal) + metal_albedo * metal * occlusion;
 	
 	
     float3 acc_color = 0;
@@ -98,14 +89,14 @@ float4 main(const ps_input input) : SV_TARGET
     for (int i = 0; i < NumLights; i++) {
         if (Lights[i].iLightType == 1) {
             // light vector (to light)
-            const float3 L = normalize(Lights[i].vLightDir.xyz);
+            const float3 light_dir = normalize(Lights[i].vLightDir.xyz);
 
             // Half vector
-            const float3 H = normalize(L + eye);
+            const float3 H = normalize(light_dir + eye);
 
             // products
-            const float NdotL = saturate(dot(normalT, L));
-            const float LdotH = saturate(dot(L, H));
+            const float NdotL = saturate(dot(normalT, light_dir));
+            const float LdotH = saturate(dot(light_dir, H));
             const float NdotH = saturate(dot(normalT, H));
         	
             // Diffuse & specular factors
@@ -116,16 +107,16 @@ float4 main(const ps_input input) : SV_TARGET
             acc_color += NdotL * Lights[i].vLightColor.rgb * (light_diffuse + light_specular);
         }
         else if (Lights[i].iLightType == 2) {
-            float3 L = (Lights[i].vLightPos - input.wp).xyz; // light dir
-            const float dl = length(L); // light distance
+            float3 light_dir = Lights[i].vLightPos.xyz - input.wp.xyz; // light dir
+            const float dl = length(light_dir); // light distance
             if (Lights[i].vLightAtt.w < dl) continue;
 
-            L = L / dl; // normalized light dir						
-            const float3 H = normalize(eye + L); // half direction for specular
+            light_dir = light_dir / dl; // normalized light dir						
+            const float3 H = normalize(eye + light_dir); // half direction for specular
 
         	// products
-            const float NdotL = saturate(dot(normalT, L));
-            const float LdotH = saturate(dot(L, H));
+            const float NdotL = saturate(dot(normalT, light_dir));
+            const float LdotH = saturate(dot(light_dir, H));
             const float NdotH = saturate(dot(normalT, H));
         	
             // Diffuse & specular factors
@@ -136,16 +127,16 @@ float4 main(const ps_input input) : SV_TARGET
             acc_color = mad(att, NdotL * Lights[i].vLightColor.rgb * (light_diffuse + light_specular), acc_color);
         }
         else if (Lights[i].iLightType == 3) {
-            float3 L = (Lights[i].vLightPos - input.wp).xyz; // light dir
-            const float dl = length(L); // light distance
+            float3 light_dir = Lights[i].vLightPos.xyz - input.wp.xyz; // light dir
+            const float dl = length(light_dir); // light distance
             if (Lights[i].vLightAtt.w < dl) continue;
         	
-            L = L / dl; // normalized light dir					
-            const float3 H = normalize(eye + L); // half direction for specular
+            light_dir = light_dir / dl; // normalized light dir					
+            const float3 H = normalize(eye + light_dir); // half direction for specular
             const float3 sd = normalize(Lights[i].vLightDir.xyz); // missuse the vLightDir variable for spot-dir
 
-            const float NdotL = saturate(dot(normalT, L));
-            const float LdotH = saturate(dot(L, H));
+            const float NdotL = saturate(dot(normalT, light_dir));
+            const float LdotH = saturate(dot(light_dir, H));
             const float NdotH = saturate(dot(normalT, H));
         	
             // Diffuse & specular factors
@@ -153,7 +144,7 @@ float4 main(const ps_input input) : SV_TARGET
             const float3 light_diffuse = diffuse * diffuse_factor;
             const float3 light_specular = Specular_BRDF(alpha, f0, NdotV, NdotL, LdotH, NdotH, normalT, H);
 
-            const float rho = dot(-L, sd);
+            const float rho = dot(-light_dir, sd);
             const float spot = pow(saturate((rho - Lights[i].vLightSpot.x) / (Lights[i].vLightSpot.y - Lights[i].vLightSpot.x)), Lights[i].vLightSpot.z);
             const float att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * dl + Lights[i].vLightAtt.z * dl * dl);
             acc_color = mad(att, NdotL * Lights[i].vLightColor.rgb * (light_diffuse + light_specular), acc_color);

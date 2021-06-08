@@ -12,6 +12,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public DiffuseMaterialBuilder(IServiceProvider provider) : base(provider)
         {
             TextureMap[TextureTags.Diffuse] = null;
+            TextureMap[TextureTags.Emissive] = null;
         }
 
         public override Material BuildMaterial(string passName = null)

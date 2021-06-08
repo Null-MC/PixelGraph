@@ -313,6 +313,10 @@ namespace PixelGraph.UI.ViewModels
             builder.AddCubeFace(Vector3.Zero, new Vector3(0, 1, 0), Vector3.UnitX, size, size, size);
             builder.AddCubeFace(Vector3.Zero, new Vector3(0, -1, 0), Vector3.UnitX, size, size, size);
             builder.ComputeTangents(MeshFaces.Default);
+
+            //builder.AddBox(Vector3.Zero, size, size, size);
+            //builder.ComputeNormalsAndTangents(MeshFaces.Default);
+
             return builder.ToMeshGeometry3D();
         }
 

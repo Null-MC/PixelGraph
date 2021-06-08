@@ -34,6 +34,9 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         MaxValue = 255,
                     },
                 },
+                [TextureTags.Emissive] = _ => new ResourcePackChannelProperties[] {
+                    new ResourcePackEmissiveChannelProperties(TextureTags.Emissive, ColorChannel.Red),
+                },
             };
     }
 }
