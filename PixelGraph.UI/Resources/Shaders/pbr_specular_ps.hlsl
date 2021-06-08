@@ -57,16 +57,29 @@ float3 hammonDiffuse(const float3 albedo, const float F0, const float nDotV, con
 	return max(albedo * (single + albedo * multi) * nDotL, 0.0f);
 }
 
+float3 step3(float3 x, float3 y) {
+	return float3(step(x.r, y.r), step(x.g, y.g), step(x.b, y.b));
+}
+
+float3 linearToSrgb(const float3 color) {
+	return pow(color, 1.0f/2.2f);
+}
+
+float3 srgbToLinear(const float3 color) {
+	return pow(color, 2.2f);
+}
+
 float4 main(const ps_input input) : SV_TARGET
 {
-	const float2 parallax_tex = get_parallax_texcoord(input);
+	const float2 parallax_tex = input.tex;// get_parallax_texcoord(input);
 	
 	const float4 albedo_alpha = tex_albedo_alpha.Sample(sampler_surface, parallax_tex);
+	const float3 linearAlbedo = srgbToLinear(albedo_alpha.xyz);
 	const float3 rough_f0_occlusion = tex_rough_f0_occlusion.Sample(sampler_surface, parallax_tex).rgb;
 	const float3 porosity_sss_emissive = tex_porosity_sss_emissive.Sample(sampler_surface, parallax_tex).rgb;
 
 	const float3 eye = normalize(input.eye.xyz);
-	const float3 normal = calc_normal(parallax_tex, input.nor, input.tan, input.bin);
+	const float3 normal = input.nor;// calc_normal(parallax_tex, input.nor, input.tan, input.bin);
 
 	const float rough = rough_f0_occlusion.r * rough_f0_occlusion.r;
 	const float f0r = rough_f0_occlusion.g;
@@ -79,16 +92,26 @@ float4 main(const ps_input input) : SV_TARGET
 	const float nDotL = saturate(dot(normal, lightDir));
 	const float nDotH = abs(dot(normal, normalize(lightDir + eye))) + 1e-5;
 	const float lDotV = dot(lightDir, eye);
-	
-    // Burley roughness bias
+	const float vDotH = dot(eye, normalize(lightDir + eye));
+
+	// Burley roughness bias
 	const float alpha = rough * rough;
 
-	float3 lit = hammonDiffuse(albedo_alpha.xyz, f0r, nDotV, nDotL, nDotH, lDotV, alpha);
+	float attenuation = 1.0 / pow(length(Lights[0].vLightPos.xyz), 2.0f);
+
+	float3 lightColor = float3(10.0f, 10.0f, 10.0f) * attenuation;
+
+	float3 lit  = lightColor * hammonDiffuse(linearAlbedo, f0r, nDotV, nDotL, nDotH, lDotV, alpha);
+		   lit += lightColor * specularBRDF(nDotL, nDotV, nDotH, vDotH, f0r, alpha);
 
     if (bRenderShadowMap)
         lit *= shadow_strength(input.sp);
 
 	//const float3 ambient = albedo_alpha.rgb * (emissive + vLightAmbient.rgb);
+
+	lit = lit / (1.0 + lit);
+
+	lit = linearToSrgb(lit);
 	
     return float4(lit, albedo_alpha.a);
 }

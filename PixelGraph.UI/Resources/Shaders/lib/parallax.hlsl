@@ -1,5 +1,5 @@
-#define MIN_PARALLAX_SAMPLES 4
-#define MAX_PARALLAX_SAMPLES 256
+#define MIN_PARALLAX_SAMPLES 64
+#define MAX_PARALLAX_SAMPLES 512
 
 #pragma pack_matrix( row_major )
 
