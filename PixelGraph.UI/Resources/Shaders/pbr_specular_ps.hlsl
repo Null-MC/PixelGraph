@@ -1,6 +1,7 @@
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/parallax.hlsl"
+#include "lib/complex_numbers.hlsl"
 #include "lib/pbr.hlsl"
 
 //#define IRON float3(2.9114, 2.9497, 2.5845)
@@ -35,6 +36,26 @@
  *     b=emissive
  */
 
+float3 hammonDiffuse(const float3 albedo, const float F0, const float nDotV, const float nDotL, const float nDotH, const float lDotV, const float roughness) {
+	//My modified Hammon diffuse model.
+	complexFloat3 n1;
+	n1.real = float3(1.00029f, 1.00029f, 1.00029f);
+	n1.imag = float3(0.0f, 0.0f, 0.0f);
+	complexFloat3 n2;
+	n2.real = f0ToIOR(float3(F0, F0, F0));
+	n2.imag = float3(0.0f, 0.0f, 0.0f);
+
+	float facing = 0.5 + 0.5 * lDotV;
+	float rough = nDotH <= 0.0 ? 0.0 : facing * (0.9f - 0.4f * facing) * ((0.5f + nDotH) * rcp(max(nDotH, 0.05f)));
+	float3 fresnel_v = 1.0f - fresnelNonPolarized(nDotV, n1, n2);
+	float3 fresnel_l = 1.0f - fresnelNonPolarized(nDotV, n1, n2);
+	float energyConservationFactor = 1.0f - (4.0f * sqrt(F0) + 5.0f * F0 * F0) * rcp(9.0f);
+	float3 smooth_v = (fresnel_l * fresnel_v) * rcp(energyConservationFactor);
+	float3 single = lerp(smooth_v, float3(rough, rough, rough), roughness) * rcp(pi);
+	float multi = 0.1159f * roughness;
+
+	return max(albedo * (single + albedo * multi) * nDotL, 0.0f);
+}
 
 float4 main(const ps_input input) : SV_TARGET
 {
@@ -47,140 +68,27 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 eye = normalize(input.eye.xyz);
 	const float3 normal = calc_normal(parallax_tex, input.nor, input.tan, input.bin);
 
-	const float rough = rough_f0_occlusion.r;
+	const float rough = rough_f0_occlusion.r * rough_f0_occlusion.r;
 	const float f0r = rough_f0_occlusion.g;
 	const float occlusion = rough_f0_occlusion.b;
 	const float emissive = porosity_sss_emissive.b;
-    	
-    const float NdotV = saturate(dot(normal, eye));
+
+	float3 lightDir = normalize(Lights[0].vLightPos.xyz - input.wp.xyz);
+
+	const float nDotV = dot(normal, eye);
+	const float nDotL = saturate(dot(normal, lightDir));
+	const float nDotH = abs(dot(normal, normalize(lightDir + eye))) + 1e-5;
+	const float lDotV = dot(lightDir, eye);
 	
     // Burley roughness bias
-    const float alpha = rough * rough;
+	const float alpha = rough * rough;
 
-    // Blend base colors
-	const float metal = f0r > 0.5 ? 1 : 0;
-    const float3 diffuse = lerp(albedo_alpha.rgb, float3(0, 0, 0), metal); //* occlusion;
+	float3 lit = hammonDiffuse(albedo_alpha.xyz, f0r, nDotV, nDotL, nDotH, lDotV, alpha);
 
-	
-	float3 metal_albedo = albedo_alpha.rgb;
-
-    if (f0r > 0.900 && f0r < 0.902) { // 230: IRON
-    	metal_albedo = float3(0.77, 0.78, 0.78);
-    }
-    else if (f0r > 0.902 && f0r < 0.906) { // 231: GOLD
-    	metal_albedo = float3(1.00, 0.85, 0.57);
-    }
-    else if (f0r > 0.906 && f0r < 0.910) { // 232: TITANIUM
-    	metal_albedo = float3(0.91, 0.92, 0.92);
-    }
-    else if (f0r > 0.910 && f0r < 0.914) { // 233: CHROME
-    	metal_albedo = float3(0, 0, 0); // WARN: MISSING
-    }
-    else if (f0r > 0.914 && f0r < 0.918) { // 234: COPPER
-    	metal_albedo = float3(0.97, 0.74, 0.62);
-    }
-    else if (f0r > 0.918 && f0r < 0.922) { // 235: LEAD
-    	metal_albedo = float3(0, 0, 0); // WARN: MISSING
-    }
-    else if (f0r > 0.922 && f0r < 0.926) { // 236: PLATINUM
-    	metal_albedo = float3(0.83, 0.81, 0.78);
-    }
-    else if (f0r > 0.926 && f0r < 0.930) { // 237: SILVER
-    	metal_albedo = float3(0.97, 0.96, 0.91);
-    }
-	else if (f0r > 0.999) {
-		//metal_albedo = float3(10, 10, 10);
-    }
-
-	//const float f0 = ior_to_f0(ior);
-	
-	const float3 f0 = f0r * (1 - metal) + metal_albedo * metal;
-	
-	
-	// Output color
-    float3 acc_color = 0;
-
-    // Accumulate light values
-    for (int i = 0; i < NumLights; i++) {
-        if (Lights[i].iLightType == 1) {
-            // light vector (to light)
-            const float3 L = normalize(Lights[i].vLightDir.xyz);
-
-            // Half vector
-            const float3 H = normalize(L + eye);
-
-            // products
-            const float NdotL = saturate(dot(normal, L));
-            const float LdotH = saturate(dot(L, H));
-            const float NdotH = saturate(dot(normal, H));
-        	
-            // Diffuse & specular factors
-            const float diffuse_factor = Diffuse_Burley(NdotL, NdotV, LdotH, rough);
-            const float3 light_diffuse = diffuse * diffuse_factor;
-            const float3 light_specular = Specular_BRDF(alpha, f0, NdotV, NdotL, LdotH, NdotH, normal, H);
-          
-            acc_color += NdotL * Lights[i].vLightColor.rgb * (light_diffuse + light_specular);
-        }
-        else if (Lights[i].iLightType == 2) {
-            float3 L = (Lights[i].vLightPos - input.wp).xyz; // light dir
-            const float dl = length(L); // light distance
-            if (Lights[i].vLightAtt.w < dl) continue;
-
-            L = L / dl; // normalized light dir						
-            const float3 H = normalize(eye + L); // half direction for specular
-
-        	// products
-            const float NdotL = saturate(dot(normal, L));
-            const float LdotH = saturate(dot(L, H));
-            const float NdotH = saturate(dot(normal, H));
-        	
-            // Diffuse & specular factors
-            const float diffuse_factor = Diffuse_Burley(NdotL, NdotV, LdotH, rough);
-            const float3 light_diffuse = diffuse * diffuse_factor;
-            const float3 light_specular = Specular_BRDF(alpha, f0, NdotV, NdotL, LdotH, NdotH, normal, H);
-            const float att = 1.0f / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * dl + Lights[i].vLightAtt.z * dl * dl);
-            acc_color = mad(att, NdotL * Lights[i].vLightColor.rgb * (light_diffuse + light_specular), acc_color);
-        }
-        else if (Lights[i].iLightType == 3) {
-            float3 L = (Lights[i].vLightPos - input.wp).xyz; // light dir
-            const float dl = length(L); // light distance
-            if (Lights[i].vLightAtt.w < dl) continue;
-        	
-            L = L / dl; // normalized light dir					
-            const float3 H = normalize(eye + L); // half direction for specular
-            const float3 sd = normalize(Lights[i].vLightDir.xyz); // missuse the vLightDir variable for spot-dir
-
-            const float NdotL = saturate(dot(normal, L));
-            const float LdotH = saturate(dot(L, H));
-            const float NdotH = saturate(dot(normal, H));
-        	
-            // Diffuse & specular factors
-            const float diffuse_factor = Diffuse_Burley(NdotL, NdotV, LdotH, rough);
-            const float3 light_diffuse = diffuse * diffuse_factor;
-            const float3 light_specular = Specular_BRDF(alpha, f0, NdotV, NdotL, LdotH, NdotH, normal, H);
-
-            const float rho = dot(-L, sd);
-            const float spot = pow(saturate((rho - Lights[i].vLightSpot.x) / (Lights[i].vLightSpot.y - Lights[i].vLightSpot.x)), Lights[i].vLightSpot.z);
-            const float att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * dl + Lights[i].vLightAtt.z * dl * dl);
-            acc_color = mad(att, NdotL * Lights[i].vLightColor.rgb * (light_diffuse + light_specular), acc_color);
-        }
-    }
-
-	float3 specular_env = vLightAmbient.rgb * occlusion;
-
-	if (bHasCubeMap)
-        specular_env = Specular_IBL(normal, eye, rough);
-
-    //return float4(f0x * specular_env, 1);
-	
-    float3 lit = acc_color + f0 * specular_env;
-
-
-	
     if (bRenderShadowMap)
         lit *= shadow_strength(input.sp);
 
-	const float3 ambient = albedo_alpha.rgb * (emissive + vLightAmbient.rgb);
+	//const float3 ambient = albedo_alpha.rgb * (emissive + vLightAmbient.rgb);
 	
-    return float4(ambient + lit, albedo_alpha.a);
+    return float4(lit, albedo_alpha.a);
 }

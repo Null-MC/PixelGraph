@@ -53,13 +53,26 @@ float shadow_strength(float4 sp)
 	return vShadowMapInfo.x + shadow_factor * non_teil;
 }
 
-float f0_to_ior(const in float f0) {
-	float ior = sqrt(f0);
-	ior *= 0.99999; // Prevents divide by 0
-	return 1.00029 * (1.0 + ior) / (1.0 - ior);
+float f0ToIOR(float f0) {
+	f0 = sqrt(f0);
+	f0 *= 0.99999f; // Prevents divide by 0
+	float IOR = (1.0f + f0) / (1.0 - f0);
+	return 1.00029f * IOR;
 }
 
-float3 ior_to_f0(const in float3 ior) {
-	const float3 f0 = (ior - 1.00029) / (ior + 1.00029);
-	return pow(f0, 2);
+float IORTof0(float ior) {
+	float sqrtf0 = (ior - 1.00029f) / (ior + 1.00029f);
+	return pow(sqrtf0, 2.0f);
+}
+
+float3 f0ToIOR(float3 f0) {
+	f0 = sqrt(f0);
+	f0 *= 0.99999f; // Prevents divide by 0
+	float3 IOR = (1.0f + f0) / (1.0f - f0);
+	return 1.00029f * IOR;
+}
+
+float3 IORTof0(float3 ior) {
+	float3 sqrtf0 = (ior - 1.00029f) / (ior + 1.00029f);
+	return pow(sqrtf0, 2.0f);
 }

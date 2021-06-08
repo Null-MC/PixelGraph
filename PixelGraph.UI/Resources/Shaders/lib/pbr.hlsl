@@ -1,64 +1,60 @@
-#define MEDIUMP_FLT_MAX    65504.0
-#define saturateMediump(x) min(x, MEDIUMP_FLT_MAX)
+static const float pi = 3.14159265f;
 
-#pragma pack_matrix(row_major)
-
-static const float PI = 3.14159265f;
-static const float EPSILON = 1e-6f;
-
-
-float3 Fresnel_Shlick(const in float3 f0, const in float3 f90, const in float x)
-{
-    return f0 + (f90 - f0) * pow(1.f - x, 5);
+float schlickFresnel(in float cosTheta, in float f0) {
+    return f0 + (1.0f - f0) * pow(1.0f - cosTheta, 5.0f);
 }
 
-float Filament_F_Schlick(const float f0, const float VoH) {
-	const float f = pow(1.0 - VoH, 5.0);
-    return f + f0 * (1.0 - f);
+float smithGGXMasking(float ndotv, float a2) {
+    float denomC = sqrt(a2 + (1.0f - a2) * ndotv * ndotv) + ndotv;
+
+    return saturate(2.0f * ndotv / denomC);
 }
 
-float3 Filament_F_Schlick(const float3 f0, const float VoH) {
-	const float f = pow(1.0 - VoH, 5.0);
-    return f + f0 * (1.0 - f);
+float smithGGXMaskingShadowing(float ndotv, float ndotl, float a2) {
+    float a = 2.0f * ndotl * ndotv;
+    float denomA = ndotv * sqrt(a2 + (ndotv - ndotv * a2) * ndotv);
+    float denomB = ndotl * sqrt(a2 + (ndotl - ndotl * a2) * ndotl);
+
+    return saturate(a / (denomA + denomB));
 }
 
-float Diffuse_Burley(const in float NdotL, const in float NdotV, in float LdotH, in float roughness)
-{
-    return Filament_F_Schlick(1, NdotL).x * Filament_F_Schlick(1, NdotV).x;
-    //float fd90 = 0.5f + 2.f * roughness * LdotH * LdotH;
-    //return Fresnel_Shlick(1, fd90, NdotL).x * Fresnel_Shlick(1, fd90, NdotV).x;
+float D_GGX(float ndoth, float roughnessSquared) {
+    roughnessSquared = roughnessSquared < 1e-5 ? 0.0f : roughnessSquared;
+    float p = (ndoth * roughnessSquared - ndoth) * ndoth + 1.0f;
+    return roughnessSquared / (pi * p * p);
 }
 
-float Filament_D_GGX(const in float linearRoughness, const in float NoH, const in float3 n, const in float3 h) {
-	const float3 NxH = cross(n, h);
-	const float a = NoH * linearRoughness;
-	const float k = linearRoughness / (dot(NxH, NxH) + a * a);
-	const float d = k * k * (1.0 / PI);
-    return saturateMediump(d);
+float specularBRDF(float nDotL, float nDotV, float nDotH, float vDotH, float f0, float roughnessSquared) {
+    nDotV = abs(nDotV);
+
+    float G = smithGGXMaskingShadowing(nDotV, nDotL, roughnessSquared);
+    float D = D_GGX(nDotH, roughnessSquared);
+    float F = schlickFresnel(vDotH, f0);
+
+    float numerator = G * D * F;
+    float denominator = 4.0f * vDotH;
+
+    float specular = max(numerator / denominator, 0.0f);
+
+    return specular;
 }
 
-float G_Shlick_Smith_Hable(const float alpha, const float LdotH)
-{
-    return rcp(lerp(LdotH * LdotH, 1, alpha * alpha * 0.25f));
-}
+float3 fresnelNonPolarized(float voh, complexFloat3 n1, complexFloat3 n2) {
+    complexFloat3 eta = complexDiv(n1, n2);
+    float3 cosThetaI = float3(voh, voh, voh);
+    float sinThetaI = sqrt(saturate(1.0 - voh * voh));
+    complexFloat3 sinThetaT;
+    sinThetaT.real = eta.real * sinThetaI;
+    sinThetaT.imag = eta.imag * sinThetaI;
+    complexFloat3 cosThetaT = complexSqrt(complexSub(float3(1.0f, 1.0f, 1.0f), complexMul(sinThetaT, sinThetaT)));
 
-float3 Specular_BRDF(const in float alpha, const in float3 f0, in float NdotV, in float NdotL, const in float LdotH, const in float NdotH, const in float3 N, const in float3 H)
-{
-    // Specular D (microfacet normal distribution) component
-    const float specular_d = Filament_D_GGX(alpha, NdotH, N, H);//Specular_D_GGX(alpha, NdotH);
+    float3 Rs = pow(complexAbs(
+        complexDiv(complexSub(complexMul(n1, cosThetaI), complexMul(n2, cosThetaT)), complexAdd(complexMul(n1, cosThetaI), complexMul(n2, cosThetaT)))
+    ), 2.0f);
 
-    // Specular Fresnel
-    const float3 specular_f = Filament_F_Schlick(f0, LdotH);//Fresnel_Shlick(specularColor, 1, LdotH);
+    float3 Rp = pow(complexAbs(
+        complexDiv(complexSub(complexMul(n1, cosThetaT), complexMul(n2, cosThetaI)), complexAdd(complexMul(n1, cosThetaT), complexMul(n2, cosThetaI)))
+    ), 2.0f);
 
-    // Specular G (visibility) component
-    const float specular_g = G_Shlick_Smith_Hable(alpha, LdotH);
-
-    return specular_d * specular_g * specular_f;
-}
-
-float3 Specular_IBL(const in float3 N, const in float3 V, const in float lodBias)
-{
-    const float3 dir = reflect(-V, N);
-	const float mip = lodBias * NumEnvironmentMapMipLevels;
-    return tex_cube.SampleLevel(sampler_IBL, dir, mip).rgb;
+    return saturate((Rs + Rp) * 0.5f);
 }
