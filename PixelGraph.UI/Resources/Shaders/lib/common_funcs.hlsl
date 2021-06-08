@@ -52,3 +52,14 @@ float shadow_strength(float4 sp)
 	const float non_teil = 1 - vShadowMapInfo.x;
 	return vShadowMapInfo.x + shadow_factor * non_teil;
 }
+
+float f0_to_ior(const in float f0) {
+	float ior = sqrt(f0);
+	ior *= 0.99999; // Prevents divide by 0
+	return 1.00029 * (1.0 + ior) / (1.0 - ior);
+}
+
+float3 ior_to_f0(const in float3 ior) {
+	const float3 f0 = (ior - 1.00029) / (ior + 1.00029);
+	return pow(f0, 2);
+}

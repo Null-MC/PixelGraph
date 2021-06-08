@@ -45,7 +45,16 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 },
                 [TextureTags.Rough] = _ => new ResourcePackChannelProperties[] {
                     new ResourcePackRoughChannelProperties(TextureTags.Rough, ColorChannel.Red),
-                    new ResourcePackF0ChannelProperties(TextureTags.Rough, ColorChannel.Green),
+                    new ResourcePackF0ChannelProperties(TextureTags.Rough, ColorChannel.Green) {
+                        MaxValue = 0.9m,
+                        RangeMax = 229,
+                    },
+                    new ResourcePackMetalChannelProperties(TextureTags.Rough, ColorChannel.Green) {
+                        MinValue = 230m,
+                        MaxValue = 255m,
+                        RangeMin = 230,
+                        RangeMax = 255,
+                    },
                     new ResourcePackOcclusionChannelProperties(TextureTags.Rough, ColorChannel.Blue) {
                         Invert = true,
                     },
