@@ -1,8 +1,8 @@
-﻿using System;
+﻿using PixelGraph.UI.Internal.Utilities;
+using SharpDX.D3DCompiler;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using PixelGraph.UI.Internal.Utilities;
-using SharpDX.D3DCompiler;
 
 namespace PixelGraph.UI.Internal.Preview.Shaders
 {
@@ -19,6 +19,7 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
         public void Dispose()
         {
             Code?.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public bool TryLoadFromPath(string path, IList<ShaderCompileError> errorList)
@@ -79,8 +80,10 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
         {
             var path = SourcePath;
 
-            if (parentStream is FileStream fileStream)
-                path = Path.GetDirectoryName(fileStream.Name);
+            if (parentStream is FileStream fileStream) {
+                var p = Path.GetDirectoryName(fileStream.Name);
+                if (p != null) path = p;
+            }
 
             var fullFile = Path.Combine(path, fileName).Replace('/', '\\');
             return File.Open(fullFile, FileMode.Open, FileAccess.Read, FileShare.Read);

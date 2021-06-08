@@ -1,17 +1,12 @@
-#pragma pack_matrix( row_major )
+#pragma pack_matrix(row_major)
 
 
-float3 calc_normal(const float2 tex, const float3 nor, const float3 tan, const float3 bin)
+float3 calc_normal(const in float2 tex, const in float3 normal, const in float3 tangent, const in float3 bitangent)
 {
-    float3 normal = normalize(nor);
-    const float3 tangent = normalize(tan);
-    const float3 bitangent = normalize(bin);
-
     float3 tex_normal = tex_normal_height.Sample(sampler_surface, tex).xyz;
-
 	tex_normal = mad(2.0f, tex_normal, -1.0f);
-    normal += mad(tex_normal.x, tangent, tex_normal.y * bitangent);
-    return normalize(normal);
+	
+    return normalize(normal + mad(tex_normal.x, tangent, tex_normal.y * bitangent));
 }
 
 float shadow_look_up(const in float4 loc, const in float2 offset)
@@ -48,18 +43,7 @@ float shadow_strength(float4 sp)
 
 	const float shadow_factor = sum / 16;
 
-	// now, put the shadow-strengh into the 0-nonTeil range	
+	// now, put the shadow-strength into the 0-nonTeil range	
 	const float non_teil = 1 - vShadowMapInfo.x;
 	return vShadowMapInfo.x + shadow_factor * non_teil;
-}
-
-float f0_to_ior(const in float f0) {
-	float ior = sqrt(f0);
-	ior *= 0.99999; // Prevents divide by 0
-	return 1.00029 * (1.0 + ior) / (1.0 - ior);
-}
-
-float3 ior_to_f0(const in float3 ior) {
-	const float3 f0 = (ior - 1.00029) / (ior + 1.00029);
-	return pow(f0, 2);
 }

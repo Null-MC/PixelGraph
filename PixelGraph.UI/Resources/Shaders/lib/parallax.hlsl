@@ -4,23 +4,20 @@
 #pragma pack_matrix( row_major )
 
 
-float2 get_parallax_texcoord(const ps_input input) {
-	const float2 dx = ddx(input.tex);
-	const float2 dy = ddy(input.tex);
-
-	const float3 nor = normalize(input.nor);
-	const float3 eye = normalize(input.eye);
+float2 get_parallax_texcoord(const float2 tex, const float2 offsetT, const float3 normal, const float3 eye) {
+	const float2 dx = ddx(tex);
+	const float2 dy = ddy(tex);
 	
-	const int step_count = (int)lerp(MAX_PARALLAX_SAMPLES, MIN_PARALLAX_SAMPLES, dot(-eye, nor));
+	const int step_count = (int)lerp(MAX_PARALLAX_SAMPLES, MIN_PARALLAX_SAMPLES, dot(-eye, normal));
 
 	const float step_size = 1.0 / (float) step_count;
 
-	const float2 step_offset = step_size * input.poT;
+	const float2 step_offset = step_size * offsetT;
 	
 	float current_bound = 1.0;
 	float current_height = 0.0;
-	float2 current_offset = input.tex;
-	float2 prev_offset = input.tex;
+	float2 current_offset = tex;
+	float2 prev_offset = tex;
 	float prev_surface_height = 0.0;
 	float prev_height = 1.0;
 
