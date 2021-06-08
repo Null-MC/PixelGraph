@@ -94,8 +94,8 @@ float4 main(const ps_input input) : SV_TARGET
 
 	//const float f0 = ior_to_f0(ior);
 	
-	const float3 f0 = 0.16 * f0r * f0r * (1 - metal) + metal_albedo * metal;
-
+	const float3 f0 = f0r * (1 - metal) + metal_albedo * metal;
+	
 	
 	// Output color
     float3 acc_color = 0;
@@ -171,6 +171,8 @@ float4 main(const ps_input input) : SV_TARGET
 	if (bHasCubeMap)
         specular_env = Specular_IBL(normal, eye, rough);
 
+    //return float4(f0x * specular_env, 1);
+	
     float3 lit = acc_color + f0 * specular_env;
 
 

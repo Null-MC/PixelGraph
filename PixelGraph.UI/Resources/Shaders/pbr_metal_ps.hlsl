@@ -129,6 +129,8 @@ float4 main(const ps_input input) : SV_TARGET
 	if (bHasCubeMap)
         specular_env = Specular_IBL(normal, eye, rough);
 
+    //return float4(c_spec * specular_env, 1);
+	
     float3 lit = acc_color + c_spec * specular_env;
 	
     if (bRenderShadowMap)

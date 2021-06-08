@@ -62,6 +62,7 @@
     <None Remove="Resources\Shaders\pbr_metal_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_vs.hlsl" />
     <None Remove="Resources\sky.dds" />
+    <None Remove="Resources\sky2.dds" />
     <None Remove="Resources\tiled_bg.png" />
   </ItemGroup>
 
