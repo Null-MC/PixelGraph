@@ -33,8 +33,10 @@ struct ps_input
 
 struct ps_input_cube
 {
-	float4 pos  : SV_POSITION;
-	float3 tex  : POSITION0;
+	float4 pos     : SV_POSITION;
+	float3 tex     : POSITION0;
+	float3 sun_dir : POSITION1;
+	float sun_str  : COLOR0;
  //   float3 c0   : COLOR0;
  //   float3 c1   : COLOR1;
 };

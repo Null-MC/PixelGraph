@@ -6,6 +6,7 @@ using PixelGraph.UI.Internal.Preview;
 using SharpDX;
 using System;
 using System.Windows.Media;
+using Media = System.Windows.Media;
 
 namespace PixelGraph.UI.Models
 {
@@ -21,11 +22,13 @@ namespace PixelGraph.UI.Models
         private string _selectedTag;
         private bool _enableRender;
         private bool _enableEnvironment;
+        private Media.Color _environmentAmbient;
         private RenderPreviewModes _renderMode;
         private float _parallaxDepth;
         private int _parallaxSamplesMin;
         private int _parallaxSamplesMax;
         private Vector3 _sunDirection;
+        private Media.Color _sunColor;
         private int _timeOfDay;
         private float _wetness;
         private bool _isLoading;
@@ -104,6 +107,14 @@ namespace PixelGraph.UI.Models
             get => _sunDirection;
             set {
                 _sunDirection = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Media.Color SunColor {
+            get => _sunColor;
+            set {
+                _sunColor = value;
                 OnPropertyChanged();
             }
         }
@@ -188,6 +199,14 @@ namespace PixelGraph.UI.Models
                 _enableEnvironment = value;
                 OnPropertyChanged();
                 OnRenderSceneChanged();
+            }
+        }
+
+        public Media.Color EnvironmentAmbient {
+            get => _environmentAmbient;
+            set {
+                _environmentAmbient = value;
+                OnPropertyChanged();
             }
         }
 

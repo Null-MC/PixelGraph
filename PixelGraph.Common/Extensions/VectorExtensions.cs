@@ -39,16 +39,16 @@ namespace PixelGraph.Common.Extensions
 
         public static void ToEuler(this in Vector3 vector, out Vector2 angle)
         {
-            angle.X = MathF.Asin(vector.X) / MathEx.Deg2Rad;
-            angle.Y = MathF.Asin(vector.Y) / MathEx.Deg2Rad;
+            angle.X = MathEx.AsinD(vector.X);
+            angle.Y = MathEx.AsinD(vector.Y);
         }
 
         public static void FromEuler(this ref Vector3 vector, in Vector2 angle)
         {
-            var sinX = MathF.Sin(angle.X * MathEx.Deg2Rad);
-            var cosX = MathF.Cos(angle.X * MathEx.Deg2Rad);
-            var sinY = MathF.Sin(angle.Y * MathEx.Deg2Rad);
-            var cosY = MathF.Cos(angle.Y * MathEx.Deg2Rad);
+            var sinX = MathEx.SinD(angle.X);
+            var cosX = MathEx.CosD(angle.X);
+            var sinY = MathEx.SinD(angle.Y);
+            var cosY = MathEx.CosD(angle.Y);
 
             vector.X = sinX * cosY;
             vector.Y = sinY * cosX;

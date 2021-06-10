@@ -20,6 +20,8 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using PixelGraph.Common.Extensions;
+using Color = System.Windows.Media.Color;
 using Media3D = System.Windows.Media.Media3D;
 
 namespace PixelGraph.UI.ViewModels
@@ -87,7 +89,7 @@ namespace PixelGraph.UI.ViewModels
             };
 
             ResetViewport();
-            UpdateSunAngle();
+            UpdateEnvironment();
 
             _skyImageStream = ResourceLoader.Open("PixelGraph.UI.Resources.sky.dds");
             Model.Preview.SkyTexture = _skyImageStream;
@@ -117,19 +119,33 @@ namespace PixelGraph.UI.ViewModels
             Model.Preview.ParallaxSamplesMax = appSettings.Data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
         }
 
-        private void UpdateSunAngle()
+        private void UpdateEnvironment()
         {
-            MinecraftTime.GetSunAngle(Model.Preview.TimeOfDayLinear, 0, out var sunVec);
-            Model.Preview.SunDirection = -sunVec;
+            const float sun_distance = 10f;
+            const float sun_overlap = 0.12f;
+            const float sun_power = 0.5f;
+            const float sun_azimuth = 30f;
+            const float sun_roll = 15f;
 
-            var sunPos = sunVec * 8f;
-            Model.Preview.SunCamera.Position = sunPos.ToPoint3D();
-            Model.Preview.SunCamera.LookDirection = -sunVec.ToVector3D();
+            var ambientDay = new Color4(0, 0, 0, 1f);
+            var ambientNight = new Color4(0, 0, 0, 1f);
+
+            var linearTimeOfDay = Model.Preview.TimeOfDayLinear;
+            MinecraftTime.GetSunAngle(sun_azimuth, sun_roll, in linearTimeOfDay, out var sunVec);
+            Model.Preview.SunCamera.LookDirection = sunVec.ToVector3D();
+            Model.Preview.SunCamera.Position = (sunVec * -sun_distance).ToPoint3D();
+            //Model.Preview.SunDirection = -sunVec;
+
+            var sunStrength = MinecraftTime.GetSunStrength(in linearTimeOfDay, sun_overlap, sun_power);
+            Model.Preview.SunColor = new Color4(sunStrength, sunStrength, sunStrength, sunStrength).ToColor();
+
+            ColorExtensions.Lerp(ambientNight, ambientDay, sunStrength, out var ambientCol);
+            Model.Preview.EnvironmentAmbient = ambientCol.ToColor();
         }
 
         private void OnPreviewPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(PreviewContextModel.TimeOfDay)) UpdateSunAngle();
+            if (e.PropertyName == nameof(PreviewContextModel.TimeOfDay)) UpdateEnvironment();
         }
 
         public void ReloadShaders()

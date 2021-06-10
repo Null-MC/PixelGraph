@@ -312,7 +312,7 @@
                                           ItemsSource="{StaticResource RenderModes}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
                                           SelectedValue="{Binding Preview.RenderMode, Mode=TwoWay}"/>
-                                <Slider DockPanel.Dock="Left" Margin="4" Minimum="0" Maximum="24000" Width="200"
+                                <Slider DockPanel.Dock="Left" Margin="4" Minimum="0" Maximum="24000" Width="400"
                                         Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
                                         Value="{Binding Preview.TimeOfDay, Mode=TwoWay}"/>
                                 <CheckBox DockPanel.Dock="Left" Content="Environment" Margin="4" FontWeight="Bold"
@@ -372,11 +372,11 @@
                                         ParallaxDepth="{Binding ParallaxDepth, Mode=OneWay}"
                                         ParallaxSamplesMin="{Binding ParallaxSamplesMin, Mode=OneWay}"
                                         ParallaxSamplesMax="{Binding ParallaxSamplesMax, Mode=OneWay}"/>
-                                    <hx:AmbientLight3D Color="#403B37"
+                                    <hx:AmbientLight3D Color="{Binding EnvironmentAmbient, Mode=OneWay}"
                                                        Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
                                     <hx:AmbientLight3D Color="#1A1A1A"
                                                        Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
-                                    <hx:DirectionalLight3D Color="White"
+                                    <hx:DirectionalLight3D Color="{Binding SunColor, Mode=OneWay}"
                                                            Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"/>
                                     <previewModels:SkyDome3D
                                         Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"

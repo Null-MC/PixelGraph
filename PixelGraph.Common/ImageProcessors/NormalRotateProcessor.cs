@@ -49,8 +49,8 @@ namespace PixelGraph.Common.ImageProcessors
                 }
 
                 if (hasRotation || hasNoise) {
-                    angleX = MathF.Asin(v.X) / MathEx.Deg2Rad;
-                    angleY = MathF.Asin(v.Y) / MathEx.Deg2Rad;
+                    angleX = MathEx.AsinD(v.X);
+                    angleY = MathEx.AsinD(v.Y);
 
                     if (hasRotation) {
                         var fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width;
@@ -67,10 +67,10 @@ namespace PixelGraph.Common.ImageProcessors
                     MathEx.Clamp(ref angleX, -90f, 90f);
                     MathEx.Clamp(ref angleY, -90f, 90f);
 
-                    var sinX = MathF.Sin(angleX * MathEx.Deg2Rad);
-                    var cosX = MathF.Cos(angleX * MathEx.Deg2Rad);
-                    var sinY = MathF.Sin(angleY * MathEx.Deg2Rad);
-                    var cosY = MathF.Cos(angleY * MathEx.Deg2Rad);
+                    var sinX = MathEx.SinD(angleX);
+                    var cosX = MathEx.CosD(angleX);
+                    var sinY = MathEx.SinD(angleY);
+                    var cosY = MathEx.CosD(angleY);
 
                     v.X = sinX * cosY;
                     v.Y = sinY * cosX;

@@ -1,7 +1,7 @@
 #define PI 3.14159265f
 #define EPSILON 1e-6f
-#define Gamma 1.4
-//#define Gamma 2.233333333
+//#define Gamma 1.4
+#define Gamma 2.2
 
 #pragma pack_matrix(row_major)
 

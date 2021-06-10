@@ -58,11 +58,17 @@ float4 main(const ps_input input) : SV_TARGET
     const float NdotV = saturate(dot(normalT, eye));
 
     float3 acc_color = 0;
+	float3 sun_dir = 0;
+	float sun_str = 0;
+	
     for (int i = 0; i < NumLights; i++) {
         if (Lights[i].iLightType == 1) {
             // light vector (to light)
             const float3 light_dir = normalize(Lights[i].vLightDir.xyz);
 
+            sun_dir = light_dir;
+        	sun_str = Lights[i].vLightColor.a;
+        	
             // Half vector
             const float3 H = normalize(light_dir + eye);
 
@@ -123,12 +129,13 @@ float4 main(const ps_input input) : SV_TARGET
         }
     }
 
-	float3 specular_env = vLightAmbient.rgb;
+	//float3 specular_env = vLightAmbient.rgb;
 
-	if (bHasCubeMap)
-        specular_env = specular_IBL(normalT, eye, mat.rough);
+	//if (bHasCubeMap)
+ //       specular_env = specular_IBL(normalT, eye, mat.rough);
+    float3 specular_env = specular_sky_IBL(normalT, eye, sun_dir, sun_str);
 
-    specular_env = srgb_to_linear(specular_env);
+    //specular_env = srgb_to_linear(specular_env);
 
     //return float4(f0 * specular_env, 1);
 	
@@ -139,7 +146,7 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 ambient = vLightAmbient.rgb * mat.occlusion;
     float3 final_color = lit + (ambient + mat.emissive * PI) * mat.albedo;
 	
-	final_color = ACESFilm(final_color);
+	//final_color = ACESFilm(final_color);
     final_color = linear_to_srgb(final_color);
 	
     return float4(final_color, mat.alpha);
