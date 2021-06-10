@@ -1,32 +1,41 @@
 #define PI 3.14159265f
 #define EPSILON 1e-6f
+#define Gamma 1.4
+//#define Gamma 2.233333333
 
 #pragma pack_matrix(row_major)
 
 
 float3 srgb_to_linear(const float3 srgb)
 {
-	return srgb;
+	//return srgb;
 	//return srgb * (srgb * (srgb * 0.305306011 + 0.682171111) + 0.012522878);
-	return pow(abs(srgb), 2.233333333);
+	return pow(abs(srgb), Gamma);
 }
 
 float3 linear_to_srgb(const float3 rgb)
 {
-	return rgb;
+	//return rgb;
 	//const float3 s1 = sqrt(rgb);
 	//const float3 s2 = sqrt(s1);
 	//const float3 s3 = sqrt(s2);
 	//return 0.662002687 * s1 + 0.684122060 * s2 - 0.323583601 * s3 - 0.0225411470 * rgb;
-	return max(1.055 * pow(abs(rgb), 0.416666667) - 0.055, 0);
+	
+	//return max(1.055 * pow(abs(rgb), 0.416666667) - 0.055, 0);
+	return pow(abs(rgb), 1 / Gamma);
+	
+	//return pow(rgb, float3(Gamma, Gamma, Gamma));
 }
 
-float3 calc_normal(const in float2 tex, const in float3 normal, const in float3 tangent, const in float3 bitangent)
+float3 ACESFilm(float3 x)
 {
-    float3 tex_normal = tex_normal_height.Sample(sampler_surface, tex).xyz;
-	tex_normal = mad(2.0f, tex_normal, -1.0f);
+    float tA = 2.51;
+    float tB = 0.03;
+    float tC = 2.43;
+    float tD = 0.59;
+    float tE = 0.14;
 	
-    return normalize(normal + mad(tex_normal.x, tangent, tex_normal.y * bitangent));
+    return saturate((x * (tA * x + tB)) / (x * (tC * x + tD) + tE));
 }
 
 float shadow_look_up(const in float4 loc, const in float2 offset)

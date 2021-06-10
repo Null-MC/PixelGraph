@@ -4,6 +4,14 @@
 #pragma pack_matrix(row_major)
 
 
+float3 calc_normal(const in float2 tex, const in float3 normal, const in float3 tangent, const in float3 bitangent)
+{
+    float3 tex_normal = tex_normal_height.Sample(sampler_surface, tex).xyz;
+	tex_normal = mad(2.0f, tex_normal, -1.0f);
+	
+    return normalize(normal + mad(tex_normal.x, tangent, tex_normal.y * bitangent));
+}
+
 float3 Fresnel_Shlick(const in float3 f0, const in float3 f90, const in float x)
 {
     return f0 + (f90 - f0) * pow(1.f - x, 5);

@@ -18,8 +18,8 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 normalT = calc_normal(tex, normal, tangent, bitangent);
 	pbr_material mat = get_pbr_material(tex);
 	
-	//mat.albedo = srgb_to_linear(mat.albedo);
-	//mat.rough = mat.rough * mat.rough;
+	mat.albedo = srgb_to_linear(mat.albedo);
+	mat.rough = mat.rough * mat.rough;
 
     
     // Blend base colors
@@ -128,7 +128,7 @@ float4 main(const ps_input input) : SV_TARGET
 	if (bHasCubeMap)
         specular_env = specular_IBL(normalT, eye, mat.rough);
 
-    //specular_env = srgb_to_linear(specular_env);
+    specular_env = srgb_to_linear(specular_env);
 
     //return float4(f0 * specular_env, 1);
 	
@@ -139,7 +139,8 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 ambient = vLightAmbient.rgb * mat.occlusion;
     float3 final_color = lit + (ambient + mat.emissive * PI) * mat.albedo;
 	
-    //final_color = linear_to_srgb(final_color);
+	final_color = ACESFilm(final_color);
+    final_color = linear_to_srgb(final_color);
 	
     return float4(final_color, mat.alpha);
 }

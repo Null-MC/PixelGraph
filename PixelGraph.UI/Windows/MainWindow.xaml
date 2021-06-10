@@ -378,7 +378,7 @@
                                                        Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
                                     <hx:DirectionalLight3D Color="White"
                                                            Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"/>
-                                    <hx:EnvironmentMap3D
+                                    <previewModels:SkyDome3D
                                         Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"
                                         Texture="{Binding SkyTexture, Mode=OneWay}" />
                                     <!--<hx:SpotLight3D

@@ -34,10 +34,9 @@ struct ps_input
 struct ps_input_cube
 {
 	float4 pos  : SV_POSITION;
-	float3 tex  : TEXCOORD0;
-	float4 posV : POSITION0;
-	float3 up   : POSITION1;
-	float3 sun  : POSITION2;
+	float3 tex  : POSITION0;
+ //   float3 c0   : COLOR0;
+ //   float3 c1   : COLOR1;
 };
 
 struct LightStruct

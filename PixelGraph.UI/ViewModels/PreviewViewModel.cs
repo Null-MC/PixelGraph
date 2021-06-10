@@ -87,6 +87,7 @@ namespace PixelGraph.UI.ViewModels
             };
 
             ResetViewport();
+            UpdateSunAngle();
 
             _skyImageStream = ResourceLoader.Open("PixelGraph.UI.Resources.sky.dds");
             Model.Preview.SkyTexture = _skyImageStream;
@@ -118,7 +119,7 @@ namespace PixelGraph.UI.ViewModels
 
         private void UpdateSunAngle()
         {
-            MinecraftTime.GetSunAngle(Model.Preview.TimeOfDayLinear, -40, out var sunVec);
+            MinecraftTime.GetSunAngle(Model.Preview.TimeOfDayLinear, 0, out var sunVec);
             Model.Preview.SunDirection = -sunVec;
 
             var sunPos = sunVec * 8f;

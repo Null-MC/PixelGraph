@@ -1,110 +1,62 @@
 #include "lib/common_structs.hlsl"
-#include "lib/sky_colors.hlsl"
-#include "lib/sky.hlsl"
+#include "lib/common_funcs.hlsl"
 
-#define STAR 0
-#define ANIMATION_SPEED 1
-#define rainStrength 0
-
-// eyeBrightnessSmooth.y
-#define SKY_BRIGHTNESS 255
+//#define Rayleigh 1
+#define RayleighAtt 1
+//#define Mie 1
+#define MieAtt 1.2
+//#define DistanceAtt 0.00001
+//#define SC 250
 
 #pragma pack_matrix(row_major)
 
 
-float3 get_sun(float2 uv, float2 sun_uv)
+static const float3 Rayleigh = float3(5.5e-4, 13.0e-4, 22.4e-4);
+static const float Mie = 21e-4;
+static const float3 _betaR = float3(0.0195, 0.11, 0.294);
+static const float3 _betaM = float3(0.04, 0.04, 0.04);
+
+
+float3 calcAtmosphericScattering(float sR, float sM, out float3 extinction, float cosine, float g1)
 {
-	float sun = 1.0 - distance(uv, sun_uv);
-    sun = clamp(sun,0.0,1.0);
-    
-    float glow = sun;
-    glow = clamp(glow,0.0,1.0);
-    
-    sun = pow(sun,100.0);
-    sun *= 100.0;
-    sun = clamp(sun,0.0,1.0);
-    
-    glow = pow(glow,6.0) * 1.0;
-    glow = pow(glow,(uv.y));
-    glow = clamp(glow,0.0,1.0);
-    
-    sun *= pow(dot(uv.y, uv.y), 1.0 / 1.65);
-    
-    glow *= pow(dot(uv.y, uv.y), 1.0 / 2.0);
-    
-    sun += glow;
-    
-    return float3(1, 0.6, 0.05) * sun;
+    extinction = exp(-(_betaR * sR + _betaM * sM));
+
+    float g2 = g1 * g1;
+    float fcos2 = cosine * cosine;
+    float miePhase = Mie * pow(1 + g2 + 2 * g1 * cosine, -1.5) * (1 - g2) / (2 + g2);
+
+    return (1 + fcos2) * (Rayleigh + _betaM / _betaR * miePhase);
 }
 
-float4 main(const ps_input_cube input) : SV_TARGET
+float4 main(const in ps_input_cube input) : SV_TARGET
 {
-	//const float3 color = tex_cube.SampleLevel(sampler_cube, input.t, 0);
+    float3 rd = normalize(input.tex);
 
-	//float4 screenPos = float4(input.t.xy / float2(vViewport.x, vViewport.y), input.t.z, 1);
-	//vec4 viewPos = gbufferProjectionInverse * (screenPos * 2 - 1);
-	//viewPos /= viewPos.w;
+    float sundot = saturate(dot(rd, -SunDirection));
+	//return float4(sundot, sundot, sundot, 1);
 
-	float3 view_pos = normalize(input.posV.xyz);
-	float3 sun_pos = normalize(input.posV.xyz);
-	float3 sun = get_sun(view_pos, )
-	return float4(, 1);
+    // optical depth -> zenithAngle
+    float zenithAngle = max(0, rd.y); //abs( rd.y);
+    float sR = RayleighAtt / zenithAngle;
+    float sM = MieAtt / zenithAngle;
+
+    float3 extinction;
+    float3 inScatter = calcAtmosphericScattering(sR, sM, extinction, sundot, -0.93);
 	
-	//const float3 view_pos = input.posV.xyz;
-	//return float4(normalize(view_pos), 1);
-	//float l = pow(dot(-SunDirection, input.tex), 10);
-	//return float4(l, l, l, 1);
+    float3 col = inScatter * (1 - extinction);
 	
-	float eBS = SKY_BRIGHTNESS / 240;
-	float sunVisibility  = saturate((dot(input.sun, input.up) + 0.05) * 10);
-	float moonVisibility = saturate((dot(-input.sun, input.up) + 0.05) * 10);
-
-	float SUN_ANGLE = 0;
-	float tAmin = frac(SUN_ANGLE - 0.033333333);
-	float tAlin = tAmin < 0.433333333 ? tAmin * 1.15384615385 : tAmin * 0.882352941176 + 0.117647058824;
-	float hA = tAlin > 0.5 ? 1 : 0;
-	float tAfrc = frac(tAlin * 2);
-	float tAfrs = tAfrc * tAfrc * (3 - 2 * tAfrc);
-	float tAmix = hA < 0.5 ? 0.3 : -0.1;
-	float timeAngle = (tAfrc * (1 - tAmix) + tAfrs * tAmix + hA) * 0.5;
-	float timeBrightness = max(sin(timeAngle * 6.28318530718), 0);
-	float shadowFade = saturate(1 - (abs(abs(SUN_ANGLE - 0.5) - 0.25) - 0.23) * 100);
+    // sun
+    col += 0.47 * float3(1.6, 1.4, 1.0) * pow(sundot, 350) * extinction;
 	
-	float3 lightVec = input.sun * (1 - 2 * float(timeAngle > 0.5325 && timeAngle < 0.9675));
-
-	//float frametime = TimeStamp * 0.05 * ANIMATION_SPEED;
-
-	float3 light_sun = get_light_sun(timeAngle, timeBrightness);
-	float3 albedo = get_sky_color(view_pos.xyz, input.sun, input.up, timeAngle, timeBrightness, sunVisibility, light_sun, rainStrength, false);
-
-	return float4(albedo, 1);
-	
-	float mefade = get_morning_evening_fade(timeAngle);
-	float3 lightMA = lerp(lightMorning, lightEvening, mefade);
-    float3 sunColor = lerp(lightMA, sqrt(lightDay * lightMA * LIGHT_DI), timeBrightness);
-    float3 moonColor = sqrt(lightNight);
-
-	round_sun_moon(albedo, view_pos.xyz, input.sun, sunColor, moonColor, sunVisibility, moonVisibility, rainStrength);
-
-	#ifdef STARS
-	if (moonVisibility > 0.0) DrawStars(albedo.rgb, viewPos.xyz);
-	#endif
-
-	//float dither = Bayer64(gl_FragCoord.xy);
-
-	#ifdef AURORA
-	albedo.rgb += DrawAurora(viewPos.xyz, dither, 24);
-	#endif
-	
-	#ifdef CLOUDS
-	vec4 cloud = DrawCloud(viewPos.xyz, dither, lightCol, ambientCol);
-	albedo.rgb = lerp(albedo.rgb, cloud.rgb, cloud.a);
-	#endif
-
-	const float3 light_color = get_light_color(timeAngle, timeBrightness, sunVisibility, rainStrength);
-	sun_glare(albedo, view_pos.xyz, lightVec, light_color, timeBrightness, shadowFade, rainStrength, eBS);
-
-	albedo.rgb *= 4.0 - 3.0 * eBS;
-	
-	return float4(albedo, 1 - STAR);
+    // sun haze
+    col += 0.4 * float3(0.8, 0.9, 1.0) * pow(sundot, 2) * extinction;
+    
+    // clouds
+	//float2 sc = ro.xz + rd.xz * (SC * 1000 - ro.y) / rd.y;
+	//col += 2 * float3(1.0, 0.95, 1.0) * extinction * smoothstep(0.5, 0.8, fbm(0.0005 * sc / SC));
+    
+	col = ACESFilm(col);
+    col = linear_to_srgb(col);
+    
+	return float4(col, 1);
 }
