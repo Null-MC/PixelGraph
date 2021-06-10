@@ -95,7 +95,7 @@ float3 generateUnitVector(float2 hash) {
 }
 
 float3 diffuseIBL(const float3 albedo, const float3 normal, const float3 eye, const float f0, const float alpha) {
-	uint N = 256u;
+	uint N = 128u;
 	float3 result = float3(0.0f, 0.0f, 0.0f);
 	for (uint i = 0u; i < N; ++i) {
 		float3 dir = generateUnitVector(hammersley2d(i, N));
@@ -107,17 +107,23 @@ float3 diffuseIBL(const float3 albedo, const float3 normal, const float3 eye, co
 		const float vDotH = dot(eye, normalize(dir + eye));
 
 		float3 diffuse = hammonDiffuse(albedo, f0, nDotV, nDotL, nDotH, lDotV, alpha);
-		float specular = specularBRDF(nDotL, nDotV, nDotH, vDotH, f0, alpha);
 		result += diffuse * tex_cube.Sample(sampler_IBL, dir).rgb;
-		//result += specular * tex_cube.Sample(sampler_IBL, dir).rgb;
 	}
 	return result / (float)N;
+}
+
+float3 tonemapHejlBurgess(float3 color) {
+    color *= rcp(1.1f);
+	color = max(float3(0.0f, 0.0f, 0.0f), color - 0.0008f);
+	color = (color * (6.2f * color + 0.5f)) / (color * (6.2f * color + 1.7f) + 0.06f);
+
+	return color;
 }
 
 float4 main(const ps_input input) : SV_TARGET
 {
 	const float3 eye = normalize(input.eye.xyz);
-	const float2 parallax_tex = get_parallax_texcoord(input.tex, input.poT, input.nor, eye);
+	const float2 parallax_tex = input.tex;//get_parallax_texcoord(input.tex, input.poT, input.nor, eye);
 	
 	const float4 albedo_alpha = tex_albedo_alpha.Sample(sampler_surface, parallax_tex);
 	const float3 linearAlbedo = srgbToLinear(albedo_alpha.xyz);
@@ -131,7 +137,7 @@ float4 main(const ps_input input) : SV_TARGET
 	const float occlusion = rough_f0_occlusion.b;
 	const float emissive = porosity_sss_emissive.b;
 
-	float3 lightDir = normalize(Lights[0].vLightPos.xyz - input.wp.xyz);
+	float3 lightDir = normalize(float3(0.8, 1.0, 1.0));// normalize(Lights[0].vLightPos.xyz - input.wp.xyz);
 
 	const float nDotV = dot(normal, eye);
 	const float nDotL = saturate(dot(normal, lightDir));
@@ -144,19 +150,16 @@ float4 main(const ps_input input) : SV_TARGET
 
 	float attenuation = 1.0 / pow(length(Lights[0].vLightPos.xyz), 2.0f);
 
-	float3 lightColor = float3(10.0f, 10.0f, 10.0f) * attenuation;
+	float3 lightColor = float3(2.0f, 2.0f, 2.0f);
 
-	float3 lit  = diffuseIBL(linearAlbedo, normal, eye, f0r, alpha);
+	float3 lit  = lightColor * hammonDiffuse(linearAlbedo, f0r, nDotV, nDotL, nDotH, lDotV, alpha);
+		   lit += lightColor * specularBRDF(nDotL, nDotV, nDotH, vDotH, f0r, alpha);
+		   lit += diffuseIBL(linearAlbedo, normal, eye, f0r, alpha);
 
     if (bRenderShadowMap)
         lit *= shadow_strength(input.sp);
 
-	//const float3 ambient = albedo_alpha.rgb * (emissive + vLightAmbient.rgb);
-
-	lit *= 10.0f;
-	lit = lit / (1.0f + lit);
-
-	lit = linearToSrgb(lit);
+	lit = tonemapHejlBurgess(lit);
 	
     return float4(lit, albedo_alpha.a);
 }
