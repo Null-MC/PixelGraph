@@ -68,6 +68,44 @@
             <TabItem>
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconFontAwesome Kind="CubeSolid" Height="20" VerticalAlignment="Center"/>
+                        <TextBlock Text="Preview" Margin="6,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+                <ScrollViewer Background="{DynamicResource MahApps.Brushes.Gray10}">
+                    <StackPanel Orientation="Vertical">
+                        <CheckBox Content="Enable 3D Renderer" FontWeight="Bold" FontSize="14" Margin="12"
+                                  IsChecked="{Binding RenderPreview_Enabled}"/>
+                        <GroupBox Header="Parallax Mapping" Margin="4">
+                            <StackPanel Orientation="Vertical" Margin="4">
+                                <CheckBox Content="Enabled" FontWeight="Bold" FontSize="14" Margin="4"
+                                          IsChecked="{Binding RenderPreview_ParallaxEnabled}"/>
+                                <TextBlock Text="Maximum Depth" FontWeight="Bold" FontSize="14" Margin="0,6,0,0"/>
+                                <TextBox Text="{Binding RenderPreview_ParallaxDepth}"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Text="The maximum depth for rendering parallax occlusion. Default value is 25%."
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
+                                <TextBlock Text="Minimum Sample Count" FontWeight="Bold" FontSize="14" Margin="0,12,0,0"/>
+                                <TextBox Text="{Binding RenderPreview_ParallaxSamplesMin}"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Text="The minimum number of samples (layers) to use when rendering parallax occlusion."
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
+                                <TextBlock Text="Maximum Sample Count" FontWeight="Bold" FontSize="14" Margin="0,12,0,0"/>
+                                <TextBox Text="{Binding RenderPreview_ParallaxSamplesMax}"/>
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Text="The Maximum number of samples (layers) to use when rendering parallax occlusion."
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
+                                <Button HorizontalAlignment="Right" Margin="0,16,0,0" Width="60"
+                                        Content="Reset" Click="OnResetRenderPreviewClick"
+                                        Style="{DynamicResource MahApps.Styles.Button}"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
                         <iconPacks:PackIconFontAwesome Kind="PaletteSolid" Height="20" VerticalAlignment="Center"/>
                         <TextBlock Text="Theme" Margin="6,0" VerticalAlignment="Center"/>
                     </StackPanel>

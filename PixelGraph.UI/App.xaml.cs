@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.Internal.Preview.Scene;
+using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Textures;
+using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Windows;
 using Serilog;
@@ -30,7 +31,7 @@ namespace PixelGraph.UI
             builder.Services.AddSingleton<IPublishLocationManager, PublishLocationManager>();
             builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
             builder.Services.AddSingleton<ITextureEditUtility, TextureEditUtility>();
-            builder.Services.AddSingleton<ICustomShaderManager, CustomShaderManager>();
+            builder.Services.AddSingleton<IShaderByteCodeManager, CustomShaderManager>();
 
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
             builder.Services.AddTransient<ILayerPreviewBuilder, LayerPreviewBuilder>();

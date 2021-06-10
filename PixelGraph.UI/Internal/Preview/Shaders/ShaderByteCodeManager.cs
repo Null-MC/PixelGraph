@@ -1,9 +1,9 @@
-﻿using System;
+﻿using HelixToolkit.SharpDX.Core;
+using HelixToolkit.SharpDX.Core.Shaders;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using HelixToolkit.SharpDX.Core;
-using HelixToolkit.SharpDX.Core.Shaders;
 
 namespace PixelGraph.UI.Internal.Preview.Shaders
 {

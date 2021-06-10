@@ -4,7 +4,7 @@ using HelixToolkit.SharpDX.Core.Shaders;
 using SharpDX.Direct3D11;
 using System;
 
-namespace PixelGraph.UI.Internal.Preview.Scene
+namespace PixelGraph.UI.Internal.Preview.Materials
 {
     public class CustomPbrMaterialCore : MaterialCore
     {
@@ -55,8 +55,8 @@ namespace PixelGraph.UI.Internal.Preview.Scene
         }
 
         public SamplerStateDescription IBLSampler {
-            set => Set(ref _iblSampler, value); 
             get => _iblSampler; 
+            set => Set(ref _iblSampler, value); 
         }
 
 

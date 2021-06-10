@@ -3,9 +3,9 @@ using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview;
+using SharpDX;
 using System;
 using System.Windows.Media;
-using PixelGraph.UI.Internal.Preview.Scene;
 
 namespace PixelGraph.UI.Models
 {
@@ -14,13 +14,20 @@ namespace PixelGraph.UI.Models
         private IEffectsManager _effectsManager;
         private Material _modelMaterial;
         private MeshGeometry3D _model;
-        private PerspectiveCamera _camera, _sunCamera;
+        private PerspectiveCamera _camera;
+        private OrthographicCamera _sunCamera;
         private TextureModel _skyTexture;
         private ImageSource _layerImage;
         private string _selectedTag;
         private bool _enableRender;
         private bool _enableEnvironment;
         private RenderPreviewModes _renderMode;
+        private float _parallaxDepth;
+        private int _parallaxSamplesMin;
+        private int _parallaxSamplesMax;
+        private Vector3 _sunDirection;
+        private int _timeOfDay;
+        private float _wetness;
         private bool _isLoading;
 
         public event EventHandler EnableRenderChanged;
@@ -29,6 +36,31 @@ namespace PixelGraph.UI.Models
         public event EventHandler SelectedTagChanged;
 
         public bool HasSelectedTag => _selectedTag != null;
+        public float TimeOfDayLinear => _timeOfDay / 24_000f;
+
+        public float ParallaxDepth {
+            get => _parallaxDepth;
+            set {
+                _parallaxDepth = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int ParallaxSamplesMin {
+            get => _parallaxSamplesMin;
+            set {
+                _parallaxSamplesMin = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int ParallaxSamplesMax {
+            get => _parallaxSamplesMax;
+            set {
+                _parallaxSamplesMax = value;
+                OnPropertyChanged();
+            }
+        }
 
         public bool IsLoading {
             get => _isLoading;
@@ -59,6 +91,31 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public int TimeOfDay {
+            get => _timeOfDay;
+            set {
+                _timeOfDay = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(TimeOfDayLinear));
+            }
+        }
+
+        public Vector3 SunDirection {
+            get => _sunDirection;
+            set {
+                _sunDirection = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public float Wetness {
+            get => _wetness;
+            set {
+                _wetness = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ImageSource LayerImage {
             get => _layerImage;
             set {
@@ -83,7 +140,7 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public PerspectiveCamera SunCamera {
+        public OrthographicCamera SunCamera {
             get => _sunCamera;
             set {
                 _sunCamera = value;
@@ -138,6 +195,8 @@ namespace PixelGraph.UI.Models
         public PreviewContextModel()
         {
             _selectedTag = TextureTags.Albedo;
+
+            TimeOfDay = 6_000;
         }
 
         private void OnEnableRenderChanged()

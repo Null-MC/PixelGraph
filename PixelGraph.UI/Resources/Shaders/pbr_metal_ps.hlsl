@@ -1,30 +1,10 @@
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/parallax.hlsl"
+#include "lib/pbr_material.hlsl"
 #include "lib/pbr.hlsl"
 
-#pragma pack_matrix( row_major )
-
-/* TEXTURE PACKING
- *   tex_albedo_alpha
- *     r=red
- *     g=green
- *     b=blue
- *     a=alpha
- *   tex_normal_height
- *     r=normal-x
- *     g=normal-y
- *     b=normal-z
- *     a=height
- *   tex_rough_f0_occlusion
- *     r=rough
- *     g=f0
- *     b=occlusion
- *   tex_porosity_sss_emissive
- *     r=porosity
- *     g=sss
- *     b=emissive
- */
+#pragma pack_matrix(row_major)
 
 
 float4 main(const ps_input input) : SV_TARGET
@@ -36,26 +16,20 @@ float4 main(const ps_input input) : SV_TARGET
 
 	const float2 parallax_tex = get_parallax_texcoord(input.tex, input.poT, normal, eye);
 	const float3 normalT = calc_normal(parallax_tex, normal, tangent, bitangent);
+
+	const pbr_material mat = get_pbr_material(parallax_tex);
+	const float reflectance = 0.5; // 4%
+	const float metal = mat.f0;
 	
-	const float4 albedo_alpha = tex_albedo_alpha.Sample(sampler_surface, parallax_tex);
-	const float3 rough_f0_occlusion = tex_rough_f0_occlusion.Sample(sampler_surface, parallax_tex).rgb;
-	const float3 porosity_sss_emissive = tex_porosity_sss_emissive.Sample(sampler_surface, parallax_tex).rgb;
-
-
-    // WARN: temp
-	const float reflectance = 0.5;
-	const float rough = rough_f0_occlusion.r;
-	const float metal = rough_f0_occlusion.g;
-	const float occlusion = rough_f0_occlusion.b;
+	// WARN: This probably needs to be squared twice like Jessie suggested
+    const float alpha = mat.rough * mat.rough;
 
     // Blend base colors
-    const float3 c_diff = lerp(albedo_alpha.rgb, float3(0, 0, 0), metal) * occlusion;
-    const float3 c_spec = 0.16 * reflectance * reflectance * (1 - metal) + albedo_alpha.rgb * metal;
-
-		
+    const float3 c_diff = lerp(mat.albedo, float3(0, 0, 0), metal) * mat.occlusion;
+    const float3 c_spec = 0.16 * reflectance * reflectance * (1 - metal) + mat.albedo * metal;
+	
     float3 acc_color = 0;
     const float NdotV = saturate(dot(normalT, eye));
-    const float alpha = rough * rough;
 
     for (int i = 0; i < NumLights; i++) {
         if (Lights[i].iLightType == 1) {
@@ -71,7 +45,7 @@ float4 main(const ps_input input) : SV_TARGET
             const float NdotH = saturate(dot(normalT, H));
         	
             // Diffuse & specular factors
-            const float diffuse_factor = Diffuse_Burley(NdotL, NdotV, LdotH, rough);
+            const float diffuse_factor = Diffuse_Burley(NdotL, NdotV, LdotH, mat.rough);
             const float3 diffuse = c_diff * diffuse_factor;
             const float3 specular = Specular_BRDF(alpha, c_spec, NdotV, NdotL, LdotH, NdotH, normalT, H);
           
@@ -91,7 +65,7 @@ float4 main(const ps_input input) : SV_TARGET
             const float NdotH = saturate(dot(normalT, H));
         	
             // Diffuse & specular factors
-            const float diffuse_factor = Diffuse_Burley(NdotL, NdotV, LdotH, rough);
+            const float diffuse_factor = Diffuse_Burley(NdotL, NdotV, LdotH, mat.rough);
             const float3 diffuse = c_diff * diffuse_factor;
             const float3 specular = Specular_BRDF(alpha, c_spec, NdotV, NdotL, LdotH, NdotH, normalT, H);
             const float att = 1.0f / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * dl + Lights[i].vLightAtt.z * dl * dl);
@@ -111,7 +85,7 @@ float4 main(const ps_input input) : SV_TARGET
             const float NdotH = saturate(dot(normalT, H));
         	
             // Diffuse & specular factors
-            const float diffuse_factor = Diffuse_Burley(NdotL, NdotV, LdotH, rough);
+            const float diffuse_factor = Diffuse_Burley(NdotL, NdotV, LdotH, mat.rough);
             const float3 diffuse = c_diff * diffuse_factor;
             const float3 specular = Specular_BRDF(alpha, c_spec, NdotV, NdotL, LdotH, NdotH, normalT, H);
 
@@ -122,19 +96,18 @@ float4 main(const ps_input input) : SV_TARGET
         }
     }
 
-	float3 specular_env = vLightAmbient.rgb * occlusion;
+	float3 specular_env = vLightAmbient.rgb;
 
 	if (bHasCubeMap)
-        specular_env = Specular_IBL(normalT, eye, rough);
+        specular_env = specular_IBL(normalT, eye, mat.rough);
 
-    //return float4(c_spec * specular_env, 1);
-	
-    float3 lit = acc_color + c_spec * specular_env;
-	
     if (bRenderShadowMap)
-        lit *= shadow_strength(input.sp);
-
-	const float3 ambient = albedo_alpha.rgb * (porosity_sss_emissive.b + vLightAmbient.rgb);
+        acc_color *= shadow_strength(input.sp);
 	
-    return float4(ambient + lit, albedo_alpha.a);
+	const float3 lit = acc_color + c_spec * specular_env * mat.occlusion;
+
+	const float3 ambient = vLightAmbient.rgb * mat.occlusion;
+	const float3 final_color = lit + (ambient + mat.emissive * PI) * mat.albedo;
+	
+    return float4(final_color, mat.alpha);
 }

@@ -9,6 +9,7 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.ViewData;

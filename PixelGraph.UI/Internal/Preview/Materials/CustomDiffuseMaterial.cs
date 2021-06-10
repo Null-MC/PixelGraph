@@ -1,11 +1,11 @@
-﻿using HelixToolkit.SharpDX.Core;
+﻿using System.Windows;
+using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.Wpf.SharpDX;
 using SharpDX.Direct3D11;
-using System.Windows;
 
-namespace PixelGraph.UI.Internal.Preview.Scene
+namespace PixelGraph.UI.Internal.Preview.Materials
 {
     public class CustomDiffuseMaterial : Material
     {

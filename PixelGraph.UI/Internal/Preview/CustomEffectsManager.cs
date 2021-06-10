@@ -1,13 +1,38 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Shaders;
+using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal.Preview.Shaders;
+using System;
 
-namespace PixelGraph.UI.Internal.Preview.Scene
+namespace PixelGraph.UI.Internal.Preview
 {
     public class CustomEffectsManager : DefaultEffectsManager
     {
-        public CustomEffectsManager(IShaderByteCodeManager shaderMgr)
+        private readonly IShaderByteCodeManager shaderMgr;
+
+
+        public CustomEffectsManager(IServiceProvider provider)
         {
+            shaderMgr = provider.GetRequiredService<IShaderByteCodeManager>();
+
+            Initialize();
+        }
+        
+        private void Initialize()
+        {
+            var skyTechnique = GetTechnique(DefaultRenderTechniqueNames.Skybox);
+
+            skyTechnique.RemovePass(DefaultPassNames.Default);
+            skyTechnique.AddPass(new ShaderPassDescription(DefaultPassNames.Default) {
+                ShaderList = new[] {
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_SkyPixel, ShaderStage.Pixel),
+                },
+                DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
+                BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
+                RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
+            });
+
             var meshTechnique = GetTechnique(DefaultRenderTechniqueNames.Mesh);
 
             meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.Diffuse) {

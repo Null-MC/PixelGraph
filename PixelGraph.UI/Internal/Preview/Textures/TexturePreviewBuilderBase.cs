@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Effects;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
@@ -13,6 +8,11 @@ using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal.Preview.Textures
 {
@@ -52,7 +52,6 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
             var graph = scope.ServiceProvider.GetRequiredService<ITextureGraph>();
             var regions = scope.ServiceProvider.GetRequiredService<ITextureRegionEnumerator>();
-            var edgeFadeEffect = scope.ServiceProvider.GetRequiredService<IEdgeFadeImageEffect>();
             var reader = scope.ServiceProvider.GetRequiredService<IInputReader>();
 
             context.Input = Input;
@@ -78,8 +77,10 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             var image = await graph.CreateImageAsync<Rgba32>(tag, true, tokenSource.Token);
             if (image == null) return null;
 
-            try {
-                if (TextureTags.Is(tag, TextureTags.Height) && (image.Width > 1 || image.Height > 1)) {
+            if (image.Width > 1 || image.Height > 1) {
+                var edgeFadeEffect = scope.ServiceProvider.GetRequiredService<IEdgeFadeImageEffect>();
+
+                try {
                     foreach (var part in regions.GetAllPublishRegions(context.MaxFrameCount, targetFrame, targetPart)) {
                         foreach (var frame in part.Frames) {
                             var outBounds = targetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
@@ -89,13 +90,13 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         }
                     }
                 }
+                catch {
+                    image.Dispose();
+                    throw;
+                }
+            }
 
-                return image;
-            }
-            catch {
-                image.Dispose();
-                throw;
-            }
+            return image;
         }
 
         //public async Task<ImageSource> BuildSourceAsync(string tag, int targetFrame = 0)

@@ -3,13 +3,13 @@
 #pragma pack_matrix(row_major)
 
 
-float3 blinnPhong_lighting(const float4 light_color, const float3 normal, const float4 diffuse, const float3 L, const float3 H)
+float3 blinnPhong_lighting(const float4 light_color, const float3 normal, const float3 diffuse, const float3 L, const float3 H)
 {
 	const float3 f = lit(dot(normal, L), dot(normal, H), shininess).xyz;
-    return diffuse.rgb * f.y * light_color.rgb;
+    return diffuse * f.y * light_color.rgb;
 }
 
-float3 light_surface(const float4 wp, const in float3 V, const in float3 N, const float4 diffuse)
+float3 light_surface(const float4 wp, const in float3 V, const in float3 N, const float3 diffuse)
 {
     float3 acc_color = 0;
 	

@@ -3,7 +3,7 @@ using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using SharpDX.Direct3D11;
 
-namespace PixelGraph.UI.Internal.Preview.Scene
+namespace PixelGraph.UI.Internal.Preview.Materials
 {
     public class CustomDiffuseMaterialCore : MaterialCore
     {

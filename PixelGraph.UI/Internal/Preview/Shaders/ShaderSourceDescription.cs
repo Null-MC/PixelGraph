@@ -1,4 +1,5 @@
 ﻿using PixelGraph.UI.Internal.Utilities;
+using SharpDX;
 using SharpDX.D3DCompiler;
 using System;
 using System.Collections.Generic;
@@ -26,23 +27,32 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
         {
             var filename = Path.Combine(path, RawFileName);
             if (!File.Exists(filename)) return false;
+            
+            try {
+                using var includeMgr = new CustomShaderFileInclude(path);
+                using var result = ShaderBytecode.CompileFromFile(filename, EntryPoint, Profile, include: includeMgr);
 
-            using var includeMgr = new CustomShaderFileInclude(path);
-            using var result = ShaderBytecode.CompileFromFile(filename, EntryPoint, Profile, include: includeMgr);
+                if (result == null || result.HasErrors) {
+                    errorList.Add(new ShaderCompileError {
+                        Filename = filename,
+                        Message = result?.Message ?? "An unknown error occurred!",
+                        //ResultCode = result?.ResultCode?.Code,
+                    });
+                    return false;
+                }
 
-            if (result == null || result.HasErrors) {
+                Code?.Dispose();
+                Code = result.Bytecode;
+                return true;
+            }
+            catch (CompilationException error) {
                 errorList.Add(new ShaderCompileError {
                     Filename = filename,
-                    Message = result?.Message,
-                    // TODO: more details
+                    Message = error.Message,
+                    //ResultCode = error.ResultCode?.Code,
                 });
-
                 return false;
             }
-
-            Code?.Dispose();
-            Code = result.Bytecode;
-            return true;
         }
 
         public void LoadFromAssembly()

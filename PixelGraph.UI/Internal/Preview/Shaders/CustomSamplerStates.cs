@@ -1,6 +1,6 @@
 ﻿using SharpDX.Direct3D11;
 
-namespace PixelGraph.UI.Internal.Preview.Scene
+namespace PixelGraph.UI.Internal.Preview.Shaders
 {
     internal static class CustomSamplerStates
     {

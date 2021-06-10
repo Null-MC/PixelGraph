@@ -1,6 +1,5 @@
 ﻿using PixelGraph.UI.Internal.Preview;
 using System.Collections.Generic;
-using PixelGraph.UI.Internal.Preview.Scene;
 
 namespace PixelGraph.UI.ViewData
 {

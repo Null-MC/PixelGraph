@@ -24,6 +24,8 @@ namespace PixelGraph.UI.Windows
                 Model = Model,
             };
 
+            viewModel.LoadData();
+
             //Model.DataChanged += OnVMDataChanged;
         }
 
@@ -40,6 +42,11 @@ namespace PixelGraph.UI.Windows
         private void OnResetThemeColorsClick(object sender, RoutedEventArgs e)
         {
             viewModel.ResetThemeColors();
+        }
+
+        private void OnResetRenderPreviewClick(object sender, RoutedEventArgs e)
+        {
+            viewModel.ResetRenderPreview();
         }
 
         private void OnCancelButtonClick(object sender, RoutedEventArgs e)

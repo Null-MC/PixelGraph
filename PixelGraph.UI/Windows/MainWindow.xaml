@@ -11,6 +11,7 @@
                  xmlns:hx="http://helix-toolkit.org/wpf/SharpDX"
                  xmlns:models="clr-namespace:PixelGraph.UI.Models"
                  xmlns:viewData="clr-namespace:PixelGraph.UI.ViewData"
+                 xmlns:previewModels="clr-namespace:PixelGraph.UI.PreviewModels"
                  d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
                  Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" WindowState="Maximized"
                  Loaded="OnWindowLoaded" Closed="OnWindowClosed" PreviewKeyUp="OnWindowPreviewKeyUp"
@@ -311,6 +312,9 @@
                                           ItemsSource="{StaticResource RenderModes}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
                                           SelectedValue="{Binding Preview.RenderMode, Mode=TwoWay}"/>
+                                <Slider DockPanel.Dock="Left" Margin="4" Minimum="0" Maximum="24000" Width="200"
+                                        Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
+                                        Value="{Binding Preview.TimeOfDay, Mode=TwoWay}"/>
                                 <CheckBox DockPanel.Dock="Left" Content="Environment" Margin="4" FontWeight="Bold"
                                           Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
@@ -341,6 +345,7 @@
                                     EnableD2DRendering="False"
                                     EnableSwapChainRendering="True"
                                     IsShadowMappingEnabled="True"
+                                    ModelUpDirection="0,1,0"
                                     MSAA="Two"
                                     ShowCoordinateSystem="True"
                                     SubTitle="This is just a test..."
@@ -360,31 +365,39 @@
                                         <MouseBinding Command="hx:ViewportCommands.Zoom" Gesture="MiddleClick" />
                                         <MouseBinding Command="hx:ViewportCommands.Pan" Gesture="LeftClick" />
                                     </hx:Viewport3DX.InputBindings>
-                                    <hx:AmbientLight3D Color="#191816"
+                                    <previewModels:MinecraftScene3D
+                                        TimeOfDay="{Binding TimeOfDayLinear, Mode=OneWay}"
+                                        SunDirection="{Binding SunDirection, Mode=OneWay}"
+                                        Wetness="{Binding Wetness, Mode=OneWay}"
+                                        ParallaxDepth="{Binding ParallaxDepth, Mode=OneWay}"
+                                        ParallaxSamplesMin="{Binding ParallaxSamplesMin, Mode=OneWay}"
+                                        ParallaxSamplesMax="{Binding ParallaxSamplesMax, Mode=OneWay}"/>
+                                    <hx:AmbientLight3D Color="#403B37"
                                                        Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
-                                    <hx:AmbientLight3D Color="#0A0A0A"
+                                    <hx:AmbientLight3D Color="#1A1A1A"
                                                        Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
-                                    <!--<hx:DirectionalLight3D Direction="-2,-1,1" Color="White" />-->
+                                    <hx:DirectionalLight3D Color="White"
+                                                           Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"/>
                                     <hx:EnvironmentMap3D
                                         Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"
                                         Texture="{Binding SkyTexture, Mode=OneWay}" />
-                                    <hx:SpotLight3D
+                                    <!--<hx:SpotLight3D
                                         Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"
                                         OuterAngle="{Binding SunCamera.FieldOfView}"
                                         Position="{Binding SunCamera.Position, Mode=OneWay}"
                                         Range="{Binding SunCamera.FarPlaneDistance}"
-                                        Color="White" />
-                                    <hx:ShadowMap3D Resolution="1024,1024"
+                                        Color="White" />-->
+                                    <hx:ShadowMap3D Resolution="2048,2048"
                                                     LightCamera="{Binding SunCamera}"/>
-                                    <hx:CameraModel3D x:Name="lightCamera"
-                                                      Camera="{Binding SunCamera}" />
-                                    <hx:MeshGeometryModel3D
-                                        Geometry="{Binding Model, Mode=OneWay}"
-                                        Material="{Binding ModelMaterial, Mode=OneWay}"/>
-                                    <hx:UICompositeManipulator3D Diameter="2"
+                                    <!--<hx:CameraModel3D x:Name="lightCamera"
+                                                      Camera="{Binding SunCamera}" />-->
+                                    <hx:MeshGeometryModel3D IsThrowingShadow="True" CullMode="Back"
+                                                            Geometry="{Binding Model, Mode=OneWay}"
+                                                            Material="{Binding ModelMaterial, Mode=OneWay}"/>
+                                    <!--<hx:UICompositeManipulator3D Diameter="2"
                                         CanRotateX="true" CanRotateY="true" CanRotateZ="true"
                                         CanTranslateX="False" CanTranslateY="False" CanTranslateZ="False"
-                                        TargetTransform="{Binding Transform, ElementName=lightCamera}" />
+                                        TargetTransform="{Binding Transform, ElementName=lightCamera}" />-->
                                     <hx:ContinuousRender3D/>
                                     <!--<hx:BillboardTextModel3D FixedSize="True" IsHitTestVisible="False"
                                         Geometry="{Binding RenderLoadingText}"/>-->

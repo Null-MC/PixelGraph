@@ -1,11 +1,9 @@
-﻿using PixelGraph.UI.Internal.Preview.Shaders;
-
-namespace PixelGraph.UI.Internal.Preview.Scene
+﻿namespace PixelGraph.UI.Internal.Preview.Shaders
 {
-    internal interface ICustomShaderManager : IShaderByteCodeManager {}
-
-    internal class CustomShaderManager : ShaderByteCodeManager, ICustomShaderManager
+    internal class CustomShaderManager : ShaderByteCodeManager
     {
+        public const string Name_SkyVertex = "sky_vs";
+        public const string Name_SkyPixel = "sky_ps";
         public const string Name_DiffuseVertex = "diffuse_vs";
         public const string Name_DiffusePixel = "diffuse_ps";
         public const string Name_PbrVertex = "pbr_vs";
@@ -15,6 +13,23 @@ namespace PixelGraph.UI.Internal.Preview.Scene
 
         public CustomShaderManager()
         {
+            DefineShaderSources();
+        }
+
+        private void DefineShaderSources()
+        {
+            Add(Name_SkyVertex, new ShaderSourceDescription {
+                Profile = "vs_4_0",
+                RawFileName = "sky_vs.hlsl",
+                CompiledResourceName = "sky_vs.cso",
+            });
+
+            Add(Name_SkyPixel, new ShaderSourceDescription {
+                Profile = "ps_4_0",
+                RawFileName = "sky_ps.hlsl",
+                CompiledResourceName = "sky_ps.cso",
+            });
+
             Add(Name_DiffuseVertex, new ShaderSourceDescription {
                 Profile = "vs_4_0",
                 RawFileName = "pbr_vs.hlsl",

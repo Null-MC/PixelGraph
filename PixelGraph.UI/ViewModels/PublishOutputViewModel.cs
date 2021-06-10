@@ -6,6 +6,7 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Models;
 using System;
 using System.Threading;

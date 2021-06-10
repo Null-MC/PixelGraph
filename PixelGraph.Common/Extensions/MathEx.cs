@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace PixelGraph.Common.Extensions
 {
-    internal static class MathEx
+    public static class MathEx
     {
         public const float Deg2Rad = (float)(Math.PI / 180);
         //public const float Deg2RadF = (float)Deg2Rad;

@@ -1,8 +1,7 @@
 #include "lib/common_structs.hlsl"
 
-#define g_fPOMHeightMapScale 0.25
-
 #pragma pack_matrix(row_major)
+
 
 ps_input main(const vs_input input)
 {
@@ -27,7 +26,7 @@ ps_input main(const vs_input input)
 	const float parallax_length = sqrt(length_sq - output.eyeT.z * output.eyeT.z) / output.eyeT.z;
 	const float2 parallax_dir = normalize(output.eyeT.xy);
 
-	output.poT = parallax_dir * parallax_length * g_fPOMHeightMapScale;
+	output.poT = parallax_dir * parallax_length * ParallaxDepth;
 
 	return output;
 }

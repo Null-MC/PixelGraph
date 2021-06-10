@@ -3,15 +3,16 @@ using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Preview.Materials;
-using PixelGraph.UI.Internal.Preview.Scene;
 using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Textures;
+using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using SharpDX;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace PixelGraph.UI.ViewModels
         public PreviewViewModel(IServiceProvider provider)
         {
             this.provider = provider;
-
+            
             lockHandle = new object();
             uiDispatcher = Application.Current.Dispatcher;
         }
@@ -68,15 +69,21 @@ namespace PixelGraph.UI.ViewModels
 
         public void Initialize()
         {
+            LoadAppSettings();
             ReloadShaders();
             
             Model.Preview.Camera = new PerspectiveCamera();
 
-            Model.Preview.SunCamera = new PerspectiveCamera { 
-                UpDirection = new Media3D.Vector3D(1, 0, 0), 
-                FarPlaneDistance = 5000, 
+            //Model.Preview.SunCamera = new PerspectiveCamera { 
+            //    UpDirection = new Media3D.Vector3D(1, 0, 0), 
+            //    FarPlaneDistance = 5000, 
+            //    NearPlaneDistance = 1,
+            //    FieldOfView = 45
+            //};
+            Model.Preview.SunCamera = new OrthographicCamera { 
+                UpDirection = new Media3D.Vector3D(1, 0, 0),
+                FarPlaneDistance = 200, 
                 NearPlaneDistance = 1,
-                FieldOfView = 45
             };
 
             ResetViewport();
@@ -94,21 +101,45 @@ namespace PixelGraph.UI.ViewModels
                 Model = Model,
             };
 
+            Model.Preview.PropertyChanged += OnPreviewPropertyChanged;
             Model.Preview.EnableRenderChanged += OnEnableRenderChanged;
             Model.Preview.RenderModeChanged += OnRenderModeChanged;
             Model.Preview.RenderSceneChanged += OnRenderSceneChanged;
             Model.Preview.SelectedTagChanged += OnSelectedTagChanged;
         }
 
+        public void LoadAppSettings()
+        {
+            var appSettings = provider.GetRequiredService<IAppSettings>();
+            Model.Preview.ParallaxDepth = (float)(appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth);
+            Model.Preview.ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
+            Model.Preview.ParallaxSamplesMax = appSettings.Data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
+        }
+
+        private void UpdateSunAngle()
+        {
+            MinecraftTime.GetSunAngle(Model.Preview.TimeOfDayLinear, -40, out var sunVec);
+            Model.Preview.SunDirection = -sunVec;
+
+            var sunPos = sunVec * 8f;
+            Model.Preview.SunCamera.Position = sunPos.ToPoint3D();
+            Model.Preview.SunCamera.LookDirection = -sunVec.ToVector3D();
+        }
+
+        private void OnPreviewPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(PreviewContextModel.TimeOfDay)) UpdateSunAngle();
+        }
+
         public void ReloadShaders()
         {
-            var shaderMgr = provider.GetRequiredService<ICustomShaderManager>();
+            var shaderMgr = provider.GetRequiredService<IShaderByteCodeManager>();
 
             if (!shaderMgr.LoadAll(out var compileErrors))
                 OnShaderCompileErrors(compileErrors);
 
             Model.Preview.EffectsManager?.Dispose();
-            Model.Preview.EffectsManager = new CustomEffectsManager(shaderMgr);
+            Model.Preview.EffectsManager = new CustomEffectsManager(provider);
         }
 
         public void ResetViewport()
@@ -117,8 +148,8 @@ namespace PixelGraph.UI.ViewModels
             Model.Preview.Camera.LookDirection = new Media3D.Vector3D(-10, -10, -10);
             Model.Preview.Camera.UpDirection = new Media3D.Vector3D(0, 1, 0);
 
-            Model.Preview.SunCamera.Position = new Media3D.Point3D(6, 10, 0);
-            Model.Preview.SunCamera.LookDirection = new Media3D.Vector3D(-1, -3, 0);
+            Model.Preview.SunCamera.Position = new Media3D.Point3D(18f, 8f, -8f);
+            Model.Preview.SunCamera.LookDirection = new Media3D.Vector3D(-2f, -1f, 1f);
         }
 
         public async Task ClearAsync()

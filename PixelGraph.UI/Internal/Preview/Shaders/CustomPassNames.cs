@@ -1,4 +1,4 @@
-﻿namespace PixelGraph.UI.Internal.Preview.Scene
+﻿namespace PixelGraph.UI.Internal.Preview.Shaders
 {
     internal static class CustomPassNames
     {

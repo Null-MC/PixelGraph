@@ -1,5 +1,25 @@
+#define PI 3.14159265f
+#define EPSILON 1e-6f
+
 #pragma pack_matrix(row_major)
 
+
+float3 srgb_to_linear(const float3 srgb)
+{
+	return srgb;
+	//return srgb * (srgb * (srgb * 0.305306011 + 0.682171111) + 0.012522878);
+	return pow(abs(srgb), 2.233333333);
+}
+
+float3 linear_to_srgb(const float3 rgb)
+{
+	return rgb;
+	//const float3 s1 = sqrt(rgb);
+	//const float3 s2 = sqrt(s1);
+	//const float3 s3 = sqrt(s2);
+	//return 0.662002687 * s1 + 0.684122060 * s2 - 0.323583601 * s3 - 0.0225411470 * rgb;
+	return max(1.055 * pow(abs(rgb), 0.416666667) - 0.055, 0);
+}
 
 float3 calc_normal(const in float2 tex, const in float3 normal, const in float3 tangent, const in float3 bitangent)
 {
@@ -42,7 +62,8 @@ float shadow_strength(float4 sp)
 	}
 
 	const float shadow_factor = sum / 16;
-
+	return shadow_factor;
+	
 	// now, put the shadow-strength into the 0-nonTeil range	
 	const float non_teil = 1 - vShadowMapInfo.x;
 	return vShadowMapInfo.x + shadow_factor * non_teil;

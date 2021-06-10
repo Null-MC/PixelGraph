@@ -1,5 +1,6 @@
 #define LIGHTS 8
-#pragma pack_matrix( row_major )
+
+#pragma pack_matrix(row_major)
 
 
 struct vs_input
@@ -28,6 +29,15 @@ struct ps_input
 	float3 bin  : BINORMAL;
 	float2 tex  : TEXCOORD0;
 	float4 sp   : TEXCOORD1;
+};
+
+struct ps_input_cube
+{
+	float4 pos  : SV_POSITION;
+	float3 tex  : TEXCOORD0;
+	float4 posV : POSITION0;
+	float3 up   : POSITION1;
+	float3 sun  : POSITION2;
 };
 
 struct LightStruct
@@ -75,15 +85,13 @@ cbuffer cbMesh : register(b1)
     float4 wireframeColor;
     bool3 bParams;
     bool bBatched = false;
-
-	float minTessDistance = 1;
-	float maxTessDistance = 100;
-	float minTessFactor = 4;
-	float maxTessFactor = 1;
-
-    float4 vMaterialDiffuse = 0.5f;
-    float4 vMaterialAmbient = 0.25f;
-    float4 vMaterialEmissive = 0.0f;
+    float minTessDistance;
+	float maxTessDistance;
+	float minTessFactor;
+	float maxTessFactor;
+    float4 vMaterialDiffuse;
+    float4 vMaterialAmbient;
+    float4 vMaterialEmissive;
     float ConstantAO;
     float ConstantRoughness;
     float ConstantMetallic;
@@ -100,16 +108,25 @@ cbuffer cbMesh : register(b1)
     bool bHasRMMap;    
     bool bHasIrradianceMap; 
     bool bAutoTengent;
-    bool bHasDisplacementMap = false;
-    bool bRenderPBR = false;  
-    bool bRenderFlat = false;
-    float sMaterialShininess = 1.0f;
-
-    float4 displacementMapScaleMask = float4(0, 0, 0, 1);
+    bool bHasDisplacementMap;
+    bool bRenderPBR;  
+    bool bRenderFlat;
+    float sMaterialShininess;
+    float4 displacementMapScaleMask;
     float4 uvTransformR1;
     float4 uvTransformR2;
     float vertColorBlending;
     float3 padding4;
+};
+
+cbuffer cbMinecraftScene : register(b2)
+{
+    float TimeOfDay;
+	float3 SunDirection;
+    float Wetness;
+    float ParallaxDepth;
+    int ParallaxSamplesMin;
+    int ParallaxSamplesMax;
 };
 
 cbuffer cbLights : register(b3)

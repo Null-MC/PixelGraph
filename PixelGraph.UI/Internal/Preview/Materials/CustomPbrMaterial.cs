@@ -5,10 +5,12 @@ using HelixToolkit.Wpf.SharpDX;
 using SharpDX.Direct3D11;
 using System.Windows;
 
-namespace PixelGraph.UI.Internal.Preview.Scene
+namespace PixelGraph.UI.Internal.Preview.Materials
 {
     public class CustomPbrMaterial : Material
     {
+        public string MaterialPassName {get; set;}
+
         public TextureModel AlbedoAlphaMap {
             get => (TextureModel)GetValue(AlbedoAlphaMapProperty);
             set => SetValue(AlbedoAlphaMapProperty, value);
@@ -44,7 +46,25 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             set => SetValue(SurfaceMapSamplerProperty, value);
         }
 
-        public string MaterialPassName {get; set;}
+        //public bool ParallaxEnabled {
+        //    get => (bool)GetValue(ParallaxEnabledProperty);
+        //    set => SetValue(ParallaxEnabledProperty, value);
+        //}
+
+        //public float ParallaxDepth {
+        //    get => (float)GetValue(ParallaxDepthProperty);
+        //    set => SetValue(ParallaxDepthProperty, value);
+        //}
+
+        //public int ParallaxSamplesMin {
+        //    get => (int)GetValue(ParallaxSamplesMinProperty);
+        //    set => SetValue(ParallaxSamplesMinProperty, value);
+        //}
+
+        //public int ParallaxSamplesMax {
+        //    get => (int)GetValue(ParallaxSamplesMaxProperty);
+        //    set => SetValue(ParallaxSamplesMaxProperty, value);
+        //}
 
 
         public CustomPbrMaterial() {}
@@ -56,7 +76,10 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             RoughF0OcclusionMap = core.RoughF0OcclusionMap;
             PorositySssEmissiveMap = core.PorositySssEmissiveMap;
             SurfaceMapSampler = core.SurfaceMapSampler;
-
+            //ParallaxEnabled = core.ParallaxEnabled;
+            //ParallaxDepth = core.ParallaxDepth;
+            //ParallaxSamplesMin = core.ParallaxSamplesMin;
+            //ParallaxSamplesMax = core.ParallaxSamplesMax;
             RenderEnvironmentMap = core.RenderEnvironmentMap;
             RenderShadowMap = core.RenderShadowMap;
         }
@@ -69,6 +92,10 @@ namespace PixelGraph.UI.Internal.Preview.Scene
                 RoughF0OcclusionMap = RoughF0OcclusionMap,
                 PorositySssEmissiveMap = PorositySssEmissiveMap,
                 SurfaceMapSampler = SurfaceMapSampler,
+                //ParallaxEnabled = ParallaxEnabled,
+                //ParallaxDepth = ParallaxDepth,
+                //ParallaxSamplesMin = ParallaxSamplesMin,
+                //ParallaxSamplesMax = ParallaxSamplesMax,
                 RenderEnvironmentMap = RenderEnvironmentMap,
                 RenderShadowMap = RenderShadowMap,
             };
@@ -83,6 +110,10 @@ namespace PixelGraph.UI.Internal.Preview.Scene
                 RoughF0OcclusionMap = RoughF0OcclusionMap,
                 PorositySssEmissiveMap = PorositySssEmissiveMap,
                 SurfaceMapSampler = SurfaceMapSampler,
+                //ParallaxEnabled = ParallaxEnabled,
+                //ParallaxDepth = ParallaxDepth,
+                //ParallaxSamplesMin = ParallaxSamplesMin,
+                //ParallaxSamplesMax = ParallaxSamplesMax,
                 RenderEnvironmentMap = RenderEnvironmentMap,
                 RenderShadowMap = RenderShadowMap,
             };
@@ -127,5 +158,25 @@ namespace PixelGraph.UI.Internal.Preview.Scene
             DependencyProperty.Register(nameof(SurfaceMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(DefaultSamplers.LinearSamplerWrapAni4, (d, e) => {
                 ((CustomPbrMaterialCore)((Material)d).Core).SurfaceMapSampler = (SamplerStateDescription)e.NewValue;
             }));
+
+        //public static readonly DependencyProperty ParallaxEnabledProperty =
+        //    DependencyProperty.Register(nameof(ParallaxEnabled), typeof(bool), typeof(CustomPbrMaterial), new PropertyMetadata(true, (d, e) => {
+        //        ((CustomPbrMaterialCore)((Material)d).Core).ParallaxEnabled = (bool)e.NewValue;
+        //    }));
+
+        //public static readonly DependencyProperty ParallaxDepthProperty =
+        //    DependencyProperty.Register(nameof(ParallaxDepth), typeof(float), typeof(CustomPbrMaterial), new PropertyMetadata(0.25f, (d, e) => {
+        //        ((CustomPbrMaterialCore)((Material)d).Core).ParallaxDepth = (float)e.NewValue;
+        //    }));
+
+        //public static readonly DependencyProperty ParallaxSamplesMinProperty =
+        //    DependencyProperty.Register(nameof(ParallaxSamplesMin), typeof(int), typeof(CustomPbrMaterial), new PropertyMetadata(4, (d, e) => {
+        //        ((CustomPbrMaterialCore)((Material)d).Core).ParallaxSamplesMin = (int)e.NewValue;
+        //    }));
+
+        //public static readonly DependencyProperty ParallaxSamplesMaxProperty =
+        //    DependencyProperty.Register(nameof(ParallaxSamplesMax), typeof(int), typeof(CustomPbrMaterial), new PropertyMetadata(256, (d, e) => {
+        //        ((CustomPbrMaterialCore)((Material)d).Core).ParallaxSamplesMax = (int)e.NewValue;
+        //    }));
     }
 }

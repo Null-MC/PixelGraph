@@ -3,9 +3,6 @@
 
 #pragma pack_matrix(row_major)
 
-static const float PI = 3.14159265f;
-static const float EPSILON = 1e-6f;
-
 
 float3 Fresnel_Shlick(const in float3 f0, const in float3 f90, const in float x)
 {
@@ -56,9 +53,9 @@ float3 Specular_BRDF(const in float alpha, const in float3 f0, in float NdotV, i
     return specular_d * specular_g * specular_f;
 }
 
-float3 Specular_IBL(const in float3 N, const in float3 V, const in float lodBias)
+float3 specular_IBL(const in float3 normal, const in float3 view, const in float lod_bias)
 {
-    const float3 dir = reflect(-V, N);
-	const float mip = lodBias * NumEnvironmentMapMipLevels;
+    const float3 dir = reflect(-view, normal);
+	const float mip = lod_bias * NumEnvironmentMapMipLevels;
     return tex_cube.SampleLevel(sampler_IBL, dir, mip).rgb;
 }

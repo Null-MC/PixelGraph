@@ -7,10 +7,17 @@ namespace PixelGraph.UI.Models
     {
         private string _texture_imageEditorExe;
         private string _texture_imageEditorArgs;
+        private bool _renderPreview_enabled;
+        private bool _renderPreview_parallaxEnabled;
+        private decimal? _renderPreview_parallaxDepth;
+        private int? _renderPreview_parallaxSamplesMin;
+        private int? _renderPreview_parallaxSamplesMax;
         private string _theme_baseColor;
         private string _theme_accentColor;
 
         public event EventHandler DataChanged;
+
+        public bool IsLoading {get; set;}
 
         public string Texture_ImageEditorExe {
             get => _texture_imageEditorExe;
@@ -25,6 +32,51 @@ namespace PixelGraph.UI.Models
             get => _texture_imageEditorArgs;
             set {
                 _texture_imageEditorArgs = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public bool RenderPreview_Enabled {
+            get => _renderPreview_enabled;
+            set {
+                _renderPreview_enabled = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public bool RenderPreview_ParallaxEnabled {
+            get => _renderPreview_parallaxEnabled;
+            set {
+                _renderPreview_parallaxEnabled = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? RenderPreview_ParallaxDepth {
+            get => _renderPreview_parallaxDepth;
+            set {
+                _renderPreview_parallaxDepth = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public int? RenderPreview_ParallaxSamplesMin {
+            get => _renderPreview_parallaxSamplesMin;
+            set {
+                _renderPreview_parallaxSamplesMin = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public int? RenderPreview_ParallaxSamplesMax {
+            get => _renderPreview_parallaxSamplesMax;
+            set {
+                _renderPreview_parallaxSamplesMax = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
@@ -48,8 +100,29 @@ namespace PixelGraph.UI.Models
             }
         }
 
+
+        //public void LoadData(AppSettingsDataModel data)
+        //{
+        //    _isLoading = true;
+
+        //    Texture_ImageEditorExe = data.TextureEditorExecutable;
+        //    Texture_ImageEditorArgs = data.TextureEditorArguments;
+
+        //    RenderPreview_Enabled = data.RenderPreview.Enabled ?? RenderPreviewSettings.Default_Enabled;
+        //    RenderPreview_ParallaxEnabled = data.RenderPreview.Enabled ?? RenderPreviewSettings.Default_Enabled;
+        //    RenderPreview_ParallaxDepth = data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth;
+        //    RenderPreview_ParallaxSamplesMin = data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
+        //    RenderPreview_ParallaxSamplesMax = data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
+
+        //    Theme_BaseColor = data.ThemeBaseColor;
+        //    Theme_AccentColor = data.ThemeAccentColor;
+
+        //    _isLoading = false;
+        //}
+
         private void OnDataChanged()
         {
+            if (IsLoading) return;
             DataChanged?.Invoke(this, EventArgs.Empty);
         }
     }
