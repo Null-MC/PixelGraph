@@ -353,3 +353,6 @@ MigrationBackup/
 # CUSTOM
 /test-data
 launchSettings.json
+
+# Compiled Shaders
+*.cso

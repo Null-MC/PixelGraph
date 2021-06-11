@@ -6,11 +6,7 @@ float2 get_parallax_texcoord(const float2 tex, const float2 offsetT, const float
 	const float2 dy = ddy(tex);
 	
 	const int step_count = (int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, dot(-eye, normal));
-
-	const float step_size = 1.0 / (float)step_count;
-
-	const float2 step_offset = step_size * offsetT;
-
+	const float step_size = 1 / (float)step_count;
 	const float2 step_offset = step_size * offsetT;
 	
 	float current_bound = 1.0;
@@ -23,11 +19,9 @@ float2 get_parallax_texcoord(const float2 tex, const float2 offsetT, const float
 	int step_index = 0;
 	while (step_index < step_count) {
 		current_offset -= step_offset;
-
 		const float current_height = tex_normal_height.SampleGrad(sampler_surface, current_offset, dx, dy).a;
 
 		current_bound -= step_size;
-
 		if (current_height > current_bound) break;
 		
 		step_index++;

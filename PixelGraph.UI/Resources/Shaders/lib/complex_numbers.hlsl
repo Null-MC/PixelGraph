@@ -1,5 +1,3 @@
-#define EPSLION 0.0001
-
 struct complexFloat3 {
 	float3 real;
 	float3 imag;
@@ -65,14 +63,14 @@ complexFloat3 complexDiv(complexFloat3 a, complexFloat3 b) {
 	complexFloat3 c;
 	float3 r, den;
 	if (abs(b.real).x >= abs(b.imag).x && abs(b.real).y >= abs(b.imag).y && abs(b.real).z >= abs(b.imag).z) {
-		r = b.imag / (b.real + EPSLION);
-		den = (b.real + r * b.imag) + EPSLION;
+		r = b.imag / (b.real + EPSILON);
+		den = (b.real + r * b.imag) + EPSILON;
 		c.real = (a.real + r * a.imag) * (1.0f / den);
 		c.imag = (a.imag - r * a.real) * (1.0f / den);
 	}
 	else {
-		r = b.real / (b.imag + EPSLION);
-		den = (b.imag + r * b.real) + EPSLION;
+		r = b.real / (b.imag + EPSILON);
+		den = (b.imag + r * b.real) + EPSILON;
 		c.real = (a.real * r + a.imag) * (1.0f / den);
 		c.imag = (a.imag * r - a.real) * (1.0f / den);
 	}
@@ -104,21 +102,21 @@ complexFloat3 complexSqrt(complexFloat3 z) {
 	float3 y = abs(z.imag);
 
 	if (x.x >= y.x && x.y >= y.y && x.z >= y.z) {
-		r = y / (x + EPSLION);
+		r = y / (x + EPSILON);
 		w = sqrt(x) * sqrt(0.5 * (1.0f + sqrt(1.0f + r * r)));
 	}
 	else {
-		r = x / (y + EPSLION);
+		r = x / (y + EPSILON);
 		w = sqrt(y) * sqrt(0.5 * (r + sqrt(1.0f + r * r)));
 	}
 
 	if (z.real.x >= 0.0f && z.real.y >= 0.0f && z.real.z >= 0.0f) {
 		c.real = w;
-		c.imag = z.imag / (2.0f * w + EPSLION);
+		c.imag = z.imag / (2.0f * w + EPSILON);
 	}
 	else {
 		c.imag = (z.real.x >= 0.0f && z.real.y >= 0.0f && z.real.z >= 0.0f) ? w : -w;
-		c.real = z.imag / (2.0f * c.imag + EPSLION);
+		c.real = z.imag / (2.0f * c.imag + EPSILON);
 	}
 
 	return c;

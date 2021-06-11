@@ -1,9 +1,8 @@
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
-#include "lib/complex_numbers.hlsl"
 #include "lib/parallax.hlsl"
 #include "lib/pbr_material.hlsl"
-#include "lib/pbr.hlsl"
+#include "lib/pbr_filament.hlsl"
 
 #pragma pack_matrix(row_major)
 
@@ -16,7 +15,7 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 eye = normalize(input.eye.xyz);
 
 	const float2 parallax_tex = get_parallax_texcoord(input.tex, input.poT, normal, eye);
-	const float3 normalT = calc_normal(parallax_tex, normal, tangent, bitangent);
+	const float3 normalT = calc_tex_normal(parallax_tex, normal, tangent, bitangent);
 
 	const pbr_material mat = get_pbr_material(parallax_tex);
 	const float reflectance = 0.5; // 4%
@@ -90,8 +89,12 @@ float4 main(const ps_input input) : SV_TARGET
             const float3 diffuse = c_diff * diffuse_factor;
             const float3 specular = Specular_BRDF(alpha, c_spec, NdotV, NdotL, LdotH, NdotH, normalT, H);
 
-	// Burley roughness bias
-	const float alpha = rough * rough;
+            const float rho = dot(-L, sd);
+            const float spot = pow(saturate((rho - Lights[i].vLightSpot.x) / (Lights[i].vLightSpot.y - Lights[i].vLightSpot.x)), Lights[i].vLightSpot.z);
+            const float att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * dl + Lights[i].vLightAtt.z * dl * dl);
+            acc_color = mad(att, NdotL * Lights[i].vLightColor.rgb * (diffuse + specular), acc_color);
+        }
+    }
 
 	const float3 ambient_color = srgb_to_linear(vLightAmbient.rgb);
 	float3 specular_env = ambient_color;

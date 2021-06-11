@@ -64,6 +64,7 @@
     <None Remove="Resources\Shaders\diffuse_ps.hlsl" />
     <None Remove="Resources\Shaders\diffuse_vs.hlsl" />
     <None Remove="Resources\Shaders\pbr_metal_ps.hlsl" />
+    <None Remove="Resources\Shaders\pbr_null_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_vs.hlsl" />
     <None Remove="Resources\Shaders\sky_final_ps.hlsl" />
     <None Remove="Resources\Shaders\sky_ps.hlsl" />
@@ -81,6 +82,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <HLSLShader Include="Resources\Shaders\pbr_null_ps.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_null_ps.cso</ObjectFileOutput>
+    </HLSLShader>
     <HLSLShader Include="Resources\Shaders\sky_final_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
       <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_final_ps.cso</ObjectFileOutput>

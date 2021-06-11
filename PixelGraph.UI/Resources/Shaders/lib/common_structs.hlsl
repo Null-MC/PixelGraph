@@ -158,7 +158,7 @@ TextureCube<float3> tex_cube : register(t20);
 Texture2D<float> tex_shadow : register(t30);
 
 SamplerState sampler_surface : register(s0);
-SamplerState sampler_IBL : register(s1);
+//SamplerState sampler_IBL : register(s1);
 SamplerState sampler_cube : register(s4);
 
 SamplerComparisonState sampler_shadow : register(s5);
