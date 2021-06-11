@@ -46,22 +46,3 @@ float3 get_sky_color(const float3 view)
 
 	return col;
 }
-
-//float3 diffuse_IBL(const float3 albedo, const float3 normal, const float3 eye, const float f0, const float alpha) {
-//    uint N = 256u;
-//    float3 result = float3(0.0f, 0.0f, 0.0f);
-//    for (uint i = 0u; i < N; ++i) {
-//        float3 dir = generateUnitVector(hammersley2d(i, N));
-//
-//        const float nDotV = dot(normal, eye);
-//        const float nDotL = saturate(dot(normal, dir));
-//        const float nDotH = abs(dot(normal, normalize(dir + eye))) + 1e-5;
-//        const float lDotV = dot(dir, eye);
-//        const float vDotH = dot(eye, normalize(dir + eye));
-//
-//        float3 diffuse = hammonDiffuse(albedo, f0, nDotV, nDotL, nDotH, lDotV, alpha);
-//        result += diffuse * tex_cube.Sample(sampler_IBL, dir).rgb;
-//    }
-//	
-//    return result / (float)N;
-//}

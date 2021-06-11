@@ -70,11 +70,21 @@ float3 specular_IBL(const in float3 normal, const in float3 view, const in float
     return tex_cube.SampleLevel(sampler_IBL, dir, mip).rgb;
 }
 
-//float3 specular_sky_IBL(const in float3 normal, const in float3 view)
-//{
-//    const float3 dir = reflect(-view, normal);
-//	//const float mip = lod_bias * NumEnvironmentMapMipLevels;
-//    //return tex_cube.SampleLevel(sampler_IBL, dir, mip).rgb;
+//float3 diffuse_IBL(const float3 albedo, const float3 normal, const float3 eye, const float f0, const float alpha) {
+//    uint N = 256u;
+//    float3 result = float3(0.0f, 0.0f, 0.0f);
+//    for (uint i = 0u; i < N; ++i) {
+//        float3 dir = generateUnitVector(hammersley2d(i, N));
+//
+//        const float nDotV = dot(normal, eye);
+//        const float nDotL = saturate(dot(normal, dir));
+//        const float nDotH = abs(dot(normal, normalize(dir + eye))) + 1e-5;
+//        const float lDotV = dot(dir, eye);
+//        const float vDotH = dot(eye, normalize(dir + eye));
+//
+//        float3 diffuse = hammonDiffuse(albedo, f0, nDotV, nDotL, nDotH, lDotV, alpha);
+//        result += diffuse * tex_cube.Sample(sampler_IBL, dir).rgb;
+//    }
 //	
-//	return get_sky_color(dir);
+//    return result / (float)N;
 //}
