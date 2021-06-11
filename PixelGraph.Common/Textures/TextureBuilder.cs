@@ -182,7 +182,6 @@ namespace PixelGraph.Common.Textures
         private bool TryBuildMapping(ResourcePackChannelProperties outputChannel, bool createEmpty, out TextureChannelMapping mapping)
         {
             var samplerName = outputChannel.Sampler ?? context.DefaultSampler;
-            decimal value;
 
             mapping = new TextureChannelMapping {
                 OutputColor = outputChannel.Color ?? ColorChannel.None,
@@ -202,7 +201,7 @@ namespace PixelGraph.Common.Textures
             var inputChannel = InputChannels.FirstOrDefault(i
                 => EncodingChannel.Is(i.ID, outputChannel.ID));
 
-            if (context.Material.TryGetChannelValue(outputChannel.ID, out value)) {
+            if (context.Material.TryGetChannelValue(outputChannel.ID, out var value)) {
                 mapping.InputValue = (float)value;
                 mapping.ApplyInputChannel(inputChannel);
                 return true;

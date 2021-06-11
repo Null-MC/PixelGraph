@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;

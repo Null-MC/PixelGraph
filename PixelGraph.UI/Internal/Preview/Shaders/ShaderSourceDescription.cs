@@ -1,8 +1,9 @@
-﻿using System;
+﻿using PixelGraph.UI.Internal.Utilities;
+using SharpDX;
+using SharpDX.D3DCompiler;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using PixelGraph.UI.Internal.Utilities;
-using SharpDX.D3DCompiler;
 
 namespace PixelGraph.UI.Internal.Preview.Shaders
 {
@@ -19,29 +20,39 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
         public void Dispose()
         {
             Code?.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public bool TryLoadFromPath(string path, IList<ShaderCompileError> errorList)
         {
             var filename = Path.Combine(path, RawFileName);
             if (!File.Exists(filename)) return false;
+            
+            try {
+                using var includeMgr = new CustomShaderFileInclude(path);
+                using var result = ShaderBytecode.CompileFromFile(filename, EntryPoint, Profile, include: includeMgr);
 
-            using var includeMgr = new CustomShaderFileInclude(path);
-            using var result = ShaderBytecode.CompileFromFile(filename, EntryPoint, Profile, include: includeMgr);
+                if (result == null || result.HasErrors) {
+                    errorList.Add(new ShaderCompileError {
+                        Filename = filename,
+                        Message = result?.Message ?? "An unknown error occurred!",
+                        //ResultCode = result?.ResultCode?.Code,
+                    });
+                    return false;
+                }
 
-            if (result == null || result.HasErrors) {
+                Code?.Dispose();
+                Code = result.Bytecode;
+                return true;
+            }
+            catch (CompilationException error) {
                 errorList.Add(new ShaderCompileError {
                     Filename = filename,
-                    Message = result?.Message,
-                    // TODO: more details
+                    Message = error.Message,
+                    //ResultCode = error.ResultCode?.Code,
                 });
-
                 return false;
             }
-
-            Code?.Dispose();
-            Code = result.Bytecode;
-            return true;
         }
 
         public void LoadFromAssembly()
@@ -79,8 +90,10 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
         {
             var path = SourcePath;
 
-            if (parentStream is FileStream fileStream)
-                path = Path.GetDirectoryName(fileStream.Name);
+            if (parentStream is FileStream fileStream) {
+                var p = Path.GetDirectoryName(fileStream.Name);
+                if (p != null) path = p;
+            }
 
             var fullFile = Path.Combine(path, fileName).Replace('/', '\\');
             return File.Open(fullFile, FileMode.Open, FileAccess.Read, FileShare.Read);

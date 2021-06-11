@@ -8,6 +8,7 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.ViewModels;
@@ -16,6 +17,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -56,6 +58,7 @@ namespace PixelGraph.UI.Windows
             Model.Profile.SelectionChanged += OnSelectedProfileChanged;
             previewViewModel.ShaderCompileErrors += OnShaderCompileErrors;
 
+            Model.Preview.EnvironmentCube = EnvironmentCube;
             Model.SelectedLocation = ManualLocation;
         }
 
@@ -201,7 +204,7 @@ namespace PixelGraph.UI.Windows
 
         private void ShowError(string message)
         {
-            Application.Current.Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() => {
                 MessageBox.Show(this, message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             });
         }
@@ -237,7 +240,6 @@ namespace PixelGraph.UI.Windows
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
-            //viewModel.Dispose();
             previewViewModel.Dispose();
         }
 
@@ -249,9 +251,9 @@ namespace PixelGraph.UI.Windows
                 await viewModel.SetRootDirectoryAsync(item);
             }
             catch (DirectoryNotFoundException) {
-                Application.Current.Dispatcher.Invoke(() => {
+                Dispatcher.Invoke(() => {
                     Model.RootDirectory = null;
-                    MessageBox.Show(this, "The selected resource pack directory could not be found!", "Error!");
+                    MessageBox.Show(this, "The selected resource pack directory could not be found!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                 });
 
                 await viewModel.RemoveRecentItemAsync(item);
@@ -359,6 +361,7 @@ namespace PixelGraph.UI.Windows
 
             if (window.ShowDialog() == true) {
                 themeHelper.ApplyCurrent(this);
+                previewViewModel.LoadAppSettings();
             }
         }
 
@@ -541,7 +544,7 @@ namespace PixelGraph.UI.Windows
                 await viewModel.LoadRootDirectoryAsync();
             }
             else {
-                await Application.Current.Dispatcher.BeginInvoke(() => {
+                await Dispatcher.BeginInvoke(() => {
                     contentReader.Update(parent);
 
                     var selected = parent.Nodes.FirstOrDefault(n => {
@@ -568,11 +571,6 @@ namespace PixelGraph.UI.Windows
         {
             viewModel.ReloadContent();
         }
-
-        //private async void OnSelectedTagChanged(object sender, EventArgs e)
-        //{
-        //    await UpdatePreviewAsync(true, CancellationToken.None);
-        //}
 
         private async void OnSelectedProfileChanged(object sender, EventArgs e)
         {
@@ -675,10 +673,18 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private void OnShaderCompileErrors(object sender, ShaderCompileErrorEventArgs e)
+        private async void OnShaderCompileErrors(object sender, ShaderCompileErrorEventArgs e)
         {
-            ShowError("Errors occurred while compiling shaders!");
-            // WARN: Find a more useful way to display details!
+            var message = new StringBuilder("Failed to compile shaders!");
+
+            foreach (var error in e.Errors) {
+                message.AppendLine();
+                message.Append(error.Message);
+            }
+
+            await Dispatcher.BeginInvoke(() => {
+                MessageBox.Show(this, message.ToString(), "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            });
         }
 
         private void OnExitClick(object sender, RoutedEventArgs e)

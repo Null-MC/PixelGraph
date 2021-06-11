@@ -133,15 +133,12 @@ namespace PixelGraph.Common.ImageProcessors
             for (var v = 0; v < vStepCount; v++) {
                 for (var h = 0; h < hStepCount; h++) {
                     var hAngleDegrees = h * hStepSize - 180f;
-                    var hAngleRadians = hAngleDegrees * MathEx.Deg2Rad;
-
                     var vAngleDegrees = v * vStepSize;
-                    var vAngleRadians = vAngleDegrees * MathEx.Deg2Rad;
 
                     var z = hStepCount * v + h;
-                    result[z].X = MathF.Cos(hAngleRadians);
-                    result[z].Y = MathF.Sin(hAngleRadians);
-                    result[z].Z = MathF.Sin(vAngleRadians);
+                    result[z].X = MathEx.CosD(hAngleDegrees);
+                    result[z].Y = MathEx.SinD(hAngleDegrees);
+                    result[z].Z = MathEx.SinD(vAngleDegrees);
                 }
             }
 

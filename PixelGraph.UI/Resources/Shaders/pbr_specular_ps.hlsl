@@ -1,40 +1,11 @@
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
-#include "lib/parallax.hlsl"
 #include "lib/complex_numbers.hlsl"
+#include "lib/parallax.hlsl"
+#include "lib/pbr_material.hlsl"
 #include "lib/pbr.hlsl"
 
-//#define IRON float3(2.9114, 2.9497, 2.5845)
-//#define GOLD float3(0.18299, 0.42108, 1.3734)
-//#define ALUMINUM float3(1.3456, 0.96521, 0.61722)
-//#define CHROME float3(3.1071, 3.1812, 2.3230)
-//#define COPPER float3(0.27105, 0.67693, 1.3164)
-//#define LEAD float3(1.9100, 1.8300, 1.4400)
-//#define PLATINUM float3(2.3757, 2.0847, 1.8453)
-//#define SILVER float3(0.15943, 0.14512, 0.13547)
-
-#pragma pack_matrix( row_major )
-
-/* TEXTURE PACKING
- *   tex_albedo_alpha
- *     r=red
- *     g=green
- *     b=blue
- *     a=alpha
- *   tex_normal_height
- *     r=normal-x
- *     g=normal-y
- *     b=normal-z
- *     a=height
- *   tex_rough_f0_occlusion
- *     r=rough
- *     g=f0
- *     b=occlusion
- *   tex_porosity_sss_emissive
- *     r=porosity
- *     g=sss
- *     b=emissive
- */
+#pragma pack_matrix(row_major)
 
 float3 hammonDiffuse(const float3 albedo, const float F0, const float nDotV, const float nDotL, const float nDotH, const float lDotV, const float roughness) {
 	//My modified Hammon diffuse model.

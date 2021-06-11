@@ -1,9 +1,10 @@
-﻿using System;
+﻿using HelixToolkit.SharpDX.Core;
+using SharpDX.D3DCompiler;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using HelixToolkit.SharpDX.Core;
-using HelixToolkit.SharpDX.Core.Shaders;
+using ShaderDescription = HelixToolkit.SharpDX.Core.Shaders.ShaderDescription;
 
 namespace PixelGraph.UI.Internal.Preview.Shaders
 {
@@ -11,6 +12,7 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
     {
         void Add(string name, ShaderSourceDescription shader);
         bool LoadAll(out ShaderCompileError[] compileErrors);
+        ShaderBytecode GetCode(string name);
         ShaderDescription BuildDescription(string name, ShaderStage type);
     }
 
@@ -72,12 +74,17 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
             return compileErrors.Length == 0;
         }
 
-        public ShaderDescription BuildDescription(string name, ShaderStage type)
+        public ShaderBytecode GetCode(string name)
         {
             if (!map.TryGetValue(name, out var shader))
                 throw new ApplicationException($"Shader '{name}' not found!");
 
-            return new ShaderDescription(name, type, shader.Code);
+            return shader.Code;
+        }
+
+        public ShaderDescription BuildDescription(string name, ShaderStage type)
+        {
+            return new(name, type, GetCode(name));
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Textures;
-using PixelGraph.UI.Internal.Preview.Scene;
+using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Textures;
 using System;
 
@@ -12,6 +12,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public DiffuseMaterialBuilder(IServiceProvider provider) : base(provider)
         {
             TextureMap[TextureTags.Diffuse] = null;
+            TextureMap[TextureTags.Emissive] = null;
         }
 
         public override Material BuildMaterial(string passName = null)

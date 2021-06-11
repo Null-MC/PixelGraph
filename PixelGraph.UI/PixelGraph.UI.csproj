@@ -42,10 +42,11 @@
     <Compile Remove="Internal\ImagePreviewCache.cs" />
     <Compile Remove="Internal\Preview\Materials\PbrMetalMaterialBuilder.cs" />
     <Compile Remove="Internal\Preview\PbrSpecularMeshModel3D.cs" />
-    <Compile Remove="Internal\Preview\Scene\CustomPSShaderDescriptions.cs" />
-    <Compile Remove="Internal\Preview\Scene\CustomShaderNames.cs" />
-    <Compile Remove="Internal\Preview\Scene\CustomVSShaderDescriptions.cs" />
+    <Compile Remove="Internal\Preview\Sky\DebugSkyBoxCore.cs" />
+    <Compile Remove="Internal\Preview\Sky\DebugSkyBoxNode.cs" />
     <Compile Remove="Internal\Preview\Textures\RenderPbrMetalPreviewBuilder.cs" />
+    <Compile Remove="Models\ShaderErrorWindowModel.cs" />
+    <Compile Remove="PreviewModels\DebugSkyBox3D.cs" />
     <Compile Remove="ViewData\BedrockTextureFormatValues.cs" />
     <Compile Remove="ViewData\JavaTextureFormatValues.cs" />
     <Compile Remove="ViewModels\InputVMX.cs" />
@@ -54,6 +55,7 @@
     <Compile Remove="ViewModels\PackEncodingVM.cs" />
     <Compile Remove="ViewModels\PropertyGridDesignVM.cs" />
     <Compile Remove="ViewModels\TreeSearchFilter.cs" />
+    <Compile Remove="Windows\ShaderErrorsWindow.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,6 +65,9 @@
     <None Remove="Resources\Shaders\diffuse_vs.hlsl" />
     <None Remove="Resources\Shaders\pbr_metal_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_vs.hlsl" />
+    <None Remove="Resources\Shaders\sky_final_ps.hlsl" />
+    <None Remove="Resources\Shaders\sky_ps.hlsl" />
+    <None Remove="Resources\Shaders\sky_vs.hlsl" />
     <None Remove="Resources\sky.dds" />
     <None Remove="Resources\sky2.dds" />
     <None Remove="Resources\tiled_bg.png" />
@@ -72,15 +77,22 @@
     <Page Remove="Controls\DataGridComboBoxExColumn.xaml" />
     <Page Remove="Controls\PropertyGridItem.xaml" />
     <Page Remove="Resources\MaterialDesignTheme.CheckBoxEx.xaml" />
+    <Page Remove="Windows\ShaderErrorsWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\sky.dds">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
+    <HLSLShader Include="Resources\Shaders\sky_final_ps.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_final_ps.cso</ObjectFileOutput>
+    </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\sky_vs.hlsl">
+      <ShaderProfile>vs_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_vs.cso</ObjectFileOutput>
+    </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\sky_ps.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_ps.cso</ObjectFileOutput>
+    </HLSLShader>
     <HLSLShader Include="Resources\Shaders\diffuse_vs.hlsl">
       <ShaderProfile>vs_4_0</ShaderProfile>
       <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\diffuse_vs.cso</ObjectFileOutput>

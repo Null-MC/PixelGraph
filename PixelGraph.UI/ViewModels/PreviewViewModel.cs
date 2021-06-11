@@ -3,15 +3,15 @@ using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Preview.Materials;
-using PixelGraph.UI.Internal.Preview.Scene;
 using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Textures;
-using PixelGraph.UI.Internal.Utilities;
+using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Models;
 using SharpDX;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,11 +28,10 @@ namespace PixelGraph.UI.ViewModels
         private readonly IServiceProvider provider;
         private readonly Dispatcher uiDispatcher;
         private readonly object lockHandle;
-        private CancellationTokenSource tokenSource;
 
+        private CancellationTokenSource tokenSource;
         private DiffuseMaterialBuilder builderDiffuse;
         private PbrMaterialBuilder builderPbr;
-        private Stream _skyImageStream;
 
         public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
 
@@ -42,7 +41,7 @@ namespace PixelGraph.UI.ViewModels
         public PreviewViewModel(IServiceProvider provider)
         {
             this.provider = provider;
-
+            
             lockHandle = new object();
             uiDispatcher = Application.Current.Dispatcher;
         }
@@ -68,21 +67,25 @@ namespace PixelGraph.UI.ViewModels
 
         public void Initialize()
         {
+            LoadAppSettings();
             ReloadShaders();
             
             Model.Preview.Camera = new PerspectiveCamera();
 
-            Model.Preview.SunCamera = new PerspectiveCamera { 
-                UpDirection = new Media3D.Vector3D(1, 0, 0), 
-                FarPlaneDistance = 5000, 
+            //Model.Preview.SunCamera = new PerspectiveCamera { 
+            //    UpDirection = new Media3D.Vector3D(1, 0, 0), 
+            //    FarPlaneDistance = 5000, 
+            //    NearPlaneDistance = 1,
+            //    FieldOfView = 45
+            //};
+            Model.Preview.SunCamera = new OrthographicCamera { 
+                UpDirection = new Media3D.Vector3D(1, 0, 0),
+                FarPlaneDistance = 200, 
                 NearPlaneDistance = 1,
-                FieldOfView = 45
             };
 
             ResetViewport();
-
-            _skyImageStream = ResourceLoader.Open("PixelGraph.UI.Resources.sky.dds");
-            Model.Preview.SkyTexture = _skyImageStream;
+            UpdateEnvironment();
 
             Model.Preview.Model = BuildCube(4);
 
@@ -94,21 +97,54 @@ namespace PixelGraph.UI.ViewModels
                 Model = Model,
             };
 
+            Model.Preview.PropertyChanged += OnPreviewPropertyChanged;
             Model.Preview.EnableRenderChanged += OnEnableRenderChanged;
             Model.Preview.RenderModeChanged += OnRenderModeChanged;
             Model.Preview.RenderSceneChanged += OnRenderSceneChanged;
             Model.Preview.SelectedTagChanged += OnSelectedTagChanged;
         }
 
+        public void LoadAppSettings()
+        {
+            var appSettings = provider.GetRequiredService<IAppSettings>();
+            Model.Preview.ParallaxDepth = (float)(appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth);
+            Model.Preview.ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
+            Model.Preview.ParallaxSamplesMax = appSettings.Data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
+        }
+
+        private void UpdateEnvironment()
+        {
+            const float sun_distance = 10f;
+            const float sun_overlap = 0.12f;
+            const float sun_power = 0.5f;
+            const float sun_azimuth = 30f;
+            const float sun_roll = 15f;
+
+            var linearTimeOfDay = Model.Preview.TimeOfDayLinear;
+            MinecraftTime.GetSunAngle(sun_azimuth, sun_roll, in linearTimeOfDay, out var sunVec);
+            Model.Preview.SunCamera.LookDirection = -sunVec.ToVector3D();
+            Model.Preview.SunCamera.Position = (sunVec * sun_distance).ToPoint3D();
+            Model.Preview.SunDirection = sunVec;
+
+            var sunStrength = MinecraftTime.GetSunStrength(in linearTimeOfDay, sun_overlap, sun_power);
+            Model.Preview.SunColor = new Color4(sunStrength, sunStrength, sunStrength, sunStrength).ToColor();
+            Model.Preview.SunStrength = sunStrength;
+        }
+
+        private void OnPreviewPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(PreviewContextModel.TimeOfDay)) UpdateEnvironment();
+        }
+
         public void ReloadShaders()
         {
-            var shaderMgr = provider.GetRequiredService<ICustomShaderManager>();
+            var shaderMgr = provider.GetRequiredService<IShaderByteCodeManager>();
 
             if (!shaderMgr.LoadAll(out var compileErrors))
                 OnShaderCompileErrors(compileErrors);
 
             Model.Preview.EffectsManager?.Dispose();
-            Model.Preview.EffectsManager = new CustomEffectsManager(shaderMgr);
+            Model.Preview.EffectsManager = new CustomEffectsManager(provider);
         }
 
         public void ResetViewport()
@@ -117,8 +153,8 @@ namespace PixelGraph.UI.ViewModels
             Model.Preview.Camera.LookDirection = new Media3D.Vector3D(-10, -10, -10);
             Model.Preview.Camera.UpDirection = new Media3D.Vector3D(0, 1, 0);
 
-            Model.Preview.SunCamera.Position = new Media3D.Point3D(6, 10, 0);
-            Model.Preview.SunCamera.LookDirection = new Media3D.Vector3D(-1, -3, 0);
+            Model.Preview.SunCamera.Position = new Media3D.Point3D(18f, 8f, -8f);
+            Model.Preview.SunCamera.LookDirection = new Media3D.Vector3D(-2f, -1f, 1f);
         }
 
         public async Task ClearAsync()
@@ -185,7 +221,7 @@ namespace PixelGraph.UI.ViewModels
                     var img = await GetLayerImageSourceAsync(Model.Preview.SelectedTag, mergedToken);
 
                     await uiDispatcher.BeginInvoke(() => {
-                        mergedToken.ThrowIfCancellationRequested();
+                        if (mergedToken.IsCancellationRequested) return;
 
                         Model.Preview.LayerImage = img;
                         Model.Preview.IsLoading = false;
@@ -228,7 +264,7 @@ namespace PixelGraph.UI.ViewModels
 
             var builder = GetMaterialBuilder();
             var mat = builder.BuildMaterial(passName);
-            mat.Freeze();
+            if (mat.CanFreeze) mat.Freeze();
 
             Model.Preview.ModelMaterial = mat;
         }
@@ -313,6 +349,10 @@ namespace PixelGraph.UI.ViewModels
             builder.AddCubeFace(Vector3.Zero, new Vector3(0, 1, 0), Vector3.UnitX, size, size, size);
             builder.AddCubeFace(Vector3.Zero, new Vector3(0, -1, 0), Vector3.UnitX, size, size, size);
             builder.ComputeTangents(MeshFaces.Default);
+
+            //builder.AddBox(Vector3.Zero, size, size, size);
+            //builder.ComputeNormalsAndTangents(MeshFaces.Default);
+
             return builder.ToMeshGeometry3D();
         }
 

@@ -1,4 +1,5 @@
 ﻿using ControlzEx.Theming;
+using PixelGraph.UI.Internal.Settings;
 using System.Windows;
 
 namespace PixelGraph.UI.Internal.Utilities

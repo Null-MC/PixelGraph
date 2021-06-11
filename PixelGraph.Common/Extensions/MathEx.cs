@@ -3,11 +3,22 @@ using System.Numerics;
 
 namespace PixelGraph.Common.Extensions
 {
-    internal static class MathEx
+    public static class MathEx
     {
-        public const float Deg2Rad = (float)(Math.PI / 180);
-        //public const float Deg2RadF = (float)Deg2Rad;
+        public const float Deg2RadF = (float)(Math.PI / 180d);
+        public const float Rad2DegF = (float)(180d / Math.PI);
+        public const double Deg2Rad = Math.PI / 180d;
+        public const double Rad2Deg = 180d / Math.PI;
 
+
+        public static float CosD(float d) => MathF.Cos(d * Deg2RadF);
+        public static double CosD(double d) => Math.Cos(d * Deg2Rad);
+
+        public static float SinD(float d) => MathF.Sin(d * Deg2RadF);
+        public static double SinD(double d) => Math.Sin(d * Deg2Rad);
+
+        public static float AsinD(float d) => MathF.Asin(d) * Deg2RadF;
+        public static double AsinD(double d) => Math.Asin(d) * Deg2Rad;
 
         public static bool Equal(this in float valueA, in float valueB)
         {
@@ -184,6 +195,12 @@ namespace PixelGraph.Common.Extensions
         //}
 
         #endregion
+
+        public static void Wrap(ref int value, in int min, in int max)
+        {
+            while (value < min) value += max - min;
+            while (value > max) value -= max - min;
+        }
 
         //public static void Cycle(ref byte value, in int offset)
         //{

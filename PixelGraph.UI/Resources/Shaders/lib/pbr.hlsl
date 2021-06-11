@@ -1,4 +1,17 @@
+#include "sky.hlsl"
+
+#define MEDIUMP_FLT_MAX    65504.0
+#define saturateMediump(x) min(x, MEDIUMP_FLT_MAX)
+
 static const float pi = 3.14159265f;
+
+float3 calc_normal(const in float2 tex, const in float3 normal, const in float3 tangent, const in float3 bitangent)
+{
+    float3 tex_normal = tex_normal_height.Sample(sampler_surface, tex).xyz;
+    tex_normal = mad(2.0f, tex_normal, -1.0f);
+    
+    return normalize(normal + mad(tex_normal.x, tangent, tex_normal.y * bitangent));
+}
 
 float3 fresnelNonPolarized(float voh, complexFloat3 n1, complexFloat3 n2) {
     complexFloat3 eta = complexDiv(n1, n2);
@@ -58,3 +71,29 @@ float specularBRDF(float nDotL, float nDotV, float nDotH, float vDotH, float f0,
 
     return specular;
 }
+
+float3 specular_IBL(const in float3 normal, const in float3 view, const in float lod_bias)
+{
+    const float3 dir = reflect(-view, normal);
+	const float mip = lod_bias * NumEnvironmentMapMipLevels;
+    return tex_cube.SampleLevel(sampler_IBL, dir, mip).rgb;
+}
+
+//float3 diffuse_IBL(const float3 albedo, const float3 normal, const float3 eye, const float f0, const float alpha) {
+//    uint N = 256u;
+//    float3 result = float3(0.0f, 0.0f, 0.0f);
+//    for (uint i = 0u; i < N; ++i) {
+//        float3 dir = generateUnitVector(hammersley2d(i, N));
+//
+//        const float nDotV = dot(normal, eye);
+//        const float nDotL = saturate(dot(normal, dir));
+//        const float nDotH = abs(dot(normal, normalize(dir + eye))) + 1e-5;
+//        const float lDotV = dot(dir, eye);
+//        const float vDotH = dot(eye, normalize(dir + eye));
+//
+//        float3 diffuse = hammonDiffuse(albedo, f0, nDotV, nDotL, nDotH, lDotV, alpha);
+//        result += diffuse * tex_cube.Sample(sampler_IBL, dir).rgb;
+//    }
+//	
+//    return result / (float)N;
+//}
