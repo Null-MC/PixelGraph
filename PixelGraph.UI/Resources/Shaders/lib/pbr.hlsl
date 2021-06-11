@@ -70,11 +70,11 @@ float3 specular_IBL(const in float3 normal, const in float3 view, const in float
     return tex_cube.SampleLevel(sampler_IBL, dir, mip).rgb;
 }
 
-float3 specular_sky_IBL(const in float3 normal, const in float3 view, const in float3 sun_dir, const in float sun_str)
-{
-    const float3 dir = reflect(-view, normal);
-	//const float mip = lod_bias * NumEnvironmentMapMipLevels;
-    //return tex_cube.SampleLevel(sampler_IBL, dir, mip).rgb;
-	
-	return get_sky_color(dir, sun_dir, sun_str);
-}
+//float3 specular_sky_IBL(const in float3 normal, const in float3 view)
+//{
+//    const float3 dir = reflect(-view, normal);
+//	//const float mip = lod_bias * NumEnvironmentMapMipLevels;
+//    //return tex_cube.SampleLevel(sampler_IBL, dir, mip).rgb;
+//	
+//	return get_sky_color(dir);
+//}

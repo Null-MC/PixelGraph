@@ -6,7 +6,6 @@ using PixelGraph.UI.Internal.Preview.Materials;
 using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Textures;
 using PixelGraph.UI.Internal.Settings;
-using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using SharpDX;
 using SixLabors.ImageSharp;
@@ -20,8 +19,6 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using PixelGraph.Common.Extensions;
-using Color = System.Windows.Media.Color;
 using Media3D = System.Windows.Media.Media3D;
 
 namespace PixelGraph.UI.ViewModels
@@ -31,11 +28,10 @@ namespace PixelGraph.UI.ViewModels
         private readonly IServiceProvider provider;
         private readonly Dispatcher uiDispatcher;
         private readonly object lockHandle;
-        private CancellationTokenSource tokenSource;
 
+        private CancellationTokenSource tokenSource;
         private DiffuseMaterialBuilder builderDiffuse;
         private PbrMaterialBuilder builderPbr;
-        private Stream _skyImageStream;
 
         public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
 
@@ -91,9 +87,6 @@ namespace PixelGraph.UI.ViewModels
             ResetViewport();
             UpdateEnvironment();
 
-            _skyImageStream = ResourceLoader.Open("PixelGraph.UI.Resources.sky.dds");
-            Model.Preview.SkyTexture = _skyImageStream;
-
             Model.Preview.Model = BuildCube(4);
 
             builderDiffuse = new DiffuseMaterialBuilder(provider) {
@@ -127,20 +120,15 @@ namespace PixelGraph.UI.ViewModels
             const float sun_azimuth = 30f;
             const float sun_roll = 15f;
 
-            var ambientDay = new Color4(0, 0, 0, 1f);
-            var ambientNight = new Color4(0, 0, 0, 1f);
-
             var linearTimeOfDay = Model.Preview.TimeOfDayLinear;
             MinecraftTime.GetSunAngle(sun_azimuth, sun_roll, in linearTimeOfDay, out var sunVec);
-            Model.Preview.SunCamera.LookDirection = sunVec.ToVector3D();
-            Model.Preview.SunCamera.Position = (sunVec * -sun_distance).ToPoint3D();
-            //Model.Preview.SunDirection = -sunVec;
+            Model.Preview.SunCamera.LookDirection = -sunVec.ToVector3D();
+            Model.Preview.SunCamera.Position = (sunVec * sun_distance).ToPoint3D();
+            Model.Preview.SunDirection = sunVec;
 
             var sunStrength = MinecraftTime.GetSunStrength(in linearTimeOfDay, sun_overlap, sun_power);
             Model.Preview.SunColor = new Color4(sunStrength, sunStrength, sunStrength, sunStrength).ToColor();
-
-            ColorExtensions.Lerp(ambientNight, ambientDay, sunStrength, out var ambientCol);
-            Model.Preview.EnvironmentAmbient = ambientCol.ToColor();
+            Model.Preview.SunStrength = sunStrength;
         }
 
         private void OnPreviewPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -233,7 +221,7 @@ namespace PixelGraph.UI.ViewModels
                     var img = await GetLayerImageSourceAsync(Model.Preview.SelectedTag, mergedToken);
 
                     await uiDispatcher.BeginInvoke(() => {
-                        mergedToken.ThrowIfCancellationRequested();
+                        if (mergedToken.IsCancellationRequested) return;
 
                         Model.Preview.LayerImage = img;
                         Model.Preview.IsLoading = false;
@@ -276,7 +264,7 @@ namespace PixelGraph.UI.ViewModels
 
             var builder = GetMaterialBuilder();
             var mat = builder.BuildMaterial(passName);
-            mat.Freeze();
+            if (mat.CanFreeze) mat.Freeze();
 
             Model.Preview.ModelMaterial = mat;
         }

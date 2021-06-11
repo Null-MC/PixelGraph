@@ -1,6 +1,7 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
+using PixelGraph.UI.Internal.Preview.Sky;
 using SharpDX.Direct3D11;
 using System;
 
@@ -8,16 +9,22 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 {
     public class CustomPbrMaterialCore : MaterialCore
     {
-        private readonly string materialPassName;
-
+        private IEnvironmentCube _environmentCube;
         private TextureModel _albedoAlphaMap;
         private TextureModel _normalHeightMap;
         private TextureModel _roughF0OcclusionMap;
         private TextureModel _porositySssEmissive;
         private SamplerStateDescription _surfaceMapSampler;
-        private SamplerStateDescription _iblSampler;
-        private bool _renderShadowMap;
+        private SamplerStateDescription _cubeMapSampler;
         private bool _renderEnvironmentMap;
+        private bool _renderShadowMap;
+
+        public string MaterialPassName {get;}
+
+        public IEnvironmentCube EnvironmentCube {
+            get => _environmentCube;
+            set => Set(ref _environmentCube, value);
+        }
 
         public TextureModel AlbedoAlphaMap {
             get => _albedoAlphaMap;
@@ -54,23 +61,23 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             set => Set(ref _surfaceMapSampler, value); 
         }
 
-        public SamplerStateDescription IBLSampler {
-            get => _iblSampler; 
-            set => Set(ref _iblSampler, value); 
+        public SamplerStateDescription CubeMapSampler {
+            get => _cubeMapSampler; 
+            set => Set(ref _cubeMapSampler, value); 
         }
 
 
         public CustomPbrMaterialCore(string materialPassName)
         {
-            this.materialPassName = materialPassName ?? throw new ArgumentNullException(nameof(materialPassName));
+            this.MaterialPassName = materialPassName ?? throw new ArgumentNullException(nameof(materialPassName));
 
             _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni4;
-            _iblSampler = DefaultSamplers.IBLSampler;
+            _cubeMapSampler = DefaultSamplers.IBLSampler;
         }
 
         public override MaterialVariable CreateMaterialVariables(IEffectsManager manager, IRenderTechnique technique)
         {
-            return new CustomPbrMaterialVariable(manager, technique, this, materialPassName);
+            return new CustomPbrMaterialVariable(manager, technique, this, MaterialPassName);
         }
     }
 }

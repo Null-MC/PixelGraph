@@ -96,7 +96,8 @@ float4 main(const ps_input input) : SV_TARGET
         }
     }
 
-	float3 specular_env = vLightAmbient.rgb;
+	const float3 ambient_color = srgb_to_linear(vLightAmbient.rgb);
+	float3 specular_env = ambient_color;
 
 	if (bHasCubeMap)
         specular_env = specular_IBL(normalT, eye, mat.rough);
@@ -106,8 +107,11 @@ float4 main(const ps_input input) : SV_TARGET
 	
 	const float3 lit = acc_color + c_spec * specular_env * mat.occlusion;
 
-	const float3 ambient = vLightAmbient.rgb * mat.occlusion;
-	const float3 final_color = lit + (ambient + mat.emissive * PI) * mat.albedo;
+	const float3 ambient = ambient_color * mat.occlusion;
+	float3 final_color = lit + (ambient + mat.emissive * PI) * mat.albedo;
+
+	//final_color = ACESFilm(final_color);
+    final_color = linear_to_srgb(final_color);
 	
     return float4(final_color, mat.alpha);
 }

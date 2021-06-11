@@ -8,6 +8,11 @@
 float4 main(const in ps_input_cube input) : SV_TARGET
 {
 	const float3 view = normalize(input.tex);
-    const float3 col = get_sky_color(view);
+
+    float3 col = get_sky_color(view);
+	    
+	//col = ACESFilm(col);
+    col = linear_to_srgb(col);
+    
 	return float4(col, 1);
 }

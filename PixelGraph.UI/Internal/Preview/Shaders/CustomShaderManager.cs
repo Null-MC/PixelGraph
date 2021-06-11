@@ -4,6 +4,7 @@
     {
         public const string Name_SkyVertex = "sky_vs";
         public const string Name_SkyPixel = "sky_ps";
+        public const string Name_SkyFinalPixel = "sky_final_ps";
         public const string Name_DiffuseVertex = "diffuse_vs";
         public const string Name_DiffusePixel = "diffuse_ps";
         public const string Name_PbrVertex = "pbr_vs";
@@ -28,6 +29,12 @@
                 Profile = "ps_4_0",
                 RawFileName = "sky_ps.hlsl",
                 CompiledResourceName = "sky_ps.cso",
+            });
+
+            Add(Name_SkyFinalPixel, new ShaderSourceDescription {
+                Profile = "ps_4_0",
+                RawFileName = "sky_final_ps.hlsl",
+                CompiledResourceName = "sky_final_ps.cso",
             });
 
             Add(Name_DiffuseVertex, new ShaderSourceDescription {

@@ -58,6 +58,7 @@ namespace PixelGraph.UI.Windows
             Model.Profile.SelectionChanged += OnSelectedProfileChanged;
             previewViewModel.ShaderCompileErrors += OnShaderCompileErrors;
 
+            Model.Preview.EnvironmentCube = EnvironmentCube;
             Model.SelectedLocation = ManualLocation;
         }
 
@@ -239,7 +240,6 @@ namespace PixelGraph.UI.Windows
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
-            //viewModel.Dispose();
             previewViewModel.Dispose();
         }
 
@@ -571,11 +571,6 @@ namespace PixelGraph.UI.Windows
         {
             viewModel.ReloadContent();
         }
-
-        //private async void OnSelectedTagChanged(object sender, EventArgs e)
-        //{
-        //    await UpdatePreviewAsync(true, CancellationToken.None);
-        //}
 
         private async void OnSelectedProfileChanged(object sender, EventArgs e)
         {

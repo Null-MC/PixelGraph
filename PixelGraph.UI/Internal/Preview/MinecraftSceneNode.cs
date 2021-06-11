@@ -1,43 +1,63 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Model.Scene;
+using HelixToolkit.SharpDX.Core.Render;
 using SharpDX;
 using System.Collections.Generic;
 
 namespace PixelGraph.UI.Internal.Preview
 {
-    public class MinecraftSceneNode : SceneNode
+    public class MinecraftSceneNode : SceneNode, IMinecraftScene
     {
+        public bool IsRenderValid => ((MinecraftSceneCore) RenderCore).IsRenderValid;
+
         public float TimeOfDay {
-            get => (RenderCore as MinecraftSceneCore).TimeOfDay;
-            set => (RenderCore as MinecraftSceneCore).TimeOfDay = value;
+            get => ((MinecraftSceneCore) RenderCore).TimeOfDay;
+            set => ((MinecraftSceneCore) RenderCore).TimeOfDay = value;
         }
 
         public Vector3 SunDirection {
-            get => (RenderCore as MinecraftSceneCore).SunDirection;
-            set => (RenderCore as MinecraftSceneCore).SunDirection = value;
+            get => ((MinecraftSceneCore) RenderCore).SunDirection;
+            set => ((MinecraftSceneCore) RenderCore).SunDirection = value;
+        }
+
+        public float SunStrength {
+            get => ((MinecraftSceneCore) RenderCore).SunStrength;
+            set => ((MinecraftSceneCore) RenderCore).SunStrength = value;
         }
 
         public float Wetness {
-            get => (RenderCore as MinecraftSceneCore).Wetness;
-            set => (RenderCore as MinecraftSceneCore).Wetness = value;
+            get => ((MinecraftSceneCore) RenderCore).Wetness;
+            set => ((MinecraftSceneCore) RenderCore).Wetness = value;
         }
 
         public float ParallaxDepth {
-            get => (RenderCore as MinecraftSceneCore).ParallaxDepth;
-            set => (RenderCore as MinecraftSceneCore).ParallaxDepth = value;
+            get => ((MinecraftSceneCore) RenderCore).ParallaxDepth;
+            set => ((MinecraftSceneCore) RenderCore).ParallaxDepth = value;
         }
 
         public int ParallaxSamplesMin {
-            get => (RenderCore as MinecraftSceneCore).ParallaxSamplesMin;
-            set => (RenderCore as MinecraftSceneCore).ParallaxSamplesMin = value;
+            get => ((MinecraftSceneCore) RenderCore).ParallaxSamplesMin;
+            set => ((MinecraftSceneCore) RenderCore).ParallaxSamplesMin = value;
         }
 
         public int ParallaxSamplesMax {
-            get => (RenderCore as MinecraftSceneCore).ParallaxSamplesMax;
-            set => (RenderCore as MinecraftSceneCore).ParallaxSamplesMax = value;
+            get => ((MinecraftSceneCore) RenderCore).ParallaxSamplesMax;
+            set => ((MinecraftSceneCore) RenderCore).ParallaxSamplesMax = value;
         }
 
+
+        public void Apply(DeviceContextProxy deviceContext)
+        {
+            if (RenderCore is MinecraftSceneCore sceneCore)
+                sceneCore.Apply(deviceContext);
+        }
+
+        public void ResetValidation()
+        {
+            if (RenderCore is MinecraftSceneCore sceneCore)
+                sceneCore.ResetValidation();
+        }
 
         protected override RenderCore OnCreateRenderCore()
         {
@@ -47,15 +67,14 @@ namespace PixelGraph.UI.Internal.Preview
         protected override void AssignDefaultValuesToCore(RenderCore core)
         {
             base.AssignDefaultValuesToCore(core);
+            if (core is not MinecraftSceneCore sceneCore) return;
 
-            if (core is MinecraftSceneCore c) {
-                c.TimeOfDay = TimeOfDay;
-                c.SunDirection = SunDirection;
-                c.Wetness = Wetness;
-                c.ParallaxDepth = ParallaxDepth;
-                c.ParallaxSamplesMin = ParallaxSamplesMin;
-                c.ParallaxSamplesMax = ParallaxSamplesMax;
-            }
+            sceneCore.TimeOfDay = TimeOfDay;
+            sceneCore.SunDirection = SunDirection;
+            sceneCore.Wetness = Wetness;
+            sceneCore.ParallaxDepth = ParallaxDepth;
+            sceneCore.ParallaxSamplesMin = ParallaxSamplesMin;
+            sceneCore.ParallaxSamplesMax = ParallaxSamplesMax;
         }
 
         protected override bool CanHitTest(HitTestContext context) => false;

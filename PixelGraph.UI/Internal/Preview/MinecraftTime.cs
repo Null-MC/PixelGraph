@@ -17,7 +17,7 @@ namespace PixelGraph.UI.Internal.Preview
 
             var q = Quaternion.RotationYawPitchRoll(azimuthR, pitchR, rollR);
 
-            var forward = new Vector3(0, 0, 1);
+            var forward = new Vector3(0, 0, -1);
             Vector3.Transform(ref forward, ref q, out sunAngle);
             sunAngle.Normalize();
         }

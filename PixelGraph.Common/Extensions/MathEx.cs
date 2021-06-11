@@ -196,6 +196,12 @@ namespace PixelGraph.Common.Extensions
 
         #endregion
 
+        public static void Wrap(ref int value, in int min, in int max)
+        {
+            while (value < min) value += max - min;
+            while (value > max) value -= max - min;
+        }
+
         //public static void Cycle(ref byte value, in int offset)
         //{
         //    var x = value + offset;

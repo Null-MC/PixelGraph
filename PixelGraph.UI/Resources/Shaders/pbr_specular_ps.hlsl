@@ -19,7 +19,7 @@ float4 main(const ps_input input) : SV_TARGET
 	pbr_material mat = get_pbr_material(tex);
 	
 	mat.albedo = srgb_to_linear(mat.albedo);
-	mat.rough = mat.rough * mat.rough;
+	//mat.rough = mat.rough * mat.rough;
 
     
     // Blend base colors
@@ -58,16 +58,10 @@ float4 main(const ps_input input) : SV_TARGET
     const float NdotV = saturate(dot(normalT, eye));
 
     float3 acc_color = 0;
-	float3 sun_dir = 0;
-	float sun_str = 0;
-	
     for (int i = 0; i < NumLights; i++) {
         if (Lights[i].iLightType == 1) {
             // light vector (to light)
             const float3 light_dir = normalize(Lights[i].vLightDir.xyz);
-
-            sun_dir = light_dir;
-        	sun_str = Lights[i].vLightColor.a;
         	
             // Half vector
             const float3 H = normalize(light_dir + eye);
@@ -129,21 +123,17 @@ float4 main(const ps_input input) : SV_TARGET
         }
     }
 
-	//float3 specular_env = vLightAmbient.rgb;
+	const float3 ambient_color = srgb_to_linear(vLightAmbient.rgb);
+	float3 specular_env = ambient_color;
 
-	//if (bHasCubeMap)
- //       specular_env = specular_IBL(normalT, eye, mat.rough);
-    float3 specular_env = specular_sky_IBL(normalT, eye, sun_dir, sun_str);
-
-    //specular_env = srgb_to_linear(specular_env);
-
-    //return float4(f0 * specular_env, 1);
+	if (bHasCubeMap)
+        specular_env = specular_IBL(normalT, eye, mat.rough);
 	
     if (bRenderShadowMap)
         acc_color *= shadow_strength(input.sp);
 	
 	const float3 lit = acc_color + f0 * specular_env * mat.occlusion;
-	const float3 ambient = vLightAmbient.rgb * mat.occlusion;
+	const float3 ambient = ambient_color * mat.occlusion;
     float3 final_color = lit + (ambient + mat.emissive * PI) * mat.albedo;
 	
 	//final_color = ACESFilm(final_color);

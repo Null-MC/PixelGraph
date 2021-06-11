@@ -3,6 +3,7 @@ using HelixToolkit.SharpDX.Core.Shaders;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal.Preview.Shaders;
 using System;
+using System.Collections.Generic;
 
 namespace PixelGraph.UI.Internal.Preview
 {
@@ -20,17 +21,28 @@ namespace PixelGraph.UI.Internal.Preview
         
         private void Initialize()
         {
-            var skyTechnique = GetTechnique(DefaultRenderTechniqueNames.Skybox);
-
-            skyTechnique.RemovePass(DefaultPassNames.Default);
-            skyTechnique.AddPass(new ShaderPassDescription(DefaultPassNames.Default) {
-                ShaderList = new[] {
-                    shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
-                    shaderMgr.BuildDescription(CustomShaderManager.Name_SkyPixel, ShaderStage.Pixel),
+            AddTechnique(new TechniqueDescription(CustomRenderTechniqueNames.DynamicSkybox) {
+                InputLayoutDescription = new InputLayoutDescription(shaderMgr.GetCode(CustomShaderManager.Name_SkyVertex), DefaultInputLayout.VSInputSkybox),
+                PassDescriptions = new List<ShaderPassDescription> {
+                    new(DefaultPassNames.Default) {
+                        ShaderList = new[] {
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyPixel, ShaderStage.Pixel),
+                        },
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
+                        BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
+                        RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
+                    },
+                    new(CustomPassNames.SkyFinal) {
+                        ShaderList = new[] {
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyFinalPixel, ShaderStage.Pixel),
+                        },
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
+                        BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
+                        RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
+                    },
                 },
-                DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
-                BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
-                RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
             });
 
             var meshTechnique = GetTechnique(DefaultRenderTechniqueNames.Mesh);

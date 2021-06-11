@@ -19,10 +19,10 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
         public override Material BuildMaterial(string passName = null)
         {
-            var mat = new CustomPbrMaterial {
-                MaterialPassName = passName,
+            var mat = new CustomPbrMaterial(passName) {
                 SurfaceMapSampler = CustomSamplerStates.Default,
                 RenderEnvironmentMap = Model.Preview.EnableEnvironment,
+                EnvironmentCube = Model.Preview.EnvironmentCube,
                 RenderShadowMap = true,
             };
 

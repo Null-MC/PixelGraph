@@ -12,9 +12,9 @@ static const float3 beta_m = float3(0.04, 0.04, 0.04);
 static const float g1 = 1.2;
 
 
-float3 atmospheric_scattering(const float sR, const float sM, const float cosine, out float3 extinction)
+float3 atmospheric_scattering(const float s_raleigh, const float s_mie, const float cosine, out float3 extinction)
 {
-    extinction = exp(-(beta_r * sR + beta_m * sM));
+    extinction = exp(-(beta_r * s_raleigh + beta_m * s_mie));
 
     const float g2 = g1 * g1;
     const float fcos2 = cosine * cosine;
@@ -24,25 +24,25 @@ float3 atmospheric_scattering(const float sR, const float sM, const float cosine
     return (1 + fcos2) * (rayleigh + beta_m / beta_r * mie_phase);
 }
 
-float3 get_sky_color(const float3 view, const float3 sun_dir, const float sun_str)
+float3 get_sky_color(const float3 view)
 {
-	const float sundot = saturate(dot(view, sun_dir));
+	const float sun = saturate(dot(view, SunDirection));
 
     // optical depth -> zenithAngle
-	const float zenithAngle = max(view.y, EPSILON); //abs( rd.y);
-	const float sR = rayleigh_att / zenithAngle;
-	const float sM = mie_att / zenithAngle;
+	const float zenith_angle = max(view.y, EPSILON);
+	const float s_raleigh = rayleigh_att / zenith_angle;
+	const float s_mie = mie_att / zenith_angle;
 
     float3 extinction;
-    const float3 inScatter = atmospheric_scattering(sR, sM, sundot * sun_str, extinction);
+    const float3 scatter = atmospheric_scattering(s_raleigh, s_mie, sun * SunStrength, extinction);
 	
-    float3 col = inScatter * (1 - extinction);
+    float3 col = scatter * (1 - extinction);
 	
     // sun
-    col += 0.47 * float3(1.6, 1.4, 1.0) * pow(sundot, 350) * extinction;
+    col += 0.47 * float3(1.6, 1.4, 1.0) * pow(sun, 350) * extinction;
 	
     // sun haze
-    col += 0.4 * float3(0.8, 0.9, 1.0) * pow(sundot, 2) * extinction;
+    col += 0.4 * float3(0.8, 0.9, 1.0) * pow(sun, 2) * extinction;
 
 	return col;
 }

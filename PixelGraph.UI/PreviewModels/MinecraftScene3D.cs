@@ -1,4 +1,5 @@
 ﻿using HelixToolkit.SharpDX.Core.Model.Scene;
+using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
 using PixelGraph.UI.Internal.Preview;
@@ -7,8 +8,10 @@ using System.Windows;
 
 namespace PixelGraph.UI.PreviewModels
 {
-    public class MinecraftScene3D : Element3D
+    public class MinecraftScene3D : Element3D, IMinecraftScene
     {
+        public bool IsRenderValid => ((MinecraftSceneNode) SceneNode).IsRenderValid;
+
         public float TimeOfDay {
             get => (float)GetValue(TimeOfDayProperty);
             set => SetValue(TimeOfDayProperty, value);
@@ -17,6 +20,11 @@ namespace PixelGraph.UI.PreviewModels
         public Vector3 SunDirection {
             get => (Vector3)GetValue(SunDirectionProperty);
             set => SetValue(SunDirectionProperty, value);
+        }
+
+        public float SunStrength {
+            get => (float)GetValue(SunStrengthProperty);
+            set => SetValue(SunStrengthProperty, value);
         }
 
         public float Wetness {
@@ -40,6 +48,18 @@ namespace PixelGraph.UI.PreviewModels
         }
 
 
+        public void Apply(DeviceContextProxy deviceContext)
+        {
+            if (SceneNode is MinecraftSceneNode node)
+                node.Apply(deviceContext);
+        }
+
+        public void ResetValidation()
+        {
+            if (SceneNode is MinecraftSceneNode node)
+                node.ResetValidation();
+        }
+
         protected override SceneNode OnCreateSceneNode()
         {
             return new MinecraftSceneNode();
@@ -47,15 +67,16 @@ namespace PixelGraph.UI.PreviewModels
 
         protected override void AssignDefaultValuesToSceneNode(SceneNode core)
         {
-            if (core is MinecraftSceneNode n) {
-                n.TimeOfDay = TimeOfDay;
-                n.Wetness = Wetness;
-                n.ParallaxDepth = Wetness;
-                n.ParallaxSamplesMin = ParallaxSamplesMin;
-                n.ParallaxSamplesMax = ParallaxSamplesMax;
-            }
-
             base.AssignDefaultValuesToSceneNode(core);
+            if (core is not MinecraftSceneNode n) return;
+
+            n.SunDirection = SunDirection;
+            n.SunStrength = SunStrength;
+            n.TimeOfDay = TimeOfDay;
+            n.Wetness = Wetness;
+            n.ParallaxDepth = Wetness;
+            n.ParallaxSamplesMin = ParallaxSamplesMin;
+            n.ParallaxSamplesMax = ParallaxSamplesMax;
         }
 
         public static readonly DependencyProperty TimeOfDayProperty =
@@ -68,6 +89,12 @@ namespace PixelGraph.UI.PreviewModels
             DependencyProperty.Register(nameof(SunDirection), typeof(Vector3), typeof(MinecraftScene3D), new PropertyMetadata(Vector3.UnitY, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.SunDirection = (Vector3) e.NewValue;
+            }));
+
+        public static readonly DependencyProperty SunStrengthProperty =
+            DependencyProperty.Register(nameof(SunStrength), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(1f, (d, e) => {
+                if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
+                    sceneNode.SunStrength = (float) e.NewValue;
             }));
 
         public static readonly DependencyProperty WetnessProperty =

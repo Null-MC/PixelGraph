@@ -2,6 +2,8 @@
 {
     internal static class CustomPassNames
     {
+        public const string SkyFinal = "SkyFinal";
+
         public const string Diffuse = "Diffuse";
         public const string DiffuseOIT = "DiffuseOIT";
 
