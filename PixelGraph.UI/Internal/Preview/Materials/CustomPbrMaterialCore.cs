@@ -1,6 +1,7 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
+using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Sky;
 using SharpDX.Direct3D11;
 using System;
@@ -15,6 +16,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         private TextureModel _roughF0OcclusionMap;
         private TextureModel _porositySssEmissive;
         private SamplerStateDescription _surfaceMapSampler;
+        private SamplerStateDescription _heightMapSampler;
         private SamplerStateDescription _cubeMapSampler;
         private bool _renderEnvironmentMap;
         private bool _renderShadowMap;
@@ -57,8 +59,13 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         }
 
         public SamplerStateDescription SurfaceMapSampler {
-            get => _surfaceMapSampler; 
+            get => _surfaceMapSampler;
             set => Set(ref _surfaceMapSampler, value); 
+        }
+
+        public SamplerStateDescription HeightMapSampler {
+            get => _heightMapSampler;
+            set => Set(ref _heightMapSampler, value); 
         }
 
         public SamplerStateDescription CubeMapSampler {
@@ -69,9 +76,10 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
         public CustomPbrMaterialCore(string materialPassName)
         {
-            this.MaterialPassName = materialPassName ?? throw new ArgumentNullException(nameof(materialPassName));
+            MaterialPassName = materialPassName ?? throw new ArgumentNullException(nameof(materialPassName));
 
-            _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni4;
+            _surfaceMapSampler = CustomSamplerStates.Color;
+            _heightMapSampler = CustomSamplerStates.Height;
             _cubeMapSampler = DefaultSamplers.IBLSampler;
         }
 

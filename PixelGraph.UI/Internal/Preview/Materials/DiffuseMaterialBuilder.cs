@@ -18,7 +18,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public override Material BuildMaterial(string passName = null)
         {
             var mat = new CustomDiffuseMaterial {
-                SurfaceMapSampler = CustomSamplerStates.Default,
+                SurfaceMapSampler = CustomSamplerStates.Color,
                 RenderShadowMap = true,
             };
 

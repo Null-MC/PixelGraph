@@ -20,10 +20,10 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public override Material BuildMaterial(string passName = null)
         {
             var mat = new CustomPbrMaterial(passName) {
-                SurfaceMapSampler = CustomSamplerStates.Default,
+                //SurfaceMapSampler = CustomSamplerStates.Default,
                 RenderEnvironmentMap = Model.Preview.EnableEnvironment,
                 EnvironmentCube = Model.Preview.EnvironmentCube,
-                RenderShadowMap = true,
+                RenderShadowMap = false,
             };
 
             if (TextureMap.TryGetValue(TextureTags.Albedo, out var albedoStream) && albedoStream != null)

@@ -14,7 +14,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
     internal class CustomPbrMaterialVariable : MaterialVariable
     {
         private const int NUMTEXTURES = 4;
-        private const int NUMSAMPLERS = 3;
+        private const int NUMSAMPLERS = 4;
 
         private const int
             AlbedoAlphaMapIdx = 0,
@@ -24,8 +24,9 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
         private const int
             SurfaceSamplerIdx = 0,
-            CubeSamplerIdx = 1,
-            ShadowSamplerIdx = 2;
+            HeightSamplerIdx = 1,
+            CubeSamplerIdx = 2,
+            ShadowSamplerIdx = 3;
 
         private readonly CustomPbrMaterialCore material;
 
@@ -35,7 +36,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         private readonly SamplerStateProxy[] samplerResources;
 
         private int texAlbedoAlphaSlot, texNormalHeightSlot, texRoughF0OcclusionSlot, texPorositySssEmissiveSlot, texShadowSlot, texCubeSlot;
-        private int samplerSurfaceSlot, samplerCubeSlot, samplerShadowSlot;
+        private int samplerSurfaceSlot, samplerHeightSlot, samplerCubeSlot, samplerShadowSlot;
         private uint textureIndex;
 
         public ShaderPass MaterialPass { get; }
@@ -92,6 +93,10 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
             AddPropertyBinding(nameof(CustomPbrMaterialCore.SurfaceMapSampler), () => {
                 CreateSampler(material.SurfaceMapSampler, SurfaceSamplerIdx);
+            });
+
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.HeightMapSampler), () => {
+                CreateSampler(material.HeightMapSampler, HeightSamplerIdx);
             });
 
             AddPropertyBinding(nameof(CustomPbrMaterialCore.CubeMapSampler), () => {
@@ -183,6 +188,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             texCubeSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.CubeMapTB);
 
             samplerSurfaceSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.SurfaceSampler);
+            samplerHeightSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.HeightSampler);
             samplerShadowSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.ShadowMapSampler);
             samplerCubeSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.CubeMapSampler);
         }
@@ -198,6 +204,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             shader.BindTexture(deviceContext, texPorositySssEmissiveSlot, textureResources[PorositySssEmissiveMapIdx]);
 
             shader.BindSampler(deviceContext, samplerSurfaceSlot, samplerResources[SurfaceSamplerIdx]);
+            shader.BindSampler(deviceContext, samplerHeightSlot, samplerResources[HeightSamplerIdx]);
             shader.BindSampler(deviceContext, samplerCubeSlot, samplerResources[CubeSamplerIdx]);
         }
 
@@ -220,14 +227,18 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         private void CreateSamplers()
         {
             var newSurfaceSampler = statePoolManager.Register(material.SurfaceMapSampler);
+            var newHeightSampler = statePoolManager.Register(material.HeightMapSampler);
             var newShadowSampler = statePoolManager.Register(DefaultSamplers.ShadowSampler);
             var newCubeSampler = statePoolManager.Register(material.CubeMapSampler);
+
             RemoveAndDispose(ref samplerResources[SurfaceSamplerIdx]);
+            RemoveAndDispose(ref samplerResources[HeightSamplerIdx]);
             RemoveAndDispose(ref samplerResources[ShadowSamplerIdx]);
             RemoveAndDispose(ref samplerResources[CubeSamplerIdx]);
 
             if (material != null) {
                 samplerResources[SurfaceSamplerIdx] = Collect(newSurfaceSampler);
+                samplerResources[HeightSamplerIdx] = Collect(newHeightSampler);
                 samplerResources[ShadowSamplerIdx] = Collect(newShadowSampler);
                 samplerResources[CubeSamplerIdx] = Collect(newCubeSampler);
             }

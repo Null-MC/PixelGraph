@@ -1,6 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
-using HelixToolkit.SharpDX.Core.Shaders;
+using PixelGraph.UI.Internal.Preview.Shaders;
 using SharpDX.Direct3D11;
 
 namespace PixelGraph.UI.Internal.Preview.Materials
@@ -35,7 +35,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
         public CustomDiffuseMaterialCore()
         {
-            _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni4;
+            _surfaceMapSampler = CustomSamplerStates.Color;
         }
 
         public override MaterialVariable CreateMaterialVariables(IEffectsManager manager, IRenderTechnique technique)

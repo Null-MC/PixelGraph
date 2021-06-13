@@ -116,7 +116,7 @@ namespace PixelGraph.UI.ViewModels
         {
             const float sun_distance = 10f;
             const float sun_overlap = 0.12f;
-            const float sun_power = 0.5f;
+            const float sun_power = 0.85f;
             const float sun_azimuth = 30f;
             const float sun_roll = 15f;
 
@@ -153,8 +153,8 @@ namespace PixelGraph.UI.ViewModels
             Model.Preview.Camera.LookDirection = new Media3D.Vector3D(-10, -10, -10);
             Model.Preview.Camera.UpDirection = new Media3D.Vector3D(0, 1, 0);
 
-            Model.Preview.SunCamera.Position = new Media3D.Point3D(18f, 8f, -8f);
-            Model.Preview.SunCamera.LookDirection = new Media3D.Vector3D(-2f, -1f, 1f);
+            Model.Preview.PointLightTransform = new Media3D.MatrixTransform3D();
+            Model.Preview.PointLightTransform.Transform(new Media3D.Vector3D(5, 7, 5));
         }
 
         public async Task ClearAsync()

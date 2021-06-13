@@ -312,13 +312,32 @@
                                           ItemsSource="{StaticResource RenderModes}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
                                           SelectedValue="{Binding Preview.RenderMode, Mode=TwoWay}"/>
-                                <Slider DockPanel.Dock="Left" Margin="4" Minimum="-6000" Maximum="18000" Width="400"
-                                        Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
-                                        Value="{Binding Preview.TimeOfDay, Mode=TwoWay}"/>
                                 <CheckBox DockPanel.Dock="Left" Content="Environment" Margin="4" FontWeight="Bold"
                                           Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
                                           IsChecked="{Binding Preview.EnableEnvironment, Mode=TwoWay}"/>
+                                <CheckBox DockPanel.Dock="Left" Content="Cycle" Margin="4" FontWeight="Bold"
+                                          Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                                          Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}">
+                                    <CheckBox.Triggers>
+                                        <EventTrigger RoutedEvent="CheckBox.Checked">
+                                            <BeginStoryboard Name="TimeCycleStoryboard">
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetName="TimeOfDaySlider" 
+                                                        Storyboard.TargetProperty="Value" 
+                                                        From="0" To="24000" Duration="0:0:30" RepeatBehavior="Forever" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                        <EventTrigger RoutedEvent="CheckBox.Unchecked">
+                                            <StopStoryboard BeginStoryboardName="TimeCycleStoryboard"/>
+                                        </EventTrigger>
+                                    </CheckBox.Triggers>
+                                </CheckBox>
+                                <Slider x:Name="TimeOfDaySlider" DockPanel.Dock="Left" Margin="4" Minimum="-6000" Maximum="18000" Width="400"
+                                        Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
+                                        Value="{Binding Preview.TimeOfDay, Mode=TwoWay}"/>
                                 <ComboBox IsEditable="True" DockPanel.Dock="Right" Margin="4" BorderThickness="0"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityInverseConverter}}"
                                           Text="{Binding ZoomText, Mode=TwoWay, ElementName=TextureViewer}">
@@ -344,11 +363,10 @@
                                     EffectsManager="{Binding EffectsManager}"
                                     EnableD2DRendering="False"
                                     EnableSwapChainRendering="True"
-                                    IsShadowMappingEnabled="True"
+                                    IsShadowMappingEnabled="False"
                                     ModelUpDirection="0,1,0"
                                     MSAA="Two"
                                     ShowCoordinateSystem="True"
-                                    SubTitle="This is just a test..."
                                     TextBrush="White"
                                     UseDefaultGestures="False"
                                     ZoomExtentsWhenLoaded="True"
@@ -376,28 +394,20 @@
                                     <pm:EnvironmentCube3D x:Name="EnvironmentCube" FaceSize="64"
                                                           IsRendering="{Binding EnableEnvironment, Mode=OneWay}"
                                                           Scene="{Binding Mode=OneWay, Source={x:Reference MinecraftScene}}"/>
-                                    <hx:AmbientLight3D Color="#1A1A1A"
+                                    <hx:AmbientLight3D Color="#222"
                                                        Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
                                     <hx:DirectionalLight3D Color="{Binding SunColor, Mode=OneWay}"
                                                            Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"/>
+                                    <hx:PointLight3D Color="#CA8A41" Range="16" Position="5,7,5" IsRendering="False"/>
                                     <pm:SkyDome3D Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
-                                    <!--<hx:SpotLight3D
-                                        Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"
-                                        OuterAngle="{Binding SunCamera.FieldOfView}"
-                                        Position="{Binding SunCamera.Position, Mode=OneWay}"
-                                        Range="{Binding SunCamera.FarPlaneDistance}"
-                                        Color="White" />-->
-                                    <hx:ShadowMap3D Resolution="2048,2048"
-                                                    LightCamera="{Binding SunCamera}"/>
-                                    <!--<hx:CameraModel3D x:Name="lightCamera"
-                                                      Camera="{Binding SunCamera}" />-->
+                                    <hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />
                                     <hx:MeshGeometryModel3D IsThrowingShadow="True" CullMode="Back"
                                                             Geometry="{Binding Model, Mode=OneWay}"
                                                             Material="{Binding ModelMaterial, Mode=OneWay}"/>
-                                    <!--<hx:UICompositeManipulator3D Diameter="2"
-                                        CanRotateX="true" CanRotateY="true" CanRotateZ="true"
-                                        CanTranslateX="False" CanTranslateY="False" CanTranslateZ="False"
-                                        TargetTransform="{Binding Transform, ElementName=lightCamera}" />-->
+                                    <!--<hx:UICompositeManipulator3D Diameter="6"
+                                        CanRotateX="False" CanRotateY="False" CanRotateZ="False"
+                                        CanTranslateX="True" CanTranslateY="True" CanTranslateZ="True"
+                                        Transform="{Binding PointLightTransform}"/>-->
                                     <hx:ContinuousRender3D/>
                                 </hx:Viewport3DX>
                                 <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"

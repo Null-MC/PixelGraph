@@ -5,14 +5,22 @@
 #pragma pack_matrix(row_major)
 
 
+float srgb_to_linear(const float srgb)
+{
+	//return srgb;
+	return pow(abs(srgb), Gamma);
+}
+
 float3 srgb_to_linear(const float3 srgb)
 {
+	//return srgb;
 	return pow(abs(srgb), Gamma);
 }
 
 float3 linear_to_srgb(const float3 rgb)
 {
-	return pow(abs(rgb), 1 / Gamma);
+	//return rgb;
+	return pow(abs(rgb), 1.0 / Gamma);
 }
 
 float3 ACESFilm(float3 x)

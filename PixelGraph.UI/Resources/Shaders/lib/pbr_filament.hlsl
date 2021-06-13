@@ -6,7 +6,7 @@
 
 float3 Fresnel_Shlick(const in float3 f0, const in float3 f90, const in float x)
 {
-    return f0 + (f90 - f0) * pow(1.f - x, 5);
+    return f0 + (f90 - f0) * pow(1.0 - x, 5.0);
 }
 
 float Filament_F_Schlick(const float f0, const float VoH) {
@@ -19,11 +19,17 @@ float3 Filament_F_Schlick(const float3 f0, const float VoH) {
     return f + f0 * (1.0 - f);
 }
 
-float Diffuse_Burley(const in float NdotL, const in float NdotV, in float LdotH, in float roughness)
+float Diffuse_Burley(const in float NdotL, const in float NdotV)
 {
-    return Filament_F_Schlick(1, NdotL).x * Filament_F_Schlick(1, NdotV).x;
-    //float fd90 = 0.5f + 2.f * roughness * LdotH * LdotH;
-    //return Fresnel_Shlick(1, fd90, NdotL).x * Fresnel_Shlick(1, fd90, NdotV).x;
+    return Filament_F_Schlick(1.0, NdotL).x * Filament_F_Schlick(1, NdotV).x;
+}
+
+float Diffuse_Burley(const in float3 f0, const in float NdotL, const in float NdotV, in float LdotH, in float roughness)
+{
+	return Diffuse_Burley(NdotL, NdotV);
+	
+    //float fd90 = 0.5 + 2 * roughness * LdotH * LdotH;
+    //return Fresnel_Shlick(f0, fd90, NdotL).x * Fresnel_Shlick(1, fd90, NdotV).x;
 }
 
 float Filament_D_GGX(const in float linearRoughness, const in float NoH, const in float3 n, const in float3 h) {
@@ -36,7 +42,7 @@ float Filament_D_GGX(const in float linearRoughness, const in float NoH, const i
 
 float G_Shlick_Smith_Hable(const float alpha, const float LdotH)
 {
-    return rcp(lerp(LdotH * LdotH, 1, alpha * alpha * 0.25f));
+    return rcp(lerp(LdotH * LdotH, 1.0, alpha * alpha * 0.25f));
 }
 
 float3 Specular_BRDF(const in float alpha, const in float3 f0, in float NdotV, in float NdotL, const in float LdotH, const in float NdotH, const in float3 N, const in float3 H)
@@ -58,4 +64,11 @@ float3 specular_IBL(const in float3 normal, const in float3 view, const in float
     const float3 dir = reflect(-view, normal);
 	const float mip = lod_bias * NumEnvironmentMapMipLevels;
     return tex_cube.SampleLevel(sampler_cube, dir, mip).rgb;
+}
+
+float3 diffuse_IBL(const float3 normal, const float rough)
+{
+	const float mip = rough * NumEnvironmentMapMipLevels;
+	const float3 color = tex_cube.SampleLevel(sampler_cube, normal, mip).rgb;
+	return color;// * (1 - rough * 0.1);
 }

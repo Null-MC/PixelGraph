@@ -1,5 +1,4 @@
 ﻿using HelixToolkit.SharpDX.Core;
-using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview;
@@ -7,8 +6,13 @@ using PixelGraph.UI.Internal.Preview.Sky;
 using SharpDX;
 using System;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using PixelGraph.Common.Extensions;
 using Color = System.Windows.Media.Color;
+using Material = HelixToolkit.Wpf.SharpDX.Material;
+using MeshGeometry3D = HelixToolkit.SharpDX.Core.MeshGeometry3D;
+using OrthographicCamera = HelixToolkit.Wpf.SharpDX.OrthographicCamera;
+using PerspectiveCamera = HelixToolkit.Wpf.SharpDX.PerspectiveCamera;
 
 namespace PixelGraph.UI.Models
 {
@@ -32,6 +36,7 @@ namespace PixelGraph.UI.Models
         private float _sunStrength;
         private Color _sunColor;
         private int _timeOfDay;
+        private bool _enableTimeCycle;
         private float _wetness;
         private bool _isLoading;
 
@@ -154,11 +159,30 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public RenderPreviewModes RenderMode {
+            get => _renderMode;
+            set {
+                _renderMode = value;
+                OnPropertyChanged();
+                OnRenderModeChanged();
+                //OnRenderSceneChanged();
+            }
+        }
+
         public IEffectsManager EffectsManager {
             get => _effectsManager;
             set {
                 _effectsManager = value;
                 OnPropertyChanged();
+            }
+        }
+
+        public bool EnableEnvironment {
+            get => _enableEnvironment;
+            set {
+                _enableEnvironment = value;
+                OnPropertyChanged();
+                OnRenderSceneChanged();
             }
         }
 
@@ -202,22 +226,20 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public RenderPreviewModes RenderMode {
-            get => _renderMode;
+        public bool EnableTimeCycle {
+            get => _enableTimeCycle;
             set {
-                _renderMode = value;
+                _enableTimeCycle = value;
                 OnPropertyChanged();
-                OnRenderModeChanged();
-                //OnRenderSceneChanged();
             }
         }
 
-        public bool EnableEnvironment {
-            get => _enableEnvironment;
+        private Transform3D _pointLightTransform;
+        public Transform3D PointLightTransform {
+            get => _pointLightTransform;
             set {
-                _enableEnvironment = value;
+                _pointLightTransform = value;
                 OnPropertyChanged();
-                OnRenderSceneChanged();
             }
         }
 

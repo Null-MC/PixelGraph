@@ -63,8 +63,8 @@
 
             Add(Name_PbrSpecularPixel, new ShaderSourceDescription {
                 Profile = "ps_4_0",
-                RawFileName = "pbr_specular_ps.hlsl",
-                CompiledResourceName = "pbr_specular_ps.cso",
+                RawFileName = "pbr_null_ps.hlsl",
+                CompiledResourceName = "pbr_null_ps.cso",
             });
         }
     }

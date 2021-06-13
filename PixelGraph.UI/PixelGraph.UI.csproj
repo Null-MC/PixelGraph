@@ -63,6 +63,8 @@
     <None Remove="Resources\Shaders\compile.cmd" />
     <None Remove="Resources\Shaders\diffuse_ps.hlsl" />
     <None Remove="Resources\Shaders\diffuse_vs.hlsl" />
+    <None Remove="Resources\Shaders\lib\sky_colors.hlsl" />
+    <None Remove="Resources\Shaders\lib\sky_nvidia.hlsl" />
     <None Remove="Resources\Shaders\pbr_metal_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_null_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_vs.hlsl" />

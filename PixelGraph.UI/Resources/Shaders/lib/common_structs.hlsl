@@ -21,9 +21,8 @@ struct ps_input
 {
 	float4 pos  : SV_POSITION;
 	float4 wp   : POSITION0;
-	float3 eye  : POSITION1;
-	float3 eyeT : POSITION2;
-	float2 poT  : POSITION3;
+	float4 eye  : POSITION1;
+	float2 poT : POSITION2;
     float3 nor  : NORMAL;
 	float3 tan  : TANGENT;
 	float3 bin  : BINORMAL;
@@ -159,6 +158,7 @@ Texture2D<float> tex_shadow : register(t30);
 
 SamplerState sampler_surface : register(s0);
 //SamplerState sampler_IBL : register(s1);
+SamplerState sampler_height : register(s2);
 SamplerState sampler_cube : register(s4);
 
 SamplerComparisonState sampler_shadow : register(s5);
