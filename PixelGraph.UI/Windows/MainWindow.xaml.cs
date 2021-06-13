@@ -48,18 +48,28 @@ namespace PixelGraph.UI.Windows
             themeHelper.ApplyCurrent(this);
 
             viewModel = new MainViewModel(provider) {
+                Dispatcher = Dispatcher,
                 Model = Model,
             };
+
+            viewModel.TreeError += OnTreeViewError;
 
             previewViewModel = new PreviewViewModel(provider) {
+                Dispatcher = Dispatcher,
                 Model = Model,
             };
 
-            Model.Profile.SelectionChanged += OnSelectedProfileChanged;
             previewViewModel.ShaderCompileErrors += OnShaderCompileErrors;
 
             Model.Preview.EnvironmentCube = EnvironmentCube;
             Model.SelectedLocation = ManualLocation;
+            Model.Profile.SelectionChanged += OnSelectedProfileChanged;
+        }
+
+        private void OnTreeViewError(object sender, UnhandledExceptionEventArgs e)
+        {
+            var error = (Exception)e.ExceptionObject;
+            ShowError($"Failed to update content tree! {error.Message}");
         }
 
         private async Task SelectRootDirectoryAsync(CancellationToken token)

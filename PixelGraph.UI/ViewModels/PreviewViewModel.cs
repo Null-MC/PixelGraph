@@ -15,7 +15,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -26,7 +25,6 @@ namespace PixelGraph.UI.ViewModels
     internal class PreviewViewModel : IDisposable, IAsyncDisposable
     {
         private readonly IServiceProvider provider;
-        private readonly Dispatcher uiDispatcher;
         private readonly object lockHandle;
 
         private CancellationTokenSource tokenSource;
@@ -36,6 +34,7 @@ namespace PixelGraph.UI.ViewModels
         public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
 
         public MainModel Model {get; set;}
+        public Dispatcher Dispatcher {get; set;}
 
 
         public PreviewViewModel(IServiceProvider provider)
@@ -43,7 +42,6 @@ namespace PixelGraph.UI.ViewModels
             this.provider = provider;
             
             lockHandle = new object();
-            uiDispatcher = Application.Current.Dispatcher;
         }
 
         public void Dispose()
@@ -159,7 +157,7 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task ClearAsync()
         {
-            await uiDispatcher.BeginInvoke(() => Model.Preview.LayerImage = null);
+            await Dispatcher.BeginInvoke(() => Model.Preview.LayerImage = null);
 
             await builderDiffuse.ClearAllTexturesAsync();
             await builderPbr.ClearAllTexturesAsync();
@@ -167,7 +165,7 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task SetFromFileAsync(string filename)
         {
-            await uiDispatcher.BeginInvoke(() => Model.Preview.IsLoading = true);
+            await Dispatcher.BeginInvoke(() => Model.Preview.IsLoading = true);
 
             var texImage = new BitmapImage();
 
@@ -179,7 +177,7 @@ namespace PixelGraph.UI.ViewModels
 
             texImage.Freeze();
 
-            await uiDispatcher.BeginInvoke(() => {
+            await Dispatcher.BeginInvoke(() => {
                 Model.Preview.LayerImage = texImage;
                 Model.Preview.IsLoading = false;
             });
@@ -202,7 +200,7 @@ namespace PixelGraph.UI.ViewModels
             if (clear) await ClearAsync();
 
             var hasContent = Model.Material.HasLoaded; // && VM.HasSelectedTag;
-            await uiDispatcher.BeginInvoke(() => Model.Preview.IsLoading = hasContent);
+            await Dispatcher.BeginInvoke(() => Model.Preview.IsLoading = hasContent);
             if (!hasContent) return;
 
             try {
@@ -210,7 +208,7 @@ namespace PixelGraph.UI.ViewModels
                     var builder = GetMaterialBuilder();
                     await builder.UpdateAllTexturesAsync(mergedToken);
 
-                    await uiDispatcher.BeginInvoke(() => {
+                    await Dispatcher.BeginInvoke(() => {
                         mergedToken.ThrowIfCancellationRequested();
 
                         UpdateMaterial();
@@ -220,7 +218,7 @@ namespace PixelGraph.UI.ViewModels
                 else {
                     var img = await GetLayerImageSourceAsync(Model.Preview.SelectedTag, mergedToken);
 
-                    await uiDispatcher.BeginInvoke(() => {
+                    await Dispatcher.BeginInvoke(() => {
                         if (mergedToken.IsCancellationRequested) return;
 
                         Model.Preview.LayerImage = img;
@@ -233,13 +231,13 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task UpdateLayerAsync(CancellationToken token = default)
         {
-            await uiDispatcher.BeginInvoke(() => Model.Preview.IsLoading = true);
+            await Dispatcher.BeginInvoke(() => Model.Preview.IsLoading = true);
 
             if (Model.Preview.EnableRender) {
                 var builder = GetMaterialBuilder();
                 await builder.UpdateTexturesByTagAsync(Model.Preview.SelectedTag, token);
 
-                await uiDispatcher.BeginInvoke(() => {
+                await Dispatcher.BeginInvoke(() => {
                     UpdateMaterial();
                     Model.Preview.IsLoading = false;
                 });
@@ -247,7 +245,7 @@ namespace PixelGraph.UI.ViewModels
             else {
                 var img = await GetLayerImageSourceAsync(Model.Preview.SelectedTag, token);
 
-                await uiDispatcher.BeginInvoke(() => {
+                await Dispatcher.BeginInvoke(() => {
                     Model.Preview.LayerImage = img;
                     Model.Preview.IsLoading = false;
                 });
@@ -256,14 +254,17 @@ namespace PixelGraph.UI.ViewModels
 
         public void UpdateMaterial()
         {
-            var passName = Model.Preview.RenderMode switch {
+            var builder = GetMaterialBuilder();
+
+            builder.ColorSampler = CustomSamplerStates.Color_Point;
+            builder.HeightSampler = CustomSamplerStates.Height_Point;
+            builder.PassName = Model.Preview.RenderMode switch {
                 RenderPreviewModes.PbrMetal => CustomPassNames.PbrMetal,
                 RenderPreviewModes.PbrSpecular => CustomPassNames.PbrSpecular,
                 _ => null,
             };
 
-            var builder = GetMaterialBuilder();
-            var mat = builder.BuildMaterial(passName);
+            var mat = builder.BuildMaterial();
             if (mat.CanFreeze) mat.Freeze();
 
             Model.Preview.ModelMaterial = mat;

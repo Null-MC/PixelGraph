@@ -397,7 +397,8 @@
                                     <hx:AmbientLight3D Color="#222"
                                                        Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
                                     <hx:DirectionalLight3D Color="{Binding SunColor, Mode=OneWay}"
-                                                           Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"/>
+                                                           Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"
+                                                           IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
                                     <hx:PointLight3D Color="#CA8A41" Range="16" Position="5,7,5" IsRendering="False"/>
                                     <pm:SkyDome3D Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
                                     <hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />

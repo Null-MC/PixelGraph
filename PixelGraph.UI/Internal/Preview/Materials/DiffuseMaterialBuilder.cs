@@ -1,7 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Textures;
-using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Textures;
 using System;
 
@@ -15,10 +14,10 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             TextureMap[TextureTags.Emissive] = null;
         }
 
-        public override Material BuildMaterial(string passName = null)
+        public override Material BuildMaterial()
         {
             var mat = new CustomDiffuseMaterial {
-                SurfaceMapSampler = CustomSamplerStates.Color,
+                SurfaceMapSampler = ColorSampler,
                 RenderShadowMap = true,
             };
 

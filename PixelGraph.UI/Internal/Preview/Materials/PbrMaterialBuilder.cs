@@ -17,10 +17,11 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             TextureMap[TextureTags.Porosity] = null;
         }
 
-        public override Material BuildMaterial(string passName = null)
+        public override Material BuildMaterial()
         {
-            var mat = new CustomPbrMaterial(passName) {
-                //SurfaceMapSampler = CustomSamplerStates.Default,
+            var mat = new CustomPbrMaterial(PassName) {
+                SurfaceMapSampler = ColorSampler,
+                HeightMapSampler = HeightSampler,
                 RenderEnvironmentMap = Model.Preview.EnableEnvironment,
                 EnvironmentCube = Model.Preview.EnvironmentCube,
                 RenderShadowMap = false,

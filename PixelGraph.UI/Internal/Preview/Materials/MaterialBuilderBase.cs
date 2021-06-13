@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal.Preview.Textures;
 using PixelGraph.UI.Models;
+using SharpDX.Direct3D11;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
@@ -13,11 +14,15 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 {
     internal interface IMaterialBuilder
     {
+        string PassName {get; set;}
+        SamplerStateDescription ColorSampler {get; set;}
+        SamplerStateDescription HeightSampler {get; set;}
+
         Task UpdateAllTexturesAsync(CancellationToken token = default);
         Task UpdateTexturesByTagAsync(string textureTag, CancellationToken token = default);
         Task ClearAllTexturesAsync();
         void ClearAllTextures();
-        Material BuildMaterial(string passName = null);
+        Material BuildMaterial();
     }
 
     internal abstract class MaterialBuilderBase<T> : IMaterialBuilder, IDisposable, IAsyncDisposable
@@ -26,7 +31,11 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         private readonly IServiceProvider provider;
 
         protected Dictionary<string, Stream> TextureMap {get;}
+
         public MainModel Model {get; set;}
+        public string PassName {get; set;}
+        public SamplerStateDescription ColorSampler {get; set;}
+        public SamplerStateDescription HeightSampler {get; set;}
 
 
         protected MaterialBuilderBase(IServiceProvider provider)
@@ -80,7 +89,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             }
         }
 
-        public abstract Material BuildMaterial(string passName = null);
+        public abstract Material BuildMaterial();
 
         protected ITexturePreviewBuilder GetPreviewBuilder()
         {

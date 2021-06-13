@@ -1,7 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
-using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Sky;
 using SharpDX.Direct3D11;
 using System;
@@ -78,8 +77,8 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         {
             MaterialPassName = materialPassName ?? throw new ArgumentNullException(nameof(materialPassName));
 
-            _surfaceMapSampler = CustomSamplerStates.Color;
-            _heightMapSampler = CustomSamplerStates.Height;
+            _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
+            _heightMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
             _cubeMapSampler = DefaultSamplers.IBLSampler;
         }
 

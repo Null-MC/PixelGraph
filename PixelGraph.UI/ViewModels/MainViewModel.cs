@@ -21,27 +21,32 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class MainViewModel
     {
+        private readonly ILogger<MainViewModel> logger;
         private readonly IServiceProvider provider;
         private readonly IRecentPathManager recentMgr;
         private readonly ITextureEditUtility editUtility;
-        private readonly Dispatcher uiDispatcher;
+
+        public event EventHandler<UnhandledExceptionEventArgs> TreeError;
 
         public MainModel Model {get; set;}
+        public Dispatcher Dispatcher {get; set;}
 
 
         public MainViewModel(IServiceProvider provider)
         {
             this.provider = provider;
 
+            logger = provider.GetRequiredService<ILogger<MainViewModel>>();
             recentMgr = provider.GetRequiredService<IRecentPathManager>();
             editUtility = provider.GetRequiredService<ITextureEditUtility>();
 
-            uiDispatcher = Application.Current.Dispatcher;
+            //uiDispatcher = Application.Current.Dispatcher;
         }
 
         public async Task InitializeAsync()
@@ -118,16 +123,22 @@ namespace PixelGraph.UI.ViewModels
                     LocalPath = null,
                 };
 
-                await uiDispatcher.BeginInvoke(() => {
-                    treeReader.Update(Model.TreeRoot);
-                    Model.TreeRoot.UpdateVisibility(Model);
+                await Dispatcher.BeginInvoke(() => {
+                    try {
+                        treeReader.Update(Model.TreeRoot);
+                    }
+                    catch (Exception error) {
+                        logger.LogError(error, "Failed to populate TreeView!");
+                        OnTreeError(error);
+                    }
 
+                    Model.TreeRoot.UpdateVisibility(Model);
                     Model.Profile.Selected = Model.Profile.List.FirstOrDefault();
                     Model.EndBusy();
                 });
             }
             catch {
-                await uiDispatcher.BeginInvoke(() => {
+                await Dispatcher.BeginInvoke(() => {
                     Model.EndBusy();
                 });
 
@@ -165,7 +176,7 @@ namespace PixelGraph.UI.ViewModels
             var packReader = provider.GetRequiredService<IResourcePackReader>();
             var profile = await packReader.ReadProfileAsync(Model.Profile.Selected.LocalFile);
 
-            await uiDispatcher.BeginInvoke(() => Model.Profile.Loaded = profile);
+            await Dispatcher.BeginInvoke(() => Model.Profile.Loaded = profile);
         }
 
         public async Task LoadPublishLocationsAsync(CancellationToken token = default)
@@ -382,6 +393,12 @@ namespace PixelGraph.UI.ViewModels
 
                 Model.Profile.List.Add(profileItem);
             }
+        }
+
+        private void OnTreeError(Exception error)
+        {
+            var e = new UnhandledExceptionEventArgs(error, false);
+            TreeError?.Invoke(this, e);
         }
     }
 }

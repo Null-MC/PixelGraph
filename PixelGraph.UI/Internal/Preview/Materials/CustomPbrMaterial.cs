@@ -2,7 +2,6 @@
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.Wpf.SharpDX;
-using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Sky;
 using SharpDX.Direct3D11;
 using System.Windows;
@@ -150,12 +149,12 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             }));
 
         public static readonly DependencyProperty SurfaceMapSamplerProperty =
-            DependencyProperty.Register(nameof(SurfaceMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(CustomSamplerStates.Color, (d, e) => {
+            DependencyProperty.Register(nameof(SurfaceMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(DefaultSamplers.LinearSamplerWrapAni16, (d, e) => {
                 ((CustomPbrMaterialCore)((Material)d).Core).SurfaceMapSampler = (SamplerStateDescription)e.NewValue;
             }));
 
         public static readonly DependencyProperty HeightMapSamplerProperty =
-            DependencyProperty.Register(nameof(HeightMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(CustomSamplerStates.Height, (d, e) => {
+            DependencyProperty.Register(nameof(HeightMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(DefaultSamplers.LinearSamplerWrapAni16, (d, e) => {
                 ((CustomPbrMaterialCore)((Material)d).Core).HeightMapSampler = (SamplerStateDescription)e.NewValue;
             }));
 
