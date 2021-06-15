@@ -3,37 +3,17 @@ using HelixToolkit.SharpDX.Core.Utilities;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
 using PixelGraph.UI.Internal.Preview;
-using PixelGraph.UI.Internal.Preview.Sky;
+using PixelGraph.UI.Internal.Preview.CubeMaps;
 using System.Windows;
 
 namespace PixelGraph.UI.PreviewModels
 {
-    public class EnvironmentCube3D : Element3D, IEnvironmentCube
+    public class EnvironmentCube3D : Element3D, ICubeMapSource
     {
         public IMinecraftScene Scene {
             get => (IMinecraftScene)GetValue(SceneProperty);
             set => SetValue(SceneProperty, value);
         }
-
-        //public Vector3 SunDirection {
-        //    get => (Vector3)GetValue(SunDirectionProperty);
-        //    set => SetValue(SunDirectionProperty, value);
-        //}
-
-        //public float SunStrength {
-        //    get => (float)GetValue(SunStrengthProperty);
-        //    set => SetValue(SunStrengthProperty, value);
-        //}
-
-        //public float TimeOfDay {
-        //    get => (float)GetValue(TimeOfDayProperty);
-        //    set => SetValue(TimeOfDayProperty, value);
-        //}
-
-        //public float Wetness {
-        //    get => (float)GetValue(WetnessProperty);
-        //    set => SetValue(WetnessProperty, value);
-        //}
 
         public int FaceSize {
             get => (int)GetValue(FaceSizeProperty);
@@ -41,6 +21,7 @@ namespace PixelGraph.UI.PreviewModels
         }
 
         public ShaderResourceViewProxy CubeMap => ((EnvironmentCubeNode)SceneNode)?.CubeMap;
+        public long LastUpdated => ((EnvironmentCubeNode)SceneNode)?.LastUpdated ?? 0;
 
 
         protected override SceneNode OnCreateSceneNode()
@@ -52,10 +33,6 @@ namespace PixelGraph.UI.PreviewModels
         {
             if (core is EnvironmentCubeNode n) {
                 n.Scene = Scene;
-                //n.SunDirection = SunDirection;
-                //n.SunStrength = SunStrength;
-                //n.TimeOfDay = TimeOfDay;
-                //n.Wetness = Wetness;
                 n.FaceSize = FaceSize;
             }
 
@@ -67,30 +44,6 @@ namespace PixelGraph.UI.PreviewModels
                 if (d is Element3DCore {SceneNode: EnvironmentCubeNode sceneNode})
                     sceneNode.Scene = (IMinecraftScene)e.NewValue;
             }));
-
-        //public static readonly DependencyProperty SunDirectionProperty =
-        //    DependencyProperty.Register(nameof(SunDirection), typeof(Vector3), typeof(EnvironmentCube3D), new PropertyMetadata(Vector3.UnitY, (d, e) => {
-        //        if (d is Element3DCore {SceneNode: EnvironmentCubeNode sceneNode})
-        //            sceneNode.SunDirection = (Vector3)e.NewValue;
-        //    }));
-
-        //public static readonly DependencyProperty SunStrengthProperty =
-        //    DependencyProperty.Register(nameof(SunStrength), typeof(float), typeof(EnvironmentCube3D), new PropertyMetadata(1f, (d, e) => {
-        //        if (d is Element3DCore {SceneNode: EnvironmentCubeNode sceneNode})
-        //            sceneNode.SunStrength = (float)e.NewValue;
-        //    }));
-
-        //public static readonly DependencyProperty TimeOfDayProperty =
-        //    DependencyProperty.Register(nameof(TimeOfDay), typeof(float), typeof(EnvironmentCube3D), new PropertyMetadata(0f, (d, e) => {
-        //        if (d is Element3DCore {SceneNode: EnvironmentCubeNode sceneNode})
-        //            sceneNode.TimeOfDay = (float) e.NewValue;
-        //    }));
-
-        //public static readonly DependencyProperty WetnessProperty =
-        //    DependencyProperty.Register(nameof(Wetness), typeof(float), typeof(EnvironmentCube3D), new PropertyMetadata(0f, (d, e) => {
-        //        if (d is Element3DCore {SceneNode: EnvironmentCubeNode sceneNode})
-        //            sceneNode.Wetness = (float)e.NewValue;
-        //    }));
 
         public static readonly DependencyProperty FaceSizeProperty =
             DependencyProperty.Register(nameof(FaceSize), typeof(int), typeof(EnvironmentCube3D), new PropertyMetadata(256, (d, e) => {

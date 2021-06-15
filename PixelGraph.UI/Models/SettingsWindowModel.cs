@@ -8,7 +8,8 @@ namespace PixelGraph.UI.Models
         private string _texture_imageEditorExe;
         private string _texture_imageEditorArgs;
         private bool _renderPreview_enabled;
-        private bool _renderPreview_parallaxEnabled;
+        private bool _renderPreview_enableLinearSampling;
+        //private bool _renderPreview_parallaxEnabled;
         private decimal? _renderPreview_parallaxDepth;
         private int? _renderPreview_parallaxSamplesMin;
         private int? _renderPreview_parallaxSamplesMax;
@@ -46,14 +47,23 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public bool RenderPreview_ParallaxEnabled {
-            get => _renderPreview_parallaxEnabled;
+        public bool RenderPreview_EnableLinearSampling {
+            get => _renderPreview_enableLinearSampling;
             set {
-                _renderPreview_parallaxEnabled = value;
+                _renderPreview_enableLinearSampling = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
         }
+
+        //public bool RenderPreview_ParallaxEnabled {
+        //    get => _renderPreview_parallaxEnabled;
+        //    set {
+        //        _renderPreview_parallaxEnabled = value;
+        //        OnPropertyChanged();
+        //        OnDataChanged();
+        //    }
+        //}
 
         public decimal? RenderPreview_ParallaxDepth {
             get => _renderPreview_parallaxDepth;

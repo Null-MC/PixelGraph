@@ -1,13 +1,13 @@
 ﻿using HelixToolkit.SharpDX.Core;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview;
-using PixelGraph.UI.Internal.Preview.Sky;
+using PixelGraph.UI.Internal.Preview.CubeMaps;
 using SharpDX;
 using System;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
-using PixelGraph.Common.Extensions;
 using Color = System.Windows.Media.Color;
 using Material = HelixToolkit.Wpf.SharpDX.Material;
 using MeshGeometry3D = HelixToolkit.SharpDX.Core.MeshGeometry3D;
@@ -19,7 +19,8 @@ namespace PixelGraph.UI.Models
     public class PreviewContextModel : ModelBase
     {
         private IEffectsManager _effectsManager;
-        private IEnvironmentCube _environmentCube;
+        private ICubeMapSource _environmentCube;
+        private ICubeMapSource _irradianceCube;
         private Material _modelMaterial;
         private MeshGeometry3D _model;
         private PerspectiveCamera _camera;
@@ -28,10 +29,12 @@ namespace PixelGraph.UI.Models
         private string _selectedTag;
         private bool _enableRender;
         private bool _enableEnvironment;
+        private bool _enableLights;
         private RenderPreviewModes _renderMode;
         private float _parallaxDepth;
         private int _parallaxSamplesMin;
         private int _parallaxSamplesMax;
+        private bool _enableLinearSampling;
         private Vector3 _sunDirection;
         private float _sunStrength;
         private Color _sunColor;
@@ -68,6 +71,14 @@ namespace PixelGraph.UI.Models
             get => _parallaxSamplesMax;
             set {
                 _parallaxSamplesMax = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool EnableLinearSampling {
+            get => _enableLinearSampling;
+            set {
+                _enableLinearSampling = value;
                 OnPropertyChanged();
             }
         }
@@ -109,15 +120,6 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged(nameof(TimeOfDayLinear));
             }
         }
-
-        //private IMinecraftScene _minecraftScene;
-        //public IMinecraftScene MinecraftScene {
-        //    get => _minecraftScene;
-        //    set {
-        //        _minecraftScene = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
         public Vector3 SunDirection {
             get => _sunDirection;
@@ -186,10 +188,27 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public IEnvironmentCube EnvironmentCube {
+        public bool EnableLights {
+            get => _enableLights;
+            set {
+                _enableLights = value;
+                OnPropertyChanged();
+                OnRenderSceneChanged();
+            }
+        }
+
+        public ICubeMapSource EnvironmentCube {
             get => _environmentCube;
             set {
                 _environmentCube = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICubeMapSource IrradianceCube {
+            get => _irradianceCube;
+            set {
+                _irradianceCube = value;
                 OnPropertyChanged();
             }
         }

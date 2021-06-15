@@ -42,6 +42,15 @@ namespace PixelGraph.UI.Internal.Preview
                         BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
                         RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                     },
+                    new(CustomPassNames.SkyIrradiance) {
+                        ShaderList = new[] {
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyIrradiancePixel, ShaderStage.Pixel),
+                        },
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
+                        BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
+                        RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
+                    },
                 },
             });
 
@@ -58,10 +67,10 @@ namespace PixelGraph.UI.Internal.Preview
 
             // TODO: Diffuse OIT
 
-            meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.PbrMetal) {
+            meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.PbrFilament) {
                 ShaderList = new[] {
                     shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
-                    shaderMgr.BuildDescription(CustomShaderManager.Name_PbrMetalPixel, ShaderStage.Pixel),
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_PbrFilamentPixel, ShaderStage.Pixel),
                 },
                 BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
                 DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
@@ -69,10 +78,19 @@ namespace PixelGraph.UI.Internal.Preview
 
             // TODO: PBR-Metal OIT
 
-            meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.PbrSpecular) {
+            meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.PbrJessie) {
                 ShaderList = new[] {
                     shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
-                    shaderMgr.BuildDescription(CustomShaderManager.Name_PbrSpecularPixel, ShaderStage.Pixel),
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_PbrJessiePixel, ShaderStage.Pixel),
+                },
+                BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
+                DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+            });
+
+            meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.PbrNull) {
+                ShaderList = new[] {
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_PbrNullPixel, ShaderStage.Pixel),
                 },
                 BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
                 DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,

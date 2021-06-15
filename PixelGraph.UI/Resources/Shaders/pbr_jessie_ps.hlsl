@@ -4,6 +4,7 @@
 //#include "lib/parallax.hlsl"
 #include "lib/pbr_material.hlsl"
 #include "lib/pbr_jessie.hlsl"
+#include "lib/tonemap.hlsl"
 
 #pragma pack_matrix(row_major)
 
@@ -76,14 +77,6 @@ float3 diffuseIBL(const float3 albedo, const float3 normal, const float3 eye, co
 	return result / (float)N;
 }
 
-float3 tonemapHejlBurgess(float3 color) {
-    color *= rcp(1.1f);
-	color = max(float3(0.0f, 0.0f, 0.0f), color - 0.0008f);
-	color = (color * (6.2f * color + 0.5f)) / (color * (6.2f * color + 1.7f) + 0.06f);
-
-	return color;
-}
-
 float4 main(const ps_input input) : SV_TARGET
 {
 	const float3 eye = normalize(input.eye.xyz);
@@ -112,10 +105,10 @@ float4 main(const ps_input input) : SV_TARGET
 		   lit += lightColor * specularBRDF(nDotL, nDotV, nDotH, vDotH, mat.f0, alpha);
 		   lit += diffuseIBL(mat.albedo, normal, eye, mat.f0, alpha);
 
-    if (bRenderShadowMap)
-        lit *= shadow_strength(input.sp);
+    //if (bRenderShadowMap)
+    //    lit *= shadow_strength(input.sp);
 
-	lit = tonemapHejlBurgess(lit);
+	lit = tonemap_HejlBurgess(lit);
 	
     return float4(lit, mat.alpha);
 }

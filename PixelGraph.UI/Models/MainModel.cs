@@ -14,7 +14,6 @@ namespace PixelGraph.UI.Models
 
         private readonly object busyLock;
         private volatile bool _isBusy, _isInitializing;
-        //private volatile bool _isPreviewLoading;
         private volatile bool _isImageEditorOpen;
         private ObservableCollection<string> _recentDirectories;
         private List<LocationModel> _publishLocations;
@@ -22,48 +21,21 @@ namespace PixelGraph.UI.Models
         private string _rootDirectory;
         private string _searchText;
         private bool _showAllFiles;
-        //private string _selectedTag;
         private ContentTreeNode _selectedNode;
-        //private MaterialProperties _loadedMaterial;
-        //private ImageSource _loadedTexture;
-        //private ProfileItem _selectedProfile;
         private LocationModel _selectedLocation;
-        //private bool _publishArchive, _publishClean;
         private ContentTreeNode _treeRoot;
-        //private PreviewContextModel _preview;
-
-        //public event EventHandler SelectedTagChanged;
-        //public event EventHandler SelectedProfileChanged;
 
         public MaterialContextModel Material {get;}
         public ProfileContextModel Profile {get;}
         public PreviewContextModel Preview {get;}
 
-        //public ObservableCollection<ProfileItem> PublishProfiles {get;}
-        //public Preview3DVM Preview3D {get;}
-
         public bool IsInitializing => _isInitializing;
         public bool IsProjectLoaded => _rootDirectory != null;
-        //public bool IsProjectUnloaded => _rootDirectory == null;
 
         public bool HasTreeSelection => _selectedNode is ContentTreeFile;
         public bool HasTreeMaterialSelection => _selectedNode is ContentTreeMaterialDirectory;
         public bool HasTreeTextureSelection => _selectedNode is ContentTreeFile {Type: ContentNodeType.Texture};
         public bool HasTreeMaterialOrTextureSelection => HasTreeMaterialSelection || HasTreeTextureSelection;
-
-        //public bool HasLoadedMaterial => _loadedMaterial != null;
-        //public bool HasLoadedTexture => _loadedTexture != null;
-        //public bool HasPreviewImage => HasLoadedTexture || (HasLoadedMaterial && _selectedTag != null);
-        //public bool HasTagSelection => !string.IsNullOrEmpty(_selectedTag);
-        //public bool HasProfileSelection => _selectedProfile != null;
-
-        //public PreviewContextModel Preview {
-        //    get => _preview;
-        //    set {
-        //        _preview = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
         public string RootDirectory {
             get => _rootDirectory;
@@ -72,7 +44,6 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
 
                 OnPropertyChanged(nameof(IsProjectLoaded));
-                //OnPropertyChanged(nameof(IsProjectUnloaded));
             }
         }
         
@@ -128,18 +99,6 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        //public string SelectedTag {
-        //    get => _selectedTag;
-        //    set {
-        //        _selectedTag = value;
-        //        OnPropertyChanged();
-
-        //        OnSelectedTagChanged();
-        //        OnPropertyChanged(nameof(HasTagSelection));
-        //        //OnPropertyChanged(nameof(HasPreviewImage));
-        //    }
-        //}
-
         public ContentTreeNode SelectedNode {
             get => _selectedNode;
             set {
@@ -151,17 +110,6 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        //public ProfileItem SelectedProfile {
-        //    get => _selectedProfile;
-        //    set {
-        //        _selectedProfile = value;
-        //        OnPropertyChanged();
-
-        //        OnSelectedProfileChanged();
-        //        OnPropertyChanged(nameof(HasProfileSelection));
-        //    }
-        //}
-
         public LocationModel SelectedLocation {
             get => _selectedLocation;
             set {
@@ -170,52 +118,6 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        //public string LoadedMaterialFilename {
-        //    get => _loadedMaterialFilename;
-        //    set {
-        //        _loadedMaterialFilename = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
-        //public ImageSource LoadedTexture {
-        //    get => _loadedTexture;
-        //    set {
-        //        _loadedTexture = value;
-        //        OnPropertyChanged();
-
-        //        OnPropertyChanged(nameof(HasLoadedTexture));
-        //        OnPropertyChanged(nameof(HasPreviewImage));
-        //    }
-        //}
-
-        //public MaterialProperties LoadedMaterial {
-        //    get => _loadedMaterial;
-        //    set {
-        //        _loadedMaterial = value;
-        //        OnPropertyChanged();
-
-        //        OnPropertyChanged(nameof(HasLoadedMaterial));
-        //        //OnPropertyChanged(nameof(HasPreviewImage));
-        //    }
-        //}
-
-        //public bool PublishArchive {
-        //    get => _publishArchive;
-        //    set {
-        //        _publishArchive = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
-        //public bool PublishClean {
-        //    get => _publishClean;
-        //    set {
-        //        _publishClean = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
         public bool IsBusy {
             get => _isBusy;
             set {
@@ -223,14 +125,6 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
             }
         }
-
-        //public bool IsPreviewLoading {
-        //    get => _isPreviewLoading;
-        //    set {
-        //        _isPreviewLoading = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
         public bool IsImageEditorOpen {
             get => _isImageEditorOpen;
@@ -246,7 +140,6 @@ namespace PixelGraph.UI.Models
         public MainModel()
         {
             RecentDirectories = new ObservableCollection<string>();
-            //PublishProfiles = new ObservableCollection<ProfileItem>();
             _publishLocations = new List<LocationModel>();
             _treeRoot = new ContentTreeNode(null);
             busyLock = new object();
@@ -256,15 +149,7 @@ namespace PixelGraph.UI.Models
             Preview = new PreviewContextModel();
 
             _isInitializing = true;
-            //_selectedTag = TextureTags.Albedo;
-
-            //Preview3D = new Preview3DVM();
         }
-
-        //public void Dispose()
-        //{
-        //    Preview3D?.Dispose();
-        //}
 
         public void EndInit()
         {
@@ -293,34 +178,6 @@ namespace PixelGraph.UI.Models
             OnPropertyChanged(nameof(HasTreeTextureSelection));
             OnPropertyChanged(nameof(HasTreeMaterialOrTextureSelection));
         }
-
-        //public void CloseProject()
-        //{
-        //    SelectedNode = null;
-        //    //LoadedTexture = null;
-        //    LoadedMaterial = null;
-        //    PackInput = null;
-        //    TreeRoot = null;
-        //    RootDirectory = null;
-
-        //    PublishProfiles.Clear();
-        //}
-
-        //public void SetSelectedLocation(LocationViewModel location)
-        //{
-        //    _selectedLocation = location;
-        //    OnPropertyChanged(nameof(SelectedLocation));
-        //}
-
-        //private void OnSelectedTagChanged()
-        //{
-        //    SelectedTagChanged?.Invoke(this, EventArgs.Empty);
-        //}
-
-        //private void OnSelectedProfileChanged()
-        //{
-        //    SelectedProfileChanged?.Invoke(this, EventArgs.Empty);
-        //}
     }
 
     internal class MainDesignerModel : MainModel
@@ -353,7 +210,6 @@ namespace PixelGraph.UI.Models
         private void AddTreeItems()
         {
             Material.Loaded = new MaterialProperties();
-            //LoadedTexture = new BitmapImage();
 
             TreeRoot.Nodes.Add(new ContentTreeDirectory(null) {
                 Name = "assets",

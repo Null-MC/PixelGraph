@@ -62,6 +62,7 @@ namespace PixelGraph.UI.Windows
             previewViewModel.ShaderCompileErrors += OnShaderCompileErrors;
 
             Model.Preview.EnvironmentCube = EnvironmentCube;
+            Model.Preview.IrradianceCube = IrradianceCube;
             Model.SelectedLocation = ManualLocation;
             Model.Profile.SelectionChanged += OnSelectedProfileChanged;
         }
@@ -681,6 +682,12 @@ namespace PixelGraph.UI.Windows
                     e.Handled = true;
                 }
             }
+        }
+
+        private async void OnRenderModeSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (Model.IsInitializing) return;
+            await Task.Run(() => previewViewModel.SaveRenderStateAsync());
         }
 
         private async void OnShaderCompileErrors(object sender, ShaderCompileErrorEventArgs e)

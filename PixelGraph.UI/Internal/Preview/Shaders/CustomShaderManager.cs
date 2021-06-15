@@ -5,11 +5,13 @@
         public const string Name_SkyVertex = "sky_vs";
         public const string Name_SkyPixel = "sky_ps";
         public const string Name_SkyFinalPixel = "sky_final_ps";
+        public const string Name_SkyIrradiancePixel = "sky_irradiance_ps";
         public const string Name_DiffuseVertex = "diffuse_vs";
         public const string Name_DiffusePixel = "diffuse_ps";
         public const string Name_PbrVertex = "pbr_vs";
-        public const string Name_PbrMetalPixel = "pbr_metal_ps";
-        public const string Name_PbrSpecularPixel = "pbr_specular_ps";
+        public const string Name_PbrFilamentPixel = "pbr_filament_ps";
+        public const string Name_PbrJessiePixel = "pbr_jessie_ps";
+        public const string Name_PbrNullPixel = "pbr_null_ps";
 
 
         public CustomShaderManager()
@@ -37,6 +39,12 @@
                 CompiledResourceName = "sky_final_ps.cso",
             });
 
+            Add(Name_SkyIrradiancePixel, new ShaderSourceDescription {
+                Profile = "ps_4_0",
+                RawFileName = "sky_irradiance_ps.hlsl",
+                CompiledResourceName = "sky_irradiance_ps.cso",
+            });
+
             Add(Name_DiffuseVertex, new ShaderSourceDescription {
                 Profile = "vs_4_0",
                 RawFileName = "pbr_vs.hlsl",
@@ -55,13 +63,19 @@
                 CompiledResourceName = "pbr_vs.cso",
             });
 
-            Add(Name_PbrMetalPixel, new ShaderSourceDescription {
+            Add(Name_PbrFilamentPixel, new ShaderSourceDescription {
                 Profile = "ps_4_0",
-                RawFileName = "pbr_metal_ps.hlsl",
-                CompiledResourceName = "pbr_metal_ps.cso",
+                RawFileName = "pbr_filament_ps.hlsl",
+                CompiledResourceName = "pbr_filament_ps.cso",
             });
 
-            Add(Name_PbrSpecularPixel, new ShaderSourceDescription {
+            Add(Name_PbrJessiePixel, new ShaderSourceDescription {
+                Profile = "ps_4_0",
+                RawFileName = "pbr_jessie_ps.hlsl",
+                CompiledResourceName = "pbr_jessie_ps.cso",
+            });
+
+            Add(Name_PbrNullPixel, new ShaderSourceDescription {
                 Profile = "ps_4_0",
                 RawFileName = "pbr_null_ps.hlsl",
                 CompiledResourceName = "pbr_null_ps.cso",

@@ -10,16 +10,7 @@ namespace PixelGraph.UI.Internal.Preview
 {
     public interface IMinecraftScene
     {
-        //event EventHandler EnvironmentChanged;
         bool IsRenderValid {get;}
-
-        //Vector3 SunDirection {get; set;}
-        //float SunStrength {get; set;}
-        //float TimeOfDay {get; set;}
-        //float Wetness {get; set;}
-        //float ParallaxDepth {get; set;}
-        //int ParallaxSamplesMin {get; set;}
-        //int ParallaxSamplesMax {get; set;}
 
         void Apply(DeviceContextProxy deviceContext);
         void ResetValidation();
@@ -29,8 +20,6 @@ namespace PixelGraph.UI.Internal.Preview
     {
         private readonly ConstantBufferComponent buffer;
         private MinecraftSceneStruct data;
-
-        //public event EventHandler EnvironmentChanged;
 
         public bool IsRenderValid {get; private set;}
 
@@ -81,8 +70,13 @@ namespace PixelGraph.UI.Internal.Preview
             set => SetAffectsRender(ref data.ParallaxSamplesMax, value);
         }
 
+        public bool EnableLinearSampling {
+            get => data.EnableLinearSampling;
+            set => SetAffectsRender(ref data.EnableLinearSampling, value);
+        }
 
-        public MinecraftSceneCore() : base(RenderType.None)
+
+        public MinecraftSceneCore() : base(RenderType.PreProc)
         {
             var bufferDesc = new ConstantBufferDescription(CustomBufferNames.MinecraftSceneCB, MinecraftSceneStruct.SizeInBytes);
             buffer = AddComponent(new ConstantBufferComponent(bufferDesc));
@@ -105,7 +99,7 @@ namespace PixelGraph.UI.Internal.Preview
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
-            //
+            Apply(deviceContext);
         }
     }
 }

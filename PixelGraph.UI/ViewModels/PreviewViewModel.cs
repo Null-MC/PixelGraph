@@ -25,6 +25,7 @@ namespace PixelGraph.UI.ViewModels
     internal class PreviewViewModel : IDisposable, IAsyncDisposable
     {
         private readonly IServiceProvider provider;
+        private readonly IAppSettings appSettings;
         private readonly object lockHandle;
 
         private CancellationTokenSource tokenSource;
@@ -40,6 +41,8 @@ namespace PixelGraph.UI.ViewModels
         public PreviewViewModel(IServiceProvider provider)
         {
             this.provider = provider;
+
+            appSettings = provider.GetRequiredService<IAppSettings>();
             
             lockHandle = new object();
         }
@@ -104,10 +107,20 @@ namespace PixelGraph.UI.ViewModels
 
         public void LoadAppSettings()
         {
-            var appSettings = provider.GetRequiredService<IAppSettings>();
             Model.Preview.ParallaxDepth = (float)(appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth);
             Model.Preview.ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
             Model.Preview.ParallaxSamplesMax = appSettings.Data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
+            Model.Preview.EnableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling ?? RenderPreviewSettings.Default_EnableLinearSampling;
+
+            if (appSettings.Data.RenderPreview.SelectedMode != null)
+                if (RenderPreviewMode.TryParse(appSettings.Data.RenderPreview.SelectedMode, out var renderMode))
+                    Model.Preview.RenderMode = renderMode;
+        }
+
+        public Task SaveRenderStateAsync(CancellationToken token = default)
+        {
+            appSettings.Data.RenderPreview.SelectedMode = RenderPreviewMode.GetString(Model.Preview.RenderMode);
+            return appSettings.SaveAsync(token);
         }
 
         private void UpdateEnvironment()
@@ -256,11 +269,28 @@ namespace PixelGraph.UI.ViewModels
         {
             var builder = GetMaterialBuilder();
 
-            builder.ColorSampler = CustomSamplerStates.Color_Point;
-            builder.HeightSampler = CustomSamplerStates.Height_Point;
+            var enableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling
+                ?? RenderPreviewSettings.Default_EnableLinearSampling;
+
+            builder.ColorSampler = enableLinearSampling
+                ? CustomSamplerStates.Color_Linear
+                : CustomSamplerStates.Color_Point;
+
+            builder.HeightSampler = enableLinearSampling
+                ? CustomSamplerStates.Height_Linear
+                : CustomSamplerStates.Height_Point;
+
             builder.PassName = Model.Preview.RenderMode switch {
-                RenderPreviewModes.PbrMetal => CustomPassNames.PbrMetal,
-                RenderPreviewModes.PbrSpecular => CustomPassNames.PbrSpecular,
+                RenderPreviewModes.PbrFilament => CustomPassNames.PbrFilament,
+                RenderPreviewModes.PbrJessie => CustomPassNames.PbrJessie,
+                RenderPreviewModes.PbrNull => CustomPassNames.PbrNull,
+                _ => null,
+            };
+
+            builder.PassNameOIT = Model.Preview.RenderMode switch {
+                RenderPreviewModes.PbrFilament => CustomPassNames.PbrFilamentOIT,
+                RenderPreviewModes.PbrJessie => CustomPassNames.PbrJessieOIT,
+                RenderPreviewModes.PbrNull => CustomPassNames.PbrNullOIT,
                 _ => null,
             };
 
@@ -281,8 +311,9 @@ namespace PixelGraph.UI.ViewModels
         {
             return Model.Preview.RenderMode switch {
                 RenderPreviewModes.Diffuse => builderDiffuse,
-                RenderPreviewModes.PbrMetal => builderPbr,
-                RenderPreviewModes.PbrSpecular => builderPbr,
+                RenderPreviewModes.PbrFilament => builderPbr,
+                RenderPreviewModes.PbrJessie => builderPbr,
+                RenderPreviewModes.PbrNull => builderPbr,
                 _ => throw new ApplicationException(),
             };
         }

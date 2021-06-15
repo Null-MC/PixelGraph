@@ -1,4 +1,5 @@
 #include "lib/common_structs.hlsl"
+#include "lib/common_funcs.hlsl"
 #include "lib/parallax.hlsl"
 
 #pragma pack_matrix(row_major)

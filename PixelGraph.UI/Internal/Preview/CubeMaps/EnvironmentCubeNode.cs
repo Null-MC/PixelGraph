@@ -6,34 +6,14 @@ using PixelGraph.UI.Internal.Preview.Shaders;
 using SharpDX;
 using System.Collections.Generic;
 
-namespace PixelGraph.UI.Internal.Preview.Sky
+namespace PixelGraph.UI.Internal.Preview.CubeMaps
 {
-    public class EnvironmentCubeNode : SceneNode, IEnvironmentCube
+    public class EnvironmentCubeNode : SceneNode, ICubeMapSource
     {
         public IMinecraftScene Scene {
             get => ((EnvironmentCubeCore)RenderCore).Scene;
             set => ((EnvironmentCubeCore)RenderCore).Scene = value;
         }
-
-        //public Vector3 SunDirection {
-        //    get => ((EnvironmentCubeCore)RenderCore).SunDirection;
-        //    set => ((EnvironmentCubeCore)RenderCore).SunDirection = value;
-        //}
-
-        //public float SunStrength {
-        //    get => ((EnvironmentCubeCore)RenderCore).SunStrength;
-        //    set => ((EnvironmentCubeCore)RenderCore).SunStrength = value;
-        //}
-
-        //public float TimeOfDay {
-        //    get => ((EnvironmentCubeCore)RenderCore).TimeOfDay;
-        //    set => ((EnvironmentCubeCore)RenderCore).TimeOfDay = value;
-        //}
-
-        //public float Wetness {
-        //    get => ((EnvironmentCubeCore)RenderCore).Wetness;
-        //    set => ((EnvironmentCubeCore)RenderCore).Wetness = value;
-        //}
 
         public int FaceSize {
             get => ((EnvironmentCubeCore)RenderCore).FaceSize;
@@ -41,6 +21,7 @@ namespace PixelGraph.UI.Internal.Preview.Sky
         }
 
         public ShaderResourceViewProxy CubeMap => ((EnvironmentCubeCore)RenderCore).CubeMap;
+        public long LastUpdated => ((EnvironmentCubeCore)RenderCore)?.LastUpdated ?? 0;
 
 
         //public EnvironmentCubeNode()
@@ -59,10 +40,6 @@ namespace PixelGraph.UI.Internal.Preview.Sky
             if (core is not EnvironmentCubeCore c) return;
 
             c.Scene = Scene;
-            //c.SunDirection = SunDirection;
-            //c.SunStrength = SunStrength;
-            //c.TimeOfDay = TimeOfDay;
-            //c.Wetness = Wetness;
             c.FaceSize = FaceSize;
         }
 

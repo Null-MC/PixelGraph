@@ -308,7 +308,7 @@
                                           Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityInverseConverter}}"
                                           IsChecked="{Binding EnableTiling, ElementName=TextureViewer}"/>
-                                <ComboBox DockPanel.Dock="Left" Margin="4" BorderThickness="0" DisplayMemberPath="Text" SelectedValuePath="Value"
+                                <ComboBox DockPanel.Dock="Left" Margin="4" BorderThickness="0" DisplayMemberPath="Text" SelectedValuePath="Value" SelectionChanged="OnRenderModeSelectionChanged"
                                           ItemsSource="{StaticResource RenderModes}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
                                           SelectedValue="{Binding Preview.RenderMode, Mode=TwoWay}"/>
@@ -316,9 +316,41 @@
                                           Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
                                           IsChecked="{Binding Preview.EnableEnvironment, Mode=TwoWay}"/>
+                                <CheckBox DockPanel.Dock="Left" Content="Lights" Margin="4" FontWeight="Bold"
+                                          Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                                          Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
+                                          IsChecked="{Binding Preview.EnableLights, Mode=TwoWay}"/>
+                                <ComboBox IsEditable="True" DockPanel.Dock="Right" Margin="4" BorderThickness="0"
+                                          Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityInverseConverter}}"
+                                          Text="{Binding ZoomText, Mode=TwoWay, ElementName=TextureViewer}">
+                                    <ComboBoxItem Content="10%"/>
+                                    <ComboBoxItem Content="25%"/>
+                                    <ComboBoxItem Content="50%"/>
+                                    <ComboBoxItem Content="100%" IsSelected="True"/>
+                                    <ComboBoxItem Content="200%"/>
+                                    <ComboBoxItem Content="400%"/>
+                                    <ComboBoxItem Content="800%"/>
+                                </ComboBox>
+                            </DockPanel>
+                            <DockPanel DockPanel.Dock="Top" LastChildFill="False" Height="34"
+                                       Background="{DynamicResource MahApps.Brushes.Accent4}">
+                                <DockPanel.Style>
+                                    <Style TargetType="DockPanel">
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding Preview.EnableRender, Mode=OneWay}" Value="True"/>
+                                                    <Condition Binding="{Binding Preview.EnableEnvironment, Mode=OneWay}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </Style>
+                                </DockPanel.Style>
                                 <CheckBox DockPanel.Dock="Left" Content="Cycle" Margin="4" FontWeight="Bold"
                                           Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
-                                          Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}">
+                                          Visibility="{Binding Preview.EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                     <CheckBox.Triggers>
                                         <EventTrigger RoutedEvent="CheckBox.Checked">
                                             <BeginStoryboard Name="TimeCycleStoryboard">
@@ -336,19 +368,8 @@
                                     </CheckBox.Triggers>
                                 </CheckBox>
                                 <Slider x:Name="TimeOfDaySlider" DockPanel.Dock="Left" Margin="4" Minimum="-6000" Maximum="18000" Width="400"
-                                        Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
+                                        Visibility="{Binding Preview.EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"
                                         Value="{Binding Preview.TimeOfDay, Mode=TwoWay}"/>
-                                <ComboBox IsEditable="True" DockPanel.Dock="Right" Margin="4" BorderThickness="0"
-                                          Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityInverseConverter}}"
-                                          Text="{Binding ZoomText, Mode=TwoWay, ElementName=TextureViewer}">
-                                    <ComboBoxItem Content="10%"/>
-                                    <ComboBoxItem Content="25%"/>
-                                    <ComboBoxItem Content="50%"/>
-                                    <ComboBoxItem Content="100%" IsSelected="True"/>
-                                    <ComboBoxItem Content="200%"/>
-                                    <ComboBoxItem Content="400%"/>
-                                    <ComboBoxItem Content="800%"/>
-                                </ComboBox>
                             </DockPanel>
                             <Grid Visibility="{Binding HasTreeMaterialOrTextureSelection, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                 <controls:TextureView x:Name="TextureViewer"
@@ -390,17 +411,24 @@
                                         Wetness="{Binding Wetness, Mode=OneWay}"
                                         ParallaxDepth="{Binding ParallaxDepth, Mode=OneWay}"
                                         ParallaxSamplesMin="{Binding ParallaxSamplesMin, Mode=OneWay}"
-                                        ParallaxSamplesMax="{Binding ParallaxSamplesMax, Mode=OneWay}"/>
+                                        ParallaxSamplesMax="{Binding ParallaxSamplesMax, Mode=OneWay}"
+                                        EnableLinearSampling="{Binding EnableLinearSampling, Mode=OneWay}"/>
                                     <pm:EnvironmentCube3D x:Name="EnvironmentCube" FaceSize="64"
                                                           IsRendering="{Binding EnableEnvironment, Mode=OneWay}"
                                                           Scene="{Binding Mode=OneWay, Source={x:Reference MinecraftScene}}"/>
+                                    <pm:IrradianceCube3D x:Name="IrradianceCube" FaceSize="32"
+                                                         IsRendering="{Binding EnableEnvironment, Mode=OneWay}"
+                                                         Source="{Binding Mode=OneWay, Source={x:Reference EnvironmentCube}}"/>
                                     <hx:AmbientLight3D Color="#222"
                                                        Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
                                     <hx:DirectionalLight3D Color="{Binding SunColor, Mode=OneWay}"
                                                            Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"
                                                            IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
-                                    <hx:PointLight3D Color="#CA8A41" Range="16" Position="5,7,5" IsRendering="False"/>
-                                    <pm:SkyDome3D Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
+                                    <hx:PointLight3D Color="#CA8A41" Range="16" Position="5,7,5"
+                                                     IsRendering="{Binding EnableLights, Mode=OneWay}"/>
+                                    <hx:PointLight3D Color="#388CB0" Range="16" Position="-6,-3,-3"
+                                                     IsRendering="{Binding EnableLights, Mode=OneWay}"/>
+                                    <pm:SkyDome3D IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
                                     <hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />
                                     <hx:MeshGeometryModel3D IsThrowingShadow="True" CullMode="Back"
                                                             Geometry="{Binding Model, Mode=OneWay}"

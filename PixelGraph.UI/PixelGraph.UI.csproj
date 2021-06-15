@@ -65,10 +65,11 @@
     <None Remove="Resources\Shaders\diffuse_vs.hlsl" />
     <None Remove="Resources\Shaders\lib\sky_colors.hlsl" />
     <None Remove="Resources\Shaders\lib\sky_nvidia.hlsl" />
-    <None Remove="Resources\Shaders\pbr_metal_ps.hlsl" />
+    <None Remove="Resources\Shaders\pbr_filament_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_null_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_vs.hlsl" />
     <None Remove="Resources\Shaders\sky_final_ps.hlsl" />
+    <None Remove="Resources\Shaders\sky_irradiance_ps.hlsl" />
     <None Remove="Resources\Shaders\sky_ps.hlsl" />
     <None Remove="Resources\Shaders\sky_vs.hlsl" />
     <None Remove="Resources\sky.dds" />
@@ -87,6 +88,10 @@
     <HLSLShader Include="Resources\Shaders\pbr_null_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
       <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_null_ps.cso</ObjectFileOutput>
+    </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\sky_irradiance_ps.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_irradiance_ps.cso</ObjectFileOutput>
     </HLSLShader>
     <HLSLShader Include="Resources\Shaders\sky_final_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
@@ -112,13 +117,13 @@
       <ShaderProfile>vs_4_0</ShaderProfile>
       <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_vs.cso</ObjectFileOutput>
     </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\pbr_metal_ps.hlsl">
+    <HLSLShader Include="Resources\Shaders\pbr_filament_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_metal_ps.cso</ObjectFileOutput>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_filament_ps.cso</ObjectFileOutput>
     </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\pbr_specular_ps.hlsl">
+    <HLSLShader Include="Resources\Shaders\pbr_jessie_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_specular_ps.cso</ObjectFileOutput>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_jessie_ps.cso</ObjectFileOutput>
     </HLSLShader>
   </ItemGroup>
 

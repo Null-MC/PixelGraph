@@ -15,6 +15,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
     internal interface IMaterialBuilder
     {
         string PassName {get; set;}
+        string PassNameOIT {get; set;}
         SamplerStateDescription ColorSampler {get; set;}
         SamplerStateDescription HeightSampler {get; set;}
 
@@ -34,6 +35,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
         public MainModel Model {get; set;}
         public string PassName {get; set;}
+        public string PassNameOIT {get; set;}
         public SamplerStateDescription ColorSampler {get; set;}
         public SamplerStateDescription HeightSampler {get; set;}
 

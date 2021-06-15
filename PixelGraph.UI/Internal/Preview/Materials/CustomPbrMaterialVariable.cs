@@ -49,9 +49,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         private bool HasTextures => textureIndex != 0;
 
 
-        public CustomPbrMaterialVariable(IEffectsManager manager, IRenderTechnique technique, CustomPbrMaterialCore core,
-            string materialPassName = CustomPassNames.PbrSpecular,
-            string materialOITPassName = CustomPassNames.PbrSpecularOIT)
+        public CustomPbrMaterialVariable(IEffectsManager manager, IRenderTechnique technique, CustomPbrMaterialCore core, string materialPassName, string materialOITPassName)
                 : base(manager, technique, DefaultMeshConstantBufferDesc, core)
         {
             textureResources = new ShaderResourceViewProxy[NUMTEXTURES];

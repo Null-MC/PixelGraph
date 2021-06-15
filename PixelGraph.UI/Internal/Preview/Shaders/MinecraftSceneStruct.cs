@@ -6,7 +6,7 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct MinecraftSceneStruct
     {
-        public const int SizeInBytes = 4 * (9 + 3);
+        public const int SizeInBytes = 4 * (10 + 2);
 
         public Vector3 SunDirection;
         public float SunStrength;
@@ -15,6 +15,7 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
         public float ParallaxDepth;
         public int ParallaxSamplesMin;
         public int ParallaxSamplesMax;
-        public Vector3 padding;
+        public bool EnableLinearSampling;
+        //public Vector2 Padding2;
     }
 }

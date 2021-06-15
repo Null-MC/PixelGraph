@@ -14,7 +14,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
     internal class CustomDiffuseMaterialVariable : MaterialVariable
     {
         private const int NUMTEXTURES = 2;
-        private const int NUMSAMPLERS = 2;
+        private const int NUMSAMPLERS = 3;
 
         private const int
             DiffuseAlphaMapIdx = 0,
@@ -22,17 +22,18 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
         private const int
             SurfaceSamplerIdx = 0,
-            ShadowSamplerIdx = 1;
+            CubeSamplerIdx = 1,
+            ShadowSamplerIdx = 2;
 
         private readonly CustomDiffuseMaterialCore material;
 
         private readonly ITextureResourceManager textureManager;
         private readonly IStatePoolManager statePoolManager;
-        private readonly ShaderResourceViewProxy[] TextureResources;
-        private readonly SamplerStateProxy[] SamplerResources;
+        private readonly ShaderResourceViewProxy[] textureResources;
+        private readonly SamplerStateProxy[] samplerResources;
 
-        private int texDiffuseAlphaSlot, texEmissiveSlot, texShadowSlot;
-        private int samplerSurfaceSlot, samplerShadowSlot;
+        private int texDiffuseAlphaSlot, texEmissiveSlot, texCubeSlot, texShadowSlot;
+        private int samplerSurfaceSlot, samplerCubeSlot, samplerShadowSlot;
         private uint textureIndex;
 
         public ShaderPass MaterialPass { private set; get; }
@@ -52,8 +53,8 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             string depthPassName = DefaultPassNames.DepthPrepass)
             : base(manager, technique, DefaultMeshConstantBufferDesc, core)
         {
-            TextureResources = new ShaderResourceViewProxy[NUMTEXTURES];
-            SamplerResources = new SamplerStateProxy[NUMSAMPLERS];
+            textureResources = new ShaderResourceViewProxy[NUMTEXTURES];
+            samplerResources = new SamplerStateProxy[NUMSAMPLERS];
 
             textureManager = manager.MaterialTextureManager;
             statePoolManager = manager.StateManager;
@@ -73,10 +74,6 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
         protected override void OnInitialPropertyBindings()
         {
-            AddPropertyBinding(nameof(CustomDiffuseMaterialCore.RenderShadowMap), () => {
-                WriteValue(PhongPBRMaterialStruct.RenderShadowMapStr, material.RenderShadowMap ? 1 : 0);
-            });
-
             AddPropertyBinding(nameof(CustomDiffuseMaterialCore.DiffuseAlphaMap), () => {
                 CreateTextureView(material.DiffuseAlphaMap, DiffuseAlphaMapIdx);
             });
@@ -88,6 +85,18 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             AddPropertyBinding(nameof(CustomPbrMaterialCore.SurfaceMapSampler), () => {
                 CreateSampler(material.SurfaceMapSampler, SurfaceSamplerIdx);
             });
+
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.CubeMapSampler), () => {
+                CreateSampler(material.CubeMapSampler, CubeSamplerIdx);
+            });
+
+            AddPropertyBinding(nameof(CustomDiffuseMaterialCore.RenderShadowMap), () => {
+                WriteValue(PhongPBRMaterialStruct.RenderShadowMapStr, material.RenderShadowMap ? 1 : 0);
+            });
+
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.RenderEnvironmentMap), () => {
+                WriteValue(PhongPBRMaterialStruct.HasCubeMapStr, material.RenderEnvironmentMap ? 1 : 0);
+            });
         }
 
         public override bool BindMaterialResources(RenderContext context, DeviceContextProxy deviceContext, ShaderPass shaderPass)
@@ -98,7 +107,12 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
             if (material.RenderShadowMap && context.IsShadowMapEnabled) {
                 shaderPass.PixelShader.BindTexture(deviceContext, texShadowSlot, context.SharedResource.ShadowView);
-                shaderPass.PixelShader.BindSampler(deviceContext, samplerShadowSlot, SamplerResources[ShadowSamplerIdx]);
+                shaderPass.PixelShader.BindSampler(deviceContext, samplerShadowSlot, samplerResources[ShadowSamplerIdx]);
+            }
+
+            if (material.RenderEnvironmentMap && material.EnvironmentCube != null) {
+                shaderPass.PixelShader.BindTexture(deviceContext, texCubeSlot, material.EnvironmentCube.CubeMap);
+                shaderPass.PixelShader.BindSampler(deviceContext, samplerCubeSlot, samplerResources[CubeSamplerIdx]);
             }
 
             return true;
@@ -139,7 +153,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             }
             else {
                 for (var i = 0; i < NUMTEXTURES; ++i)
-                    RemoveAndDispose(ref TextureResources[i]);
+                    RemoveAndDispose(ref textureResources[i]);
 
                 textureIndex = 0;
             }
@@ -149,12 +163,16 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         {
             var newSurfaceSampler = statePoolManager.Register(material.SurfaceMapSampler);
             var newShadowSampler = statePoolManager.Register(DefaultSamplers.ShadowSampler);
-            RemoveAndDispose(ref SamplerResources[SurfaceSamplerIdx]);
-            RemoveAndDispose(ref SamplerResources[ShadowSamplerIdx]);
+            var newCubeSampler = statePoolManager.Register(material.CubeMapSampler);
+
+            RemoveAndDispose(ref samplerResources[SurfaceSamplerIdx]);
+            RemoveAndDispose(ref samplerResources[ShadowSamplerIdx]);
+            RemoveAndDispose(ref samplerResources[CubeSamplerIdx]);
 
             if (material != null) {
-                SamplerResources[SurfaceSamplerIdx] = Collect(newSurfaceSampler);
-                SamplerResources[ShadowSamplerIdx] = Collect(newShadowSampler);
+                samplerResources[SurfaceSamplerIdx] = Collect(newSurfaceSampler);
+                samplerResources[ShadowSamplerIdx] = Collect(newShadowSampler);
+                samplerResources[CubeSamplerIdx] = Collect(newCubeSampler);
             }
         }
 
@@ -164,10 +182,10 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             var newTexture = texture == null
                 ? null : textureManager.Register(texture);
 
-            RemoveAndDispose(ref TextureResources[index]);
-            TextureResources[index] = Collect(newTexture);
+            RemoveAndDispose(ref textureResources[index]);
+            textureResources[index] = Collect(newTexture);
 
-            if (TextureResources[index] != null) {
+            if (textureResources[index] != null) {
                 textureIndex |= 1u << index;
             }
             else {
@@ -178,19 +196,21 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         private void CreateSampler(SamplerStateDescription desc, int index)
         {
             var newRes = statePoolManager.Register(desc);
-            RemoveAndDispose(ref SamplerResources[index]);
-            SamplerResources[index] = Collect(newRes);
+            RemoveAndDispose(ref samplerResources[index]);
+            samplerResources[index] = Collect(newRes);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void UpdateMappings(ShaderPass shaderPass)
         {
-            texDiffuseAlphaSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot("tex_diffuse_alpha");
-            texEmissiveSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot("tex_emissive");
-            texShadowSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot("tex_shadow");
+            texDiffuseAlphaSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.DiffuseAlphaTB);
+            texEmissiveSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.EmissiveTB);
+            texShadowSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.ShadowMapTB);
+            texCubeSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.CubeMapTB);
 
-            samplerSurfaceSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot("sampler_surface");
-            samplerShadowSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot("sampler_shadow");
+            samplerSurfaceSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.SurfaceSampler);
+            samplerShadowSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.ShadowMapSampler);
+            samplerCubeSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.CubeMapSampler);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -198,10 +218,11 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         {
             if (shader.IsNULL) return;
             
-            shader.BindTexture(deviceContext, texDiffuseAlphaSlot, TextureResources[DiffuseAlphaMapIdx]);
-            shader.BindTexture(deviceContext, texEmissiveSlot, TextureResources[EmissiveMapIdx]);
+            shader.BindTexture(deviceContext, texDiffuseAlphaSlot, textureResources[DiffuseAlphaMapIdx]);
+            shader.BindTexture(deviceContext, texEmissiveSlot, textureResources[EmissiveMapIdx]);
 
-            shader.BindSampler(deviceContext, samplerSurfaceSlot, SamplerResources[SurfaceSamplerIdx]);
+            shader.BindSampler(deviceContext, samplerSurfaceSlot, samplerResources[SurfaceSamplerIdx]);
+            shader.BindSampler(deviceContext, samplerCubeSlot, samplerResources[CubeSamplerIdx]);
         }
     }
 }

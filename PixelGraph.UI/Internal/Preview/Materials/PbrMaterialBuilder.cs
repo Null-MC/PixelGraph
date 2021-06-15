@@ -1,7 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Textures;
-using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Textures;
 using System;
 
@@ -19,11 +18,11 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
         public override Material BuildMaterial()
         {
-            var mat = new CustomPbrMaterial(PassName) {
+            var mat = new CustomPbrMaterial(PassName, PassNameOIT) {
+                EnvironmentCube = Model.Preview.IrradianceCube,
+                RenderEnvironmentMap = Model.Preview.EnableEnvironment,
                 SurfaceMapSampler = ColorSampler,
                 HeightMapSampler = HeightSampler,
-                RenderEnvironmentMap = Model.Preview.EnableEnvironment,
-                EnvironmentCube = Model.Preview.EnvironmentCube,
                 RenderShadowMap = false,
             };
 

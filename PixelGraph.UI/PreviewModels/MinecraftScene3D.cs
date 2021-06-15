@@ -47,6 +47,11 @@ namespace PixelGraph.UI.PreviewModels
             set => SetValue(ParallaxSamplesMaxProperty, value);
         }
 
+        public bool EnableLinearSampling {
+            get => (bool)GetValue(EnableLinearSamplingProperty);
+            set => SetValue(EnableLinearSamplingProperty, value);
+        }
+
 
         public void Apply(DeviceContextProxy deviceContext)
         {
@@ -77,6 +82,7 @@ namespace PixelGraph.UI.PreviewModels
             n.ParallaxDepth = Wetness;
             n.ParallaxSamplesMin = ParallaxSamplesMin;
             n.ParallaxSamplesMax = ParallaxSamplesMax;
+            n.EnableLinearSampling = EnableLinearSampling;
         }
 
         public static readonly DependencyProperty TimeOfDayProperty =
@@ -119,6 +125,12 @@ namespace PixelGraph.UI.PreviewModels
             DependencyProperty.Register(nameof(ParallaxSamplesMax), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.ParallaxSamplesMax = (int)e.NewValue;
+            }));
+
+        public static readonly DependencyProperty EnableLinearSamplingProperty =
+            DependencyProperty.Register(nameof(EnableLinearSampling), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
+                if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
+                    sceneNode.EnableLinearSampling = (bool)e.NewValue;
             }));
     }
 }

@@ -50,3 +50,8 @@ float3 light_surface(const float4 wp, const in float3 V, const in float3 N, cons
 		
     return saturate(acc_color);
 }
+
+float3 get_ambient(const in float3 normal)
+{
+	return  tex_cube.SampleLevel(sampler_cube, normal, NumEnvironmentMapMipLevels).rgb;
+}

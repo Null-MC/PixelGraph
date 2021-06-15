@@ -46,6 +46,11 @@ namespace PixelGraph.UI.Internal.Preview
             set => ((MinecraftSceneCore) RenderCore).ParallaxSamplesMax = value;
         }
 
+        public bool EnableLinearSampling {
+            get => ((MinecraftSceneCore) RenderCore).EnableLinearSampling;
+            set => ((MinecraftSceneCore) RenderCore).EnableLinearSampling = value;
+        }
+
 
         public void Apply(DeviceContextProxy deviceContext)
         {
@@ -75,6 +80,7 @@ namespace PixelGraph.UI.Internal.Preview
             sceneCore.ParallaxDepth = ParallaxDepth;
             sceneCore.ParallaxSamplesMin = ParallaxSamplesMin;
             sceneCore.ParallaxSamplesMax = ParallaxSamplesMax;
+            sceneCore.EnableLinearSampling = EnableLinearSampling;
         }
 
         protected override bool CanHitTest(HitTestContext context) => false;

@@ -123,7 +123,8 @@ cbuffer cbMinecraftScene : register(b2)
     float ParallaxDepth;
     int ParallaxSamplesMin;
     int ParallaxSamplesMax;
-	float3 padding2;
+	bool EnableLinearSampling;
+	float2 Padding2;
 };
 
 cbuffer cbLights : register(b3)

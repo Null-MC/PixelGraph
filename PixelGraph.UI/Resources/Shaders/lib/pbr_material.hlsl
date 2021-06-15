@@ -51,7 +51,7 @@ pbr_material get_pbr_material(const in float2 tex)
 	mat.emissive = porosity_sss_emissive.b;
 
 	mat.albedo = srgb_to_linear(mat.albedo);
-	mat.rough = srgb_to_linear(mat.rough);
+	//mat.rough = srgb_to_linear(mat.rough);
 	
     return mat;
 }

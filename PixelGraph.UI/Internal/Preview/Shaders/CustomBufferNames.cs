@@ -2,6 +2,8 @@
 {
     internal static class CustomBufferNames
     {
+        public const string DiffuseAlphaTB = "tex_diffuse_alpha";
+        public const string EmissiveTB = "tex_emissive";
         public const string AlbedoAlphaTB = "tex_albedo_alpha";
         public const string NormalHeightTB = "tex_normal_height";
         public const string RoughF0OcclusionTB = "tex_rough_f0_occlusion";

@@ -74,12 +74,15 @@
                 </TabItem.Header>
                 <ScrollViewer Background="{DynamicResource MahApps.Brushes.Gray10}">
                     <StackPanel Orientation="Vertical">
-                        <CheckBox Content="Enable 3D Renderer" FontWeight="Bold" FontSize="14" Margin="12"
+                        <CheckBox Content="Enable 3D Renderer" FontWeight="Bold" FontSize="14" Margin="12,12,12,8"
                                   IsChecked="{Binding RenderPreview_Enabled}"/>
+                        <CheckBox Content="Enable Linear Sampling" FontWeight="Bold" FontSize="14" Margin="12,8,12,12"
+                                  IsChecked="{Binding RenderPreview_EnableLinearSampling}"
+                                  IsEnabled="{Binding RenderPreview_Enabled}"/>
                         <GroupBox Header="Parallax Mapping" Margin="4">
                             <StackPanel Orientation="Vertical" Margin="4">
-                                <CheckBox Content="Enabled" FontWeight="Bold" FontSize="14" Margin="4"
-                                          IsChecked="{Binding RenderPreview_ParallaxEnabled}"/>
+                                <!--<CheckBox Content="Enabled" FontWeight="Bold" FontSize="14" Margin="4"
+                                          IsChecked="{Binding RenderPreview_ParallaxEnabled}"/>-->
                                 <TextBlock Text="Maximum Depth" FontWeight="Bold" FontSize="14" Margin="0,6,0,0"/>
                                 <TextBox Text="{Binding RenderPreview_ParallaxDepth}"/>
                                 <TextBlock TextWrapping="Wrap" FontSize="12"

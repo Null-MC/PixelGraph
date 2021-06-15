@@ -7,31 +7,20 @@
 
 float srgb_to_linear(const float srgb)
 {
-	//return srgb;
+	return srgb;
 	return pow(abs(srgb), Gamma);
 }
 
 float3 srgb_to_linear(const float3 srgb)
 {
-	//return srgb;
+	return srgb;
 	return pow(abs(srgb), Gamma);
 }
 
 float3 linear_to_srgb(const float3 rgb)
 {
-	//return rgb;
+	return rgb;
 	return pow(abs(rgb), 1.0 / Gamma);
-}
-
-float3 ACESFilm(float3 x)
-{
-    float tA = 2.51;
-    float tB = 0.03;
-    float tC = 2.43;
-    float tD = 0.59;
-    float tE = 0.14;
-	
-    return saturate((x * (tA * x + tB)) / (x * (tC * x + tD) + tE));
 }
 
 float3 calc_tex_normal(const in float2 tex, const in float3 normal, const in float3 tangent, const in float3 bitangent)
@@ -40,6 +29,11 @@ float3 calc_tex_normal(const in float2 tex, const in float3 normal, const in flo
 	tex_normal = mad(2.0f, tex_normal, -1.0f);
 	
     return normalize(normal + mad(tex_normal.x, tangent, tex_normal.y * bitangent));
+}
+
+float lengthSq(const in float3 vec)
+{
+	return vec.x*vec.x + vec.y*vec.y + vec.z*vec.z;
 }
 
 float shadow_look_up(const in float4 loc, const in float2 offset)

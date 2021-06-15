@@ -8,8 +8,9 @@ namespace PixelGraph.UI.ViewData
         public RenderModeValues()
         {
             Add(new Item {Text = "Diffuse", Value = RenderPreviewModes.Diffuse});
-            Add(new Item {Text = "PBR Metal", Value = RenderPreviewModes.PbrMetal});
-            Add(new Item {Text = "PBR Specular", Value = RenderPreviewModes.PbrSpecular});
+            Add(new Item {Text = "PBR Filament (OldPbr)", Value = RenderPreviewModes.PbrFilament});
+            Add(new Item {Text = "PBR Jessie (LabPbr)", Value = RenderPreviewModes.PbrJessie});
+            Add(new Item {Text = "PBR Null (LabPbr)", Value = RenderPreviewModes.PbrNull});
         }
 
         public class Item
