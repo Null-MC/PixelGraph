@@ -13,16 +13,16 @@ namespace PixelGraph.UI.Internal.Preview.CubeMaps
     internal class IrradianceCubeCore : CubeMapRenderCore
     {
         private SkyBoxBufferModel geometryBuffer;
-        private ICubeMapSource _source;
+        private ICubeMapSource _environmentCubeMapSource;
         private SamplerStateDescription _samplerDescription;
         private SamplerStateProxy textureSampler;
         private long sourceLastUpdated;
-        private int cubeTextureSlot;
-        private int textureSamplerSlot;
+        private int environmentTextureSlot;
+        private int environmentSamplerSlot;
 
-        public ICubeMapSource Source {
-            get => _source;
-            set => SetAffectsRender(ref _source, value);
+        public ICubeMapSource EnvironmentCubeMapSource {
+            get => _environmentCubeMapSource;
+            set => SetAffectsRender(ref _environmentCubeMapSource, value);
         }
 
         public SamplerStateDescription SamplerDescription {
@@ -40,17 +40,17 @@ namespace PixelGraph.UI.Internal.Preview.CubeMaps
         public IrradianceCubeCore() : base(RenderType.PreProc)
         {
             PassName = CustomPassNames.SkyIrradiance;
-            _samplerDescription = DefaultSamplers.IBLSampler;
+            _samplerDescription = DefaultSamplers.EnvironmentSampler;
 
             TextureDesc = new Texture2DDescription {
-                Format = Format.R8G8B8A8_UNorm,
-                ArraySize = 6,
+                Format = Format.R16G16B16A16_Float, //.R8G8B8A8_UNorm,
                 BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
                 OptionFlags = ResourceOptionFlags.GenerateMipMaps | ResourceOptionFlags.TextureCube,
                 SampleDescription = new SampleDescription(1, 0),
-                MipLevels = 0,
-                Usage = ResourceUsage.Default,
                 CpuAccessFlags = CpuAccessFlags.None,
+                Usage = ResourceUsage.Default,
+                ArraySize = 6,
+                MipLevels = 0,
             };
         }
 
@@ -61,13 +61,13 @@ namespace PixelGraph.UI.Internal.Preview.CubeMaps
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
-            if (_source == null || sourceLastUpdated == _source.LastUpdated) {
+            if (_environmentCubeMapSource == null || sourceLastUpdated == _environmentCubeMapSource.LastUpdated) {
                 if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
             }
 
             base.Render(context, deviceContext);
 
-            sourceLastUpdated = _source.LastUpdated;
+            sourceLastUpdated = _environmentCubeMapSource.LastUpdated;
 
             //deviceContext.GenerateMips(cubeMap);
             //context.SharedResource.EnvironmentMapMipLevels = cubeMap.TextureView.Description.TextureCube.MipLevels;
@@ -80,10 +80,10 @@ namespace PixelGraph.UI.Internal.Preview.CubeMaps
 
         protected override void RenderFace(RenderContext context, DeviceContextProxy deviceContext)
         {
-            deviceContext.SetShaderResource(PixelShader.Type, cubeTextureSlot, _source.CubeMap);
-            deviceContext.SetSampler(PixelShader.Type, textureSamplerSlot, textureSampler);
+            deviceContext.SetShaderResource(PixelShader.Type, environmentTextureSlot, _environmentCubeMapSource.CubeMap);
+            deviceContext.SetSampler(PixelShader.Type, environmentSamplerSlot, textureSampler);
 
-            defaultShaderPass.PixelShader.BindSampler(deviceContext, textureSamplerSlot, textureSampler);
+            defaultShaderPass.PixelShader.BindSampler(deviceContext, environmentSamplerSlot, textureSampler);
 
             var vertexStartSlot = 0;
             geometryBuffer.AttachBuffers(deviceContext, ref vertexStartSlot, EffectTechnique.EffectsManager);
@@ -109,8 +109,8 @@ namespace PixelGraph.UI.Internal.Preview.CubeMaps
 
         protected override void OnDefaultPassChanged(ShaderPass pass)
         {
-            cubeTextureSlot = pass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.CubeMapTB);
-            textureSamplerSlot = pass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.CubeMapSampler);
+            environmentTextureSlot = pass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.EnvironmentCubeTB);
+            environmentSamplerSlot = pass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.EnvironmentCubeSampler);
         }
     }
 }

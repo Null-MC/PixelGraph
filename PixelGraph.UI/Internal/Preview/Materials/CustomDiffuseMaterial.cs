@@ -15,14 +15,14 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             set => SetValue(DiffuseAlphaMapProperty, value);
         }
 
-        public ICubeMapSource EnvironmentCube {
-            get => (ICubeMapSource)GetValue(EnvironmentCubeProperty);
-            set => SetValue(EnvironmentCubeProperty, value);
-        }
-
         public TextureModel EmissiveMap {
             get => (TextureModel)GetValue(EmissiveMapProperty);
             set => SetValue(EmissiveMapProperty, value);
+        }
+
+        public ICubeMapSource IrradianceCubeMapSource {
+            get => (ICubeMapSource)GetValue(IrradianceCubeMapSourceProperty);
+            set => SetValue(IrradianceCubeMapSourceProperty, value);
         }
 
         public SamplerStateDescription SurfaceMapSampler {
@@ -30,19 +30,19 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             set => SetValue(SurfaceMapSamplerProperty, value);
         }
 
-        public SamplerStateDescription CubeMapSampler {
-            get => (SamplerStateDescription)GetValue(CubeMapSamplerProperty);
-            set => SetValue(CubeMapSamplerProperty, value);
-        }
-
-        public bool RenderShadowMap {
-            get => (bool)GetValue(RenderShadowMapProperty);
-            set => SetValue(RenderShadowMapProperty, value);
+        public SamplerStateDescription IrradianceMapSampler {
+            get => (SamplerStateDescription)GetValue(IrradianceMapSamplerProperty);
+            set => SetValue(IrradianceMapSamplerProperty, value);
         }
 
         public bool RenderEnvironmentMap {
             get => (bool)GetValue(RenderEnvironmentMapProperty);
             set => SetValue(RenderEnvironmentMapProperty, value);
+        }
+
+        public bool RenderShadowMap {
+            get => (bool)GetValue(RenderShadowMapProperty);
+            set => SetValue(RenderShadowMapProperty, value);
         }
 
 
@@ -52,8 +52,9 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         {
             DiffuseAlphaMap = core.DiffuseAlphaMap;
             EmissiveMap = core.EmissiveMap;
+            IrradianceCubeMapSource = core.IrradianceCubeMapSource;
             SurfaceMapSampler = core.SurfaceMapSampler;
-            CubeMapSampler = core.CubeMapSampler;
+            IrradianceMapSampler = core.IrradianceMapSampler;
             RenderEnvironmentMap = core.RenderEnvironmentMap;
             RenderShadowMap = core.RenderShadowMap;
         }
@@ -63,8 +64,9 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             return new() {
                 DiffuseAlphaMap = DiffuseAlphaMap,
                 EmissiveMap = EmissiveMap,
+                IrradianceCubeMapSource = IrradianceCubeMapSource,
                 SurfaceMapSampler = SurfaceMapSampler,
-                CubeMapSampler = CubeMapSampler,
+                IrradianceMapSampler = IrradianceMapSampler,
                 RenderShadowMap = RenderShadowMap,
                 RenderEnvironmentMap = RenderEnvironmentMap,
             };
@@ -76,8 +78,9 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 Name = Name,
                 DiffuseAlphaMap = DiffuseAlphaMap,
                 EmissiveMap = EmissiveMap,
+                IrradianceCubeMapSource = IrradianceCubeMapSource,
                 SurfaceMapSampler = SurfaceMapSampler,
-                CubeMapSampler = CubeMapSampler,
+                IrradianceMapSampler = IrradianceMapSampler,
                 RenderShadowMap = RenderShadowMap,
                 RenderEnvironmentMap = RenderEnvironmentMap,
             };
@@ -87,11 +90,6 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         {
             return CloneMaterial();
         }
-
-        public static readonly DependencyProperty EnvironmentCubeProperty =
-            DependencyProperty.Register(nameof(EnvironmentCube), typeof(ICubeMapSource), typeof(CustomDiffuseMaterial), new PropertyMetadata(null, (d, e) => {
-                ((CustomDiffuseMaterialCore)((Material)d).Core).EnvironmentCube = e.NewValue as ICubeMapSource;
-            }));
 
         public static readonly DependencyProperty DiffuseAlphaMapProperty =
             DependencyProperty.Register(nameof(DiffuseAlphaMap), typeof(TextureModel), typeof(CustomDiffuseMaterial), new PropertyMetadata(null, (d, e) => {
@@ -103,24 +101,29 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 ((CustomDiffuseMaterialCore)((Material)d).Core).EmissiveMap = e.NewValue as TextureModel;
             }));
 
+        public static readonly DependencyProperty IrradianceCubeMapSourceProperty =
+            DependencyProperty.Register(nameof(IrradianceCubeMapSource), typeof(ICubeMapSource), typeof(CustomDiffuseMaterial), new PropertyMetadata(null, (d, e) => {
+                ((CustomDiffuseMaterialCore)((Material)d).Core).IrradianceCubeMapSource = e.NewValue as ICubeMapSource;
+            }));
+
         public static readonly DependencyProperty SurfaceMapSamplerProperty =
             DependencyProperty.Register(nameof(SurfaceMapSampler), typeof(SamplerStateDescription), typeof(CustomDiffuseMaterial), new PropertyMetadata(DefaultSamplers.LinearSamplerWrapAni4, (d, e) => {
                 ((CustomDiffuseMaterialCore)((Material)d).Core).SurfaceMapSampler = (SamplerStateDescription)e.NewValue;
             }));
 
-        public static readonly DependencyProperty CubeMapSamplerProperty =
-            DependencyProperty.Register(nameof(CubeMapSampler), typeof(SamplerStateDescription), typeof(CustomDiffuseMaterial), new PropertyMetadata(DefaultSamplers.IBLSampler, (d, e) => {
-                ((CustomDiffuseMaterialCore)((Material)d).Core).CubeMapSampler = (SamplerStateDescription)e.NewValue;
-            }));
-
-        public static readonly DependencyProperty RenderShadowMapProperty =
-            DependencyProperty.Register(nameof(RenderShadowMap), typeof(bool), typeof(CustomDiffuseMaterial), new PropertyMetadata(false, (d, e) => {
-                ((CustomDiffuseMaterialCore)((Material)d).Core).RenderShadowMap = (bool)e.NewValue;
+        public static readonly DependencyProperty IrradianceMapSamplerProperty =
+            DependencyProperty.Register(nameof(IrradianceMapSampler), typeof(SamplerStateDescription), typeof(CustomDiffuseMaterial), new PropertyMetadata(DefaultSamplers.IBLSampler, (d, e) => {
+                ((CustomDiffuseMaterialCore)((Material)d).Core).IrradianceMapSampler = (SamplerStateDescription)e.NewValue;
             }));
 
         public static readonly DependencyProperty RenderEnvironmentMapProperty =
             DependencyProperty.Register(nameof(RenderEnvironmentMap), typeof(bool), typeof(CustomDiffuseMaterial), new PropertyMetadata(false, (d, e) => {
                 ((CustomDiffuseMaterialCore)((Material)d).Core).RenderEnvironmentMap = (bool)e.NewValue;
+            }));
+
+        public static readonly DependencyProperty RenderShadowMapProperty =
+            DependencyProperty.Register(nameof(RenderShadowMap), typeof(bool), typeof(CustomDiffuseMaterial), new PropertyMetadata(false, (d, e) => {
+                ((CustomDiffuseMaterialCore)((Material)d).Core).RenderShadowMap = (bool)e.NewValue;
             }));
     }
 }

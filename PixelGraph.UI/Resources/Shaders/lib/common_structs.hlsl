@@ -27,7 +27,7 @@ struct ps_input
 	float3 tan  : TANGENT;
 	float3 bin  : BINORMAL;
 	float2 tex  : TEXCOORD0;
-	float4 sp   : TEXCOORD1;
+	//float4 sp   : TEXCOORD1;
 };
 
 struct ps_input_cube
@@ -154,12 +154,12 @@ Texture2D tex_porosity_sss_emissive : register(t3);
 Texture2D tex_diffuse_alpha : register(t0);
 Texture2D tex_emissive : register(t1);
 
-TextureCube<float3> tex_cube : register(t20);
+TextureCube<float3> tex_environment : register(t20);
+TextureCube<float3> tex_irradiance : register(t21);
 Texture2D<float> tex_shadow : register(t30);
 
 SamplerState sampler_surface : register(s0);
-//SamplerState sampler_IBL : register(s1);
+SamplerState sampler_irradiance : register(s1);
 SamplerState sampler_height : register(s2);
-SamplerState sampler_cube : register(s4);
-
+SamplerState sampler_environment : register(s4);
 SamplerComparisonState sampler_shadow : register(s5);

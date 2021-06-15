@@ -61,8 +61,8 @@ namespace PixelGraph.UI.Windows
 
             previewViewModel.ShaderCompileErrors += OnShaderCompileErrors;
 
-            Model.Preview.EnvironmentCube = EnvironmentCube;
-            Model.Preview.IrradianceCube = IrradianceCube;
+            Model.Preview.EnvironmentCube = EnvironmentCubeMapSource;
+            Model.Preview.IrradianceCube = IrradianceCubeMapSource;
             Model.SelectedLocation = ManualLocation;
             Model.Profile.SelectionChanged += OnSelectedProfileChanged;
         }

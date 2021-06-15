@@ -20,7 +20,7 @@ namespace PixelGraph.UI.Internal.Preview.CubeMaps
         public EnvironmentCubeCore() : base(RenderType.PreProc)
         {
             TextureDesc = new Texture2DDescription {
-                Format = Format.R8G8B8A8_UNorm,
+                Format = Format.R16G16B16A16_Float,
                 ArraySize = 6,
                 BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
                 OptionFlags = ResourceOptionFlags.GenerateMipMaps | ResourceOptionFlags.TextureCube,

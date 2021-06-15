@@ -1,16 +1,17 @@
-﻿using HelixToolkit.SharpDX.Core;
+﻿using System.Collections.Generic;
+using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Model.Scene;
+using PixelGraph.UI.Internal.Preview.CubeMaps;
 using SharpDX;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.Internal.Preview.Sky
 {
     public class DebugSkyBoxNode : SceneNode
     {
-        public IEnvironmentCube EnvironmentCube {
-            get => ((DebugSkyBoxCore)RenderCore).EnvironmentCube;
-            set => ((DebugSkyBoxCore)RenderCore).EnvironmentCube = value;
+        public ICubeMapSource CubeMapSource {
+            get => ((DebugSkyBoxCore)RenderCore).CubeMapSource;
+            set => ((DebugSkyBoxCore)RenderCore).CubeMapSource = value;
         }
 
 

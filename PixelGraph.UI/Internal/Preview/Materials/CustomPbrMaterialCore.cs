@@ -9,24 +9,21 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 {
     public class CustomPbrMaterialCore : MaterialCore
     {
-        private ICubeMapSource _environmentCube;
         private TextureModel _albedoAlphaMap;
         private TextureModel _normalHeightMap;
         private TextureModel _roughF0OcclusionMap;
         private TextureModel _porositySssEmissive;
+        private ICubeMapSource _environmentCubeSource;
+        private ICubeMapSource _irradianceCubeSource;
         private SamplerStateDescription _surfaceMapSampler;
         private SamplerStateDescription _heightMapSampler;
-        private SamplerStateDescription _cubeMapSampler;
+        private SamplerStateDescription _environmentMapSampler;
+        private SamplerStateDescription _irradianceMapSampler;
         private bool _renderEnvironmentMap;
         private bool _renderShadowMap;
 
         public string MaterialPassName {get;}
         public string MaterialOITPassName {get;}
-
-        public ICubeMapSource EnvironmentCube {
-            get => _environmentCube;
-            set => Set(ref _environmentCube, value);
-        }
 
         public TextureModel AlbedoAlphaMap {
             get => _albedoAlphaMap;
@@ -48,6 +45,16 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             set => Set(ref _porositySssEmissive, value);
         }
 
+        public ICubeMapSource EnvironmentCubeMapSource {
+            get => _environmentCubeSource;
+            set => Set(ref _environmentCubeSource, value);
+        }
+
+        public ICubeMapSource IrradianceCubeMapSource {
+            get => _irradianceCubeSource;
+            set => Set(ref _irradianceCubeSource, value);
+        }
+
         public SamplerStateDescription SurfaceMapSampler {
             get => _surfaceMapSampler;
             set => Set(ref _surfaceMapSampler, value); 
@@ -58,9 +65,14 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             set => Set(ref _heightMapSampler, value); 
         }
 
-        public SamplerStateDescription CubeMapSampler {
-            get => _cubeMapSampler; 
-            set => Set(ref _cubeMapSampler, value); 
+        public SamplerStateDescription EnvironmentMapSampler {
+            get => _environmentMapSampler; 
+            set => Set(ref _environmentMapSampler, value); 
+        }
+
+        public SamplerStateDescription IrradianceMapSampler {
+            get => _irradianceMapSampler; 
+            set => Set(ref _irradianceMapSampler, value); 
         }
 
         public bool RenderShadowMap {
@@ -81,7 +93,8 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
             _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
             _heightMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
-            _cubeMapSampler = DefaultSamplers.IBLSampler;
+            _environmentMapSampler = DefaultSamplers.EnvironmentSampler;
+            _irradianceMapSampler = DefaultSamplers.IBLSampler;
         }
 
         public override MaterialVariable CreateMaterialVariables(IEffectsManager manager, IRenderTechnique technique)

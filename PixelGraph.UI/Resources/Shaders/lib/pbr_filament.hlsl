@@ -63,12 +63,19 @@ float3 specular_IBL(const in float3 normal, const in float3 view, const in float
 {
     const float3 dir = reflect(-view, normal);
 	const float mip = lod_bias * NumEnvironmentMapMipLevels;
-    return tex_cube.SampleLevel(sampler_cube, dir, mip).rgb;
+    return tex_environment.SampleLevel(sampler_environment, dir, mip).rgb;
 }
 
-float3 diffuse_IBL(const float3 normal, const float rough)
-{
-	const float mip = rough * NumEnvironmentMapMipLevels;
-	const float3 color = tex_cube.SampleLevel(sampler_cube, normal, mip).rgb;
-	return color;// * (1 - rough * 0.1);
-}
+//float3 fresnelSchlickRoughness(const in float3 f0, const in float cosTheta, const in float rough)
+//{
+//	const float3 smooth = 1.0 - rough;
+//    return f0 + (max(float3(smooth), f0) - f0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
+//}
+
+//float3 diffuse_IBL(const in float3 normal, const in float3 view, const in float3 f0, const in float rough)
+//{
+//	const float NoV = max(dot(normal, view), 0.0);
+//	const float3 kS = fresnelSchlickRoughness(f0, NoV, rough);
+//	const float3 irradiance = tex_irradiance.SampleLevel(sampler_irradiance, normal, 0);
+//	return (1.0 - kS) * irradiance;
+//}

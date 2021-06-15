@@ -122,8 +122,9 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 ambient_color = srgb_to_linear(vLightAmbient.rgb);
 	float3 specular_env = ambient_color;
 
-	if (bHasCubeMap)
+	if (bHasCubeMap) {
         specular_env = specular_IBL(tex_normal, view, mat.rough);
+	}
 
     //if (bRenderShadowMap)
     //    acc_color *= shadow_strength(input.sp);

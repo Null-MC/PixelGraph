@@ -8,18 +8,13 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 {
     public class CustomDiffuseMaterialCore : MaterialCore
     {
-        private ICubeMapSource _environmentCube;
         private TextureModel _diffuseAlphaMap;
         private TextureModel _emissiveMap;
+        private ICubeMapSource _irradianceCubeMapSource;
         private SamplerStateDescription _surfaceMapSampler;
-        private SamplerStateDescription _cubeMapSampler;
+        private SamplerStateDescription _irradianceMapSampler;
         private bool _renderShadowMap;
         private bool _renderEnvironmentMap;
-
-        public ICubeMapSource EnvironmentCube {
-            get => _environmentCube;
-            set => Set(ref _environmentCube, value);
-        }
 
         public TextureModel DiffuseAlphaMap {
             get => _diffuseAlphaMap;
@@ -31,14 +26,19 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             set => Set(ref _emissiveMap, value);
         }
 
+        public ICubeMapSource IrradianceCubeMapSource {
+            get => _irradianceCubeMapSource;
+            set => Set(ref _irradianceCubeMapSource, value);
+        }
+
         public SamplerStateDescription SurfaceMapSampler {
             get => _surfaceMapSampler; 
             set => Set(ref _surfaceMapSampler, value); 
         }
 
-        public SamplerStateDescription CubeMapSampler {
-            get => _cubeMapSampler; 
-            set => Set(ref _cubeMapSampler, value); 
+        public SamplerStateDescription IrradianceMapSampler {
+            get => _irradianceMapSampler; 
+            set => Set(ref _irradianceMapSampler, value); 
         }
 
         public bool RenderShadowMap {
@@ -55,7 +55,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public CustomDiffuseMaterialCore()
         {
             _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
-            _cubeMapSampler = DefaultSamplers.IBLSampler;
+            _irradianceMapSampler = DefaultSamplers.IBLSampler;
         }
 
         public override MaterialVariable CreateMaterialVariables(IEffectsManager manager, IRenderTechnique technique)

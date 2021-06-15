@@ -9,9 +9,9 @@ namespace PixelGraph.UI.PreviewModels
 {
     public class IrradianceCube3D : Element3D, ICubeMapSource
     {
-        public ICubeMapSource Source {
-            get => (ICubeMapSource)GetValue(SourceProperty);
-            set => SetValue(SourceProperty, value);
+        public ICubeMapSource EnvironmentCubeMapSource {
+            get => (ICubeMapSource)GetValue(EnvironmentCubeMapSourceProperty);
+            set => SetValue(EnvironmentCubeMapSourceProperty, value);
         }
 
         public int FaceSize {
@@ -31,17 +31,17 @@ namespace PixelGraph.UI.PreviewModels
         protected override void AssignDefaultValuesToSceneNode(SceneNode core)
         {
             if (core is IrradianceCubeNode n) {
-                n.Source = Source;
+                n.EnvironmentCubeMapSource = EnvironmentCubeMapSource;
                 n.FaceSize = FaceSize;
             }
 
             base.AssignDefaultValuesToSceneNode(core);
         }
 
-        public static readonly DependencyProperty SourceProperty =
-            DependencyProperty.Register(nameof(Source), typeof(ICubeMapSource), typeof(IrradianceCube3D), new PropertyMetadata(null, (d, e) => {
+        public static readonly DependencyProperty EnvironmentCubeMapSourceProperty =
+            DependencyProperty.Register(nameof(EnvironmentCubeMapSource), typeof(ICubeMapSource), typeof(IrradianceCube3D), new PropertyMetadata(null, (d, e) => {
                 if (d is Element3DCore {SceneNode: IrradianceCubeNode node})
-                    node.Source = (ICubeMapSource)e.NewValue;
+                    node.EnvironmentCubeMapSource = (ICubeMapSource)e.NewValue;
             }));
 
         public static readonly DependencyProperty FaceSizeProperty =

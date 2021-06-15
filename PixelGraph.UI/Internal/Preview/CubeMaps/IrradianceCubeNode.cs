@@ -10,9 +10,9 @@ namespace PixelGraph.UI.Internal.Preview.CubeMaps
 {
     public class IrradianceCubeNode : SceneNode, ICubeMapSource
     {
-        public ICubeMapSource Source {
-            get => ((IrradianceCubeCore)RenderCore).Source;
-            set => ((IrradianceCubeCore)RenderCore).Source = value;
+        public ICubeMapSource EnvironmentCubeMapSource {
+            get => ((IrradianceCubeCore)RenderCore).EnvironmentCubeMapSource;
+            set => ((IrradianceCubeCore)RenderCore).EnvironmentCubeMapSource = value;
         }
 
         public int FaceSize {
@@ -39,7 +39,7 @@ namespace PixelGraph.UI.Internal.Preview.CubeMaps
             base.AssignDefaultValuesToCore(core);
             if (core is not IrradianceCubeCore c) return;
 
-            c.Source = Source;
+            c.EnvironmentCubeMapSource = EnvironmentCubeMapSource;
             c.FaceSize = FaceSize;
         }
 

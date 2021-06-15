@@ -7,19 +7,19 @@
 
 float srgb_to_linear(const float srgb)
 {
-	return srgb;
+	//return srgb;
 	return pow(abs(srgb), Gamma);
 }
 
 float3 srgb_to_linear(const float3 srgb)
 {
-	return srgb;
+	//return srgb;
 	return pow(abs(srgb), Gamma);
 }
 
 float3 linear_to_srgb(const float3 rgb)
 {
-	return rgb;
+	//return rgb;
 	return pow(abs(rgb), 1.0 / Gamma);
 }
 

@@ -19,7 +19,8 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public override Material BuildMaterial()
         {
             var mat = new CustomPbrMaterial(PassName, PassNameOIT) {
-                EnvironmentCube = Model.Preview.IrradianceCube,
+                EnvironmentCubeMapSource = Model.Preview.EnvironmentCube,
+                IrradianceCubeMapSource = Model.Preview.IrradianceCube,
                 RenderEnvironmentMap = Model.Preview.EnableEnvironment,
                 SurfaceMapSampler = ColorSampler,
                 HeightMapSampler = HeightSampler,

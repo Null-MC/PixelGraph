@@ -3,8 +3,7 @@ using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.SharpDX.Core.Utilities;
-using SharpDX;
-using SharpDX.Direct3D;
+using PixelGraph.UI.Internal.Preview.CubeMaps;
 using SharpDX.Direct3D11;
 using PixelShader = HelixToolkit.SharpDX.Core.Shaders.PixelShader;
 
@@ -13,15 +12,15 @@ namespace PixelGraph.UI.Internal.Preview.Sky
     public class DebugSkyBoxCore : GeometryRenderCore
     {
         private ShaderPass defaultShaderPass;
-        private IEnvironmentCube _environmentCube;
+        private ICubeMapSource _cubeMapSource;
         private SamplerStateDescription samplerDescription;
         private SamplerStateProxy textureSampler;
         private int cubeTextureSlot;
         private int textureSamplerSlot;
         
-        public IEnvironmentCube EnvironmentCube {
-            get => _environmentCube;
-            set => SetAffectsRender(ref _environmentCube, value);
+        public ICubeMapSource CubeMapSource {
+            get => _cubeMapSource;
+            set => SetAffectsRender(ref _cubeMapSource, value);
         }
 
         public SamplerStateDescription SamplerDescription {
@@ -63,7 +62,7 @@ namespace PixelGraph.UI.Internal.Preview.Sky
 
         protected override void OnRender(RenderContext context, DeviceContextProxy deviceContext)
         {
-            deviceContext.SetShaderResource(PixelShader.Type, cubeTextureSlot, _environmentCube.CubeMap);
+            deviceContext.SetShaderResource(PixelShader.Type, cubeTextureSlot, _cubeMapSource.CubeMap);
             deviceContext.SetSampler(PixelShader.Type, textureSamplerSlot, textureSampler);
 
             if (context.Camera.CreateLeftHandSystem && RasterDescription.IsFrontCounterClockwise) {

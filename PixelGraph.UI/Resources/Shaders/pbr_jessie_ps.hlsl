@@ -38,7 +38,7 @@ float3 diffuseIBL(const in float3 N, const in float3 V, const in float lodBias)
 {
 	const float3 dir = reflect(-V, N);
 	const float mip = lodBias * NumEnvironmentMapMipLevels;
-	return tex_cube.SampleLevel(sampler_cube, dir, mip).rgb;
+	return tex_environment.SampleLevel(sampler_environment, dir, mip).rgb;
 }
 
 float radicalInverse_VdC(uint bits) {
@@ -72,7 +72,7 @@ float3 diffuseIBL(const float3 albedo, const float3 normal, const float3 eye, co
 		//const float vDotH = dot(eye, normalize(dir + eye));
 
 		float3 diffuse = hammonDiffuse(albedo, f0, nDotV, nDotL, nDotH, lDotV, alpha);
-		result += diffuse * tex_cube.Sample(sampler_cube, dir).rgb;
+		result += diffuse * tex_irradiance.Sample(sampler_irradiance, dir).rgb;
 	}
 	return result / (float)N;
 }

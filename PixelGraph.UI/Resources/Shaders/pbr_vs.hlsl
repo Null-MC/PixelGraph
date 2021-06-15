@@ -13,7 +13,7 @@ ps_input main(const vs_input input)
 	
 	output.wp = mul(input.pos, mWorld);
     output.pos = mul(output.wp, mViewProjection);
-    output.sp = mul(output.wp, vLightViewProjection);
+    //output.sp = mul(output.wp, vLightViewProjection);
 	
 	const float3 eye = vEyePos - output.wp.xyz;
     output.eye = float4(normalize(eye), length(eye));

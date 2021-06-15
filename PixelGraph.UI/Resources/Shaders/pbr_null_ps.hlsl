@@ -145,8 +145,9 @@ float4 main(const ps_input input) : SV_TARGET
 
     //return float4(acc_color, 1);
 
-	const float3 ibl = IBL(tex_normal, view, diffuse, f0, 1.0, mat.occlusion, mat.rough);
-
+	const float3 ibl = IBL(tex_normal, view, diffuse, f0, 1.0, mat.occlusion, roughL);
+    //return float4(ibl, 1.0);
+	
     //if (bRenderShadowMap)
     //    acc_color *= shadow_strength(input.sp);
 
