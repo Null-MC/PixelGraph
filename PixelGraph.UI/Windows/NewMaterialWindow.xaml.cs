@@ -21,6 +21,9 @@ namespace PixelGraph.UI.Windows
             viewModel = new NewMaterialViewModel {
                 Model = Model,
             };
+
+            viewModel.UpdateBlockList();
+            viewModel.UpdateLocation();
         }
 
         private void OnGameObjectTypeChanged(object sender, EventArgs e)

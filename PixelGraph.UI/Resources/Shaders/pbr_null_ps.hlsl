@@ -37,8 +37,9 @@ float4 main(const ps_input input) : SV_TARGET
 	
     mat.rough = max(mat.rough, MIN_ROUGH_P);
 	const float roughL = mat.rough * mat.rough;
+	//const float rough2 = roughL * roughL;
 	
-	clip(mat.alpha < EPSILON);
+	clip(mat.alpha - EPSILON);
 	        
     // Blend base colors
 	const float metal = mat.f0 > 0.5 ? 1.0 : 0.0;
@@ -60,11 +61,15 @@ float4 main(const ps_input input) : SV_TARGET
     const float NoV = saturate(dot(tex_normal, view));
     const float3x3 mTBN = float3x3(tangent, bitangent, normal);
     
-    float3 acc_color = 0.0;
+    float3 acc_diffuse = 0.0;
+    float3 acc_specular = 0.0;
+    float3 acc_sss = 0.0;
     for (int i = 0; i < NumLights; i++) {
         if (Lights[i].iLightType == 1) {
             // light vector (to light)
             const float3 light_dir = normalize(Lights[i].vLightDir.xyz);
+        	
+            acc_sss += Lights[i].vLightColor.rgb * pow(saturate(dot(-view, light_dir)), 60.0) * mat.sss * diffuse * 2.0;
 
         	// light parallax shadows
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
@@ -83,15 +88,18 @@ float4 main(const ps_input input) : SV_TARGET
             // Diffuse & specular factors
             const float3 light_diffuse = disney_diffuse(diffuse, NoV, NoL, LoH, roughL);
             const float3 light_specular = Specular_BRDF(f0, tex_normal, H, LoH, NoH, VoH, roughL);
-          
-            acc_color += NoL * Lights[i].vLightColor.rgb * (light_diffuse + light_specular) * shadow;
+        	
+            acc_diffuse += NoL * Lights[i].vLightColor.rgb * light_diffuse * shadow;
+            acc_specular += NoL * Lights[i].vLightColor.rgb * light_specular * shadow;
         }
         else if (Lights[i].iLightType == 2) {
             float3 light_dir = Lights[i].vLightPos.xyz - input.wp.xyz; // light dir
             const float dl = length(light_dir); // light distance
-            if (Lights[i].vLightAtt.w < dl) continue;
-
             light_dir = light_dir / dl; // normalized light dir
+        	
+            acc_sss += Lights[i].vLightColor.rgb * pow(saturate(dot(-view, light_dir)), 30.0) * mat.sss * diffuse * 2.0;
+        	
+            if (Lights[i].vLightAtt.w < dl) continue;
 
         	// light parallax shadows
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
@@ -110,10 +118,14 @@ float4 main(const ps_input input) : SV_TARGET
             const float3 light_diffuse = disney_diffuse(diffuse, NoV, NoL, LoH, roughL);
             const float3 light_specular = Specular_BRDF(f0, tex_normal, H, LoH, NoH, VoH, roughL);
             const float att = 1.0 / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * dl + Lights[i].vLightAtt.z * dl * dl);
-            acc_color = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * (light_diffuse + light_specular), acc_color);
+            acc_diffuse = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * light_diffuse, acc_diffuse);
+            acc_specular = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * light_specular, acc_specular);
         }
         else if (Lights[i].iLightType == 3) {
             float3 light_dir = Lights[i].vLightPos.xyz - input.wp.xyz; // light dir
+        	
+            acc_sss += Lights[i].vLightColor.rgb * pow(saturate(dot(-view, light_dir)), 60.0) * mat.sss * diffuse * 2.0;
+        	
             const float dl = length(light_dir); // light distance
             if (Lights[i].vLightAtt.w < dl) continue;
 
@@ -139,25 +151,26 @@ float4 main(const ps_input input) : SV_TARGET
             const float rho = dot(-light_dir, sd);
             const float spot = pow(saturate((rho - Lights[i].vLightSpot.x) / (Lights[i].vLightSpot.y - Lights[i].vLightSpot.x)), Lights[i].vLightSpot.z);
             const float att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * dl + Lights[i].vLightAtt.z * dl * dl);
-            acc_color = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * (light_diffuse + light_specular), acc_color);
+            acc_diffuse = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * light_diffuse, acc_diffuse);
+            acc_specular = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * light_specular, acc_specular);
         }
     }
 
-    //return float4(acc_color, 1);
-
 	const float3 ibl = IBL(tex_normal, view, diffuse, f0, 1.0, mat.occlusion, roughL);
-    //return float4(ibl, 1.0);
 	
-    //if (bRenderShadowMap)
-    //    acc_color *= shadow_strength(input.sp);
-
 	const float3 emissive = mat.emissive * mat.albedo * PI;
+
+	if (bHasCubeMap) {
+		const int level = int((1.0 - mat.sss) * NumEnvironmentMapMipLevels);
+        acc_sss += tex_environment.SampleLevel(sampler_environment, view, level) * mat.sss * diffuse;
+	}
 	
 	//final_color = ACESFilm(final_color);
-    float3 final_color = acc_color + emissive + ibl;
+    float3 final_color = acc_diffuse + acc_sss + acc_specular + ibl + emissive;
+	float alpha = mat.alpha + lum(acc_specular);
 
-	//final_color = tonemap_HejlBurgess(final_color);
-	final_color = linear_to_srgb(final_color);
+	final_color = tonemap_HejlBurgess(final_color);
+	//final_color = linear_to_srgb(final_color);
 	
-    return float4(final_color, mat.alpha);
+    return float4(final_color, alpha);
 }

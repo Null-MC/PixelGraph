@@ -36,6 +36,11 @@ float lengthSq(const in float3 vec)
 	return vec.x*vec.x + vec.y*vec.y + vec.z*vec.z;
 }
 
+float lum(const in float3 color)
+{
+    return dot(color, float3(0.299f, 0.587f, 0.114f));
+}
+
 float shadow_look_up(const in float4 loc, const in float2 offset)
 {
     return tex_shadow.SampleCmpLevelZero(sampler_shadow, loc.xy + offset, loc.z);

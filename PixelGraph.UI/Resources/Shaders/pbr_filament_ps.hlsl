@@ -22,7 +22,7 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 tex_normal = calc_tex_normal(tex, normal, tangent, bitangent);
 	const pbr_material mat = get_pbr_material(tex);
 	
-	clip(mat.alpha < EPSILON);
+	clip(mat.alpha - EPSILON);
 	
 	const float reflectance = 0.5; // 4%
 	const float metal = mat.f0;

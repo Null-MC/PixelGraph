@@ -9,12 +9,6 @@ namespace PixelGraph.UI.ViewModels
         public NewMaterialModel Model {get; set;}
 
 
-        public NewMaterialViewModel()
-        {
-            UpdateBlockList();
-            UpdateLocation();
-        }
-
         public void UpdateBlockList()
         {
             Model.GameObjectNames.Clear();

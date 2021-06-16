@@ -67,7 +67,7 @@ float V_SmithGGXCorrelated(float NoV, float NoL, float roughness) {
     return 0.5 / (GGXV + GGXL);
 }
 
-float G_Shlick_Smith_Hable(const float alpha, const float LdotH)
+float G_Shlick_Smith_Hable(const float LdotH, const float alpha)
 {
     return rcp(lerp(LdotH * LdotH, 1.0, alpha * alpha * 0.25f));
 }
@@ -86,62 +86,6 @@ float3 Specular_BRDF(const in float3 f0, const in float3 N, const in float3 H, c
     return specular_d * specular_g * specular_f;
 }
 
-
-//static const uint sampleCount = 4;
-//
-//float2 hammersley(uint i, float numSamples) {
-//    uint bits = i;
-//    bits = (bits << 16) | (bits >> 16);
-//    bits = ((bits & 0x55555555) << 1) | ((bits & 0xAAAAAAAA) >> 1);
-//    bits = ((bits & 0x33333333) << 2) | ((bits & 0xCCCCCCCC) >> 2);
-//    bits = ((bits & 0x0F0F0F0F) << 4) | ((bits & 0xF0F0F0F0) >> 4);
-//    bits = ((bits & 0x00FF00FF) << 8) | ((bits & 0xFF00FF00) >> 8);
-//    return float2(i / numSamples, bits / exp2(32));
-//}
-//
-//float GDFG(float NoV, float NoL, float a) {
-//    float a2 = a * a;
-//    float GGXL = NoV * sqrt((-NoL * a2 + NoL) * NoL + a2);
-//    float GGXV = NoL * sqrt((-NoV * a2 + NoV) * NoV + a2);
-//    return (2 * NoL) / (GGXV + GGXL);
-//}
-//
-//float2 DFG(float NoV, float a) {
-//    float3 V;
-//    V.x = sqrt(1.0f - NoV*NoV);
-//    V.y = 0.0f;
-//    V.z = NoV;
-//
-//    float2 r = 0.0f;
-//    for (uint i = 0; i < sampleCount; i++) {
-//        float2 Xi = hammersley(i, sampleCount);
-//        float3 H = importanceSampleGGX(Xi, a, N);
-//        float3 L = 2.0f * dot(V, H) * H - V;
-//
-//        float VoH = saturate(dot(V, H));
-//        float NoL = saturate(L.z);
-//        float NoH = saturate(H.z);
-//
-//        if (NoL > 0.0f) {
-//            float G = GDFG(NoV, NoL, a);
-//            float Gv = G * VoH / NoH;
-//            float Fc = pow(1 - VoH, 5.0f);
-//            r.x += Gv * (1 - Fc);
-//            r.y += Gv * Fc;
-//        }
-//    }
-//    return r * (1.0f / sampleCount);
-//}
-
-float3 irradianceSH(float3 normal)
-{
-	return 0;
-}
-
-float2 prefilteredDFG_LUT(const in float3 NoV, const in float roughP)
-{
-	return 0;
-}
 
 float3 specular_IBL(const in float3 normal, const in float3 view, const in float roughP)
 {
@@ -173,14 +117,14 @@ float3 diffuse_IBL(const in float3 normal, const in float3 view, const in float3
 float3 IBL(float3 n, float3 v, float3 diffuse, float3 f0, float3 f90, float occlusion, float rough)
 {
     float3 indirect_diffuse = srgb_to_linear(vLightAmbient.rgb);
-    float3 indirect_specular = 0.0;
+    float3 indirect_specular = indirect_diffuse;
     float3 specular_occlusion = 1.0;
 	
 	const float NoV = max(dot(n, v), 0.0);
 	
     if (bHasCubeMap) {
     	indirect_diffuse = diffuse_IBL(n, v, f0, rough);
-		indirect_specular = 0;//specular_IBL(n, v, rough);
+		indirect_specular = specular_IBL(n, v, rough);
 		specular_occlusion = get_specular_occlusion(NoV, occlusion, rough);
     }
 	

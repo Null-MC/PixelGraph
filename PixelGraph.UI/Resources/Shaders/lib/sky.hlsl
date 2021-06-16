@@ -24,25 +24,28 @@ float3 atmospheric_scattering(const float s_raleigh, const float s_mie, const fl
     return (1.0 + fcos2) * (rayleigh + beta_m / beta_r * mie_phase);
 }
 
-float3 get_sky_color(const float3 view)
+float3 get_sky_color(const float3 view, out float sun, out float3 extinction)
 {
-	const float sun = saturate(dot(view, SunDirection));
+	sun = saturate(dot(view, SunDirection));
 
     // optical depth -> zenithAngle
 	const float zenith_angle = max(view.y, EPSILON);
 	const float s_raleigh = rayleigh_att / zenith_angle;
 	const float s_mie = mie_att / zenith_angle;
 
-    float3 extinction;
     const float3 scatter = atmospheric_scattering(s_raleigh, s_mie, sun, extinction) * (SunStrength * 0.8 + 0.2);
 	
     float3 col = scatter * (1.0 - extinction); // * (SunStrength * 0.92 + 0.08);
 	
     // sun
-    col += 2.0 * float3(1.6, 1.4, 1.0) * pow(sun, 350) * extinction * SunStrength;
 	
     // sun haze
     col += 0.4 * float3(0.8, 0.9, 1.0) * pow(sun, 2) * extinction * SunStrength;
 
 	return col;
+}
+
+float3 get_sun_color(const in float sun, const in float3 extinction)
+{
+    return 2.0 * float3(1.6, 1.4, 1.0) * pow(sun, 350) * extinction * SunStrength;
 }

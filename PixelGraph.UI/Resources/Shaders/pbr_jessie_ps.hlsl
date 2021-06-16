@@ -83,6 +83,8 @@ float4 main(const ps_input input) : SV_TARGET
 	
 	pbr_material mat = get_pbr_material(input.tex);
 	mat.rough = mat.rough * mat.rough;
+
+	clip(mat.alpha - EPSILON);
 	
 	const float3 normal = calc_tex_normal(input.tex, input.nor, input.tan, input.bin);
 	
