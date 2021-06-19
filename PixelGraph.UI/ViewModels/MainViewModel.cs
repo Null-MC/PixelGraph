@@ -66,9 +66,6 @@ namespace PixelGraph.UI.ViewModels
             catch (Exception error) {
                 throw new ApplicationException("Failed to load recent projects list!", error);
             }
-            finally {
-                Model.EndInit();
-            }
         }
 
         public void Clear()

@@ -21,7 +21,7 @@ struct ps_input
 {
 	float4 pos  : SV_POSITION;
 	float4 wp   : POSITION0;
-	float4 eye  : POSITION1;
+	float3 eye  : POSITION1;
 	float2 poT : POSITION2;
     float3 nor  : NORMAL;
 	float3 tan  : TANGENT;

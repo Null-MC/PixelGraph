@@ -8,13 +8,9 @@ ps_input main(const vs_input input)
 	ps_input output = (ps_input)0;
 
 	output.tex = input.tex;
-	
 	output.wp = mul(input.pos, mWorld);
     output.pos = mul(output.wp, mViewProjection);
-    //output.sp = mul(output.wp, vLightViewProjection);
-
-	const float3 eye = vEyePos - output.wp.xyz;
-    output.eye = float4(normalize(eye), 1);
+	output.eye = vEyePos - output.wp.xyz;
 	
 	return output;
 }

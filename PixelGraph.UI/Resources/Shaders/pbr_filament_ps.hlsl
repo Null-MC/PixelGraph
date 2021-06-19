@@ -13,12 +13,12 @@ float4 main(const ps_input input) : SV_TARGET
     const float3 tangent = normalize(input.tan);
     const float3 bitangent = normalize(input.bin);
 	const float3 view = normalize(input.eye.xyz);
-
 	const float2 dx = ddx(input.tex);
 	const float2 dy = ddy(input.tex);
-	
-	float depth_offset;
-	const float2 tex = get_parallax_texcoord(input.tex, dx, dy, normal, input.poT, view, depth_offset);
+
+	float3 shadow_tex = 0;
+    const float SNoV = saturate(dot(normal, view));
+	const float2 tex = get_parallax_texcoord(input.tex, dx, dy, input.poT, SNoV, shadow_tex);
 	const float3 tex_normal = calc_tex_normal(tex, normal, tangent, bitangent);
 	const pbr_material mat = get_pbr_material(tex);
 	
@@ -33,7 +33,7 @@ float4 main(const ps_input input) : SV_TARGET
     const float3 c_diff = lerp(mat.albedo, float3(0, 0, 0), metal);// * mat.occlusion;
     const float3 c_spec = 0.16 * reflectance * reflectance * (1.0 - metal) + mat.albedo * metal;
 	
-    float3 acc_color = 0;
+    float3 acc_color = 0.0;
     const float NdotV = saturate(dot(tex_normal, view));
     const float3x3 mTBN = float3x3(tangent, bitangent, normal);
 
@@ -43,8 +43,9 @@ float4 main(const ps_input input) : SV_TARGET
             const float3 light_dir = normalize(Lights[i].vLightDir.xyz);
 
         	// light parallax shadows
+            const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(tex, depth_offset, dx, dy, normal, polT, light_dir);
+            const float shadow = get_parallax_shadow(shadow_tex, dx, dy, polT, SNoL);
             //if (shadow < EPSILON) continue;
 
             // Half vector
@@ -70,8 +71,9 @@ float4 main(const ps_input input) : SV_TARGET
             light_dir = light_dir / dl; // normalized light dir
 
         	// light parallax shadows
+            const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(tex, depth_offset, dx, dy, normal, polT, light_dir);
+            const float shadow = get_parallax_shadow(shadow_tex, dx, dy, polT, SNoL);
             //if (shadow < EPSILON) continue;
 
         	const float3 H = normalize(view + light_dir); // half direction for specular
@@ -96,8 +98,9 @@ float4 main(const ps_input input) : SV_TARGET
             light_dir = light_dir / dl; // normalized light dir
 
         	// light parallax shadows
+            const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(tex, depth_offset, dx, dy, normal, polT, light_dir);
+            const float shadow = get_parallax_shadow(shadow_tex, dx, dy, polT, SNoL);
             //if (shadow < EPSILON) continue;
         	
             const float3 H = normalize(view + light_dir); // half direction for specular

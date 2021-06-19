@@ -79,14 +79,13 @@ namespace PixelGraph.UI.ViewModels
             //    NearPlaneDistance = 1,
             //    FieldOfView = 45
             //};
-            Model.Preview.SunCamera = new OrthographicCamera { 
-                UpDirection = new Media3D.Vector3D(1, 0, 0),
-                FarPlaneDistance = 200, 
-                NearPlaneDistance = 1,
-            };
+            //Model.Preview.SunCamera = new OrthographicCamera { 
+            //    UpDirection = new Media3D.Vector3D(1, 0, 0),
+            //    FarPlaneDistance = 200, 
+            //    NearPlaneDistance = 1,
+            //};
 
             ResetViewport();
-            UpdateEnvironment();
 
             Model.Preview.Model = BuildCube(4);
 
@@ -117,34 +116,32 @@ namespace PixelGraph.UI.ViewModels
                     Model.Preview.RenderMode = renderMode;
         }
 
+        public void UpdateSun()
+        {
+            //const float sun_distance = 10f;
+            const float sun_overlap = 0.12f;
+            const float sun_power = 0.85f;
+            const float sun_azimuth = 30f;
+            const float sun_roll = 15f;
+
+            //var linearTimeOfDay = Model.Preview.TimeOfDayLinear;
+            MinecraftTime.GetSunAngle(sun_azimuth, sun_roll, Model.Preview.TimeOfDayLinear, out var sunDirection);
+            Model.Preview.SunDirection = sunDirection;
+
+            var strength = MinecraftTime.GetSunStrength(Model.Preview.TimeOfDayLinear, sun_overlap, sun_power); // * (1f - Wetness * 0.6f);
+            //Model.Preview.SunLightColor = new Color4(strength, strength, strength, strength);
+            Model.Preview.SunStrength = strength;
+        }
+
         public Task SaveRenderStateAsync(CancellationToken token = default)
         {
             appSettings.Data.RenderPreview.SelectedMode = RenderPreviewMode.GetString(Model.Preview.RenderMode);
             return appSettings.SaveAsync(token);
         }
 
-        private void UpdateEnvironment()
-        {
-            const float sun_distance = 10f;
-            const float sun_overlap = 0.12f;
-            const float sun_power = 0.85f;
-            const float sun_azimuth = 30f;
-            const float sun_roll = 15f;
-
-            var linearTimeOfDay = Model.Preview.TimeOfDayLinear;
-            MinecraftTime.GetSunAngle(sun_azimuth, sun_roll, in linearTimeOfDay, out var sunVec);
-            Model.Preview.SunCamera.LookDirection = -sunVec.ToVector3D();
-            Model.Preview.SunCamera.Position = (sunVec * sun_distance).ToPoint3D();
-            Model.Preview.SunDirection = sunVec;
-
-            var sunStrength = MinecraftTime.GetSunStrength(in linearTimeOfDay, sun_overlap, sun_power);
-            Model.Preview.SunColor = new Color4(sunStrength, sunStrength, sunStrength, sunStrength).ToColor();
-            Model.Preview.SunStrength = sunStrength;
-        }
-
         private void OnPreviewPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(PreviewContextModel.TimeOfDay)) UpdateEnvironment();
+            if (e.PropertyName == nameof(PreviewContextModel.TimeOfDay)) UpdateSun();
         }
 
         public void ReloadShaders()
@@ -166,6 +163,8 @@ namespace PixelGraph.UI.ViewModels
 
             Model.Preview.PointLightTransform = new Media3D.MatrixTransform3D();
             Model.Preview.PointLightTransform.Transform(new Media3D.Vector3D(5, 7, 5));
+
+            Model.Preview.TimeOfDay = 8_000;
         }
 
         public async Task ClearAsync()

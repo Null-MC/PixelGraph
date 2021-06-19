@@ -78,7 +78,7 @@ namespace PixelGraph.Tests.GenerationTests
             var heightFile = PathEx.Join(AssemblyPath, "Data", "output-height.png");
             using var heightImage = await Image.LoadAsync<Rgba32>(Configuration.Default, heightFile);
 
-            var options = new NormalMapProcessor.Options {
+            var options = new NormalMapProcessor<Rgba32>.Options {
                 Source = heightImage,
                 HeightChannel = ColorChannel.Red,
                 Method = NormalMapMethods.SobelHigh,
@@ -87,7 +87,7 @@ namespace PixelGraph.Tests.GenerationTests
                 WrapY = true,
             };
 
-            var processor = new NormalMapProcessor(options);
+            var processor = new NormalMapProcessor<Rgba32>(options);
             using var normalImage = new Image<Rgb24>(Configuration.Default, heightImage.Width, heightImage.Height);
             normalImage.Mutate(c => c.ApplyProcessor(processor));
 
@@ -100,7 +100,7 @@ namespace PixelGraph.Tests.GenerationTests
             var heightFile = PathEx.Join(AssemblyPath, "Data", "output-height.png");
             using var heightImage = await Image.LoadAsync<Rgba32>(Configuration.Default, heightFile);
 
-            var options = new NormalMapProcessor.Options {
+            var options = new NormalMapProcessor<Rgba32>.Options {
                 Source = heightImage,
                 HeightChannel = ColorChannel.Red,
                 Method = NormalMapMethods.SobelLow,
@@ -109,7 +109,7 @@ namespace PixelGraph.Tests.GenerationTests
                 WrapY = true,
             };
 
-            var processor = new NormalMapProcessor(options);
+            var processor = new NormalMapProcessor<Rgba32>(options);
             using var normalImage = new Image<Rgb24>(Configuration.Default, heightImage.Width, heightImage.Height);
             normalImage.Mutate(c => c.ApplyProcessor(processor));
 
@@ -124,7 +124,7 @@ namespace PixelGraph.Tests.GenerationTests
 
             var context = new TextureGraphContext();
             var regions = new TextureRegionEnumerator(context);
-            using var builder = new NormalMapBuilder(regions) {
+            using var builder = new NormalMapBuilder<Rgba32>(regions) {
                 HeightImage = heightImage,
                 HeightChannel = ColorChannel.Red,
                 Method = NormalMapMethods.Variance,

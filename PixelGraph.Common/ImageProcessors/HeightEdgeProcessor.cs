@@ -16,9 +16,53 @@ namespace PixelGraph.Common.ImageProcessors
             this.options = options;
         }
 
+        protected override void ProcessPixel<TPixel>(ref TPixel pixelOut, in PixelContext context)
+        {
+            float fx = 0f, fy = 0f;
+            if (!TryGetFactors(ref fx, ref fy, in context)) return;
+
+            var fValue = Math.Max(fx, fy);
+
+            var tp = pixelOut.ToScaledVector4();
+
+            var count = options.Colors.Length;
+            for (var i = 0; i < count; i++) {
+                
+                tp.GetChannelValue(in options.Colors[i], out var srcValue);
+
+                var avg = (srcValue + fValue) * 0.5f;
+                var min = MathF.Max(srcValue, avg);
+                var max = MathF.Max(min, fValue);
+                if (srcValue.Equal(max)) continue;
+
+                tp.SetChannelValue(in options.Colors[i], in max);
+            }
+
+            pixelOut.FromScaledVector4(tp);
+        }
+
         protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
         {
             float fx = 0f, fy = 0f;
+            if (!TryGetFactors(ref fx, ref fy, in context)) return;
+
+            var fValue = Math.Max(fx, fy);
+
+            var count = options.Colors.Length;
+            for (var i = 0; i < count; i++) {
+                pixelOut.GetChannelValueScaled(in options.Colors[i], out var srcValue);
+
+                var avg = (srcValue + fValue) * 0.5f;
+                var min = MathF.Max(srcValue, avg);
+                var max = MathF.Max(min, fValue);
+                if (srcValue.Equal(max)) continue;
+
+                pixelOut.SetChannelValueScaled(in options.Colors[i], in max);
+            }
+        }
+
+        private bool TryGetFactors(ref float fx, ref float fy, in PixelContext context)
+        {
             var hasChanges = false;
 
             if (options.SizeX > float.Epsilon) {
@@ -51,21 +95,7 @@ namespace PixelGraph.Common.ImageProcessors
                 }
             }
 
-            if (!hasChanges) return;
-
-            var fValue = Math.Max(fx, fy);
-
-            var count = options.Colors.Length;
-            for (var i = 0; i < count; i++) {
-                pixelOut.GetChannelValueScaled(in options.Colors[i], out var srcValue);
-
-                var avg = (srcValue + fValue) * 0.5f;
-                var min = MathF.Max(srcValue, avg);
-                var max = MathF.Max(min, fValue);
-                if (srcValue.Equal(max)) continue;
-
-                pixelOut.SetChannelValueScaled(in options.Colors[i], in max);
-            }
+            return hasChanges;
         }
 
         public class Options

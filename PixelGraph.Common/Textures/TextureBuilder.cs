@@ -361,16 +361,21 @@ namespace PixelGraph.Common.Textures
 
             var processor = new OverlayProcessor<Rgb24>(options);
 
-            foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
-                var srcFrame = regions.GetRenderRegion(frame.Index, normalGraph.NormalFrameCount);
+            if (TargetPart.HasValue) {
+                sampler.Bounds = regions.GetPublishPartFrame(TargetFrame ?? 0, context.MaxFrameCount, TargetPart.Value).SourceBounds;
+                image.Mutate(c => c.ApplyProcessor(processor));
+            }
+            else {
+                foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                    var srcFrame = regions.GetRenderRegion(frame.Index, normalGraph.NormalFrameCount);
 
-                foreach (var tile in frame.GetAllTiles(TargetPart)) {
-                    sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+                    foreach (var tile in frame.Tiles) {
+                        var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
+                            : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
 
-                    var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
-                        : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
-
-                    image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                        sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+                        image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                    }
                 }
             }
         }
@@ -390,16 +395,22 @@ namespace PixelGraph.Common.Textures
 
             var processor = new OverlayProcessor<L8>(options);
 
-            foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
-                var srcFrame = regions.GetRenderRegion(frame.Index, normalGraph.MagnitudeFrameCount);
+            if (TargetPart.HasValue) {
+                sampler.Bounds = regions.GetPublishPartFrame(TargetFrame ?? 0, context.MaxFrameCount, TargetPart.Value).SourceBounds;
+                image.Mutate(c => c.ApplyProcessor(processor));
+            }
+            else {
+                foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                    var srcFrame = regions.GetRenderRegion(frame.Index, normalGraph.MagnitudeFrameCount);
 
-                foreach (var tile in frame.GetAllTiles(TargetPart)) {
-                    sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+                    foreach (var tile in frame.Tiles) {
+                        sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
 
-                    var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
-                        : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                        var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
+                            : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
 
-                    image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                        image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                    }
                 }
             }
         }
@@ -418,16 +429,22 @@ namespace PixelGraph.Common.Textures
             
             var processor = new OverlayProcessor<L8>(options);
 
-            foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
-                var srcFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
+            if (TargetPart.HasValue) {
+                occlusionSampler.Bounds = regions.GetPublishPartFrame(TargetFrame ?? 0, context.MaxFrameCount, TargetPart.Value).SourceBounds;
+                image.Mutate(c => c.ApplyProcessor(processor));
+            }
+            else {
+                foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                    var srcFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
 
-                foreach (var tile in frame.GetAllTiles(TargetPart)) {
-                    occlusionSampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+                    foreach (var tile in frame.Tiles) {
+                        occlusionSampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
 
-                    var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
-                        : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                        var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
+                            : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
 
-                    image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                        image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                    }
                 }
             }
         }
@@ -479,17 +496,25 @@ namespace PixelGraph.Common.Textures
 
             var processor = new OverlayProcessor<Rgba32>(options);
 
-            foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
-                var srcFrame = regions.GetRenderRegion(frame.Index, info.FrameCount);
+            if (TargetPart.HasValue) {
+                var tile = regions.GetPublishPartFrame(TargetFrame ?? 0, FrameCount, TargetPart.Value);
+                foreach (var sampler in options.SamplerMap.Values) sampler.Bounds = tile.SourceBounds;
 
-                foreach (var tile in frame.GetAllTiles(TargetPart)) {
-                    foreach (var sampler in options.SamplerMap.Values)
-                        sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+                image.Mutate(c => c.ApplyProcessor(processor));
+            }
+            else {
+                foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                    var srcFrame = regions.GetRenderRegion(frame.Index, info.FrameCount);
 
-                    var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
-                        : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                    foreach (var tile in frame.Tiles) {
+                        foreach (var sampler in options.SamplerMap.Values)
+                            sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
 
-                    image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                        var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
+                            : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+
+                        image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                    }
                 }
             }
         }
@@ -519,6 +544,7 @@ namespace PixelGraph.Common.Textures
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Emissive, out var emissiveChannel)
                     && TryGetSourceFilename(emissiveChannel.Texture, out var emissiveFile)) {
                     emissiveInfo = await sourceGraph.GetOrCreateAsync(emissiveFile, token);
+
                     if (emissiveInfo != null) {
                         await using var stream = reader.Open(emissiveFile);
                         emissiveImage = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
@@ -540,20 +566,28 @@ namespace PixelGraph.Common.Textures
 
                 var processor = new PostOcclusionProcessor<L8, Rgba32>(options);
 
-                foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
-                    var occlusionFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
-                    var emissiveFrame = regions.GetRenderRegion(frame.Index, emissiveInfo?.FrameCount ?? 1);
+                if (TargetPart.HasValue) {
+                    occlusionSampler.Bounds = regions.GetPublishPartFrame(TargetFrame ?? 0, occlusionGraph.FrameCount, TargetPart.Value).SourceBounds;
 
-                    foreach (var tile in frame.GetAllTiles(TargetPart)) {
-                        occlusionSampler.Bounds = occlusionFrame.Tiles[tile.Index].Bounds;
+                    if (emissiveSampler != null)
+                        emissiveSampler.Bounds = regions.GetPublishPartFrame(TargetFrame ?? 0, emissiveInfo.FrameCount, TargetPart.Value).SourceBounds;
 
-                        if (emissiveSampler != null)
-                            emissiveSampler.Bounds = emissiveFrame.Tiles[tile.Index].Bounds;
+                    image.Mutate(c => c.ApplyProcessor(processor));
+                }
+                else {
+                    foreach (var frame in regions.GetAllRenderRegions(TargetFrame, context.MaxFrameCount)) {
+                        var occlusionFrame = regions.GetRenderRegion(frame.Index, occlusionGraph.FrameCount);
+                        var emissiveFrame = regions.GetRenderRegion(frame.Index, emissiveInfo?.FrameCount ?? 1);
 
-                        var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
-                            : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                        foreach (var tile in frame.Tiles) {
+                            occlusionSampler.Bounds = occlusionFrame.Tiles[tile.Index].Bounds;
 
-                        image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                            if (emissiveSampler != null)
+                                emissiveSampler.Bounds = emissiveFrame.Tiles[tile.Index].Bounds;
+
+                            var outBounds = GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
+                            image.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                        }
                     }
                 }
             }

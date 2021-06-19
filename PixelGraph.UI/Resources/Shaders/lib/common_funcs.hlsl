@@ -29,6 +29,8 @@ float3 calc_tex_normal(const in float2 tex, const in float3 normal, const in flo
 	tex_normal = mad(2.0f, tex_normal, -1.0f);
 	
     return normalize(normal + mad(tex_normal.x, tangent, tex_normal.y * bitangent));
+	//const float3x3 mTBN = float3x3(tangent, bitangent, normal);
+	//return normalize(mul(tex_normal, mTBN));
 }
 
 float lengthSq(const in float3 vec)

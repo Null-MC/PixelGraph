@@ -17,8 +17,8 @@ namespace PixelGraph.Common.Extensions
         public static float SinD(float d) => MathF.Sin(d * Deg2RadF);
         public static double SinD(double d) => Math.Sin(d * Deg2Rad);
 
-        public static float AsinD(float d) => MathF.Asin(d) * Deg2RadF;
-        public static double AsinD(double d) => Math.Asin(d) * Deg2Rad;
+        public static float AsinD(float d) => MathF.Asin(d) * Rad2DegF;
+        public static double AsinD(double d) => Math.Asin(d) * Rad2Deg;
 
         public static bool Equal(this in float valueA, in float valueB)
         {

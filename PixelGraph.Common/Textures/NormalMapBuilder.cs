@@ -7,12 +7,13 @@ using System;
 
 namespace PixelGraph.Common.Textures
 {
-    internal class NormalMapBuilder : IDisposable
+    internal class NormalMapBuilder<THeight> : IDisposable
+        where THeight : unmanaged, IPixel<THeight>
     {
         private readonly ITextureRegionEnumerator regions;
 
         public NormalMapMethods Method {get; set;}
-        public Image<Rgba32> HeightImage {get; set;}
+        public Image<THeight> HeightImage {get; set;}
         public ColorChannel HeightChannel {get; set;}
         public float Strength {get; set;}
         public bool WrapX {get; set;}
@@ -45,7 +46,7 @@ namespace PixelGraph.Common.Textures
 
         private Image<Rgb24> BuildSimple(int frameCount)
         {
-            var options = new NormalMapProcessor.Options {
+            var options = new NormalMapProcessor<THeight>.Options {
                 Source = HeightImage,
                 HeightChannel = HeightChannel,
                 Strength = Strength,
@@ -57,7 +58,7 @@ namespace PixelGraph.Common.Textures
             Image<Rgb24> resultImage = null;
 
             try {
-                var processor = new NormalMapProcessor(options);
+                var processor = new NormalMapProcessor<THeight>(options);
 
                 resultImage = new Image<Rgb24>(Configuration.Default, HeightImage.Width, HeightImage.Height);
 
@@ -89,7 +90,7 @@ namespace PixelGraph.Common.Textures
             VarianceMap = new Image<L8>(Configuration.Default, srcWidth, srcHeight);
             
             // Make high-freq Normal map
-            var normalHighFreqOptions = new NormalMapProcessor.Options {
+            var normalHighFreqOptions = new NormalMapProcessor<THeight>.Options {
                 Source = HeightImage,
                 HeightChannel = HeightChannel,
                 Strength = Strength,
@@ -97,7 +98,7 @@ namespace PixelGraph.Common.Textures
                 WrapY = WrapY,
             };
 
-            var normalHighFreqProcessor = new NormalMapProcessor(normalHighFreqOptions);
+            var normalHighFreqProcessor = new NormalMapProcessor<THeight>(normalHighFreqOptions);
 
             using var normalHighFreqImage = new Image<Rgb24>(Configuration.Default, srcWidth, srcHeight);
             normalHighFreqImage.Mutate(c => c.ApplyProcessor(normalHighFreqProcessor));
@@ -110,7 +111,7 @@ namespace PixelGraph.Common.Textures
             heightLowFreqImage.Mutate(context => context.Resize(lowFreqWidth, lowFreqHeight, lowFreqFilterDown));
 
             // Make low-freq Normal map
-            var normalLowFreqOptions = new NormalMapProcessor.Options {
+            var normalLowFreqOptions = new NormalMapProcessor<THeight>.Options {
                 Source = heightLowFreqImage,
                 HeightChannel = HeightChannel,
                 Strength = LowFreqStrength,
@@ -118,7 +119,7 @@ namespace PixelGraph.Common.Textures
                 WrapY = WrapY,
             };
 
-            var normalLowFreqProcessor = new NormalMapProcessor(normalLowFreqOptions);
+            var normalLowFreqProcessor = new NormalMapProcessor<THeight>(normalLowFreqOptions);
 
             using var normalLowFreqImage = new Image<Rgb24>(Configuration.Default, lowFreqWidth, lowFreqHeight);
             normalLowFreqImage.Mutate(c => c.ApplyProcessor(normalLowFreqProcessor));
@@ -130,14 +131,14 @@ namespace PixelGraph.Common.Textures
             // Create Height low/high Variance map
             var f = 1f / (1f - VarianceStrength + float.Epsilon);
 
-            var varianceOptions = new HeightVarianceProcessor<Rgba32>.Options {
+            var varianceOptions = new HeightVarianceProcessor<THeight>.Options {
                 HighFreqHeightImage = HeightImage,
                 LowFreqHeightImage = heightLowFreqImage,
                 HeightChannel = HeightChannel,
                 Strength = f,
             };
 
-            var varianceProcessor = new HeightVarianceProcessor<Rgba32>(varianceOptions);
+            var varianceProcessor = new HeightVarianceProcessor<THeight>(varianceOptions);
 
             VarianceMap.Mutate(c => {
                 c.ApplyProcessor(varianceProcessor);

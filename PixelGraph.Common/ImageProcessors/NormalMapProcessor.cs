@@ -8,14 +8,41 @@ using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class NormalMapProcessor : PixelProcessor
+    internal class NormalMapProcessor<THeight> : PixelProcessor
+        where THeight : unmanaged, IPixel<THeight>
     {
         private readonly Options options;
+
+        public bool EnableFloatingPoint {get; set;} = true;
 
 
         public NormalMapProcessor(Options options)
         {
             this.options = options;
+        }
+
+        protected override void ProcessPixel<TPixel>(ref TPixel pixel, in PixelContext context)
+        {
+            Vector3 normal;
+            switch (options.Method) {
+                case NormalMapMethods.SobelHigh:
+                    CalculateSobel3HighPass(in context, out normal);
+                    break;
+                case NormalMapMethods.SobelLow:
+                    CalculateSobel3LowPass(in context, out normal);
+                    break;
+                case NormalMapMethods.Sobel3:
+                    CalculateSobel3(in context, out normal);
+                    break;
+                default:
+                    throw new ApplicationException($"Unsupported filter '{options.Method}'!");
+            }
+
+            var tp = new Vector4();
+            tp.SetChannelValue(ColorChannel.Red, normal.X * 0.5f + 0.5f);
+            tp.SetChannelValue(ColorChannel.Green, normal.Y * 0.5f + 0.5f);
+            tp.SetChannelValue(ColorChannel.Blue, normal.Z);
+            pixel.FromScaledVector4(tp);
         }
 
         protected override void ProcessPixel(ref Rgba32 pixel, in PixelContext context)
@@ -34,7 +61,7 @@ namespace PixelGraph.Common.ImageProcessors
                 default:
                     throw new ApplicationException($"Unsupported filter '{options.Method}'!");
             }
-            
+
             pixel.SetChannelValueScaledF(ColorChannel.Red, normal.X * 0.5f + 0.5f);
             pixel.SetChannelValueScaledF(ColorChannel.Green, normal.Y * 0.5f + 0.5f);
             pixel.SetChannelValueScaledF(ColorChannel.Blue, normal.Z);
@@ -86,6 +113,8 @@ namespace PixelGraph.Common.ImageProcessors
 
         private void PopulateKernel_3x3(ref float[,] kernel, in PixelContext context)
         {
+            var p = new Rgba32();
+
             for (var kY = 0; kY < 3; kY++) {
                 var pY = context.Y + kY - 1;
 
@@ -100,8 +129,14 @@ namespace PixelGraph.Common.ImageProcessors
                     if (options.WrapX) context.WrapX(ref pX);
                     else context.ClampX(ref pX);
 
-                    // TODO: Add read-row caching
-                    row[pX].GetChannelValueScaled(in options.HeightChannel, out kernel[kX, kY]);
+                    if (EnableFloatingPoint) {
+                        var pixel = row[pX].ToScaledVector4();
+                        pixel.GetChannelValue(in options.HeightChannel, out kernel[kX, kY]);
+                    }
+                    else {
+                        row[pX].ToRgba32(ref p);
+                        p.GetChannelValueScaled(in options.HeightChannel, out kernel[kX, kY]);
+                    }
                 }
             }
         }
@@ -137,7 +172,7 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
-            public Image<Rgba32> Source;
+            public Image<THeight> Source;
             public ColorChannel HeightChannel;
             public NormalMapMethods Method;
             public float Strength = 1f;

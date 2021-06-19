@@ -320,6 +320,12 @@
                                           Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityConverter}}"
                                           IsChecked="{Binding Preview.EnableLights, Mode=TwoWay}"/>
+                                <Slider DockPanel.Dock="Right" Margin="4" Minimum="0" Maximum="100" Width="320"
+                                        Visibility="{Binding Preview.EnableRender, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"
+                                        Value="{Binding Preview.Wetness, Mode=TwoWay}"/>
+                                <TextBlock DockPanel.Dock="Right" Text="Wetness:" Margin="4" FontWeight="Bold" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
+                                           Visibility="{Binding Preview.EnableRender, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
                                 <ComboBox IsEditable="True" DockPanel.Dock="Right" Margin="4" BorderThickness="0"
                                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource VisibilityInverseConverter}}"
                                           Text="{Binding ZoomText, Mode=TwoWay, ElementName=TextureViewer}">
@@ -355,10 +361,10 @@
                                         <EventTrigger RoutedEvent="CheckBox.Checked">
                                             <BeginStoryboard Name="TimeCycleStoryboard">
                                                 <Storyboard>
-                                                    <DoubleAnimation
-                                                        Storyboard.TargetName="TimeOfDaySlider" 
-                                                        Storyboard.TargetProperty="Value" 
-                                                        From="0" To="24000" Duration="0:0:30" RepeatBehavior="Forever" />
+                                                    <SingleAnimation
+                                                        Storyboard.TargetName="MinecraftScene" 
+                                                        Storyboard.TargetProperty="TimeOfDay" 
+                                                        From="0.0" To="1.0" Duration="0:0:30" RepeatBehavior="Forever" />
                                                 </Storyboard>
                                             </BeginStoryboard>
                                         </EventTrigger>
@@ -367,9 +373,12 @@
                                         </EventTrigger>
                                     </CheckBox.Triggers>
                                 </CheckBox>
-                                <Slider x:Name="TimeOfDaySlider" DockPanel.Dock="Left" Margin="4" Minimum="-6000" Maximum="18000" Width="400"
+                                <Slider x:Name="TimeOfDaySlider" DockPanel.Dock="Right" Margin="4" Minimum="-6000" Maximum="18000" Width="320"
                                         Visibility="{Binding Preview.EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"
                                         Value="{Binding Preview.TimeOfDay, Mode=TwoWay}"/>
+                                <TextBlock DockPanel.Dock="Right" Text="Time:" Margin="4" FontWeight="Bold" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
+                                           Visibility="{Binding Preview.EnableRender, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
                             </DockPanel>
                             <Grid Visibility="{Binding HasTreeMaterialOrTextureSelection, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                 <controls:TextureView x:Name="TextureViewer"
@@ -387,7 +396,7 @@
                                     IsShadowMappingEnabled="False"
                                     ModelUpDirection="0,1,0"
                                     MSAA="Two"
-                                    ShowCoordinateSystem="True"
+                                    ShowCoordinateSystem="False"
                                     TextBrush="White"
                                     UseDefaultGestures="False"
                                     ZoomExtentsWhenLoaded="True"
@@ -408,7 +417,7 @@
                                         TimeOfDay="{Binding TimeOfDayLinear, Mode=OneWay}"
                                         SunDirection="{Binding SunDirection, Mode=OneWay}"
                                         SunStrength="{Binding SunStrength, Mode=OneWay}"
-                                        Wetness="{Binding Wetness, Mode=OneWay}"
+                                        Wetness="{Binding WetnessLinear, Mode=OneWay}"
                                         ParallaxDepth="{Binding ParallaxDepth, Mode=OneWay}"
                                         ParallaxSamplesMin="{Binding ParallaxSamplesMin, Mode=OneWay}"
                                         ParallaxSamplesMax="{Binding ParallaxSamplesMax, Mode=OneWay}"
@@ -421,8 +430,8 @@
                                                          EnvironmentCubeMapSource="{Binding Mode=OneWay, Source={x:Reference EnvironmentCubeMapSource}}"/>
                                     <hx:AmbientLight3D Color="#222"
                                                        Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
-                                    <hx:DirectionalLight3D Color="{Binding SunColor, Mode=OneWay}"
-                                                           Direction="{Binding SunCamera.LookDirection, Mode=OneWay}"
+                                    <hx:DirectionalLight3D Color="{Binding SunLightColor, Mode=OneWay}"
+                                                           Direction="{Binding SunLightDirection, Mode=OneWay}"
                                                            IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
                                     <hx:PointLight3D Color="#CA8A41" Range="16" Position="5,7,5"
                                                      IsRendering="{Binding EnableLights, Mode=OneWay}"/>

@@ -233,20 +233,25 @@ namespace PixelGraph.UI.Windows
             }
 
             try {
-                previewViewModel.Initialize();
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to initialize render preview!");
-                ShowError($"Failed to initialize 3D viewport! {error.UnfoldMessageString()}");
-            }
-
-            try {
                 await viewModel.InitializeAsync();
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to initialize main window!");
                 ShowError($"Errors occurred during startup! {error.UnfoldMessageString()}");
             }
+
+            await Dispatcher.BeginInvoke(() => {
+                try {
+                    previewViewModel.Initialize();
+                }
+                catch (Exception error) {
+                    logger.LogError(error, "Failed to initialize render preview!");
+                    ShowError($"Failed to initialize 3D viewport! {error.UnfoldMessageString()}");
+                }
+
+                previewViewModel.UpdateSun();
+                Model.EndInit();
+            });
         }
 
         private void OnWindowClosed(object sender, EventArgs e)

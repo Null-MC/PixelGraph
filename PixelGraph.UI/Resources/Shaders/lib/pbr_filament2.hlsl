@@ -87,11 +87,12 @@ float3 Specular_BRDF(const in float3 f0, const in float3 N, const in float3 H, c
 }
 
 
-float3 specular_IBL(const in float3 normal, const in float3 view, const in float roughP)
+// IBL
+
+float3 fresnelSchlickRoughness(const in float3 f0, const in float cosTheta, const in float rough)
 {
-    const float3 ref = reflect(-view, normal);
-	const float mip = roughP * NumEnvironmentMapMipLevels;
-    return tex_environment.SampleLevel(sampler_environment, ref, mip);
+	const float3 smooth = 1.0 - rough;
+    return f0 + (max(float3(smooth), f0) - f0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
 float get_specular_occlusion(float NoV, float ao, float rough) {
@@ -100,18 +101,18 @@ float get_specular_occlusion(float NoV, float ao, float rough) {
     return saturate(x1 - 1.0 + ao);
 }
 
-float3 fresnelSchlickRoughness(const in float3 f0, const in float cosTheta, const in float rough)
+float3 diffuse_IBL(const in float3 normal, const in float3 kS)
 {
-	const float3 smooth = 1.0 - rough;
-    return f0 + (max(float3(smooth), f0) - f0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
-}
-
-float3 diffuse_IBL(const in float3 normal, const in float3 view, const in float3 f0, const in float rough)
-{
-	const float NoV = max(dot(normal, view), 0.0);
-	const float3 kS = fresnelSchlickRoughness(f0, NoV, rough);
+	//const float NoV = max(dot(normal, view), 0.0);
+	//const float3 kS = fresnelSchlickRoughness(f0, NoV, rough);
 	const float3 irradiance = tex_irradiance.SampleLevel(sampler_irradiance, normal, 0);
 	return (1.0 - kS) * irradiance;
+}
+
+float3 specular_IBL(const in float3 ref, const in float3 kS, const in float roughP)
+{
+	const float mip = roughP * NumEnvironmentMapMipLevels;
+    return tex_environment.SampleLevel(sampler_environment, ref, mip) * kS;
 }
 
 float3 IBL(float3 n, float3 v, float3 diffuse, float3 f0, float3 f90, float occlusion, float rough)
@@ -119,12 +120,16 @@ float3 IBL(float3 n, float3 v, float3 diffuse, float3 f0, float3 f90, float occl
     float3 indirect_diffuse = srgb_to_linear(vLightAmbient.rgb);
     float3 indirect_specular = indirect_diffuse;
     float3 specular_occlusion = 1.0;
-	
+		
 	const float NoV = max(dot(n, v), 0.0);
+	const float3 kS = fresnelSchlickRoughness(f0, NoV, rough * rough);
+    const float3 specular_color = lerp(f0, 1.0, kS); // WARN: wrong af
 	
     if (bHasCubeMap) {
-    	indirect_diffuse = diffuse_IBL(n, v, f0, rough);
-		indirect_specular = specular_IBL(n, v, rough);
+		const float3 ref = reflect(-v, n);
+    	
+    	indirect_diffuse = diffuse_IBL(n, kS);
+		indirect_specular = specular_IBL(ref, kS, rough);
 		specular_occlusion = get_specular_occlusion(NoV, occlusion, rough);
     }
 	
@@ -138,7 +143,6 @@ float3 IBL(float3 n, float3 v, float3 diffuse, float3 f0, float3 f90, float occl
     // Specular indirect
     //const float2 env = prefilteredDFG_LUT(NoV, roughP);
     //const float3 specular_color = f0 * env.x + f90 * env.y;
-	const float3 specular_color = f0; // WARN: wrong af
 
     // Diffuse indirect
     // We multiply by the Lambertian BRDF to compute radiance from irradiance

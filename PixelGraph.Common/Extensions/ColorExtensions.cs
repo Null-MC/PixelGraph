@@ -31,22 +31,22 @@ namespace PixelGraph.Common.Extensions
             };
         }
 
-        //public static void SetChannelValue(this ref Rgb24 pixel, in ColorChannel channel, in byte value)
-        //{
-        //    switch (channel) {
-        //        case ColorChannel.Red:
-        //            pixel.R = value;
-        //            break;
-        //        case ColorChannel.Green:
-        //            pixel.G = value;
-        //            break;
-        //        case ColorChannel.Blue:
-        //            pixel.B = value;
-        //            break;
-        //        default:
-        //            throw new ArgumentOutOfRangeException(nameof(channel), channel, "Unknown color channel!");
-        //    }
-        //}
+        public static void SetChannelValue(this ref Rgb24 pixel, in ColorChannel channel, in byte value)
+        {
+            switch (channel) {
+                case ColorChannel.Red:
+                    pixel.R = value;
+                    break;
+                case ColorChannel.Green:
+                    pixel.G = value;
+                    break;
+                case ColorChannel.Blue:
+                    pixel.B = value;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(channel), channel, "Unknown color channel!");
+            }
+        }
 
         public static void SetChannelValue(this ref Rgba32 pixel, in ColorChannel channel, in byte value)
         {
@@ -103,11 +103,11 @@ namespace PixelGraph.Common.Extensions
             SetChannelValue(ref pixel, in channel, in value);
         }
 
-        //public static void SetChannelValueScaledF(this ref Rgb24 pixel, in ColorChannel channel, in float fValue)
-        //{
-        //    MathEx.SaturateFloor(in fValue, out var value);
-        //    SetChannelValue(ref pixel, in channel, in value);
-        //}
+        public static void SetChannelValueScaledF(this ref Rgb24 pixel, in ColorChannel channel, in float fValue)
+        {
+            MathEx.SaturateFloor(in fValue, out var value);
+            SetChannelValue(ref pixel, in channel, in value);
+        }
 
         public static void SetChannelValueScaledF(this ref Rgba32 pixel, in ColorChannel channel, in float fValue)
         {

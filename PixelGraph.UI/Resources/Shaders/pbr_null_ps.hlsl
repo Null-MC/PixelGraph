@@ -5,7 +5,9 @@
 #include "lib/pbr_filament2.hlsl"
 #include "lib/tonemap.hlsl"
 
-#define MIN_ROUGH_P 0.045
+#define MIN_ROUGH 0.002
+#define WATER_ROUGH 0.03
+#define WET_DARKEN 0.88
 
 #pragma pack_matrix(row_major)
 
@@ -25,45 +27,56 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 normal = normalize(input.nor);
     const float3 tangent = normalize(input.tan);
     const float3 bitangent = normalize(input.bin);
-	const float3 view = normalize(input.eye.xyz);
-
+	const float3 view = normalize(input.eye);
 	const float2 dx = ddx(input.tex);
 	const float2 dy = ddy(input.tex);
 	
-	float depth_offset;
-	const float2 tex = get_parallax_texcoord(input.tex, dx, dy, normal, input.poT, view, depth_offset);
-	const float3 tex_normal = calc_tex_normal(tex, normal, tangent, bitangent);
-	pbr_material mat = get_pbr_material(tex);
-	
-    mat.rough = max(mat.rough, MIN_ROUGH_P);
-	const float roughL = mat.rough * mat.rough;
-	//const float rough2 = roughL * roughL;
+
+	float3 shadow_tex = 0;
+    const float SNoV = saturate(dot(normal, view));
+	const float2 tex = get_parallax_texcoord(input.tex, dx, dy, input.poT, SNoV, shadow_tex);
+	float3 tex_normal = calc_tex_normal(tex, normal, tangent, bitangent);
+	const pbr_material mat = get_pbr_material(tex);
 	
 	clip(mat.alpha - EPSILON);
-	        
+
+    const float3x3 mTBN = float3x3(tangent, bitangent, normal);
+	float roughL = max(mat.rough * mat.rough, MIN_ROUGH);
+	
     // Blend base colors
 	const float metal = mat.f0 > 0.5 ? 1.0 : 0.0;
-    const float3 diffuse = lerp(mat.albedo, black, metal);	
-	float3 metal_albedo = mat.albedo;
+    float3 diffuse = lerp(mat.albedo, black, metal);
 
-    if (mat.f0 > 0.900 && mat.f0 < 0.902) metal_albedo = f0_iron;
-    else if (mat.f0 > 0.902 && mat.f0 < 0.906) metal_albedo = f0_gold;
-    else if (mat.f0 > 0.906 && mat.f0 < 0.910) metal_albedo = f0_titanium;
-    else if (mat.f0 > 0.910 && mat.f0 < 0.914) metal_albedo = f0_chrome;
-    else if (mat.f0 > 0.914 && mat.f0 < 0.918) metal_albedo = f0_copper;
-    else if (mat.f0 > 0.918 && mat.f0 < 0.922) metal_albedo = f0_lead;
-    else if (mat.f0 > 0.922 && mat.f0 < 0.926) metal_albedo = f0_platinum;
-    else if (mat.f0 > 0.926 && mat.f0 < 0.930) metal_albedo = f0_silver;
+	// Wetness
+    float p_diffuse = 1.0 - WET_DARKEN * mat.porosity;
+	diffuse *= lerp(1.0, p_diffuse, Wetness);
+
+    float surface_water = saturate(Wetness * (2.0 - roughL) * (1.0 - mat.porosity));
+	roughL = lerp(roughL, WATER_ROUGH, surface_water);
+	//tex_normal = normalize(lerp(tex_normal, normal, surface_water * 0.5));
+
+    const float f0r = lerp(mat.f0, 0.02, surface_water * (1.0 - metal));
+        
+    // HCM
+	float3 metal_f0 = mat.albedo;
+    if (f0r > 0.900 && mat.f0 < 0.902) metal_f0 *= f0_iron;
+    else if (f0r > 0.902 && f0r <= 0.906) metal_f0 *= f0_gold;
+    else if (f0r > 0.906 && f0r <= 0.910) metal_f0 *= f0_titanium;
+    else if (f0r > 0.910 && f0r <= 0.914) metal_f0 *= f0_chrome;
+    else if (f0r > 0.914 && f0r <= 0.918) metal_f0 *= f0_copper;
+    else if (f0r > 0.918 && f0r <= 0.922) metal_f0 *= f0_lead;
+    else if (f0r > 0.922 && f0r <= 0.926) metal_f0 *= f0_platinum;
+    else if (f0r > 0.926 && f0r <= 0.930) metal_f0 *= f0_silver;
+    //else if (f0r > 0.930) metal_f0 *= mat.albedo;
 	
-	const float3 f0 = mat.f0 * (1.0 - metal) + metal_albedo * metal; // * mat.occlusion;
-	
-    //const float alpha = max(roughL * roughL, EPSILON);
+	const float3 f0 = f0r * (1.0 - metal) + metal_f0 * metal;
+    	
     const float NoV = saturate(dot(tex_normal, view));
-    const float3x3 mTBN = float3x3(tangent, bitangent, normal);
     
     float3 acc_diffuse = 0.0;
     float3 acc_specular = 0.0;
     float3 acc_sss = 0.0;
+	[loop]
     for (int i = 0; i < NumLights; i++) {
         if (Lights[i].iLightType == 1) {
             // light vector (to light)
@@ -72,8 +85,9 @@ float4 main(const ps_input input) : SV_TARGET
             acc_sss += Lights[i].vLightColor.rgb * pow(saturate(dot(-view, light_dir)), 60.0) * mat.sss * diffuse * 2.0;
 
         	// light parallax shadows
+        	const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(tex, depth_offset, dx, dy, normal, polT, light_dir);
+            const float shadow = get_parallax_shadow(shadow_tex, dx, dy, polT, SNoL);
             if (shadow < EPSILON) continue;
         	
             // Half vector
@@ -102,8 +116,9 @@ float4 main(const ps_input input) : SV_TARGET
             if (Lights[i].vLightAtt.w < dl) continue;
 
         	// light parallax shadows
+        	const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(tex, depth_offset, dx, dy, normal, polT, light_dir);
+            const float shadow = get_parallax_shadow(shadow_tex, dx, dy, polT, SNoL);
             if (shadow < EPSILON) continue;
         	
             const float3 H = normalize(view + light_dir); // half direction for specular
@@ -128,13 +143,14 @@ float4 main(const ps_input input) : SV_TARGET
         	
             const float dl = length(light_dir); // light distance
             if (Lights[i].vLightAtt.w < dl) continue;
-
-        	// light parallax shadows
-        	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(tex, depth_offset, dx, dy, normal, polT, light_dir);
-            if (shadow < EPSILON) continue;
         	
             light_dir = light_dir / dl; // normalized light dir
+
+        	// light parallax shadows
+        	const float SNoL = dot(normal, light_dir);
+        	const float2 polT = get_parallax_offset(mTBN, light_dir);
+            const float shadow = get_parallax_shadow(shadow_tex, dx, dy, polT, SNoL);
+            if (shadow < EPSILON) continue;
         	
             const float3 H = normalize(view + light_dir); // half direction for specular
             const float3 sd = normalize(Lights[i].vLightDir.xyz); // missuse the vLightDir variable for spot-dir

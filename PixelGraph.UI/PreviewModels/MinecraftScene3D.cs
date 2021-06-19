@@ -79,22 +79,22 @@ namespace PixelGraph.UI.PreviewModels
             n.SunStrength = SunStrength;
             n.TimeOfDay = TimeOfDay;
             n.Wetness = Wetness;
-            n.ParallaxDepth = Wetness;
+            n.ParallaxDepth = ParallaxDepth;
             n.ParallaxSamplesMin = ParallaxSamplesMin;
             n.ParallaxSamplesMax = ParallaxSamplesMax;
             n.EnableLinearSampling = EnableLinearSampling;
         }
 
         public static readonly DependencyProperty TimeOfDayProperty =
-            DependencyProperty.Register(nameof(TimeOfDay), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(0f, (d, e) => {
+            DependencyProperty.Register(nameof(TimeOfDay), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(0.25f, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.TimeOfDay = (float) e.NewValue;
             }));
 
         public static readonly DependencyProperty SunDirectionProperty =
-            DependencyProperty.Register(nameof(SunDirection), typeof(Vector3), typeof(MinecraftScene3D), new PropertyMetadata(Vector3.UnitY, (d, e) => {
-                if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
-                    sceneNode.SunDirection = (Vector3) e.NewValue;
+            DependencyProperty.Register(nameof(SunDirection), typeof(Vector3), typeof(MinecraftScene3D), new PropertyMetadata(new Vector3(0, -1, 0), (d, e) => {
+                if (d is Element3DCore { SceneNode: MinecraftSceneNode sceneNode })
+                    sceneNode.SunDirection = (Vector3)e.NewValue;
             }));
 
         public static readonly DependencyProperty SunStrengthProperty =

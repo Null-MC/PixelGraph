@@ -13,7 +13,7 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
         static CustomSamplerStates()
         {
             Color_Point = new SamplerStateDescription {
-                Filter = Filter.MinLinearMagPointMipLinear,
+                Filter = Filter.MinMagMipPoint,
                 AddressU = TextureAddressMode.Wrap,
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Clamp,

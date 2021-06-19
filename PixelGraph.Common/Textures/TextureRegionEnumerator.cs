@@ -44,7 +44,10 @@ namespace PixelGraph.Common.Textures
 
             var tileCount = GetPublishTileCount();
 
-            if (context.IsMaterialCtm) {
+            var isFullCtm = CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Full);
+            var isCompactCtm = CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Compact);
+
+            if (isFullCtm || isCompactCtm) {
                 frame.Tiles = Enumerable.Range(0, tileCount)
                     .Select(z => new TextureRenderTile {
                         Index = z,
@@ -214,16 +217,16 @@ namespace PixelGraph.Common.Textures
         public TextureRenderTile[] Tiles {get; set;}
 
 
-        public IEnumerable<TextureRenderTile> GetAllTiles(int? part = null)
-        {
-            if (part.HasValue) {
-                yield return Tiles[part.Value];
-                yield break;
-            }
+        //public IEnumerable<TextureRenderTile> GetAllTiles(int? part = null)
+        //{
+        //    if (part.HasValue) {
+        //        yield return Tiles[part.Value];
+        //        yield break;
+        //    }
 
-            foreach (var tile in Tiles)
-                yield return tile;
-        }
+        //    foreach (var tile in Tiles)
+        //        yield return tile;
+        //}
     }
 
     public class TextureRenderTile

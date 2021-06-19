@@ -179,7 +179,13 @@ namespace PixelGraph.Common.Textures
             return true;
         }
 
-        public async Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default)
+        public Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default)
+        {
+            return GenerateAsync<Rgba64>(token);
+        }
+
+        public async Task<Image<Rgb24>> GenerateAsync<THeight>(CancellationToken token = default)
+            where THeight : unmanaged, IPixel<THeight>
         {
             logger.LogInformation("Generating normal map for texture {DisplayName}.", context.Material.DisplayName);
 
@@ -188,11 +194,11 @@ namespace PixelGraph.Common.Textures
             if (heightChannelIn == null || !heightChannelIn.HasMapping)
                 throw new HeightSourceEmptyException("No height sources mapped!");
 
-            Image<Rgba32> heightTexture = null;
+            Image<THeight> heightTexture = null;
 
             try {
                 float scale;
-                (heightTexture, scale) = await LoadHeightTextureAsync(token);
+                (heightTexture, scale) = await LoadHeightTextureAsync<THeight>(token);
 
                 if (heightTexture == null) {
                     var up = new Rgb24(127, 127, 255);
@@ -203,7 +209,7 @@ namespace PixelGraph.Common.Textures
                 if (!NormalMapMethod.TryParse(context.Material.Normal?.Method, out var normalMethod))
                     normalMethod = NormalMapMethods.Sobel3;
 
-                var builder = new NormalMapBuilder(regions) {
+                var builder = new NormalMapBuilder<THeight>(regions) {
                     HeightImage = heightTexture,
                     HeightChannel = heightChannelIn.Color ?? ColorChannel.None,
                     Strength = (float)(context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength),
@@ -353,16 +359,17 @@ namespace PixelGraph.Common.Textures
             return await sourceGraph.GetOrCreateAsync(file, token);
         }
 
-        private async Task<(Image<Rgba32>, float)> LoadHeightTextureAsync(CancellationToken token)
+        private async Task<(Image<TPixel>, float)> LoadHeightTextureAsync<TPixel>(CancellationToken token)
+            where TPixel : unmanaged, IPixel<TPixel>
         {
             var info = await GetHeightSourceAsync(token);
             if (info == null) return (null, 0f);
 
             await using var stream = reader.Open(info.LocalFile);
 
-            Image<Rgba32> heightTexture = null;
+            Image<TPixel> heightTexture = null;
             try {
-                heightTexture = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
+                heightTexture = await Image.LoadAsync<TPixel>(Configuration.Default, stream, token);
                 if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
                 // scale height texture instead of using samplers
@@ -381,16 +388,16 @@ namespace PixelGraph.Common.Textures
                     sampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
                     sampler.RangeX = sampler.RangeY = 1f / scale;
 
-                    var options = new ResizeProcessor<Rgba32>.Options {
+                    var options = new ResizeProcessor<TPixel>.Options {
                         Sampler = sampler,
                     };
 
-                    var processor = new ResizeProcessor<Rgba32>(options);
+                    var processor = new ResizeProcessor<TPixel>(options);
 
-                    Image<Rgba32> heightCopy = null;
+                    Image<TPixel> heightCopy = null;
                     try {
                         heightCopy = heightTexture;
-                        heightTexture = new Image<Rgba32>(Configuration.Default, scaledWidth, scaledHeight);
+                        heightTexture = new Image<TPixel>(Configuration.Default, scaledWidth, scaledHeight);
 
                         foreach (var frame in regions.GetAllRenderRegions(null, NormalFrameCount)) {
                             foreach (var tile in frame.Tiles) {

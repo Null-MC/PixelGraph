@@ -17,8 +17,18 @@ namespace PixelGraph.Common.PixelOperations
             return new Processor<TPixel>(configuration, source, in sourceRectangle, ProcessRow);
         }
 
-        protected abstract void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> row)
-            where TPixel : unmanaged, IPixel<TPixel>;
+        public IImageProcessor<Rgba32> CreatePixelSpecificProcessor(Configuration configuration, Image<Rgba32> source, Rectangle sourceRectangle)
+        {
+            return new Processor<Rgba32>(configuration, source, in sourceRectangle, ProcessRow);
+        }
+
+        protected virtual void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> row)
+            where TPixel : unmanaged, IPixel<TPixel> {}
+
+        protected virtual void ProcessRow(in PixelRowContext context, Span<Rgba32> row)
+        {
+            ProcessRow<Rgba32>(in context, row);
+        }
 
         protected void GetTexCoord(in PixelRowContext context, in int x, out float fx, out float fy)
         {
