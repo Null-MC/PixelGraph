@@ -1,7 +1,7 @@
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/complex_numbers.hlsl"
-//#include "lib/parallax.hlsl"
+#include "lib/parallax.hlsl"
 #include "lib/pbr_material.hlsl"
 #include "lib/pbr_jessie.hlsl"
 #include "lib/tonemap.hlsl"
@@ -72,21 +72,103 @@ float3 diffuseIBL(const float3 albedo, const float3 normal, const float3 eye, co
 		//const float vDotH = dot(eye, normalize(dir + eye));
 
 		float3 diffuse = hammonDiffuse(albedo, f0, nDotV, nDotL, nDotH, lDotV, alpha);
-		result += diffuse * tex_irradiance.Sample(sampler_irradiance, dir).rgb;
+		result += diffuse * tex_irradiance.Sample(sampler_irradiance, dir).rgb * pi;
 	}
 	return result / (float)N;
 }
 
+static const float phi1 = 1.61803398874989484820458683436563; // = phi
+static const float phi2 = 1.32471795724474602596090885447809; // = plastic constant, plastic ratio, etc
+static const float phi3 = 1.220744084605759475361685349108831;
+
+float R1(float n) {
+	float s0 = 0.5;
+	float alpha = 1.0 / phi1;
+	return frac(s0 + n * alpha);
+}
+float2 R2(float n) {
+	float s0 = 0.5;
+	float2 alpha = 1.0 / float2(phi2, phi2 * phi2);
+	return frac(s0 + n * alpha);
+}
+float3 R3(float n) {
+	float s0 = 0.5;
+	float3 alpha = 1.0 / float3(phi3, phi3 * phi3, phi3 * phi3 * phi3);
+	return frac(s0 + n * alpha);
+}
+
+float R2Dither(float2 xy) {
+	float2 alpha = 1.0 / float2(phi2, phi2 * phi2);
+	return frac(dot(xy, alpha));
+}
+float R2DitherContinuous(float2 xy) { // technically better but only slightly
+	float z = R2Dither(xy);
+	return z < 0.5 ? 2.0 * z : 2.0 - 2.0 * z;
+}
+
+float bayer2(float2 c) { c = 0.5 * floor(c); return frac(1.5 * frac(c.y) + c.x); }
+float bayer4(float2 c) { return 0.25 * bayer2(0.5 * c) + bayer2(c); }
+float bayer8(float2 c) { return 0.25 * bayer4(0.5 * c) + bayer2(c); }
+float bayer16(float2 c) { return 0.25 * bayer8(0.5 * c) + bayer2(c); }
+float bayer32(float2 c) { return 0.25 * bayer16(0.5 * c) + bayer2(c); }
+float bayer64(float2 c) { return 0.25 * bayer32(0.5 * c) + bayer2(c); }
+float bayer128(float2 c) { return 0.25 * bayer64(0.5 * c) + bayer2(c); }
+
+float3 ggxDistribution(const float3 normal, float4 noise, const float alpha2) {
+	noise.xyz = normalize(cross(normal, noise.xyz * 2.0 - 1.0));
+	noise.w *= 0.9;
+	return normalize(noise.xyz * sqrt(alpha2 * noise.w / (1.0 - noise.w)) + normal);
+}
+
+float3 specularReflection(const float dither, const float3 normal, const float3 eye, const float f0, const float alpha) {
+	uint N = 64u;
+	float3 result = float3(0.0f, 0.0f, 0.0f);
+
+	int metalID = int(f0 * 255.0 - 229.5);
+
+	float3 n = f0ToIOR(float3(f0, f0, f0));
+	float3 k = float3(0.0f, 0.0f, 0.0f);
+
+	complexFloat3 n1;
+	n1.real = float3(1.00029f, 1.00029f, 1.00029f);
+	n1.imag = float3(0.0f, 0.0f, 0.0f);
+	complexFloat3 n2;
+	n2.real = n;
+	n2.imag = k;
+
+	for (uint i = 0u; i < N; ++i) {
+		float3 roughNormal = ggxDistribution(normal, float4(R3((i + dither) * 32.0), R1((i + dither) * 32.0)), alpha);
+
+		float3 reflectionDirection = reflect(-eye, roughNormal);
+
+		float3 fresnel = fresnelNonPolarized(dot(roughNormal, eye), n1, n2);
+		float G2_over_G1 = saturate(smithGGXMaskingShadowing(dot(normal, eye), abs(dot(normal, reflectionDirection)), alpha));
+
+		result += tex_environment.Sample(sampler_environment, reflectionDirection).rgb * fresnel * G2_over_G1;
+	} result /= N;
+
+	return result;
+}
+
 float4 main(const ps_input input) : SV_TARGET
 {
+	const float3 in_normal = normalize(input.nor);
+	const float3 tangent = normalize(input.tan);
+	const float3 bitangent = normalize(input.bin);
+	const float3 view = normalize(input.eye);
+	const float2 dx = ddx(input.tex);
+	const float2 dy = ddy(input.tex);
+
+	float3 shadow_tex = 0;
 	const float3 eye = normalize(input.eye.xyz);
+	const float2 tex = get_parallax_texcoord(input.tex, dx, dy, input.poT, saturate(dot(in_normal, eye)), shadow_tex);
 	
-	pbr_material mat = get_pbr_material(input.tex);
+	pbr_material mat = get_pbr_material(tex);
 	mat.rough = mat.rough * mat.rough;
 
 	clip(mat.alpha - EPSILON);
-	
-	const float3 normal = calc_tex_normal(input.tex, input.nor, input.tan, input.bin);
+
+	float3 normal = calc_tex_normal(tex, in_normal, tangent, bitangent);
 	
 	float3 lightDir = SunDirection;
 
@@ -103,9 +185,12 @@ float4 main(const ps_input input) : SV_TARGET
 
 	float3 lightColor = float3(2.0f, 2.0f, 2.0f);
 
+	float3 BRDF = specularBRDF(nDotL, nDotV, nDotH, vDotH, mat.f0, alpha);
+
 	float3 lit  = lightColor * hammonDiffuse(mat.albedo, mat.f0, nDotV, nDotL, nDotH, lDotV, alpha);
-		   lit += lightColor * specularBRDF(nDotL, nDotV, nDotH, vDotH, mat.f0, alpha);
-		   lit += diffuseIBL(mat.albedo, normal, eye, mat.f0, alpha);
+		   lit += pi * diffuseIBL(mat.albedo, normal, eye, mat.f0, alpha);
+		   lit += lightColor * BRDF;
+		   lit += specularReflection(bayer32(input.tex * 1920.0), normal, eye, mat.f0, alpha);
 
     //if (bRenderShadowMap)
     //    lit *= shadow_strength(input.sp);

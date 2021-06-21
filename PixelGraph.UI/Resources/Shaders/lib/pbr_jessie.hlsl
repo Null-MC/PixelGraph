@@ -45,17 +45,24 @@ float D_GGX(float ndoth, float roughnessSquared) {
     return roughnessSquared / (pi * p * p);
 }
 
-float specularBRDF(float nDotL, float nDotV, float nDotH, float vDotH, float f0, float roughnessSquared) {
+float3 specularBRDF(float nDotL, float nDotV, float nDotH, float vDotH, float f0, float roughnessSquared) {
     nDotV = abs(nDotV);
+
+    complexFloat3 n1;
+    n1.real = float3(1.00029f, 1.00029f, 1.00029f);
+    n1.imag = float3(0.0f, 0.0f, 0.0f);
+    complexFloat3 n2;
+    n2.real = f0ToIOR(float3(f0, f0, f0));
+    n2.imag = float3(0.0f, 0.0f, 0.0f);
 
     float G = smithGGXMaskingShadowing(nDotV, nDotL, roughnessSquared);
     float D = D_GGX(nDotH, roughnessSquared);
-    float F = schlickFresnel(vDotH, f0);
+    float3 F = fresnelNonPolarized(vDotH, n1, n2);
 
-    float numerator = G * D * F;
+    float3 numerator = G * D * F;
     float denominator = 4.0f * vDotH;
 
-    float specular = max(numerator / denominator, 0.0f);
+    float3 specular = max(numerator / denominator, 0.0f);
 
     return specular;
 }
