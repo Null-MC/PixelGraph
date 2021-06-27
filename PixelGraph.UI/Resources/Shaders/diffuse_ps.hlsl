@@ -1,6 +1,7 @@
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/diffuse.hlsl"
+#include "lib/tonemap.hlsl"
 
 #pragma pack_matrix(row_major)
 
@@ -28,13 +29,12 @@ float4 main(const ps_input input) : SV_TARGET
     //    lit *= shadow_strength(input.sp);
 
 	float3 ambient = srgb_to_linear(vLightAmbient.rgb);
-
-	if (bHasCubeMap)
-		ambient = get_ambient(normal);
+	if (bHasCubeMap) ambient = get_ambient(normal);
 	
 	float3 final_color = lit + diffuse * (ambient + emissive * PI);
 	
-	final_color = linear_to_srgb(final_color);
+	//final_color = linear_to_srgb(final_color);
+	final_color = tonemap_HejlBurgess(final_color);
 	
     return float4(final_color, diffuse_alpha.a);
 }

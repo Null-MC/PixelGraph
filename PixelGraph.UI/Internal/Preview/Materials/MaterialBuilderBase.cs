@@ -1,9 +1,13 @@
 ﻿using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
+using PixelGraph.UI.Internal.Preview.CubeMaps;
 using PixelGraph.UI.Internal.Preview.Textures;
-using PixelGraph.UI.Models;
 using SharpDX.Direct3D11;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,12 +16,16 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal.Preview.Materials
 {
-    internal interface IMaterialBuilder
+    internal interface IMaterialBuilder : IDisposable, IAsyncDisposable
     {
         string PassName {get; set;}
         string PassNameOIT {get; set;}
         SamplerStateDescription ColorSampler {get; set;}
         SamplerStateDescription HeightSampler {get; set;}
+
+        ResourcePackInputProperties PackInput {get; set;}
+        ResourcePackProfileProperties PackProfile {get; set;}
+        MaterialProperties Material {get; set;}
 
         Task UpdateAllTexturesAsync(CancellationToken token = default);
         Task UpdateTexturesByTagAsync(string textureTag, CancellationToken token = default);
@@ -26,23 +34,35 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         Material BuildMaterial();
     }
 
-    internal abstract class MaterialBuilderBase<T> : IMaterialBuilder, IDisposable, IAsyncDisposable
+    internal abstract class MaterialBuilderBase<T> : IMaterialBuilder
         where T : ITexturePreviewBuilder
     {
         private readonly IServiceProvider provider;
+        private readonly BmpEncoder encoder;
 
         protected Dictionary<string, Stream> TextureMap {get;}
 
-        public MainModel Model {get; set;}
         public string PassName {get; set;}
         public string PassNameOIT {get; set;}
         public SamplerStateDescription ColorSampler {get; set;}
         public SamplerStateDescription HeightSampler {get; set;}
 
+        public ResourcePackInputProperties PackInput {get; set;}
+        public ResourcePackProfileProperties PackProfile {get; set;}
+        public MaterialProperties Material {get; set;}
+        public ICubeMapSource EnvironmentCubeMapSource {get; set;}
+        public ICubeMapSource IrradianceCubeMapSource {get; set;}
+        public bool RenderEnvironmentMap {get; set;}
+
 
         protected MaterialBuilderBase(IServiceProvider provider)
         {
             this.provider = provider;
+
+            encoder = new BmpEncoder {
+                BitsPerPixel = BmpBitsPerPixel.Pixel32,
+                SupportTransparency = true,
+            };
 
             TextureMap = new Dictionary<string, Stream>(StringComparer.InvariantCultureIgnoreCase);
         }
@@ -56,6 +76,8 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         {
             await ClearAllTexturesAsync();
         }
+
+        public abstract Material BuildMaterial();
 
         public virtual async Task UpdateAllTexturesAsync(CancellationToken token = default)
         {
@@ -91,48 +113,25 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             }
         }
 
-        public abstract Material BuildMaterial();
-
         protected ITexturePreviewBuilder GetPreviewBuilder()
         {
             var previewBuilder = provider.GetRequiredService<T>();
 
-            previewBuilder.Input = Model.PackInput;
-            previewBuilder.Profile = Model.Profile.Loaded;
-            previewBuilder.Material = Model.Material.Loaded;
+            previewBuilder.Input = PackInput;
+            previewBuilder.Profile = PackProfile;
+            previewBuilder.Material = Material;
             
             return previewBuilder;
         }
 
-        protected static async Task<Stream> GetTextureStreamAsync(ITexturePreviewBuilder previewBuilder, string textureTag, int? frame = null, int? part = null, CancellationToken token = default)
+        protected async Task<Stream> GetTextureStreamAsync(ITexturePreviewBuilder previewBuilder, string textureTag, int? frame = null, int? part = null, CancellationToken token = default)
         {
             var stream = new MemoryStream();
 
             try {
-                using var image = await previewBuilder.BuildAsync(textureTag, frame, part);
+                using var image = await previewBuilder.BuildAsync<Rgba32>(textureTag, frame, part);
 
-                //if (!image.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
-                //    throw new VeldridException("Unable to get image pixelspan.");
-
-                //fixed (void* pin = &MemoryMarshal.GetReference(pixelSpan))
-                //{
-                //    gd.UpdateTexture(
-                //        tex,
-                //        (IntPtr)pin,
-                //        (uint)(PixelSizeInBytes * image.Width * image.Height),
-                //        0,
-                //        0,
-                //        0,
-                //        (uint)image.Width,
-                //        (uint)image.Height,
-                //        1,
-                //        (uint)level,
-                //        0);
-                //}
-
-                //var info = new TextureInfo(stream, Format.R8G8B8A8_UInt, image.Width, image.Height, true);
-                
-                await image.SaveAsPngAsync(stream, token);
+                await image.SaveAsBmpAsync(stream, encoder, token);
                 await stream.FlushAsync(token);
                 stream.Position = 0;
                 return stream;

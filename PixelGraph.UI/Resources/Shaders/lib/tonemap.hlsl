@@ -8,7 +8,8 @@ static const float3 black = 0.0;
 static const float shit = rcp(1.1);
 
 
-float3 tonemap_HejlBurgess(const float3 color) {
+float3 tonemap_HejlBurgess(const float3 color)
+{
 	const float3 t = max(black, color * shit - 0.0008f);
 	return color * (6.2 * t + 0.5) / (t * (6.2 * t + 1.7) + 0.06);
 }

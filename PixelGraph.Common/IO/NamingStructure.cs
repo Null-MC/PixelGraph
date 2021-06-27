@@ -93,7 +93,8 @@ namespace PixelGraph.Common.IO
         public static string GetInputMetaName(MaterialProperties material)
         {
             var path = GetPath(material, material.UseGlobalMatching);
-            return PathEx.Join(path, "mat.mcmeta");
+            var name = material.UseGlobalMatching ? $"{material.Name}.mcmeta" : "mat.mcmeta";
+            return PathEx.Join(path, name);
         }
 
         public static string GetInputMetaName(MaterialProperties material, string tag)

@@ -1,6 +1,6 @@
 #define PI 3.14159265f
 #define EPSILON 1e-6f
-#define Gamma 2.2
+#define Gamma 2.4
 
 #pragma pack_matrix(row_major)
 
@@ -25,7 +25,7 @@ float3 linear_to_srgb(const float3 rgb)
 
 float3 calc_tex_normal(const in float2 tex, const in float3 normal, const in float3 tangent, const in float3 bitangent)
 {
-    float3 tex_normal = tex_normal_height.Sample(sampler_surface, tex).xyz;
+    float3 tex_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
 	tex_normal = mad(2.0f, tex_normal, -1.0f);
 	
     return normalize(normal + mad(tex_normal.x, tangent, tex_normal.y * bitangent));

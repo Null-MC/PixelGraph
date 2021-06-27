@@ -6,7 +6,7 @@
 #include "lib/tonemap.hlsl"
 
 #define MIN_ROUGH 0.002
-#define WATER_ROUGH 0.03
+#define WATER_ROUGH 0.02
 #define WET_DARKEN 0.88
 
 #pragma pack_matrix(row_major)
@@ -28,20 +28,20 @@ float4 main(const ps_input input) : SV_TARGET
     const float3 tangent = normalize(input.tan);
     const float3 bitangent = normalize(input.bin);
 	const float3 view = normalize(input.eye);
-	const float2 dx = ddx(input.tex);
-	const float2 dy = ddy(input.tex);
-	
 
 	float3 shadow_tex = 0;
     const float SNoV = saturate(dot(normal, view));
-	const float2 tex = get_parallax_texcoord(input.tex, dx, dy, input.poT, SNoV, shadow_tex);
+	const float2 tex = get_parallax_texcoord(input.tex, input.poT, SNoV, shadow_tex);
 	float3 tex_normal = calc_tex_normal(tex, normal, tangent, bitangent);
 	const pbr_material mat = get_pbr_material(tex);
 	
 	clip(mat.alpha - EPSILON);
 
+	//return float4(tex_normal, 1.0f);
+
     const float3x3 mTBN = float3x3(tangent, bitangent, normal);
-	float roughL = max(mat.rough * mat.rough, MIN_ROUGH);
+	float roughP = max(mat.rough, MIN_ROUGH);
+	float roughL = roughP * roughP;
 	
     // Blend base colors
 	const float metal = mat.f0 > 0.5 ? 1.0 : 0.0;
@@ -53,6 +53,7 @@ float4 main(const ps_input input) : SV_TARGET
 
     float surface_water = saturate(Wetness * (2.0 - roughL) * (1.0 - mat.porosity));
 	roughL = lerp(roughL, WATER_ROUGH, surface_water);
+	roughP = sqrt(roughL);
 	//tex_normal = normalize(lerp(tex_normal, normal, surface_water * 0.5));
 
     const float f0r = lerp(mat.f0, 0.02, surface_water * (1.0 - metal));
@@ -70,24 +71,24 @@ float4 main(const ps_input input) : SV_TARGET
     //else if (f0r > 0.930) metal_f0 *= mat.albedo;
 	
 	const float3 f0 = f0r * (1.0 - metal) + metal_f0 * metal;
-    	
     const float NoV = saturate(dot(tex_normal, view));
     
     float3 acc_diffuse = 0.0;
     float3 acc_specular = 0.0;
     float3 acc_sss = 0.0;
+	
 	[loop]
     for (int i = 0; i < NumLights; i++) {
         if (Lights[i].iLightType == 1) {
             // light vector (to light)
             const float3 light_dir = normalize(Lights[i].vLightDir.xyz);
         	
-            acc_sss += Lights[i].vLightColor.rgb * pow(saturate(dot(-view, light_dir)), 60.0) * mat.sss * diffuse * 2.0;
+            //acc_sss += Lights[i].vLightColor.rgb * pow(saturate(dot(-view, light_dir)), 60.0) * mat.sss * diffuse * 2.0;
 
         	// light parallax shadows
         	const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(shadow_tex, dx, dy, polT, SNoL);
+            const float shadow = get_parallax_shadow(shadow_tex, polT, SNoL);
             if (shadow < EPSILON) continue;
         	
             // Half vector
@@ -102,23 +103,24 @@ float4 main(const ps_input input) : SV_TARGET
             // Diffuse & specular factors
             const float3 light_diffuse = disney_diffuse(diffuse, NoV, NoL, LoH, roughL);
             const float3 light_specular = Specular_BRDF(f0, tex_normal, H, LoH, NoH, VoH, roughL);
+        	const float3 light_factor = NoL * Lights[i].vLightColor.rgb * shadow;
         	
-            acc_diffuse += NoL * Lights[i].vLightColor.rgb * light_diffuse * shadow;
-            acc_specular += NoL * Lights[i].vLightColor.rgb * light_specular * shadow;
+            acc_diffuse += light_diffuse * light_factor;
+            acc_specular += light_specular * light_factor;
         }
         else if (Lights[i].iLightType == 2) {
             float3 light_dir = Lights[i].vLightPos.xyz - input.wp.xyz; // light dir
             const float dl = length(light_dir); // light distance
             light_dir = light_dir / dl; // normalized light dir
         	
-            acc_sss += Lights[i].vLightColor.rgb * pow(saturate(dot(-view, light_dir)), 30.0) * mat.sss * diffuse * 2.0;
+            //acc_sss += Lights[i].vLightColor.rgb * pow(saturate(dot(-view, light_dir)), 30.0) * mat.sss * diffuse * 2.0;
         	
             if (Lights[i].vLightAtt.w < dl) continue;
 
         	// light parallax shadows
         	const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(shadow_tex, dx, dy, polT, SNoL);
+            const float shadow = get_parallax_shadow(shadow_tex, polT, SNoL);
             if (shadow < EPSILON) continue;
         	
             const float3 H = normalize(view + light_dir); // half direction for specular
@@ -132,14 +134,15 @@ float4 main(const ps_input input) : SV_TARGET
             // Diffuse & specular factors
             const float3 light_diffuse = disney_diffuse(diffuse, NoV, NoL, LoH, roughL);
             const float3 light_specular = Specular_BRDF(f0, tex_normal, H, LoH, NoH, VoH, roughL);
-            const float att = 1.0 / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * dl + Lights[i].vLightAtt.z * dl * dl);
-            acc_diffuse = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * light_diffuse, acc_diffuse);
+        	const float att = 1.0f / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * dl + Lights[i].vLightAtt.z * dl * dl);
+
+        	acc_diffuse = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * light_diffuse, acc_diffuse);
             acc_specular = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * light_specular, acc_specular);
         }
         else if (Lights[i].iLightType == 3) {
             float3 light_dir = Lights[i].vLightPos.xyz - input.wp.xyz; // light dir
         	
-            acc_sss += Lights[i].vLightColor.rgb * pow(saturate(dot(-view, light_dir)), 60.0) * mat.sss * diffuse * 2.0;
+            //acc_sss += Lights[i].vLightColor.rgb * pow(saturate(dot(-view, light_dir)), 60.0) * mat.sss * diffuse * 2.0;
         	
             const float dl = length(light_dir); // light distance
             if (Lights[i].vLightAtt.w < dl) continue;
@@ -149,7 +152,7 @@ float4 main(const ps_input input) : SV_TARGET
         	// light parallax shadows
         	const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(shadow_tex, dx, dy, polT, SNoL);
+            const float shadow = get_parallax_shadow(shadow_tex, polT, SNoL);
             if (shadow < EPSILON) continue;
         	
             const float3 H = normalize(view + light_dir); // half direction for specular
@@ -167,23 +170,25 @@ float4 main(const ps_input input) : SV_TARGET
             const float rho = dot(-light_dir, sd);
             const float spot = pow(saturate((rho - Lights[i].vLightSpot.x) / (Lights[i].vLightSpot.y - Lights[i].vLightSpot.x)), Lights[i].vLightSpot.z);
             const float att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * dl + Lights[i].vLightAtt.z * dl * dl);
-            acc_diffuse = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * light_diffuse, acc_diffuse);
+
+        	acc_diffuse = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * light_diffuse, acc_diffuse);
             acc_specular = mad(att * shadow, NoL * Lights[i].vLightColor.rgb * light_specular, acc_specular);
         }
     }
 
-	const float3 ibl = IBL(tex_normal, view, diffuse, f0, 1.0, mat.occlusion, roughL);
+	float3 ibl_ambient, ibl_specular;
+	IBL(tex_normal, view, diffuse, f0, mat.occlusion, roughP, ibl_ambient, ibl_specular);
 	
 	const float3 emissive = mat.emissive * mat.albedo * PI;
 
-	if (bHasCubeMap) {
-		const int level = int((1.0 - mat.sss) * NumEnvironmentMapMipLevels);
-        acc_sss += tex_environment.SampleLevel(sampler_environment, view, level) * mat.sss * diffuse;
-	}
+	//if (bHasCubeMap) {
+	//	const int level = int((1.0 - mat.sss) * NumEnvironmentMapMipLevels);
+ //       acc_sss += tex_environment.SampleLevel(sampler_environment, view, level) * mat.sss * diffuse;
+	//}
 	
 	//final_color = ACESFilm(final_color);
-    float3 final_color = acc_diffuse + acc_sss + acc_specular + ibl + emissive;
-	float alpha = mat.alpha + lum(acc_specular);
+    float3 final_color = acc_diffuse + ibl_ambient + acc_sss + acc_specular + ibl_specular + emissive;
+	float alpha = mat.alpha + lum(acc_specular + ibl_specular);
 
 	final_color = tonemap_HejlBurgess(final_color);
 	//final_color = linear_to_srgb(final_color);

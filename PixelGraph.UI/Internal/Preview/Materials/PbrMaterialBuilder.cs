@@ -19,16 +19,21 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public override Material BuildMaterial()
         {
             var mat = new CustomPbrMaterial(PassName, PassNameOIT) {
-                EnvironmentCubeMapSource = Model.Preview.EnvironmentCube,
-                IrradianceCubeMapSource = Model.Preview.IrradianceCube,
-                RenderEnvironmentMap = Model.Preview.EnableEnvironment,
+                EnvironmentCubeMapSource = EnvironmentCubeMapSource,
+                IrradianceCubeMapSource = IrradianceCubeMapSource,
+                RenderEnvironmentMap = RenderEnvironmentMap,
                 SurfaceMapSampler = ColorSampler,
                 HeightMapSampler = HeightSampler,
                 RenderShadowMap = false,
             };
 
-            if (TextureMap.TryGetValue(TextureTags.Albedo, out var albedoStream) && albedoStream != null)
+            //var loader = new CustomTextureLoader();
+            //...
+
+            if (TextureMap.TryGetValue(TextureTags.Albedo, out var albedoStream) && albedoStream != null) {
+                //var albedoContentId = Guid.NewGuid();
                 mat.AlbedoAlphaMap = TextureModel.Create(albedoStream);
+            }
 
             if (TextureMap.TryGetValue(TextureTags.Normal, out var normalStream) && normalStream != null)
                 mat.NormalHeightMap = TextureModel.Create(normalStream);
@@ -42,4 +47,17 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             return mat;
         }
     }
+
+    //internal class CustomTextureLoader : ITextureInfoLoader
+    //{
+    //    public TextureInfo Load(Guid id)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public void Complete(Guid id, TextureInfo info, bool succeeded)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }

@@ -66,7 +66,7 @@ namespace PixelGraph.Common.Textures
         {
             context.ApplyInputEncoding();
 
-            matMetaFileIn = context.GetMetaInputFilename();
+            matMetaFileIn = NamingStructure.GetInputMetaName(context.Material);
             context.IsAnimated = reader.FileExists(matMetaFileIn);
 
             var packWriteTime = reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;

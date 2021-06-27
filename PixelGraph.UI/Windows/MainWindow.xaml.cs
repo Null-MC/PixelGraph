@@ -11,6 +11,7 @@ using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
+using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Collections.ObjectModel;
@@ -64,6 +65,7 @@ namespace PixelGraph.UI.Windows
             Model.Preview.EnvironmentCube = EnvironmentCubeMapSource;
             Model.Preview.IrradianceCube = IrradianceCubeMapSource;
             Model.SelectedLocation = ManualLocation;
+
             Model.Profile.SelectionChanged += OnSelectedProfileChanged;
         }
 
@@ -151,66 +153,53 @@ namespace PixelGraph.UI.Windows
             return filename;
         }
 
-        public async Task PopulateTextureViewerAsync(CancellationToken token = default)
+        private ITabModel GetTabModel(ContentTreeNode node)
         {
-            if (Model.SelectedNode is ContentTreeFile {Type: ContentNodeType.Texture} texFile) {
-                var fullFile = PathEx.Join(Model.RootDirectory, texFile.Filename);
+            var tabList = Model.TabList.AsEnumerable();
+            if (Model.PreviewTab != null) tabList = tabList.Prepend(Model.PreviewTab);
 
-                await previewViewModel.SetFromFileAsync(fullFile);
+            foreach (var tab in tabList) {
+                switch (node) {
+                    case ContentTreeMaterialDirectory materialNode when tab is MaterialTabModel materialTab: {
+                        if (materialNode.MaterialFilename == materialTab.MaterialFilename)
+                            return materialTab;
 
-                Model.Material.Loaded = null;
-                return;
+                        break;
+                    }
+                    case ContentTreeFile fileNode when tab is MaterialTabModel materialTab: {
+                        if (fileNode.Filename == materialTab.MaterialFilename)
+                            return materialTab;
+                        break;
+                    }
+                    case ContentTreeFile fileNode when tab is TextureTabModel textureTab: {
+                        if (fileNode.Filename == textureTab.ImageFilename)
+                            return textureTab;
+
+                        break;
+                    }
+                }
             }
 
-            previewViewModel.Cancel();
-            await previewViewModel.ClearAsync();
+            return null;
+        }
 
-            bool isMat;
-            string matFile;
-            if (Model.SelectedNode is ContentTreeMaterialDirectory matFolder) {
-                isMat = true;
-                matFile = matFolder.MaterialFilename;
-            }
-            else {
-                var fileNode = Model.SelectedNode as ContentTreeFile;
-                isMat = fileNode?.Type == ContentNodeType.Material;
-                matFile = fileNode?.Filename;
-            }
-
-            if (!isMat) {
-                Model.Material.Loaded = null;
-                return;
-            }
-
-            // TODO: wait for texture busy
-            var reader = provider.GetRequiredService<IInputReader>();
-            var matReader = provider.GetRequiredService<IMaterialReader>();
-
-            reader.SetRoot(Model.RootDirectory);
-            Model.Material.LoadedFilename = matFile;
-
-            try {
-                Model.Material.Loaded = await matReader.LoadAsync(matFile, token);
-            }
-            catch (Exception error) {
-                Model.Material.Loaded = null;
-                logger.LogError(error, "Failed to load material properties!");
-                ShowError($"Failed to load material properties! {error.UnfoldMessageString()}");
-            }
-
-            var enableAutoMaterial = Model.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
-
-            if (Model.Material.Loaded == null && enableAutoMaterial) {
-                var localPath = Path.GetDirectoryName(matFile);
-
-                Model.Material.Loaded = new MaterialProperties {
-                    LocalFilename = matFile,
-                    LocalPath = Path.GetDirectoryName(localPath),
-                    Name = Path.GetFileName(localPath),
-                };
-            }
-
-            await previewViewModel.UpdateAsync(true, token);
+        private static ITabModel BuildTabModel(ContentTreeNode node)
+        {
+            return node switch {
+                ContentTreeMaterialDirectory materialNode => new MaterialTabModel {
+                    DisplayName = materialNode.Name,
+                    MaterialFilename = materialNode.MaterialFilename,
+                },
+                ContentTreeFile {Type: ContentNodeType.Material} materialFileNode => new MaterialTabModel {
+                    DisplayName = materialFileNode.Name,
+                    MaterialFilename = materialFileNode.Filename,
+                },
+                ContentTreeFile {Type: ContentNodeType.Texture} textureFileNode => new TextureTabModel {
+                    DisplayName = textureFileNode.Name,
+                    ImageFilename = textureFileNode.Filename,
+                },
+                _ => null,
+            };
         }
 
         private void ShowError(string message)
@@ -254,11 +243,6 @@ namespace PixelGraph.UI.Windows
             });
         }
 
-        private void OnWindowClosed(object sender, EventArgs e)
-        {
-            previewViewModel.Dispose();
-        }
-
         private async void OnRecentSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (RecentList.SelectedItem is not string item) return;
@@ -284,7 +268,7 @@ namespace PixelGraph.UI.Windows
 
             if (window.ShowDialog() != true) return;
 
-            await previewViewModel.ClearAsync();
+            viewModel.CloseAllTabs();
             viewModel.Clear();
 
             await viewModel.SetRootDirectoryAsync(window.Model.Location, CancellationToken.None);
@@ -309,9 +293,9 @@ namespace PixelGraph.UI.Windows
             await ShowImportFolderAsync();
         }
 
-        private async void OnCloseProjectClick(object sender, RoutedEventArgs e)
+        private void OnCloseProjectClick(object sender, RoutedEventArgs e)
         {
-            await previewViewModel.ClearAsync();
+            viewModel.CloseAllTabs();
             viewModel.Clear();
         }
 
@@ -467,32 +451,84 @@ namespace PixelGraph.UI.Windows
 
         private async void OnMaterialChanged(object sender, EventArgs e)
         {
-            await viewModel.SaveMaterialAsync();
+            var tab = Model.SelectedTab as MaterialTabModel;
+            var material = tab?.Material;
+            if (material == null) return;
 
-            //await UpdatePreviewAsync(false);
-            await previewViewModel.UpdateAsync(true);
+            await viewModel.SaveMaterialAsync(material);
+
+            previewViewModel.InvalidateLayer(tab.Id);
+            await previewViewModel.UpdateTabPreviewAsync(tab.Id);
         }
 
         private async void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             Model.SelectedNode = e.NewValue as ContentTreeNode;
 
-            await Task.Run(async () => {
-                try {
-                    await PopulateTextureViewerAsync();
+            var existingTab = GetTabModel(Model.SelectedNode);
+            if (existingTab != null) {
+                if (existingTab.IsPreview) {
+                    Model.IsPreviewTabSelected = true;
+                    Model.TabListSelection = null;
                 }
-                catch (Exception error) {
-                    logger.LogError(error, "Failed to populate texture viewer!");
-                    //ShowError("Failed to populate texture viewer!");
+                else {
+                    Model.IsPreviewTabSelected = false;
+                    Model.TabListSelection = existingTab;
                 }
-            });
+                return;
+            }
+
+            var newTab = BuildTabModel(Model.SelectedNode);
+            if (newTab == null) {
+                viewModel.ClearPreviewTab();
+                return;
+            }
+
+            try {
+                await viewModel.LoadTabContentAsync(newTab);
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to load tab content!");
+                ShowError($"Failed to load tab content! {error.Message}");
+                return;
+            }
+
+            newTab.IsPreview = true;
+            await Dispatcher.BeginInvoke(() => viewModel.SetPreviewTab(newTab));
+        }
+
+        private async void OnContentTreeMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var existingTab = GetTabModel(Model.SelectedNode);
+            if (existingTab != null) {
+                if (!existingTab.IsPreview) {
+                    Model.TabListSelection = existingTab;
+                    return;
+                }
+
+                Model.PreviewTab = null;
+                Model.IsPreviewTabSelected = false;
+                existingTab.IsPreview = false;
+                Model.TabList.Insert(0, existingTab);
+                Model.TabListSelection = existingTab;
+                return;
+            }
+
+            var newTab = BuildTabModel(Model.SelectedNode);
+            if (newTab == null) return;
+
+            await viewModel.LoadTabContentAsync(newTab);
+
+            await Dispatcher.BeginInvoke(() => viewModel.AddNewTab(newTab));
         }
 
         private async void OnGenerateNormal(object sender, EventArgs e)
         {
-            if (!Model.Material.HasLoaded) return;
+            if (Model.SelectedTab is not MaterialTabModel materialTab) return;
 
-            var material = Model.Material.Loaded;
+            var material = materialTab.Material;
+            if (material == null) return;
+
             var outputName = TextureTags.Get(material, TextureTags.Normal);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
@@ -509,7 +545,7 @@ namespace PixelGraph.UI.Windows
             }
 
             try {
-                await viewModel.GenerateNormalAsync(fullName);
+                await viewModel.GenerateNormalAsync(material, fullName);
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to generate normal texture!");
@@ -519,9 +555,11 @@ namespace PixelGraph.UI.Windows
 
         private async void OnGenerateOcclusion(object sender, EventArgs e)
         {
-            if (!Model.Material.HasLoaded) return;
+            if (Model.SelectedTab is not MaterialTabModel materialTab) return;
 
-            var material = Model.Material.Loaded;
+            var material = materialTab.Material;
+            if (material == null) return;
+
             var outputName = TextureTags.Get(material, TextureTags.Occlusion);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
@@ -538,7 +576,7 @@ namespace PixelGraph.UI.Windows
             }
 
             try {
-                await viewModel.GenerateOcclusionAsync(fullName);
+                await viewModel.GenerateOcclusionAsync(material, fullName);
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to generate occlusion texture!");
@@ -592,7 +630,10 @@ namespace PixelGraph.UI.Windows
         {
             await viewModel.UpdateSelectedProfileAsync();
 
-            await previewViewModel.UpdateAsync(false);
+            previewViewModel.InvalidateAll();
+
+            if (Model.SelectedTab != null)
+                await previewViewModel.UpdateTabPreviewAsync(Model.SelectedTab.Id);
 
             // TODO: update recent 
         }
@@ -659,6 +700,9 @@ namespace PixelGraph.UI.Windows
 
         private async void OnEditLayer(object sender, EventArgs e)
         {
+            var tab = Model.SelectedTab;
+            if (tab == null) return;
+
             try {
                 await viewModel.BeginExternalEditAsync();
             }
@@ -668,7 +712,8 @@ namespace PixelGraph.UI.Windows
                 return;
             }
 
-            await previewViewModel.UpdateLayerAsync();
+            previewViewModel.InvalidateLayer(tab.Id);
+            await previewViewModel.UpdateTabPreviewAsync(tab.Id);
         }
 
         private void OnImageEditorCompleteClick(object sender, RoutedEventArgs e)
@@ -678,14 +723,14 @@ namespace PixelGraph.UI.Windows
 
         private void OnWindowPreviewKeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.R) {
-                var leftCtrl = e.KeyboardDevice.IsKeyDown(Key.LeftCtrl);
-                var rightCtrl = e.KeyboardDevice.IsKeyDown(Key.RightCtrl);
+            if (e.Key != Key.R) return;
 
-                if (leftCtrl || rightCtrl) {
-                    previewViewModel.ReloadShaders();
-                    e.Handled = true;
-                }
+            var leftCtrl = e.KeyboardDevice.IsKeyDown(Key.LeftCtrl);
+            var rightCtrl = e.KeyboardDevice.IsKeyDown(Key.RightCtrl);
+
+            if (leftCtrl || rightCtrl) {
+                previewViewModel.ReloadShaders();
+                e.Handled = true;
             }
         }
 

@@ -43,6 +43,7 @@
     <Compile Remove="Internal\Preview\Materials\PbrMetalMaterialBuilder.cs" />
     <Compile Remove="Internal\Preview\PbrSpecularMeshModel3D.cs" />
     <Compile Remove="Internal\Preview\Textures\RenderPbrMetalPreviewBuilder.cs" />
+    <Compile Remove="Models\MaterialContextModel.cs" />
     <Compile Remove="Models\ShaderErrorWindowModel.cs" />
     <Compile Remove="ViewData\BedrockTextureFormatValues.cs" />
     <Compile Remove="ViewData\JavaTextureFormatValues.cs" />

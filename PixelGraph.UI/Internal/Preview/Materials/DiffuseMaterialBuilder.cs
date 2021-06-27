@@ -17,8 +17,8 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public override Material BuildMaterial()
         {
             var mat = new CustomDiffuseMaterial {
-                IrradianceCubeMapSource = Model.Preview.EnvironmentCube,
-                RenderEnvironmentMap = Model.Preview.EnableEnvironment,
+                IrradianceCubeMapSource = EnvironmentCubeMapSource,
+                RenderEnvironmentMap = RenderEnvironmentMap,
                 SurfaceMapSampler = ColorSampler,
                 RenderShadowMap = false,
             };

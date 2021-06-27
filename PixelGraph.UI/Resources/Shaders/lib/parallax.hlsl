@@ -14,7 +14,7 @@ float2 get_parallax_offset(const in float3x3 mTBN, const in float3 direction)
 	return parallax_dir * parallax_length * ParallaxDepth;
 }
 
-float2 get_parallax_texcoord(const float2 tex, const float2 dx, const float2 dy, const float2 offsetT, const float NoV, out float3 shadow_tex)
+float2 get_parallax_texcoord(const float2 tex, const float2 offsetT, const float NoV, out float3 shadow_tex)
 {
 	const int step_count = (int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoV);
 	const float step_size = 1.0 / step_count;
@@ -49,7 +49,7 @@ float2 get_parallax_texcoord(const float2 tex, const float2 dx, const float2 dy,
 	return EnableLinearSampling ? tex_i : trace_offset;
 }
 
-float get_parallax_shadow(const float3 tex, const float2 dx, const float2 dy, const float2 offsetT, const float NoL)
+float get_parallax_shadow(const float3 tex, const float2 offsetT, const float NoL)
 {
 	if (NoL <= 0.0) return 0.0;
 	
@@ -67,8 +67,7 @@ float get_parallax_shadow(const float3 tex, const float2 dx, const float2 dy, co
         trace_depth += step_size;
 
         const float tex_depth = tex_normal_height.SampleLevel(sampler_height, trace_tex, 0).a;
-
-        const float h = tex_depth - trace_depth;
+		const float h = tex_depth - trace_depth;
 		
     	if (h > 0.0) {
 	        const float dist = 1.0 + lengthSq(float3(trace_tex, trace_depth) - float3(tex.xy, 1.0)) * 20.0;

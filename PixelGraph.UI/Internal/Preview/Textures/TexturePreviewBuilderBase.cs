@@ -23,7 +23,8 @@ namespace PixelGraph.UI.Internal.Preview.Textures
         ResourcePackProfileProperties Profile {get; set;}
         CancellationToken Token {get;}
 
-        Task<Image> BuildAsync(string tag, int? targetFrame = null, int? targetPart = null);
+        Task<Image<TPixel>> BuildAsync<TPixel>(string tag, int? targetFrame = null, int? targetPart = null)
+            where TPixel : unmanaged, IPixel<TPixel>;
         void Cancel();
     }
 
@@ -46,7 +47,8 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             tokenSource = new CancellationTokenSource();
         }
 
-        public async Task<Image> BuildAsync(string tag, int? targetFrame = 0, int? targetPart = null)
+        public async Task<Image<TPixel>> BuildAsync<TPixel>(string tag, int? targetFrame = 0, int? targetPart = null)
+            where TPixel : unmanaged, IPixel<TPixel>
         {
             var scope = provider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
@@ -58,7 +60,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             context.Profile = Profile;
             context.Material = Material;
 
-            var matMetaFileIn = context.GetMetaInputFilename();
+            var matMetaFileIn = NamingStructure.GetInputMetaName(Material);
             context.IsAnimated = reader.FileExists(matMetaFileIn);
 
             var inputEncoding = GetEncoding(Input?.Format);
@@ -74,7 +76,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
 
             await graph.MapAsync(tag, true, targetFrame, targetPart, Token);
 
-            var image = await graph.CreateImageAsync<Rgba32>(tag, true, tokenSource.Token);
+            var image = await graph.CreateImageAsync<TPixel>(tag, true, tokenSource.Token);
             if (image == null) return null;
 
             if (image.Width > 1 || image.Height > 1) {
@@ -98,12 +100,6 @@ namespace PixelGraph.UI.Internal.Preview.Textures
 
             return image;
         }
-
-        //public async Task<ImageSource> BuildSourceAsync(string tag, int targetFrame = 0)
-        //{
-        //    using var image = await BuildAsync(tag, targetFrame);
-        //    return await CreateImageSourceAsync(image, tokenSource.Token);
-        //}
 
         public void Cancel()
         {

@@ -43,7 +43,7 @@ namespace PixelGraph.Common.Textures
         ISampler<T> CreateSampler<T>(Image<T> image, string name) where T : unmanaged, IPixel<T>;
         Size? GetTextureSize(float? defaultAspect);
         Size? GetBufferSize(float aspect);
-        string GetMetaInputFilename();
+        //string GetMetaInputFilename();
     }
 
     internal class TextureGraphContext : ITextureGraphContext
@@ -83,14 +83,16 @@ namespace PixelGraph.Common.Textures
             MaxFrameCount = 1;
         }
 
-        public string GetMetaInputFilename()
-        {
-            var matPath = Material.UseGlobalMatching
-                ? Material.LocalPath
-                : PathEx.Join(Material.LocalPath, Material.Name);
+        //public string GetMetaInputFilename()
+        //{
+        //    var matPath = Material.UseGlobalMatching
+        //        ? Material.LocalPath
+        //        : PathEx.Join(Material.LocalPath, Material.Name);
 
-            return PathEx.Join(matPath, "mat.mcmeta");
-        }
+
+
+        //    return PathEx.Join(matPath, "mat.mcmeta");
+        //}
 
         public void ApplyInputEncoding()
         {
