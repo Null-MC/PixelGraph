@@ -26,9 +26,9 @@ using System.Windows.Threading;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class MainViewModel
+    internal class MainWindowViewModel
     {
-        private readonly ILogger<MainViewModel> logger;
+        private readonly ILogger<MainWindowViewModel> logger;
         private readonly IServiceProvider provider;
         private readonly IRecentPathManager recentMgr;
         private readonly ITextureEditUtility editUtility;
@@ -40,11 +40,11 @@ namespace PixelGraph.UI.ViewModels
         public Dispatcher Dispatcher {get; set;}
 
 
-        public MainViewModel(IServiceProvider provider)
+        public MainWindowViewModel(IServiceProvider provider)
         {
             this.provider = provider;
 
-            logger = provider.GetRequiredService<ILogger<MainViewModel>>();
+            logger = provider.GetRequiredService<ILogger<MainWindowViewModel>>();
             recentMgr = provider.GetRequiredService<IRecentPathManager>();
             editUtility = provider.GetRequiredService<ITextureEditUtility>();
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();

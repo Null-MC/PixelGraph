@@ -5,6 +5,7 @@ using PixelGraph.UI.ViewModels;
 using System;
 using System.Threading;
 using System.Windows;
+using Ookii.Dialogs.Wpf;
 
 namespace PixelGraph.UI.Windows
 {
@@ -58,6 +59,21 @@ namespace PixelGraph.UI.Windows
         {
             if (await viewModel.SaveSettingsAsync(CancellationToken.None))
                 Application.Current.Dispatcher.Invoke(() => DialogResult = true);
+        }
+
+        private void OnTextureExecutableBrowseClick(object sender, RoutedEventArgs e)
+        {
+            var dialog = new VistaOpenFileDialog {
+                Title = "Select Executable",
+                Filter = "Executable|*.exe|All Files|*.*",
+                FileName = Model.Texture_ImageEditorExe,
+                CheckFileExists = true,
+                Multiselect = false,
+            };
+
+            if (dialog.ShowDialog(this) != true) return;
+
+            Model.Texture_ImageEditorExe = dialog.FileName;
         }
     }
 }

@@ -104,6 +104,16 @@ namespace PixelGraph.UI.Internal.Preview
             //    BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
             //    DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
             //});
+
+            meshTechnique.RemovePass(DefaultPassNames.ShadowPass);
+            meshTechnique.AddPass(new ShaderPassDescription(DefaultPassNames.ShadowPass) {
+                ShaderList = new[] {
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_ShadowVertex, ShaderStage.Vertex),
+                    shaderMgr.BuildDescription(CustomShaderManager.Name_ShadowPixel, ShaderStage.Pixel),
+                },
+                BlendStateDescription = DefaultBlendStateDescriptions.NoBlend,
+                DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+            });
         }
     }
 }

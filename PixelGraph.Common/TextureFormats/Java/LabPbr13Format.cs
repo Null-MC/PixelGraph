@@ -21,6 +21,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 AlbedoRed = new ResourcePackAlbedoRedChannelProperties {
@@ -33,6 +34,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 AlbedoGreen = new ResourcePackAlbedoGreenChannelProperties {
@@ -45,6 +47,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 AlbedoBlue = new ResourcePackAlbedoBlueChannelProperties {
@@ -57,6 +60,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 NormalX = new ResourcePackNormalXChannelProperties {
@@ -69,6 +73,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 NormalY = new ResourcePackNormalYChannelProperties {
@@ -81,6 +86,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 Occlusion = new ResourcePackOcclusionChannelProperties {
@@ -93,6 +99,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = true,
+                    Perceptual = false,
                 },
 
                 Height = new ResourcePackHeightChannelProperties {
@@ -105,6 +112,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = true,
+                    Perceptual = false,
                 },
 
                 Smooth = new ResourcePackSmoothChannelProperties {
@@ -117,6 +125,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 F0 = new ResourcePackF0ChannelProperties {
@@ -129,6 +138,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 Metal = new ResourcePackMetalChannelProperties {
@@ -142,6 +152,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 Porosity = new ResourcePackPorosityChannelProperties {
@@ -154,6 +165,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 SSS = new ResourcePackSssChannelProperties {
@@ -166,6 +178,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 Emissive = new ResourcePackEmissiveChannelProperties {
@@ -178,6 +191,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = -1,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
             };
         }

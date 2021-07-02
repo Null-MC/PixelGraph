@@ -240,6 +240,7 @@ namespace PixelGraph.UI.Models
             AddSelect("Input Format", nameof(MaterialProperties.InputFormat), options, MaterialProperties.DefaultInputFormat);
             AddBool<bool?>("Wrap Horizontally", nameof(MaterialProperties.WrapX), MaterialProperties.DefaultWrap);
             AddBool<bool?>("Wrap Vertically", nameof(MaterialProperties.WrapY), MaterialProperties.DefaultWrap);
+            AddText<string>("Color Tint", nameof(MaterialProperties.ColorTint));
         }
     }
 

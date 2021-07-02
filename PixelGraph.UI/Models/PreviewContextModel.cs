@@ -7,8 +7,10 @@ using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Preview.CubeMaps;
 using SharpDX;
 using System;
+using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
+using Camera = HelixToolkit.Wpf.SharpDX.Camera;
 using Color = System.Windows.Media.Color;
 using Material = HelixToolkit.Wpf.SharpDX.Material;
 using MeshGeometry3D = HelixToolkit.SharpDX.Core.MeshGeometry3D;
@@ -25,6 +27,7 @@ namespace PixelGraph.UI.Models
         private MeshGeometry3D _model;
         private PerspectiveCamera _camera;
         private ImageSource _layerImage;
+        private Stream _brdfLutMap;
         private string _selectedTag;
         private bool _enableRender;
         private bool _enableEnvironment;
@@ -34,10 +37,12 @@ namespace PixelGraph.UI.Models
         private int _parallaxSamplesMin;
         private int _parallaxSamplesMax;
         private bool _enableLinearSampling;
+        private Camera _sunCamera;
         private Vector3 _sunDirection;
         private float _sunStrength;
         private int _timeOfDay;
         private int _wetness;
+        private string _frameRateText;
 
         public event EventHandler EnableRenderChanged;
         public event EventHandler RenderModeChanged;
@@ -116,6 +121,14 @@ namespace PixelGraph.UI.Models
                 SetTimeOfDay(value);
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(TimeOfDay));
+            }
+        }
+
+        public Camera SunCamera {
+            get => _sunCamera;
+            set {
+                _sunCamera = value;
+                OnPropertyChanged();
             }
         }
 
@@ -214,6 +227,14 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public Stream BrdfLutMap {
+            get => _brdfLutMap;
+            set {
+                _brdfLutMap = value;
+                OnPropertyChanged();
+            }
+        }
+
         public PerspectiveCamera Camera {
             get => _camera;
             set {
@@ -234,6 +255,14 @@ namespace PixelGraph.UI.Models
             get => _modelMaterial;
             set {
                 _modelMaterial = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string FrameRateText {
+            get => _frameRateText;
+            set {
+                _frameRateText = value;
                 OnPropertyChanged();
             }
         }

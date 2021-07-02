@@ -34,7 +34,7 @@ namespace PixelGraph.UI.Windows
         private readonly IServiceProvider provider;
         private readonly IThemeHelper themeHelper;
         private readonly ILogger<MainWindow> logger;
-        private readonly MainViewModel viewModel;
+        private readonly MainWindowViewModel viewModel;
         private readonly PreviewViewModel previewViewModel;
 
 
@@ -48,7 +48,7 @@ namespace PixelGraph.UI.Windows
             InitializeComponent();
             themeHelper.ApplyCurrent(this);
 
-            viewModel = new MainViewModel(provider) {
+            viewModel = new MainWindowViewModel(provider) {
                 Dispatcher = Dispatcher,
                 Model = Model,
             };
@@ -223,6 +223,7 @@ namespace PixelGraph.UI.Windows
 
             try {
                 await viewModel.InitializeAsync();
+                await previewViewModel.LoadContentAsync();
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to initialize main window!");
@@ -241,6 +242,11 @@ namespace PixelGraph.UI.Windows
                 previewViewModel.UpdateSun();
                 Model.EndInit();
             });
+        }
+
+        private void OnWindowClosed(object sender, EventArgs e)
+        {
+            previewViewModel?.Dispose();
         }
 
         private async void OnRecentSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -457,8 +463,8 @@ namespace PixelGraph.UI.Windows
 
             await viewModel.SaveMaterialAsync(material);
 
-            previewViewModel.InvalidateLayer(tab.Id);
-            await previewViewModel.UpdateTabPreviewAsync(tab.Id);
+            previewViewModel.Invalidate(tab.Id);
+            await previewViewModel.UpdateTabPreviewAsync(tab);
         }
 
         private async void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -633,7 +639,7 @@ namespace PixelGraph.UI.Windows
             previewViewModel.InvalidateAll();
 
             if (Model.SelectedTab != null)
-                await previewViewModel.UpdateTabPreviewAsync(Model.SelectedTab.Id);
+                await previewViewModel.UpdateTabPreviewAsync(Model.SelectedTab);
 
             // TODO: update recent 
         }
@@ -712,8 +718,8 @@ namespace PixelGraph.UI.Windows
                 return;
             }
 
-            previewViewModel.InvalidateLayer(tab.Id);
-            await previewViewModel.UpdateTabPreviewAsync(tab.Id);
+            previewViewModel.Invalidate(tab.Id);
+            await previewViewModel.UpdateTabPreviewAsync(tab);
         }
 
         private void OnImageEditorCompleteClick(object sender, RoutedEventArgs e)

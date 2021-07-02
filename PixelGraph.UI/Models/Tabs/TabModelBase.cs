@@ -8,6 +8,7 @@ namespace PixelGraph.UI.Models.Tabs
         Guid Id {get;}
         string DisplayName {get;}
         bool IsPreview {get; set;}
+        bool IsLoading {get; set;}
         //bool IsSelected {get; set;}
         //bool IsMouseOver {get; set;}
     }
@@ -16,6 +17,7 @@ namespace PixelGraph.UI.Models.Tabs
     {
         private string _displayName {get; set;}
         private bool _isPreview {get; set;}
+        private bool _isLoading {get; set;}
         //private bool _isSelected {get; set;}
         //private bool _isMouseOver {get; set;}
 
@@ -33,6 +35,14 @@ namespace PixelGraph.UI.Models.Tabs
             get => _isPreview;
             set {
                 _isPreview = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsLoading {
+            get => _isLoading;
+            set {
+                _isLoading = value;
                 OnPropertyChanged();
             }
         }

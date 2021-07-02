@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.SharpDX.Core.ShaderManager;
@@ -7,6 +6,7 @@ using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.SharpDX.Core.Utilities;
 using PixelGraph.UI.Internal.Preview.Shaders;
 using SharpDX.Direct3D11;
+using System.Runtime.CompilerServices;
 using PixelShader = HelixToolkit.SharpDX.Core.Shaders.PixelShader;
 
 namespace PixelGraph.UI.Internal.Preview.Materials
@@ -84,6 +84,10 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
             AddPropertyBinding(nameof(CustomPbrMaterialCore.IrradianceMapSampler), () => {
                 CreateSampler(material.IrradianceMapSampler, IrradianceSamplerIdx);
+            });
+
+            AddPropertyBinding(nameof(CustomDiffuseMaterialCore.ColorTint), () => {
+                WriteValue(PhongPBRMaterialStruct.DiffuseStr, material.ColorTint);
             });
 
             AddPropertyBinding(nameof(CustomDiffuseMaterialCore.RenderShadowMap), () => {

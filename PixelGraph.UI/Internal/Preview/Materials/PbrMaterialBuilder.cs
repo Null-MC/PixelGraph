@@ -1,5 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
+using MahApps.Metro.Controls;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal.Preview.Textures;
 using System;
@@ -22,10 +23,16 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 EnvironmentCubeMapSource = EnvironmentCubeMapSource,
                 IrradianceCubeMapSource = IrradianceCubeMapSource,
                 RenderEnvironmentMap = RenderEnvironmentMap,
+                BrdfLutMap = BrdfLutMap,
                 SurfaceMapSampler = ColorSampler,
                 HeightMapSampler = HeightSampler,
-                RenderShadowMap = false,
+                RenderShadowMap = true,
             };
+
+            if (Material.ColorTint != null) {
+                var tint = ColorHelper.ColorFromString(Material.ColorTint);
+                if (tint.HasValue) mat.ColorTint = tint.Value.ToColor4();
+            }
 
             //var loader = new CustomTextureLoader();
             //...

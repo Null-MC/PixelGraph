@@ -6,12 +6,17 @@
         public const string Name_SkyPixel = "sky_ps";
         public const string Name_SkyFinalPixel = "sky_final_ps";
         public const string Name_SkyIrradiancePixel = "sky_irradiance_ps";
+
         public const string Name_DiffuseVertex = "diffuse_vs";
         public const string Name_DiffusePixel = "diffuse_ps";
+
         public const string Name_PbrVertex = "pbr_vs";
         public const string Name_PbrFilamentPixel = "pbr_filament_ps";
         public const string Name_PbrJessiePixel = "pbr_jessie_ps";
         public const string Name_PbrNullPixel = "pbr_null_ps";
+
+        public const string Name_ShadowVertex = "shadow_vs";
+        public const string Name_ShadowPixel = "shadow_ps";
 
 
         public CustomShaderManager()
@@ -79,6 +84,18 @@
                 Profile = "ps_4_0",
                 RawFileName = "pbr_null_ps.hlsl",
                 CompiledResourceName = "pbr_null_ps.cso",
+            });
+
+            Add(Name_ShadowVertex, new ShaderSourceDescription {
+                Profile = "vs_4_0",
+                RawFileName = "shadow_vs.hlsl",
+                CompiledResourceName = "shadow_vs.cso",
+            });
+
+            Add(Name_ShadowPixel, new ShaderSourceDescription {
+                Profile = "ps_4_0",
+                RawFileName = "shadow_ps.hlsl",
+                CompiledResourceName = "shadow_ps.cso",
             });
         }
     }

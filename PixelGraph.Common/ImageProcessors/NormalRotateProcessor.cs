@@ -44,7 +44,7 @@ namespace PixelGraph.Common.ImageProcessors
                 v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
 
                 if (!options.RestoreNormalZ) {
-                    pixel.GetChannelValueScaled(ColorChannel.Blue, out var normalZ);
+                    pixel.GetChannelValue(ColorChannel.Blue, out var normalZ);
                     v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
                     MathEx.Normalize(ref v);
                 }

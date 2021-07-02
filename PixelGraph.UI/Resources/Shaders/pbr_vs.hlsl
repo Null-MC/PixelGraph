@@ -23,7 +23,7 @@ ps_input main(const vs_input input)
 	output.bin = mul(binormal, (float3x3) mWorld);
 	
 	const float3x3 mTBN = float3x3(output.tan, output.bin, output.nor);
-	output.poT = get_parallax_offset(mTBN, output.eye.xyz);
+	output.poT = get_parallax_offset(mTBN, normalize(output.eye.xyz));
 
 	return output;
 }

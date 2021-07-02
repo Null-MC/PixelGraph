@@ -13,21 +13,23 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 {
     internal class CustomPbrMaterialVariable : MaterialVariable
     {
-        private const int NUMTEXTURES = 4;
-        private const int NUMSAMPLERS = 5;
+        private const int NUMTEXTURES = 5;
+        private const int NUMSAMPLERS = 6;
 
         private const int
             AlbedoAlphaMapIdx = 0,
             NormalHeightMapIdx = 1,
             RoughF0OcclusionMapIdx = 2,
-            PorositySssEmissiveMapIdx = 3;
+            PorositySssEmissiveMapIdx = 3,
+            BrdfLutMapIdx = 4;
 
         private const int
             SurfaceSamplerIdx = 0,
             HeightSamplerIdx = 1,
             EnvironmentSamplerIdx = 2,
             IrradianceSamplerIdx = 3,
-            ShadowSamplerIdx = 4;
+            BrdfLutSamplerIdx = 4,
+            ShadowSamplerIdx = 5;
 
         private readonly CustomPbrMaterialCore material;
 
@@ -36,9 +38,9 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         private readonly ShaderResourceViewProxy[] textureResources;
         private readonly SamplerStateProxy[] samplerResources;
 
-        private int texShadowSlot, texEnvironmentSlot, texIrradianceSlot;
+        private int texShadowSlot, texEnvironmentSlot, texIrradianceSlot, texBrdfLutSlot;
         private int texAlbedoAlphaSlot, texNormalHeightSlot, texRoughF0OcclusionSlot, texPorositySssEmissiveSlot;
-        private int samplerSurfaceSlot, samplerHeightSlot, samplerEnvironmentSlot, samplerIrradianceSlot, samplerShadowSlot;
+        private int samplerSurfaceSlot, samplerHeightSlot, samplerEnvironmentSlot, samplerIrradianceSlot, samplerBrdfLutSlot, samplerShadowSlot;
         private uint textureIndex;
 
         public ShaderPass MaterialPass { get; }
@@ -91,6 +93,10 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 CreateTextureView(material.PorositySssEmissiveMap, PorositySssEmissiveMapIdx);
             });
 
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.BrdfLutMap), () => {
+                CreateTextureView(material.BrdfLutMap, BrdfLutMapIdx);
+            });
+
             AddPropertyBinding(nameof(CustomPbrMaterialCore.SurfaceMapSampler), () => {
                 CreateSampler(material.SurfaceMapSampler, SurfaceSamplerIdx);
             });
@@ -105,6 +111,14 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
             AddPropertyBinding(nameof(CustomPbrMaterialCore.IrradianceMapSampler), () => {
                 CreateSampler(material.IrradianceMapSampler, IrradianceSamplerIdx);
+            });
+
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.BrdfLutMapSampler), () => {
+                CreateSampler(material.BrdfLutMapSampler, BrdfLutSamplerIdx);
+            });
+
+            AddPropertyBinding(nameof(CustomPbrMaterialCore.ColorTint), () => {
+                WriteValue(PhongPBRMaterialStruct.DiffuseStr, material.ColorTint);
             });
 
             AddPropertyBinding(nameof(CustomPbrMaterialCore.RenderShadowMap), () => {
@@ -195,6 +209,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             texNormalHeightSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.NormalHeightTB);
             texRoughF0OcclusionSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.RoughF0OcclusionTB);
             texPorositySssEmissiveSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.PorositySssEmissiveTB);
+            texBrdfLutSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.BrdfLutTB);
             texShadowSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.ShadowMapTB);
             texEnvironmentSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.EnvironmentCubeTB);
             texIrradianceSlot = shaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.IrradianceCubeTB);
@@ -204,6 +219,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             samplerShadowSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.ShadowMapSampler);
             samplerEnvironmentSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.EnvironmentCubeSampler);
             samplerIrradianceSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.IrradianceCubeSampler);
+            samplerBrdfLutSlot = shaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.BrdfLutSampler);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -215,11 +231,13 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             shader.BindTexture(deviceContext, texNormalHeightSlot, textureResources[NormalHeightMapIdx]);
             shader.BindTexture(deviceContext, texRoughF0OcclusionSlot, textureResources[RoughF0OcclusionMapIdx]);
             shader.BindTexture(deviceContext, texPorositySssEmissiveSlot, textureResources[PorositySssEmissiveMapIdx]);
+            shader.BindTexture(deviceContext, texBrdfLutSlot, textureResources[BrdfLutMapIdx]);
 
             shader.BindSampler(deviceContext, samplerSurfaceSlot, samplerResources[SurfaceSamplerIdx]);
             shader.BindSampler(deviceContext, samplerHeightSlot, samplerResources[HeightSamplerIdx]);
             shader.BindSampler(deviceContext, samplerEnvironmentSlot, samplerResources[EnvironmentSamplerIdx]);
             shader.BindSampler(deviceContext, samplerIrradianceSlot, samplerResources[IrradianceSamplerIdx]);
+            shader.BindSampler(deviceContext, samplerBrdfLutSlot, samplerResources[BrdfLutSamplerIdx]);
         }
 
         private void CreateTextureViews()
@@ -229,6 +247,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 CreateTextureView(material.NormalHeightMap, NormalHeightMapIdx);
                 CreateTextureView(material.RoughF0OcclusionMap, RoughF0OcclusionMapIdx);
                 CreateTextureView(material.PorositySssEmissiveMap, PorositySssEmissiveMapIdx);
+                CreateTextureView(material.BrdfLutMap, BrdfLutMapIdx);
             }
             else {
                 for (var i = 0; i < NUMTEXTURES; ++i)
@@ -242,15 +261,17 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         {
             var newSurfaceSampler = statePoolManager.Register(material.SurfaceMapSampler);
             var newHeightSampler = statePoolManager.Register(material.HeightMapSampler);
-            var newShadowSampler = statePoolManager.Register(DefaultSamplers.ShadowSampler);
+            var newShadowSampler = statePoolManager.Register(material.ShadowMapSampler);
             var newSkySampler = statePoolManager.Register(material.EnvironmentMapSampler);
             var newIrradianceSampler = statePoolManager.Register(material.IrradianceMapSampler);
+            var newBrdfLutSampler = statePoolManager.Register(material.BrdfLutMapSampler);
 
             RemoveAndDispose(ref samplerResources[SurfaceSamplerIdx]);
             RemoveAndDispose(ref samplerResources[HeightSamplerIdx]);
             RemoveAndDispose(ref samplerResources[ShadowSamplerIdx]);
             RemoveAndDispose(ref samplerResources[EnvironmentSamplerIdx]);
             RemoveAndDispose(ref samplerResources[IrradianceSamplerIdx]);
+            RemoveAndDispose(ref samplerResources[BrdfLutSamplerIdx]);
 
             if (material != null) {
                 samplerResources[SurfaceSamplerIdx] = Collect(newSurfaceSampler);
@@ -258,6 +279,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 samplerResources[ShadowSamplerIdx] = Collect(newShadowSampler);
                 samplerResources[EnvironmentSamplerIdx] = Collect(newSkySampler);
                 samplerResources[IrradianceSamplerIdx] = Collect(newIrradianceSampler);
+                samplerResources[BrdfLutSamplerIdx] = Collect(newBrdfLutSampler);
             }
         }
 

@@ -33,7 +33,8 @@ float4 main(const ps_input input) : SV_TARGET
 	//float roughL = max(mat.rough, MIN_ROUGH);
 
     // Blend base colors
-    const float3 c_diff = lerp(mat.albedo, float3(0, 0, 0), metal);// * mat.occlusion;
+	const float3 tint = srgb_to_linear(vMaterialDiffuse.rgb);
+    const float3 c_diff = lerp(mat.albedo * tint, 0.0f, metal);// * mat.occlusion;
     const float3 c_spec = 0.16 * reflectance * reflectance * (1.0 - metal) + mat.albedo * metal;
 	
     const float NdotV = saturate(dot(tex_normal, view));

@@ -58,6 +58,7 @@
 
   <ItemGroup>
     <None Remove="icon.ico" />
+    <None Remove="Resources\brdf_lut.dds" />
     <None Remove="Resources\Shaders\compile.cmd" />
     <None Remove="Resources\Shaders\diffuse_ps.hlsl" />
     <None Remove="Resources\Shaders\diffuse_vs.hlsl" />
@@ -66,6 +67,8 @@
     <None Remove="Resources\Shaders\pbr_filament_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_null_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_vs.hlsl" />
+    <None Remove="Resources\Shaders\shadow_ps.hlsl" />
+    <None Remove="Resources\Shaders\shadow_vs.hlsl" />
     <None Remove="Resources\Shaders\sky_final_ps.hlsl" />
     <None Remove="Resources\Shaders\sky_irradiance_ps.hlsl" />
     <None Remove="Resources\Shaders\sky_ps.hlsl" />
@@ -83,9 +86,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\brdf_lut.dds" />
+  </ItemGroup>
+
+  <ItemGroup>
     <HLSLShader Include="Resources\Shaders\pbr_null_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
       <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_null_ps.cso</ObjectFileOutput>
+    </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\shadow_ps.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\shadow_ps.cso</ObjectFileOutput>
     </HLSLShader>
     <HLSLShader Include="Resources\Shaders\sky_irradiance_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
@@ -94,6 +105,10 @@
     <HLSLShader Include="Resources\Shaders\sky_final_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
       <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_final_ps.cso</ObjectFileOutput>
+    </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\shadow_vs.hlsl">
+      <ShaderProfile>vs_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\shadow_vs.cso</ObjectFileOutput>
     </HLSLShader>
     <HLSLShader Include="Resources\Shaders\sky_vs.hlsl">
       <ShaderProfile>vs_4_0</ShaderProfile>

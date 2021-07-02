@@ -10,6 +10,7 @@
         public const string PorositySssEmissiveTB = "tex_porosity_sss_emissive";
         public const string EnvironmentCubeTB = "tex_environment";
         public const string IrradianceCubeTB = "tex_irradiance";
+        public const string BrdfLutTB = "tex_brdf_lut";
         public const string ShadowMapTB = "tex_shadow";
 
         public const string MinecraftSceneCB = "cbMinecraftScene";

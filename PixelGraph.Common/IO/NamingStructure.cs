@@ -92,6 +92,8 @@ namespace PixelGraph.Common.IO
 
         public static string GetInputMetaName(MaterialProperties material)
         {
+            if (material == null) throw new ArgumentNullException(nameof(material));
+
             var path = GetPath(material, material.UseGlobalMatching);
             var name = material.UseGlobalMatching ? $"{material.Name}.mcmeta" : "mat.mcmeta";
             return PathEx.Join(path, name);

@@ -13,7 +13,7 @@
                  xmlns:pm="clr-namespace:PixelGraph.UI.PreviewModels"
                  d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
                  Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" WindowState="Maximized"
-                 Loaded="OnWindowLoaded" PreviewKeyUp="OnWindowPreviewKeyUp"
+                 Loaded="OnWindowLoaded" Closed="OnWindowClosed" PreviewKeyUp="OnWindowPreviewKeyUp"
                  ShowIconOnTitleBar="True" IconScalingMode="NoScaleSmallerFrame" TitleForeground="Transparent"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                  Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
@@ -332,13 +332,15 @@
                                         EffectsManager="{Binding EffectsManager}"
                                         EnableD2DRendering="False"
                                         EnableSwapChainRendering="True"
-                                        IsShadowMappingEnabled="False"
+                                        EnableRenderFrustum="False"
+                                        IsShadowMappingEnabled="True"
                                         ModelUpDirection="0,1,0"
                                         MSAA="Two"
                                         ShowCoordinateSystem="False"
                                         TextBrush="White"
                                         UseDefaultGestures="False"
                                         ZoomExtentsWhenLoaded="True"
+                                        FrameRateText="{Binding FrameRateText, Mode=OneWayToSource}"
                                         Visibility="{Binding EnableRender, Converter={StaticResource BooleanToVisibilityConverter}}">
                                         <hx:Viewport3DX.InputBindings>
                                             <KeyBinding Key="B" Command="hx:ViewportCommands.BackView" />
@@ -361,14 +363,14 @@
                                             ParallaxSamplesMin="{Binding ParallaxSamplesMin, Mode=OneWay}"
                                             ParallaxSamplesMax="{Binding ParallaxSamplesMax, Mode=OneWay}"
                                             EnableLinearSampling="{Binding EnableLinearSampling, Mode=OneWay}"/>
-                                        <pm:EnvironmentCube3D x:Name="EnvironmentCubeMapSource" FaceSize="64"
+                                        <hx:ShadowMap3D Resolution="1024,1024" LightCamera="{Binding SunCamera, Mode=OneWay}"/>
+                                        <pm:EnvironmentCube3D x:Name="EnvironmentCubeMapSource" FaceSize="128"
                                                               IsRendering="{Binding EnableEnvironment, Mode=OneWay}"
                                                               Scene="{Binding Mode=OneWay, Source={x:Reference MinecraftScene}}"/>
                                         <pm:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="32"
                                                              IsRendering="{Binding EnableEnvironment, Mode=OneWay}"
                                                              EnvironmentCubeMapSource="{Binding Mode=OneWay, Source={x:Reference EnvironmentCubeMapSource}}"/>
-                                        <hx:AmbientLight3D Color="#222"
-                                                           Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
+                                        <hx:AmbientLight3D Color="#222" Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
                                         <hx:DirectionalLight3D Color="{Binding SunLightColor, Mode=OneWay}"
                                                                Direction="{Binding SunLightDirection, Mode=OneWay}"
                                                                IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
@@ -378,7 +380,7 @@
                                                          IsRendering="{Binding EnableLights, Mode=OneWay}"/>
                                         <pm:SkyDome3D IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
                                         <!--<hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />-->
-                                        <hx:MeshGeometryModel3D CullMode="Back"
+                                        <hx:MeshGeometryModel3D CullMode="Back" IsThrowingShadow="True"
                                                                 Geometry="{Binding Model, Mode=OneWay}"
                                                                 Material="{Binding ModelMaterial, Mode=OneWay}"/>
                                         <!--<pm:DebugSkyBox3D CubeMapSource="{Binding Mode=OneWay, Source={x:Reference IrradianceCube}}"/>-->
@@ -397,7 +399,7 @@
                                     <Border Margin="8" HorizontalAlignment="Left" VerticalAlignment="Bottom" BorderThickness="1" CornerRadius="4"
                                             Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                                             BorderBrush="{DynamicResource MahApps.Brushes.Accent}"
-                                            Visibility="{Binding Preview.IsLoading, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                                            Visibility="{Binding SelectedTab.IsLoading, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                         <StackPanel Orientation="Horizontal">
                                             <iconPacks:PackIconFontAwesome Kind="SpinnerSolid" Spin="True" SpinDuration="1.8" Margin="6" Width="16" Height="16" VerticalAlignment="Center"/>
                                             <TextBlock Text="Loading" Margin="2,0,8,0" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
@@ -437,16 +439,32 @@
                 </DockPanel>
             </Grid>
         </Grid>
-        <StatusBar Grid.Row="2" FontFamily="Consolas"
+        <StatusBar Grid.Row="2" HorizontalContentAlignment="Stretch"
                    Background="{DynamicResource MahApps.Brushes.Accent4}">
-            <StatusBarItem>
-                <TextBlock
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Column="0" HorizontalAlignment="Stretch">
+                <TextBlock FontFamily="Consolas"
                     Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
                     Text="{Binding RootDirectory, Mode=OneWay}"/>
             </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Right">
-                <ProgressBar Width="90" IsIndeterminate="True"
-                             Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}"/>
+            <StatusBarItem Grid.Column="1" Width="90" HorizontalContentAlignment="Center"
+                           Visibility="{Binding Preview.EnableRender, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock FontFamily="Consolas"
+                           Text="{Binding Preview.FrameRateText, Mode=OneWay}"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="2" Width="90"
+                            Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}">
+                <ProgressBar IsIndeterminate="True"/>
             </StatusBarItem>
         </StatusBar>
         <Grid Grid.Row="0" Grid.RowSpan="2"

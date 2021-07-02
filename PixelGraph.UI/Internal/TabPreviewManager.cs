@@ -73,7 +73,7 @@ namespace PixelGraph.UI.Internal
         public void InvalidateAll()
         {
             foreach (var context in All)
-                context.Invalidate();
+                context.Invalidate(true);
         }
 
         public void InvalidateAllMaterialBuilders(bool clear)
@@ -155,11 +155,15 @@ namespace PixelGraph.UI.Internal
         {
             //var mergedToken = StartNewToken(token);
 
+            var material = (model.SelectedTab as MaterialTabModel)?.Material;
+            // WARN: (i think) There's a race condition between loading material and updating preview
+            if (material == null) return;
+
             using var previewBuilder = provider.GetRequiredService<ILayerPreviewBuilder>();
 
             previewBuilder.Input = model.PackInput;
             previewBuilder.Profile = model.Profile.Loaded;
-            previewBuilder.Material = (model.SelectedTab as MaterialTabModel)?.Material;
+            previewBuilder.Material = material;
 
             LayerImage = await previewBuilder.BuildAsync<Rgb24>(model.Preview.SelectedTag, 0);
             CurrentLayerTag = model.Preview.SelectedTag;
@@ -222,16 +226,31 @@ namespace PixelGraph.UI.Internal
             IsMaterialValid = true;
         }
 
-        public void Invalidate()
+        public void Invalidate(bool clear)
+        {
+            InvalidateMaterial(clear);
+            InvalidateLayer(clear);
+        }
+
+        public void InvalidateMaterial(bool clear)
+        {
+            IsMaterialBuilderValid = false;
+            IsMaterialValid = false;
+
+            if (clear) {
+                ModelMaterial = null;
+            }
+        }
+
+        public void InvalidateLayer(bool clear)
         {
             IsLayerValid = false;
             IsLayerSourceValid = false;
-            LayerImage = null;
-            _layerImageSource = null;
 
-            IsMaterialBuilderValid = false;
-            IsMaterialValid = false;
-            ModelMaterial = null;
+            if (clear) {
+                LayerImage = null;
+                _layerImageSource = null;
+            }
         }
 
         protected virtual void Dispose(bool disposing)
@@ -291,6 +310,7 @@ namespace PixelGraph.UI.Internal
                         EnvironmentCubeMapSource = model.Preview.EnvironmentCube,
                         IrradianceCubeMapSource = model.Preview.IrradianceCube,
                         RenderEnvironmentMap = model.Preview.EnableEnvironment,
+                        BrdfLutMap = model.Preview.BrdfLutMap,
                     };
 
                     return materialBuilder;

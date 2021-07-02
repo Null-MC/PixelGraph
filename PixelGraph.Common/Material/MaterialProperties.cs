@@ -58,6 +58,9 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = -92)]
         public bool? WrapY {get; set;}
 
+        [YamlMember(Order = -91)]
+        public string ColorTint {get; set;}
+
         //public bool? Resizable {get; set;}
 
         public int? RangeMin {get; set;}
@@ -264,12 +267,12 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Height] = mat => mat.Height?.Shift ?? 0m,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Shift ?? 0m,
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Shift ?? 0m,
-            [EncodingChannel.Rough] = mat => 0m,
+            [EncodingChannel.Rough] = mat => mat.Rough?.Shift ?? 0m,
             [EncodingChannel.Metal] = mat => 0m,
-            [EncodingChannel.F0] = mat => 0m,
-            [EncodingChannel.Porosity] = mat => 0m,
-            [EncodingChannel.SubSurfaceScattering] = mat => 0m,
-            [EncodingChannel.Emissive] = mat => 0m,
+            [EncodingChannel.F0] = mat => mat.F0?.Shift ?? 0m,
+            [EncodingChannel.Porosity] = mat => mat.Porosity?.Shift ?? 0m,
+            [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Shift ?? 0m,
+            [EncodingChannel.Emissive] = mat => mat.Emissive?.Shift ?? 0m,
         };
 
         private static readonly Dictionary<string, Func<MaterialProperties, decimal>> scaleMap = new(StringComparer.OrdinalIgnoreCase) {

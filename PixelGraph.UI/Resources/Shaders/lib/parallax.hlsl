@@ -5,9 +5,9 @@
 static const float soft_shadow_strength = 60.0;
 
 
-float2 get_parallax_offset(const in float3x3 mTBN, const in float3 direction)
+float2 get_parallax_offset(const in float3x3 mTBN, const in float3 view)
 {
-	const float3 lightT = mul(mTBN, direction);
+	const float3 lightT = mul(mTBN, view);
 	const float length_sq = dot(lightT, lightT);
 	const float parallax_length = sqrt(length_sq - lightT.z * lightT.z) / lightT.z;
 	const float2 parallax_dir = normalize(lightT.xy);

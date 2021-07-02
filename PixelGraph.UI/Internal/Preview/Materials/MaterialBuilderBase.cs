@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using HelixToolkit.SharpDX.Core;
 
 namespace PixelGraph.UI.Internal.Preview.Materials
 {
@@ -52,6 +53,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public MaterialProperties Material {get; set;}
         public ICubeMapSource EnvironmentCubeMapSource {get; set;}
         public ICubeMapSource IrradianceCubeMapSource {get; set;}
+        public TextureModel BrdfLutMap {get; set;}
         public bool RenderEnvironmentMap {get; set;}
 
 

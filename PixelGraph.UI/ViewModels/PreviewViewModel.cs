@@ -5,26 +5,29 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview;
+using PixelGraph.UI.Internal.Preview.Models;
 using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Settings;
+using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.Models.Tabs;
 using SharpDX;
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using PixelGraph.UI.Internal.Preview.Models;
 using Media3D = System.Windows.Media.Media3D;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class PreviewViewModel
+    internal class PreviewViewModel : IDisposable
     {
         private readonly IServiceProvider provider;
         private readonly IAppSettings appSettings;
         private readonly ITabPreviewManager tabPreviewMgr;
+        private Stream brdfLutStream;
 
         public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
 
@@ -40,17 +43,36 @@ namespace PixelGraph.UI.ViewModels
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
         }
 
+        public void Dispose()
+        {
+            brdfLutStream?.Dispose();
+        }
+
+        public async Task LoadContentAsync()
+        {
+            brdfLutStream = await ResourceLoader.BufferAsync("PixelGraph.UI.Resources.brdf_lut.dds");
+        }
+
         public void Initialize()
         {
             LoadAppSettings();
             ReloadShaders();
-            
-            Model.Preview.Camera = new PerspectiveCamera();
+
+            Model.Preview.Camera = new PerspectiveCamera {
+                UpDirection = new Media3D.Vector3D(0, 1, 0),
+            };
+
+            Model.Preview.SunCamera = new OrthographicCamera {
+                UpDirection = new Media3D.Vector3D(0f, 1f, 0f),
+                NearPlaneDistance = 1f,
+                FarPlaneDistance = 100f,
+            };
 
             ResetViewport();
 
             Model.Preview.Model = BuildCube(4);
             //Model.Preview.Model = BuildBell();
+            Model.Preview.BrdfLutMap = brdfLutStream;
 
             Model.SelectedTabChanged += OnSelectedTabChanged;
 
@@ -63,21 +85,17 @@ namespace PixelGraph.UI.ViewModels
 
         private async void OnSelectedTabChanged(object sender, EventArgs e)
         {
-            if (Model.SelectedTab == null) return;
+            var tab = Model.SelectedTab;
+            if (tab == null) return;
 
-            var context = tabPreviewMgr.Get(Model.SelectedTab.Id);
+            var context = tabPreviewMgr.Get(tab.Id);
             if (context == null) throw new ApplicationException($"Tab context not found! id={Model.SelectedTab.Id}");
 
             Model.Preview.ModelMaterial = context.ModelMaterial;
             Model.Preview.LayerImage = context.GetLayerImageSource();
             //tab.IsLoading = true;
 
-            try {
-                await UpdateTabPreviewAsync(context, CancellationToken.None);
-            }
-            catch (Exception) {
-                // TODO: LOG
-            }
+            await UpdateTabPreviewAsync(tab, CancellationToken.None);
         }
 
         public void LoadAppSettings()
@@ -107,6 +125,9 @@ namespace PixelGraph.UI.ViewModels
             var strength = MinecraftTime.GetSunStrength(Model.Preview.TimeOfDayLinear, sun_overlap, sun_power); // * (1f - Wetness * 0.6f);
             //Model.Preview.SunLightColor = new Color4(strength, strength, strength, strength);
             Model.Preview.SunStrength = strength;
+
+            Model.Preview.SunCamera.Position = (sunDirection * 20f).ToPoint3D();
+            Model.Preview.SunCamera.LookDirection = -sunDirection.ToVector3D();
         }
 
         public Task SaveRenderStateAsync(CancellationToken token = default)
@@ -133,19 +154,16 @@ namespace PixelGraph.UI.ViewModels
         {
             Model.Preview.Camera.Position = new Media3D.Point3D(10, 10, 10);
             Model.Preview.Camera.LookDirection = new Media3D.Vector3D(-10, -10, -10);
-            Model.Preview.Camera.UpDirection = new Media3D.Vector3D(0, 1, 0);
 
             Model.Preview.TimeOfDay = 8_000;
         }
 
-        public void InvalidateLayer(Guid tabId)
+        public void Invalidate(Guid tabId)
         {
             var context = tabPreviewMgr.Get(tabId);
             if (context == null) return;
 
-            context.IsLayerValid = false;
-            context.IsMaterialBuilderValid = false;
-            context.IsMaterialValid = false;
+            context.Invalidate(false);
         }
 
         public void InvalidateAll()
@@ -158,20 +176,29 @@ namespace PixelGraph.UI.ViewModels
             if (e.PropertyName == nameof(PreviewContextModel.TimeOfDay)) UpdateSun();
         }
 
-        public Task UpdateTabPreviewAsync(Guid tabId, CancellationToken token = default)
+        public async Task UpdateTabPreviewAsync(ITabModel tab, CancellationToken token = default)
         {
-            var context = tabPreviewMgr.Get(tabId);
-            if (context == null) return Task.CompletedTask;
+            var context = tabPreviewMgr.Get(tab.Id);
+            if (context == null) return;
 
-            return UpdateTabPreviewAsync(context, token);
+            try {
+                tab.IsLoading = true;
+                await UpdateTabPreviewAsync(context, token);
+            }
+            catch (Exception) {
+                // TODO: LOG
+            }
+            finally {
+                await Dispatcher.BeginInvoke(() => tab.IsLoading = false);
+            }
         }
 
         private async Task UpdateTabPreviewAsync(TabPreviewContext context, CancellationToken token)
         {
             try {
-                if (Model.SelectedTab is MaterialTabModel) {
+                if (Model.SelectedTab is MaterialTabModel materialTab) {
                     if (Model.Preview.EnableRender) {
-                        if (context.IsMaterialValid) return;
+                        if (materialTab.Material == null || context.IsMaterialValid) return;
 
                         if (!context.IsMaterialBuilderValid)
                             await Task.Run(() => context.BuildMaterialAsync(Model, token), token);
@@ -226,17 +253,21 @@ namespace PixelGraph.UI.ViewModels
 
         private async void OnEnableRenderChanged(object sender, EventArgs e)
         {
-            var context = tabPreviewMgr.Get(Model.SelectedTab.Id);
+            var tab = Model.SelectedTab;
+            if (tab == null) return;
+
+            var context = tabPreviewMgr.Get(tab.Id);
             if (context == null) return;
 
-            if (Model.Preview.EnableRender) {
-                context.IsMaterialValid = false;
-            }
-            else {
-                context.IsLayerValid = false;
-            }
+            context.Invalidate(false);
+            //if (Model.Preview.EnableRender) {
+            //    context.IsMaterialValid = false;
+            //}
+            //else {
+            //    context.IsLayerValid = false;
+            //}
 
-            await UpdateTabPreviewAsync(context, CancellationToken.None);
+            await UpdateTabPreviewAsync(tab);
         }
 
         private async void OnRenderModeChanged(object sender, EventArgs e)
@@ -245,7 +276,8 @@ namespace PixelGraph.UI.ViewModels
 
             tabPreviewMgr.InvalidateAllMaterialBuilders(true);
 
-            await UpdateTabPreviewAsync(Model.SelectedTab.Id, CancellationToken.None);
+            var tab = Model.SelectedTab;
+            if (tab != null) await UpdateTabPreviewAsync(tab);
         }
 
         private async void OnRenderSceneChanged(object sender, EventArgs e)
@@ -254,20 +286,22 @@ namespace PixelGraph.UI.ViewModels
 
             tabPreviewMgr.InvalidateAllMaterials(true);
 
-            await UpdateTabPreviewAsync(Model.SelectedTab.Id, CancellationToken.None);
+            var tab = Model.SelectedTab;
+            if (tab != null) await UpdateTabPreviewAsync(tab);
         }
 
         private async void OnSelectedTagChanged(object sender, EventArgs e)
         {
-            if (Model.SelectedTab == null) return;
+            if (Model.Preview.EnableRender) return;
+
+            var tab = Model.SelectedTab;
+            if (tab == null) return;
             
-            if (!Model.Preview.EnableRender) {
-                var context = tabPreviewMgr.Get(Model.SelectedTab.Id);
-                context.IsLayerValid = false;
-                context.IsLayerSourceValid = false;
+            var context = tabPreviewMgr.Get(tab.Id);
+            context.IsLayerValid = false;
+            context.IsLayerSourceValid = false;
                 
-                await UpdateTabPreviewAsync(context, CancellationToken.None);
-            }
+            await UpdateTabPreviewAsync(tab, CancellationToken.None);
         }
 
         private static MeshGeometry3D BuildCube(int size)
@@ -285,29 +319,29 @@ namespace PixelGraph.UI.ViewModels
             return builder.ToMeshGeometry3D();
         }
 
-        private static MeshGeometry3D BuildBell()
-        {
-            var builder = new MeshBuilder(true, true, true);
+        //private static MeshGeometry3D BuildBell()
+        //{
+        //    var builder = new MeshBuilder(true, true, true);
 
-            var centerTop = new Vector3(0f, -2.5f, 0f);
-            builder.AddEntityCubeFace(centerTop, new Vector3( 1, 0,  0), Vector3.UnitY, 6, 6, 7, new Vector2(0f, 3/16f), new Vector2(3/16f, 6.5f/16f));
-            builder.AddEntityCubeFace(centerTop, new Vector3(-1, 0,  0), Vector3.UnitY, 6, 6, 7, new Vector2(6/16f, 3/16f), new Vector2(9/16f, 6.5f/16f));
-            builder.AddEntityCubeFace(centerTop, new Vector3( 0, 0,  1), Vector3.UnitY, 6, 6, 7, new Vector2(9/16f, 3/16f), new Vector2(12/16f, 6.5f/16f));
-            builder.AddEntityCubeFace(centerTop, new Vector3( 0, 0, -1), Vector3.UnitY, 6, 6, 7, new Vector2(3/16f, 3/16f), new Vector2(6/16f, 6.5f/16f));
-            builder.AddEntityCubeFace(centerTop, new Vector3( 0, 1,  0), Vector3.UnitX, 7, 6, 6, new Vector2(6/16f, 0f), new Vector2(9/16f, 3/16f));
+        //    var centerTop = new Vector3(0f, -2.5f, 0f);
+        //    builder.AddEntityCubeFace(centerTop, new Vector3( 1, 0,  0), Vector3.UnitY, 6, 6, 7, new Vector2(0f, 3/16f), new Vector2(3/16f, 6.5f/16f));
+        //    builder.AddEntityCubeFace(centerTop, new Vector3(-1, 0,  0), Vector3.UnitY, 6, 6, 7, new Vector2(6/16f, 3/16f), new Vector2(9/16f, 6.5f/16f));
+        //    builder.AddEntityCubeFace(centerTop, new Vector3( 0, 0,  1), Vector3.UnitY, 6, 6, 7, new Vector2(9/16f, 3/16f), new Vector2(12/16f, 6.5f/16f));
+        //    builder.AddEntityCubeFace(centerTop, new Vector3( 0, 0, -1), Vector3.UnitY, 6, 6, 7, new Vector2(3/16f, 3/16f), new Vector2(6/16f, 6.5f/16f));
+        //    builder.AddEntityCubeFace(centerTop, new Vector3( 0, 1,  0), Vector3.UnitX, 7, 6, 6, new Vector2(6/16f, 0f), new Vector2(9/16f, 3/16f));
 
-            var centerBottom = new Vector3(0f, -7f, 0f);
-            builder.AddEntityCubeFace(centerBottom, new Vector3( 1,  0,  0), Vector3.UnitY, 8, 8, 2, new Vector2(0f, 10.5f/16f), new Vector2(4/16f, 11.5f/16f));
-            builder.AddEntityCubeFace(centerBottom, new Vector3(-1,  0,  0), Vector3.UnitY, 8, 8, 2, new Vector2(8/16f, 10.5f/16f), new Vector2(12/16f, 11.5f/16f));
-            builder.AddEntityCubeFace(centerBottom, new Vector3( 0,  0,  1), Vector3.UnitY, 8, 8, 2, new Vector2(12/16f, 10.5f/16f), new Vector2(1f, 11.5f/16f));
-            builder.AddEntityCubeFace(centerBottom, new Vector3( 0,  0, -1), Vector3.UnitY, 8, 8, 2, new Vector2(4/16f, 10.5f/16f), new Vector2(8/16f, 11.5f/16f));
-            builder.AddEntityCubeFace(centerBottom, new Vector3( 0,  1,  0), Vector3.UnitX, 2, 8, 8, new Vector2(8/16f, 6.5f/16f), new Vector2(12/16f, 10.5f/16f));
-            builder.AddEntityCubeFace(centerBottom, new Vector3( 0, -1,  0), Vector3.UnitX, 2, 8, 8, new Vector2(4/16f, 6.5f/16f), new Vector2(8/16f, 10.5f/16f));
+        //    var centerBottom = new Vector3(0f, -7f, 0f);
+        //    builder.AddEntityCubeFace(centerBottom, new Vector3( 1,  0,  0), Vector3.UnitY, 8, 8, 2, new Vector2(0f, 10.5f/16f), new Vector2(4/16f, 11.5f/16f));
+        //    builder.AddEntityCubeFace(centerBottom, new Vector3(-1,  0,  0), Vector3.UnitY, 8, 8, 2, new Vector2(8/16f, 10.5f/16f), new Vector2(12/16f, 11.5f/16f));
+        //    builder.AddEntityCubeFace(centerBottom, new Vector3( 0,  0,  1), Vector3.UnitY, 8, 8, 2, new Vector2(12/16f, 10.5f/16f), new Vector2(1f, 11.5f/16f));
+        //    builder.AddEntityCubeFace(centerBottom, new Vector3( 0,  0, -1), Vector3.UnitY, 8, 8, 2, new Vector2(4/16f, 10.5f/16f), new Vector2(8/16f, 11.5f/16f));
+        //    builder.AddEntityCubeFace(centerBottom, new Vector3( 0,  1,  0), Vector3.UnitX, 2, 8, 8, new Vector2(8/16f, 6.5f/16f), new Vector2(12/16f, 10.5f/16f));
+        //    builder.AddEntityCubeFace(centerBottom, new Vector3( 0, -1,  0), Vector3.UnitX, 2, 8, 8, new Vector2(4/16f, 6.5f/16f), new Vector2(8/16f, 10.5f/16f));
 
-            //builder.Scale();
-            builder.ComputeTangents(MeshFaces.Default);
-            return builder.ToMeshGeometry3D();
-        }
+        //    //builder.Scale();
+        //    builder.ComputeTangents(MeshFaces.Default);
+        //    return builder.ToMeshGeometry3D();
+        //}
     }
 
     internal class ShaderCompileErrorEventArgs : EventArgs

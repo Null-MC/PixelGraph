@@ -2,6 +2,8 @@
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using PixelGraph.UI.Internal.Preview.CubeMaps;
+using PixelGraph.UI.Internal.Preview.Shaders;
+using SharpDX;
 using SharpDX.Direct3D11;
 using System;
 
@@ -12,13 +14,17 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         private TextureModel _albedoAlphaMap;
         private TextureModel _normalHeightMap;
         private TextureModel _roughF0OcclusionMap;
-        private TextureModel _porositySssEmissive;
+        private TextureModel _porositySssEmissiveMap;
+        private TextureModel _brdfLutMap;
         private ICubeMapSource _environmentCubeSource;
         private ICubeMapSource _irradianceCubeSource;
         private SamplerStateDescription _surfaceMapSampler;
         private SamplerStateDescription _heightMapSampler;
+        private SamplerStateDescription _shadowMapSampler;
         private SamplerStateDescription _environmentMapSampler;
         private SamplerStateDescription _irradianceMapSampler;
+        private SamplerStateDescription _brdfLutMapSampler;
+        private Color4 _colorTint;
         private bool _renderEnvironmentMap;
         private bool _renderShadowMap;
 
@@ -41,8 +47,13 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         }
 
         public TextureModel PorositySssEmissiveMap {
-            get => _porositySssEmissive;
-            set => Set(ref _porositySssEmissive, value);
+            get => _porositySssEmissiveMap;
+            set => Set(ref _porositySssEmissiveMap, value);
+        }
+
+        public TextureModel BrdfLutMap {
+            get => _brdfLutMap;
+            set => Set(ref _brdfLutMap, value);
         }
 
         public ICubeMapSource EnvironmentCubeMapSource {
@@ -65,14 +76,29 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             set => Set(ref _heightMapSampler, value); 
         }
 
+        public SamplerStateDescription ShadowMapSampler {
+            get => _shadowMapSampler;
+            set => Set(ref _shadowMapSampler, value);
+        }
+
         public SamplerStateDescription EnvironmentMapSampler {
-            get => _environmentMapSampler; 
-            set => Set(ref _environmentMapSampler, value); 
+            get => _environmentMapSampler;
+            set => Set(ref _environmentMapSampler, value);
         }
 
         public SamplerStateDescription IrradianceMapSampler {
-            get => _irradianceMapSampler; 
-            set => Set(ref _irradianceMapSampler, value); 
+            get => _irradianceMapSampler;
+            set => Set(ref _irradianceMapSampler, value);
+        }
+
+        public SamplerStateDescription BrdfLutMapSampler {
+            get => _brdfLutMapSampler;
+            set => Set(ref _brdfLutMapSampler, value);
+        }
+
+        public Color4 ColorTint {
+            get => _colorTint;
+            set => Set(ref _colorTint, value);
         }
 
         public bool RenderShadowMap {
@@ -93,8 +119,10 @@ namespace PixelGraph.UI.Internal.Preview.Materials
 
             _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
             _heightMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
-            _environmentMapSampler = DefaultSamplers.EnvironmentSampler;
-            _irradianceMapSampler = DefaultSamplers.IBLSampler;
+            _shadowMapSampler = CustomSamplerStates.Shadow;
+            _environmentMapSampler = CustomSamplerStates.Environment;
+            _irradianceMapSampler = CustomSamplerStates.Irradiance;
+            _brdfLutMapSampler = CustomSamplerStates.BrdfLut;
         }
 
         public override MaterialVariable CreateMaterialVariables(IEffectsManager manager, IRenderTechnique technique)

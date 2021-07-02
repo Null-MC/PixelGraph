@@ -1,4 +1,5 @@
 ﻿using SharpDX.Direct3D11;
+using SharpDX.Mathematics.Interop;
 
 namespace PixelGraph.UI.Internal.Preview.Shaders
 {
@@ -8,6 +9,10 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
         public static readonly SamplerStateDescription Color_Linear;
         public static readonly SamplerStateDescription Height_Point;
         public static readonly SamplerStateDescription Height_Linear;
+        public static readonly SamplerStateDescription Shadow;
+        public static readonly SamplerStateDescription Environment;
+        public static readonly SamplerStateDescription Irradiance;
+        public static readonly SamplerStateDescription BrdfLut;
 
 
         static CustomSamplerStates()
@@ -18,9 +23,8 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Clamp,
                 ComparisonFunction = Comparison.Never,
+                MaximumLod = float.MaxValue,
                 MaximumAnisotropy = 16,
-                MaximumLod = int.MaxValue,
-                MinimumLod = 0,
             };
 
             Color_Linear = new SamplerStateDescription {
@@ -29,9 +33,8 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Clamp,
                 ComparisonFunction = Comparison.Never,
+                MaximumLod = float.MaxValue,
                 MaximumAnisotropy = 16,
-                MaximumLod = int.MaxValue,
-                MinimumLod = 0,
             };
 
             Height_Point = new SamplerStateDescription {
@@ -40,9 +43,8 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Clamp,
                 ComparisonFunction = Comparison.Never,
+                MaximumLod = float.MaxValue,
                 MaximumAnisotropy = 16,
-                MaximumLod = int.MaxValue,
-                MinimumLod = 0,
             };
 
             Height_Linear = new SamplerStateDescription {
@@ -51,9 +53,44 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Clamp,
                 ComparisonFunction = Comparison.Never,
+                MaximumLod = float.MaxValue,
                 MaximumAnisotropy = 16,
-                MaximumLod = int.MaxValue,
-                MinimumLod = 0,
+            };
+
+            Shadow = new SamplerStateDescription {
+                AddressU = TextureAddressMode.Border,
+                AddressV = TextureAddressMode.Border,
+                AddressW = TextureAddressMode.Border,
+                Filter = Filter.MinMagLinearMipPoint,
+                ComparisonFunction = Comparison.Never,
+                BorderColor = new RawColor4(1, 1, 1, 0),
+            };
+
+            Environment = new SamplerStateDescription {
+                AddressU = TextureAddressMode.Clamp,
+                AddressV = TextureAddressMode.Clamp,
+                AddressW = TextureAddressMode.Clamp,
+                Filter = Filter.MinMagMipLinear,
+                MaximumLod = float.MaxValue,
+                MaximumAnisotropy = 1,
+            };
+
+            Irradiance = new SamplerStateDescription {
+                AddressU = TextureAddressMode.Clamp,
+                AddressV = TextureAddressMode.Clamp,
+                AddressW = TextureAddressMode.Clamp,
+                Filter = Filter.MinMagLinearMipPoint,
+                MaximumAnisotropy = 1,
+                MaximumLod = 0f,
+            };
+
+            BrdfLut = new SamplerStateDescription {
+                AddressU = TextureAddressMode.Clamp,
+                AddressV = TextureAddressMode.Clamp,
+                AddressW = TextureAddressMode.Clamp,
+                Filter = Filter.MinMagLinearMipPoint,
+                MaximumAnisotropy = 1,
+                MaximumLod = 0f,
             };
         }
     }
