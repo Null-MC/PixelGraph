@@ -4,6 +4,7 @@ using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
+using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -11,7 +12,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.Common.Textures
 {
@@ -72,12 +72,15 @@ namespace PixelGraph.Common.Textures
 
                 var inventoryOptions = new ItemProcessor<L8, Rgba32>.Options {
                     NormalSampler = normalGraph.GetNormalSampler(),
+                    OcclusionInputColor = ColorChannel.Red,
                     OcclusionSampler = await occlusionGraph.GetSamplerAsync(token),
                 };
 
                 if (occlusionGraph.HasTexture) {
-                    inventoryOptions.OcclusionMapping = new TextureChannelMapping();
-                    inventoryOptions.OcclusionMapping.ApplyInputChannel(occlusionGraph.Channel);
+                    var occlusionMapping = new TextureChannelMapping();
+                    occlusionMapping.ApplyInputChannel(occlusionGraph.Channel);
+
+                    inventoryOptions.OcclusionMapping = new PixelMapping(occlusionMapping);
                 }
 
                 if (emissiveInfo != null) {

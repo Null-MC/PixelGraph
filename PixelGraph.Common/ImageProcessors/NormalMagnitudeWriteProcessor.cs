@@ -25,11 +25,11 @@ namespace PixelGraph.Common.ImageProcessors
             float fx, fy, valueIn, value, ValueOut;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 GetTexCoord(in context, in x, out fx, out fy);
-                options.MagSampler.SampleScaled(in fx, in fy, in options.Mapping.InputColor, out valueIn);
+                options.MagSampler.SampleScaled(in fx, in fy, in options.InputColor, out valueIn);
                 if (!options.Mapping.TryUnmap(in valueIn, out value)) continue;
 
-                if (!options.Mapping.ValueShift.Equal(0f))
-                    value += options.Mapping.ValueShift;
+                if (!options.ValueShift.Equal(0f))
+                    value += options.ValueShift;
 
                 if (!options.Mapping.OutputScale.Equal(1f))
                     value *= options.Mapping.OutputScale;
@@ -57,8 +57,10 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
+            public ColorChannel InputColor;
             public ISampler<TPixel> MagSampler;
-            public TextureChannelMapping Mapping;
+            public PixelMapping Mapping;
+            public float ValueShift;
             public float Scale;
         }
     }

@@ -6,6 +6,7 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
+using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -13,7 +14,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.Common.Textures
 {
@@ -173,8 +173,9 @@ namespace PixelGraph.Common.Textures
             }
             else {
                 options = new OcclusionProcessor<Rgba32>.Options {
+                    HeightInputColor = heightMapping.InputColor,
+                    HeightMapping = new PixelMapping(heightMapping),
                     HeightSampler = heightSampler,
-                    HeightMapping = heightMapping,
                     Quality = quality,
                     ZScale = zScale,
                     ZBias = zBias,

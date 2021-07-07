@@ -8,6 +8,7 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -144,13 +145,13 @@ namespace PixelGraph.CLI.CommandLine
                 try {
                     using var scope = provider.CreateScope();
                     var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                    var graphBuilder = scope.ServiceProvider.GetRequiredService<ITextureGraphBuilder>();
+                    var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
 
                     context.Input = packInput;
                     context.Profile = packProfile;
                     context.Material = material;
 
-                    await graphBuilder.ProcessInputGraphAsync(token);
+                    await graphBuilder.PublishAsync(token);
                     //await graphBuilder.PublishInventoryAsync(token);
                 }
                 finally {

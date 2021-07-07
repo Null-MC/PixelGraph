@@ -2,9 +2,9 @@
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
 using System.Threading.Tasks;
-using PixelGraph.Common.TextureFormats;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -39,12 +39,13 @@ namespace PixelGraph.Tests.ImportTests
             await graph.CreateImageAsync("assets/minecraft/textures/block/bricks_s.png", 16, 8, 45, 255);
 
             var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
-            importer.LocalPath = PathEx.Localize("assets/minecraft/textures/block");
             importer.PackInput = packInput;
             importer.PackProfile = packProfile;
             importer.AsGlobal = false;
 
-            await importer.ImportAsync("bricks");
+            var localPath = PathEx.Localize("assets/minecraft/textures/block");
+            var srcMaterial = await importer.CreateMaterialAsync(localPath, "bricks");
+            await importer.ImportAsync(srcMaterial);
 
             await using var material = graph.GetFile("assets/minecraft/textures/block/bricks/mat.yml");
             Assert.NotNull(material);

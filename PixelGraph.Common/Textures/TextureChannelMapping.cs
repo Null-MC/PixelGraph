@@ -1,5 +1,4 @@
-﻿using PixelGraph.Common.Extensions;
-using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.ResourcePack;
 using System;
 
 namespace PixelGraph.Common.Textures
@@ -63,136 +62,136 @@ namespace PixelGraph.Common.Textures
             OutputInverted = channel.Invert ?? false;
         }
 
-        public bool TryUnmap(in byte pixelValue, out float value)
-        {
-            if (InputValue.HasValue) {
-                value = InputValue.Value;
-                return true;
-            }
+        //public bool TryUnmap(in byte pixelValue, out float value)
+        //{
+        //    if (InputValue.HasValue) {
+        //        value = InputValue.Value;
+        //        return true;
+        //    }
 
-            // Discard operation if source value outside bounds
-            if (pixelValue < InputRangeMin || pixelValue > InputRangeMax) {
-                value = 0f;
-                return false;
-            }
+        //    // Discard operation if source value outside bounds
+        //    if (pixelValue < InputRangeMin || pixelValue > InputRangeMax) {
+        //        value = 0f;
+        //        return false;
+        //    }
 
-            // Input: cycle
-            var valueIn = pixelValue;
-            if (InputShift != 0) MathEx.Cycle(ref valueIn, -InputShift, in InputRangeMin, in InputRangeMax);
+        //    // Input: cycle
+        //    var valueIn = pixelValue;
+        //    if (InputShift != 0) MathEx.Cycle(ref valueIn, -InputShift, in InputRangeMin, in InputRangeMax);
 
-            value = valueIn - InputRangeMin;
+        //    value = valueIn - InputRangeMin;
 
-            // Convert from pixel-space to value-space
-            var pixelInputRange = InputRangeMax - InputRangeMin;
+        //    // Convert from pixel-space to value-space
+        //    var pixelInputRange = InputRangeMax - InputRangeMin;
 
-            if (pixelInputRange > 0) {
-                var valueInputRange = InputMaxValue - InputMinValue;
-                if (!valueInputRange.Equal(pixelInputRange))
-                    value *= valueInputRange / pixelInputRange;
-            }
+        //    if (pixelInputRange > 0) {
+        //        var valueInputRange = InputMaxValue - InputMinValue;
+        //        if (!valueInputRange.Equal(pixelInputRange))
+        //            value *= valueInputRange / pixelInputRange;
+        //    }
 
-            value += InputMinValue;
+        //    value += InputMinValue;
 
-            if (InputInverted) MathEx.Invert(ref value, InputMinValue, InputMaxValue);
+        //    if (InputInverted) MathEx.Invert(ref value, InputMinValue, InputMaxValue);
 
-            if (!InputPower.Equal(1f))
-                value = MathF.Pow(value, 1f / InputPower);
+        //    if (!InputPower.Equal(1f))
+        //        value = MathF.Pow(value, 1f / InputPower);
 
-            return true;
-        }
+        //    return true;
+        //}
 
-        public bool TryUnmap(in float rawValue, out float value)
-        {
-            if (InputValue.HasValue) {
-                value = InputValue.Value;
-                return true;
-            }
+        //public bool TryUnmap(in float rawValue, out float value)
+        //{
+        //    if (InputValue.HasValue) {
+        //        value = InputValue.Value;
+        //        return true;
+        //    }
 
-            var pixelValue = rawValue * 255f;
+        //    var pixelValue = rawValue * 255f;
 
-            // Discard operation if source value outside bounds
-            if (pixelValue < InputRangeMin || pixelValue > InputRangeMax) {
-                value = 0f;
-                return false;
-            }
+        //    // Discard operation if source value outside bounds
+        //    if (pixelValue < InputRangeMin || pixelValue > InputRangeMax) {
+        //        value = 0f;
+        //        return false;
+        //    }
 
-            // Input: cycle
-            value = rawValue;
-            if (InputShift != 0) MathEx.Cycle(ref value, -InputShift, in InputRangeMin, in InputRangeMax);
+        //    // Input: cycle
+        //    value = rawValue;
+        //    if (InputShift != 0) MathEx.Cycle(ref value, -InputShift, in InputRangeMin, in InputRangeMax);
 
-            value -= InputRangeMin / 255f;
+        //    value -= InputRangeMin / 255f;
 
-            // Convert from pixel-space to value-space
-            var pixelInputRange = (InputRangeMax - InputRangeMin) / 255f;
+        //    // Convert from pixel-space to value-space
+        //    var pixelInputRange = (InputRangeMax - InputRangeMin) / 255f;
 
-            if (pixelInputRange > 0) {
-                var valueInputRange = InputMaxValue - InputMinValue;
-                if (!valueInputRange.Equal(pixelInputRange))
-                    value *= valueInputRange / pixelInputRange;
-            }
+        //    if (pixelInputRange > 0) {
+        //        var valueInputRange = InputMaxValue - InputMinValue;
+        //        if (!valueInputRange.Equal(pixelInputRange))
+        //            value *= valueInputRange / pixelInputRange;
+        //    }
 
-            value += InputMinValue;
+        //    value += InputMinValue;
 
-            if (InputInverted) MathEx.Invert(ref value, InputMinValue, InputMaxValue);
+        //    if (InputInverted) MathEx.Invert(ref value, InputMinValue, InputMaxValue);
 
-            if (!InputPower.Equal(1f))
-                value = MathF.Pow(value, 1f / InputPower);
+        //    if (!InputPower.Equal(1f))
+        //        value = MathF.Pow(value, 1f / InputPower);
 
-            return true;
-        }
+        //    return true;
+        //}
 
-        public void Map(ref float value, out byte finalValue)
-        {
-            if (!OutputPower.Equal(1f))
-                value = MathF.Pow(value, OutputPower);
+        //public void Map(ref float value, out byte finalValue)
+        //{
+        //    if (!OutputPower.Equal(1f))
+        //        value = MathF.Pow(value, OutputPower);
 
-            if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
+        //    if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
 
-            // convert from value-space to pixel-space
-            var valueRange = OutputMaxValue - OutputMinValue;
-            var pixelRange = OutputRangeMax - OutputRangeMin;
+        //    // convert from value-space to pixel-space
+        //    var valueRange = OutputMaxValue - OutputMinValue;
+        //    var pixelRange = OutputRangeMax - OutputRangeMin;
 
-            var valueOut = value - OutputMinValue;
+        //    var valueOut = value - OutputMinValue;
 
-            if (pixelRange == 0 || valueRange == 0)
-                valueOut = 0f;
-            else if (!valueRange.Equal(pixelRange))
-                valueOut *= pixelRange / valueRange;
+        //    if (pixelRange == 0 || valueRange == 0)
+        //        valueOut = 0f;
+        //    else if (!valueRange.Equal(pixelRange))
+        //        valueOut *= pixelRange / valueRange;
 
-            valueOut += OutputRangeMin;
+        //    valueOut += OutputRangeMin;
 
-            finalValue = MathEx.ClampRound(valueOut, OutputRangeMin, OutputRangeMax);
+        //    finalValue = MathEx.ClampRound(valueOut, OutputRangeMin, OutputRangeMax);
 
-            if (OutputShift != 0)
-                MathEx.Cycle(ref finalValue, in OutputShift, in OutputRangeMin, in OutputRangeMax);
-        }
+        //    if (OutputShift != 0)
+        //        MathEx.Cycle(ref finalValue, in OutputShift, in OutputRangeMin, in OutputRangeMax);
+        //}
 
-        public void Map(ref float value, out float finalValue)
-        {
-            if (!OutputPower.Equal(1f))
-                value = MathF.Pow(value, OutputPower);
+        //public void Map(ref float value, out float finalValue)
+        //{
+        //    if (!OutputPower.Equal(1f))
+        //        value = MathF.Pow(value, OutputPower);
 
-            if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
+        //    if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
 
-            // convert from value-space to pixel-space
-            var valueRange = OutputMaxValue - OutputMinValue;
-            var pixelRange = (OutputRangeMax - OutputRangeMin) / 255f;
+        //    // convert from value-space to pixel-space
+        //    var valueRange = OutputMaxValue - OutputMinValue;
+        //    var pixelRange = (OutputRangeMax - OutputRangeMin) / 255f;
 
-            finalValue = value - OutputMinValue;
+        //    finalValue = value - OutputMinValue;
 
-            if (pixelRange == 0 || valueRange == 0)
-                finalValue = 0f;
-            else if (!valueRange.Equal(pixelRange))
-                finalValue *= pixelRange / valueRange;
+        //    if (pixelRange == 0 || valueRange == 0)
+        //        finalValue = 0f;
+        //    else if (!valueRange.Equal(pixelRange))
+        //        finalValue *= pixelRange / valueRange;
 
-            finalValue += OutputRangeMin / 255f;
+        //    finalValue += OutputRangeMin / 255f;
 
-            var rangeMin = OutputRangeMin / 255f;
-            var rangeMax = OutputRangeMax / 255f;
-            MathEx.Clamp(ref finalValue, rangeMin, rangeMax);
+        //    var rangeMin = OutputRangeMin / 255f;
+        //    var rangeMax = OutputRangeMax / 255f;
+        //    MathEx.Clamp(ref finalValue, rangeMin, rangeMax);
 
-            if (OutputShift != 0)
-                MathEx.Cycle(ref finalValue, in OutputShift, in OutputRangeMin, in OutputRangeMax);
-        }
+        //    if (OutputShift != 0)
+        //        MathEx.Cycle(ref finalValue, in OutputShift, in OutputRangeMin, in OutputRangeMax);
+        //}
     }
 }

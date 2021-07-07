@@ -26,7 +26,8 @@ namespace PixelGraph.UI.Internal
         TabPreviewContext Get(Guid id);
         void Remove(Guid id);
         void Clear();
-        void InvalidateAll();
+        void InvalidateAll(bool clear);
+        void InvalidateAllLayers(bool clear);
         void InvalidateAllMaterialBuilders(bool clear);
         void InvalidateAllMaterials(bool clear);
     }
@@ -70,28 +71,30 @@ namespace PixelGraph.UI.Internal
             contextMap.Clear();
         }
 
-        public void InvalidateAll()
+        public void InvalidateAll(bool clear)
+        {
+            foreach (var context in All) {
+                context.InvalidateLayer(clear);
+                context.InvalidateMaterialBuilder(clear);
+            }
+        }
+
+        public void InvalidateAllLayers(bool clear)
         {
             foreach (var context in All)
-                context.Invalidate(true);
+                context.InvalidateLayer(clear);
         }
 
         public void InvalidateAllMaterialBuilders(bool clear)
         {
-            foreach (var context in All) {
-                context.IsMaterialBuilderValid = false;
-                context.IsMaterialValid = false;
-
-                if (clear) {
-                    context.ModelMaterial = null;
-                }
-            }
+            foreach (var context in All)
+                context.InvalidateMaterialBuilder(clear);
         }
 
         public void InvalidateAllMaterials(bool clear)
         {
             foreach (var context in All) {
-                context.IsMaterialValid = false;
+                context.InvalidateMaterial(clear);
 
                 if (clear) {
                     context.ModelMaterial = null;
@@ -118,12 +121,12 @@ namespace PixelGraph.UI.Internal
         public string SourceFile {get; set;}
         public Material ModelMaterial {get; set;}
         public Image<Rgb24> LayerImage {get; set;}
-        public bool IsMaterialBuilderValid {get; set;}
-        public bool IsMaterialValid {get; set;}
-        public bool IsLayerValid {get; set;}
-        public bool IsLayerSourceValid {get; set;}
+        public bool IsMaterialBuilderValid {get; private set;}
+        public bool IsMaterialValid {get; private set;}
+        public bool IsLayerValid {get; private set;}
+        public bool IsLayerSourceValid {get; private set;}
 
-        public string CurrentLayerTag {get; private set;}
+        //public string CurrentLayerTag {get; private set;}
 
 
         public TabPreviewContext(IServiceProvider provider)
@@ -166,7 +169,7 @@ namespace PixelGraph.UI.Internal
             previewBuilder.Material = material;
 
             LayerImage = await previewBuilder.BuildAsync<Rgb24>(model.Preview.SelectedTag, 0);
-            CurrentLayerTag = model.Preview.SelectedTag;
+            //CurrentLayerTag = model.Preview.SelectedTag;
             IsLayerValid = true;
         }
 
@@ -226,21 +229,11 @@ namespace PixelGraph.UI.Internal
             IsMaterialValid = true;
         }
 
-        public void Invalidate(bool clear)
-        {
-            InvalidateMaterial(clear);
-            InvalidateLayer(clear);
-        }
-
-        public void InvalidateMaterial(bool clear)
-        {
-            IsMaterialBuilderValid = false;
-            IsMaterialValid = false;
-
-            if (clear) {
-                ModelMaterial = null;
-            }
-        }
+        //public void Invalidate(bool clear)
+        //{
+        //    InvalidateMaterial(clear);
+        //    InvalidateLayer(clear);
+        //}
 
         public void InvalidateLayer(bool clear)
         {
@@ -251,6 +244,19 @@ namespace PixelGraph.UI.Internal
                 LayerImage = null;
                 _layerImageSource = null;
             }
+        }
+
+        public void InvalidateMaterialBuilder(bool clear)
+        {
+            IsMaterialBuilderValid = false;
+            IsMaterialValid = false;
+            if (clear) ModelMaterial = null;
+        }
+
+        public void InvalidateMaterial(bool clear)
+        {
+            IsMaterialValid = false;
+            if (clear) ModelMaterial = null;
         }
 
         protected virtual void Dispose(bool disposing)

@@ -33,7 +33,8 @@ namespace MinecraftMappings.Internal
         public static IEnumerable<T> FindEntityData<T>()
             where T : EntityData<TVersion>
         {
-            return Assembly.GetExecutingAssembly().ExportedTypes
+            return Assembly.GetExecutingAssembly()
+                .ExportedTypes.Where(t => !t.IsAbstract)
                 .Where(t => typeof(T).IsAssignableFrom(t))
                 .Select(t => (T) Activator.CreateInstance(t));
         }

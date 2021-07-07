@@ -46,7 +46,7 @@ namespace PixelGraph.Common.ImageProcessors
         public class Options
         {
             public Image<TPixel> NormalTexture;
-            public TextureChannelMapping Mapping;
+            public PixelMapping Mapping;
         }
     }
 }

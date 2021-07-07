@@ -5,6 +5,7 @@ using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,13 +19,12 @@ namespace PixelGraph.Common.IO.Importing
         /// </summary>
         bool AsGlobal {get; set;}
 
-        string LocalPath {get; set;}
-
         ResourcePackInputProperties PackInput {get; set;}
 
         ResourcePackProfileProperties PackProfile {get; set;}
 
-        Task ImportAsync(string name, CancellationToken token = default);
+        Task<MaterialProperties> CreateMaterialAsync(string localPath, string name);
+        Task ImportAsync(MaterialProperties material, CancellationToken token = default);
     }
 
     internal class MaterialImporter : IMaterialImporter
@@ -34,8 +34,6 @@ namespace PixelGraph.Common.IO.Importing
 
         /// <inheritdoc />
         public bool AsGlobal {get; set;}
-
-        public string LocalPath {get; set;}
 
         public ResourcePackInputProperties PackInput {get; set;}
 
@@ -50,24 +48,28 @@ namespace PixelGraph.Common.IO.Importing
             this.writer = writer;
         }
 
-        public async Task ImportAsync(string name, CancellationToken token = default)
+        public async Task<MaterialProperties> CreateMaterialAsync(string localPath, string name)
         {
-            using var scope = provider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-            var graphBuilder = scope.ServiceProvider.GetRequiredService<ITextureGraphBuilder>();
-
             var matFile = AsGlobal
-                ? PathEx.Join(LocalPath, $"{name}.mat.yml")
-                : PathEx.Join(LocalPath, name, "mat.yml");
+                ? PathEx.Join(localPath, $"{name}.mat.yml")
+                : PathEx.Join(localPath, name, "mat.yml");
 
             var material = new MaterialProperties {
                 Name = name,
-                LocalPath = LocalPath,
+                LocalPath = localPath,
                 LocalFilename = matFile,
                 UseGlobalMatching = AsGlobal,
             };
 
             await writer.WriteAsync(material);
+            return material;
+        }
+
+        public async Task ImportAsync(MaterialProperties material, CancellationToken token = default)
+        {
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+            var graphBuilder = scope.ServiceProvider.GetRequiredService<IImportGraphBuilder>();
 
             context.Input = PackInput;
             context.Profile = PackProfile;
@@ -77,7 +79,7 @@ namespace PixelGraph.Common.IO.Importing
 
             context.Mapping = new DefaultPublishMapping();
 
-            await graphBuilder.ProcessOutputGraphAsync(token);
+            await graphBuilder.ImportAsync(token);
         }
     }
 }

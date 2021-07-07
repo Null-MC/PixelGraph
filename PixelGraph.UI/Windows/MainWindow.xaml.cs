@@ -26,6 +26,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using PixelGraph.Common;
 
 namespace PixelGraph.UI.Windows
 {
@@ -419,6 +420,29 @@ namespace PixelGraph.UI.Windows
         private void OnMaterialFiltersMenuClick(object sender, RoutedEventArgs e)
         {
             ShowError("Not Yet Implemented");
+        }
+
+        private void OnHelpDocumentationClick(object sender, RoutedEventArgs e)
+        {
+            var info = new ProcessStartInfo {
+                FileName = @"https://github.com/null511/PixelGraph/wiki",
+                UseShellExecute = true,
+            };
+
+            using var process = Process.Start(info);
+            process?.WaitForInputIdle(3_000);
+        }
+
+        private void OnHelpViewLogsClick(object sender, RoutedEventArgs e)
+        {
+            var info = new ProcessStartInfo {
+                FileName = "explorer",
+                Arguments = $"\"{LocalLogFile.LogPath}\"",
+                UseShellExecute = true,
+            };
+
+            using var process = Process.Start(info);
+            process?.WaitForInputIdle(3_000);
         }
 
         private void OnPublishMenuItemClick(object sender, RoutedEventArgs e)

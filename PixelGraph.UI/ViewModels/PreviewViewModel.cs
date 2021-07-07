@@ -2,10 +2,8 @@
 using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Extensions;
-using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview;
-using PixelGraph.UI.Internal.Preview.Models;
 using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
@@ -163,12 +161,13 @@ namespace PixelGraph.UI.ViewModels
             var context = tabPreviewMgr.Get(tabId);
             if (context == null) return;
 
-            context.Invalidate(false);
+            context.InvalidateLayer(false);
+            context.InvalidateMaterialBuilder(false);
         }
 
         public void InvalidateAll()
         {
-            tabPreviewMgr.InvalidateAll();
+            tabPreviewMgr.InvalidateAll(true);
         }
 
         private void OnPreviewPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -212,9 +211,7 @@ namespace PixelGraph.UI.ViewModels
                         });
                     }
                     else {
-                        if (TextureTags.Is(context.CurrentLayerTag, Model.Preview.SelectedTag)) {
-                            if (context.IsLayerValid) return;
-                        }
+                        if (context.IsLayerValid) return;
                         
                         await Task.Run(() => context.BuildLayerAsync(Model, token), token);
 
@@ -259,7 +256,9 @@ namespace PixelGraph.UI.ViewModels
             var context = tabPreviewMgr.Get(tab.Id);
             if (context == null) return;
 
-            context.Invalidate(false);
+            //context.Invalidate(false);
+            context.InvalidateLayer(false);
+            context.InvalidateMaterial(false);
             //if (Model.Preview.EnableRender) {
             //    context.IsMaterialValid = false;
             //}
@@ -286,22 +285,23 @@ namespace PixelGraph.UI.ViewModels
 
             tabPreviewMgr.InvalidateAllMaterials(true);
 
-            var tab = Model.SelectedTab;
-            if (tab != null) await UpdateTabPreviewAsync(tab);
+            if (Model.SelectedTab != null)
+                await UpdateTabPreviewAsync(Model.SelectedTab);
         }
 
         private async void OnSelectedTagChanged(object sender, EventArgs e)
         {
-            if (Model.Preview.EnableRender) return;
+            tabPreviewMgr.InvalidateAllLayers(true);
 
-            var tab = Model.SelectedTab;
-            if (tab == null) return;
+            //var tab = Model.SelectedTab;
+            //if (tab == null) return;
             
-            var context = tabPreviewMgr.Get(tab.Id);
-            context.IsLayerValid = false;
-            context.IsLayerSourceValid = false;
-                
-            await UpdateTabPreviewAsync(tab, CancellationToken.None);
+            //var context = tabPreviewMgr.Get(tab.Id);
+            //context.IsLayerValid = false;
+            //context.IsLayerSourceValid = false;
+
+            if (!Model.Preview.EnableRender && Model.SelectedTab != null)
+                await UpdateTabPreviewAsync(Model.SelectedTab, CancellationToken.None);
         }
 
         private static MeshGeometry3D BuildCube(int size)

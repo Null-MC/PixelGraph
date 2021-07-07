@@ -38,10 +38,12 @@ namespace PixelGraph.Common.ImageProcessors
                     throw new ApplicationException($"Unsupported filter '{options.Method}'!");
             }
 
+            const float hp = 1f / 512f;
+
             var tp = new Vector4();
-            tp.SetChannelValue(ColorChannel.Red, normal.X * 0.5f + 0.5f);
-            tp.SetChannelValue(ColorChannel.Green, normal.Y * 0.5f + 0.5f);
-            tp.SetChannelValue(ColorChannel.Blue, normal.Z * 0.5f + 0.5f);
+            tp.SetChannelValue(ColorChannel.Red, normal.X * 0.5f + 0.5f - hp);
+            tp.SetChannelValue(ColorChannel.Green, normal.Y * 0.5f + 0.5f - hp);
+            tp.SetChannelValue(ColorChannel.Blue, normal.Z * 0.5f + 0.5f - hp);
             pixel.FromScaledVector4(tp);
         }
 

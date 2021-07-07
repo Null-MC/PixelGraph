@@ -59,9 +59,29 @@ namespace PixelGraph.UI.Models
         public ITabModel PreviewTab {
             get => _previewTab;
             set {
+                if (_previewTab == value) return;
                 _previewTab = value;
+
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasPreviewTab));
+
+                if (_isPreviewTabSelected) {
+                    OnPropertyChanged(nameof(SelectedTab));
+                    OnPropertyChanged(nameof(SelectedTabMaterial));
+                    OnPropertyChanged(nameof(HasSelectedMaterial));
+                    OnSelectedTabChanged();
+                }
+            }
+        }
+
+        public bool IsPreviewTabSelected {
+            get => _isPreviewTabSelected;
+            set {
+                if (_isPreviewTabSelected == value) return;
+                _isPreviewTabSelected = value;
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasSelectedTab));
 
                 if (_isPreviewTabSelected) {
                     OnPropertyChanged(nameof(SelectedTab));
@@ -70,19 +90,11 @@ namespace PixelGraph.UI.Models
                 }
             }
         }
-
-        public bool IsPreviewTabSelected {
-            get => _isPreviewTabSelected;
-            set {
-                _isPreviewTabSelected = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(HasSelectedTab));
-            }
-        }
         
         public ITabModel TabListSelection {
             get => _tabListSelection;
             set {
+                if (_tabListSelection == value) return;
                 _tabListSelection = value;
 
                 if (value != null && _isPreviewTabSelected)

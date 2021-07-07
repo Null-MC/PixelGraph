@@ -107,7 +107,7 @@ float3 IBL_Specular(const in float3 F, const in float NoV, const in float3 r, co
 		indirect_specular = srgb_to_linear(vLightAmbient.rgb);
 	}
 	
-    const float2 env_brdf  = tex_brdf_lut.Sample(sampler_brdf_lut, float2(NoV, 1.0f - roughL));
+    const float2 env_brdf  = srgb_to_linear(tex_brdf_lut.SampleLevel(sampler_brdf_lut, float2(NoV, roughL), 0));
 	return indirect_specular * (F * env_brdf.x + env_brdf.y) * specular_occlusion;
 }
 
@@ -116,7 +116,7 @@ float3 IBL_Specular(const in float3 F, const in float NoV, const in float3 r, co
 
 static const float SSS_Distortion = 0.2f;
 static const float SSS_Power = 1.0f;
-static const float SSS_Scale = 1.0f;
+static const float SSS_Scale = 2.0f;
 
 float SSS_Thickness(float3 sp)
 {
@@ -128,7 +128,7 @@ float SSS_Thickness(float3 sp)
 	sp.y = mad(-0.5f, sp.y, 0.5f);
 	//sp.z -= vShadowMapInfo.z;
 
-	const float d = tex_shadow.SampleLevel(sampler_shadow, sp.xy, 0);
+	const float d = tex_shadow.SampleLevel(sampler_sss, sp.xy, 0);
 	return max(sp.z - d, 0.0f);
 }
 

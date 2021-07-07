@@ -279,14 +279,16 @@ namespace PixelGraph.Common.Textures
             var magnitudeInputChannel = magnitudeInputChannels.FirstOrDefault();
             if (magnitudeInputChannel == null) return;
 
-            var options = new NormalMagnitudeReadProcessor<Rgb24>.Options {
-                Mapping = new TextureChannelMapping {
-                    OutputColor = ColorChannel.Red,
-                },
-                NormalTexture = NormalTexture,
+            var mapping = new TextureChannelMapping {
+                OutputColor = ColorChannel.Red,
             };
 
-            options.Mapping.ApplyInputChannel(magnitudeInputChannel);
+            mapping.ApplyInputChannel(magnitudeInputChannel);
+
+            var options = new NormalMagnitudeReadProcessor<Rgb24>.Options {
+                Mapping = new PixelMapping(mapping),
+                NormalTexture = NormalTexture,
+            };
 
             MagnitudeTexture = new Image<L8>(NormalTexture.Width, NormalTexture.Height);
 
@@ -303,16 +305,18 @@ namespace PixelGraph.Common.Textures
             var inputChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, magnitudeChannel.ID));
             if (inputChannel == null) return;
 
-            var options = new NormalMagnitudeWriteProcessor<L8>.Options {
-                Scale = (float)context.Material.GetChannelScale(magnitudeChannel.ID),
-                Mapping = new TextureChannelMapping {
-                    ValueShift = (float)context.Material.GetChannelShift(magnitudeChannel.ID),
-                    OutputScale = (float)context.Material.GetChannelScale(magnitudeChannel.ID),
-                },
+            var mapping = new TextureChannelMapping {
+                ValueShift = (float) context.Material.GetChannelShift(magnitudeChannel.ID),
+                OutputScale = (float) context.Material.GetChannelScale(magnitudeChannel.ID),
             };
 
-            options.Mapping.ApplyInputChannel(inputChannel);
-            options.Mapping.ApplyOutputChannel(magnitudeChannel);
+            mapping.ApplyInputChannel(inputChannel);
+            mapping.ApplyOutputChannel(magnitudeChannel);
+
+            var options = new NormalMagnitudeWriteProcessor<L8>.Options {
+                Scale = (float)context.Material.GetChannelScale(magnitudeChannel.ID),
+                Mapping = new PixelMapping(mapping),
+            };
 
             int srcFrameCount;
             if (EncodingChannel.Is(magnitudeChannel.ID, EncodingChannel.Occlusion)) {

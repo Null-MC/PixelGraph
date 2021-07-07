@@ -125,6 +125,11 @@
                 <MenuItem Header="Generate External Normal Map"/>
                 <MenuItem Header="Generate External Occlusion Map"/>
             </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="Documentation" Click="OnHelpDocumentationClick"/>
+                <Separator/>
+                <MenuItem Header="View Logs" Click="OnHelpViewLogsClick"/>
+            </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
             <Border HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="16" MaxWidth="800" CornerRadius="8"

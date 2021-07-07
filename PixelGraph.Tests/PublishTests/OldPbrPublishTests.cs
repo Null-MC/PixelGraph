@@ -74,10 +74,10 @@ namespace PixelGraph.Tests.PublishTests
         }
 
         [InlineData(127, 127, 255)]
-        [InlineData(127,   0,   0)]
-        [InlineData(127, 255,   0)]
-        [InlineData(  0, 127,   0)]
-        [InlineData(255, 127,   0)]
+        [InlineData(127,   0, 127)]
+        [InlineData(127, 255, 127)]
+        [InlineData(  0, 127, 127)]
+        [InlineData(255, 127, 127)]
         [Theory] public async Task NormalTextureTest(byte red, byte green, byte blue)
         {
             await using var graph = Graph();

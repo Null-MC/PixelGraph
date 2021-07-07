@@ -94,7 +94,6 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow(in PixelRowContext context, Span<Rgba32> row)
         {
-            //var pixel = new Rgba32();
             byte[] noiseX = null, noiseY = null;
 
             if (hasNoise) {
@@ -105,7 +104,6 @@ namespace PixelGraph.Common.ImageProcessors
             float angleX, angleY;
             var v = new Vector3();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                //row[x].ToRgba32(ref pixel);
                 row[x].GetChannelValue(ColorChannel.Red, out var normalX);
                 row[x].GetChannelValue(ColorChannel.Green, out var normalY);
 
@@ -156,8 +154,6 @@ namespace PixelGraph.Common.ImageProcessors
                 row[x].SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
                 row[x].SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
                 row[x].SetChannelValueScaledF(ColorChannel.Blue, v.Z * 0.5f + 0.5f);
-
-                //row[x].FromRgba32(pixel);
             }
         }
 

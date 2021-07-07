@@ -171,5 +171,5 @@ SamplerState sampler_irradiance : register(s1);
 SamplerState sampler_height : register(s2);
 SamplerState sampler_environment : register(s4);
 //SamplerComparisonState sampler_shadow : register(s5);
-SamplerState sampler_shadow : register(s5);
-SamplerState sampler_brdf_lut : register(s6);
+SamplerState sampler_sss : register(s6);
+SamplerState sampler_brdf_lut : register(s7);

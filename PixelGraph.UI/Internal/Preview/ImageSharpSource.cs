@@ -14,10 +14,10 @@ namespace PixelGraph.UI.Internal.Preview
     {
         private readonly Image<TPixel> source;
 
-        public override event EventHandler<ExceptionEventArgs> DecodeFailed;
-        public override event EventHandler<DownloadProgressEventArgs> DownloadProgress;
-        public override event EventHandler<ExceptionEventArgs> DownloadFailed;
-        public override event EventHandler DownloadCompleted;
+        //public override event EventHandler<ExceptionEventArgs> DecodeFailed;
+        //public override event EventHandler<DownloadProgressEventArgs> DownloadProgress;
+        //public override event EventHandler<ExceptionEventArgs> DownloadFailed;
+        //public override event EventHandler DownloadCompleted;
 
         public override PixelFormat Format => PixelFormats.Bgra32;
         public override int PixelHeight => source.Height;
@@ -154,11 +154,11 @@ namespace PixelGraph.UI.Internal.Preview
             switch (pixels.Rank) {
                 case 1: {
                     var len0 = pixels.GetLength(0);
-                    if (len0 <= 0) throw new ArgumentException(nameof(pixels));
+                    if (len0 <= 0) throw new ArgumentOutOfRangeException(nameof(pixels));
 
                     checked {
                         var exemplar = pixels.GetValue(0);
-                        if (exemplar == null) throw new ArgumentException(nameof(pixels));
+                        if (exemplar == null) throw new ArgumentNullException(nameof(pixels));
 
                         elementSize = Marshal.SizeOf(exemplar);
                         sourceBufferSize = len0 * elementSize;
@@ -169,11 +169,11 @@ namespace PixelGraph.UI.Internal.Preview
                 case 2: {
                     var len0 = pixels.GetLength(0);
                     var len1 = pixels.GetLength(1);
-                    if (len0 <= 0 || len1 <= 0) throw new ArgumentException(nameof(pixels));
+                    if (len0 <= 0 || len1 <= 0) throw new ArgumentOutOfRangeException(nameof(pixels));
 
                     checked {
                         var exemplar = pixels.GetValue(0, 0);
-                        if (exemplar == null) throw new ArgumentException(nameof(pixels));
+                        if (exemplar == null) throw new ArgumentNullException(nameof(pixels));
 
                         elementSize = Marshal.SizeOf(exemplar);
                         sourceBufferSize = len0 * len1 * elementSize;
@@ -182,7 +182,7 @@ namespace PixelGraph.UI.Internal.Preview
                     break;
                 }
                 default:
-                    throw new ArgumentException(nameof(pixels));
+                    throw new ArgumentException($"Invalid pixel rank '{pixels.Rank}'!", nameof(pixels));
             }
         }
     }

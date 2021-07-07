@@ -1,6 +1,4 @@
-﻿using PixelGraph.UI.ViewModels;
-
-namespace PixelGraph.UI.Models.PropertyGrid
+﻿namespace PixelGraph.UI.Models.PropertyGrid
 {
     public interface IBoolPropertyRow : IPropertyRow {}
 

@@ -9,7 +9,7 @@
              xmlns:models="clr-namespace:PixelGraph.UI.Models"
              d:DataContext="{d:DesignInstance models:PublishOutputDesignerModel, IsDesignTimeCreatable=True}"
              Title="Publishing Resource Pack" Width="640" Height="360" mc:Ignorable="d" TitleCharacterCasing="Normal"
-             ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+             ShowInTaskbar="False" WindowStartupLocation="CenterOwner" SaveWindowPosition="True"
              Loaded="OnWindowLoaded" Closed="OnWindowClosed"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
     <Window.DataContext>

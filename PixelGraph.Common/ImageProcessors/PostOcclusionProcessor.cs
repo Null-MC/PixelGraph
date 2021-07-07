@@ -27,7 +27,7 @@ namespace PixelGraph.Common.ImageProcessors
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
                 GetTexCoord(in context, in x, out fx, out fy);
-                options.OcclusionSampler.Sample(in fx, in fy, in options.OcclusionMapping.InputColor, out occlusionPixel);
+                options.OcclusionSampler.Sample(in fx, in fy, in options.OcclusionInputColor, out occlusionPixel);
 
                 if (!options.OcclusionMapping.TryUnmap(in occlusionPixel, out occlusionValue))
                     occlusionValue = 0f;
@@ -35,7 +35,7 @@ namespace PixelGraph.Common.ImageProcessors
                 occlusionValue *= options.OcclusionMapping.OutputScale;
 
                 if (options.EmissiveSampler != null) {
-                    options.EmissiveSampler.Sample(in fx, in fy, in options.EmissiveMapping.InputColor, out var emissivePixel);
+                    options.EmissiveSampler.Sample(in fx, in fy, in options.EmissiveInputColor, out var emissivePixel);
 
                     if (options.EmissiveMapping.TryUnmap(in emissivePixel, out var emissiveValue))
                         occlusionValue = MathF.Max(occlusionValue - emissiveValue, 0f);
@@ -61,10 +61,12 @@ namespace PixelGraph.Common.ImageProcessors
             public ColorChannel[] MappingColors;
 
             public ISampler<TOcclusion> OcclusionSampler;
-            public TextureChannelMapping OcclusionMapping;
+            public ColorChannel OcclusionInputColor;
+            public PixelMapping OcclusionMapping;
 
             public ISampler<TEmissive> EmissiveSampler;
-            public TextureChannelMapping EmissiveMapping;
+            public ColorChannel EmissiveInputColor;
+            public PixelMapping EmissiveMapping;
         }
     }
 }

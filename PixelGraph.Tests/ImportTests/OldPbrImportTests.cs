@@ -39,15 +39,16 @@ namespace PixelGraph.Tests.ImportTests
             await graph.CreateImageAsync("assets/minecraft/textures/block/bricks_s.png", 16, 0, 0);
 
             var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
-            importer.LocalPath = PathEx.Localize("assets/minecraft/textures/block");
             importer.PackInput = packInput;
             importer.PackProfile = packProfile;
             importer.AsGlobal = false;
 
-            await importer.ImportAsync("bricks");
+            var localPath = PathEx.Localize("assets/minecraft/textures/block");
+            var srcMaterial = await importer.CreateMaterialAsync(localPath, "bricks");
+            await importer.ImportAsync(srcMaterial);
 
-            await using var material = graph.GetFile("assets/minecraft/textures/block/bricks/mat.yml");
-            Assert.NotNull(material);
+            await using var materialFile = graph.GetFile("assets/minecraft/textures/block/bricks/mat.yml");
+            Assert.NotNull(materialFile);
 
             using var albedoImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/albedo.png");
             PixelAssert.Equals(31, 156, 248, albedoImage);

@@ -24,11 +24,17 @@ namespace PixelGraph.Common.IO
         public Stream Open(string localFilename)
         {
             var filename = PathEx.Join(destinationPath, localFilename);
-
-            var path = Path.GetDirectoryName(filename);
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            CreateMissingDirectory(filename);
 
             return File.Open(filename, FileMode.Create, FileAccess.Write);
+        }
+
+        public Stream OpenReadWrite(string localFilename)
+        {
+            var filename = PathEx.Join(destinationPath, localFilename);
+            CreateMissingDirectory(filename);
+
+            return File.Open(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
         }
 
         public bool FileExists(string localFile)
@@ -57,5 +63,14 @@ namespace PixelGraph.Common.IO
 
         public void Dispose() {}
         public ValueTask DisposeAsync() => default;
+
+        private static void CreateMissingDirectory(string filename)
+        {
+            var path = Path.GetDirectoryName(filename);
+            if (path == null) return;
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+        }
     }
 }

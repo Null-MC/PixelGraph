@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -86,14 +87,14 @@ namespace PixelGraph.Common.IO.Publishing
                         if (TryMapMaterial(material)) {
                             using var scope = provider.CreateScope();
                             var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                            var graphBuilder = scope.ServiceProvider.GetRequiredService<ITextureGraphBuilder>();
+                            var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
 
                             graphContext.Input = packContext.Input;
                             graphContext.Profile = packContext.Profile;
                             graphContext.Material = material;
                             graphContext.Mapping = Mapping;
 
-                            await graphBuilder.ProcessInputGraphAsync(token);
+                            await graphBuilder.PublishAsync(token);
                             await OnMaterialPublishedAsync(scope.ServiceProvider, token);
                         }
                         else {

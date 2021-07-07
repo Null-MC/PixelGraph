@@ -35,6 +35,7 @@
     <Compile Remove="ResourcePack\ResourcePackInputDiffuseRedProperties.cs" />
     <Compile Remove="Samplers\PointSampler.cs" />
     <Compile Remove="Samplers\SamplerScope.cs" />
+    <Compile Remove="Textures\Graphing\CtmTextureMap.cs" />
   </ItemGroup>
 
   <ItemGroup>
