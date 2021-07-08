@@ -10,7 +10,7 @@ namespace PixelGraph.Common.TextureFormats
 
         public ResourcePackEncoding Create()
         {
-            return new ResourcePackEncoding {
+            return new() {
                 Alpha = new ResourcePackAlphaChannelProperties {
                     Texture = TextureTags.Alpha,
                     Color = ColorChannel.Red,
@@ -21,6 +21,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 DiffuseRed = new ResourcePackDiffuseRedChannelProperties {
@@ -33,6 +34,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 DiffuseGreen = new ResourcePackDiffuseGreenChannelProperties {
@@ -45,6 +47,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 DiffuseBlue = new ResourcePackDiffuseBlueChannelProperties {
@@ -57,6 +60,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 AlbedoRed = new ResourcePackAlbedoRedChannelProperties {
@@ -69,6 +73,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 AlbedoGreen = new ResourcePackAlbedoGreenChannelProperties {
@@ -81,6 +86,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 AlbedoBlue = new ResourcePackAlbedoBlueChannelProperties {
@@ -93,6 +99,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 Height = new ResourcePackHeightChannelProperties {
@@ -105,6 +112,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = true,
+                    Perceptual = false,
                 },
 
                 Occlusion = new ResourcePackOcclusionChannelProperties {
@@ -117,6 +125,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = true,
+                    Perceptual = false,
                 },
 
                 NormalX = new ResourcePackNormalXChannelProperties {
@@ -129,6 +138,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 NormalY = new ResourcePackNormalYChannelProperties {
@@ -141,6 +151,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 NormalZ = new ResourcePackNormalZChannelProperties {
@@ -153,6 +164,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 Specular = new ResourcePackSpecularChannelProperties {
@@ -165,6 +177,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 Smooth = new ResourcePackSmoothChannelProperties {
@@ -177,6 +190,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 Rough = new ResourcePackRoughChannelProperties {
@@ -189,6 +203,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = true,
                 },
 
                 Metal = new ResourcePackMetalChannelProperties {
@@ -202,6 +217,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 F0 = new ResourcePackF0ChannelProperties {
@@ -214,6 +230,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 Porosity = new ResourcePackPorosityChannelProperties {
@@ -226,6 +243,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 SSS = new ResourcePackSssChannelProperties {
@@ -238,6 +256,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
 
                 Emissive = new ResourcePackEmissiveChannelProperties {
@@ -250,6 +269,7 @@ namespace PixelGraph.Common.TextureFormats
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    Perceptual = false,
                 },
             };
         }

@@ -3,6 +3,8 @@ using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.UI.Internal.Preview.CubeMaps;
+using PixelGraph.UI.Internal.Preview.Shaders;
+using SharpDX;
 using SharpDX.Direct3D11;
 using System.Windows;
 
@@ -31,6 +33,11 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public TextureModel PorositySssEmissiveMap {
             get => (TextureModel)GetValue(PorositySssEmissiveMapProperty);
             set => SetValue(PorositySssEmissiveMapProperty, value);
+        }
+
+        public TextureModel BrdfLutMap {
+            get => (TextureModel)GetValue(BrdfLutMapProperty);
+            set => SetValue(BrdfLutMapProperty, value);
         }
 
         public ICubeMapSource EnvironmentCubeMapSource {
@@ -63,6 +70,16 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             set => SetValue(IrradianceMapSamplerProperty, value);
         }
 
+        public SamplerStateDescription BrdfLutMapSampler {
+            get => (SamplerStateDescription)GetValue(BrdfLutMapSamplerProperty);
+            set => SetValue(BrdfLutMapSamplerProperty, value);
+        }
+
+        public Color4 ColorTint {
+            get => (Color4)GetValue(ColorTintProperty);
+            set => SetValue(ColorTintProperty, value);
+        }
+
         public bool RenderShadowMap {
             get => (bool)GetValue(RenderShadowMapProperty);
             set => SetValue(RenderShadowMapProperty, value);
@@ -89,10 +106,13 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             NormalHeightMap = core.NormalHeightMap;
             RoughF0OcclusionMap = core.RoughF0OcclusionMap;
             PorositySssEmissiveMap = core.PorositySssEmissiveMap;
+            BrdfLutMap = core.BrdfLutMap;
             SurfaceMapSampler = core.SurfaceMapSampler;
             HeightMapSampler = core.HeightMapSampler;
             EnvironmentMapSampler = core.EnvironmentMapSampler;
             IrradianceMapSampler = core.IrradianceMapSampler;
+            BrdfLutMapSampler = core.BrdfLutMapSampler;
+            ColorTint = core.ColorTint;
             RenderEnvironmentMap = core.RenderEnvironmentMap;
             RenderShadowMap = core.RenderShadowMap;
         }
@@ -104,10 +124,13 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 NormalHeightMap = NormalHeightMap,
                 RoughF0OcclusionMap = RoughF0OcclusionMap,
                 PorositySssEmissiveMap = PorositySssEmissiveMap,
+                BrdfLutMap = BrdfLutMap,
                 SurfaceMapSampler = SurfaceMapSampler,
                 HeightMapSampler = HeightMapSampler,
                 EnvironmentMapSampler = EnvironmentMapSampler,
                 IrradianceMapSampler = IrradianceMapSampler,
+                BrdfLutMapSampler = BrdfLutMapSampler,
+                ColorTint = ColorTint,
                 RenderEnvironmentMap = RenderEnvironmentMap,
                 RenderShadowMap = RenderShadowMap,
             };
@@ -123,10 +146,13 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 PorositySssEmissiveMap = PorositySssEmissiveMap,
                 EnvironmentCubeMapSource = EnvironmentCubeMapSource,
                 IrradianceCubeMapSource = IrradianceCubeMapSource,
+                BrdfLutMap = BrdfLutMap,
                 SurfaceMapSampler = SurfaceMapSampler,
                 HeightMapSampler = HeightMapSampler,
                 EnvironmentMapSampler = EnvironmentMapSampler,
                 IrradianceMapSampler = IrradianceMapSampler,
+                BrdfLutMapSampler = BrdfLutMapSampler,
+                ColorTint = ColorTint,
                 RenderEnvironmentMap = RenderEnvironmentMap,
                 RenderShadowMap = RenderShadowMap,
             };
@@ -157,6 +183,11 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 ((CustomPbrMaterialCore)((Material)d).Core).PorositySssEmissiveMap = e.NewValue as TextureModel;
             }));
 
+        public static readonly DependencyProperty BrdfLutMapProperty =
+            DependencyProperty.Register(nameof(BrdfLutMap), typeof(TextureModel), typeof(CustomPbrMaterial), new PropertyMetadata(null, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).BrdfLutMap = e.NewValue as TextureModel;
+            }));
+
         public static readonly DependencyProperty EnvironmentCubeMapSourceProperty =
             DependencyProperty.Register(nameof(EnvironmentCubeMapSource), typeof(ICubeMapSource), typeof(CustomPbrMaterial), new PropertyMetadata(null, (d, e) => {
                 ((CustomPbrMaterialCore)((Material)d).Core).EnvironmentCubeMapSource = e.NewValue as ICubeMapSource;
@@ -178,13 +209,23 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             }));
 
         public static readonly DependencyProperty EnvironmentMapSamplerProperty =
-            DependencyProperty.Register(nameof(EnvironmentMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(DefaultSamplers.EnvironmentSampler, (d, e) => {
+            DependencyProperty.Register(nameof(EnvironmentMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(CustomSamplerStates.Environment, (d, e) => {
                 ((CustomPbrMaterialCore)((Material)d).Core).EnvironmentMapSampler = (SamplerStateDescription)e.NewValue;
             }));
 
         public static readonly DependencyProperty IrradianceMapSamplerProperty =
-            DependencyProperty.Register(nameof(IrradianceMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(DefaultSamplers.IBLSampler, (d, e) => {
+            DependencyProperty.Register(nameof(IrradianceMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(CustomSamplerStates.Irradiance, (d, e) => {
                 ((CustomPbrMaterialCore)((Material)d).Core).IrradianceMapSampler = (SamplerStateDescription)e.NewValue;
+            }));
+
+        public static readonly DependencyProperty BrdfLutMapSamplerProperty =
+            DependencyProperty.Register(nameof(BrdfLutMapSampler), typeof(SamplerStateDescription), typeof(CustomPbrMaterial), new PropertyMetadata(CustomSamplerStates.BrdfLut, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).BrdfLutMapSampler = (SamplerStateDescription)e.NewValue;
+            }));
+
+        public static readonly DependencyProperty ColorTintProperty =
+            DependencyProperty.Register(nameof(ColorTint), typeof(Color4), typeof(CustomPbrMaterial), new PropertyMetadata(Color4.White, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).ColorTint = (Color4)e.NewValue;
             }));
 
         public static readonly DependencyProperty RenderShadowMapProperty =

@@ -16,7 +16,7 @@ namespace PixelGraph.Common.IO
 {
     public interface IImageWriter
     {
-        Task WriteAsync(Image image, string localFile, ImageChannels type, CancellationToken token);
+        Task WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token);
     }
 
     internal class ImageWriter : IImageWriter
@@ -42,7 +42,7 @@ namespace PixelGraph.Common.IO
             this.writer = writer;
         }
 
-        public async Task WriteAsync(Image image, string localFile, ImageChannels type, CancellationToken token)
+        public async Task WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token)
         {
             if (image == null) throw new ArgumentNullException(nameof(image));
 
@@ -53,7 +53,7 @@ namespace PixelGraph.Common.IO
             await image.SaveAsync(stream, encoder, token);
         }
 
-        private IImageEncoder GetEncoder(string ext, ImageChannels type)
+        private static IImageEncoder GetEncoder(string ext, ImageChannels type)
         {
             if (map.TryGetValue(ext, out var encoderFunc)) return encoderFunc(type);
             throw new ApplicationException($"Unsupported image encoding '{ext}'!");

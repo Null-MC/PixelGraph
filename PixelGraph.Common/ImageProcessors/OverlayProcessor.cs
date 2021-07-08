@@ -4,8 +4,6 @@ using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -24,37 +22,38 @@ namespace PixelGraph.Common.ImageProcessors
         {
             var pixelOut = new Rgba32();
 
-            var mappingCount = options.SamplerMap.Count;
-            var samplerKeys = options.SamplerMap.Keys.ToArray();
+            var samplerCount = options.Samplers.Length;
+            //var samplerKeys = options.Samplers.Keys.ToArray();
 
             float fx, fy, value;
             byte existingValue, finalValue, pixelValue;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 row[x].ToRgba32(ref pixelOut);
 
-                for (var i = 0; i < mappingCount; i++) {
-                    var mapping = samplerKeys[i];
-                    pixelOut.GetChannelValue(in mapping.OutputColor, out existingValue);
+                for (var i = 0; i < samplerCount; i++) {
+                    var samplerOptions = options.Samplers[i];
+                    var mapping = samplerOptions.PixelMap;
+                    pixelOut.GetChannelValue(in samplerOptions.OutputColor, out existingValue);
 
                     if (existingValue != 0) {
                         if (existingValue < mapping.OutputRangeMin || existingValue > mapping.OutputRangeMax) continue;
                     }
 
                     pixelValue = 0;
-                    if (options.SamplerMap.TryGetValue(mapping, out var sampler)) {
+                    if (samplerOptions.Sampler != null) {
                         GetTexCoord(in context, in x, out fx, out fy);
-                        sampler.Sample(fx, fy, in mapping.InputColor, out pixelValue);
+                        samplerOptions.Sampler.Sample(fx, fy, in samplerOptions.InputColor, out pixelValue);
                     }
 
                     if (!mapping.TryUnmap(in pixelValue, out value)) continue;
 
                     value *= mapping.InputScale;
 
-                    if (mapping.Invert) {
+                    if (samplerOptions.Invert) {
                         MathEx.Invert(ref value, 0f, 1f);
                     }
 
-                    value += mapping.ValueShift;
+                    value += samplerOptions.ValueShift;
 
                     value *= mapping.OutputScale;
 
@@ -66,7 +65,7 @@ namespace PixelGraph.Common.ImageProcessors
                         pixelOut.B = finalValue;
                     }
                     else {
-                        pixelOut.SetChannelValue(mapping.OutputColor, finalValue);
+                        pixelOut.SetChannelValue(samplerOptions.OutputColor, finalValue);
                     }
                 }
 
@@ -76,8 +75,18 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
-            public Dictionary<TextureChannelMapping, ISampler<TPixel>> SamplerMap;
+            public SamplerOptions[] Samplers;
             public bool IsGrayscale;
+        }
+
+        public class SamplerOptions
+        {
+            public PixelMapping PixelMap;
+            public ISampler<TPixel> Sampler;
+            public ColorChannel InputColor;
+            public ColorChannel OutputColor;
+            public float ValueShift;
+            public bool Invert;
         }
     }
 }

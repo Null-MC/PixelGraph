@@ -43,7 +43,7 @@ namespace PixelGraph.Common.Textures
         ISampler<T> CreateSampler<T>(Image<T> image, string name) where T : unmanaged, IPixel<T>;
         Size? GetTextureSize(float? defaultAspect);
         Size? GetBufferSize(float aspect);
-        string GetMetaInputFilename();
+        //string GetMetaInputFilename();
     }
 
     internal class TextureGraphContext : ITextureGraphContext
@@ -83,14 +83,16 @@ namespace PixelGraph.Common.Textures
             MaxFrameCount = 1;
         }
 
-        public string GetMetaInputFilename()
-        {
-            var matPath = Material.UseGlobalMatching
-                ? Material.LocalPath
-                : PathEx.Join(Material.LocalPath, Material.Name);
+        //public string GetMetaInputFilename()
+        //{
+        //    var matPath = Material.UseGlobalMatching
+        //        ? Material.LocalPath
+        //        : PathEx.Join(Material.LocalPath, Material.Name);
 
-            return PathEx.Join(matPath, "mat.mcmeta");
-        }
+
+
+        //    return PathEx.Join(matPath, "mat.mcmeta");
+        //}
 
         public void ApplyInputEncoding()
         {
@@ -225,13 +227,15 @@ namespace PixelGraph.Common.Textures
 
         public Size? GetBufferSize(float aspect)
         {
+            if (Profile == null) return null;
+
             var blockSize = Profile?.BlockTextureSize;
             var scale = (float?)Profile?.TextureScale;
 
-            if (!Material.TryGetSourceBounds(in blockSize, scale, out var bounds))
-                return GetTextureSize(aspect);
+            if (Material.TryGetSourceBounds(in blockSize, scale, out var bounds)) return bounds;
 
-            return bounds;
+            return GetTextureSize(aspect);
+
             //if (!TextureScale.HasValue) return bounds;
 
             //var width = (int)MathF.Ceiling(bounds.Width * TextureScale.Value);

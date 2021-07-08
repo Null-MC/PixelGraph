@@ -240,6 +240,7 @@ namespace PixelGraph.UI.Models
             AddSelect("Input Format", nameof(MaterialProperties.InputFormat), options, MaterialProperties.DefaultInputFormat);
             AddBool<bool?>("Wrap Horizontally", nameof(MaterialProperties.WrapX), MaterialProperties.DefaultWrap);
             AddBool<bool?>("Wrap Vertically", nameof(MaterialProperties.WrapY), MaterialProperties.DefaultWrap);
+            AddText<string>("Color Tint", nameof(MaterialProperties.ColorTint));
         }
     }
 
@@ -326,7 +327,7 @@ namespace PixelGraph.UI.Models
         {
             AddText<string>("Texture", nameof(MaterialOcclusionProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialOcclusionProperties.Value), 0m);
-            //Add<decimal?>("Shift", nameof(MaterialOcclusionProperties.Shift), 0m);
+            AddText<decimal?>("Shift", nameof(MaterialOcclusionProperties.Shift), 0m);
             AddText<decimal?>("Scale", nameof(MaterialOcclusionProperties.Scale), 1m);
         }
     }
@@ -347,6 +348,7 @@ namespace PixelGraph.UI.Models
         {
             AddText<string>("Texture", nameof(MaterialSpecularProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialSpecularProperties.Value), 0m);
+            AddText<decimal?>("Shift", nameof(MaterialSpecularProperties.Shift), 0m);
             AddText<decimal?>("Scale", nameof(MaterialSpecularProperties.Scale), 1m);
         }
     }
@@ -357,6 +359,7 @@ namespace PixelGraph.UI.Models
         {
             AddText<string>("Texture", nameof(MaterialSmoothProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialSmoothProperties.Value), 0m);
+            AddText<decimal?>("Shift", nameof(MaterialSmoothProperties.Shift), 0m);
             AddText<decimal?>("Scale", nameof(MaterialSmoothProperties.Scale), 1m);
         }
     }
@@ -367,6 +370,7 @@ namespace PixelGraph.UI.Models
         {
             AddText<string>("Texture", nameof(MaterialRoughProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialRoughProperties.Value), 0m);
+            AddText<decimal?>("Shift", nameof(MaterialRoughProperties.Shift), 0m);
             AddText<decimal?>("Scale", nameof(MaterialRoughProperties.Scale), 1m);
         }
     }
@@ -397,6 +401,7 @@ namespace PixelGraph.UI.Models
         {
             AddText<string>("Texture", nameof(MaterialPorosityProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialPorosityProperties.Value), 0m);
+            AddText<decimal?>("Shift", nameof(MaterialPorosityProperties.Shift), 0m);
             AddText<decimal?>("Scale", nameof(MaterialPorosityProperties.Scale), 1m);
         }
     }
@@ -407,6 +412,7 @@ namespace PixelGraph.UI.Models
         {
             AddText<string>("Texture", nameof(MaterialSssProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialSssProperties.Value), 0m);
+            AddText<decimal?>("Shift", nameof(MaterialSssProperties.Shift), 0m);
             AddText<decimal?>("Scale", nameof(MaterialSssProperties.Scale), 1m);
         }
     }
@@ -417,6 +423,7 @@ namespace PixelGraph.UI.Models
         {
             AddText<string>("Texture", nameof(MaterialEmissiveProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialEmissiveProperties.Value), 0m);
+            AddText<decimal?>("Shift", nameof(MaterialEmissiveProperties.Shift), 0m);
             AddText<decimal?>("Scale", nameof(MaterialEmissiveProperties.Scale), 1m);
         }
     }

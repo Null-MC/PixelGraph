@@ -21,7 +21,7 @@
             </controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:IBoolPropertyRow}">
-                    <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                    <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="False"
                               IsChecked="{Binding EditValue, Mode=OneWay}"/>
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>

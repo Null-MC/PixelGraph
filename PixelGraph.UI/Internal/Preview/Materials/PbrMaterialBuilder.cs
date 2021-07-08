@@ -1,5 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
+using MahApps.Metro.Controls;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal.Preview.Textures;
 using System;
@@ -19,16 +20,27 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public override Material BuildMaterial()
         {
             var mat = new CustomPbrMaterial(PassName, PassNameOIT) {
-                EnvironmentCubeMapSource = Model.Preview.EnvironmentCube,
-                IrradianceCubeMapSource = Model.Preview.IrradianceCube,
-                RenderEnvironmentMap = Model.Preview.EnableEnvironment,
+                EnvironmentCubeMapSource = EnvironmentCubeMapSource,
+                IrradianceCubeMapSource = IrradianceCubeMapSource,
+                RenderEnvironmentMap = RenderEnvironmentMap,
+                BrdfLutMap = BrdfLutMap,
                 SurfaceMapSampler = ColorSampler,
                 HeightMapSampler = HeightSampler,
-                RenderShadowMap = false,
+                RenderShadowMap = true,
             };
 
-            if (TextureMap.TryGetValue(TextureTags.Albedo, out var albedoStream) && albedoStream != null)
+            if (Material.ColorTint != null) {
+                var tint = ColorHelper.ColorFromString(Material.ColorTint);
+                if (tint.HasValue) mat.ColorTint = tint.Value.ToColor4();
+            }
+
+            //var loader = new CustomTextureLoader();
+            //...
+
+            if (TextureMap.TryGetValue(TextureTags.Albedo, out var albedoStream) && albedoStream != null) {
+                //var albedoContentId = Guid.NewGuid();
                 mat.AlbedoAlphaMap = TextureModel.Create(albedoStream);
+            }
 
             if (TextureMap.TryGetValue(TextureTags.Normal, out var normalStream) && normalStream != null)
                 mat.NormalHeightMap = TextureModel.Create(normalStream);
@@ -42,4 +54,17 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             return mat;
         }
     }
+
+    //internal class CustomTextureLoader : ITextureInfoLoader
+    //{
+    //    public TextureInfo Load(Guid id)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public void Complete(Guid id, TextureInfo info, bool succeeded)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }

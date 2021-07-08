@@ -7,5 +7,6 @@
         public const string ShadowMapSampler = "sampler_shadow";
         public const string EnvironmentCubeSampler = "sampler_environment";
         public const string IrradianceCubeSampler = "sampler_irradiance";
+        public const string BrdfLutSampler = "sampler_brdf_lut";
     }
 }

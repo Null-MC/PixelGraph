@@ -4,6 +4,7 @@ using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -20,16 +21,15 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
+            Vector3 normal;
             float fx, fy, valueIn, value, ValueOut;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                var normal = row[x].ToScaledVector4();
-
                 GetTexCoord(in context, in x, out fx, out fy);
-                options.MagSampler.SampleScaled(in fx, in fy, in options.Mapping.InputColor, out valueIn);
+                options.MagSampler.SampleScaled(in fx, in fy, in options.InputColor, out valueIn);
                 if (!options.Mapping.TryUnmap(in valueIn, out value)) continue;
 
-                if (!options.Mapping.ValueShift.Equal(0f))
-                    value += options.Mapping.ValueShift;
+                if (!options.ValueShift.Equal(0f))
+                    value += options.ValueShift;
 
                 if (!options.Mapping.OutputScale.Equal(1f))
                     value *= options.Mapping.OutputScale;
@@ -37,14 +37,30 @@ namespace PixelGraph.Common.ImageProcessors
                 options.Mapping.Map(ref value, out ValueOut);
                 if (ValueOut.Equal(1f)) continue;
 
-                row[x].FromScaledVector4(normal * ValueOut);
+
+                var normalPixel = row[x].ToScaledVector4();
+
+                normal.X = normalPixel.X * 2f - 1f;
+                normal.Y = normalPixel.Y * 2f - 1f;
+                normal.Z = normalPixel.Z * 2f - 1f;
+
+                MathEx.Normalize(ref normal);
+                normal *= ValueOut;
+
+                normalPixel.X = normal.X * 0.5f + 0.5f;
+                normalPixel.Y = normal.Y * 0.5f + 0.5f;
+                normalPixel.Z = normal.Z * 0.5f + 0.5f;
+
+                row[x].FromScaledVector4(normalPixel);
             }
         }
 
         public class Options
         {
+            public ColorChannel InputColor;
             public ISampler<TPixel> MagSampler;
-            public TextureChannelMapping Mapping;
+            public PixelMapping Mapping;
+            public float ValueShift;
             public float Scale;
         }
     }

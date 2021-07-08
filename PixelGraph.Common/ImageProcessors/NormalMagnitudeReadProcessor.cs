@@ -4,6 +4,7 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -23,11 +24,15 @@ namespace PixelGraph.Common.ImageProcessors
             var normalRow = options.NormalTexture.GetPixelRowSpan(context.Y);
 
             float value;
+            Vector3 normal;
             var pixelMag = new Rgba32();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var normalPixel = normalRow[x].ToScaledVector4();
-                var magnitude = normalPixel.Length3();
+                normal.X = normalPixel.X * 2f - 1f;
+                normal.Y = normalPixel.Y * 2f - 1f;
+                normal.Z = normalPixel.Z * 2f - 1f;
 
+                var magnitude = normal.Length();
                 if (!options.Mapping.TryUnmap(in magnitude, out value)) continue;
                 //options.Mapping.Map(ref value, out pixelValue);
 
@@ -41,7 +46,7 @@ namespace PixelGraph.Common.ImageProcessors
         public class Options
         {
             public Image<TPixel> NormalTexture;
-            public TextureChannelMapping Mapping;
+            public PixelMapping Mapping;
         }
     }
 }

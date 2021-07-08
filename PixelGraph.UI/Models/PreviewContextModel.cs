@@ -1,14 +1,16 @@
 ﻿using HelixToolkit.SharpDX.Core;
+using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Preview.CubeMaps;
+using SharpDX;
 using System;
+using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
-using HelixToolkit.Wpf.SharpDX;
-using SharpDX;
+using Camera = HelixToolkit.Wpf.SharpDX.Camera;
 using Color = System.Windows.Media.Color;
 using Material = HelixToolkit.Wpf.SharpDX.Material;
 using MeshGeometry3D = HelixToolkit.SharpDX.Core.MeshGeometry3D;
@@ -25,6 +27,7 @@ namespace PixelGraph.UI.Models
         private MeshGeometry3D _model;
         private PerspectiveCamera _camera;
         private ImageSource _layerImage;
+        private Stream _brdfLutMap;
         private string _selectedTag;
         private bool _enableRender;
         private bool _enableEnvironment;
@@ -34,13 +37,12 @@ namespace PixelGraph.UI.Models
         private int _parallaxSamplesMin;
         private int _parallaxSamplesMax;
         private bool _enableLinearSampling;
+        private Camera _sunCamera;
         private Vector3 _sunDirection;
         private float _sunStrength;
-        //private Color _sunColor;
         private int _timeOfDay;
-        private bool _enableTimeCycle;
         private int _wetness;
-        private bool _isLoading;
+        private string _frameRateText;
 
         public event EventHandler EnableRenderChanged;
         public event EventHandler RenderModeChanged;
@@ -48,6 +50,8 @@ namespace PixelGraph.UI.Models
         public event EventHandler SelectedTagChanged;
 
         public bool HasSelectedTag => _selectedTag != null;
+        public Vector3D SunLightDirection => -_sunDirection.ToVector3D();
+        public Color SunLightColor => new Color4(_sunStrength, _sunStrength, _sunStrength, _sunStrength).ToColor();
 
         public float ParallaxDepth {
             get => _parallaxDepth;
@@ -77,14 +81,6 @@ namespace PixelGraph.UI.Models
             get => _enableLinearSampling;
             set {
                 _enableLinearSampling = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool IsLoading {
-            get => _isLoading;
-            set {
-                _isLoading = value;
                 OnPropertyChanged();
             }
         }
@@ -128,6 +124,14 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public Camera SunCamera {
+            get => _sunCamera;
+            set {
+                _sunCamera = value;
+                OnPropertyChanged();
+            }
+        }
+
         public Vector3 SunDirection {
             get => _sunDirection;
             set {
@@ -137,8 +141,6 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public Vector3D SunLightDirection => -_sunDirection.ToVector3D();
-
         public float SunStrength {
             get => _sunStrength;
             set {
@@ -147,8 +149,6 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged(nameof(SunLightColor));
             }
         }
-
-        public Color SunLightColor => new Color4(_sunStrength, _sunStrength, _sunStrength, _sunStrength).ToColor();
 
         public int Wetness {
             get => _wetness;
@@ -182,7 +182,6 @@ namespace PixelGraph.UI.Models
                 _renderMode = value;
                 OnPropertyChanged();
                 OnRenderModeChanged();
-                //OnRenderSceneChanged();
             }
         }
 
@@ -228,6 +227,14 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public Stream BrdfLutMap {
+            get => _brdfLutMap;
+            set {
+                _brdfLutMap = value;
+                OnPropertyChanged();
+            }
+        }
+
         public PerspectiveCamera Camera {
             get => _camera;
             set {
@@ -235,14 +242,6 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
             }
         }
-
-        //public OrthographicCamera SunCamera {
-        //    get => _sunCamera;
-        //    set {
-        //        _sunCamera = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
         public MeshGeometry3D Model {
             get => _model;
@@ -260,19 +259,10 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public bool EnableTimeCycle {
-            get => _enableTimeCycle;
+        public string FrameRateText {
+            get => _frameRateText;
             set {
-                _enableTimeCycle = value;
-                OnPropertyChanged();
-            }
-        }
-
-        private Transform3D _pointLightTransform;
-        public Transform3D PointLightTransform {
-            get => _pointLightTransform;
-            set {
-                _pointLightTransform = value;
+                _frameRateText = value;
                 OnPropertyChanged();
             }
         }

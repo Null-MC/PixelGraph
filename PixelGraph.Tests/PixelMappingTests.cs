@@ -19,7 +19,8 @@ namespace PixelGraph.Tests
                 InputPower = 1f,
             };
 
-            if (!mapping.TryUnmap(in pixelValue, out var channelValue))
+            var pixelMap = new PixelMapping(mapping);
+            if (!pixelMap.TryUnmap(in pixelValue, out var channelValue))
                 throw new ApplicationException("Failed to unmap value!");
 
             Assert.Equal(expectedValue, channelValue);
@@ -38,7 +39,8 @@ namespace PixelGraph.Tests
                 InputPower = 0.5f,
             };
 
-            if (!mapping.TryUnmap(in pixelValue, out var channelValue))
+            var pixelMap = new PixelMapping(mapping);
+            if (!pixelMap.TryUnmap(in pixelValue, out var channelValue))
                 throw new ApplicationException("Failed to unmap value!");
 
             Assert.Equal(expectedValue, channelValue);

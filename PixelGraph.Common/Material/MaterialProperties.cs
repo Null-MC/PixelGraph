@@ -58,6 +58,9 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = -92)]
         public bool? WrapY {get; set;}
 
+        [YamlMember(Order = -91)]
+        public string ColorTint {get; set;}
+
         //public bool? Resizable {get; set;}
 
         public int? RangeMin {get; set;}
@@ -231,7 +234,7 @@ namespace PixelGraph.Common.Material
             return shiftMap.TryGetValue(encodingChannel, out var valueFunc) ? valueFunc(this) : 0m;
         }
 
-        private static readonly Dictionary<string, Func<MaterialProperties, decimal?>> valueMap = new Dictionary<string, Func<MaterialProperties, decimal?>>(StringComparer.OrdinalIgnoreCase) {
+        private static readonly Dictionary<string, Func<MaterialProperties, decimal?>> valueMap = new(StringComparer.OrdinalIgnoreCase) {
             [EncodingChannel.Alpha] = mat => mat.Alpha?.Value,
             [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ValueRed,
             [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ValueGreen,
@@ -253,26 +256,26 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Emissive] = mat => mat.Emissive?.Value,
         };
 
-        private static readonly Dictionary<string, Func<MaterialProperties, decimal>> shiftMap = new Dictionary<string, Func<MaterialProperties, decimal>>(StringComparer.OrdinalIgnoreCase) {
-            [EncodingChannel.Alpha] = mat => 0,
-            [EncodingChannel.DiffuseRed] = mat => 0,
-            [EncodingChannel.DiffuseGreen] = mat => 0,
-            [EncodingChannel.DiffuseBlue] = mat => 0,
-            [EncodingChannel.AlbedoRed] = mat => 0,
-            [EncodingChannel.AlbedoGreen] = mat => 0,
-            [EncodingChannel.AlbedoBlue] = mat => 0,
-            [EncodingChannel.Height] = mat => mat.Height?.Shift ?? 0,
-            [EncodingChannel.Occlusion] = mat => 0,
-            [EncodingChannel.Smooth] = mat => 0,
-            [EncodingChannel.Rough] = mat => 0,
-            [EncodingChannel.Metal] = mat => 0,
-            [EncodingChannel.F0] = mat => 0,
-            [EncodingChannel.Porosity] = mat => 0,
-            [EncodingChannel.SubSurfaceScattering] = mat => 0,
-            [EncodingChannel.Emissive] = mat => 0,
+        private static readonly Dictionary<string, Func<MaterialProperties, decimal>> shiftMap = new(StringComparer.OrdinalIgnoreCase) {
+            [EncodingChannel.Alpha] = mat => mat.Alpha?.Shift ?? 0m,
+            [EncodingChannel.DiffuseRed] = mat => 0m,
+            [EncodingChannel.DiffuseGreen] = mat => 0m,
+            [EncodingChannel.DiffuseBlue] = mat => 0m,
+            [EncodingChannel.AlbedoRed] = mat => 0m,
+            [EncodingChannel.AlbedoGreen] = mat => 0m,
+            [EncodingChannel.AlbedoBlue] = mat => 0m,
+            [EncodingChannel.Height] = mat => mat.Height?.Shift ?? 0m,
+            [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Shift ?? 0m,
+            [EncodingChannel.Smooth] = mat => mat.Smooth?.Shift ?? 0m,
+            [EncodingChannel.Rough] = mat => mat.Rough?.Shift ?? 0m,
+            [EncodingChannel.Metal] = mat => 0m,
+            [EncodingChannel.F0] = mat => mat.F0?.Shift ?? 0m,
+            [EncodingChannel.Porosity] = mat => mat.Porosity?.Shift ?? 0m,
+            [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Shift ?? 0m,
+            [EncodingChannel.Emissive] = mat => mat.Emissive?.Shift ?? 0m,
         };
 
-        private static readonly Dictionary<string, Func<MaterialProperties, decimal>> scaleMap = new Dictionary<string, Func<MaterialProperties, decimal>>(StringComparer.OrdinalIgnoreCase) {
+        private static readonly Dictionary<string, Func<MaterialProperties, decimal>> scaleMap = new(StringComparer.OrdinalIgnoreCase) {
             [EncodingChannel.Alpha] = mat => mat.Alpha?.Scale ?? 1m,
             [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ScaleRed ?? 1m,
             [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ScaleGreen ?? 1m,
@@ -292,6 +295,15 @@ namespace PixelGraph.Common.Material
         };
 
         #region Deprecated
+
+        [Obsolete("Replace usages of Wrap with WrapX and WrapY")]
+        public bool? Wrap {
+            get => null;
+            set {
+                WrapX = value;
+                WrapY = value;
+            }
+        }
         
         [Obsolete("Replace usages of CreateInventory with PublishInventory")]
         [YamlMember] public bool? CreateInventory {

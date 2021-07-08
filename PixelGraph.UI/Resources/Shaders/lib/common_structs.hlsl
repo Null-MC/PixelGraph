@@ -22,18 +22,27 @@ struct ps_input
 	float4 pos  : SV_POSITION;
 	float4 wp   : POSITION0;
 	float3 eye  : POSITION1;
-	float2 poT : POSITION2;
+	float2 poT  : POSITION2;
     float3 nor  : NORMAL;
 	float3 tan  : TANGENT;
 	float3 bin  : BINORMAL;
 	float2 tex  : TEXCOORD0;
-	//float4 sp   : TEXCOORD1;
+
+	//float4 p2   : POSITION3;
 };
 
 struct ps_input_cube
 {
 	float4 pos     : SV_POSITION;
 	float3 tex     : POSITION0;
+};
+
+struct ps_shadow
+{
+    float4 pos : SV_POSITION;
+	float2 tex : TEXCOORD0;
+	float2 poT : POSITION0;
+    float3 nor : NORMAL;
 };
 
 struct LightStruct
@@ -156,10 +165,13 @@ Texture2D tex_emissive : register(t1);
 
 TextureCube<float3> tex_environment : register(t20);
 TextureCube<float3> tex_irradiance : register(t21);
+Texture2D<float2> tex_brdf_lut : register(t22);
 Texture2D<float> tex_shadow : register(t30);
 
 SamplerState sampler_surface : register(s0);
 SamplerState sampler_irradiance : register(s1);
 SamplerState sampler_height : register(s2);
 SamplerState sampler_environment : register(s4);
-SamplerComparisonState sampler_shadow : register(s5);
+//SamplerComparisonState sampler_shadow : register(s5);
+SamplerState sampler_sss : register(s6);
+SamplerState sampler_brdf_lut : register(s7);

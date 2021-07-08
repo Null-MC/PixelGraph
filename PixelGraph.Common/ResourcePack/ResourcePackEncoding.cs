@@ -1,8 +1,8 @@
 ﻿using PixelGraph.Common.Material;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using System.Collections.Generic;
 using System.Linq;
-using PixelGraph.Common.TextureFormats;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack

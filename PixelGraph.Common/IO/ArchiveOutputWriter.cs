@@ -28,6 +28,15 @@ namespace PixelGraph.Common.IO
             return entry.Open();
         }
 
+        public Stream OpenReadWrite(string localFilename)
+        {
+            if (Path.DirectorySeparatorChar != '/')
+                localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
+
+            var entry = archive.GetEntry(localFilename) ?? archive.CreateEntry(localFilename);
+            return entry.Open();
+        }
+
         public bool FileExists(string localFile) => false;
         public DateTime? GetWriteTime(string localFile) => null;
 

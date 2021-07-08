@@ -62,7 +62,7 @@ namespace PixelGraph.UI.Windows
             catch (OperationCanceledException) {
                 logger.LogWarning("Publish cancelled.");
                 LogList.Append(LogLevel.Warning, "Publish Cancelled!");
-                DialogResult = false;
+                if (IsLoaded) DialogResult = false;
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to publish resource pack!");
@@ -71,6 +71,12 @@ namespace PixelGraph.UI.Windows
             finally {
                 await Application.Current.Dispatcher.BeginInvoke(() => Model.IsActive = false);
             }
+        }
+
+        private void OnWindowClosed(object sender, EventArgs e)
+        {
+            viewModel.Cancel();
+            viewModel.Dispose();
         }
 
         //public void Append(LogLevel level, string text)
@@ -97,6 +103,7 @@ namespace PixelGraph.UI.Windows
 
         private void OnCloseButtonClick(object sender, RoutedEventArgs e)
         {
+            viewModel.Cancel();
             DialogResult = true;
         }
     }

@@ -37,22 +37,19 @@ struct pbr_material
 pbr_material get_pbr_material(const in float2 tex)
 {
 	const float4 albedo_alpha = tex_albedo_alpha.Sample(sampler_surface, tex);
-	const float3 rough_f0_occlusion = tex_rough_f0_occlusion.Sample(sampler_surface, tex).rgb;
+	const float2 rough_occlusion = tex_rough_f0_occlusion.Sample(sampler_surface, tex).rb;
+	const float  f0 = tex_rough_f0_occlusion.SampleLevel(sampler_surface, tex, 0).g;
 	const float3 porosity_sss_emissive = tex_porosity_sss_emissive.Sample(sampler_surface, tex).rgb;
 
 	pbr_material mat;
-	mat.albedo = albedo_alpha.rgb;
+	mat.albedo = srgb_to_linear(albedo_alpha.rgb);
 	mat.alpha = albedo_alpha.a;
-	mat.rough = rough_f0_occlusion.r;
-    mat.f0 = rough_f0_occlusion.g;
-	mat.occlusion = rough_f0_occlusion.b;
-	mat.porosity = porosity_sss_emissive.r;
-	mat.sss = porosity_sss_emissive.g;
-	mat.emissive = porosity_sss_emissive.b;
-
-	mat.albedo = srgb_to_linear(mat.albedo);
-	//mat.rough = srgb_to_linear(mat.rough);
-	mat.porosity = srgb_to_linear(mat.porosity);
-	
+	mat.rough = rough_occlusion.r;
+    mat.f0 = f0;
+	mat.occlusion = srgb_to_linear(rough_occlusion.g);
+	mat.porosity = srgb_to_linear(porosity_sss_emissive.r);
+	mat.sss = srgb_to_linear(porosity_sss_emissive.g);
+	mat.emissive = srgb_to_linear(porosity_sss_emissive.b);
+		
     return mat;
 }

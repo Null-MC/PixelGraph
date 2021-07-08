@@ -24,7 +24,8 @@ namespace PixelGraph.Common.TextureFormats
 
         public static ITextureFormatFactory GetFactory(string format)
         {
-            if (format == null) throw new ArgumentNullException(nameof(format));
+            //if (format == null) throw new ArgumentNullException(nameof(format));
+            if (format == null) return null;
 
             return formatMap.TryGetValue(format, out var textureFormat) ? textureFormat
                 : throw new ApplicationException($"Unsupported texture format '{format}'!");

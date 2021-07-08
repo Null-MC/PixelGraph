@@ -44,7 +44,8 @@ namespace PixelGraph.Common.ImageProcessors
                 v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
 
                 if (!options.RestoreNormalZ) {
-                    pixel.GetChannelValueScaledF(ColorChannel.Blue, out v.Z);
+                    pixel.GetChannelValue(ColorChannel.Blue, out var normalZ);
+                    v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
                     MathEx.Normalize(ref v);
                 }
 
@@ -85,7 +86,7 @@ namespace PixelGraph.Common.ImageProcessors
 
                 pixel.SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
                 pixel.SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
-                pixel.SetChannelValueScaledF(ColorChannel.Blue, v.Z);
+                pixel.SetChannelValueScaledF(ColorChannel.Blue, v.Z * 0.5f + 0.5f);
 
                 row[x].FromRgba32(pixel);
             }
@@ -93,7 +94,6 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow(in PixelRowContext context, Span<Rgba32> row)
         {
-            //var pixel = new Rgba32();
             byte[] noiseX = null, noiseY = null;
 
             if (hasNoise) {
@@ -104,7 +104,6 @@ namespace PixelGraph.Common.ImageProcessors
             float angleX, angleY;
             var v = new Vector3();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                //row[x].ToRgba32(ref pixel);
                 row[x].GetChannelValue(ColorChannel.Red, out var normalX);
                 row[x].GetChannelValue(ColorChannel.Green, out var normalY);
 
@@ -112,7 +111,8 @@ namespace PixelGraph.Common.ImageProcessors
                 v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
 
                 if (!options.RestoreNormalZ) {
-                    row[x].GetChannelValueScaledF(ColorChannel.Blue, out v.Z);
+                    row[x].GetChannelValueScaled(ColorChannel.Blue, out var normalZ);
+                    v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
                     MathEx.Normalize(ref v);
                 }
 
@@ -153,9 +153,7 @@ namespace PixelGraph.Common.ImageProcessors
 
                 row[x].SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
                 row[x].SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
-                row[x].SetChannelValueScaledF(ColorChannel.Blue, v.Z);
-
-                //row[x].FromRgba32(pixel);
+                row[x].SetChannelValueScaledF(ColorChannel.Blue, v.Z * 0.5f + 0.5f);
             }
         }
 

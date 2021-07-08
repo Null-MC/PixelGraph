@@ -39,7 +39,7 @@ namespace PixelGraph.Common.ImageProcessors
                 options.Token.ThrowIfCancellationRequested();
 
                 GetTexCoord(in context, in x, out fx, out fy);
-                options.HeightSampler.SampleScaled(in fx, in fy, in options.HeightMapping.InputColor, out heightPixel);
+                options.HeightSampler.SampleScaled(in fx, in fy, in options.HeightInputColor, out heightPixel);
                 if (!options.HeightMapping.TryUnmap(in heightPixel, out heightValue)) continue;
 
                 MathEx.Invert(ref heightValue, 0f, 1f);
@@ -80,7 +80,7 @@ namespace PixelGraph.Common.ImageProcessors
                 if (position.Z >= zScale) break;
 
                 GetTexCoord(in context, in position.X, in position.Y, out fx, out fy);
-                options.HeightSampler.SampleScaled(in fx, in fy, options.HeightMapping.InputColor, out heightPixel);
+                options.HeightSampler.SampleScaled(in fx, in fy, options.HeightInputColor, out heightPixel);
                 if (!options.HeightMapping.TryUnmap(in heightPixel, out heightValue)) continue;
 
                 MathEx.Invert(ref heightValue, 0f, 1f);
@@ -150,7 +150,8 @@ namespace PixelGraph.Common.ImageProcessors
             public CancellationToken Token;
 
             public ISampler<THeight> HeightSampler;
-            public TextureChannelMapping HeightMapping;
+            public ColorChannel HeightInputColor;
+            public PixelMapping HeightMapping;
 
             public float Quality;
             public int StepCount;

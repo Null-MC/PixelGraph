@@ -1,5 +1,5 @@
-﻿using PixelGraph.UI.Internal;
-using PixelGraph.UI.Internal.Utilities;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.ComponentModel;

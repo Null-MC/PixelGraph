@@ -3,6 +3,7 @@ using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.UI.Internal.Preview.CubeMaps;
+using SharpDX;
 using SharpDX.Direct3D11;
 using System.Windows;
 
@@ -35,6 +36,11 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             set => SetValue(IrradianceMapSamplerProperty, value);
         }
 
+        public Color4 ColorTint {
+            get => (Color4)GetValue(ColorTintProperty);
+            set => SetValue(ColorTintProperty, value);
+        }
+
         public bool RenderEnvironmentMap {
             get => (bool)GetValue(RenderEnvironmentMapProperty);
             set => SetValue(RenderEnvironmentMapProperty, value);
@@ -55,6 +61,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             IrradianceCubeMapSource = core.IrradianceCubeMapSource;
             SurfaceMapSampler = core.SurfaceMapSampler;
             IrradianceMapSampler = core.IrradianceMapSampler;
+            ColorTint = core.ColorTint;
             RenderEnvironmentMap = core.RenderEnvironmentMap;
             RenderShadowMap = core.RenderShadowMap;
         }
@@ -67,6 +74,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 IrradianceCubeMapSource = IrradianceCubeMapSource,
                 SurfaceMapSampler = SurfaceMapSampler,
                 IrradianceMapSampler = IrradianceMapSampler,
+                ColorTint = ColorTint,
                 RenderShadowMap = RenderShadowMap,
                 RenderEnvironmentMap = RenderEnvironmentMap,
             };
@@ -81,6 +89,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 IrradianceCubeMapSource = IrradianceCubeMapSource,
                 SurfaceMapSampler = SurfaceMapSampler,
                 IrradianceMapSampler = IrradianceMapSampler,
+                ColorTint = ColorTint,
                 RenderShadowMap = RenderShadowMap,
                 RenderEnvironmentMap = RenderEnvironmentMap,
             };
@@ -114,6 +123,11 @@ namespace PixelGraph.UI.Internal.Preview.Materials
         public static readonly DependencyProperty IrradianceMapSamplerProperty =
             DependencyProperty.Register(nameof(IrradianceMapSampler), typeof(SamplerStateDescription), typeof(CustomDiffuseMaterial), new PropertyMetadata(DefaultSamplers.IBLSampler, (d, e) => {
                 ((CustomDiffuseMaterialCore)((Material)d).Core).IrradianceMapSampler = (SamplerStateDescription)e.NewValue;
+            }));
+
+        public static readonly DependencyProperty ColorTintProperty =
+            DependencyProperty.Register(nameof(ColorTint), typeof(Color4), typeof(CustomDiffuseMaterial), new PropertyMetadata(Color4.White, (d, e) => {
+                ((CustomDiffuseMaterialCore)((Material)d).Core).ColorTint = (Color4)e.NewValue;
             }));
 
         public static readonly DependencyProperty RenderEnvironmentMapProperty =

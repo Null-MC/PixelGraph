@@ -12,11 +12,11 @@
 float3 hammonDiffuse(const float3 albedo, const float F0, const float nDotV, const float nDotL, const float nDotH, const float lDotV, const float roughness) {
 	//My modified Hammon diffuse model.
 	complexFloat3 n1;
-	n1.real = float3(1.00029f, 1.00029f, 1.00029f);
-	n1.imag = float3(0.0f, 0.0f, 0.0f);
+	n1.real = 1.00029f;
+	n1.imag = 0.0f;
 	complexFloat3 n2;
-	n2.real = f0ToIOR(float3(F0, F0, F0));
-	n2.imag = float3(0.0f, 0.0f, 0.0f);
+	n2.real = f0_to_ior(F0);
+	n2.imag = 0.0f;
 
 	float facing = 0.5 + 0.5 * lDotV;
 	float rough = nDotH <= 0.0 ? 0.0 : facing * (0.9f - 0.4f * facing) * ((0.5f + nDotH) * rcp(max(nDotH, 0.05f)));

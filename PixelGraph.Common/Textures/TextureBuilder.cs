@@ -354,8 +354,15 @@ namespace PixelGraph.Common.Textures
 
             var options = new OverlayProcessor<Rgb24>.Options {
                 IsGrayscale = isGrayscale,
-                SamplerMap = new Dictionary<TextureChannelMapping, ISampler<Rgb24>> {
-                    [mapping] = sampler,
+                Samplers = new [] {
+                    new OverlayProcessor<Rgb24>.SamplerOptions {
+                        PixelMap = new PixelMapping(mapping),
+                        InputColor = mapping.InputColor,
+                        OutputColor = mapping.OutputColor,
+                        Invert = mapping.Invert,
+                        ValueShift = mapping.ValueShift,
+                        Sampler = sampler,
+                    },
                 },
             };
 
@@ -388,8 +395,15 @@ namespace PixelGraph.Common.Textures
 
             var options = new OverlayProcessor<L8>.Options {
                 IsGrayscale = isGrayscale,
-                SamplerMap = new Dictionary<TextureChannelMapping, ISampler<L8>> {
-                    [mapping] = sampler,
+                Samplers = new [] {
+                    new OverlayProcessor<L8>.SamplerOptions {
+                        PixelMap = new PixelMapping(mapping),
+                        InputColor = mapping.InputColor,
+                        OutputColor = mapping.OutputColor,
+                        Invert = mapping.Invert,
+                        ValueShift = mapping.ValueShift,
+                        Sampler = sampler,
+                    },
                 },
             };
 
@@ -422,8 +436,15 @@ namespace PixelGraph.Common.Textures
 
             var options = new OverlayProcessor<L8>.Options {
                 IsGrayscale = isGrayscale,
-                SamplerMap = new Dictionary<TextureChannelMapping, ISampler<L8>> {
-                    [mapping] = occlusionSampler,
+                Samplers = new []{
+                    new OverlayProcessor<L8>.SamplerOptions {
+                        PixelMap = new PixelMapping(mapping),
+                        InputColor = mapping.InputColor,
+                        OutputColor = mapping.OutputColor,
+                        Invert = mapping.Invert,
+                        ValueShift = mapping.ValueShift,
+                        Sampler = occlusionSampler,
+                    },
                 },
             };
             
@@ -460,7 +481,8 @@ namespace PixelGraph.Common.Textures
 
             // TODO: scale
 
-            mapping.Map(ref value, out byte finalValue);
+            var pixelMap = new PixelMapping(mapping);
+            pixelMap.Map(ref value, out byte finalValue);
 
             if (isGrayscale) {
                 defaultValues.R = finalValue;
@@ -485,20 +507,28 @@ namespace PixelGraph.Common.Textures
 
             var options = new OverlayProcessor<Rgba32>.Options {
                 IsGrayscale = isGrayscale,
-                SamplerMap = mappingGroup.ToDictionary(m => m, m => {
+                Samplers = mappingGroup.Select(m => {
                     var samplerName = m.OutputSampler ?? context.DefaultSampler;
                     var sampler = context.CreateSampler(sourceImage, samplerName);
                     sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
                     sampler.RangeY = (float)(sourceImage.Height / info.FrameCount) / bufferSize.Height;
-                    return sampler;
-                }),
+
+                    return new OverlayProcessor<Rgba32>.SamplerOptions {
+                        PixelMap = new PixelMapping(m),
+                        InputColor = m.InputColor,
+                        OutputColor = m.OutputColor,
+                        Invert = m.Invert,
+                        ValueShift = m.ValueShift,
+                        Sampler = sampler,
+                    };
+                }).ToArray(),
             };
 
             var processor = new OverlayProcessor<Rgba32>(options);
 
             if (TargetPart.HasValue) {
                 var tile = regions.GetPublishPartFrame(TargetFrame ?? 0, FrameCount, TargetPart.Value);
-                foreach (var sampler in options.SamplerMap.Values) sampler.Bounds = tile.SourceBounds;
+                foreach (var samplerOptions in options.Samplers) samplerOptions.Sampler.Bounds = tile.SourceBounds;
 
                 image.Mutate(c => c.ApplyProcessor(processor));
             }
@@ -507,8 +537,8 @@ namespace PixelGraph.Common.Textures
                     var srcFrame = regions.GetRenderRegion(frame.Index, info.FrameCount);
 
                     foreach (var tile in frame.Tiles) {
-                        foreach (var sampler in options.SamplerMap.Values)
-                            sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
+                        foreach (var samplerOptions in options.Samplers)
+                            samplerOptions.Sampler.Bounds = srcFrame.Tiles[tile.Index].Bounds;
 
                         var outBounds = TargetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
                             : GetOutBounds(tile, frame).ScaleTo(image.Width, image.Height);
@@ -525,17 +555,19 @@ namespace PixelGraph.Common.Textures
             var occlusionSampler = await occlusionGraph.GetSamplerAsync(token);
             if (occlusionSampler == null) return;
 
-            var options = new PostOcclusionProcessor<L8, Rgba32>.Options {
-                MappingColors = mappingGroup.Select(m => m.OutputColor).ToArray(),
-                OcclusionSampler = occlusionSampler,
-                OcclusionMapping = new TextureChannelMapping(),
-            };
-
-            options.OcclusionMapping.ApplyInputChannel(occlusionGraph.Channel);
-            options.OcclusionMapping.OutputScale = (float)context.Material.GetChannelScale(EncodingChannel.Occlusion);
+            var occlusionMap = new TextureChannelMapping();
+            occlusionMap.ApplyInputChannel(occlusionGraph.Channel);
+            occlusionMap.OutputScale = (float)context.Material.GetChannelScale(EncodingChannel.Occlusion);
 
             if (context.Profile?.DiffuseOcclusionStrength.HasValue ?? false)
-                options.OcclusionMapping.OutputScale *= (float)context.Profile.DiffuseOcclusionStrength.Value;
+                occlusionMap.OutputScale *= (float)context.Profile.DiffuseOcclusionStrength.Value;
+
+            var options = new PostOcclusionProcessor<L8, Rgba32>.Options {
+                MappingColors = mappingGroup.Select(m => m.OutputColor).ToArray(),
+                OcclusionInputColor = occlusionMap.InputColor,
+                OcclusionMapping = new PixelMapping(occlusionMap),
+                OcclusionSampler = occlusionSampler,
+            };
 
             Image<Rgba32> emissiveImage = null;
             TextureSource emissiveInfo = null;
@@ -556,11 +588,14 @@ namespace PixelGraph.Common.Textures
                         emissiveSampler.RangeX = 1;
                         emissiveSampler.RangeY = 1;
 
-                        options.EmissiveMapping = new TextureChannelMapping();
-                        options.EmissiveMapping.ApplyInputChannel(emissiveChannel);
+                        var emissiveMap = new TextureChannelMapping();
+                        emissiveMap.ApplyInputChannel(emissiveChannel);
 
                         if (context.Material.TryGetChannelValue(EncodingChannel.Emissive, out var value))
-                            options.EmissiveMapping.InputValue = (float)value;
+                            emissiveMap.InputValue = (float)value;
+
+                        options.EmissiveInputColor = emissiveMap.InputColor;
+                        options.EmissiveMapping = new PixelMapping(emissiveMap);
                     }
                 }
 

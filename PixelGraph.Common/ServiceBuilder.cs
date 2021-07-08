@@ -5,6 +5,7 @@ using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using Serilog;
 
 namespace PixelGraph.Common
@@ -46,7 +47,8 @@ namespace PixelGraph.Common
             Services.AddScoped<ITextureSourceGraph, TextureSourceGraph>();
             Services.AddScoped<ITextureNormalGraph, TextureNormalGraph>();
             Services.AddScoped<ITextureOcclusionGraph, TextureOcclusionGraph>();
-            Services.AddScoped<ITextureGraphBuilder, TextureGraphBuilder>();
+            Services.AddScoped<IImportGraphBuilder, ImportGraphBuilder>();
+            Services.AddScoped<IPublishGraphBuilder, PublishGraphBuilder>();
             Services.AddScoped<ITextureRegionEnumerator, TextureRegionEnumerator>();
             Services.AddScoped<IEdgeFadeImageEffect, EdgeFadeImageEffect>();
 

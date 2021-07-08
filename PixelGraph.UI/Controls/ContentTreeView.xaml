@@ -1,0 +1,70 @@
+﻿<TreeView x:Class="PixelGraph.UI.Controls.ContentTreeView"
+          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+          xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+          xmlns:icons="http://metro.mahapps.com/winfx/xaml/iconpacks"
+          xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+          mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800"
+          VirtualizingStackPanel.IsVirtualizing="True"
+          VirtualizingStackPanel.VirtualizationMode="Recycling"
+          Background="{DynamicResource MahApps.Brushes.Gray10}"
+          FontSize="14">
+    <TreeView.Resources>
+        <DataTemplate DataType="{x:Type vm:ContentTreeFile}">
+            <StackPanel Orientation="Horizontal">
+                <icons:PackIconFontAwesome Padding="2" VerticalAlignment="Center" Width="16"
+                                               Kind="{Binding Icon, Mode=OneWay}"
+                                               Foreground="{DynamicResource MahApps.Brushes.Gray4}">
+                    <icons:PackIconFontAwesome.Style>
+                        <Style TargetType="icons:PackIconFontAwesome">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Type, Mode=OneWay}" Value="{x:Static vm:ContentNodeType.Material}">
+                                    <Setter Property="Foreground" Value="#0F0"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Type, Mode=OneWay}" Value="{x:Static vm:ContentNodeType.Texture}">
+                                    <Setter Property="Foreground" Value="#F00"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </icons:PackIconFontAwesome.Style>
+                </icons:PackIconFontAwesome>
+                <TextBlock Padding="4,0,8,2" VerticalAlignment="Center"
+                           FontSize="{TemplateBinding TreeViewItem.FontSize}"
+                           Foreground="{TemplateBinding TreeViewItem.Foreground}"
+                           Text="{Binding Name, Mode=OneWay}"/>
+            </StackPanel>
+        </DataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeMaterialDirectory}"
+                                  ItemsSource="{Binding Nodes, Mode=OneWay}">
+            <StackPanel Orientation="Horizontal">
+                <icons:PackIconFontAwesome Kind="PaletteSolid" Padding="2" VerticalAlignment="Center" Width="16"
+                                               Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                <TextBlock Padding="4,0,8,2" VerticalAlignment="Center"
+                           FontSize="{TemplateBinding TreeViewItem.FontSize}"
+                           Foreground="{TemplateBinding TreeViewItem.Foreground}"
+                           Text="{Binding Name}"/>
+            </StackPanel>
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeDirectory}"
+                                  ItemsSource="{Binding Nodes, Mode=OneWay}">
+            <StackPanel Orientation="Horizontal">
+                <icons:PackIconFontAwesome Kind="FolderSolid" Padding="2" VerticalAlignment="Center" Width="16"
+                                               Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
+                <TextBlock Padding="4,0,8,2" VerticalAlignment="Center"
+                           FontSize="{TemplateBinding TreeViewItem.FontSize}"
+                           Foreground="{TemplateBinding TreeViewItem.Foreground}"
+                           Text="{Binding Name}"/>
+            </StackPanel>
+        </HierarchicalDataTemplate>
+    </TreeView.Resources>
+    <TreeView.ItemContainerStyle>
+        <Style TargetType="TreeViewItem">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Visible, Mode=OneWay}" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </TreeView.ItemContainerStyle>
+</TreeView>

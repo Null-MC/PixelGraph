@@ -45,6 +45,7 @@
                                 <TextBlock Text="Executable" FontWeight="Bold" FontSize="14"/>
                                 <DockPanel>
                                     <Button DockPanel.Dock="Right" ToolTip="Browse" Margin="1,0,0,0" Padding="6,2" BorderThickness="1"
+                                            Click="OnTextureExecutableBrowseClick"
                                             Content="{iconPacks:FontAwesome Kind=FolderOpenSolid}"
                                             Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
                                     <TextBox Text="{Binding Texture_ImageEditorExe}"/>

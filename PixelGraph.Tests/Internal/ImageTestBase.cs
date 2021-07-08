@@ -3,6 +3,7 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Tests.Internal.Mocks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -74,7 +75,7 @@ namespace PixelGraph.Tests.Internal
         {
             using var scope = provider.CreateScope();
             var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-            var graphBuilder = scope.ServiceProvider.GetRequiredService<ITextureGraphBuilder>();
+            var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
 
             graphContext.Input = PackInput;
             graphContext.Profile = PackProfile;
@@ -82,7 +83,7 @@ namespace PixelGraph.Tests.Internal
             //graphContext.UseGlobalOutput = true;
             graphContext.Mapping = new DefaultPublishMapping();
 
-            await graphBuilder.ProcessInputGraphAsync(token);
+            await graphBuilder.PublishAsync(token);
             await graphBuilder.PublishInventoryAsync("inventory", token);
         }
 

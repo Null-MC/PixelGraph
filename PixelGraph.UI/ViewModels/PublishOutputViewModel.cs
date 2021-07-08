@@ -19,6 +19,7 @@ namespace PixelGraph.UI.ViewModels
         private readonly IServiceProvider provider;
         private readonly IAppSettings settings;
         private readonly CancellationTokenSource tokenSource;
+        private volatile bool isRunning;
 
         public event EventHandler<LogEventArgs> LogAppended;
 
@@ -39,7 +40,34 @@ namespace PixelGraph.UI.ViewModels
             tokenSource?.Dispose();
         }
 
-        public async Task PublishAsync(CancellationToken token = default)
+        public async Task PublishAsync()
+        {
+            isRunning = true;
+
+            try {
+                await PublishInternalAsync(tokenSource.Token);
+            }
+            finally {
+                isRunning = false;
+            }
+        }
+
+        public Task UpdateSettingsAsync(CancellationToken token = default)
+        {
+            settings.Data.PublishCloseOnComplete = Model.CloseOnComplete;
+
+            return settings.SaveAsync(token);
+        }
+
+        public void Cancel()
+        {
+            if (!isRunning) return;
+
+            OnLogAppended(LogLevel.Warning, "Cancelling...");
+            tokenSource?.Cancel();
+        }
+
+        private async Task PublishInternalAsync(CancellationToken token)
         {
             var builder = provider.GetRequiredService<IServiceBuilder>();
             builder.AddFileInput();
@@ -78,18 +106,6 @@ namespace PixelGraph.UI.ViewModels
             OnLogAppended(LogLevel.None, "Publishing content...");
             var publisher = GetPublisher(scope, context.Profile);
             await publisher.PublishAsync(context, Model.Clean, token);
-        }
-
-        public Task UpdateSettingsAsync(CancellationToken token = default)
-        {
-            settings.Data.PublishCloseOnComplete = Model.CloseOnComplete;
-
-            return settings.SaveAsync(token);
-        }
-
-        public void Cancel()
-        {
-            tokenSource?.Cancel();
         }
 
         private void OnInternalLog(object sender, LogEventArgs e)

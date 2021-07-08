@@ -5,6 +5,7 @@ using PixelGraph.UI.Internal.Preview.Shaders;
 using PixelGraph.UI.Internal.Preview.Textures;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
+using PixelGraph.UI.ViewModels;
 using PixelGraph.UI.Windows;
 using Serilog;
 using System;
@@ -32,6 +33,7 @@ namespace PixelGraph.UI
             builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
             builder.Services.AddSingleton<ITextureEditUtility, TextureEditUtility>();
             builder.Services.AddSingleton<IShaderByteCodeManager, CustomShaderManager>();
+            builder.Services.AddSingleton<ITabPreviewManager, TabPreviewManager>();
 
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
             builder.Services.AddTransient<ILayerPreviewBuilder, LayerPreviewBuilder>();

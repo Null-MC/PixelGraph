@@ -31,6 +31,8 @@ namespace PixelGraph.Tests.Internal.Mocks
             return mockStream;
         }
 
+        public Stream OpenReadWrite(string localFilename) => Open(localFilename);
+
         public bool FileExists(string localFile)
         {
             var fullFile = PathEx.Join(Root, localFile);

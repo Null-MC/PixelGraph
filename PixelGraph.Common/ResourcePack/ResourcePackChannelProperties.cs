@@ -19,6 +19,7 @@ namespace PixelGraph.Common.ResourcePack
         public int? Shift {get; set;}
         public decimal? Power {get; set;}
         public bool? Invert {get; set;}
+        public bool? Perceptual {get; set;}
 
         [YamlIgnore]
         public bool HasTexture => Texture != null && !TextureTags.Is(Texture, TextureTags.None);
@@ -54,8 +55,8 @@ namespace PixelGraph.Common.ResourcePack
             if (channel.RangeMax.HasValue) RangeMax = channel.RangeMax.Value;
             if (channel.Shift.HasValue) Shift = channel.Shift.Value;
             if (channel.Power.HasValue) Power = channel.Power.Value;
-            //if (channel.Perceptual.HasValue) Perceptual = channel.Perceptual.Value;
             if (channel.Invert.HasValue) Invert = channel.Invert.Value;
+            if (channel.Perceptual.HasValue) Perceptual = channel.Perceptual.Value;
         }
 
         public void Reset()
@@ -70,6 +71,7 @@ namespace PixelGraph.Common.ResourcePack
             Shift = null;
             Power = null;
             Invert = null;
+            Perceptual = null;
         }
 
         public virtual bool HasAnyData()
@@ -84,6 +86,7 @@ namespace PixelGraph.Common.ResourcePack
             if (Shift.HasValue) return true;
             if (Power.HasValue) return true;
             if (Invert.HasValue) return true;
+            if (Perceptual.HasValue) return true;
             return false;
         }
 

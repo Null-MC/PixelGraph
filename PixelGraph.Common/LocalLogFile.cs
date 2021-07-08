@@ -7,13 +7,14 @@ namespace PixelGraph.Common
 {
     public static class LocalLogFile
     {
+        public static string LogPath {get;}
         public static Logger FileLogger {get;}
 
 
         static LocalLogFile()
         {
-            var logPath = Path.Join(AppDataHelper.AppDataPath, "logs");
-            var logFile = Path.Join(logPath, "log_.txt");
+            LogPath = Path.Join(AppDataHelper.AppDataPath, "logs");
+            var logFile = Path.Join(LogPath, "log_.txt");
 
             FileLogger = new LoggerConfiguration()
                 .MinimumLevel.Debug()

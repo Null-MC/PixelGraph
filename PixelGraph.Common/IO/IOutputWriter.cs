@@ -8,6 +8,7 @@ namespace PixelGraph.Common.IO
         void SetRoot(string absolutePath);
         void Prepare();
         Stream Open(string localFilename);
+        Stream OpenReadWrite(string localFilename);
         //bool FileExists(string localFile);
         DateTime? GetWriteTime(string localFile);
         void Delete(string localFile);

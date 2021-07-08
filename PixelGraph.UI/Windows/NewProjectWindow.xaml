@@ -34,7 +34,7 @@
                 <StackPanel Margin="12" Orientation="Vertical">
                     <TextBlock Text="Resource Pack Name:" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
                     <TextBox Margin="0,0,4,0" Text="{Binding PackName, Mode=TwoWay}"/>
-                    <TextBlock Text="Source Directory:" FontSize="14" FontWeight="Bold" Margin="12,20,12,12"
+                    <TextBlock Text="Source Directory:" FontSize="14" FontWeight="Bold" Margin="0,20,0,1"
                                Foreground="{DynamicResource MahApps.Brushes.Accent2}"/>
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Width="28" Height="24" Padding="0" ToolTip="Browse" Click="OnLocationBrowseClick"

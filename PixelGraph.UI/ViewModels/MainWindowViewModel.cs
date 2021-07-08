@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
@@ -12,6 +13,7 @@ using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
+using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewData;
 using SixLabors.ImageSharp;
 using System;
@@ -21,62 +23,71 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Microsoft.Extensions.Logging;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class MainViewModel
+    internal class MainWindowViewModel
     {
-        private readonly ILogger<MainViewModel> logger;
+        private readonly ILogger<MainWindowViewModel> logger;
         private readonly IServiceProvider provider;
         private readonly IRecentPathManager recentMgr;
         private readonly ITextureEditUtility editUtility;
+        private readonly ITabPreviewManager tabPreviewMgr;
+        private LocationDataModel[] publishLocationList;
 
         public event EventHandler<UnhandledExceptionEventArgs> TreeError;
 
-        public MainModel Model {get; set;}
+        public MainWindowModel Model {get; set;}
         public Dispatcher Dispatcher {get; set;}
 
 
-        public MainViewModel(IServiceProvider provider)
+        public MainWindowViewModel(IServiceProvider provider)
         {
             this.provider = provider;
 
-            logger = provider.GetRequiredService<ILogger<MainViewModel>>();
+            logger = provider.GetRequiredService<ILogger<MainWindowViewModel>>();
             recentMgr = provider.GetRequiredService<IRecentPathManager>();
             editUtility = provider.GetRequiredService<ITextureEditUtility>();
-
-            //uiDispatcher = Application.Current.Dispatcher;
+            tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
         }
 
-        public async Task InitializeAsync()
+        public void Initialize()
         {
             var settings = provider.GetRequiredService<IAppSettings>();
 
-            if (settings.Data.SelectedPublishLocation != null) {
-                var location = Model.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
-                if (location != null) Model.SelectedLocation = location;
+            if (publishLocationList != null) {
+                Model.PublishLocations = publishLocationList
+                    .Select(x => new LocationModel(x)).ToList();
+
+                if (settings.Data.SelectedPublishLocation != null) {
+                    var location = Model.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
+                    if (location != null) Model.SelectedLocation = location;
+                }
             }
 
-            try {
-                Model.RecentDirectories = recentMgr.List;
+            UpdateRecentProjectsList();
 
-                await recentMgr.InitializeAsync();
-            }
-            catch (Exception error) {
-                throw new ApplicationException("Failed to load recent projects list!", error);
-            }
+            Model.TabClosed += OnTabClosed;
         }
 
         public void Clear()
         {
             Model.SelectedNode = null;
-            Model.Material.Loaded = null;
             Model.PackInput = null;
             Model.TreeRoot = null;
             Model.RootDirectory = null;
 
             Model.Profile.List.Clear();
+        }
+
+        public void CloseAllTabs()
+        {
+            tabPreviewMgr.Clear();
+
+            Model.IsPreviewTabSelected = false;
+            Model.TabListSelection = null;
+            Model.PreviewTab = null;
+            Model.TabList.Clear();
         }
 
         public async Task SetRootDirectoryAsync(string path, CancellationToken token = default)
@@ -85,7 +96,12 @@ namespace PixelGraph.UI.ViewModels
 
             await LoadRootDirectoryAsync();
 
-            await recentMgr.InsertAsync(path, token);
+            await Dispatcher.BeginInvoke(() => {
+                recentMgr.Insert(path);
+                UpdateRecentProjectsList();
+            });
+
+            await recentMgr.SaveAsync(token);
         }
 
         public async Task LoadRootDirectoryAsync()
@@ -107,20 +123,20 @@ namespace PixelGraph.UI.ViewModels
                 }
 
                 loader.EnableAutoMaterial = Model.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
-                Model.Profile.List.Clear();
-
-                try {
-                    UpdateProfileList();
-                }
-                catch (Exception error) {
-                    throw new ApplicationException("Failed to load pack profile definitions!", error);
-                }
-
-                Model.TreeRoot = new ContentTreeDirectory(null) {
-                    LocalPath = null,
-                };
-
+                
                 await Dispatcher.BeginInvoke(() => {
+                    try {
+                        Model.Profile.List.Clear();
+                        UpdateProfileList();
+                    }
+                    catch (Exception error) {
+                        throw new ApplicationException("Failed to load pack profile definitions!", error);
+                    }
+
+                    Model.TreeRoot = new ContentTreeDirectory(null) {
+                        LocalPath = null,
+                    };
+
                     try {
                         treeReader.Update(Model.TreeRoot);
                     }
@@ -163,6 +179,41 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public void ClearPreviewTab()
+        {
+            if (Model.PreviewTab == null) return;
+
+            tabPreviewMgr.Remove(Model.PreviewTab.Id);
+            Model.PreviewTab = null;
+            Model.IsPreviewTabSelected = false;
+        }
+
+        public void SetPreviewTab(ITabModel newTab)
+        {
+            if (Model.PreviewTab != null)
+                tabPreviewMgr.Remove(Model.PreviewTab.Id);
+
+            var context = new TabPreviewContext(provider) {
+                Id = newTab.Id,
+            };
+
+            tabPreviewMgr.Add(context);
+            Model.IsPreviewTabSelected = true;
+            Model.PreviewTab = newTab;
+            Model.TabListSelection = null;
+        }
+
+        public void AddNewTab(ITabModel newTab)
+        {
+            var context = new TabPreviewContext(provider) {
+                Id = newTab.Id,
+            };
+
+            tabPreviewMgr.Add(context);
+            Model.TabList.Add(newTab);
+            Model.TabListSelection = newTab;
+        }
+
         public async Task UpdateSelectedProfileAsync()
         {
             if (!Model.Profile.HasSelection) {
@@ -179,14 +230,24 @@ namespace PixelGraph.UI.ViewModels
         public async Task LoadPublishLocationsAsync(CancellationToken token = default)
         {
             var locationMgr = provider.GetRequiredService<IPublishLocationManager>();
-            var locations = await locationMgr.LoadAsync(token);
-            if (locations == null) return;
+            publishLocationList = await locationMgr.LoadAsync(token);
+            //if (locations == null) return;
 
-            var list = locations.Select(x => new LocationModel(x)).ToList();
-            Application.Current.Dispatcher.Invoke(() => Model.PublishLocations = list);
+            //var list = locations.Select(x => new LocationModel(x)).ToList();
+            //Application.Current.Dispatcher.Invoke(() => Model.PublishLocations = list);
         }
 
-        public async Task GenerateNormalAsync(string filename, CancellationToken token = default)
+        public async Task LoadRecentProjectsAsync()
+        {
+            try {
+                await recentMgr.LoadAsync();
+            }
+            catch (Exception error) {
+                throw new ApplicationException("Failed to load recent projects list!", error);
+            }
+        }
+
+        public async Task GenerateNormalAsync(MaterialProperties material, string filename, CancellationToken token = default)
         {
             if (!Model.TryStartBusy()) return;
 
@@ -194,7 +255,7 @@ namespace PixelGraph.UI.ViewModels
                 var inputFormat = TextureFormat.GetFactory(Model.PackInput.Format);
                 var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
                 inputEncoding.Merge(Model.PackInput);
-                inputEncoding.Merge(Model.Material.Loaded);
+                inputEncoding.Merge(material);
 
                 await Task.Factory.StartNew(async () => {
                     using var scope = provider.CreateScope();
@@ -202,7 +263,7 @@ namespace PixelGraph.UI.ViewModels
                     var graph = scope.ServiceProvider.GetRequiredService<ITextureNormalGraph>();
 
                     context.Input = Model.PackInput;
-                    context.Material = Model.Material.Loaded;
+                    context.Material = material;
 
                     context.InputEncoding = inputEncoding.GetMapped().ToList();
                     context.OutputEncoding = inputEncoding.GetMapped().ToList();
@@ -210,15 +271,13 @@ namespace PixelGraph.UI.ViewModels
                     using var normalImage = await graph.GenerateAsync(token);
                     await normalImage.SaveAsync(filename, token);
                 }, token);
-
-                //await PopulateTextureViewerAsync(token);
             }
             finally {
                 Model.EndBusy();
             }
         }
 
-        public async Task GenerateOcclusionAsync(string filename, CancellationToken token = default)
+        public async Task GenerateOcclusionAsync(MaterialProperties material, string filename, CancellationToken token = default)
         {
             if (!Model.TryStartBusy()) return;
 
@@ -226,9 +285,8 @@ namespace PixelGraph.UI.ViewModels
                 var inputFormat = TextureFormat.GetFactory(Model.PackInput.Format);
                 var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
                 inputEncoding.Merge(Model.PackInput);
-                inputEncoding.Merge(Model.Material.Loaded);
+                inputEncoding.Merge(material);
 
-                var material = Model.Material.Loaded;
                 await Task.Factory.StartNew(async () => {
                     using var scope = provider.CreateScope();
                     var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
@@ -263,27 +321,25 @@ namespace PixelGraph.UI.ViewModels
                         await SaveMaterialAsync(material);
                     }
                 }, token);
-
-                // TODO: update texture sources
-                //await PopulateTextureViewerAsync(token);
             }
             finally {
                 Model.EndBusy();
             }
         }
 
-        public async Task SaveMaterialAsync(MaterialProperties material = null)
+        public async Task SaveMaterialAsync(MaterialProperties material)
         {
+            if (material == null) throw new ArgumentNullException(nameof(material));
+
             var writer = provider.GetRequiredService<IOutputWriter>();
             var matWriter = provider.GetRequiredService<IMaterialWriter>();
-            var mat = material ?? Model.Material.Loaded;
 
             try {
                 writer.SetRoot(Model.RootDirectory);
-                await matWriter.WriteAsync(mat);
+                await matWriter.WriteAsync(material);
             }
             catch (Exception error) {
-                throw new ApplicationException($"Failed to save material '{mat.LocalFilename}'!", error);
+                throw new ApplicationException($"Failed to save material '{material.LocalFilename}'!", error);
             }
         }
 
@@ -326,22 +382,48 @@ namespace PixelGraph.UI.ViewModels
             return material;
         }
 
-        public Task RemoveRecentItemAsync(string item, CancellationToken token = default)
+        public async Task RemoveRecentItemAsync(string item, CancellationToken token = default)
         {
-            return recentMgr.RemoveAsync(item, token);
+            recentMgr.Remove(item);
+            UpdateRecentProjectsList();
+
+            await recentMgr.SaveAsync(token);
+        }
+
+        public async Task LoadTabContentAsync(ITabModel tabModel, CancellationToken token = default)
+        {
+            if (tabModel is MaterialTabModel materialTab) {
+                var reader = provider.GetRequiredService<IInputReader>();
+                var matReader = provider.GetRequiredService<IMaterialReader>();
+
+                reader.SetRoot(Model.RootDirectory);
+                materialTab.Material = await matReader.LoadAsync(materialTab.MaterialFilename, token);
+            }
+        }
+
+        private void UpdateRecentProjectsList()
+        {
+            Model.RecentDirectories.Clear();
+
+            foreach (var item in recentMgr.Items)
+                Model.RecentDirectories.Add(item);
         }
 
         #region External Image Editing
 
         public async Task BeginExternalEditAsync(CancellationToken token = default)
         {
-            if (!Model.Material.HasLoaded) return;
+            if (Model.SelectedTab is not MaterialTabModel materialTab) return;
+            
+            var selectedMaterial = materialTab.Material;
+            if (selectedMaterial == null) return;
+
             if (!Model.Preview.HasSelectedTag) return;
 
             try {
                 Model.IsImageEditorOpen = true;
 
-                var success = await editUtility.EditLayerAsync(Model.Material.Loaded, Model.Preview.SelectedTag, token);
+                var success = await editUtility.EditLayerAsync(selectedMaterial, Model.Preview.SelectedTag, token);
                 if (!success) return;
             }
             catch (Exception error) {
@@ -396,6 +478,18 @@ namespace PixelGraph.UI.ViewModels
         {
             var e = new UnhandledExceptionEventArgs(error, false);
             TreeError?.Invoke(this, e);
+        }
+
+        private void OnTabClosed(object sender, TabClosedEventArgs e)
+        {
+            for (var i = Model.TabList.Count - 1; i >= 0; i--) {
+                if (Model.TabList[i].Id != e.TabId) continue;
+
+                Model.TabList.RemoveAt(i);
+                break;
+            }
+
+            tabPreviewMgr.Remove(e.TabId);
         }
     }
 }

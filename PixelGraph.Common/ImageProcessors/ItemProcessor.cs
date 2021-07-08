@@ -30,7 +30,7 @@ namespace PixelGraph.Common.ImageProcessors
 
                 occlusionValue = 0f;
                 if (options.OcclusionSampler != null) {
-                    options.OcclusionSampler.SampleScaled(in fx, in fy, in options.OcclusionMapping.InputColor, out occlusionPixel);
+                    options.OcclusionSampler.SampleScaled(in fx, in fy, in options.OcclusionInputColor, out occlusionPixel);
                     options.OcclusionMapping.TryUnmap(in occlusionPixel, out occlusionValue);
                 }
 
@@ -39,6 +39,7 @@ namespace PixelGraph.Common.ImageProcessors
                     options.NormalSampler.SampleScaled(in fx, in fy, out normal);
                     normal.X = normal.X * 2f - 1f;
                     normal.Y = normal.Y * 2f - 1f;
+                    normal.Z = normal.Z * 2f - 1f;
                     MathEx.Normalize(ref normal);
 
                     litNormal = Vector4.Dot(normal, options.LightDirection);
@@ -67,7 +68,8 @@ namespace PixelGraph.Common.ImageProcessors
             public ISampler<Rgb24> NormalSampler;
 
             public ISampler<TOcclusion> OcclusionSampler;
-            public TextureChannelMapping OcclusionMapping;
+            public ColorChannel OcclusionInputColor;
+            public PixelMapping OcclusionMapping;
 
             public ISampler<TEmissive> EmissiveSampler;
             public ColorChannel EmissiveColor;

@@ -46,6 +46,7 @@ namespace PixelGraph.Common.TextureFormats
 
         private static readonly Dictionary<string, byte?> defaultValueMap = new(StringComparer.OrdinalIgnoreCase) {
             [Alpha] = 255,
+            [Rough] = 255,
         };
     }
 }

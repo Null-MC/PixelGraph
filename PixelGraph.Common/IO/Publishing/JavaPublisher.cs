@@ -6,6 +6,7 @@ using PixelGraph.Common.Textures;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Textures.Graphing;
 
 namespace PixelGraph.Common.IO.Publishing
 {
@@ -40,7 +41,7 @@ namespace PixelGraph.Common.IO.Publishing
         protected override async Task OnMaterialPublishedAsync(IServiceProvider scopeProvider, CancellationToken token)
         {
             var graphContext = scopeProvider.GetRequiredService<ITextureGraphContext>();
-            var graphBuilder = scopeProvider.GetRequiredService<ITextureGraphBuilder>();
+            var graphBuilder = scopeProvider.GetRequiredService<IPublishGraphBuilder>();
 
             var ext = NamingStructure.GetExtension(graphContext.Profile);
             await graphBuilder.PublishInventoryAsync($"_inventory.{ext}", token);
