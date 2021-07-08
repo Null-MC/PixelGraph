@@ -126,7 +126,7 @@ float3 specularReflection(const float dither, const float3 normal, const float3 
 
 	int metalID = int(f0 * 255.0 - 229.5);
 
-	float3 n = f0ToIOR(float3(f0, f0, f0));
+	float3 n = f0_to_ior(float3(f0, f0, f0));
 	float3 k = float3(0.0f, 0.0f, 0.0f);
 
 	complexFloat3 n1;
@@ -156,12 +156,9 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 tangent = normalize(input.tan);
 	const float3 bitangent = normalize(input.bin);
 	const float3 view = normalize(input.eye);
-	const float2 dx = ddx(input.tex);
-	const float2 dy = ddy(input.tex);
 
 	float3 shadow_tex = 0;
-	const float3 eye = normalize(input.eye.xyz);
-	const float2 tex = get_parallax_texcoord(input.tex, dx, dy, input.poT, saturate(dot(in_normal, eye)), shadow_tex);
+	const float2 tex = get_parallax_texcoord(input.tex, input.poT, saturate(dot(in_normal, view)), shadow_tex);
 	
 	pbr_material mat = get_pbr_material(tex);
 	mat.rough = mat.rough * mat.rough;
@@ -172,11 +169,11 @@ float4 main(const ps_input input) : SV_TARGET
 	
 	float3 lightDir = SunDirection;
 
-	const float nDotV = dot(normal, eye);
+	const float nDotV = dot(normal, view);
 	const float nDotL = saturate(dot(normal, lightDir));
-	const float nDotH = abs(dot(normal, normalize(lightDir + eye))) + 1e-5;
-	const float lDotV = dot(lightDir, eye);
-	const float vDotH = dot(eye, normalize(lightDir + eye));
+	const float nDotH = abs(dot(normal, normalize(lightDir + view))) + 1e-5;
+	const float lDotV = dot(lightDir, view);
+	const float vDotH = dot(view, normalize(lightDir + view));
 
 	// Burley roughness bias
 	const float alpha = mat.rough * mat.rough;
@@ -188,9 +185,9 @@ float4 main(const ps_input input) : SV_TARGET
 	float3 BRDF = specularBRDF(nDotL, nDotV, nDotH, vDotH, mat.f0, alpha);
 
 	float3 lit  = lightColor * hammonDiffuse(mat.albedo, mat.f0, nDotV, nDotL, nDotH, lDotV, alpha);
-		   lit += pi * diffuseIBL(mat.albedo, normal, eye, mat.f0, alpha);
+		   lit += pi * diffuseIBL(mat.albedo, normal, view, mat.f0, alpha);
 		   lit += lightColor * BRDF;
-		   lit += specularReflection(bayer32(input.tex * 1920.0), normal, eye, mat.f0, alpha);
+		   lit += specularReflection(bayer32(input.tex * 1920.0), normal, view, mat.f0, alpha);
 
     //if (bRenderShadowMap)
     //    lit *= shadow_strength(input.sp);

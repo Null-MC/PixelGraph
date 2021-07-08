@@ -8,7 +8,7 @@ float3 fresnelNonPolarized(float voh, complexFloat3 n1, complexFloat3 n2) {
     complexFloat3 sinThetaT;
     sinThetaT.real = eta.real * sinThetaI;
     sinThetaT.imag = eta.imag * sinThetaI;
-    complexFloat3 cosThetaT = complexSqrt(complexSub(float3(1.0f, 1.0f, 1.0f), complexMul(sinThetaT, sinThetaT)));
+    complexFloat3 cosThetaT = complexSqrt(complexSub(1.0f, complexMul(sinThetaT, sinThetaT)));
 
     float3 Rs = pow(complexAbs(
         complexDiv(complexSub(complexMul(n1, cosThetaI), complexMul(n2, cosThetaT)), complexAdd(complexMul(n1, cosThetaI), complexMul(n2, cosThetaT)))
@@ -49,11 +49,12 @@ float3 specularBRDF(float nDotL, float nDotV, float nDotH, float vDotH, float f0
     nDotV = abs(nDotV);
 
     complexFloat3 n1;
-    n1.real = float3(1.00029f, 1.00029f, 1.00029f);
-    n1.imag = float3(0.0f, 0.0f, 0.0f);
+    n1.real = 1.00029f;
+    n1.imag = 0.0f;
+	
     complexFloat3 n2;
-    n2.real = f0ToIOR(float3(f0, f0, f0));
-    n2.imag = float3(0.0f, 0.0f, 0.0f);
+    n2.real = f0_to_ior(f0);
+    n2.imag = 0.0f;
 
     float G = smithGGXMaskingShadowing(nDotV, nDotL, roughnessSquared);
     float D = D_GGX(nDotH, roughnessSquared);
@@ -62,7 +63,5 @@ float3 specularBRDF(float nDotL, float nDotV, float nDotH, float vDotH, float f0
     float3 numerator = G * D * F;
     float denominator = 4.0f * vDotH;
 
-    float3 specular = max(numerator / denominator, 0.0f);
-
-    return specular;
+    return max(numerator / denominator, 0.0f);
 }
