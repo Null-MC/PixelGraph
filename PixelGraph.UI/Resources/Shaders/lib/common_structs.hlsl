@@ -21,12 +21,14 @@ struct ps_input
 {
 	float4 pos  : SV_POSITION;
 	float4 wp   : POSITION0;
-	float3 eye  : POSITION2;
-	float2 poT  : POSITION3;
+	float3 eye  : POSITION1;
+	float2 poT  : POSITION2;
     float3 nor  : NORMAL;
 	float3 tan  : TANGENT;
 	float3 bin  : BINORMAL;
 	float2 tex  : TEXCOORD0;
+
+	//float4 p2   : POSITION3;
 };
 
 struct ps_input_cube

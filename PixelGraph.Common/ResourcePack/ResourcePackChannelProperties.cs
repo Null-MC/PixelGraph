@@ -55,7 +55,6 @@ namespace PixelGraph.Common.ResourcePack
             if (channel.RangeMax.HasValue) RangeMax = channel.RangeMax.Value;
             if (channel.Shift.HasValue) Shift = channel.Shift.Value;
             if (channel.Power.HasValue) Power = channel.Power.Value;
-            //if (channel.Perceptual.HasValue) Perceptual = channel.Perceptual.Value;
             if (channel.Invert.HasValue) Invert = channel.Invert.Value;
             if (channel.Perceptual.HasValue) Perceptual = channel.Perceptual.Value;
         }

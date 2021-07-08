@@ -197,7 +197,7 @@ namespace PixelGraph.UI.Models
         }
 
         public bool IsBusy {
-            get => _isBusy;
+            get => _isBusy || _isInitializing;
             set {
                 _isBusy = value;
                 OnPropertyChanged();
@@ -234,22 +234,28 @@ namespace PixelGraph.UI.Models
         public void EndInit()
         {
             _isInitializing = false;
+            OnPropertyChanged(nameof(IsInitializing));
+            OnPropertyChanged(nameof(IsBusy));
         }
 
         public bool TryStartBusy()
         {
             lock (busyLock) {
-                if (IsBusy) return false;
-                IsBusy = true;
-                return true;
+                if (_isBusy) return false;
+                _isBusy = true;
             }
+
+            OnPropertyChanged(nameof(IsBusy));
+            return true;
         }
 
         public void EndBusy()
         {
             lock (busyLock) {
-                IsBusy = false;
+                _isBusy = false;
             }
+
+            OnPropertyChanged(nameof(IsBusy));
         }
 
         private void NotifyTreeSelectionChanged()

@@ -227,13 +227,15 @@ namespace PixelGraph.Common.Textures
 
         public Size? GetBufferSize(float aspect)
         {
+            if (Profile == null) return null;
+
             var blockSize = Profile?.BlockTextureSize;
             var scale = (float?)Profile?.TextureScale;
 
-            if (!Material.TryGetSourceBounds(in blockSize, scale, out var bounds))
-                return GetTextureSize(aspect);
+            if (Material.TryGetSourceBounds(in blockSize, scale, out var bounds)) return bounds;
 
-            return bounds;
+            return GetTextureSize(aspect);
+
             //if (!TextureScale.HasValue) return bounds;
 
             //var width = (int)MathF.Ceiling(bounds.Width * TextureScale.Value);

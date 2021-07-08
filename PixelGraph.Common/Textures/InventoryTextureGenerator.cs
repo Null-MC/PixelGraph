@@ -117,29 +117,15 @@ namespace PixelGraph.Common.Textures
 
                 // Make image square
                 if (image.Width != image.Height) {
-                    var size = Math.Max(image.Width, image.Height);
-                    var temp = new Image<Rgba32>(size, size);
+                    var temp = SquareImage(image);
 
                     try {
-                        var copyOptions = new CopyRegionProcessor<Rgba32>.Options {
-                            SourceImage = image,
-                            SourceX = 0,
-                            SourceY = 0,
-                        };
-
-                        var outBounds = new Rectangle(
-                            (size - image.Width) / 2,
-                            (size - image.Height) / 2,
-                            image.Width, image.Height);
-
-                        var processor = new CopyRegionProcessor<Rgba32>(copyOptions);
-                        temp.Mutate(c => c.ApplyProcessor(processor, outBounds));
-
                         image.Dispose();
                         image = temp;
                     }
                     catch {
                         temp.Dispose();
+                        throw;
                     }
                 }
 
@@ -151,6 +137,34 @@ namespace PixelGraph.Common.Textures
             }
             finally {
                 emissiveImage?.Dispose();
+            }
+        }
+
+        private Image<TPixel> SquareImage<TPixel>(Image<TPixel> image)
+            where TPixel : unmanaged, IPixel<TPixel>
+        {
+            var size = Math.Max(image.Width, image.Height);
+            var temp = new Image<TPixel>(size, size);
+
+            try {
+                var copyOptions = new CopyRegionProcessor<TPixel>.Options {
+                    SourceImage = image,
+                    SourceX = 0,
+                    SourceY = 0,
+                };
+
+                var outBounds = new Rectangle(
+                    (size - image.Width) / 2,
+                    (size - image.Height) / 2,
+                    image.Width, image.Height);
+
+                var processor = new CopyRegionProcessor<TPixel>(copyOptions);
+                temp.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                return temp;
+            }
+            catch {
+                temp.Dispose();
+                throw;
             }
         }
 

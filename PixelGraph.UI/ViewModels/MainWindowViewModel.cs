@@ -33,6 +33,7 @@ namespace PixelGraph.UI.ViewModels
         private readonly IRecentPathManager recentMgr;
         private readonly ITextureEditUtility editUtility;
         private readonly ITabPreviewManager tabPreviewMgr;
+        private LocationDataModel[] publishLocationList;
 
         public event EventHandler<UnhandledExceptionEventArgs> TreeError;
 
@@ -50,23 +51,21 @@ namespace PixelGraph.UI.ViewModels
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
         }
 
-        public async Task InitializeAsync()
+        public void Initialize()
         {
             var settings = provider.GetRequiredService<IAppSettings>();
 
-            if (settings.Data.SelectedPublishLocation != null) {
-                var location = Model.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
-                if (location != null) Model.SelectedLocation = location;
+            if (publishLocationList != null) {
+                Model.PublishLocations = publishLocationList
+                    .Select(x => new LocationModel(x)).ToList();
+
+                if (settings.Data.SelectedPublishLocation != null) {
+                    var location = Model.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
+                    if (location != null) Model.SelectedLocation = location;
+                }
             }
 
-            try {
-                Model.RecentDirectories = recentMgr.List;
-
-                await recentMgr.InitializeAsync();
-            }
-            catch (Exception error) {
-                throw new ApplicationException("Failed to load recent projects list!", error);
-            }
+            UpdateRecentProjectsList();
 
             Model.TabClosed += OnTabClosed;
         }
@@ -97,7 +96,12 @@ namespace PixelGraph.UI.ViewModels
 
             await LoadRootDirectoryAsync();
 
-            await recentMgr.InsertAsync(path, token);
+            await Dispatcher.BeginInvoke(() => {
+                recentMgr.Insert(path);
+                UpdateRecentProjectsList();
+            });
+
+            await recentMgr.SaveAsync(token);
         }
 
         public async Task LoadRootDirectoryAsync()
@@ -119,20 +123,20 @@ namespace PixelGraph.UI.ViewModels
                 }
 
                 loader.EnableAutoMaterial = Model.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
-                Model.Profile.List.Clear();
-
-                try {
-                    UpdateProfileList();
-                }
-                catch (Exception error) {
-                    throw new ApplicationException("Failed to load pack profile definitions!", error);
-                }
-
-                Model.TreeRoot = new ContentTreeDirectory(null) {
-                    LocalPath = null,
-                };
-
+                
                 await Dispatcher.BeginInvoke(() => {
+                    try {
+                        Model.Profile.List.Clear();
+                        UpdateProfileList();
+                    }
+                    catch (Exception error) {
+                        throw new ApplicationException("Failed to load pack profile definitions!", error);
+                    }
+
+                    Model.TreeRoot = new ContentTreeDirectory(null) {
+                        LocalPath = null,
+                    };
+
                     try {
                         treeReader.Update(Model.TreeRoot);
                     }
@@ -226,11 +230,21 @@ namespace PixelGraph.UI.ViewModels
         public async Task LoadPublishLocationsAsync(CancellationToken token = default)
         {
             var locationMgr = provider.GetRequiredService<IPublishLocationManager>();
-            var locations = await locationMgr.LoadAsync(token);
-            if (locations == null) return;
+            publishLocationList = await locationMgr.LoadAsync(token);
+            //if (locations == null) return;
 
-            var list = locations.Select(x => new LocationModel(x)).ToList();
-            Application.Current.Dispatcher.Invoke(() => Model.PublishLocations = list);
+            //var list = locations.Select(x => new LocationModel(x)).ToList();
+            //Application.Current.Dispatcher.Invoke(() => Model.PublishLocations = list);
+        }
+
+        public async Task LoadRecentProjectsAsync()
+        {
+            try {
+                await recentMgr.LoadAsync();
+            }
+            catch (Exception error) {
+                throw new ApplicationException("Failed to load recent projects list!", error);
+            }
         }
 
         public async Task GenerateNormalAsync(MaterialProperties material, string filename, CancellationToken token = default)
@@ -307,9 +321,6 @@ namespace PixelGraph.UI.ViewModels
                         await SaveMaterialAsync(material);
                     }
                 }, token);
-
-                // TODO: update texture sources
-                //await PopulateTextureViewerAsync(token);
             }
             finally {
                 Model.EndBusy();
@@ -371,9 +382,12 @@ namespace PixelGraph.UI.ViewModels
             return material;
         }
 
-        public Task RemoveRecentItemAsync(string item, CancellationToken token = default)
+        public async Task RemoveRecentItemAsync(string item, CancellationToken token = default)
         {
-            return recentMgr.RemoveAsync(item, token);
+            recentMgr.Remove(item);
+            UpdateRecentProjectsList();
+
+            await recentMgr.SaveAsync(token);
         }
 
         public async Task LoadTabContentAsync(ITabModel tabModel, CancellationToken token = default)
@@ -385,6 +399,14 @@ namespace PixelGraph.UI.ViewModels
                 reader.SetRoot(Model.RootDirectory);
                 materialTab.Material = await matReader.LoadAsync(materialTab.MaterialFilename, token);
             }
+        }
+
+        private void UpdateRecentProjectsList()
+        {
+            Model.RecentDirectories.Clear();
+
+            foreach (var item in recentMgr.Items)
+                Model.RecentDirectories.Add(item);
         }
 
         #region External Image Editing

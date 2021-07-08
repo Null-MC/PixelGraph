@@ -5,9 +5,11 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,40 +84,44 @@ namespace PixelGraph.Common.Textures.Graphing
             }
         }
 
+        protected override async Task ProcessTextureAsync<TPixel>(Image<TPixel> image, string textureTag, ImageChannels type, CancellationToken token = default)
+        {
+            await base.ProcessTextureAsync(image, textureTag, type, token);
+            
+            if (Context.Material.PublishInventory ?? false) {
+                // WARN: half-ass filtering - fix asap
+                if (TextureTags.Is(textureTag, TextureTags.Albedo)) return;
+
+                var ext = NamingStructure.GetExtension(Context.Profile);
+                var suffix = $"_inventory.{ext}";
+
+                if (GetMappedInventoryName(suffix, out var destFile)) {
+                    var _p = Path.GetDirectoryName(destFile);
+                    var _n = Path.GetFileNameWithoutExtension(destFile);
+                    _n = NamingStructure.Get(textureTag, _n, ext, true);
+                    destFile = Path.Combine(_p, _n);
+
+                    var part = Regions.GetAllPublishRegions(1, 0, null).First();
+                    using var regionImage = GetImageRegion(image, part);
+
+                    edgeFadeEffect.Apply(regionImage, textureTag);
+
+                    //imageWriter.Format = context.ImageFormat;
+                    await ImageWriter.WriteAsync(regionImage, type, destFile, token);
+
+                    logger.LogInformation("Published inventory texture {destFile}.", destFile);
+                }
+            }
+        }
+
         protected override async Task SaveImagePartAsync<TPixel>(Image<TPixel> image, TexturePublishPart part, ImageChannels type, string destFile, string textureTag, CancellationToken token)
         {
-            var srcWidth = image.Width;
-            var srcHeight = image.Height;
+            using var regionImage = GetImageRegion(image, part);
 
-            if (srcWidth == 1 && srcHeight == 1) {
-                await ImageWriter.WriteAsync(image, type, destFile, token);
-            }
-            else {
-                var firstFrame = part.Frames.First();
-                var frameCount = part.Frames.Length;
-                var partWidth = (int)(firstFrame.SourceBounds.Width * srcWidth);
-                var partHeight = (int)(firstFrame.SourceBounds.Height * srcHeight * frameCount);
-                using var regionImage = new Image<TPixel>(partWidth, partHeight);
+            edgeFadeEffect.Apply(regionImage, textureTag);
 
-                var options = new CopyRegionProcessor<TPixel>.Options {
-                    SourceImage = image,
-                };
-
-                var processor = new CopyRegionProcessor<TPixel>(options);
-
-                foreach (var frame in part.Frames) {
-                    options.SourceX = (int) (frame.SourceBounds.X * srcWidth);
-                    options.SourceY = (int) (frame.SourceBounds.Y * srcHeight);
-
-                    var outBounds = frame.DestBounds.ScaleTo(partWidth, partHeight);
-                    regionImage.Mutate(c => c.ApplyProcessor(processor, outBounds));
-                }
-
-                edgeFadeEffect.Apply(regionImage, textureTag);
-
-                await ImageWriter.WriteAsync(regionImage, type, destFile, token);
-            }
-
+            await ImageWriter.WriteAsync(regionImage, type, destFile, token);
+            
             logger.LogInformation("Published material texture '{destFile}'.", destFile);
         }
 
@@ -251,6 +257,53 @@ namespace PixelGraph.Common.Textures.Graphing
 
             destFile = PathEx.Join(destPath, $"{destName}{suffix}");
             return true;
+        }
+
+        private Image<TPixel> GetImageRegion<TPixel>(Image<TPixel> image, TexturePublishPart part, int? targetFrame = null)
+            where TPixel : unmanaged, IPixel<TPixel>
+        {
+            var srcWidth = image.Width;
+            var srcHeight = image.Height;
+
+            if (srcWidth == 1 && srcHeight == 1) return image.Clone();
+            
+            var firstFrame = part.Frames.First();
+            var frameCount = !targetFrame.HasValue ? part.Frames.Length : 1;
+            var partWidth = (int)(firstFrame.SourceBounds.Width * srcWidth);
+            var partHeight = (int)(firstFrame.SourceBounds.Height * srcHeight * frameCount);
+
+            var regionImage = new Image<TPixel>(partWidth, partHeight);
+
+            try {
+                var options = new CopyRegionProcessor<TPixel>.Options {
+                    SourceImage = image,
+                };
+
+                var processor = new CopyRegionProcessor<TPixel>(options);
+
+                if (targetFrame.HasValue) {
+                    var frame = part.Frames[targetFrame.Value];
+                    options.SourceX = (int) (frame.SourceBounds.X * srcWidth);
+                    options.SourceY = (int) (frame.SourceBounds.Y * srcHeight);
+
+                    regionImage.Mutate(c => c.ApplyProcessor(processor));
+                }
+                else {
+                    foreach (var frame in part.Frames) {
+                        options.SourceX = (int) (frame.SourceBounds.X * srcWidth);
+                        options.SourceY = (int) (frame.SourceBounds.Y * srcHeight);
+
+                        var outBounds = frame.DestBounds.ScaleTo(partWidth, partHeight);
+                        regionImage.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                    }
+                }
+            }
+            catch {
+                regionImage.Dispose();
+                throw;
+            }
+
+            return regionImage;
         }
 
         private static bool IsUpToDate(in DateTime profileWriteTime, in DateTime? sourceWriteTime, in DateTime? destWriteTime)

@@ -15,6 +15,10 @@
 
 float4 main(const ps_input input) : SV_TARGET
 {
+	//float2 tex2 = input.p2.xy / input.p2.w;
+	//float s = tex_shadow.SampleLevel(sampler_sss, tex2, 0);
+	//return float4(s, s, s, 1);
+	
 	const float3 normal = normalize(input.nor);
     const float3 tangent = normalize(input.tan);
     const float3 bitangent = normalize(input.bin);
@@ -163,6 +167,7 @@ float4 main(const ps_input input) : SV_TARGET
 		
 		float4 sp = mul(wp, vLightViewProjection);
 		float thickness = SSS_Thickness(sp.xyz / sp.w);
+		//return float4(thickness, 0, 0, 1);
 
 		float sss_dist = lerp(160.0f, 60.0f, sqrt(mat.sss));
 		sss_strength = saturate(1.0f / (1.0f + thickness * sss_dist)) * mat.sss;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
+using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
@@ -26,7 +27,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using PixelGraph.Common;
 
 namespace PixelGraph.UI.Windows
 {
@@ -214,8 +214,20 @@ namespace PixelGraph.UI.Windows
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            var windowTask = LoadWindowAsync();
+            var previewTask = LoadPreviewAsync();
+            await Task.WhenAll(windowTask, previewTask);
+
+            await Dispatcher.BeginInvoke(() => Model.EndInit());
+        }
+
+        private async Task LoadWindowAsync()
+        {
+            var publishLocationsTask = Task.Run(() => viewModel.LoadPublishLocationsAsync());
+            var recentProjectsTask = Task.Run(() => viewModel.LoadRecentProjectsAsync());
+
             try {
-                await viewModel.LoadPublishLocationsAsync();
+                await publishLocationsTask;
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to load publishing locations!");
@@ -223,25 +235,44 @@ namespace PixelGraph.UI.Windows
             }
 
             try {
-                await viewModel.InitializeAsync();
-                await previewViewModel.LoadContentAsync();
+                await recentProjectsTask;
             }
             catch (Exception error) {
-                logger.LogError(error, "Failed to initialize main window!");
-                ShowError($"Errors occurred during startup! {error.UnfoldMessageString()}");
+                logger.LogError(error, "Failed to load recent project list!");
+                ShowError($"Failed to load recent project list! {error.UnfoldMessageString()}");
             }
 
+            await Dispatcher.BeginInvoke(() => {
+                try {
+                    viewModel.Initialize();
+                }
+                catch (Exception error) {
+                    logger.LogError(error, "Failed to initialize main window!");
+                    ShowError($"Failed to initialize main window! {error.UnfoldMessageString()}");
+                }
+            });
+        }
+
+        private async Task LoadPreviewAsync()
+        {
+            try {
+                await Task.Run(() => previewViewModel.LoadContentAsync());
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to load 3D preview content!");
+                ShowError($"Failed to load 3D preview content! {error.UnfoldMessageString()}");
+            }
+            
             await Dispatcher.BeginInvoke(() => {
                 try {
                     previewViewModel.Initialize();
                 }
                 catch (Exception error) {
-                    logger.LogError(error, "Failed to initialize render preview!");
-                    ShowError($"Failed to initialize 3D viewport! {error.UnfoldMessageString()}");
+                    logger.LogError(error, "Failed to initialize 3D preview!");
+                    ShowError($"Failed to initialize 3D preview! {error.UnfoldMessageString()}");
                 }
 
                 previewViewModel.UpdateSun();
-                Model.EndInit();
             });
         }
 
@@ -255,7 +286,7 @@ namespace PixelGraph.UI.Windows
             if (RecentList.SelectedItem is not string item) return;
 
             try {
-                await viewModel.SetRootDirectoryAsync(item);
+                await Task.Run(() => viewModel.SetRootDirectoryAsync(item));
             }
             catch (DirectoryNotFoundException) {
                 Dispatcher.Invoke(() => {
@@ -580,7 +611,16 @@ namespace PixelGraph.UI.Windows
             catch (Exception error) {
                 logger.LogError(error, "Failed to generate normal texture!");
                 ShowError($"Failed to generate normal texture! {error.UnfoldMessageString()}");
+                return;
             }
+
+            await Dispatcher.BeginInvoke(async () => {
+                if (Model.SelectedTab != materialTab) return;
+                if (!TextureTags.Is(Model.Preview.SelectedTag, TextureTags.Occlusion)) return;
+
+                previewViewModel.Invalidate(materialTab.Id);
+                await previewViewModel.UpdateTabPreviewAsync(materialTab);
+            });
         }
 
         private async void OnGenerateOcclusion(object sender, EventArgs e)
@@ -611,7 +651,16 @@ namespace PixelGraph.UI.Windows
             catch (Exception error) {
                 logger.LogError(error, "Failed to generate occlusion texture!");
                 ShowError($"Failed to generate occlusion texture! {error.UnfoldMessageString()}");
+                return;
             }
+
+            await Dispatcher.BeginInvoke(async () => {
+                if (Model.SelectedTab != materialTab) return;
+                if (!TextureTags.Is(Model.Preview.SelectedTag, TextureTags.Occlusion)) return;
+
+                previewViewModel.Invalidate(materialTab.Id);
+                await previewViewModel.UpdateTabPreviewAsync(materialTab);
+            });
         }
 
         private async void OnImportMaterialClick(object sender, RoutedEventArgs e)
@@ -760,8 +809,17 @@ namespace PixelGraph.UI.Windows
 
             if (leftCtrl || rightCtrl) {
                 previewViewModel.ReloadShaders();
+                previewViewModel.UpdateShaders();
                 e.Handled = true;
             }
+        }
+
+        private async void OnPreviewRefreshClick(object sender, RoutedEventArgs e)
+        {
+            if (Model.SelectedTab == null) return;
+
+            previewViewModel.Invalidate(Model.SelectedTab.Id);
+            await previewViewModel.UpdateTabPreviewAsync(Model.SelectedTab);
         }
 
         private async void OnRenderModeSelectionChanged(object sender, SelectionChangedEventArgs e)

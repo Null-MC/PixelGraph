@@ -49,12 +49,14 @@ namespace PixelGraph.UI.ViewModels
         public async Task LoadContentAsync()
         {
             brdfLutStream = await ResourceLoader.BufferAsync("PixelGraph.UI.Resources.brdf_lut.dds");
+
+            ReloadShaders();
         }
 
         public void Initialize()
         {
             LoadAppSettings();
-            ReloadShaders();
+            UpdateShaders();
 
             Model.Preview.Camera = new PerspectiveCamera {
                 UpDirection = new Media3D.Vector3D(0, 1, 0),
@@ -63,7 +65,8 @@ namespace PixelGraph.UI.ViewModels
             Model.Preview.SunCamera = new OrthographicCamera {
                 UpDirection = new Media3D.Vector3D(0f, 1f, 0f),
                 NearPlaneDistance = 1f,
-                FarPlaneDistance = 100f,
+                FarPlaneDistance = 32f,
+                Width = 8,
             };
 
             ResetViewport();
@@ -140,12 +143,12 @@ namespace PixelGraph.UI.ViewModels
 
             if (!shaderMgr.LoadAll(out var compileErrors))
                 OnShaderCompileErrors(compileErrors);
+        }
 
+        public void UpdateShaders()
+        {
             Model.Preview.EffectsManager?.Dispose();
             Model.Preview.EffectsManager = new CustomEffectsManager(provider);
-
-            // WARN: FOR TESTING ONLY!
-            //Model.Preview.Model = BuildBell();
         }
 
         public void ResetViewport()

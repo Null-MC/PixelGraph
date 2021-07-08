@@ -9,6 +9,18 @@ static const float InvGamma = 1.0f / GAMMA;
 static const float3 lum_factor = float3(0.299f, 0.587f, 0.114f);
 
 
+float4 clip_to_screen(const in float4 pos)
+{
+	float4 o = pos * 0.5f;
+	o.xy = float2(o.x, -o.y) + o.w;
+	o.zw = pos.zw;
+	return o;
+	
+    //return float2(1.0f + pos.x / pos.z, 1.0f - pos.y / pos.z);
+
+	//return 0.5f * float2(pos.x, -pos.y) + 0.5f;
+}
+
 float srgb_to_linear(const float srgb) {
 	return pow(abs(srgb), GAMMA);
 }

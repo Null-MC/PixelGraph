@@ -12,8 +12,11 @@ float main(ps_shadow input) : SV_Depth
 
 	float3 shadow_tex;
     const float SNoV = saturate(dot(normal, SunDirection));
-	get_parallax_texcoord(input.tex, input.poT, SNoV, shadow_tex);
+	const float2 tex = get_parallax_texcoord(input.tex, input.poT, SNoV, shadow_tex);
 
+	//const float alpha = tex_albedo_alpha.Sample(sampler_surface, tex).a;
+	//clip(alpha - 0.5f);
+	
 	const float d = length(float3(input.tex - shadow_tex.xy, 1.0f - shadow_tex.z) * float3(1.0f, 1.0f, ParallaxDepth));
 
 	//return input.pos.z;

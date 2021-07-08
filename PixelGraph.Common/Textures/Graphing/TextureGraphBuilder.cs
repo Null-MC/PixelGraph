@@ -68,13 +68,16 @@ namespace PixelGraph.Common.Textures.Graphing
                     var hasColor = tagOutputEncoding.Any(c => c.Color != ColorChannel.Red);
 
                     if (hasAlpha) {
-                        await ProcessTextureAsync<Rgba32>(tag, ImageChannels.ColorAlpha, createEmpty, token);
+                        using var image = await Graph.CreateImageAsync<Rgba32>(tag, createEmpty, token);
+                        await ProcessTextureAsync(image, tag, ImageChannels.ColorAlpha, token);
                     }
                     else if (hasColor) {
-                        await ProcessTextureAsync<Rgb24>(tag, ImageChannels.Color, createEmpty, token);
+                        using var image = await Graph.CreateImageAsync<Rgb24>(tag, createEmpty, token);
+                        await ProcessTextureAsync(image, tag, ImageChannels.Color, token);
                     }
                     else {
-                        await ProcessTextureAsync<L8>(tag, ImageChannels.Gray, createEmpty, token);
+                        using var image = await Graph.CreateImageAsync<L8>(tag, createEmpty, token);
+                        await ProcessTextureAsync(image, tag, ImageChannels.Gray, token);
                     }
                 }
 
@@ -83,10 +86,10 @@ namespace PixelGraph.Common.Textures.Graphing
             }
         }
 
-        protected async Task ProcessTextureAsync<TPixel>(string textureTag, ImageChannels type, bool createEmpty, CancellationToken token = default)
+        protected virtual async Task ProcessTextureAsync<TPixel>(Image<TPixel> image, string textureTag, ImageChannels type, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>
         {
-            using var image = await Graph.CreateImageAsync<TPixel>(textureTag, createEmpty, token);
+            //using var image = await Graph.CreateImageAsync<TPixel>(textureTag, createEmpty, token);
 
             if (image == null) {
                 logger.LogWarning("No texture sources found for item {DisplayName} texture {textureTag}.", Context.Material.DisplayName, textureTag);
@@ -119,6 +122,11 @@ namespace PixelGraph.Common.Textures.Graphing
 
                 await SaveImagePartAsync(image, part, type, destFile, textureTag, token);
             }
+
+            //if (Context.Material.PublishInventory ?? false) {
+            //    var partFrame = Regions.GetPublishPartFrame(0, maxFrameCount, 0);
+            //    // TODO: create inventory texture?
+            //}
         }
 
         protected abstract Task SaveImagePartAsync<TPixel>(Image<TPixel> image, TexturePublishPart part, ImageChannels type, string destFile, string textureTag, CancellationToken token)
