@@ -54,8 +54,8 @@ namespace PixelGraph.Common.Material
             region = new RectangleF {
                 X = (float?)Left ?? 0f,
                 Y = (float?)Top ?? 0f,
-                Width = (float?)Width ?? 0f,
-                Height = (float?)Height ?? 0f,
+                Width = (float?)Width ?? 1f,
+                Height = (float?)Height ?? 1f,
             };
         }
 
