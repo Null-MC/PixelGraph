@@ -266,13 +266,13 @@ namespace PixelGraph.UI.Windows
             await Dispatcher.BeginInvoke(() => {
                 try {
                     previewViewModel.Initialize();
+                    previewViewModel.UpdateSun();
                 }
                 catch (Exception error) {
                     logger.LogError(error, "Failed to initialize 3D preview!");
                     ShowError($"Failed to initialize 3D preview! {error.UnfoldMessageString()}");
                 }
 
-                previewViewModel.UpdateSun();
             });
         }
 

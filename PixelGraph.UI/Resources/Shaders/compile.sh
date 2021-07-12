@@ -1,4 +1,6 @@
 echo Compiling shader HLSL to CSO
-cd "%~dp0"
-PATH="c:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Utilities\bin\x86\"
-fxc /T ps_5_0 /E PSMain "psBasic.hlsl" /Fo "psBasic.cso"
+cd `dirname "$0"`
+PATH="/c/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Utilities/bin/x86/fxc.exe"
+
+"$PATH" /T vs_4_0 /E main "diffuse_vs.hlsl" /Fo "compiled/diffuse_vs.cso"
+"$PATH" /T ps_4_0 /E main "diffuse_ps.hlsl" /Fo "compiled/diffuse_ps.cso"

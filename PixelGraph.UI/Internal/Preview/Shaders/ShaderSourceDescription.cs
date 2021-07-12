@@ -59,6 +59,7 @@ namespace PixelGraph.UI.Internal.Preview.Shaders
         {
             var resourcePath = GetResourcePath(CompiledResourceName);
             using var stream = ResourceLoader.Open(resourcePath);
+            if (stream == null) throw new FileNotFoundException($"Unable to locate embedded resource '{resourcePath}'!", resourcePath);
 
             Code?.Dispose();
             Code = ShaderBytecode.FromStream(stream);
