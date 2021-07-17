@@ -11,16 +11,19 @@ namespace PixelGraph.UI.Models
         private ImportTreeNode _rootNode;
         private string _rootDirectory;
         private string _importSource;
+        private bool _copyUntracked;
+        private bool _includeUnknown;
         private volatile bool _isReady;
         private volatile bool _isActive;
         private volatile bool _showLog;
 
+        public event EventHandler IncludeUnknownChanged;
         public event EventHandler<LogEventArgs> LogEvent;
 
         public bool IsArchive {get; set;}
         public bool AsGlobal {get; set;}
-        public bool CopyUntracked {get; set;}
         public string SourceFormat {get; set;}
+        public ResourcePackOutputProperties Encoding {get; set;}
         public ResourcePackInputProperties PackInput {get; set;}
 
         public bool IsReady {
@@ -55,6 +58,26 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public bool CopyUntracked {
+            get => _copyUntracked;
+            set {
+                _copyUntracked = value;
+                OnPropertyChanged();
+
+                OnIncludeUnknownChanged();
+            }
+        }
+
+        public bool IncludeUnknown {
+            get => _includeUnknown;
+            set {
+                _includeUnknown = value;
+                OnPropertyChanged();
+
+                OnIncludeUnknownChanged();
+            }
+        }
+
         public bool IsActive {
             get => _isActive;
             set {
@@ -74,8 +97,11 @@ namespace PixelGraph.UI.Models
 
         public ImportPackModel()
         {
+            Encoding = new ResourcePackOutputProperties();
+
             SourceFormat = null;
             CopyUntracked = true;
+            IncludeUnknown = false;
             AsGlobal = false;
         }
 
@@ -83,6 +109,11 @@ namespace PixelGraph.UI.Models
         {
             var e = new LogEventArgs(level, text);
             LogEvent?.Invoke(this, e);
+        }
+
+        private void OnIncludeUnknownChanged()
+        {
+            IncludeUnknownChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -95,7 +126,7 @@ namespace PixelGraph.UI.Models
 
             AppendLog(LogLevel.Information, "Hello World!");
 
-            ShowLog = true;
+            ShowLog = false;
         }
     }
 }

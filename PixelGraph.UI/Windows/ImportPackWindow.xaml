@@ -22,7 +22,7 @@
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
     </Window.Resources>
     <Window.DataContext>
-        <models:ImportPackModel x:Name="Model"/>
+        <models:ImportPackModel x:Name="Model" IncludeUnknownChanged="OnIncludeUnknownChanged"/>
     </Window.DataContext>
     <DockPanel>
         <Grid DockPanel.Dock="Bottom">
@@ -70,15 +70,22 @@
                             <TextBlock Text="Source Format" FontSize="14" FontWeight="Bold"
                                        Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <DockPanel>
-                                <Button DockPanel.Dock="Right" Padding="4,0" ToolTip="Edit Encoding"
+                                <Button DockPanel.Dock="Right" Padding="4,0" ToolTip="Edit Encoding" Click="OnEditEncodingClick"
                                         Content="{iconPacks:FontAwesome Kind=EditSolid}"
-                                        Style="{StaticResource MahApps.Styles.Button.Flat}"/>
+                                        Style="{StaticResource MahApps.Styles.Button.MetroSquare}"/>
                                 <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
                                           ItemsSource="{StaticResource AllTextureFormats}"
                                           SelectedValue="{Binding SourceFormat, Mode=TwoWay}"/>
                             </DockPanel>
                             <TextBlock TextWrapping="Wrap"
                                 Text="The texture format of the resource pack being imported."/>
+                            <CheckBox Margin="0,16,0,0"
+                                      IsChecked="{Binding IncludeUnknown, Mode=TwoWay}">
+                                <TextBlock Text="Unknown Files" FontSize="14" FontWeight="Bold"
+                                           Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </CheckBox>
+                            <TextBlock TextWrapping="Wrap"
+                                       Text="When disabled only known file types will be imported."/>
                         </StackPanel>
                     </Grid>
                     <GridSplitter Grid.Column="1" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"
@@ -88,12 +95,14 @@
                         <TreeView.Resources>
                             <DataTemplate DataType="{x:Type vm:ImportTreeFile}">
                                 <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding Included}"/>
                                     <iconPacks:FontAwesome Kind="FileSolid"/>
                                     <TextBlock Margin="4,0,0,0" Text="{Binding Name, Mode=OneWay}"/>
                                 </StackPanel>
                             </DataTemplate>
                             <HierarchicalDataTemplate DataType="{x:Type vm:ImportTreeDirectory}" ItemsSource="{Binding Nodes}">
                                 <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding Included}"/>
                                     <iconPacks:FontAwesome Kind="FolderSolid"/>
                                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}"/>
                                 </StackPanel>

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using MinecraftMappings.Minecraft;
 
 namespace PixelGraph.Common.IO.Importing
 {
@@ -16,24 +17,25 @@ namespace PixelGraph.Common.IO.Importing
     {
         bool AsGlobal {get; set;}
         bool CopyUntracked {get; set;}
+        bool IncludeUnknown {get; set;}
         ResourcePackInputProperties PackInput {get; set;}
         ResourcePackProfileProperties PackProfile {get; set;}
 
         Task ImportAsync(CancellationToken token = default);
     }
 
-    internal class ResourcePackImporter : IResourcePackImporter
+    public class ResourcePackImporter : IResourcePackImporter
     {
         private static readonly Regex ctmExp = new("^assets/minecraft/optifine/ctm/?$", RegexOptions.IgnoreCase);
         private static readonly PropertyFileSerializer<CtmProperties> ctmPropertySerializer;
 
-        private readonly IServiceProvider provider;
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
         private readonly IMaterialImporter importer;
 
         public bool AsGlobal {get; set;}
         public bool CopyUntracked {get; set;}
+        public bool IncludeUnknown {get; set;}
         public ResourcePackInputProperties PackInput {get; set;}
         public ResourcePackProfileProperties PackProfile {get; set;}
 
@@ -45,8 +47,6 @@ namespace PixelGraph.Common.IO.Importing
 
         public ResourcePackImporter(IServiceProvider provider)
         {
-            this.provider = provider;
-
             reader = provider.GetRequiredService<IInputReader>();
             writer = provider.GetRequiredService<IOutputWriter>();
             importer = provider.GetRequiredService<IMaterialImporter>();
@@ -60,61 +60,62 @@ namespace PixelGraph.Common.IO.Importing
         private async Task ImportPathAsync(string localPath, CancellationToken token)
         {
             foreach (var childPath in reader.EnumerateDirectories(localPath, "*")) {
-                var name = Path.GetFileName(childPath);
-                if (IgnoredFilesPaths.Contains(name)) continue;
+                if (!IncludeUnknown && IsUnknownPath(childPath)) continue;
 
                 await ImportPathAsync(childPath, token);
             }
 
-            var files = reader.EnumerateFiles(localPath, "*.*")
-                .ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+            var fileList = reader.EnumerateFiles(localPath, "*.*");
+            if (!IncludeUnknown) fileList = fileList.Where(f => !IsUnknownFile(f));
+
+            var files = fileList.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
 
             // TODO: detect and remove CTM files first
-            if (ctmExp.IsMatch(localPath)) {
-                foreach (var file in files) {
-                    var ext = Path.GetExtension(file);
-                    if (!ext.Equals(".properties", StringComparison.InvariantCultureIgnoreCase)) continue;
-                    var name = Path.GetFileNameWithoutExtension(file);
+            //if (ctmExp.IsMatch(localPath)) {
+            //    foreach (var file in files) {
+            //        var ext = Path.GetExtension(file);
+            //        if (!ext.Equals(".properties", StringComparison.InvariantCultureIgnoreCase)) continue;
+            //        var name = Path.GetFileNameWithoutExtension(file);
 
-                    // parse ctm properties file
-                    await using var stream = reader.Open(file);
-                    using var streamReader = new StreamReader(stream);
-                    var ctmProperties = await ctmPropertySerializer.ReadAsync(streamReader, token);
+            //        // parse ctm properties file
+            //        await using var stream = reader.Open(file);
+            //        using var streamReader = new StreamReader(stream);
+            //        var ctmProperties = await ctmPropertySerializer.ReadAsync(streamReader, token);
 
-                    // only supporting repeat-ctm for now
-                    if (!CtmTypes.Is(ctmProperties.Method, CtmTypes.Repeat)) continue;
+            //        // only supporting repeat-ctm for now
+            //        if (!CtmTypes.Is(ctmProperties.Method, CtmTypes.Repeat)) continue;
 
-                    // Build 1D tile array
-                    var ctmWidth = ctmProperties.Width ?? 1;
-                    var ctmHeight = ctmProperties.Height ?? 1;
-                    var expectedLength = ctmWidth * ctmHeight;
+            //        // Build 1D tile array
+            //        var ctmWidth = ctmProperties.Width ?? 1;
+            //        var ctmHeight = ctmProperties.Height ?? 1;
+            //        var expectedLength = ctmWidth * ctmHeight;
 
-                    var tileFiles = ParseCtmTiles(ctmProperties, localPath).ToArray();
-                    if (expectedLength < 1) throw new ApplicationException($"Invalid ctm dimensions! expected count={expectedLength}");
-                    if (tileFiles.Length != expectedLength) throw new ApplicationException($"Expected {expectedLength:N0} ctm tiles but found {tileFiles.Length:N0}!");
+            //        var tileFiles = ParseCtmTiles(ctmProperties, localPath).ToArray();
+            //        if (expectedLength < 1) throw new ApplicationException($"Invalid ctm dimensions! expected count={expectedLength}");
+            //        if (tileFiles.Length != expectedLength) throw new ApplicationException($"Expected {expectedLength:N0} ctm tiles but found {tileFiles.Length:N0}!");
 
-                    // Build 2D tile array
-                    var tileMap = new string[ctmWidth, ctmHeight];
-                    for (var y = 0; y < ctmHeight; y++) {
-                        for (var x = 0; x < ctmWidth; x++) {
-                            var f = tileFiles[y * ctmWidth + x];
-                            tileMap[x, y] = f;
+            //        // Build 2D tile array
+            //        var tileMap = new string[ctmWidth, ctmHeight];
+            //        for (var y = 0; y < ctmHeight; y++) {
+            //            for (var x = 0; x < ctmWidth; x++) {
+            //                var f = tileFiles[y * ctmWidth + x];
+            //                tileMap[x, y] = f;
 
-                            // TODO: remove f from files (if same folder)
-                        }
-                    }
+            //                // TODO: remove f from files (if same folder)
+            //            }
+            //        }
 
-                    importer.AsGlobal = AsGlobal;
-                    importer.PackInput = PackInput;
-                    importer.PackProfile = PackProfile;
+            //        importer.AsGlobal = AsGlobal;
+            //        importer.PackInput = PackInput;
+            //        importer.PackProfile = PackProfile;
 
-                    // TODO: BuildMaterial() with ctm tileMap
-                    //...
+            //        // TODO: BuildMaterial() with ctm tileMap
+            //        //...
 
-                    // TODO: create single material file
-                    var material = await importer.CreateMaterialAsync(localPath, name);
-                }
-            }
+            //        // TODO: create single material file
+            //        var material = await importer.CreateMaterialAsync(localPath, name);
+            //    }
+            //}
 
             var names = GetMaterialNames(files).Distinct().ToArray();
 
@@ -212,17 +213,51 @@ namespace PixelGraph.Common.IO.Importing
                 var isSpecular = name.EndsWith("_s", StringComparison.InvariantCultureIgnoreCase);
                 var isEmissive = name.EndsWith("_e", StringComparison.InvariantCultureIgnoreCase);
 
-                if (isNormal || isSpecular || isEmissive)
+                if (isNormal || isSpecular || isEmissive) {
                     yield return name[..^2];
+                    continue;
+                }
+
+                // TODO: if name is known block
+
+                var javaBlock = Minecraft.Java.FindBlockById(name).FirstOrDefault();
+                var javaEntity = Minecraft.Java.FindEntityById(name).FirstOrDefault();
+
+                if (javaBlock != null || javaEntity != null) {
+                    yield return name;
+                    //continue;
+                }
             }
         }
 
-        private static readonly string[] IgnoredFilesPaths = {
-            ".git",
-            ".ignore",
-        };
+        //private static readonly string[] IgnoredFilesPaths = {
+        //    ".git",
+        //    ".ignore",
+        //};
 
+        public static bool IsUnknownPath(string path)
+        {
+            if (path == null) throw new ArgumentNullException(nameof(path));
+            var name = Path.GetFileName(path) ?? path;
 
+            if (name.Equals(".git", StringComparison.InvariantCultureIgnoreCase)) return true;
+            if (name.Equals("META-INF", StringComparison.InvariantCultureIgnoreCase)) return true;
+            if (name.EndsWith(".ignore", StringComparison.InvariantCultureIgnoreCase)) return true;
+
+            return false;
+        }
+
+        public static bool IsUnknownFile(string filename)
+        {
+            var ext = Path.GetExtension(filename);
+
+            if (ImageExtensions.Supports(ext)) return false;
+            if (ext.Equals(".json", StringComparison.InvariantCultureIgnoreCase)) return true;
+            if (ext.Equals(".mcmeta", StringComparison.InvariantCultureIgnoreCase)) return true;
+            if (ext.Equals(".properties", StringComparison.InvariantCultureIgnoreCase)) return true;
+
+            return true;
+        }
 
         private static bool TryParseRange(string part, out int min, out int max)
         {

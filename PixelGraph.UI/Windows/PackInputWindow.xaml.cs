@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal.Utilities;
-using PixelGraph.UI.Models;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Windows;
-using System.Windows.Input;
+using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.UI.Windows
 {
@@ -31,19 +31,40 @@ namespace PixelGraph.UI.Windows
 
         private void ShowError(string message)
         {
-            Application.Current.Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() => {
                 MessageBox.Show(this, message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             });
         }
 
         #region Events
 
-        private void OnDataGridKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key != Key.Delete) return;
-            if (EncodingDataGrid.SelectedValue is not TextureChannelMapping channel) return;
+        //private void OnDataGridKeyUp(object sender, KeyEventArgs e)
+        //{
+        //    if (e.Key != Key.Delete) return;
+        //    if (EncodingDataGrid.SelectedValue is not TextureChannelMapping channel) return;
 
-            channel.Clear();
+        //    channel.Clear();
+        //}
+
+        private void OnEditEncodingClick(object sender, RoutedEventArgs e)
+        {
+            var formatFactory = TextureFormat.GetFactory(Model.Format);
+
+            var window = new TextureFormatWindow {
+                Owner = this,
+                Model = {
+                    Encoding = (ResourcePackEncoding)Model.PackInput.Clone(),
+                    DefaultEncoding = formatFactory.Create(),
+                    //TextureFormat = Model.SourceFormat,
+                    EnableSampler = false,
+                    //DefaultSampler = Samplers.Nearest,
+                },
+            };
+
+            if (window.ShowDialog() != true) return;
+
+            Model.PackInput = (ResourcePackInputProperties)window.Model.Encoding;
+            //Model.SourceFormat = window.Model.TextureFormat;
         }
 
         private void OnCancelButtonClick(object sender, RoutedEventArgs e)
@@ -55,7 +76,7 @@ namespace PixelGraph.UI.Windows
         {
             try {
                 await viewModel.SavePackInputAsync();
-                Application.Current.Dispatcher.Invoke(() => DialogResult = true);
+                Dispatcher.Invoke(() => DialogResult = true);
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to save pack input!");

@@ -17,6 +17,12 @@ namespace PixelGraph.UI.ViewData
                 GameEditions = new [] {GameEditions.Java, GameEditions.Bedrock},
             });
             Add(new TextureFormatValueItem {
+                Text = "Albedo",
+                Value = TextureFormat.Format_Albedo,
+                Hint = DiffuseFormat.Description,
+                GameEditions = new [] {GameEditions.Java, GameEditions.Bedrock},
+            });
+            Add(new TextureFormatValueItem {
                 Text = "Diffuse",
                 Value = TextureFormat.Format_Diffuse,
                 Hint = DiffuseFormat.Description,

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MinecraftMappings.Internal
 {
@@ -14,5 +15,19 @@ namespace MinecraftMappings.Internal
 
         public IEnumerable<TBlock> AllBlocks => allBlocksLazy.Value;
         public IEnumerable<TEntity> AllEntities => allEntitiesLazy.Value;
+
+        public IEnumerable<TBlockVersion> FindBlockById(string id)
+        {
+            return allBlocksLazy.Value
+                .Select(block => block.GetLatestVersion())
+                .Where(latest => latest.Id.Equals(id));
+        }
+
+        public IEnumerable<TEntityVersion> FindEntityById(string id)
+        {
+            return allEntitiesLazy.Value
+                .Select(block => block.GetLatestVersion())
+                .Where(latest => latest.Id.Equals(id));
+        }
     }
 }

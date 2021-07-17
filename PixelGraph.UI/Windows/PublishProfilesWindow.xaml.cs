@@ -7,7 +7,6 @@ using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal.Utilities;
-using PixelGraph.UI.Models;
 using PixelGraph.UI.ViewData;
 using System;
 using System.IO;
@@ -52,7 +51,7 @@ namespace PixelGraph.UI.Windows
             await SaveAsync(profile);
 
             var profileItem = CreateProfileItem(profile.LocalFile);
-            Application.Current.Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() => {
                 Model.Profiles.Add(profileItem);
                 Model.SelectedProfileItem = profileItem;
             });
@@ -73,7 +72,7 @@ namespace PixelGraph.UI.Windows
             var cloneLocalFile = filename[Model.RootDirectory.Length..].TrimStart('\\', '/');
 
             var cloneProfileItem = CreateProfileItem(cloneLocalFile);
-            Application.Current.Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() => {
                 Model.Profiles.Add(cloneProfileItem);
                 Model.SelectedProfileItem = cloneProfileItem;
             });
@@ -145,7 +144,7 @@ namespace PixelGraph.UI.Windows
 
         private void ShowError(string message)
         {
-            Application.Current.Dispatcher.Invoke(() => {
+            Dispatcher.Invoke(() => {
                 MessageBox.Show(this, message, "Error!");
             });
         }
@@ -231,19 +230,40 @@ namespace PixelGraph.UI.Windows
             Model.EditImageEncoding = null;
         }
 
-        private void OnEncodingDataGridMouseWheelPreview(object sender, MouseWheelEventArgs e)
+        private void OnEditEncodingClick(object sender, RoutedEventArgs e)
         {
-            EncodingScrollViewer.ScrollToVerticalOffset(EncodingScrollViewer.ContentVerticalOffset - e.Delta);
-            e.Handled = true;
+            var formatFactory = TextureFormat.GetFactory(Model.TextureFormat);
+
+            var window = new TextureFormatWindow {
+                Owner = this,
+                Model = {
+                    Encoding = (ResourcePackEncoding)Model.LoadedProfile.Encoding.Clone(),
+                    DefaultEncoding = formatFactory.Create(),
+                    //TextureFormat = Model.SourceFormat,
+                    DefaultSampler = Model.EditEncodingSampler,
+                    EnableSampler = true,
+                },
+            };
+
+            if (window.ShowDialog() != true) return;
+
+            Model.LoadedProfile.Encoding = (ResourcePackOutputProperties)window.Model.Encoding;
+            //Model.SourceFormat = window.Model.TextureFormat;
         }
 
-        private void OnEncodingDataGridKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key != Key.Delete) return;
-            if (TextureEncodingDataGrid.SelectedValue is not TextureChannelMapping channel) return;
+        //private void OnEncodingDataGridMouseWheelPreview(object sender, MouseWheelEventArgs e)
+        //{
+        //    EncodingScrollViewer.ScrollToVerticalOffset(EncodingScrollViewer.ContentVerticalOffset - e.Delta);
+        //    e.Handled = true;
+        //}
 
-            channel.Clear();
-        }
+        //private void OnEncodingDataGridKeyUp(object sender, KeyEventArgs e)
+        //{
+        //    if (e.Key != Key.Delete) return;
+        //    if (TextureEncodingDataGrid.SelectedValue is not TextureChannelMapping channel) return;
+
+        //    channel.Clear();
+        //}
 
         #endregion
     }

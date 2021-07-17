@@ -5,6 +5,7 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
@@ -19,9 +20,9 @@ namespace PixelGraph.UI.Windows
 {
     public partial class ImportPackWindow : IDisposable
     {
+        private readonly CancellationTokenSource tokenSource;
         private readonly IServiceProvider provider;
         private readonly ILogger logger;
-        private readonly CancellationTokenSource tokenSource;
 
 
         public ImportPackWindow(IServiceProvider provider)
@@ -48,7 +49,7 @@ namespace PixelGraph.UI.Windows
 
             var root = await Task.Run(() => GetPathNode(reader, ".", token), token);
 
-            await Application.Current.Dispatcher.BeginInvoke(() => {
+            await Dispatcher.BeginInvoke(() => {
                 Model.RootNode = root;
                 Model.IsReady = true;
             });
@@ -76,13 +77,13 @@ namespace PixelGraph.UI.Windows
 
             importer.AsGlobal = Model.AsGlobal;
             importer.CopyUntracked = Model.CopyUntracked;
+            importer.IncludeUnknown = Model.IncludeUnknown;
             importer.PackInput = Model.PackInput;
 
+            Model.Encoding.Format = Model.SourceFormat;
+
             importer.PackProfile = new ResourcePackProfileProperties {
-                Encoding = new ResourcePackOutputProperties {
-                    Format = Model.SourceFormat,
-                    //...
-                },
+                Encoding = Model.Encoding,
             };
 
             await importer.ImportAsync(token);
@@ -99,7 +100,7 @@ namespace PixelGraph.UI.Windows
             return scopeBuilder.Build();
         }
 
-        private static ImportTreeNode GetPathNode(IInputReader reader, string localPath, CancellationToken token)
+        private ImportTreeNode GetPathNode(IInputReader reader, string localPath, CancellationToken token)
         {
             var node = new ImportTreeDirectory {
                 Name = Path.GetFileName(localPath),
@@ -109,6 +110,8 @@ namespace PixelGraph.UI.Windows
             foreach (var childPath in reader.EnumerateDirectories(localPath, "*")) {
                 token.ThrowIfCancellationRequested();
 
+                if (!Model.IncludeUnknown && ResourcePackImporter.IsUnknownPath(childPath)) continue;
+                
                 var childNode = GetPathNode(reader, childPath, token);
                 node.Nodes.Add(childNode);
             }
@@ -116,10 +119,10 @@ namespace PixelGraph.UI.Windows
             foreach (var file in reader.EnumerateFiles(localPath, "*.*")) {
                 token.ThrowIfCancellationRequested();
 
-                var fileName = Path.GetFileName(file);
+                if (!Model.IncludeUnknown && ResourcePackImporter.IsUnknownFile(file)) continue;
 
                 var childNode = new ImportTreeFile {
-                    Name = fileName,
+                    Name = Path.GetFileName(file),
                     Filename = file,
                 };
 
@@ -153,15 +156,6 @@ namespace PixelGraph.UI.Windows
             tokenSource.Cancel();
         }
 
-        private void OnCancelClick(object sender, RoutedEventArgs e)
-        {
-            tokenSource.Cancel();
-            LogList.Append(LogLevel.Warning, "Cancelling...");
-
-            //DialogResult = false;
-            //Close();
-        }
-
         private async void OnImportClick(object sender, RoutedEventArgs e)
         {
             Model.ShowLog = true;
@@ -190,6 +184,36 @@ namespace PixelGraph.UI.Windows
             }
         }
 
+        private void OnEditEncodingClick(object sender, RoutedEventArgs e)
+        {
+            var formatFactory = TextureFormat.GetFactory(Model.SourceFormat);
+
+            var window = new TextureFormatWindow {
+                Owner = this,
+                Model = {
+                    Encoding = (ResourcePackEncoding)Model.Encoding.Clone(),
+                    DefaultEncoding = formatFactory.Create(),
+                    //TextureFormat = Model.SourceFormat,
+                    EnableSampler = false,
+                    //DefaultSampler = Samplers.Nearest,
+                },
+            };
+
+            if (window.ShowDialog() != true) return;
+
+            Model.Encoding = (ResourcePackOutputProperties)window.Model.Encoding;
+            //Model.SourceFormat = window.Model.TextureFormat;
+        }
+
+        private void OnCancelClick(object sender, RoutedEventArgs e)
+        {
+            tokenSource.Cancel();
+            LogList.Append(LogLevel.Warning, "Cancelling...");
+
+            //DialogResult = false;
+            //Close();
+        }
+
         private void OnLogMessage(object sender, LogEventArgs e)
         {
             LogList.Append(e.Level, e.Message);
@@ -206,5 +230,14 @@ namespace PixelGraph.UI.Windows
         }
 
         #endregion
+
+        private async void OnIncludeUnknownChanged(object sender, EventArgs e)
+        {
+            // TODO: cancel current load task
+
+            Model.IsReady = false;
+
+            await LoadSourceAsync(tokenSource.Token);
+        }
     }
 }

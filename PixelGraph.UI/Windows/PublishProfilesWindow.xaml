@@ -17,8 +17,6 @@
     <Window.Resources>
         <vd:GameEditionValues x:Key="GameEditions"/>
         <vd:ImageEncodingValues x:Key="ImageEncodings"/>
-        <vd:OptionalTextureTagValues x:Key="TextureTags"/>
-        <vd:NormalColorChannelValues x:Key="NormalColorChannels"/>
         <vd:AllTextureFormatValues x:Key="AllTextureFormats"/>
         <vd:SamplerValues x:Key="Samplers"/>
         <converters:NullableConverter x:Key="NullableConverter"/>
@@ -144,9 +142,15 @@
                         <StackPanel Orientation="Vertical">
                             <TextBlock Text="Format" FontSize="12" FontWeight="Bold"
                                        Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
-                                      ItemsSource="{StaticResource AllTextureFormats}"
-                                      SelectedValue="{Binding TextureFormat, UpdateSourceTrigger=PropertyChanged}"/>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Margin="0" Padding="4,0" BorderThickness="0"
+                                        ToolTip="Edit Encoding" Click="OnEditEncodingClick"
+                                        Content="{iconPacks:FontAwesome Kind=EditSolid}"
+                                        Style="{StaticResource MahApps.Styles.Button.MetroSquare}"/>
+                                <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
+                                          ItemsSource="{StaticResource AllTextureFormats}"
+                                          SelectedValue="{Binding TextureFormat, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DockPanel>
                             <TextBlock Text="Default Sampler" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
                                        Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                             <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" KeyUp="OnEncodingSamplerKeyUp"
@@ -168,171 +172,6 @@
                                 </ComboBox.Style>
                             </ComboBox>
                         </StackPanel>
-                        <DataGrid x:Name="TextureEncodingDataGrid" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" AutoGenerateColumns="False" Margin="0,12,0,0" VerticalScrollBarVisibility="Disabled"
-                                  CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False"
-                                  CanUserResizeRows="False" CanUserResizeColumns="True" CanUserSortColumns="False"
-                                  PreviewMouseWheel="OnEncodingDataGridMouseWheelPreview" KeyUp="OnEncodingDataGridKeyUp"
-                                  ItemsSource="{Binding EncodingChannels, Mode=OneTime}">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Channel" Width="Auto" IsReadOnly="True"
-                                                    Binding="{Binding Path=Label, Mode=OneTime}"/>
-                                <DataGridComboBoxColumn Header="Texture" Width="100" DisplayMemberPath="Text" SelectedValuePath="Value"
-                                                        ItemsSource="{StaticResource TextureTags}"
-                                                        SelectedValueBinding="{Binding EditTexture, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <DataGridComboBoxColumn.CellStyle>
-                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource MahApps.Styles.DataGridCell}">
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Texture}" Value="{x:Null}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="FontStyle" Value="Italic"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGridComboBoxColumn.CellStyle>
-                                </DataGridComboBoxColumn>
-                                <DataGridComboBoxColumn Header="Color" Width="60" DisplayMemberPath="Text" SelectedValuePath="Value"
-                                                        ItemsSource="{StaticResource NormalColorChannels}"
-                                                        SelectedValueBinding="{Binding EditColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <DataGridComboBoxColumn.CellStyle>
-                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource MahApps.Styles.DataGridCell}">
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Color}" Value="{x:Null}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="FontStyle" Value="Italic"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGridComboBoxColumn.CellStyle>
-                                </DataGridComboBoxColumn>
-                                <DataGridComboBoxColumn Header="Sampler" MinWidth="80" DisplayMemberPath="Text" SelectedValuePath="Value"
-                                                        ItemsSource="{StaticResource Samplers}"
-                                                        SelectedValueBinding="{Binding EditSampler, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <DataGridComboBoxColumn.CellStyle>
-                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource MahApps.Styles.DataGridCell}">
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Sampler}" Value="{x:Null}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="FontStyle" Value="Italic"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGridComboBoxColumn.CellStyle>
-                                </DataGridComboBoxColumn>
-                                <DataGridTextColumn Header="Min Value" Width="80"
-                                                    Binding="{Binding EditMinValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <DataGridTextColumn.CellStyle>
-                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource MahApps.Styles.DataGridCell}">
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MinValue}" Value="{x:Null}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="FontStyle" Value="Italic"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGridTextColumn.CellStyle>
-                                </DataGridTextColumn>
-                                <DataGridTextColumn Header="Max Value" Width="80"
-                                                    Binding="{Binding EditMaxValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <DataGridTextColumn.CellStyle>
-                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource MahApps.Styles.DataGridCell}">
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MaxValue}" Value="{x:Null}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="FontStyle" Value="Italic"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGridTextColumn.CellStyle>
-                                </DataGridTextColumn>
-                                <DataGridTextColumn Header="Min Range" Width="80"
-                                                    Binding="{Binding EditRangeMin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <DataGridTextColumn.CellStyle>
-                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource MahApps.Styles.DataGridCell}">
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding RangeMin}" Value="{x:Null}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="FontStyle" Value="Italic"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGridTextColumn.CellStyle>
-                                </DataGridTextColumn>
-                                <DataGridTextColumn Header="Max Range" Width="80"
-                                                    Binding="{Binding EditRangeMax, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <DataGridTextColumn.CellStyle>
-                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource MahApps.Styles.DataGridCell}">
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding RangeMax}" Value="{x:Null}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="FontStyle" Value="Italic"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGridTextColumn.CellStyle>
-                                </DataGridTextColumn>
-                                <DataGridTextColumn Header="Shift" Width="80"
-                                                    Binding="{Binding EditShift, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <DataGridTextColumn.CellStyle>
-                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource MahApps.Styles.DataGridCell}">
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Shift}" Value="{x:Null}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="FontStyle" Value="Italic"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGridTextColumn.CellStyle>
-                                </DataGridTextColumn>
-                                <DataGridTextColumn Header="Power" Width="80"
-                                                    Binding="{Binding EditPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <DataGridTextColumn.CellStyle>
-                                        <Style TargetType="DataGridCell" BasedOn="{StaticResource MahApps.Styles.DataGridCell}">
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Power}" Value="{x:Null}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="FontStyle" Value="Italic"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGridTextColumn.CellStyle>
-                                </DataGridTextColumn>
-                                <DataGridCheckBoxColumn Header="Invert" Width="80"
-                                                    Binding="{Binding EditInvert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                    <DataGridCheckBoxColumn.ElementStyle>
-                                        <Style TargetType="CheckBox" BasedOn="{StaticResource MahApps.Styles.CheckBox}">
-                                            <Setter Property="HorizontalAlignment" Value="Center"/>
-                                            <Setter Property="mah:CheckBoxHelper.CheckBackgroundFillChecked" Value="#000"/>
-                                            <Setter Property="mah:CheckBoxHelper.CheckBackgroundFillCheckedMouseOver" Value="#000"/>
-                                            <Setter Property="mah:CheckBoxHelper.CheckBackgroundFillUnchecked" Value="#000"/>
-                                            <Setter Property="mah:CheckBoxHelper.CheckBackgroundFillUncheckedMouseOver" Value="#000"/>
-                                            <Setter Property="mah:CheckBoxHelper.CheckGlyphForegroundChecked" Value="White"/>
-                                            <Setter Property="mah:CheckBoxHelper.CheckGlyphForegroundCheckedMouseOver" Value="White"/>
-                                            <Setter Property="mah:CheckBoxHelper.CheckGlyphForegroundUnchecked" Value="White"/>
-                                            <Setter Property="mah:CheckBoxHelper.CheckGlyphForegroundUncheckedMouseOver" Value="White"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Invert}" Value="{x:Null}">
-                                                    <Setter Property="mah:CheckBoxHelper.CheckGlyphForegroundChecked" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="mah:CheckBoxHelper.CheckGlyphForegroundCheckedMouseOver" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                    <Setter Property="mah:CheckBoxHelper.CheckBackgroundFillChecked" Value="{DynamicResource MahApps.Brushes.CheckBox.BackgroundUnchecked}"/>
-                                                    <Setter Property="mah:CheckBoxHelper.CheckBackgroundFillCheckedMouseOver" Value="{DynamicResource MahApps.Brushes.CheckBox.BackgroundUnchecked}"/>
-                                                    <Setter Property="mah:CheckBoxHelper.CheckBackgroundFillUnchecked" Value="{DynamicResource MahApps.Brushes.CheckBox.BackgroundUnchecked}"/>
-                                                    <Setter Property="mah:CheckBoxHelper.CheckBackgroundFillUncheckedMouseOver" Value="{DynamicResource MahApps.Brushes.CheckBox.BackgroundUnchecked}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </DataGridCheckBoxColumn.ElementStyle>
-                                </DataGridCheckBoxColumn>
-                            </DataGrid.Columns>
-                        </DataGrid>
                     </Grid>
                 </ScrollViewer>
             </TabItem>

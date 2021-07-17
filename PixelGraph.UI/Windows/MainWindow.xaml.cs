@@ -101,7 +101,7 @@ namespace PixelGraph.UI.Windows
         {
             var dialog = new VistaOpenFileDialog {
                 Title = "Import Zip Archive",
-                Filter = "Zip Archive|*.zip|All Files|*.*",
+                Filter = "All Supported|*.zip;*.jar;*.mcpack|Zip Archive|*.zip|Java Archive|*.jar|McPack Archive|*.mcpack|All Files|*.*",
                 CheckFileExists = true,
             };
 
@@ -499,8 +499,8 @@ namespace PixelGraph.UI.Windows
                 window.Model.Archive = Model.SelectedLocation.Archive;
             }
             else {
-                // TODO: Finish bedrock mcpack support
-                var isBedrock = false;
+                var isBedrock = GameEditions.Is(Model.Profile.Loaded?.Edition, GameEditions.Bedrock);
+
                 window.Model.Destination = GetArchiveFilename(isBedrock);
                 window.Model.Archive = true;
 
