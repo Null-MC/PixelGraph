@@ -67,11 +67,9 @@ namespace PixelGraph.Common.Material
 
         public int? RangeMax {get; set;}
 
-        public MaterialAlphaProperties Alpha {get; set;}
+        public MaterialOpacityProperties Opacity {get; set;}
 
-        public MaterialAlbedoProperties Albedo {get; set;}
-
-        public MaterialDiffuseProperties Diffuse {get; set;}
+        public MaterialColorProperties Color {get; set;}
 
         public MaterialHeightProperties Height {get; set;}
 
@@ -110,9 +108,8 @@ namespace PixelGraph.Common.Material
 
         public MaterialProperties()
         {
-            Alpha = new MaterialAlphaProperties();
-            Albedo = new MaterialAlbedoProperties();
-            Diffuse = new MaterialDiffuseProperties();
+            Opacity = new MaterialOpacityProperties();
+            Color = new MaterialColorProperties();
             Height = new MaterialHeightProperties();
             Bump = new MaterialBumpProperties();
             Normal = new MaterialNormalProperties();
@@ -235,13 +232,10 @@ namespace PixelGraph.Common.Material
         }
 
         private static readonly Dictionary<string, Func<MaterialProperties, decimal?>> valueMap = new(StringComparer.OrdinalIgnoreCase) {
-            [EncodingChannel.Alpha] = mat => mat.Alpha?.Value,
-            [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ValueRed,
-            [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ValueGreen,
-            [EncodingChannel.DiffuseBlue] = mat => mat.Diffuse?.ValueBlue,
-            [EncodingChannel.AlbedoRed] = mat => mat.Albedo?.ValueRed,
-            [EncodingChannel.AlbedoGreen] = mat => mat.Albedo?.ValueGreen,
-            [EncodingChannel.AlbedoBlue] = mat => mat.Albedo?.ValueBlue,
+            [EncodingChannel.Opacity] = mat => mat.Opacity?.Value,
+            [EncodingChannel.ColorRed] = mat => mat.Color?.ValueRed,
+            [EncodingChannel.ColorGreen] = mat => mat.Color?.ValueGreen,
+            [EncodingChannel.ColorBlue] = mat => mat.Color?.ValueBlue,
             [EncodingChannel.Height] = mat => mat.Height?.Value,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Value,
             [EncodingChannel.NormalX] = mat => mat.Normal?.ValueX,
@@ -257,13 +251,10 @@ namespace PixelGraph.Common.Material
         };
 
         private static readonly Dictionary<string, Func<MaterialProperties, decimal>> shiftMap = new(StringComparer.OrdinalIgnoreCase) {
-            [EncodingChannel.Alpha] = mat => mat.Alpha?.Shift ?? 0m,
-            [EncodingChannel.DiffuseRed] = mat => 0m,
-            [EncodingChannel.DiffuseGreen] = mat => 0m,
-            [EncodingChannel.DiffuseBlue] = mat => 0m,
-            [EncodingChannel.AlbedoRed] = mat => 0m,
-            [EncodingChannel.AlbedoGreen] = mat => 0m,
-            [EncodingChannel.AlbedoBlue] = mat => 0m,
+            [EncodingChannel.Opacity] = mat => mat.Opacity?.Shift ?? 0m,
+            [EncodingChannel.ColorRed] = mat => 0m,
+            [EncodingChannel.ColorGreen] = mat => 0m,
+            [EncodingChannel.ColorBlue] = mat => 0m,
             [EncodingChannel.Height] = mat => mat.Height?.Shift ?? 0m,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Shift ?? 0m,
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Shift ?? 0m,
@@ -276,13 +267,10 @@ namespace PixelGraph.Common.Material
         };
 
         private static readonly Dictionary<string, Func<MaterialProperties, decimal>> scaleMap = new(StringComparer.OrdinalIgnoreCase) {
-            [EncodingChannel.Alpha] = mat => mat.Alpha?.Scale ?? 1m,
-            [EncodingChannel.DiffuseRed] = mat => mat.Diffuse?.ScaleRed ?? 1m,
-            [EncodingChannel.DiffuseGreen] = mat => mat.Diffuse?.ScaleGreen ?? 1m,
-            [EncodingChannel.DiffuseBlue] = mat => mat.Diffuse?.ScaleBlue ?? 1m,
-            [EncodingChannel.AlbedoRed] = mat => mat.Albedo?.ScaleRed ?? 1m,
-            [EncodingChannel.AlbedoGreen] = mat => mat.Albedo?.ScaleGreen ?? 1m,
-            [EncodingChannel.AlbedoBlue] = mat => mat.Albedo?.ScaleBlue ?? 1m,
+            [EncodingChannel.Opacity] = mat => mat.Opacity?.Scale ?? 1m,
+            [EncodingChannel.ColorRed] = mat => mat.Color?.ScaleRed ?? 1m,
+            [EncodingChannel.ColorGreen] = mat => mat.Color?.ScaleGreen ?? 1m,
+            [EncodingChannel.ColorBlue] = mat => mat.Color?.ScaleBlue ?? 1m,
             [EncodingChannel.Height] = mat => mat.Height?.Scale ?? 1m,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Scale ?? 1m,
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Scale ?? 1m,
@@ -336,6 +324,24 @@ namespace PixelGraph.Common.Material
                 CTM ??= new MaterialConnectionProperties();
                 CTM.CountY = value;
             }
+        }
+
+        [Obsolete("Replace usages of Alpha with Opacity")]
+        public MaterialOpacityProperties Alpha {
+            get => null;
+            set => Opacity = value;
+        }
+
+        [Obsolete("Replace usages of Albedo with Color")]
+        public MaterialColorProperties Albedo {
+            get => null;
+            set => Color = value;
+        }
+
+        [Obsolete("Replace usages of Diffuse with Color")]
+        public MaterialColorProperties Diffuse {
+            get => null;
+            set => Color = value;
         }
 
         #endregion

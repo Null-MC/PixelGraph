@@ -107,7 +107,7 @@ namespace PixelGraph.UI.Windows
                 Path = localPath,
             };
 
-            foreach (var childPath in reader.EnumerateDirectories(localPath, "*")) {
+            foreach (var childPath in reader.EnumerateDirectories(localPath)) {
                 token.ThrowIfCancellationRequested();
 
                 if (!Model.IncludeUnknown && ResourcePackImporter.IsUnknownPath(childPath)) continue;
@@ -116,7 +116,7 @@ namespace PixelGraph.UI.Windows
                 node.Nodes.Add(childNode);
             }
 
-            foreach (var file in reader.EnumerateFiles(localPath, "*.*")) {
+            foreach (var file in reader.EnumerateFiles(localPath)) {
                 token.ThrowIfCancellationRequested();
 
                 if (!Model.IncludeUnknown && ResourcePackImporter.IsUnknownFile(file)) continue;

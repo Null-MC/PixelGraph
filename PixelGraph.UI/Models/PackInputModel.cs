@@ -9,15 +9,11 @@ namespace PixelGraph.UI.Models
         public string RootDirectory {get; set;}
         public TextureChannelMapping[] Channels {get;}
 
-        public TextureChannelMapping Alpha {get;}
+        public TextureChannelMapping Opacity {get;}
 
-        public TextureChannelMapping DiffuseRed {get;}
-        public TextureChannelMapping DiffuseGreen {get;}
-        public TextureChannelMapping DiffuseBlue {get;}
-
-        public TextureChannelMapping AlbedoRed {get;}
-        public TextureChannelMapping AlbedoGreen {get;}
-        public TextureChannelMapping AlbedoBlue {get;}
+        public TextureChannelMapping ColorRed {get;}
+        public TextureChannelMapping ColorGreen {get;}
+        public TextureChannelMapping ColorBlue {get;}
 
         public TextureChannelMapping Height {get; set;}
 
@@ -72,15 +68,11 @@ namespace PixelGraph.UI.Models
         public PackInputModel()
         {
             Channels = new []{
-                Alpha = new TextureChannelMapping("Alpha"),
+                Opacity = new TextureChannelMapping("Opacity"),
 
-                DiffuseRed = new TextureChannelMapping("Diffuse Red"),
-                DiffuseGreen = new TextureChannelMapping("Diffuse Green"),
-                DiffuseBlue = new TextureChannelMapping("Diffuse Blue"),
-
-                AlbedoRed = new TextureChannelMapping("Albedo Red"),
-                AlbedoGreen = new TextureChannelMapping("Albedo Green"),
-                AlbedoBlue = new TextureChannelMapping("Albedo Blue"),
+                ColorRed = new TextureChannelMapping("Color Red"),
+                ColorGreen = new TextureChannelMapping("Color Green"),
+                ColorBlue = new TextureChannelMapping("Color Blue"),
 
                 Height = new TextureChannelMapping("Height"),
 
@@ -111,15 +103,11 @@ namespace PixelGraph.UI.Models
             var encoding = TextureFormat.GetFactory(_packInput?.Format);
             var encodingDefaults = encoding?.Create();
 
-            Alpha.ApplyDefaultValues(encodingDefaults?.Alpha);
+            Opacity.ApplyDefaultValues(encodingDefaults?.Opacity);
 
-            DiffuseRed.ApplyDefaultValues(encodingDefaults?.DiffuseRed);
-            DiffuseGreen.ApplyDefaultValues(encodingDefaults?.DiffuseGreen);
-            DiffuseBlue.ApplyDefaultValues(encodingDefaults?.DiffuseBlue);
-
-            AlbedoRed.ApplyDefaultValues(encodingDefaults?.AlbedoRed);
-            AlbedoGreen.ApplyDefaultValues(encodingDefaults?.AlbedoGreen);
-            AlbedoBlue.ApplyDefaultValues(encodingDefaults?.AlbedoBlue);
+            ColorRed.ApplyDefaultValues(encodingDefaults?.ColorRed);
+            ColorGreen.ApplyDefaultValues(encodingDefaults?.ColorGreen);
+            ColorBlue.ApplyDefaultValues(encodingDefaults?.ColorBlue);
 
             Height.ApplyDefaultValues(encodingDefaults?.Height);
             Occlusion.ApplyDefaultValues(encodingDefaults?.Occlusion);
@@ -145,15 +133,11 @@ namespace PixelGraph.UI.Models
 
         private void UpdateChannels()
         {
-            Alpha.SetChannel(_packInput?.Alpha);
+            Opacity.SetChannel(_packInput?.Opacity);
 
-            DiffuseRed.SetChannel(_packInput?.DiffuseRed);
-            DiffuseGreen.SetChannel(_packInput?.DiffuseGreen);
-            DiffuseBlue.SetChannel(_packInput?.DiffuseBlue);
-
-            AlbedoRed.SetChannel(_packInput?.AlbedoRed);
-            AlbedoGreen.SetChannel(_packInput?.AlbedoGreen);
-            AlbedoBlue.SetChannel(_packInput?.AlbedoBlue);
+            ColorRed.SetChannel(_packInput?.ColorRed);
+            ColorGreen.SetChannel(_packInput?.ColorGreen);
+            ColorBlue.SetChannel(_packInput?.ColorBlue);
 
             Height.SetChannel(_packInput?.Height);
             Occlusion.SetChannel(_packInput?.Occlusion);
@@ -184,7 +168,7 @@ namespace PixelGraph.UI.Models
         {
             PackInput = new ResourcePackInputProperties {
                 Format = TextureFormat.Format_Raw,
-                Alpha = {
+                Opacity = {
                     MinValue = 100,
                 },
             };

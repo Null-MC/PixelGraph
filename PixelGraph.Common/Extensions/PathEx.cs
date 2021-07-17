@@ -23,9 +23,9 @@ namespace PixelGraph.Common.Extensions
             return filename.Replace('\\', '/');
         }
 
-        public static bool MatchPattern(string name, string pattern)
+        public static bool MatchPattern(string name, string pattern = null)
         {
-            if (pattern == null || pattern == "*") return true;
+            if (pattern is null or "*") return true;
 
             var regexPattern = Regex.Escape(pattern)
                 .Replace("\\?", ".")
@@ -34,10 +34,10 @@ namespace PixelGraph.Common.Extensions
             return Regex.IsMatch(name, $"^{regexPattern}$");
         }
 
-        public static string[] Split(string path)
-        {
-            return path.Split('/', '\\');
-        }
+        //public static string[] Split(string path)
+        //{
+        //    return path.Split('/', '\\');
+        //}
 
         //public static bool ContainsSegment(string path, params string[] findParts)
         //{

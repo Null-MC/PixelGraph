@@ -90,7 +90,7 @@ namespace PixelGraph.Common.Textures.Graphing
             
             if (Context.Material.PublishInventory ?? false) {
                 // WARN: half-ass filtering - fix asap
-                if (TextureTags.Is(textureTag, TextureTags.Albedo)) return;
+                if (TextureTags.Is(textureTag, TextureTags.Color)) return;
 
                 var ext = NamingStructure.GetExtension(Context.Profile);
                 var suffix = $"_inventory.{ext}";

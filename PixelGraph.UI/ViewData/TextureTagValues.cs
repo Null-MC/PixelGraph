@@ -7,9 +7,8 @@ namespace PixelGraph.UI.ViewData
     {
         public TextureTagValues()
         {
-            Add(new Item {Text = "Alpha", Value = TextureTags.Alpha});
-            Add(new Item {Text = "Diffuse", Value = TextureTags.Diffuse});
-            Add(new Item {Text = "Albedo", Value = TextureTags.Albedo});
+            Add(new Item {Text = "Opacity", Value = TextureTags.Opacity});
+            Add(new Item {Text = "Color", Value = TextureTags.Color});
             Add(new Item {Text = "Height", Value = TextureTags.Height});
             Add(new Item {Text = "Normal", Value = TextureTags.Normal});
             Add(new Item {Text = "Occlusion", Value = TextureTags.Occlusion});

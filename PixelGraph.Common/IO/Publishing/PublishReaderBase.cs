@@ -116,7 +116,7 @@ namespace PixelGraph.Common.IO.Publishing
                 yield break;
             }
 
-            foreach (var directory in reader.EnumerateDirectories(searchPath, "*")) {
+            foreach (var directory in reader.EnumerateDirectories(searchPath)) {
                 token.ThrowIfCancellationRequested();
 
                 await foreach (var texture in LoadRecursiveAsync(directory, token))
@@ -167,7 +167,7 @@ namespace PixelGraph.Common.IO.Publishing
                     yield return texture;
             }
 
-            foreach (var filename in reader.EnumerateFiles(searchPath, "*")) {
+            foreach (var filename in reader.EnumerateFiles(searchPath)) {
                 if (IgnoredExtensions.Any(x => filename.EndsWith(x, StringComparison.InvariantCultureIgnoreCase))) {
                     logger.LogDebug($"Ignoring file '{filename}'.");
                     continue;
@@ -190,7 +190,7 @@ namespace PixelGraph.Common.IO.Publishing
 
         public bool IsLocalMaterialPath(string localPath)
         {
-            foreach (var localFile in reader.EnumerateFiles(localPath, "*.*")) {
+            foreach (var localFile in reader.EnumerateFiles(localPath)) {
                 var ext = Path.GetExtension(localFile);
                 if (IgnoredExtensions.Contains(ext, StringComparer.InvariantCultureIgnoreCase)) continue;
                 if (!ImageExtensions.Supports(ext)) continue;

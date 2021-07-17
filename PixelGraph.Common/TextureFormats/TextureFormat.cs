@@ -7,11 +7,10 @@ namespace PixelGraph.Common.TextureFormats
 {
     public class TextureFormat
     {
-        public const string Default = Format_Raw;
+        //public const string Default = Format_Raw;
 
         public const string Format_Raw = "raw";
-        public const string Format_Albedo = "albedo";
-        public const string Format_Diffuse = "diffuse";
+        public const string Format_Color = "color";
         public const string Format_Specular = "specular";
         public const string Format_OldPbr = "old-pbr";
         public const string Format_Lab11 = "lab-1.1";
@@ -35,8 +34,7 @@ namespace PixelGraph.Common.TextureFormats
         private static readonly Dictionary<string, ITextureFormatFactory> formatMap =
             new(StringComparer.InvariantCultureIgnoreCase) {
                 [Format_Raw] = new RawFormat(),
-                [Format_Albedo] = new AlbedoFormat(),
-                [Format_Diffuse] = new DiffuseFormat(),
+                [Format_Color] = new ColorFormat(),
                 [Format_Specular] = new SpecularFormat(),
                 [Format_OldPbr] = new OldPbrFormat(),
                 [Format_Lab11] = new LabPbr11Format(),
@@ -46,6 +44,8 @@ namespace PixelGraph.Common.TextureFormats
 
                 // Deprecated fallback
                 ["legacy"] = new OldPbrFormat(),
+                ["albedo"] = new ColorFormat(),
+                ["diffuse"] = new ColorFormat(),
             };
     }
 }

@@ -3,9 +3,12 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ImageExtensions = PixelGraph.Common.IO.ImageExtensions;
 
 namespace PixelGraph.Common.Textures.Graphing
 {
@@ -81,7 +84,7 @@ namespace PixelGraph.Common.Textures.Graphing
                     }
                 }
 
-                if (Context.IsAnimated)
+                if (Context.IsAnimated || Context.IsImport)
                     await CopyMetaAsync(tag, token);
             }
         }
@@ -89,8 +92,6 @@ namespace PixelGraph.Common.Textures.Graphing
         protected virtual async Task ProcessTextureAsync<TPixel>(Image<TPixel> image, string textureTag, ImageChannels type, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>
         {
-            //using var image = await Graph.CreateImageAsync<TPixel>(textureTag, createEmpty, token);
-
             if (image == null) {
                 logger.LogWarning("No texture sources found for item {DisplayName} texture {textureTag}.", Context.Material.DisplayName, textureTag);
                 return;
@@ -144,9 +145,28 @@ namespace PixelGraph.Common.Textures.Graphing
             await sourceStream.CopyToAsync(destStream, token);
         }
 
+        protected async Task ImportMetaAsync(CancellationToken token)
+        {
+            var path = Context.Material.LocalPath;
+
+            foreach (var file in Reader.EnumerateFiles(path, "*.mcmeta")) {
+                var name = Path.GetFileNameWithoutExtension(file);
+
+                var ext = Path.GetExtension(name);
+                if (!ImageExtensions.Supports(ext)) continue;
+
+                name = Path.GetFileNameWithoutExtension(name);
+                if (!Context.Material.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)) continue;
+
+                var metaFileOut = NamingStructure.GetInputMetaName(Context.Material);
+                await CopyMetaFileAsync(file, metaFileOut, token);
+            }
+        }
+
         protected async Task CopyMetaAsync(string tag, CancellationToken token)
         {
             var metaFileIn = NamingStructure.GetInputMetaName(Context.Material, tag);
+
             if (!Reader.FileExists(metaFileIn)) {
                 metaFileIn = NamingStructure.GetInputMetaName(Context.Material);
                 if (!Reader.FileExists(metaFileIn)) return;
@@ -154,6 +174,11 @@ namespace PixelGraph.Common.Textures.Graphing
 
             var metaFileOut = NamingStructure.GetOutputMetaName(Context.Profile, Context.Material, tag, Context.PublishAsGlobal);
 
+            await CopyMetaFileAsync(metaFileIn, metaFileOut, token);
+        }
+
+        private async Task CopyMetaFileAsync(string metaFileIn, string metaFileOut, CancellationToken token)
+        {
             await using var sourceStream = Reader.Open(metaFileIn);
             await using var destStream = Writer.Open(metaFileOut);
             await sourceStream.CopyToAsync(destStream, token);

@@ -7,9 +7,8 @@ namespace PixelGraph.Common.Textures
     public static class TextureTags
     {
         public const string None = "none";
-        public const string Alpha = "alpha";
-        public const string Albedo = "albedo";
-        public const string Diffuse = "diffuse";
+        public const string Opacity = "opacity";
+        public const string Color = "color";
         public const string Height = "height";
         public const string Bump = "bump";
         public const string Normal = "normal";
@@ -30,7 +29,7 @@ namespace PixelGraph.Common.Textures
         public const string MagnitudeBuffer = "magnitude-buffer";
         public const string OcclusionGenerated = "occlusion-generated";
 
-        public static string[] All {get;} = {Alpha, Albedo, Diffuse, Height, Bump, Normal, Occlusion, Specular, Smooth, Rough, Metal, F0, Porosity, SubSurfaceScattering, Emissive, Inventory, MER};
+        public static string[] All {get;} = {Opacity, Color, Height, Bump, Normal, Occlusion, Specular, Smooth, Rough, Metal, F0, Porosity, SubSurfaceScattering, Emissive, Inventory, MER};
 
 
         public static string Get(MaterialProperties material, string tag)
@@ -42,10 +41,9 @@ namespace PixelGraph.Common.Textures
 
         public static bool Is(string tagActual, string tagExpected) => string.Equals(tagActual, tagExpected, StringComparison.InvariantCultureIgnoreCase);
 
-        private static readonly Dictionary<string, Func<MaterialProperties, string>> map = new Dictionary<string, Func<MaterialProperties, string>>(StringComparer.InvariantCultureIgnoreCase) {
-            [Alpha] = mat => mat.Alpha?.Texture,
-            [Albedo] = mat => mat.Albedo?.Texture,
-            [Diffuse] = mat => mat.Diffuse?.Texture,
+        private static readonly Dictionary<string, Func<MaterialProperties, string>> map = new(StringComparer.InvariantCultureIgnoreCase) {
+            [Opacity] = mat => mat.Opacity?.Texture,
+            [Color] = mat => mat.Color?.Texture,
             [Height] = mat => mat.Height?.Texture,
             [Bump] = mat => mat.Bump?.Texture,
             [Normal] = mat => mat.Normal?.Texture,

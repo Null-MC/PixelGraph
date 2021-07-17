@@ -39,6 +39,7 @@ namespace PixelGraph.Common.Textures.Graphing
 
             await ProcessAllTexturesAsync(false, token);
             await CopyPropertiesAsync(token);
+            await ImportMetaAsync(token);
         }
 
         protected override async Task SaveImagePartAsync<TPixel>(Image<TPixel> image, TexturePublishPart part, ImageChannels type, string destFile, string textureTag, CancellationToken token)

@@ -33,7 +33,7 @@ namespace PixelGraph.UI.Internal
         {
             var existingNodes = parentNode.Nodes.ToList();
 
-            foreach (var childPath in reader.EnumerateDirectories(parentNode.LocalPath, "*")) {
+            foreach (var childPath in reader.EnumerateDirectories(parentNode.LocalPath)) {
                 var isMat = IsLocalMaterialPath(childPath, out var matFile);
 
                 var existingNode = TryRemove(existingNodes, x => {
@@ -59,7 +59,7 @@ namespace PixelGraph.UI.Internal
             }
 
             var isParentMat = parentNode is ContentTreeMaterialDirectory;
-            foreach (var file in reader.EnumerateFiles(parentNode.LocalPath, "*.*")) {
+            foreach (var file in reader.EnumerateFiles(parentNode.LocalPath)) {
                 var fileName = Path.GetFileName(file);
                 if (isParentMat && string.Equals(fileName, "mat.yml", StringComparison.InvariantCultureIgnoreCase)) continue;
                 if (isParentMat && string.Equals(fileName, "pbr.yml", StringComparison.InvariantCultureIgnoreCase)) continue;

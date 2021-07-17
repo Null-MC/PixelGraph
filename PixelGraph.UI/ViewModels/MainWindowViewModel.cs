@@ -409,6 +409,18 @@ namespace PixelGraph.UI.ViewModels
                 Model.RecentDirectories.Add(item);
         }
 
+        public void CloseTab(Guid tabId)
+        {
+            for (var i = Model.TabList.Count - 1; i >= 0; i--) {
+                if (Model.TabList[i].Id != tabId) continue;
+
+                Model.TabList.RemoveAt(i);
+                break;
+            }
+
+            tabPreviewMgr.Remove(tabId);
+        }
+
         #region External Image Editing
 
         public async Task BeginExternalEditAsync(CancellationToken token = default)
@@ -482,14 +494,7 @@ namespace PixelGraph.UI.ViewModels
 
         private void OnTabClosed(object sender, TabClosedEventArgs e)
         {
-            for (var i = Model.TabList.Count - 1; i >= 0; i--) {
-                if (Model.TabList[i].Id != e.TabId) continue;
-
-                Model.TabList.RemoveAt(i);
-                break;
-            }
-
-            tabPreviewMgr.Remove(e.TabId);
+            CloseTab(e.TabId);
         }
     }
 }

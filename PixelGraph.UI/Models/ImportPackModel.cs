@@ -3,6 +3,7 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using System;
+using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.UI.Models
 {
@@ -99,7 +100,7 @@ namespace PixelGraph.UI.Models
         {
             Encoding = new ResourcePackOutputProperties();
 
-            SourceFormat = null;
+            SourceFormat = TextureFormat.Format_Color;
             CopyUntracked = true;
             IncludeUnknown = false;
             AsGlobal = false;

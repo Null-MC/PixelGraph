@@ -10,9 +10,9 @@ namespace PixelGraph.Common.TextureFormats.Java
 
         public ResourcePackEncoding Create()
         {
-            return new ResourcePackEncoding {
-                Alpha = new ResourcePackAlphaChannelProperties {
-                    Texture = TextureTags.Albedo,
+            return new() {
+                Opacity = new ResourcePackOpacityChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Alpha,
                     MinValue = 0m,
                     MaxValue = 255m,
@@ -23,8 +23,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                 },
 
-                AlbedoRed = new ResourcePackAlbedoRedChannelProperties {
-                    Texture = TextureTags.Albedo,
+                ColorRed = new ResourcePackColorRedChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Red,
                     MinValue = 0m,
                     MaxValue = 255m,
@@ -35,8 +35,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                 },
 
-                AlbedoGreen = new ResourcePackAlbedoGreenChannelProperties {
-                    Texture = TextureTags.Albedo,
+                ColorGreen = new ResourcePackColorGreenChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Green,
                     MinValue = 0m,
                     MaxValue = 255m,
@@ -47,8 +47,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                 },
 
-                AlbedoBlue = new ResourcePackAlbedoBlueChannelProperties {
-                    Texture = TextureTags.Albedo,
+                ColorBlue = new ResourcePackColorBlueChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Blue,
                     MinValue = 0m,
                     MaxValue = 255m,

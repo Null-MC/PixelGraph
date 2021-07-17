@@ -12,9 +12,9 @@ namespace PixelGraph.UI.Converters
     {
         public const string NoneDescription = "No channel mappings. Do not use this without manually specifying encoding channels.";
 
-        private static readonly Dictionary<string, string> map = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
+        private static readonly Dictionary<string, string> map = new(StringComparer.InvariantCultureIgnoreCase) {
             [TextureFormat.Format_Raw] = RawFormat.Description,
-            [TextureFormat.Format_Diffuse] = DiffuseFormat.Description,
+            [TextureFormat.Format_Color] = ColorFormat.Description,
             [TextureFormat.Format_Specular] = SpecularFormat.Description,
             [TextureFormat.Format_OldPbr] = OldPbrFormat.Description,
             [TextureFormat.Format_Lab11] = LabPbr11Format.Description,

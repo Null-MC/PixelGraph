@@ -15,7 +15,7 @@
                  d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
                  Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" WindowState="Maximized"
                  Loaded="OnWindowLoaded" Closed="OnWindowClosed" PreviewKeyUp="OnWindowPreviewKeyUp"
-                 ShowIconOnTitleBar="True" IconScalingMode="NoScaleSmallerFrame" TitleForeground="Transparent"
+                 ShowIconOnTitleBar="True" IconScalingMode="NoScaleSmallerFrame" TitleCharacterCasing="Normal"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                  Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
@@ -234,6 +234,7 @@
                               Background="{DynamicResource MahApps.Brushes.Accent3}"/>
                 <DockPanel Grid.Column="2">
                     <controls:DocumentTabControl DockPanel.Dock="Top" Height="34"
+                                                 CloseTab="OnCloseDocumentTab" CloseAllTabs="OnCloseAllDocumentTabs"
                                                  ItemsSource="{Binding TabList, Mode=OneWay}"
                                                  SelectedItem="{Binding TabListSelection, Mode=TwoWay}"/>
                     <Grid>
@@ -387,9 +388,9 @@
                                         <hx:DirectionalLight3D Color="{Binding SunLightColor, Mode=OneWay}"
                                                                Direction="{Binding SunLightDirection, Mode=OneWay}"
                                                                IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
-                                        <hx:PointLight3D Color="#CA8A41" Range="16" Position="5,7,5"
+                                        <hx:PointLight3D Color="#C39667" Range="24" Position="5,7,5"
                                                          IsRendering="{Binding EnableLights, Mode=OneWay}"/>
-                                        <hx:PointLight3D Color="#388CB0" Range="16" Position="-6,-3,-3"
+                                        <hx:PointLight3D Color="#83D0F2" Range="16" Position="-6,-3,-3"
                                                          IsRendering="{Binding EnableLights, Mode=OneWay}"/>
                                         <pm:SkyDome3D IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
                                         <!--<hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />-->

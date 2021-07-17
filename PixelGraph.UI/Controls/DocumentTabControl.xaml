@@ -9,6 +9,12 @@
           d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
           mc:Ignorable="d" d:DesignHeight="34" d:DesignWidth="420"
           x:Name="Root" SelectionMode="Single">
+    <ListView.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="Close Tab" Click="OnContextMenuCloseTabClick"/>
+            <MenuItem Header="Close All" Click="OnContextMenuCloseAllClick"/>
+        </ContextMenu>
+    </ListView.ContextMenu>
     <ListView.Template>
         <ControlTemplate>
             <DockPanel>

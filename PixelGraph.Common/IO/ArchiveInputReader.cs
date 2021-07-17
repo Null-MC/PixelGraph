@@ -21,7 +21,7 @@ namespace PixelGraph.Common.IO
             archive = new ZipArchive(fileStream, ZipArchiveMode.Read);
         }
 
-        public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern)
+        public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null)
         {
             var fullPath = localPath == "." ? string.Empty : localPath;
             var start = fullPath.Length;
@@ -32,7 +32,7 @@ namespace PixelGraph.Common.IO
             }).Where(x => x != null).Distinct();
         }
 
-        public override IEnumerable<string> EnumerateFiles(string localPath, string pattern)
+        public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = null)
         {
             var fullPath = localPath == "." ? string.Empty : localPath;
 

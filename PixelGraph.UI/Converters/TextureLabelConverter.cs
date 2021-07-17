@@ -8,10 +8,9 @@ namespace PixelGraph.UI.Converters
 {
     internal class TextureLabelConverter : IValueConverter
     {
-        private static readonly Dictionary<string, string> map = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
-            [TextureTags.Alpha] = "Alpha",
-            [TextureTags.Diffuse] = "Diffuse",
-            [TextureTags.Albedo] = "Albedo",
+        private static readonly Dictionary<string, string> map = new(StringComparer.InvariantCultureIgnoreCase) {
+            [TextureTags.Opacity] = "Opacity",
+            [TextureTags.Color] = "Color",
             [TextureTags.Height] = "Height",
             [TextureTags.Occlusion] = "Occlusion",
             [TextureTags.Normal] = "Normal",

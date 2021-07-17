@@ -1,6 +1,7 @@
 ﻿using PixelGraph.Common.Material;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using YamlDotNet.Serialization;
@@ -9,15 +10,11 @@ namespace PixelGraph.Common.ResourcePack
 {
     public class ResourcePackEncoding
     {
-        public ResourcePackAlphaChannelProperties Alpha {get; set;}
+        public ResourcePackOpacityChannelProperties Opacity {get; set;}
 
-        public ResourcePackDiffuseRedChannelProperties DiffuseRed {get; set;}
-        public ResourcePackDiffuseGreenChannelProperties DiffuseGreen {get; set;}
-        public ResourcePackDiffuseBlueChannelProperties DiffuseBlue {get; set;}
-
-        public ResourcePackAlbedoRedChannelProperties AlbedoRed {get; set;}
-        public ResourcePackAlbedoGreenChannelProperties AlbedoGreen {get; set;}
-        public ResourcePackAlbedoBlueChannelProperties AlbedoBlue {get; set;}
+        public ResourcePackColorRedChannelProperties ColorRed {get; set;}
+        public ResourcePackColorGreenChannelProperties ColorGreen {get; set;}
+        public ResourcePackColorBlueChannelProperties ColorBlue {get; set;}
 
         public ResourcePackHeightChannelProperties Height {get; set;}
         public ResourcePackOcclusionChannelProperties Occlusion {get; set;}
@@ -44,15 +41,11 @@ namespace PixelGraph.Common.ResourcePack
 
         public ResourcePackEncoding()
         {
-            Alpha = new ResourcePackAlphaChannelProperties();
+            Opacity = new ResourcePackOpacityChannelProperties();
 
-            DiffuseRed = new ResourcePackDiffuseRedChannelProperties();
-            DiffuseGreen = new ResourcePackDiffuseGreenChannelProperties();
-            DiffuseBlue = new ResourcePackDiffuseBlueChannelProperties();
-
-            AlbedoRed = new ResourcePackAlbedoRedChannelProperties();
-            AlbedoGreen = new ResourcePackAlbedoGreenChannelProperties();
-            AlbedoBlue = new ResourcePackAlbedoBlueChannelProperties();
+            ColorRed = new ResourcePackColorRedChannelProperties();
+            ColorGreen = new ResourcePackColorGreenChannelProperties();
+            ColorBlue = new ResourcePackColorBlueChannelProperties();
 
             Height = new ResourcePackHeightChannelProperties();
 
@@ -89,15 +82,11 @@ namespace PixelGraph.Common.ResourcePack
 
         public void Merge(ResourcePackEncoding encoding)
         {
-            if (encoding.Alpha != null) Alpha.Merge(encoding.Alpha);
+            if (encoding.Opacity != null) Opacity.Merge(encoding.Opacity);
 
-            if (encoding.DiffuseRed != null) DiffuseRed.Merge(encoding.DiffuseRed);
-            if (encoding.DiffuseGreen != null) DiffuseGreen.Merge(encoding.DiffuseGreen);
-            if (encoding.DiffuseBlue != null) DiffuseBlue.Merge(encoding.DiffuseBlue);
-
-            if (encoding.AlbedoRed != null) AlbedoRed.Merge(encoding.AlbedoRed);
-            if (encoding.AlbedoGreen != null) AlbedoGreen.Merge(encoding.AlbedoGreen);
-            if (encoding.AlbedoBlue != null) AlbedoBlue.Merge(encoding.AlbedoBlue);
+            if (encoding.ColorRed != null) ColorRed.Merge(encoding.ColorRed);
+            if (encoding.ColorGreen != null) ColorGreen.Merge(encoding.ColorGreen);
+            if (encoding.ColorBlue != null) ColorBlue.Merge(encoding.ColorBlue);
 
             if (encoding.Height != null) Height.Merge(encoding.Height);
             if (encoding.Occlusion != null) Occlusion.Merge(encoding.Occlusion);
@@ -123,15 +112,11 @@ namespace PixelGraph.Common.ResourcePack
 
         public void Merge(MaterialProperties material)
         {
-            if (material.Alpha?.Input != null) Alpha.Merge(material.Alpha.Input);
+            if (material.Opacity?.Input != null) Opacity.Merge(material.Opacity.Input);
 
-            if (material.Diffuse?.InputRed != null) DiffuseRed.Merge(material.Diffuse.InputRed);
-            if (material.Diffuse?.InputGreen != null) DiffuseGreen.Merge(material.Diffuse.InputGreen);
-            if (material.Diffuse?.InputBlue != null) DiffuseBlue.Merge(material.Diffuse.InputBlue);
-
-            if (material.Albedo?.InputRed != null) AlbedoRed.Merge(material.Albedo.InputRed);
-            if (material.Albedo?.InputGreen != null) AlbedoGreen.Merge(material.Albedo.InputGreen);
-            if (material.Albedo?.InputBlue != null) AlbedoBlue.Merge(material.Albedo.InputBlue);
+            if (material.Color?.InputRed != null) ColorRed.Merge(material.Color.InputRed);
+            if (material.Color?.InputGreen != null) ColorGreen.Merge(material.Color.InputGreen);
+            if (material.Color?.InputBlue != null) ColorBlue.Merge(material.Color.InputBlue);
 
             if (material.Height?.Input != null) Height.Merge(material.Height.Input);
             if (material.Occlusion?.Input != null) Occlusion.Merge(material.Occlusion.Input);
@@ -157,15 +142,11 @@ namespace PixelGraph.Common.ResourcePack
 
         private IEnumerable<ResourcePackChannelProperties> GetAll()
         {
-            yield return Alpha;
+            yield return Opacity;
 
-            yield return AlbedoRed;
-            yield return AlbedoGreen;
-            yield return AlbedoBlue;
-
-            yield return DiffuseRed;
-            yield return DiffuseGreen;
-            yield return DiffuseBlue;
+            yield return ColorRed;
+            yield return ColorGreen;
+            yield return ColorBlue;
 
             yield return Height;
             yield return Occlusion;
@@ -193,15 +174,11 @@ namespace PixelGraph.Common.ResourcePack
         {
             var clone = (ResourcePackEncoding)MemberwiseClone();
 
-            clone.Alpha = (ResourcePackAlphaChannelProperties)Alpha.Clone();
+            clone.Opacity = (ResourcePackOpacityChannelProperties)Opacity.Clone();
 
-            clone.DiffuseRed = (ResourcePackDiffuseRedChannelProperties)DiffuseRed.Clone();
-            clone.DiffuseGreen = (ResourcePackDiffuseGreenChannelProperties)DiffuseGreen.Clone();
-            clone.DiffuseBlue = (ResourcePackDiffuseBlueChannelProperties)DiffuseBlue.Clone();
-
-            clone.AlbedoRed = (ResourcePackAlbedoRedChannelProperties)AlbedoRed.Clone();
-            clone.AlbedoGreen = (ResourcePackAlbedoGreenChannelProperties)AlbedoGreen.Clone();
-            clone.AlbedoBlue = (ResourcePackAlbedoBlueChannelProperties)AlbedoBlue.Clone();
+            clone.ColorRed = (ResourcePackColorRedChannelProperties)ColorRed.Clone();
+            clone.ColorGreen = (ResourcePackColorGreenChannelProperties)ColorGreen.Clone();
+            clone.ColorBlue = (ResourcePackColorBlueChannelProperties)ColorBlue.Clone();
 
             clone.Height = (ResourcePackHeightChannelProperties)Height.Clone();
             clone.Occlusion = (ResourcePackOcclusionChannelProperties)Occlusion.Clone();
@@ -226,13 +203,59 @@ namespace PixelGraph.Common.ResourcePack
 
             return clone;
         }
+
+        #region Deprecated
+
+        [Obsolete("Replace usages of Alpha with Opacity.")]
+        public ResourcePackOpacityChannelProperties Alpha {
+            get => null;
+            set => Opacity = value;
+        }
+
+        [Obsolete("Replace usages of DiffuseRed with ColorRed.")]
+        public ResourcePackColorRedChannelProperties DiffuseRed {
+            get => null;
+            set => ColorRed = value;
+        }
+
+        [Obsolete("Replace usages of DiffuseGreen with ColorGreen.")]
+        public ResourcePackColorGreenChannelProperties DiffuseGreen {
+            get => null;
+            set => ColorGreen = value;
+        }
+
+        [Obsolete("Replace usages of DiffuseBlue with ColorBlue")]
+        public ResourcePackColorBlueChannelProperties DiffuseBlue {
+            get => null;
+            set => ColorBlue = value;
+        }
+
+        [Obsolete("Replace usages of AlbedoRed with ColorRed")]
+        public ResourcePackColorRedChannelProperties AlbedoRed {
+            get => null;
+            set => ColorRed = value;
+        }
+
+        [Obsolete("Replace usages of AlbedoGreen with ColorGreen")]
+        public ResourcePackColorGreenChannelProperties AlbedoGreen {
+            get => null;
+            set => ColorGreen = value;
+        }
+
+        [Obsolete("Replace usages of AlbedoBlue with ColorBlue")]
+        public ResourcePackColorBlueChannelProperties AlbedoBlue {
+            get => null;
+            set => ColorBlue = value;
+        }
+
+        #endregion
     }
 
-    public class ResourcePackAlphaChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackOpacityChannelProperties : ResourcePackChannelProperties
     {
-        public ResourcePackAlphaChannelProperties() : base(EncodingChannel.Alpha) {}
+        public ResourcePackOpacityChannelProperties() : base(EncodingChannel.Opacity) {}
 
-        public ResourcePackAlphaChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Alpha, texture, color) {}
+        public ResourcePackOpacityChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Opacity, texture, color) {}
 
         public override object Clone()
         {
@@ -240,46 +263,25 @@ namespace PixelGraph.Common.ResourcePack
         }
     }
 
-    public class ResourcePackDiffuseRedChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackColorRedChannelProperties : ResourcePackChannelProperties
     {
-        public ResourcePackDiffuseRedChannelProperties() : base(EncodingChannel.DiffuseRed) {}
+        public ResourcePackColorRedChannelProperties() : base(EncodingChannel.ColorRed) {}
 
-        public ResourcePackDiffuseRedChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.DiffuseRed, texture, color) {}
+        public ResourcePackColorRedChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.ColorRed, texture, color) {}
     }
 
-    public class ResourcePackDiffuseGreenChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackColorGreenChannelProperties : ResourcePackChannelProperties
     {
-        public ResourcePackDiffuseGreenChannelProperties() : base(EncodingChannel.DiffuseGreen) {}
+        public ResourcePackColorGreenChannelProperties() : base(EncodingChannel.ColorGreen) {}
 
-        public ResourcePackDiffuseGreenChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.DiffuseGreen, texture, color) {}
+        public ResourcePackColorGreenChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.ColorGreen, texture, color) {}
     }
 
-    public class ResourcePackDiffuseBlueChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackColorBlueChannelProperties : ResourcePackChannelProperties
     {
-        public ResourcePackDiffuseBlueChannelProperties() : base(EncodingChannel.DiffuseBlue) {}
+        public ResourcePackColorBlueChannelProperties() : base(EncodingChannel.ColorBlue) {}
 
-        public ResourcePackDiffuseBlueChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.DiffuseBlue, texture, color) {}
-    }
-
-    public class ResourcePackAlbedoRedChannelProperties : ResourcePackChannelProperties
-    {
-        public ResourcePackAlbedoRedChannelProperties() : base(EncodingChannel.AlbedoRed) {}
-
-        public ResourcePackAlbedoRedChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.AlbedoRed, texture, color) {}
-    }
-
-    public class ResourcePackAlbedoGreenChannelProperties : ResourcePackChannelProperties
-    {
-        public ResourcePackAlbedoGreenChannelProperties() : base(EncodingChannel.AlbedoGreen) {}
-
-        public ResourcePackAlbedoGreenChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.AlbedoGreen, texture, color) {}
-    }
-
-    public class ResourcePackAlbedoBlueChannelProperties : ResourcePackChannelProperties
-    {
-        public ResourcePackAlbedoBlueChannelProperties() : base(EncodingChannel.AlbedoBlue) {}
-
-        public ResourcePackAlbedoBlueChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.AlbedoBlue, texture, color) {}
+        public ResourcePackColorBlueChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.ColorBlue, texture, color) {}
     }
 
     public class ResourcePackHeightChannelProperties : ResourcePackChannelProperties

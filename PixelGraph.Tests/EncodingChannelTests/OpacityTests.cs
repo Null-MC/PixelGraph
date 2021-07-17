@@ -8,17 +8,17 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.EncodingChannelTests
 {
-    public class AlphaTests : ImageTestBase
+    public class OpacityTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public AlphaTests(ITestOutputHelper output) : base(output)
+        public OpacityTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                Alpha = {
-                    Texture = TextureTags.Alpha,
+                Opacity = {
+                    Texture = TextureTags.Opacity,
                     Color = ColorChannel.Red,
                     MaxValue = 255m,
                 },
@@ -26,8 +26,8 @@ namespace PixelGraph.Tests.EncodingChannelTests
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Alpha = {
-                        Texture = TextureTags.Albedo,
+                    Opacity = {
+                        Texture = TextureTags.Color,
                         Color = ColorChannel.Alpha,
                         MaxValue = 255m,
                         Power = 1m,
@@ -49,7 +49,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
             graph.Material = new MaterialProperties {
                 Name = "test",
                 LocalPath = "assets",
-                Alpha = new MaterialAlphaProperties {
+                Opacity = new MaterialOpacityProperties {
                     Value = value,
                 },
             };
@@ -75,7 +75,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/alpha.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/opacity.png", value, 0, 0);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");
@@ -124,12 +124,12 @@ namespace PixelGraph.Tests.EncodingChannelTests
             graph.Material = new MaterialProperties {
                 Name = "test",
                 LocalPath = "assets",
-                Alpha = new MaterialAlphaProperties {
+                Opacity = new MaterialOpacityProperties {
                     Scale = scale,
                 },
             };
 
-            await graph.CreateImageAsync("assets/test/alpha.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/opacity.png", value, 0, 0);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");

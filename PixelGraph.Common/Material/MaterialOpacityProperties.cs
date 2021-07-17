@@ -2,9 +2,9 @@
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialAlphaProperties
+    public class MaterialOpacityProperties
     {
-        public ResourcePackAlphaChannelProperties Input {get; set;}
+        public ResourcePackOpacityChannelProperties Input {get; set;}
         public string Texture {get; set;}
         public decimal? Value {get; set;}
         public decimal? Shift {get; set;}

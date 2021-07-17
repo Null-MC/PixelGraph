@@ -12,8 +12,8 @@ namespace PixelGraph.Common.IO
     public abstract class BaseInputReader : IInputReader
     {
         public abstract void SetRoot(string absolutePath);
-        public abstract IEnumerable<string> EnumerateDirectories(string localPath, string pattern);
-        public abstract IEnumerable<string> EnumerateFiles(string localPath, string pattern);
+        public abstract IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null);
+        public abstract IEnumerable<string> EnumerateFiles(string localPath, string pattern = null);
         public abstract bool FileExists(string localFile);
         public abstract string GetFullPath(string localFile);
         public abstract Stream Open(string localFile);
@@ -42,10 +42,16 @@ namespace PixelGraph.Common.IO
                 yield return PathEx.Join(srcPath, localName);
             }
 
-            var matchName = NamingStructure.GetInputTextureName(material, tag);
+            foreach (var file in EnumerateFiles(srcPath)) {
+                var ext = Path.GetExtension(file);
+                if (!ImageExtensions.Supports(ext)) continue;
 
-            foreach (var file in FilesMatching(srcPath, matchName))
-                yield return file;
+                var isMatch = material.UseGlobalMatching
+                    ? NamingStructure.IsGlobalFileTag(file, material.Name, tag)
+                    : NamingStructure.IsLocalFileTag(file, tag);
+
+                if (isMatch) yield return file;
+            }
         }
 
         public IEnumerable<string> EnumerateOutputTextures(ResourcePackProfileProperties pack, string destName, string destPath, string tag, bool global)
@@ -55,9 +61,16 @@ namespace PixelGraph.Common.IO
             var srcPath = global
                 ? destPath : PathEx.Join(destPath, destName);
 
-            var ext = NamingStructure.GetExtension(pack);
-            var tagFileName = NamingStructure.Get(tag, destName, ext, true);
-            return FilesMatching(srcPath, tagFileName);
+            foreach (var file in EnumerateFiles(srcPath)) {
+                var ext = Path.GetExtension(file);
+                if (!ImageExtensions.Supports(ext)) continue;
+
+                var isMatch = global
+                    ? NamingStructure.IsGlobalFileTag(file, destName, tag)
+                    : NamingStructure.IsLocalFileTag(file, tag);
+
+                if (isMatch) yield return file;
+            }
         }
 
         public IEnumerable<string> EnumerateAllTextures(MaterialProperties material)
@@ -65,16 +78,6 @@ namespace PixelGraph.Common.IO
             return TextureTags.All
                 .SelectMany(tag => EnumerateInputTextures(material, tag))
                 .Where(file => file != null).Distinct();
-        }
-
-        private IEnumerable<string> FilesMatching(string srcPath, string matchName)
-        {
-            foreach (var file in EnumerateFiles(srcPath, matchName)) {
-                var ext = Path.GetExtension(file);
-
-                if (ImageExtensions.Supports(ext))
-                    yield return file;
-            }
         }
     }
 }

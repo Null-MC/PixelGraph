@@ -270,7 +270,7 @@ namespace PixelGraph.UI.Models
 
         public PreviewContextModel()
         {
-            _selectedTag = TextureTags.Albedo;
+            _selectedTag = TextureTags.Color;
             _enableEnvironment = true;
             _timeOfDay = 6_000;
         }

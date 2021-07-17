@@ -8,13 +8,10 @@ namespace PixelGraph.UI.ViewData
         public OptionalEncodingChannelValues()
         {
             Add(new Channel {Text = string.Empty});
-            Add(new Channel {Text = "Alpha", Value = EncodingChannel.Alpha});
-            Add(new Channel {Text = "Diffuse Red", Value = EncodingChannel.DiffuseRed});
-            Add(new Channel {Text = "Diffuse Green", Value = EncodingChannel.DiffuseGreen});
-            Add(new Channel {Text = "Diffuse Blue", Value = EncodingChannel.DiffuseBlue});
-            Add(new Channel {Text = "Albedo Red", Value = EncodingChannel.AlbedoRed});
-            Add(new Channel {Text = "Albedo Green", Value = EncodingChannel.AlbedoGreen});
-            Add(new Channel {Text = "Albedo Blue", Value = EncodingChannel.AlbedoBlue});
+            Add(new Channel {Text = "Opacity", Value = EncodingChannel.Opacity});
+            Add(new Channel {Text = "Color Red", Value = EncodingChannel.ColorRed});
+            Add(new Channel {Text = "Color Green", Value = EncodingChannel.ColorGreen});
+            Add(new Channel {Text = "Color Blue", Value = EncodingChannel.ColorBlue});
             Add(new Channel {Text = "Height", Value = EncodingChannel.Height});
             Add(new Channel {Text = "Occlusion", Value = EncodingChannel.Occlusion});
             Add(new Channel {Text = "Normal-X", Value = EncodingChannel.NormalX});

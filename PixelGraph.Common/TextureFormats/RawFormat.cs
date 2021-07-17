@@ -11,8 +11,8 @@ namespace PixelGraph.Common.TextureFormats
         public ResourcePackEncoding Create()
         {
             return new() {
-                Alpha = new ResourcePackAlphaChannelProperties {
-                    Texture = TextureTags.Alpha,
+                Opacity = new ResourcePackOpacityChannelProperties {
+                    Texture = TextureTags.Opacity,
                     Color = ColorChannel.Red,
                     MinValue = 0m,
                     MaxValue = 255m,
@@ -24,8 +24,8 @@ namespace PixelGraph.Common.TextureFormats
                     Perceptual = false,
                 },
 
-                DiffuseRed = new ResourcePackDiffuseRedChannelProperties {
-                    Texture = TextureTags.Diffuse,
+                ColorRed = new ResourcePackColorRedChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Red,
                     MinValue = 0m,
                     MaxValue = 255m,
@@ -37,8 +37,8 @@ namespace PixelGraph.Common.TextureFormats
                     Perceptual = true,
                 },
 
-                DiffuseGreen = new ResourcePackDiffuseGreenChannelProperties {
-                    Texture = TextureTags.Diffuse,
+                ColorGreen = new ResourcePackColorGreenChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Green,
                     MinValue = 0m,
                     MaxValue = 255m,
@@ -50,47 +50,8 @@ namespace PixelGraph.Common.TextureFormats
                     Perceptual = true,
                 },
 
-                DiffuseBlue = new ResourcePackDiffuseBlueChannelProperties {
-                    Texture = TextureTags.Diffuse,
-                    Color = ColorChannel.Blue,
-                    MinValue = 0m,
-                    MaxValue = 255m,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
-                    Perceptual = true,
-                },
-
-                AlbedoRed = new ResourcePackAlbedoRedChannelProperties {
-                    Texture = TextureTags.Albedo,
-                    Color = ColorChannel.Red,
-                    MinValue = 0m,
-                    MaxValue = 255m,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
-                    Perceptual = true,
-                },
-
-                AlbedoGreen = new ResourcePackAlbedoGreenChannelProperties {
-                    Texture = TextureTags.Albedo,
-                    Color = ColorChannel.Green,
-                    MinValue = 0m,
-                    MaxValue = 255m,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
-                    Perceptual = true,
-                },
-
-                AlbedoBlue = new ResourcePackAlbedoBlueChannelProperties {
-                    Texture = TextureTags.Albedo,
+                ColorBlue = new ResourcePackColorBlueChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Blue,
                     MinValue = 0m,
                     MaxValue = 255m,

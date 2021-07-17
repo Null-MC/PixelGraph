@@ -31,7 +31,7 @@ namespace PixelGraph.Tests.PublishTests
         [InlineData(100)]
         [InlineData(155)]
         [InlineData(255)]
-        [Theory] public async Task AlphaTextureTest(byte value)
+        [Theory] public async Task OpacityTextureTest(byte value)
         {
             await using var graph = Graph();
 
@@ -42,7 +42,7 @@ namespace PixelGraph.Tests.PublishTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/alpha.png", value);
+            await graph.CreateImageAsync("assets/test/opacity.png", value);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");
@@ -53,7 +53,7 @@ namespace PixelGraph.Tests.PublishTests
         [InlineData(100, 101, 102)]
         [InlineData(155, 160, 165)]
         [InlineData(255, 255, 255)]
-        [Theory] public async Task AlbedoTextureTest(byte red, byte green, byte blue)
+        [Theory] public async Task ColorTextureTest(byte red, byte green, byte blue)
         {
             await using var graph = Graph();
 
@@ -64,7 +64,7 @@ namespace PixelGraph.Tests.PublishTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/albedo.png", red, green, blue);
+            await graph.CreateImageAsync("assets/test/color.png", red, green, blue);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");

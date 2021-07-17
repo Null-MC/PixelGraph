@@ -16,21 +16,21 @@ namespace PixelGraph.UI.Internal.Preview.Textures
         
         private static readonly Dictionary<string, Func<ResourcePackProfileProperties, ResourcePackChannelProperties[]>> tagMap =
             new(StringComparer.InvariantCultureIgnoreCase) {
-                [TextureTags.Diffuse] = profile => new ResourcePackChannelProperties[] {
-                    new ResourcePackDiffuseRedChannelProperties(TextureTags.Diffuse, ColorChannel.Red) {
-                        Sampler = profile?.Encoding?.AlbedoRed?.Sampler,
+                [TextureTags.Color] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackColorRedChannelProperties(TextureTags.Color, ColorChannel.Red) {
+                        Sampler = profile?.Encoding?.ColorRed?.Sampler,
                         MaxValue = 255,
                     },
-                    new ResourcePackDiffuseGreenChannelProperties(TextureTags.Diffuse, ColorChannel.Green) {
-                        Sampler = profile?.Encoding?.AlbedoGreen?.Sampler,
+                    new ResourcePackColorGreenChannelProperties(TextureTags.Color, ColorChannel.Green) {
+                        Sampler = profile?.Encoding?.ColorGreen?.Sampler,
                         MaxValue = 255,
                     },
-                    new ResourcePackDiffuseBlueChannelProperties(TextureTags.Diffuse, ColorChannel.Blue) {
-                        Sampler = profile?.Encoding?.AlbedoBlue?.Sampler,
+                    new ResourcePackColorBlueChannelProperties(TextureTags.Color, ColorChannel.Blue) {
+                        Sampler = profile?.Encoding?.ColorBlue?.Sampler,
                         MaxValue = 255,
                     },
-                    new ResourcePackAlphaChannelProperties(TextureTags.Diffuse, ColorChannel.Alpha) {
-                        Sampler = profile?.Encoding?.Alpha?.Sampler,
+                    new ResourcePackOpacityChannelProperties(TextureTags.Color, ColorChannel.Alpha) {
+                        Sampler = profile?.Encoding?.Opacity?.Sampler,
                         MaxValue = 255,
                     },
                 },

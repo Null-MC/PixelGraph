@@ -4,43 +4,71 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace PixelGraph.Common.IO
 {
     public static class NamingStructure
     {
-        private static readonly Dictionary<string, Func<string>> LocalMap;
+        private static readonly Dictionary<string, string> LocalMap;
+        private static readonly Dictionary<string, string> LocalLookup;
         private static readonly Dictionary<string, Func<string, string>> GlobalMap;
+        private static readonly Dictionary<string, string> GlobalLookup;
 
 
         static NamingStructure()
         {
-            LocalMap = new Dictionary<string, Func<string>>(StringComparer.InvariantCultureIgnoreCase) {
-                [TextureTags.Alpha] = () => "alpha",
-                [TextureTags.Albedo] = () => "albedo",
-                [TextureTags.Diffuse] = () => "diffuse",
-                [TextureTags.Height] = () => "height",
-                [TextureTags.Bump] = () => "bump",
-                [TextureTags.Normal] = () => "normal",
-                [TextureTags.Occlusion] = () => "occlusion",
-                [TextureTags.Specular] = () => "specular",
-                [TextureTags.Smooth] = () => "smooth",
-                [TextureTags.Rough] = () => "rough",
-                [TextureTags.Metal] = () => "metal",
-                [TextureTags.F0] = () => "f0",
-                [TextureTags.Porosity] = () => "porosity",
-                [TextureTags.SubSurfaceScattering] = () => "sss",
-                [TextureTags.Emissive] = () => "emissive",
-                [TextureTags.MER] = () => "mer",
+            LocalMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
+                [TextureTags.Opacity] = "opacity",
+                [TextureTags.Color] = "color",
+                [TextureTags.Height] = "height",
+                [TextureTags.Bump] = "bump",
+                [TextureTags.Normal] = "normal",
+                [TextureTags.Occlusion] = "occlusion",
+                [TextureTags.Specular] = "specular",
+                [TextureTags.Smooth] = "smooth",
+                [TextureTags.Rough] = "rough",
+                [TextureTags.Metal] = "metal",
+                [TextureTags.F0] = "f0",
+                [TextureTags.Porosity] = "porosity",
+                [TextureTags.SubSurfaceScattering] = "sss",
+                [TextureTags.Emissive] = "emissive",
+                [TextureTags.MER] = "mer",
                 
                 // Internal
-                [TextureTags.Inventory] = () => "inventory",
+                [TextureTags.Inventory] = "inventory",
+            };
+
+            LocalLookup = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
+                ["opacity"] = TextureTags.Opacity,
+                ["color"] = TextureTags.Color,
+                ["height"] = TextureTags.Height,
+                ["bump"] = TextureTags.Bump,
+                ["normal"] = TextureTags.Normal,
+                ["occlusion"] = TextureTags.Occlusion,
+                ["specular"] = TextureTags.Specular,
+                ["smooth"] = TextureTags.Smooth,
+                ["rough"] = TextureTags.Rough,
+                ["metal"] = TextureTags.Metal,
+                ["f0"] = TextureTags.F0,
+                ["porosity"] = TextureTags.Porosity,
+                ["sss"] = TextureTags.SubSurfaceScattering,
+                ["emissive"] = TextureTags.Emissive,
+                ["mer"] = TextureTags.MER,
+                
+                // Internal
+                ["inventory"] = TextureTags.Inventory,
+
+                // Deprecated
+                ["alpha"] = TextureTags.Opacity,
+                ["albedo"] = TextureTags.Color,
+                ["diffuse"] = TextureTags.Color,
             };
 
             GlobalMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase) {
-                [TextureTags.Albedo] = name => name,
-                [TextureTags.Alpha] = name => $"{name}_a",
-                [TextureTags.Diffuse] = name => $"{name}_d",
+                [TextureTags.Color] = name => name,
+                [TextureTags.Opacity] = name => $"{name}_a",
                 [TextureTags.Height] = name => $"{name}_h",
                 [TextureTags.Bump] = name => $"{name}_b",
                 [TextureTags.Normal] = name => $"{name}_n",
@@ -58,6 +86,67 @@ namespace PixelGraph.Common.IO
                 // Internal
                 [TextureTags.Inventory] = name => $"{name}_inventory",
             };
+
+            GlobalLookup = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
+                [string.Empty] = TextureTags.Color,
+                ["o"] = TextureTags.Opacity,
+                ["opacity"] = TextureTags.Opacity,
+                ["h"] = TextureTags.Height,
+                ["height"] = TextureTags.Height,
+                ["b"] = TextureTags.Bump,
+                ["bump"] = TextureTags.Bump,
+                ["n"] = TextureTags.Normal,
+                ["normal"] = TextureTags.Normal,
+                ["ao"] = TextureTags.Occlusion,
+                ["s"] = TextureTags.Specular,
+                ["spec"] = TextureTags.Specular,
+                ["specular"] = TextureTags.Specular,
+                ["sm"] = TextureTags.Smooth,
+                ["smooth"] = TextureTags.Smooth,
+                ["r"] = TextureTags.Rough,
+                ["rough"] = TextureTags.Rough,
+                ["m"] = TextureTags.Metal,
+                ["metal"] = TextureTags.Metal,
+                ["f0"] = TextureTags.F0,
+                ["p"] = TextureTags.Porosity,
+                ["porosity"] = TextureTags.Porosity,
+                ["sss"] = TextureTags.SubSurfaceScattering,
+                ["e"] = TextureTags.Emissive,
+                ["mer"] = TextureTags.MER,
+
+                // Internal
+                ["inventory"] = TextureTags.Inventory,
+
+                // New
+
+                // Deprecated
+                ["a"] = TextureTags.Opacity,
+                ["alpha"] = TextureTags.Opacity,
+            };
+        }
+
+        public static bool IsLocalFileTag(string localFile, string tag)
+        {
+            var name = Path.GetFileNameWithoutExtension(localFile);
+            return LocalLookup.TryGetValue(name, out var lookupTag) && TextureTags.Is(lookupTag, tag);
+        }
+
+        public static bool IsGlobalFileTag(string localFile, string name, string tag)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(localFile);
+
+            var splitChars = new[] {'.'};
+            var fileTags = fileName.Split(splitChars);
+            string lookupTag;
+
+            if (fileTags.Length > 1) {
+                return fileTags.Any(t => GlobalLookup.TryGetValue(t, out lookupTag) && TextureTags.Is(lookupTag, tag));
+            }
+
+            if (!fileName.StartsWith(name)) return false;
+            var fileTag = fileName[name.Length..].TrimStart('_');
+
+            return GlobalLookup.TryGetValue(fileTag, out lookupTag) && TextureTags.Is(lookupTag, tag);
         }
 
         private static string BuildName(string name, string ext)
@@ -76,10 +165,8 @@ namespace PixelGraph.Common.IO
                 }
             }
             else {
-                if (LocalMap.TryGetValue(tag, out var func)) {
-                    var name = func();
+                if (LocalMap.TryGetValue(tag, out var name))
                     return BuildName(name, extension);
-                }
             }
 
             throw new ApplicationException($"Unknown texture tag '{tag}'!");
@@ -96,36 +183,49 @@ namespace PixelGraph.Common.IO
 
             var path = GetPath(material, material.UseGlobalMatching);
             var name = material.UseGlobalMatching ? $"{material.Name}.mcmeta" : "mat.mcmeta";
-            return PathEx.Join(path, name);
+            var filename = PathEx.Join(path, name);
+            return PathEx.Localize(filename);
         }
 
         public static string GetInputMetaName(MaterialProperties material, string tag)
         {
             var path = GetPath(material, material.UseGlobalMatching);
-            var file = Get(tag, material.Name, "mcmeta", material.UseGlobalMatching);
-            return PathEx.Join(path, file);
+            var name = Get(tag, material.Name, "mcmeta", material.UseGlobalMatching);
+            var filename = PathEx.Join(path, name);
+            return PathEx.Localize(filename);
         }
 
         public static string GetInputPropertiesName(MaterialProperties material)
         {
             var path = GetPath(material, material.UseGlobalMatching);
             var name = material.UseGlobalMatching ? $"{material.Name}.properties" : "mat.properties";
-            return PathEx.Join(path, name);
+            var filename = PathEx.Join(path, name);
+            return PathEx.Localize(filename);
         }
 
         public static string GetOutputPropertiesName(MaterialProperties material, bool global)
         {
             var isLocalCtm = material.CTM?.Type != null && !material.UseGlobalMatching;
             var path = GetPath(material, global && !isLocalCtm);
-            return PathEx.Join(path, $"{material.Name}.properties");
+            var filename = PathEx.Join(path, $"{material.Name}.properties");
+            return PathEx.Localize(filename);
         }
+
+        //public static string GetOutputMetaName(MaterialProperties material, bool global)
+        //{
+        //    var path = GetPath(material, global && material.CTM?.Type == null);
+        //    var name = global ? $"{material.Name}.mcmeta" : "mat.mcmeta";
+        //    var filename = PathEx.Join(path, name);
+        //    return PathEx.Localize(filename);
+        //}
 
         public static string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global)
         {
             var path = GetPath(material, global && material.CTM?.Type == null);
             var ext = GetExtension(pack);
-            var file = Get(tag, material.Name, $"{ext}.mcmeta", global);
-            return PathEx.Join(path, file);
+            var name = Get(tag, material.Name, $"{ext}.mcmeta", global);
+            var filename = PathEx.Join(path, name);
+            return PathEx.Localize(filename);
         }
 
         public static string GetPath(MaterialProperties material, bool global)

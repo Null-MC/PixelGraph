@@ -17,21 +17,21 @@ namespace PixelGraph.Common.IO
             root = absolutePath;
         }
 
-        public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern)
+        public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null)
         {
             var fullPath = GetFullPath(localPath);
 
-            foreach (var directory in Directory.EnumerateDirectories(fullPath, pattern, SearchOption.TopDirectoryOnly)) {
+            foreach (var directory in Directory.EnumerateDirectories(fullPath, pattern ?? "*", SearchOption.TopDirectoryOnly)) {
                 var directoryName = Path.GetFileName(directory);
                 yield return PathEx.Join(localPath, directoryName);
             }
         }
 
-        public override IEnumerable<string> EnumerateFiles(string localPath, string pattern)
+        public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = null)
         {
             var fullPath = GetFullPath(localPath);
 
-            foreach (var file in Directory.EnumerateFiles(fullPath, pattern, SearchOption.TopDirectoryOnly)) {
+            foreach (var file in Directory.EnumerateFiles(fullPath, pattern ?? "*.*", SearchOption.TopDirectoryOnly)) {
                 var fileName = Path.GetFileName(file);
                 yield return PathEx.Join(localPath, fileName);
             }

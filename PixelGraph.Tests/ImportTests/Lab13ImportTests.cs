@@ -50,7 +50,7 @@ namespace PixelGraph.Tests.ImportTests
             await using var material = graph.GetFile("assets/minecraft/textures/block/bricks/mat.yml");
             Assert.NotNull(material);
 
-            using var albedoImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/albedo.png");
+            using var albedoImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/color.png");
             PixelAssert.Equals(31, 156, 248, albedoImage);
 
             using var normalImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/normal.png");

@@ -7,13 +7,10 @@ namespace PixelGraph.UI.Models
 {
     internal class TextureFormatModel : ModelBase
     {
-        private readonly TextureChannelMapping _alpha;
-        private readonly TextureChannelMapping _diffuseRed;
-        private readonly TextureChannelMapping _diffuseGreen;
-        private readonly TextureChannelMapping _diffuseBlue;
-        private readonly TextureChannelMapping _albedoRed;
-        private readonly TextureChannelMapping _albedoGreen;
-        private readonly TextureChannelMapping _albedoBlue;
+        private readonly TextureChannelMapping _opacity;
+        private readonly TextureChannelMapping _colorRed;
+        private readonly TextureChannelMapping _colorGreen;
+        private readonly TextureChannelMapping _colorBlue;
         private readonly TextureChannelMapping _height;
         private readonly TextureChannelMapping _occlusion;
         private readonly TextureChannelMapping _normalX;
@@ -117,15 +114,11 @@ namespace PixelGraph.UI.Models
         public TextureFormatModel()
         {
             EncodingChannels = new []{
-                _alpha = new TextureChannelMapping("Alpha"),
+                _opacity = new TextureChannelMapping("Opacity"),
 
-                _diffuseRed = new TextureChannelMapping("Diffuse Red"),
-                _diffuseGreen = new TextureChannelMapping("Diffuse Green"),
-                _diffuseBlue = new TextureChannelMapping("Diffuse Blue"),
-
-                _albedoRed = new TextureChannelMapping("Albedo Red"),
-                _albedoGreen = new TextureChannelMapping("Albedo Green"),
-                _albedoBlue = new TextureChannelMapping("Albedo Blue"),
+                _colorRed = new TextureChannelMapping("Color Red"),
+                _colorGreen = new TextureChannelMapping("Color Green"),
+                _colorBlue = new TextureChannelMapping("Color Blue"),
 
                 _height = new TextureChannelMapping("Height"),
                 _occlusion = new TextureChannelMapping("Occlusion"),
@@ -149,15 +142,11 @@ namespace PixelGraph.UI.Models
                 _emissive = new TextureChannelMapping("Emissive"),
             };
 
-            _alpha.DataChanged += OnChannelDataChanged;
+            _opacity.DataChanged += OnChannelDataChanged;
             
-            _diffuseRed.DataChanged += OnChannelDataChanged;
-            _diffuseGreen.DataChanged += OnChannelDataChanged;
-            _diffuseBlue.DataChanged += OnChannelDataChanged;
-
-            _albedoRed.DataChanged += OnChannelDataChanged;
-            _albedoGreen.DataChanged += OnChannelDataChanged;
-            _albedoBlue.DataChanged += OnChannelDataChanged;
+            _colorRed.DataChanged += OnChannelDataChanged;
+            _colorGreen.DataChanged += OnChannelDataChanged;
+            _colorBlue.DataChanged += OnChannelDataChanged;
 
             _height.DataChanged += OnChannelDataChanged;
             _occlusion.DataChanged += OnChannelDataChanged;
@@ -213,15 +202,11 @@ namespace PixelGraph.UI.Models
 
         private void UpdateChannels()
         {
-            _alpha.SetChannel(Encoding.Alpha);
+            _opacity.SetChannel(Encoding.Opacity);
 
-            _diffuseRed.SetChannel(Encoding.DiffuseRed);
-            _diffuseGreen.SetChannel(Encoding.DiffuseGreen);
-            _diffuseBlue.SetChannel(Encoding.DiffuseBlue);
-
-            _albedoRed.SetChannel(Encoding.AlbedoRed);
-            _albedoGreen.SetChannel(Encoding.AlbedoGreen);
-            _albedoBlue.SetChannel(Encoding.AlbedoBlue);
+            _colorRed.SetChannel(Encoding.ColorRed);
+            _colorGreen.SetChannel(Encoding.ColorGreen);
+            _colorBlue.SetChannel(Encoding.ColorBlue);
 
             _height.SetChannel(Encoding.Height);
             _occlusion.SetChannel(Encoding.Occlusion);
@@ -250,15 +235,11 @@ namespace PixelGraph.UI.Models
             //var _defaultEncoding = Common.TextureFormats.TextureFormat.GetFactory(TextureFormat)?.Create();
             //var _defaultSampler = TextureSampler ?? Samplers.Nearest;
 
-            _alpha.ApplyDefaultValues(DefaultEncoding?.Alpha, DefaultSampler);
+            _opacity.ApplyDefaultValues(DefaultEncoding?.Opacity, DefaultSampler);
 
-            _diffuseRed.ApplyDefaultValues(DefaultEncoding?.DiffuseRed, DefaultSampler);
-            _diffuseGreen.ApplyDefaultValues(DefaultEncoding?.DiffuseGreen, DefaultSampler);
-            _diffuseBlue.ApplyDefaultValues(DefaultEncoding?.DiffuseBlue, DefaultSampler);
-
-            _albedoRed.ApplyDefaultValues(DefaultEncoding?.AlbedoRed, DefaultSampler);
-            _albedoGreen.ApplyDefaultValues(DefaultEncoding?.AlbedoGreen, DefaultSampler);
-            _albedoBlue.ApplyDefaultValues(DefaultEncoding?.AlbedoBlue, DefaultSampler);
+            _colorRed.ApplyDefaultValues(DefaultEncoding?.ColorRed, DefaultSampler);
+            _colorGreen.ApplyDefaultValues(DefaultEncoding?.ColorGreen, DefaultSampler);
+            _colorBlue.ApplyDefaultValues(DefaultEncoding?.ColorBlue, DefaultSampler);
 
             _height.ApplyDefaultValues(DefaultEncoding?.Height, DefaultSampler);
             _occlusion.ApplyDefaultValues(DefaultEncoding?.Occlusion, DefaultSampler);

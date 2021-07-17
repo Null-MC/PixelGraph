@@ -19,9 +19,8 @@ namespace PixelGraph.UI.Models
         public event EventHandler DataChanged;
 
         public GeneralPropertyCollection GeneralProperties {get;}
-        public AlphaPropertyCollection AlphaProperties {get;}
-        public AlbedoPropertyCollection AlbedoProperties {get;}
-        public DiffusePropertyCollection DiffuseProperties {get;}
+        public OpacityPropertyCollection OpacityProperties {get;}
+        public ColorPropertyCollection ColorProperties {get;}
         public HeightPropertyCollection Height {get;}
         public HeightEdgeFadingPropertyCollection HeightEdgeFading {get;}
         public NormalPropertyCollection Normal {get;}
@@ -39,9 +38,8 @@ namespace PixelGraph.UI.Models
 
         public bool HasMaterial => _material != null;
         //public bool IsGeneralSelected => _selectedTag == null;
-        public bool IsAlphaSelected => TextureTags.Is(_selectedTag, TextureTags.Alpha);
-        public bool IsAlbedoSelected => TextureTags.Is(_selectedTag, TextureTags.Albedo);
-        public bool IsDiffuseSelected => TextureTags.Is(_selectedTag, TextureTags.Diffuse);
+        public bool IsOpacitySelected => TextureTags.Is(_selectedTag, TextureTags.Opacity);
+        public bool IsColorSelected => TextureTags.Is(_selectedTag, TextureTags.Color);
         public bool IsHeightSelected => TextureTags.Is(_selectedTag, TextureTags.Height);
         public bool IsNormalSelected => TextureTags.Is(_selectedTag, TextureTags.Normal);
         public bool IsOcclusionSelected => TextureTags.Is(_selectedTag, TextureTags.Occlusion);
@@ -64,9 +62,8 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged(nameof(HasMaterial));
 
                 GeneralProperties.SetData(Material);
-                AlphaProperties.SetData(Material?.Alpha);
-                AlbedoProperties.SetData(Material?.Albedo);
-                DiffuseProperties.SetData(Material?.Diffuse);
+                OpacityProperties.SetData(Material?.Opacity);
+                ColorProperties.SetData(Material?.Color);
                 Height.SetData(Material?.Height);
                 HeightEdgeFading.SetData(Material?.Height);
                 Normal.SetData(Material?.Normal);
@@ -96,9 +93,8 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
 
                 //OnPropertyChanged(nameof(IsGeneralSelected));
-                OnPropertyChanged(nameof(IsAlphaSelected));
-                OnPropertyChanged(nameof(IsAlbedoSelected));
-                OnPropertyChanged(nameof(IsDiffuseSelected));
+                OnPropertyChanged(nameof(IsOpacitySelected));
+                OnPropertyChanged(nameof(IsColorSelected));
                 OnPropertyChanged(nameof(IsHeightSelected));
                 OnPropertyChanged(nameof(IsNormalSelected));
                 OnPropertyChanged(nameof(IsOcclusionSelected));
@@ -128,14 +124,11 @@ namespace PixelGraph.UI.Models
             GeneralProperties = new GeneralPropertyCollection();
             GeneralProperties.PropertyChanged += OnPropertyValueChanged;
 
-            AlphaProperties = new AlphaPropertyCollection();
-            AlphaProperties.PropertyChanged += OnPropertyValueChanged;
+            OpacityProperties = new OpacityPropertyCollection();
+            OpacityProperties.PropertyChanged += OnPropertyValueChanged;
 
-            AlbedoProperties = new AlbedoPropertyCollection();
-            AlbedoProperties.PropertyChanged += OnPropertyValueChanged;
-
-            DiffuseProperties = new DiffusePropertyCollection();
-            DiffuseProperties.PropertyChanged += OnPropertyValueChanged;
+            ColorProperties = new ColorPropertyCollection();
+            ColorProperties.PropertyChanged += OnPropertyValueChanged;
 
             Height = new HeightPropertyCollection();
             Height.PropertyChanged += OnPropertyValueChanged;
@@ -244,41 +237,27 @@ namespace PixelGraph.UI.Models
         }
     }
 
-    public class AlphaPropertyCollection : PropertyCollectionBase<MaterialAlphaProperties>
+    public class OpacityPropertyCollection : PropertyCollectionBase<MaterialOpacityProperties>
     {
-        public AlphaPropertyCollection()
+        public OpacityPropertyCollection()
         {
-            AddText<string>("Texture", nameof(MaterialAlphaProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialAlphaProperties.Value), 255m);
-            AddText<decimal?>("Scale", nameof(MaterialAlphaProperties.Scale), 1m);
+            AddText<string>("Texture", nameof(MaterialOpacityProperties.Texture));
+            AddText<decimal?>("Value", nameof(MaterialOpacityProperties.Value), 255m);
+            AddText<decimal?>("Scale", nameof(MaterialOpacityProperties.Scale), 1m);
         }
     }
 
-    public class AlbedoPropertyCollection : PropertyCollectionBase<MaterialAlbedoProperties>
+    public class ColorPropertyCollection : PropertyCollectionBase<MaterialColorProperties>
     {
-        public AlbedoPropertyCollection()
+        public ColorPropertyCollection()
         {
-            AddText<string>("Texture", nameof(MaterialAlbedoProperties.Texture));
-            AddText<decimal?>("Red Value", nameof(MaterialAlbedoProperties.ValueRed), 0);
-            AddText<decimal?>("Green Value", nameof(MaterialAlbedoProperties.ValueGreen), 0);
-            AddText<decimal?>("Blue Value", nameof(MaterialAlbedoProperties.ValueBlue), 0);
-            AddText<decimal?>("Red Scale", nameof(MaterialAlbedoProperties.ScaleRed), 1.0m);
-            AddText<decimal?>("Green Scale", nameof(MaterialAlbedoProperties.ScaleGreen), 1.0m);
-            AddText<decimal?>("Blue Scale", nameof(MaterialAlbedoProperties.ScaleBlue), 1.0m);
-        }
-    }
-
-    public class DiffusePropertyCollection : PropertyCollectionBase<MaterialDiffuseProperties>
-    {
-        public DiffusePropertyCollection()
-        {
-            AddText<string>("Texture", nameof(MaterialDiffuseProperties.Texture));
-            AddText<decimal?>("Red Value", nameof(MaterialDiffuseProperties.ValueRed), 0);
-            AddText<decimal?>("Green Value", nameof(MaterialDiffuseProperties.ValueGreen), 0);
-            AddText<decimal?>("Blue Value", nameof(MaterialDiffuseProperties.ValueBlue), 0);
-            AddText<decimal?>("Red Scale", nameof(MaterialDiffuseProperties.ScaleRed), 1.0m);
-            AddText<decimal?>("Green Scale", nameof(MaterialDiffuseProperties.ScaleGreen), 1.0m);
-            AddText<decimal?>("Blue Scale", nameof(MaterialDiffuseProperties.ScaleBlue), 1.0m);
+            AddText<string>("Texture", nameof(MaterialColorProperties.Texture));
+            AddText<decimal?>("Red Value", nameof(MaterialColorProperties.ValueRed), 0);
+            AddText<decimal?>("Green Value", nameof(MaterialColorProperties.ValueGreen), 0);
+            AddText<decimal?>("Blue Value", nameof(MaterialColorProperties.ValueBlue), 0);
+            AddText<decimal?>("Red Scale", nameof(MaterialColorProperties.ScaleRed), 1.0m);
+            AddText<decimal?>("Green Scale", nameof(MaterialColorProperties.ScaleGreen), 1.0m);
+            AddText<decimal?>("Blue Scale", nameof(MaterialColorProperties.ScaleBlue), 1.0m);
         }
     }
 

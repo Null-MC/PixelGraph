@@ -6,13 +6,10 @@ namespace PixelGraph.Common.TextureFormats
     public class EncodingChannel
     {
         public const string None = "none";
-        public const string Alpha = "alpha";
-        public const string DiffuseRed = "diffuse-red";
-        public const string DiffuseGreen = "diffuse-green";
-        public const string DiffuseBlue = "diffuse-blue";
-        public const string AlbedoRed = "albedo-red";
-        public const string AlbedoGreen = "albedo-green";
-        public const string AlbedoBlue = "albedo-blue";
+        public const string Opacity = "opacity";
+        public const string ColorRed = "color-red";
+        public const string ColorGreen = "color-green";
+        public const string ColorBlue = "color-blue";
         public const string Height = "height";
         public const string Bump = "bump";
         public const string Occlusion = "occlusion";
@@ -45,7 +42,7 @@ namespace PixelGraph.Common.TextureFormats
         }
 
         private static readonly Dictionary<string, byte?> defaultValueMap = new(StringComparer.OrdinalIgnoreCase) {
-            [Alpha] = 255,
+            [Opacity] = 255,
             [Rough] = 255,
         };
     }

@@ -27,6 +27,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using PixelGraph.UI.Controls;
 
 namespace PixelGraph.UI.Windows
 {
@@ -848,5 +849,16 @@ namespace PixelGraph.UI.Windows
         }
 
         #endregion
+
+        private void OnCloseDocumentTab(object sender, CloseTabEventArgs e)
+        {
+            //Model.TabList.Remove(e.Tab);
+            viewModel.CloseTab(e.TabId);
+        }
+
+        private void OnCloseAllDocumentTabs(object sender, EventArgs e)
+        {
+            viewModel.CloseAllTabs();
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
     {
         public DiffuseMaterialBuilder(IServiceProvider provider) : base(provider)
         {
-            TextureMap[TextureTags.Diffuse] = null;
+            TextureMap[TextureTags.Color] = null;
             TextureMap[TextureTags.Emissive] = null;
         }
 
@@ -29,7 +29,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
                 if (tint.HasValue) mat.ColorTint = tint.Value.ToColor4();
             }
 
-            if (TextureMap.TryGetValue(TextureTags.Diffuse, out var diffuseStream) && diffuseStream != null)
+            if (TextureMap.TryGetValue(TextureTags.Color, out var diffuseStream) && diffuseStream != null)
                 mat.DiffuseAlphaMap = TextureModel.Create(diffuseStream);
 
             if (TextureMap.TryGetValue(TextureTags.Emissive, out var emissiveStream) && emissiveStream != null)

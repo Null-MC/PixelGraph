@@ -2,19 +2,19 @@
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialAlbedoProperties
+    public class MaterialColorProperties
     {
         public string Texture {get; set;}
 
-        public ResourcePackAlbedoRedChannelProperties InputRed {get; set;}
+        public ResourcePackColorRedChannelProperties InputRed {get; set;}
         public decimal? ValueRed {get; set;}
         public decimal? ScaleRed {get; set;}
 
-        public ResourcePackAlbedoGreenChannelProperties InputGreen {get; set;}
+        public ResourcePackColorGreenChannelProperties InputGreen {get; set;}
         public decimal? ValueGreen {get; set;}
         public decimal? ScaleGreen {get; set;}
 
-        public ResourcePackAlbedoBlueChannelProperties InputBlue {get; set;}
+        public ResourcePackColorBlueChannelProperties InputBlue {get; set;}
         public decimal? ValueBlue {get; set;}
         public decimal? ScaleBlue {get; set;}
 

@@ -178,24 +178,24 @@ namespace PixelGraph.Common.Textures
             subContext.Profile = context.Profile;
             subContext.Material = context.Material;
 
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoRed, out var redInputChannel))
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorRed, out var redInputChannel))
                 subContext.InputEncoding.Add(redInputChannel);
 
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoGreen, out var greenInputChannel))
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorGreen, out var greenInputChannel))
                 subContext.InputEncoding.Add(greenInputChannel);
 
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoBlue, out var blueInputChannel))
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorBlue, out var blueInputChannel))
                 subContext.InputEncoding.Add(blueInputChannel);
 
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.Alpha, out var alphaInputChannel))
-                subContext.InputEncoding.Add(alphaInputChannel);
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.Opacity, out var opacityInputChannel))
+                subContext.InputEncoding.Add(opacityInputChannel);
 
             builder.InputChannels = subContext.InputEncoding.ToArray();
             builder.OutputChannels = new ResourcePackChannelProperties[] {
-                new ResourcePackAlbedoRedChannelProperties(TextureTags.Albedo, ColorChannel.Red) {MaxValue = 255m},
-                new ResourcePackAlbedoGreenChannelProperties(TextureTags.Albedo, ColorChannel.Green) {MaxValue = 255m},
-                new ResourcePackAlbedoBlueChannelProperties(TextureTags.Albedo, ColorChannel.Blue) {MaxValue = 255m},
-                new ResourcePackAlphaChannelProperties(TextureTags.Albedo, ColorChannel.Alpha) {MaxValue = 255m},
+                new ResourcePackColorRedChannelProperties(TextureTags.Color, ColorChannel.Red) {MaxValue = 255m},
+                new ResourcePackColorGreenChannelProperties(TextureTags.Color, ColorChannel.Green) {MaxValue = 255m},
+                new ResourcePackColorBlueChannelProperties(TextureTags.Color, ColorChannel.Blue) {MaxValue = 255m},
+                new ResourcePackOpacityChannelProperties(TextureTags.Color, ColorChannel.Alpha) {MaxValue = 255m},
             };
 
             builder.TargetFrame = TargetFrame;

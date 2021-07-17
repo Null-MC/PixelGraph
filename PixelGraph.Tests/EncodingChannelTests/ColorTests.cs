@@ -8,27 +8,27 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.EncodingChannelTests
 {
-    public class AlbedoTests : ImageTestBase
+    public class ColorTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public AlbedoTests(ITestOutputHelper output) : base(output)
+        public ColorTests(ITestOutputHelper output) : base(output)
         {
             packInput = new ResourcePackInputProperties {
-                AlbedoRed = {
-                    Texture = TextureTags.Albedo,
+                ColorRed = {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Red,
                     MaxValue = 255m,
                 },
-                AlbedoGreen = {
-                    Texture = TextureTags.Albedo,
+                ColorGreen = {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Green,
                     MaxValue = 255m,
                 },
-                AlbedoBlue = {
-                    Texture = TextureTags.Albedo,
+                ColorBlue = {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Blue,
                     MaxValue = 255m,
                 },
@@ -36,18 +36,18 @@ namespace PixelGraph.Tests.EncodingChannelTests
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    AlbedoRed = {
-                        Texture = TextureTags.Albedo,
+                    ColorRed = {
+                        Texture = TextureTags.Color,
                         Color = ColorChannel.Red,
                         MaxValue = 255m,
                     },
-                    AlbedoGreen = {
-                        Texture = TextureTags.Albedo,
+                    ColorGreen = {
+                        Texture = TextureTags.Color,
                         Color = ColorChannel.Green,
                         MaxValue = 255m,
                     },
-                    AlbedoBlue = {
-                        Texture = TextureTags.Albedo,
+                    ColorBlue = {
+                        Texture = TextureTags.Color,
                         Color = ColorChannel.Blue,
                         MaxValue = 255m,
                     },
@@ -70,7 +70,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/albedo.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/color.png", value, 0, 0);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");
@@ -92,7 +92,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/albedo.png", 0, value, 0);
+            await graph.CreateImageAsync("assets/test/color.png", 0, value, 0);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");
@@ -141,12 +141,12 @@ namespace PixelGraph.Tests.EncodingChannelTests
             graph.Material = new MaterialProperties {
                 Name = "test",
                 LocalPath = "assets",
-                Albedo = new MaterialAlbedoProperties {
+                Color = new MaterialColorProperties {
                     ScaleRed = scale,
                 },
             };
 
-            await graph.CreateImageAsync("assets/test/albedo.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/color.png", value, 0, 0);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");
@@ -159,18 +159,18 @@ namespace PixelGraph.Tests.EncodingChannelTests
             await using var graph = Graph();
 
             graph.PackInput = new ResourcePackInputProperties {
-                AlbedoRed = {
-                    Texture = TextureTags.Albedo,
+                ColorRed = {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Green,
                     MaxValue = 255m,
                 },
-                AlbedoGreen = {
-                    Texture = TextureTags.Albedo,
+                ColorGreen = {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Blue,
                     MaxValue = 255m,
                 },
-                AlbedoBlue = {
-                    Texture = TextureTags.Albedo,
+                ColorBlue = {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Red,
                     MaxValue = 255m,
                 },
@@ -181,7 +181,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/albedo.png", 60, 120, 180);
+            await graph.CreateImageAsync("assets/test/color.png", 60, 120, 180);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test.png");

@@ -10,9 +10,9 @@ namespace PixelGraph.Common.TextureFormats.Java
 
         public ResourcePackEncoding Create()
         {
-            return new ResourcePackEncoding {
-                Alpha = new ResourcePackAlphaChannelProperties {
-                    Texture = TextureTags.Diffuse,
+            return new() {
+                Opacity = new ResourcePackOpacityChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Alpha,
                     MinValue = 0,
                     MaxValue = 255,
@@ -23,8 +23,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                 },
 
-                DiffuseRed = new ResourcePackDiffuseRedChannelProperties {
-                    Texture = TextureTags.Diffuse,
+                ColorRed = new ResourcePackColorRedChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Red,
                     MinValue = 0,
                     MaxValue = 255,
@@ -35,8 +35,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                 },
 
-                DiffuseGreen = new ResourcePackDiffuseGreenChannelProperties {
-                    Texture = TextureTags.Diffuse,
+                ColorGreen = new ResourcePackColorGreenChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Green,
                     MinValue = 0,
                     MaxValue = 255,
@@ -47,8 +47,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                 },
 
-                DiffuseBlue = new ResourcePackDiffuseBlueChannelProperties {
-                    Texture = TextureTags.Diffuse,
+                ColorBlue = new ResourcePackColorBlueChannelProperties {
+                    Texture = TextureTags.Color,
                     Color = ColorChannel.Blue,
                     MinValue = 0,
                     MaxValue = 255,

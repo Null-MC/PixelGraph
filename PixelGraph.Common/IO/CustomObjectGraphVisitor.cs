@@ -24,9 +24,8 @@ namespace PixelGraph.Common.IO
 
         public override bool EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, IEmitter context)
         {
-            if (value.Value is MaterialAlphaProperties matAlpha) return matAlpha.HasAnyData();
-            if (value.Value is MaterialAlbedoProperties matAlbedo) return matAlbedo.HasAnyData();
-            if (value.Value is MaterialDiffuseProperties matDiffuse) return matDiffuse.HasAnyData();
+            if (value.Value is MaterialOpacityProperties matOpacity) return matOpacity.HasAnyData();
+            if (value.Value is MaterialColorProperties matColor) return matColor.HasAnyData();
             if (value.Value is MaterialHeightProperties matHeight) return matHeight.HasAnyData();
             if (value.Value is MaterialBumpProperties matBump) return matBump.HasAnyData();
             if (value.Value is MaterialNormalProperties matNormal) return matNormal.HasAnyData();

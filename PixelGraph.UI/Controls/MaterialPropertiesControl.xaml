@@ -43,14 +43,11 @@
                     <DataGrid.Style>
                         <Style TargetType="DataGrid" BasedOn="{StaticResource MahApps.Styles.DataGrid}">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsAlphaSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding AlphaProperties, Mode=OneWay}"/>
+                                <DataTrigger Binding="{Binding IsOpacitySelected, Mode=OneWay}" Value="True">
+                                    <Setter Property="ItemsSource" Value="{Binding OpacityProperties, Mode=OneWay}"/>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding IsAlbedoSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding AlbedoProperties}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsDiffuseSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding DiffuseProperties}"/>
+                                <DataTrigger Binding="{Binding IsColorSelected, Mode=OneWay}" Value="True">
+                                    <Setter Property="ItemsSource" Value="{Binding ColorProperties}"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding IsHeightSelected, Mode=OneWay}" Value="True">
                                     <Setter Property="ItemsSource" Value="{Binding Height}"/>

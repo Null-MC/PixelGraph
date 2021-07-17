@@ -84,8 +84,10 @@ namespace PixelGraph.Common.Textures
 
                     if (mapping.SourceFilename != null) {
                         var info = await sourceGraph.GetOrCreateAsync(mapping.SourceFilename, token);
+
                         if (info != null) {
                             HasMappedSources = true;
+
                             if (info.FrameCount > FrameCount)
                                 FrameCount = info.FrameCount;
                         }
@@ -235,42 +237,6 @@ namespace PixelGraph.Common.Textures
                     mapping.InputShift = 0;
                     mapping.InputPower = 1;
                     mapping.InputInverted = true;
-                    return true;
-                }
-            }
-
-            if (createEmpty) {
-                var isOutputDiffuseRed = EncodingChannel.Is(outputChannel.ID, EncodingChannel.DiffuseRed);
-                var isOutputDiffuseGreen = EncodingChannel.Is(outputChannel.ID, EncodingChannel.DiffuseGreen);
-                var isOutputDiffuseBlue = EncodingChannel.Is(outputChannel.ID, EncodingChannel.DiffuseBlue);
-
-                // Albedo Red > Diffuse Red
-                if (isOutputDiffuseRed && context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoRed, out var albedoRedChannel)) {
-                    TryGetSourceFilename(albedoRedChannel.Texture, out mapping.SourceFilename);
-                    if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoRed, out value)) mapping.InputValue = (float)value;
-
-                    mapping.ApplyInputChannel(albedoRedChannel);
-                    mapping.OutputApplyOcclusion = true;
-                    return true;
-                }
-
-                // Albedo Green > Diffuse Green
-                if (isOutputDiffuseGreen && context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoGreen, out var albedoGreenChannel)) {
-                    TryGetSourceFilename(albedoGreenChannel.Texture, out mapping.SourceFilename);
-                    if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoGreen, out value)) mapping.InputValue = (float)value;
-
-                    mapping.ApplyInputChannel(albedoGreenChannel);
-                    mapping.OutputApplyOcclusion = true;
-                    return true;
-                }
-
-                // Albedo Blue > Diffuse Blue
-                if (isOutputDiffuseBlue && context.InputEncoding.TryGetChannel(EncodingChannel.AlbedoBlue, out var albedoBlueChannel)) {
-                    TryGetSourceFilename(albedoBlueChannel.Texture, out mapping.SourceFilename);
-                    if (context.Material.TryGetChannelValue(EncodingChannel.AlbedoBlue, out value)) mapping.InputValue = (float)value;
-
-                    mapping.ApplyInputChannel(albedoBlueChannel);
-                    mapping.OutputApplyOcclusion = true;
                     return true;
                 }
             }

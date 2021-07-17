@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.ConnectedTextures;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using System;
@@ -9,7 +10,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using MinecraftMappings.Minecraft;
 
 namespace PixelGraph.Common.IO.Importing
 {
@@ -26,7 +26,10 @@ namespace PixelGraph.Common.IO.Importing
 
     public class ResourcePackImporter : IResourcePackImporter
     {
+        private static readonly Regex blockPathExp = new("^assets/minecraft/textures/block/?$", RegexOptions.IgnoreCase);
+        private static readonly Regex entityPathExp = new("^assets/minecraft/textures/entity/?$", RegexOptions.IgnoreCase);
         private static readonly Regex ctmExp = new("^assets/minecraft/optifine/ctm/?$", RegexOptions.IgnoreCase);
+
         private static readonly PropertyFileSerializer<CtmProperties> ctmPropertySerializer;
 
         private readonly IInputReader reader;
@@ -59,13 +62,13 @@ namespace PixelGraph.Common.IO.Importing
 
         private async Task ImportPathAsync(string localPath, CancellationToken token)
         {
-            foreach (var childPath in reader.EnumerateDirectories(localPath, "*")) {
+            foreach (var childPath in reader.EnumerateDirectories(localPath)) {
                 if (!IncludeUnknown && IsUnknownPath(childPath)) continue;
 
                 await ImportPathAsync(childPath, token);
             }
 
-            var fileList = reader.EnumerateFiles(localPath, "*.*");
+            var fileList = reader.EnumerateFiles(localPath);
             if (!IncludeUnknown) fileList = fileList.Where(f => !IsUnknownFile(f));
 
             var files = fileList.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
@@ -218,12 +221,30 @@ namespace PixelGraph.Common.IO.Importing
                     continue;
                 }
 
-                // TODO: if name is known block
+                var path = Path.GetDirectoryName(file);
+                path = PathEx.Normalize(path);
+                if (path == null) continue;
 
-                var javaBlock = Minecraft.Java.FindBlockById(name).FirstOrDefault();
-                var javaEntity = Minecraft.Java.FindEntityById(name).FirstOrDefault();
+                if (blockPathExp.IsMatch(path)) {
+                    //var javaBlock = Minecraft.Java.FindBlockById(name).FirstOrDefault();
 
-                if (javaBlock != null || javaEntity != null) {
+                    //if (javaBlock != null || javaEntity != null) {
+                    //    yield return name;
+                    //    continue;
+                    //}
+
+                    yield return name;
+                    continue;
+                }
+
+                if (entityPathExp.IsMatch(path)) {
+                    //var javaEntity = Minecraft.Java.FindEntityById(name).FirstOrDefault();
+
+                    //if (javaEntity != null) {
+                    //    yield return name;
+                    //    //continue;
+                    //}
+
                     yield return name;
                     //continue;
                 }

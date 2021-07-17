@@ -11,7 +11,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
     {
         public PbrMaterialBuilder(IServiceProvider provider) : base(provider)
         {
-            TextureMap[TextureTags.Albedo] = null;
+            TextureMap[TextureTags.Color] = null;
             TextureMap[TextureTags.Normal] = null;
             TextureMap[TextureTags.Rough] = null;
             TextureMap[TextureTags.Porosity] = null;
@@ -37,7 +37,7 @@ namespace PixelGraph.UI.Internal.Preview.Materials
             //var loader = new CustomTextureLoader();
             //...
 
-            if (TextureMap.TryGetValue(TextureTags.Albedo, out var albedoStream) && albedoStream != null) {
+            if (TextureMap.TryGetValue(TextureTags.Color, out var albedoStream) && albedoStream != null) {
                 //var albedoContentId = Guid.NewGuid();
                 mat.AlbedoAlphaMap = TextureModel.Create(albedoStream);
             }

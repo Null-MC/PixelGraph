@@ -16,45 +16,31 @@ namespace PixelGraph.UI.Internal.Preview.Textures
 
         private static readonly Dictionary<string, Func<ResourcePackProfileProperties, ResourcePackChannelProperties[]>> tagMap =
             new(StringComparer.InvariantCultureIgnoreCase) {
-                [TextureTags.Alpha] = profile => new ResourcePackChannelProperties[] {
-                    new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Red) {
-                        Sampler = profile?.Encoding?.Alpha?.Sampler,
+                [TextureTags.Opacity] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackOpacityChannelProperties(TextureTags.Opacity, ColorChannel.Red) {
+                        Sampler = profile?.Encoding?.Opacity?.Sampler,
                         MaxValue = 255,
                     },
-                    new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Green) {
-                        Sampler = profile?.Encoding?.Alpha?.Sampler,
+                    new ResourcePackOpacityChannelProperties(TextureTags.Opacity, ColorChannel.Green) {
+                        Sampler = profile?.Encoding?.Opacity?.Sampler,
                         MaxValue = 255,
                     },
-                    new ResourcePackAlphaChannelProperties(TextureTags.Alpha, ColorChannel.Blue) {
-                        Sampler = profile?.Encoding?.Alpha?.Sampler,
-                        MaxValue = 255,
-                    },
-                },
-                [TextureTags.Diffuse] = profile => new ResourcePackChannelProperties[] {
-                    new ResourcePackDiffuseRedChannelProperties(TextureTags.Diffuse, ColorChannel.Red) {
-                        Sampler = profile?.Encoding?.DiffuseRed?.Sampler,
-                        MaxValue = 255,
-                    },
-                    new ResourcePackDiffuseGreenChannelProperties(TextureTags.Diffuse, ColorChannel.Green) {
-                        Sampler = profile?.Encoding?.DiffuseGreen?.Sampler,
-                        MaxValue = 255,
-                    },
-                    new ResourcePackDiffuseBlueChannelProperties(TextureTags.Diffuse, ColorChannel.Blue) {
-                        Sampler = profile?.Encoding?.DiffuseBlue?.Sampler,
+                    new ResourcePackOpacityChannelProperties(TextureTags.Opacity, ColorChannel.Blue) {
+                        Sampler = profile?.Encoding?.Opacity?.Sampler,
                         MaxValue = 255,
                     },
                 },
-                [TextureTags.Albedo] = profile => new ResourcePackChannelProperties[] {
-                    new ResourcePackAlbedoRedChannelProperties(TextureTags.Albedo, ColorChannel.Red) {
-                        Sampler = profile?.Encoding?.AlbedoRed?.Sampler,
+                [TextureTags.Color] = profile => new ResourcePackChannelProperties[] {
+                    new ResourcePackColorRedChannelProperties(TextureTags.Color, ColorChannel.Red) {
+                        Sampler = profile?.Encoding?.ColorRed?.Sampler,
                         MaxValue = 255,
                     },
-                    new ResourcePackAlbedoGreenChannelProperties(TextureTags.Albedo, ColorChannel.Green) {
-                        Sampler = profile?.Encoding?.AlbedoGreen?.Sampler,
+                    new ResourcePackColorGreenChannelProperties(TextureTags.Color, ColorChannel.Green) {
+                        Sampler = profile?.Encoding?.ColorGreen?.Sampler,
                         MaxValue = 255,
                     },
-                    new ResourcePackAlbedoBlueChannelProperties(TextureTags.Albedo, ColorChannel.Blue) {
-                        Sampler = profile?.Encoding?.AlbedoBlue?.Sampler,
+                    new ResourcePackColorBlueChannelProperties(TextureTags.Color, ColorChannel.Blue) {
+                        Sampler = profile?.Encoding?.ColorBlue?.Sampler,
                         MaxValue = 255,
                     },
                 },
