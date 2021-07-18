@@ -95,14 +95,14 @@
                         <TreeView.Resources>
                             <DataTemplate DataType="{x:Type vm:ImportTreeFile}">
                                 <StackPanel Orientation="Horizontal">
-                                    <CheckBox IsChecked="{Binding Included}"/>
+                                    <CheckBox Visibility="Collapsed" IsChecked="{Binding Included}"/>
                                     <iconPacks:FontAwesome Kind="FileSolid"/>
                                     <TextBlock Margin="4,0,0,0" Text="{Binding Name, Mode=OneWay}"/>
                                 </StackPanel>
                             </DataTemplate>
                             <HierarchicalDataTemplate DataType="{x:Type vm:ImportTreeDirectory}" ItemsSource="{Binding Nodes}">
                                 <StackPanel Orientation="Horizontal">
-                                    <CheckBox IsChecked="{Binding Included}"/>
+                                    <CheckBox Visibility="Collapsed" IsChecked="{Binding Included}"/>
                                     <iconPacks:FontAwesome Kind="FolderSolid"/>
                                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}"/>
                                 </StackPanel>
