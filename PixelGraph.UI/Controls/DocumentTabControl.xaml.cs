@@ -1,5 +1,4 @@
 ﻿using PixelGraph.UI.Models;
-using PixelGraph.UI.Models.Tabs;
 using System;
 using System.Windows;
 using System.Windows.Input;
@@ -27,8 +26,8 @@ namespace PixelGraph.UI.Controls
 
         private void OnContextMenuCloseTabClick(object sender, RoutedEventArgs e)
         {
-            var tab = (ITabModel)Root.SelectedValue;
-            if (tab != null) OnCloseTab(tab.Id);
+            if (DataContext is MainWindowModel {HasSelectedTab: true} model)
+                OnCloseTab(model.SelectedTab.Id);
         }
 
         private void OnContextMenuCloseAllClick(object sender, RoutedEventArgs e)

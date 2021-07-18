@@ -387,7 +387,10 @@ namespace PixelGraph.Common.Textures
                     var scaledWidth = (int)MathF.Ceiling(info.Width * scale);
                     var scaledHeight = (int)MathF.Ceiling(info.Height * scale * info.FrameCount);
 
-                    var samplerName = context.Profile?.Encoding?.Height?.Sampler ?? context.DefaultSampler;
+                    var samplerName = context?.Material?.Height?.Input?.Sampler
+                                      ?? context.Profile?.Encoding?.Height?.Sampler
+                                      ?? context.DefaultSampler;
+
                     var sampler = context.CreateSampler(heightTexture, samplerName);
                     sampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
                     sampler.RangeX = sampler.RangeY = 1f / scale;

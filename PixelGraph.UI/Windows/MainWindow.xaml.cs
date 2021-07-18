@@ -8,6 +8,7 @@ using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
+using PixelGraph.UI.Controls;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
@@ -27,7 +28,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using PixelGraph.UI.Controls;
 
 namespace PixelGraph.UI.Windows
 {
@@ -843,13 +843,6 @@ namespace PixelGraph.UI.Windows
             });
         }
 
-        private void OnExitClick(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-        }
-
-        #endregion
-
         private void OnCloseDocumentTab(object sender, CloseTabEventArgs e)
         {
             //Model.TabList.Remove(e.Tab);
@@ -860,5 +853,12 @@ namespace PixelGraph.UI.Windows
         {
             viewModel.CloseAllTabs();
         }
+
+        private void OnExitClick(object sender, RoutedEventArgs e)
+        {
+            DialogResult = true;
+        }
+
+        #endregion
     }
 }

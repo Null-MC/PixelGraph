@@ -37,7 +37,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
         public MaterialProperties Material {get; set;}
         public ResourcePackProfileProperties Profile {get; set;}
 
-        protected IDictionary<string, Func<ResourcePackProfileProperties, ResourcePackChannelProperties[]>> TagMap {get; set;}
+        protected IDictionary<string, Func<ResourcePackProfileProperties, MaterialProperties, ResourcePackChannelProperties[]>> TagMap {get; set;}
         public CancellationToken Token => tokenSource.Token;
 
 
@@ -114,7 +114,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
         private bool TryGetChannels(string textureTag, out ResourcePackChannelProperties[] channels)
         {
             if (TagMap.TryGetValue(textureTag, out var channelFunc)) {
-                channels = channelFunc(Profile);
+                channels = channelFunc(Profile, Material);
                 return true;
             }
 

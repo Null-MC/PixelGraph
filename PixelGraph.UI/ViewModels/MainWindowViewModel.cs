@@ -411,11 +411,16 @@ namespace PixelGraph.UI.ViewModels
 
         public void CloseTab(Guid tabId)
         {
-            for (var i = Model.TabList.Count - 1; i >= 0; i--) {
-                if (Model.TabList[i].Id != tabId) continue;
+            if (Model.PreviewTab?.Id == tabId) {
+                Model.PreviewTab = null;
+            }
+            else {
+                for (var i = Model.TabList.Count - 1; i >= 0; i--) {
+                    if (Model.TabList[i].Id != tabId) continue;
 
-                Model.TabList.RemoveAt(i);
-                break;
+                    Model.TabList.RemoveAt(i);
+                    break;
+                }
             }
 
             tabPreviewMgr.Remove(tabId);
