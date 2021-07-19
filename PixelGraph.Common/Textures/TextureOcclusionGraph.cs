@@ -152,7 +152,7 @@ namespace PixelGraph.Common.Textures
 
             var heightMapping = new TextureChannelMapping();
             heightMapping.ApplyInputChannel(heightChannel);
-            heightMapping.OutputScale = (float)context.Material.GetChannelScale(EncodingChannel.Height);
+            heightMapping.OutputValueScale = (float)context.Material.GetChannelScale(EncodingChannel.Height);
 
             OcclusionProcessor<Rgba32>.Options options = null;
             OcclusionProcessor<Rgba32> processor = null;

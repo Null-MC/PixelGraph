@@ -1,5 +1,5 @@
-﻿using PixelGraph.UI.Internal;
-using PixelGraph.UI.ViewData;
+﻿using PixelGraph.Common.ResourcePack;
+using PixelGraph.UI.Internal;
 
 namespace PixelGraph.UI.Models
 {
@@ -8,11 +8,14 @@ namespace PixelGraph.UI.Models
         private volatile bool _isActive;
         private bool _closeOnComplete;
 
-        public ProfileItem Profile {get; set;}
+        //public ProfileItem Profile {get; set;}
         public string RootDirectory {get; set;}
         public string Destination {get; set;}
         public bool Archive {get; set;}
         public bool Clean {get; set;}
+
+        public ResourcePackInputProperties Input {get; set;}
+        public ResourcePackProfileProperties Profile {get; set;}
 
         public bool IsActive {
             get => _isActive;

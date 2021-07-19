@@ -1,4 +1,5 @@
-﻿using HelixToolkit.Wpf.SharpDX;
+﻿using HelixToolkit.SharpDX.Core;
+using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
@@ -13,7 +14,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using HelixToolkit.SharpDX.Core;
 
 namespace PixelGraph.UI.Internal.Preview.Materials
 {

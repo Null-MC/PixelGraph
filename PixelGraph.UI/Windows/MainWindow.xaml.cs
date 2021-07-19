@@ -479,13 +479,14 @@ namespace PixelGraph.UI.Windows
 
         private void OnPublishMenuItemClick(object sender, RoutedEventArgs e)
         {
-            if (!Model.Profile.HasSelection) return;
+            if (!Model.Profile.HasLoaded) return;
 
             using var window = new PublishOutputWindow(provider) {
                 Owner = this,
                 Model = {
                     RootDirectory = Model.RootDirectory,
-                    Profile = Model.Profile.Selected,
+                    Input = Model.PackInput,
+                    Profile = Model.Profile.Loaded,
 
                     // TODO: Attach this to something on the UI
                     Clean = false,
@@ -493,7 +494,7 @@ namespace PixelGraph.UI.Windows
             };
 
             if (Model.SelectedLocation != null && !Model.SelectedLocation.IsManualSelect) {
-                var name = Model.Profile.Selected.Name ?? Path.GetFileNameWithoutExtension(Model.Profile.Selected.LocalFile);
+                var name = Model.Profile.Loaded.Name ?? Path.GetFileNameWithoutExtension(Model.Profile.Selected.LocalFile);
                 if (name == null) throw new ApplicationException("Unable to determine profile name!");
 
                 window.Model.Destination = Path.Combine(Model.SelectedLocation.Path, name);

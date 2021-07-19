@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using PixelGraph.Common;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
-using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
@@ -89,7 +88,7 @@ namespace PixelGraph.UI.ViewModels
             await using var scope = builder.Build();
             var reader = scope.GetRequiredService<IInputReader>();
             var writer = scope.GetRequiredService<IOutputWriter>();
-            var packReader = scope.GetRequiredService<IResourcePackReader>();
+            //var packReader = scope.GetRequiredService<IResourcePackReader>();
 
             reader.SetRoot(Model.RootDirectory);
             writer.SetRoot(Model.Destination);
@@ -98,8 +97,8 @@ namespace PixelGraph.UI.ViewModels
             writer.Prepare();
 
             var context = new ResourcePackContext {
-                Input = await packReader.ReadInputAsync("input.yml"),
-                Profile = await packReader.ReadProfileAsync(Model.Profile.LocalFile),
+                Input = Model.Input, // await packReader.ReadInputAsync("input.yml"),
+                Profile = Model.Profile, // await packReader.ReadProfileAsync(Model.Profile.LocalFile),
                 //UseGlobalOutput = true,
             };
 

@@ -16,7 +16,7 @@ namespace PixelGraph.Tests
                 InputRangeMax = 255,
                 InputMinValue = 0f,
                 InputMaxValue = 1f,
-                InputPower = 1f,
+                InputChannelPower = 1f,
             };
 
             var pixelMap = new PixelMapping(mapping);
@@ -36,7 +36,7 @@ namespace PixelGraph.Tests
                 InputRangeMax = 255,
                 InputMinValue = 0f,
                 InputMaxValue = 1f,
-                InputPower = 0.5f,
+                InputChannelPower = 0.5f,
             };
 
             var pixelMap = new PixelMapping(mapping);

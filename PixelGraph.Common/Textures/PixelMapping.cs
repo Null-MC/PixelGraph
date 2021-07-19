@@ -3,13 +3,14 @@ using System;
 
 namespace PixelGraph.Common.Textures
 {
-    internal class PixelMapping
+    internal struct PixelMapping
     {
-        private readonly bool hasInputShift;
+        private readonly bool hasInputChannelShift;
         private readonly int pixelInputRange;
         private readonly float valueInputRange;
-        private readonly bool hasInputPower;
+        private readonly bool hasInputChannelPower;
         private readonly float inputPowerInv;
+        private readonly float inputValueScaleInv;
 
         private readonly bool hasOutputShift;
         private readonly int pixelOutputRange;
@@ -22,10 +23,11 @@ namespace PixelGraph.Common.Textures
         public readonly float InputMaxValue;
         public readonly byte InputRangeMin;
         public readonly byte InputRangeMax;
-        public readonly int InputShift;
-        public readonly float InputPower;
-        public readonly bool InputInverted;
-        public readonly float InputScale;
+        public readonly int InputChannelShift;
+        public readonly float InputChannelPower;
+        public readonly bool InputChannelInverted;
+        public readonly float InputValueScale;
+        public readonly float InputValueShift;
 
         //public readonly ColorChannel OutputColor;
         public readonly string OutputSampler;
@@ -33,11 +35,12 @@ namespace PixelGraph.Common.Textures
         public readonly float OutputMaxValue;
         public readonly byte OutputRangeMin;
         public readonly byte OutputRangeMax;
-        public readonly int OutputShift;
-        public readonly float OutputPower;
+        public readonly int OutputChannelShift;
+        public readonly float OutputChannelPower;
         public readonly bool OutputInverted;
         public readonly bool OutputApplyOcclusion;
-        public readonly float OutputScale;
+        public readonly float OutputValueScale;
+        public readonly float OutputValueShift;
 
         //public string SourceTag;
         //public string SourceFilename;
@@ -53,10 +56,11 @@ namespace PixelGraph.Common.Textures
             InputMaxValue = mapping.InputMaxValue;
             InputRangeMin = mapping.InputRangeMin;
             InputRangeMax = mapping.InputRangeMax;
-            InputShift = mapping.InputShift;
-            InputPower = mapping.InputPower;
-            InputInverted = mapping.InputInverted;
-            InputScale = mapping.InputScale;
+            InputChannelShift = mapping.InputChannelShift;
+            InputChannelPower = mapping.InputChannelPower;
+            InputChannelInverted = mapping.InputChannelInverted;
+            InputValueScale = mapping.InputValueScale;
+            InputValueShift = mapping.InputValueShift;
 
             //OutputColor = mapping.OutputColor;
             OutputSampler = mapping.OutputSampler;
@@ -64,24 +68,26 @@ namespace PixelGraph.Common.Textures
             OutputMaxValue = mapping.OutputMaxValue;
             OutputRangeMin = mapping.OutputRangeMin;
             OutputRangeMax = mapping.OutputRangeMax;
-            OutputShift = mapping.OutputShift;
-            OutputPower = mapping.OutputPower;
-            OutputInverted = mapping.OutputInverted;
-            OutputScale = mapping.OutputScale;
+            OutputChannelShift = mapping.OutputChannelShift;
+            OutputChannelPower = mapping.OutputChannelPower;
+            OutputInverted = mapping.OutputChannelInverted;
+            OutputValueScale = mapping.OutputValueScale;
+            OutputValueShift = mapping.OutputValueShift;
             OutputApplyOcclusion = mapping.OutputApplyOcclusion;
 
             // TODO: copy all mapping properties
 
-            hasInputShift = mapping.InputShift != 0;
+            hasInputChannelShift = mapping.InputChannelShift != 0;
             pixelInputRange = InputRangeMax - InputRangeMin;
             valueInputRange = InputMaxValue - InputMinValue;
-            hasInputPower = !InputPower.Equal(1f);
-            inputPowerInv = 1f / InputPower;
+            hasInputChannelPower = !InputChannelPower.Equal(1f);
+            inputPowerInv = 1f / InputChannelPower;
+            inputValueScaleInv = 1f / InputValueScale;
 
-            hasOutputShift = mapping.OutputShift != 0;
+            hasOutputShift = mapping.OutputChannelShift != 0;
             pixelOutputRange = OutputRangeMax - OutputRangeMin;
             valueOutputRange = OutputMaxValue - OutputMinValue;
-            hasOutputPower = !OutputPower.Equal(1f);
+            hasOutputPower = !OutputChannelPower.Equal(1f);
         }
 
         public bool TryUnmap(in byte pixelValue, out float value)
@@ -99,7 +105,7 @@ namespace PixelGraph.Common.Textures
 
             // Input: cycle
             var valueIn = pixelValue;
-            if (hasInputShift) MathEx.Cycle(ref valueIn, -InputShift, in InputRangeMin, in InputRangeMax);
+            if (hasInputChannelShift) MathEx.Cycle(ref valueIn, -InputChannelShift, in InputRangeMin, in InputRangeMax);
 
             value = valueIn - InputRangeMin;
 
@@ -114,11 +120,14 @@ namespace PixelGraph.Common.Textures
 
             value += InputMinValue;
 
-            if (InputInverted) MathEx.Invert(ref value, InputMinValue, InputMaxValue);
+            if (InputChannelInverted) MathEx.Invert(ref value, InputMinValue, InputMaxValue);
 
-            if (hasInputPower) value = MathF.Pow(value, inputPowerInv);
+            if (hasInputChannelPower) value = MathF.Pow(value, inputPowerInv);
 
-            // TODO: shift & scale?!
+            // WARN: TESTING
+            value += InputValueShift;
+            value *= InputValueScale;
+            MathEx.Clamp(ref value, in InputMinValue, in InputMaxValue);
 
             return true;
         }
@@ -140,7 +149,7 @@ namespace PixelGraph.Common.Textures
 
             // Input: cycle
             value = rawValue;
-            if (hasInputShift) MathEx.Cycle(ref value, -InputShift, in InputRangeMin, in InputRangeMax);
+            if (hasInputChannelShift) MathEx.Cycle(ref value, -InputChannelShift, in InputRangeMin, in InputRangeMax);
 
             value -= InputRangeMin / 255f;
 
@@ -156,18 +165,22 @@ namespace PixelGraph.Common.Textures
 
             value += InputMinValue;
 
-            if (InputInverted) MathEx.Invert(ref value, InputMinValue, InputMaxValue);
+            if (InputChannelInverted) MathEx.Invert(ref value, InputMinValue, InputMaxValue);
 
-            if (hasInputPower) value = MathF.Pow(value, inputPowerInv);
+            if (hasInputChannelPower) value = MathF.Pow(value, inputPowerInv);
 
-            // TODO: shift & scale?!
+            value *= inputValueScaleInv;
+            value -= InputValueShift;
 
             return true;
         }
 
         public void Map(ref float value, out byte finalValue)
         {
-            if (hasOutputPower) value = MathF.Pow(value, OutputPower);
+            value += OutputValueShift;
+            value *= OutputValueScale;
+
+            if (hasOutputPower) value = MathF.Pow(value, OutputChannelPower);
 
             if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
 
@@ -186,12 +199,15 @@ namespace PixelGraph.Common.Textures
 
             finalValue = MathEx.ClampRound(valueOut, OutputRangeMin, OutputRangeMax);
 
-            if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputShift, in OutputRangeMin, in OutputRangeMax);
+            if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputChannelShift, in OutputRangeMin, in OutputRangeMax);
         }
 
         public void Map(ref float value, out float finalValue)
         {
-            if (hasOutputPower) value = MathF.Pow(value, OutputPower);
+            value += OutputValueShift;
+            value *= OutputValueScale;
+
+            if (hasOutputPower) value = MathF.Pow(value, OutputChannelPower);
 
             if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
 
@@ -212,7 +228,7 @@ namespace PixelGraph.Common.Textures
             var rangeMax = OutputRangeMax / 255f;
             MathEx.Clamp(ref finalValue, rangeMin, rangeMax);
 
-            if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputShift, in OutputRangeMin, in OutputRangeMax);
+            if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputChannelShift, in OutputRangeMin, in OutputRangeMax);
         }
     }
 }

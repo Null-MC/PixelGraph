@@ -1,11 +1,11 @@
 ﻿using ControlzEx.Theming;
 using Microsoft.Extensions.DependencyInjection;
+using Ookii.Dialogs.Wpf;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Threading;
 using System.Windows;
-using Ookii.Dialogs.Wpf;
 
 namespace PixelGraph.UI.Windows
 {

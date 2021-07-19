@@ -47,15 +47,17 @@ namespace PixelGraph.Common.ImageProcessors
 
                     if (!mapping.TryUnmap(in pixelValue, out value)) continue;
 
-                    value *= mapping.InputScale;
+                    //value += mapping.InputValueShift;
+                    //value *= mapping.InputValueScale;
+                    //MathEx.Clamp(ref value, in mapping.InputMinValue, in mapping.InputMaxValue);
 
                     if (samplerOptions.Invert) {
                         MathEx.Invert(ref value, 0f, 1f);
                     }
 
-                    value += samplerOptions.ValueShift;
+                    //value += samplerOptions.ValueShift;
 
-                    value *= mapping.OutputScale;
+                    //value *= mapping.OutputScale;
 
                     mapping.Map(ref value, out finalValue);
 
@@ -85,7 +87,7 @@ namespace PixelGraph.Common.ImageProcessors
             public ISampler<TPixel> Sampler;
             public ColorChannel InputColor;
             public ColorChannel OutputColor;
-            public float ValueShift;
+            //public float ValueShift;
             public bool Invert;
         }
     }

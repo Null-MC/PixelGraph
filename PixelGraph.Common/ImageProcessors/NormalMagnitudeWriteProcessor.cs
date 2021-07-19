@@ -31,8 +31,8 @@ namespace PixelGraph.Common.ImageProcessors
                 if (!options.ValueShift.Equal(0f))
                     value += options.ValueShift;
 
-                if (!options.Mapping.OutputScale.Equal(1f))
-                    value *= options.Mapping.OutputScale;
+                if (!options.Mapping.OutputValueScale.Equal(1f))
+                    value *= options.Mapping.OutputValueScale;
 
                 options.Mapping.Map(ref value, out ValueOut);
                 if (ValueOut.Equal(1f)) continue;

@@ -306,8 +306,8 @@ namespace PixelGraph.Common.Textures
             if (inputChannel == null) return;
 
             var mapping = new TextureChannelMapping {
-                ValueShift = (float) context.Material.GetChannelShift(magnitudeChannel.ID),
-                OutputScale = (float) context.Material.GetChannelScale(magnitudeChannel.ID),
+                OutputValueScale = (float) context.Material.GetChannelScale(magnitudeChannel.ID),
+                OutputValueShift = (float) context.Material.GetChannelShift(magnitudeChannel.ID),
             };
 
             mapping.ApplyInputChannel(inputChannel);
