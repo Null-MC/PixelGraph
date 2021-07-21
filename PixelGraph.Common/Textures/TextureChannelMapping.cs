@@ -56,6 +56,7 @@ namespace PixelGraph.Common.Textures
 
         public void ApplyOutputChannel(ResourcePackChannelProperties channel)
         {
+            OutputColor = channel.Color ?? ColorChannel.None;
             OutputMinValue = (float?)channel.MinValue ?? 0f;
             OutputMaxValue = (float?)channel.MaxValue ?? 1f;
             OutputRangeMin = channel.RangeMin ?? 0;
@@ -63,6 +64,7 @@ namespace PixelGraph.Common.Textures
             OutputChannelShift = channel.Shift ?? 0;
             OutputChannelPower = (float?)channel.Power ?? 1f;
             OutputChannelInverted = channel.Invert ?? false;
+            //OutputApplyOcclusion = channel.ApplyOcclusion ?? false;
         }
     }
 }

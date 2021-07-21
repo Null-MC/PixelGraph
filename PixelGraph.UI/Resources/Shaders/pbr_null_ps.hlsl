@@ -15,10 +15,6 @@
 
 float4 main(const ps_input input) : SV_TARGET
 {
-	//float2 tex2 = input.p2.xy / input.p2.w;
-	//float s = tex_shadow.SampleLevel(sampler_sss, tex2, 0);
-	//return float4(s, s, s, 1);
-	
 	const float3 normal = normalize(input.nor);
     const float3 tangent = normalize(input.tan);
     const float3 bitangent = normalize(input.bin);
@@ -41,8 +37,9 @@ float4 main(const ps_input input) : SV_TARGET
     float3 diffuse = lerp(mat.albedo * tint, 0.0f, metal);
 
 	// Wetness
-    float wet_diffuse = 1.0f - WET_DARKEN * mat.porosity;
-	diffuse *= lerp(1.0f, wet_diffuse, Wetness);
+    float wet_factor = 1.0f - WET_DARKEN * mat.porosity;
+	float wet_diffuse = lerp(1.0f, wet_factor, Wetness);
+	diffuse *= wet_diffuse;
 
     float surface_water = saturate(Wetness * (2.0f - roughL) * (1.0f - mat.porosity));
 	roughL = lerp(roughL, WATER_ROUGH, surface_water);
@@ -54,7 +51,7 @@ float4 main(const ps_input input) : SV_TARGET
     // HCM
 	float3 ior_n, ior_k;
 	get_hcm_ior(mat.f0, ior_n, ior_k);
-	float3 metal_albedo = lerp(1.0f, mat.albedo * tint, metal);
+	float3 metal_albedo = lerp(1.0f, mat.albedo * tint, metal) * wet_diffuse;
 	
     const float NoV = saturate(dot(tex_normal, view));
     

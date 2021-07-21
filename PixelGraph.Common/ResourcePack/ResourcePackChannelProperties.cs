@@ -20,6 +20,7 @@ namespace PixelGraph.Common.ResourcePack
         public decimal? Power {get; set;}
         public bool? Invert {get; set;}
         public bool? Perceptual {get; set;}
+        //public bool? ApplyOcclusion {get; set;}
 
         [YamlIgnore]
         public bool HasTexture => Texture != null && !TextureTags.Is(Texture, TextureTags.None);
@@ -57,6 +58,7 @@ namespace PixelGraph.Common.ResourcePack
             if (channel.Power.HasValue) Power = channel.Power.Value;
             if (channel.Invert.HasValue) Invert = channel.Invert.Value;
             if (channel.Perceptual.HasValue) Perceptual = channel.Perceptual.Value;
+            //if (channel.ApplyOcclusion.HasValue) ApplyOcclusion = channel.Perceptual.Value;
         }
 
         public void Reset()
@@ -72,6 +74,7 @@ namespace PixelGraph.Common.ResourcePack
             Power = null;
             Invert = null;
             Perceptual = null;
+            //ApplyOcclusion = null;
         }
 
         public virtual bool HasAnyData()
@@ -87,6 +90,7 @@ namespace PixelGraph.Common.ResourcePack
             if (Power.HasValue) return true;
             if (Invert.HasValue) return true;
             if (Perceptual.HasValue) return true;
+            //if (ApplyOcclusion.HasValue) return true;
             return false;
         }
 

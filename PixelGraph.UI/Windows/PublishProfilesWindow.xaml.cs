@@ -230,7 +230,7 @@ namespace PixelGraph.UI.Windows
             Model.EditImageEncoding = null;
         }
 
-        private void OnEditEncodingClick(object sender, RoutedEventArgs e)
+        private async void OnEditEncodingClick(object sender, RoutedEventArgs e)
         {
             var formatFactory = TextureFormat.GetFactory(Model.TextureFormat);
 
@@ -249,6 +249,7 @@ namespace PixelGraph.UI.Windows
 
             Model.LoadedProfile.Encoding = (ResourcePackOutputProperties)window.Model.Encoding;
             //Model.SourceFormat = window.Model.TextureFormat;
+            await SaveAsync(Model.LoadedProfile);
         }
 
         //private void OnEncodingDataGridMouseWheelPreview(object sender, MouseWheelEventArgs e)

@@ -285,6 +285,16 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public bool? BakeOcclusionToColor {
+            get => _loadedProfile?.BakeOcclusionToColor ?? ResourcePackProfileProperties.BakeOcclusionToColorDefault;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.BakeOcclusionToColor = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
 
         public PublishProfilesModel()
         {
@@ -372,6 +382,7 @@ namespace PixelGraph.UI.Models
             OnPropertyChanged(nameof(OcclusionPower));
             OnPropertyChanged(nameof(AutoGenerateNormal));
             OnPropertyChanged(nameof(AutoGenerateOcclusion));
+            OnPropertyChanged(nameof(BakeOcclusionToColor));
 
             UpdateChannels();
             UpdateDefaultValues();

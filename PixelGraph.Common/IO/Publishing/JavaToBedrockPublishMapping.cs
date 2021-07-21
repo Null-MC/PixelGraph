@@ -693,6 +693,11 @@ namespace PixelGraph.Common.IO.Publishing
             ["assets/minecraft/textures/block/warped_trapdoor"] = "textures/blocks/huge_fungus/warped_trapdoor",
 
 
+            // 1.17.1 grass -> dirt path fix
+            ["assets/minecraft/textures/block/dirt_path_side"] = "textures/blocks/grass_path_side",
+            ["assets/minecraft/textures/block/dirt_path_top"] = "textures/blocks/grass_path_top",
+
+
             // CUSTOM MAPPING
             ["assets/minecraft/textures/block/terracotta/default"] = "textures/blocks/hardened_clay",
             ["assets/minecraft/textures/block/terracotta/black"] = "textures/blocks/hardened_clay_stained_black",

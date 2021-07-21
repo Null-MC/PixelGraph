@@ -246,6 +246,11 @@
                                 </CheckBox>
                                 <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                            Text="When enabled materials that are missing an occlusion texture will attempt to generate it from the height texture."/>
+                                <CheckBox IsChecked="{Binding BakeOcclusionToColor, Mode=TwoWay}">
+                                    <TextBlock Text="Bake to Color" Style="{StaticResource FieldLabelStyle}"/>
+                                </CheckBox>
+                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                           Text="When enabled the ambient occlusion will be baked directly into the color channels."/>
                                 <TextBlock Text="Ray Quality" Style="{StaticResource FieldLabelStyle}"/>
                                 <controls:TextBoxEx Placeholder="{Binding OcclusionQualityDefault, Mode=OneTime}"
                                                     Text="{Binding OcclusionQuality, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>

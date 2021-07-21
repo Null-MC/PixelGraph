@@ -184,20 +184,22 @@ namespace PixelGraph.Common.Textures
         private bool TryBuildMapping(ResourcePackChannelProperties outputChannel, bool createEmpty, out TextureChannelMapping mapping)
         {
             mapping = new TextureChannelMapping {
-                OutputColor = outputChannel.Color ?? ColorChannel.None,
-                OutputMinValue = (float?)outputChannel.MinValue ?? 0f,
-                OutputMaxValue = (float?)outputChannel.MaxValue ?? 1f,
-                OutputRangeMin = outputChannel.RangeMin ?? 0,
-                OutputRangeMax = outputChannel.RangeMax ?? 255,
-                OutputChannelShift = outputChannel.Shift ?? 0,
-                OutputChannelPower = (float?)outputChannel.Power ?? 1,
-                OutputChannelInverted = outputChannel.Invert ?? false,
                 OutputSampler = outputChannel.Sampler ?? context.DefaultSampler,
 
                 //ValueShift = (float)context.Material.GetChannelShift(outputChannel.ID),
                 OutputValueScale = (float)context.Material.GetChannelScale(outputChannel.ID),
                 OutputValueShift = (float)context.Material.GetChannelShift(outputChannel.ID),
             };
+
+            mapping.ApplyOutputChannel(outputChannel);
+
+            if (context.Profile.BakeOcclusionToColor ?? ResourcePackProfileProperties.BakeOcclusionToColorDefault) {
+                var isColorChannel = EncodingChannel.Is(outputChannel.ID, EncodingChannel.ColorRed)
+                                  || EncodingChannel.Is(outputChannel.ID, EncodingChannel.ColorGreen)
+                                  || EncodingChannel.Is(outputChannel.ID, EncodingChannel.ColorBlue);
+
+                if (isColorChannel) mapping.OutputApplyOcclusion = true;
+            }
 
             var inputChannel = InputChannels.FirstOrDefault(i => EncodingChannel.Is(i.ID, outputChannel.ID));
 

@@ -12,6 +12,7 @@ namespace PixelGraph.Common.ResourcePack
         public const decimal DefaultOcclusionPower = 1.0m;
         public const bool AutoGenerateNormalDefault = true;
         public const bool AutoGenerateOcclusionDefault = false;
+        public const bool BakeOcclusionToColorDefault = false;
 
         [YamlIgnore]
         public string LocalFile {get; set;}
@@ -84,6 +85,8 @@ namespace PixelGraph.Common.ResourcePack
         public bool? AutoGenerateNormal {get; set;}
 
         public bool? AutoGenerateOcclusion {get; set;}
+
+        public bool? BakeOcclusionToColor {get; set;}
 
         public decimal? OcclusionQuality {get; set;}
 
