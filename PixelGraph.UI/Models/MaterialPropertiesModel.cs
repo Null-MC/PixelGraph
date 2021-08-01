@@ -24,6 +24,7 @@ namespace PixelGraph.UI.Models
         public HeightPropertyCollection Height {get;}
         public HeightEdgeFadingPropertyCollection HeightEdgeFading {get;}
         public NormalPropertyCollection Normal {get;}
+        public NormalFilterPropertyCollection NormalFilter {get;}
         public NormalGeneratorPropertyCollection NormalGeneration {get;}
         public OcclusionPropertyCollection Occlusion {get;}
         public OcclusionGeneratorPropertyCollection OcclusionGeneration {get;}
@@ -67,6 +68,7 @@ namespace PixelGraph.UI.Models
                 Height.SetData(Material?.Height);
                 HeightEdgeFading.SetData(Material?.Height);
                 Normal.SetData(Material?.Normal);
+                NormalFilter.SetData(Material?.Normal);
                 NormalGeneration.SetData(Material?.Normal);
                 Occlusion.SetData(Material?.Occlusion);
                 OcclusionGeneration.SetData(Material?.Occlusion);
@@ -138,6 +140,9 @@ namespace PixelGraph.UI.Models
 
             Normal = new NormalPropertyCollection();
             Normal.PropertyChanged += OnPropertyValueChanged;
+
+            NormalFilter = new NormalFilterPropertyCollection();
+            NormalFilter.PropertyChanged += OnPropertyValueChanged;
 
             NormalGeneration = new NormalGeneratorPropertyCollection();
             NormalGeneration.PropertyChanged += OnPropertyValueChanged;
@@ -231,8 +236,11 @@ namespace PixelGraph.UI.Models
             var options = new SelectPropertyRowOptions(new AllTextureFormatValues(), "Text", "Value");
 
             AddSelect("Input Format", nameof(MaterialProperties.InputFormat), options, MaterialProperties.DefaultInputFormat);
+            AddBool<bool?>("Publish", nameof(MaterialProperties.Publish), MaterialProperties.DefaultPublish);
+            AddBool<bool?>("Publish Inventory", nameof(MaterialProperties.PublishInventory), MaterialProperties.DefaultPublishInventory);
             AddBool<bool?>("Wrap Horizontally", nameof(MaterialProperties.WrapX), MaterialProperties.DefaultWrap);
             AddBool<bool?>("Wrap Vertically", nameof(MaterialProperties.WrapY), MaterialProperties.DefaultWrap);
+            AddBool<bool?>("Bake Occlusion to Color", nameof(MaterialProperties.BakeOcclusionToColor), MaterialProperties.DefaultBakeOcclusionToColor);
             AddText<string>("Color Tint", nameof(MaterialProperties.ColorTint));
         }
     }
@@ -286,6 +294,16 @@ namespace PixelGraph.UI.Models
         public NormalPropertyCollection()
         {
             AddText<string>("Texture", nameof(MaterialNormalProperties.Texture));
+        }
+    }
+
+    public class NormalFilterPropertyCollection : PropertyCollectionBase<MaterialNormalProperties>
+    {
+        public NormalFilterPropertyCollection()
+        {
+            AddText<decimal?>("Noise Angle", nameof(MaterialNormalProperties.Noise));
+            AddText<decimal?>("Curve Angle X", nameof(MaterialNormalProperties.CurveX));
+            AddText<decimal?>("Curve Angle Y", nameof(MaterialNormalProperties.CurveY));
         }
     }
 

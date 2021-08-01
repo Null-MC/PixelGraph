@@ -193,7 +193,7 @@ namespace PixelGraph.Common.Textures
 
             mapping.ApplyOutputChannel(outputChannel);
 
-            if (context.Profile.BakeOcclusionToColor ?? ResourcePackProfileProperties.BakeOcclusionToColorDefault) {
+            if (context.BakeOcclusionToColor) {
                 var isColorChannel = EncodingChannel.Is(outputChannel.ID, EncodingChannel.ColorRed)
                                   || EncodingChannel.Is(outputChannel.ID, EncodingChannel.ColorGreen)
                                   || EncodingChannel.Is(outputChannel.ID, EncodingChannel.ColorBlue);

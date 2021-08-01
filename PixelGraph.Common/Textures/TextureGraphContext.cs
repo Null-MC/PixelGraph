@@ -37,6 +37,7 @@ namespace PixelGraph.Common.Textures
         //string ImageFormat {get;}
         //bool AutoMaterial {get;}
         bool AutoGenerateOcclusion {get;}
+        bool BakeOcclusionToColor {get;}
 
         void ApplyInputEncoding();
         void ApplyOutputEncoding();
@@ -73,6 +74,10 @@ namespace PixelGraph.Common.Textures
 
         //public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
         public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
+
+        public bool BakeOcclusionToColor => Material.BakeOcclusionToColor ?? Profile.BakeOcclusionToColor
+                                           ?? ResourcePackProfileProperties.BakeOcclusionToColorDefault;
+
 
         
         public TextureGraphContext()

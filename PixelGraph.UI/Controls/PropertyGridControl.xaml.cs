@@ -30,6 +30,9 @@ namespace PixelGraph.UI.Controls
 
             var comboBox = contentPresenter.FindChild<ComboBox>();
             if (comboBox != null) comboBox.IsDropDownOpen = true;
+
+            var checkBox = contentPresenter.FindChild<CheckBox>();
+            if (checkBox != null) checkBox.IsChecked = !(checkBox.IsChecked ?? false);
         }
 
         private void OnPreviewKeyUp(object sender, KeyEventArgs e)

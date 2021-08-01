@@ -39,9 +39,15 @@ namespace PixelGraph.Common.Material
             if (Texture != null) return true;
             if (Strength.HasValue) return true;
             if (Method != null) return true;
+
             if (ValueX.HasValue) return true;
             if (ValueY.HasValue) return true;
             if (ValueZ.HasValue) return true;
+
+            if (Noise.HasValue) return true;
+            if (CurveX.HasValue) return true;
+            if (CurveY.HasValue) return true;
+            
             return false;
         }
 

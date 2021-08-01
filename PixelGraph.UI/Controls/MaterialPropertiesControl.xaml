@@ -98,6 +98,15 @@
                 <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                         Visibility="{Binding IsNormalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                     <StackPanel Orientation="Vertical">
+                        <TextBlock Margin="8,2" Text="Filtering" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                        <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
+                                                   ItemsSource="{Binding NormalFilter, Mode=OneWay}"/>
+                    </StackPanel>
+                </Border>
+                <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                        Visibility="{Binding IsNormalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                    <StackPanel Orientation="Vertical">
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Center" BorderThickness="0"
                                     Content="Bake" ToolTip="Generates the normal texture and saves the result to the project source content." Click="OnGenerateNormalClick"

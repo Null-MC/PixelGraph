@@ -12,6 +12,9 @@ namespace PixelGraph.Common.Material
     {
         public const bool DefaultWrap = true;
         public const string DefaultInputFormat = TextureFormat.Format_Raw;
+        public const bool DefaultPublish = true;
+        public const bool DefaultPublishInventory = false;
+        public const bool DefaultBakeOcclusionToColor = false;
 
         [YamlIgnore]
         public string Name {get; set;}
@@ -60,6 +63,9 @@ namespace PixelGraph.Common.Material
 
         [YamlMember(Order = -91)]
         public string ColorTint {get; set;}
+
+        [YamlMember(Order = -90)]
+        public bool? BakeOcclusionToColor {get; set;}
 
         //public bool? Resizable {get; set;}
 
