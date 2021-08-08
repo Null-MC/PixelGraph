@@ -5,22 +5,45 @@ using System.Reflection;
 
 namespace MinecraftMappings.Internal
 {
-    //public interface IEntityData
-    //{
-    //    string Name {get;}
-    //}
+    public interface IEntityData
+    {
+        string Name {get;}
+    }
 
-    public abstract class EntityData<TVersion> //: IEntityData
-        where TVersion : EntityDataVersion
+    public interface IEntityData<out TEntityVersion> : IEntityData
+        where TEntityVersion : EntityDataVersion, new()
+    {
+        TEntityVersion GetLatestVersion();
+    }
+
+    public abstract class EntityData : IEntityData
     {
         public string Name {get;}
-        public List<TVersion> Versions {get;}
 
 
         protected EntityData(string name)
         {
             Name = name;
+        }
 
+        public static IEnumerable<T> FromAssembly<T>()
+            where T : IEntityData
+        {
+            return Assembly.GetExecutingAssembly()
+                .ExportedTypes.Where(t => !t.IsAbstract)
+                .Where(t => typeof(T).IsAssignableFrom(t))
+                .Select(t => (T) Activator.CreateInstance(t));
+        }
+    }
+
+    public abstract class EntityData<TVersion> : EntityData, IEntityData<TVersion>
+        where TVersion : EntityDataVersion, new()
+    {
+        public List<TVersion> Versions {get;}
+
+
+        protected EntityData(string name) : base(name)
+        {
             Versions = new List<TVersion>();
         }
 
@@ -28,15 +51,6 @@ namespace MinecraftMappings.Internal
         {
             // WARN: temp hack - not actually using version!
             return Versions.FirstOrDefault();
-        }
-
-        public static IEnumerable<T> FindEntityData<T>()
-            where T : EntityData<TVersion>
-        {
-            return Assembly.GetExecutingAssembly()
-                .ExportedTypes.Where(t => !t.IsAbstract)
-                .Where(t => typeof(T).IsAssignableFrom(t))
-                .Select(t => (T) Activator.CreateInstance(t));
         }
     }
 

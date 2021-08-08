@@ -8,7 +8,9 @@ namespace PixelGraph.UI.ViewData
         {
             Add(new Item("Block", GameObjectTypes.Block));
             Add(new Item("Entity", GameObjectTypes.Entity));
-            Add(new Item("Optifine CTM", GameObjectTypes.OptifineCtm));
+            Add(new Item("Item", GameObjectTypes.Item));
+            Add(new Item("Optifine CTM", GameObjectTypes.Optifine_CTM));
+            Add(new Item("Optifine CIT", GameObjectTypes.Optifine_CIT));
         }
 
         public class Item
@@ -28,6 +30,8 @@ namespace PixelGraph.UI.ViewData
     {
         Block,
         Entity,
-        OptifineCtm,
+        Item,
+        Optifine_CTM,
+        Optifine_CIT,
     }
 }

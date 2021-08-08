@@ -5,6 +5,8 @@ namespace PixelGraph.Common.Material
 {
     public class MaterialHeightProperties
     {
+        public const decimal DefaultEdgeFadeStrength = 1.0m;
+
         public ResourcePackHeightChannelProperties Input {get; set;}
         public string Texture {get; set;}
         public decimal? Value {get; set;}
@@ -12,6 +14,7 @@ namespace PixelGraph.Common.Material
         public decimal? Scale {get; set;}
         public decimal? EdgeFadeX {get; set;}
         public decimal? EdgeFadeY {get; set;}
+        public decimal? EdgeFadeStrength {get; set;}
 
 
         public bool HasAnyData()
@@ -23,6 +26,7 @@ namespace PixelGraph.Common.Material
             if (Scale.HasValue) return true;
             if (EdgeFadeX.HasValue) return true;
             if (EdgeFadeY.HasValue) return true;
+            if (EdgeFadeStrength.HasValue) return true;
             return false;
         }
 

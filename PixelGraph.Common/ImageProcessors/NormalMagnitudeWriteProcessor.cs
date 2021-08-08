@@ -28,14 +28,14 @@ namespace PixelGraph.Common.ImageProcessors
                 options.MagSampler.SampleScaled(in fx, in fy, in options.InputColor, out valueIn);
                 if (!options.Mapping.TryUnmap(in valueIn, out value)) continue;
 
-                if (!options.ValueShift.Equal(0f))
+                if (!options.ValueShift.NearEqual(0f))
                     value += options.ValueShift;
 
-                if (!options.Mapping.OutputValueScale.Equal(1f))
+                if (!options.Mapping.OutputValueScale.NearEqual(1f))
                     value *= options.Mapping.OutputValueScale;
 
                 options.Mapping.Map(ref value, out ValueOut);
-                if (ValueOut.Equal(1f)) continue;
+                if (ValueOut.NearEqual(1f)) continue;
 
 
                 var normalPixel = row[x].ToScaledVector4();

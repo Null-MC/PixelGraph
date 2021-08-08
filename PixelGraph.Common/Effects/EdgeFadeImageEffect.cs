@@ -38,6 +38,7 @@ namespace PixelGraph.Common.Effects
             var options = new HeightEdgeProcessor.Options {
                 SizeX = (float?)context.Material.Height?.EdgeFadeX ?? 0f,
                 SizeY = (float?)context.Material.Height?.EdgeFadeY ?? 0f,
+                Strength = (float?)context.Material.Height?.EdgeFadeStrength ?? 1f,
                 Colors = heightChannels,
             };
 

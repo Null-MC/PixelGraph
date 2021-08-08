@@ -20,7 +20,7 @@ namespace PixelGraph.Common.Extensions
         public static float AsinD(float d) => MathF.Asin(d) * Rad2DegF;
         public static double AsinD(double d) => Math.Asin(d) * Rad2Deg;
 
-        public static bool Equal(this in float valueA, in float valueB)
+        public static bool NearEqual(this in float valueA, in float valueB)
         {
             return MathF.Abs(valueA - valueB) < float.Epsilon;
         }
@@ -41,7 +41,7 @@ namespace PixelGraph.Common.Extensions
                 lengthF = 1f / MathF.Sqrt(ls);
             }
 
-            if (lengthF.Equal(1f)) return;
+            if (lengthF.NearEqual(1f)) return;
 
             value.X *= lengthF;
             value.Y *= lengthF;
@@ -52,7 +52,7 @@ namespace PixelGraph.Common.Extensions
         {
             var length2 = value.X * value.X + value.Y * value.Y + value.Z * value.Z;
             var lengthF = 1f / MathF.Sqrt(length2);
-            if (lengthF.Equal(1f)) return;
+            if (lengthF.NearEqual(1f)) return;
 
             value.X *= lengthF;
             value.Y *= lengthF;

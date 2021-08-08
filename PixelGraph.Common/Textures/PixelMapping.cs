@@ -80,14 +80,14 @@ namespace PixelGraph.Common.Textures
             hasInputChannelShift = mapping.InputChannelShift != 0;
             pixelInputRange = InputRangeMax - InputRangeMin;
             valueInputRange = InputMaxValue - InputMinValue;
-            hasInputChannelPower = !InputChannelPower.Equal(1f);
+            hasInputChannelPower = !InputChannelPower.NearEqual(1f);
             inputPowerInv = 1f / InputChannelPower;
             inputValueScaleInv = 1f / InputValueScale;
 
             hasOutputShift = mapping.OutputChannelShift != 0;
             pixelOutputRange = OutputRangeMax - OutputRangeMin;
             valueOutputRange = OutputMaxValue - OutputMinValue;
-            hasOutputPower = !OutputChannelPower.Equal(1f);
+            hasOutputPower = !OutputChannelPower.NearEqual(1f);
         }
 
         public bool TryUnmap(in byte pixelValue, out float value)
@@ -192,7 +192,7 @@ namespace PixelGraph.Common.Textures
 
             if (pixelOutputRange == 0 || valueOutputRange == 0)
                 valueOut = 0f;
-            else if (!valueOutputRange.Equal(pixelOutputRange))
+            else if (!valueOutputRange.NearEqual(pixelOutputRange))
                 valueOut *= pixelOutputRange / valueOutputRange;
 
             valueOut += OutputRangeMin;
@@ -219,7 +219,7 @@ namespace PixelGraph.Common.Textures
 
             if (_pixelRange == 0 || valueOutputRange == 0)
                 finalValue = 0f;
-            else if (!valueOutputRange.Equal(_pixelRange))
+            else if (!valueOutputRange.NearEqual(_pixelRange))
                 finalValue *= _pixelRange / valueOutputRange;
 
             finalValue += OutputRangeMin / 255f;

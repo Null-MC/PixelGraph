@@ -9,7 +9,7 @@ namespace MinecraftMappings.Minecraft
         public static MinecraftBedrock Bedrock {get;} = new MinecraftBedrock();
     }
 
-    public class MinecraftJava : MinecraftGameEdition<JavaBlockData, JavaBlockDataVersion, JavaEntityData, JavaEntityDataVersion> {}
+    public class MinecraftJava : MinecraftGameEdition<JavaBlockData, JavaItemData, JavaEntityData> {}
 
-    public class MinecraftBedrock : MinecraftGameEdition<BedrockBlockData, BedrockBlockDataVersion, BedrockEntityData, BedrockEntityDataVersion> {}
+    public class MinecraftBedrock : MinecraftGameEdition<BedrockBlockData, BedrockItemData, BedrockEntityData> {}
 }

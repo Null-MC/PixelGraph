@@ -15,9 +15,19 @@ namespace PixelGraph.UI.ViewModels
 
             switch (Model.GameObjectType) {
                 case GameObjectTypes.Block:
-                case GameObjectTypes.OptifineCtm:
+                case GameObjectTypes.Optifine_CTM:
                     foreach (var block in Minecraft.Java.AllBlocks) {
                         var latest = block.GetLatestVersion();
+
+                        Model.GameObjectNames.Add(new GameObjectOption {
+                            Id = latest.Id,
+                        });
+                    }
+                    break;
+                case GameObjectTypes.Item:
+                case GameObjectTypes.Optifine_CIT:
+                    foreach (var item in Minecraft.Java.AllItems) {
+                        var latest = item.GetLatestVersion();
 
                         Model.GameObjectNames.Add(new GameObjectOption {
                             Id = latest.Id,
@@ -59,8 +69,10 @@ namespace PixelGraph.UI.ViewModels
         {
             return Model.GameObjectType switch {
                 GameObjectTypes.Block => "assets/minecraft/textures/block",
+                GameObjectTypes.Item => "assets/minecraft/textures/item",
                 GameObjectTypes.Entity => "assets/minecraft/textures/entity",
-                GameObjectTypes.OptifineCtm => "assets/minecraft/optifine/ctm",
+                GameObjectTypes.Optifine_CTM => "assets/minecraft/optifine/ctm",
+                GameObjectTypes.Optifine_CIT => "assets/minecraft/optifine/cit",
                 _ => null,
             };
         }

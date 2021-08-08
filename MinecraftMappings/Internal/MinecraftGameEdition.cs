@@ -4,29 +4,41 @@ using System.Linq;
 
 namespace MinecraftMappings.Internal
 {
-    public abstract class MinecraftGameEdition<TBlock, TBlockVersion, TEntity, TEntityVersion>
-        where TBlock : BlockData<TBlockVersion>
-        where TEntity : EntityData<TEntityVersion>
-        where TBlockVersion : BlockDataVersion, new()
-        where TEntityVersion : EntityDataVersion
+    public abstract class MinecraftGameEdition<TBlock, TItem, TEntity>
+        where TBlock : IBlockData
+        where TItem : IItemData
+        where TEntity : IEntityData
     {
-        private static readonly Lazy<IEnumerable<TBlock>> allBlocksLazy = new Lazy<IEnumerable<TBlock>>(BlockData<TBlockVersion>.FindBlockData<TBlock>);
-        private static readonly Lazy<IEnumerable<TEntity>> allEntitiesLazy = new Lazy<IEnumerable<TEntity>>(EntityData<TEntityVersion>.FindEntityData<TEntity>);
+        private static readonly Lazy<IEnumerable<TBlock>> allBlocksLazy = new Lazy<IEnumerable<TBlock>>(BlockData.FromAssembly<TBlock>);
+        private static readonly Lazy<IEnumerable<TItem>> allItemsLazy = new Lazy<IEnumerable<TItem>>(ItemData.FromAssembly<TItem>);
+        private static readonly Lazy<IEnumerable<TEntity>> allEntitiesLazy = new Lazy<IEnumerable<TEntity>>(EntityData.FromAssembly<TEntity>);
 
         public IEnumerable<TBlock> AllBlocks => allBlocksLazy.Value;
+        public IEnumerable<TItem> AllItems => allItemsLazy.Value;
         public IEnumerable<TEntity> AllEntities => allEntitiesLazy.Value;
 
-        public IEnumerable<TBlockVersion> FindBlockById(string id)
+
+        public IEnumerable<TBlockVersion> FindBlockVersionById<TBlockVersion>(string id)
+            where TBlockVersion : BlockDataVersion, new()
         {
-            return allBlocksLazy.Value
+            return allBlocksLazy.Value.OfType<IBlockData<TBlockVersion>>()
                 .Select(block => block.GetLatestVersion())
                 .Where(latest => latest.Id.Equals(id));
         }
 
-        public IEnumerable<TEntityVersion> FindEntityById(string id)
+        public IEnumerable<TItemVersion> FindItemVersionById<TItemVersion>(string id)
+            where TItemVersion : ItemDataVersion, new()
         {
-            return allEntitiesLazy.Value
-                .Select(block => block.GetLatestVersion())
+            return allItemsLazy.Value.OfType<IItemData<TItemVersion>>()
+                .Select(item => item.GetLatestVersion())
+                .Where(latest => latest.Id.Equals(id));
+        }
+
+        public IEnumerable<TEntityVersion> FindEntityVersionById<TEntityVersion>(string id)
+            where TEntityVersion : EntityDataVersion, new()
+        {
+            return allEntitiesLazy.Value.OfType<IEntityData<TEntityVersion>>()
+                .Select(entity => entity.GetLatestVersion())
                 .Where(latest => latest.Id.Equals(id));
         }
     }

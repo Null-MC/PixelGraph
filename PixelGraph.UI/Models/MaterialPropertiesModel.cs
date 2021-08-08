@@ -286,6 +286,7 @@ namespace PixelGraph.UI.Models
         {
             AddText<decimal?>("Horizontal", nameof(MaterialHeightProperties.EdgeFadeX));
             AddText<decimal?>("Vertical", nameof(MaterialHeightProperties.EdgeFadeY));
+            AddText<decimal?>("Strength", nameof(MaterialHeightProperties.EdgeFadeStrength), MaterialHeightProperties.DefaultEdgeFadeStrength);
         }
     }
 

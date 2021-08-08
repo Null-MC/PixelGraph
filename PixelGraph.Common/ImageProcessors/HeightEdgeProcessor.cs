@@ -21,24 +21,30 @@ namespace PixelGraph.Common.ImageProcessors
             float fx = 0f, fy = 0f;
             if (!TryGetFactors(ref fx, ref fy, in context)) return;
 
-            var fValue = Math.Max(fx, fy);
+            var fadeValue = Math.Max(fx, fy);
 
             var tp = pixelOut.ToScaledVector4();
 
             var count = options.Colors.Length;
+
+            var hasChanges = false;
+            float srcValue, outVal;
             for (var i = 0; i < count; i++) {
-                
-                tp.GetChannelValue(in options.Colors[i], out var srcValue);
+                tp.GetChannelValue(in options.Colors[i], out srcValue);
 
-                var avg = (srcValue + fValue) * 0.5f;
-                var min = MathF.Max(srcValue, avg);
-                var max = MathF.Max(min, fValue);
-                if (srcValue.Equal(max)) continue;
+                //avg = (srcValue + fValue) * 0.5f;
+                //min = MathF.Max(srcValue, avg);
+                //max = MathF.Max(min, fValue);
+                MathEx.Lerp(in srcValue, in fadeValue, in options.Strength, out outVal);
+                outVal = MathF.Max(srcValue, outVal);
 
-                tp.SetChannelValue(in options.Colors[i], in max);
+                if (srcValue.NearEqual(outVal)) continue;
+
+                tp.SetChannelValue(in options.Colors[i], in outVal);
+                hasChanges = true;
             }
 
-            pixelOut.FromScaledVector4(tp);
+            if (hasChanges) pixelOut.FromScaledVector4(tp);
         }
 
         protected override void ProcessPixel(ref Rgba32 pixelOut, in PixelContext context)
@@ -46,18 +52,28 @@ namespace PixelGraph.Common.ImageProcessors
             float fx = 0f, fy = 0f;
             if (!TryGetFactors(ref fx, ref fy, in context)) return;
 
-            var fValue = Math.Max(fx, fy);
+            var fadeValue = Math.Max(fx, fy);
 
             var count = options.Colors.Length;
+
+            float srcValue, outVal;
             for (var i = 0; i < count; i++) {
-                pixelOut.GetChannelValueScaled(in options.Colors[i], out var srcValue);
+                pixelOut.GetChannelValueScaled(in options.Colors[i], out srcValue);
 
-                var avg = (srcValue + fValue) * 0.5f;
-                var min = MathF.Max(srcValue, avg);
-                var max = MathF.Max(min, fValue);
-                if (srcValue.Equal(max)) continue;
+                MathEx.Lerp(in srcValue, in fadeValue, in options.Strength, out outVal);
+                outVal = MathF.Max(srcValue, outVal);
 
-                pixelOut.SetChannelValueScaled(in options.Colors[i], in max);
+                //avg = (srcValue + fadeValue) * 0.5f;
+
+
+                //min = MathF.Max(srcValue, avg);
+                //max = MathF.Max(min, fadeValue);
+
+                //var m2 = MathF.Max(srcValue, fadeValue);
+
+                if (srcValue.NearEqual(outVal)) continue;
+
+                pixelOut.SetChannelValueScaled(in options.Colors[i], in outVal);
             }
         }
 
@@ -102,6 +118,7 @@ namespace PixelGraph.Common.ImageProcessors
         {
             public ColorChannel[] Colors;
             public float SizeX, SizeY;
+            public float Strength = 1f;
             public bool EnableSmartEdges;
         }
     }
