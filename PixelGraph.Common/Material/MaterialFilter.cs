@@ -1,5 +1,5 @@
-﻿using System;
-using SixLabors.ImageSharp;
+﻿using SixLabors.ImageSharp;
+using System;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material
@@ -45,8 +45,20 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = 102)]
         public decimal? NormalCurveY {get; set;}
 
+        [YamlMember(Order = 103)]
+        public decimal? NormalRadiusX {get; set;}
+
+        [YamlMember(Order = 104)]
+        public decimal? NormalRadiusY {get; set;}
+
         [YamlIgnore]
-        public bool HasNormalRotation => NormalCurveX.HasValue || NormalCurveY.HasValue || NormalNoise.HasValue;
+        public bool HasNormalRotationX => Math.Abs(NormalCurveX ?? 0m) > 0m && (NormalRadiusX ?? 1m) > 0m;
+
+        [YamlIgnore]
+        public bool HasNormalRotationY => Math.Abs(NormalCurveY ?? 0m) > 0m && (NormalRadiusY ?? 1m) > 0m;
+
+        [YamlIgnore]
+        public bool HasNormalRotation => HasNormalRotationX || HasNormalRotationY || NormalNoise.HasValue;
 
 
         public void GetRectangle(out RectangleF region)

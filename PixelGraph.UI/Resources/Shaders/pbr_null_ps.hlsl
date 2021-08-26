@@ -173,13 +173,15 @@ float4 main(const ps_input input) : SV_TARGET
 		ibl_sss = SSS_IBL(view);
     }
 
-	const float3 emissive = mat.emissive * mat.albedo;
+	const float3 emissive = mat.emissive * mat.albedo * 3.0f;
 
 	float3 final_diffuse = (ibl_ambient + acc_diffuse) * diffuse;
 	float3 final_specular = (acc_specular + ibl_specular) * metal_albedo;
 	float3 final_sss = diffuse * (acc_sss + ibl_sss) * sss_strength;
     float3 final_color = final_diffuse + final_specular + final_sss + emissive;
 	float alpha = mat.alpha + lum(acc_specular + ibl_specular);
+
+    //return float4(final_sss, 1.0f);
 	
 	final_color = tonemap_AcesFilm(final_color);
 	final_color = linear_to_srgb(final_color);

@@ -154,6 +154,8 @@ namespace PixelGraph.Common.Textures
                 RestoreNormalZ = !hasNormalZ,
                 CurveX = (float?)context.Material.Normal?.CurveX ?? 0f,
                 CurveY = (float?)context.Material.Normal?.CurveY ?? 0f,
+                RadiusX = (float?)context.Material.Normal?.RadiusX ?? 1f,
+                RadiusY = (float?)context.Material.Normal?.RadiusY ?? 1f,
                 Noise = (float?)context.Material.Normal?.Noise ?? 0f,
             };
 
@@ -255,6 +257,8 @@ namespace PixelGraph.Common.Textures
                     var curveOptions = new NormalRotateProcessor.Options {
                         CurveX = (float?)filter.NormalCurveX ?? 0f,
                         CurveY = (float?)filter.NormalCurveY ?? 0f,
+                        RadiusX = (float?)filter.NormalRadiusX ?? 1f,
+                        RadiusY = (float?)filter.NormalRadiusY ?? 1f,
                         Noise = (float?)filter.NormalNoise ?? 0f,
                     };
 

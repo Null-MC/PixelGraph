@@ -12,6 +12,8 @@ namespace PixelGraph.Common.ImageProcessors
         where THeight : unmanaged, IPixel<THeight>
     {
         private readonly Options options;
+        private readonly float[,] _operator;
+        private readonly byte kernelSize;
 
         public bool EnableFloatingPoint {get; set;} = true;
 
@@ -19,24 +21,29 @@ namespace PixelGraph.Common.ImageProcessors
         public NormalMapProcessor(Options options)
         {
             this.options = options;
+
+            switch (options.Method) {
+                case NormalMapMethods.Sobel9:
+                    BuildSobelOperator(out _operator, 9);
+                    break;
+                case NormalMapMethods.Sobel5:
+                    BuildSobelOperator(out _operator, 5);
+                    break;
+                default:
+                    BuildSobelOperator(out _operator, 3);
+                    break;
+            }
+
+            kernelSize = options.Method switch {
+                NormalMapMethods.Sobel9 => 9,
+                NormalMapMethods.Sobel5 => 5,
+                _ => 3,
+            };
         }
 
         protected override void ProcessPixel<TPixel>(ref TPixel pixel, in PixelContext context)
         {
-            Vector3 normal;
-            switch (options.Method) {
-                case NormalMapMethods.SobelHigh:
-                    CalculateSobel3HighPass(in context, out normal);
-                    break;
-                case NormalMapMethods.SobelLow:
-                    CalculateSobel3LowPass(in context, out normal);
-                    break;
-                case NormalMapMethods.Sobel3:
-                    CalculateSobel3(in context, out normal);
-                    break;
-                default:
-                    throw new ApplicationException($"Unsupported filter '{options.Method}'!");
-            }
+            ProcessPixelNormal(in context, out var normal);
 
             const float hp = 1f / 512f;
 
@@ -49,75 +56,49 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessPixel(ref Rgba32 pixel, in PixelContext context)
         {
-            Vector3 normal;
-            switch (options.Method) {
-                case NormalMapMethods.SobelHigh:
-                    CalculateSobel3HighPass(in context, out normal);
-                    break;
-                case NormalMapMethods.SobelLow:
-                    CalculateSobel3LowPass(in context, out normal);
-                    break;
-                case NormalMapMethods.Sobel3:
-                    CalculateSobel3(in context, out normal);
-                    break;
-                default:
-                    throw new ApplicationException($"Unsupported filter '{options.Method}'!");
-            }
+            ProcessPixelNormal(in context, out var normal);
 
             pixel.SetChannelValueScaledF(ColorChannel.Red, normal.X * 0.5f + 0.5f);
             pixel.SetChannelValueScaledF(ColorChannel.Green, normal.Y * 0.5f + 0.5f);
             pixel.SetChannelValueScaledF(ColorChannel.Blue, normal.Z * 0.5f + 0.5f);
         }
 
-        private void CalculateSobel3(in PixelContext context, out Vector3 normal)
+        private void ProcessPixelNormal(in PixelContext context, out Vector3 normal)
         {
-            var k = new float[3, 3];
-            PopulateKernel_3x3(ref k, in context);
+            var k = new float[kernelSize, kernelSize];
+            PopulateKernel(ref k, in context);
+
+            if (options.Method == NormalMapMethods.SobelHigh) {
+                ApplyHighPass(ref k[0,0], in k[1,1]);
+                ApplyHighPass(ref k[1,0], in k[1,1]);
+                ApplyHighPass(ref k[2,0], in k[1,1]);
+                ApplyHighPass(ref k[0,1], in k[1,1]);
+                ApplyHighPass(ref k[2,1], in k[1,1]);
+                ApplyHighPass(ref k[0,2], in k[1,1]);
+                ApplyHighPass(ref k[1,2], in k[1,1]);
+                ApplyHighPass(ref k[2,2], in k[1,1]);
+            }
+            else if (options.Method == NormalMapMethods.SobelLow) {
+                ApplyLowPass(ref k[0,0], in k[1,1]);
+                ApplyLowPass(ref k[1,0], in k[1,1]);
+                ApplyLowPass(ref k[2,0], in k[1,1]);
+                ApplyLowPass(ref k[0,1], in k[1,1]);
+                ApplyLowPass(ref k[2,1], in k[1,1]);
+                ApplyLowPass(ref k[0,2], in k[1,1]);
+                ApplyLowPass(ref k[1,2], in k[1,1]);
+                ApplyLowPass(ref k[2,2], in k[1,1]);
+            }
+
+            ApplyOperator(ref k, in _operator);
             GetSobelDerivative(ref k, out var derivative);
             CalculateNormal(in derivative, out normal);
         }
 
-        private void CalculateSobel3HighPass(in PixelContext context, out Vector3 normal)
-        {
-            var k = new float[3, 3];
-            PopulateKernel_3x3(ref k, in context);
-
-            ApplyHighPass(ref k[0,0], in k[1,1]);
-            ApplyHighPass(ref k[1,0], in k[1,1]);
-            ApplyHighPass(ref k[2,0], in k[1,1]);
-            ApplyHighPass(ref k[0,1], in k[1,1]);
-            ApplyHighPass(ref k[2,1], in k[1,1]);
-            ApplyHighPass(ref k[0,2], in k[1,1]);
-            ApplyHighPass(ref k[1,2], in k[1,1]);
-            ApplyHighPass(ref k[2,2], in k[1,1]);
-
-            GetSobelDerivative(ref k, out var derivative);
-            CalculateNormal(in derivative, out normal);
-        }
-
-        private void CalculateSobel3LowPass(in PixelContext context, out Vector3 normal)
-        {
-            var k = new float[3, 3];
-            PopulateKernel_3x3(ref k, in context);
-
-            ApplyLowPass(ref k[0,0], in k[1,1]);
-            ApplyLowPass(ref k[1,0], in k[1,1]);
-            ApplyLowPass(ref k[2,0], in k[1,1]);
-            ApplyLowPass(ref k[0,1], in k[1,1]);
-            ApplyLowPass(ref k[2,1], in k[1,1]);
-            ApplyLowPass(ref k[0,2], in k[1,1]);
-            ApplyLowPass(ref k[1,2], in k[1,1]);
-            ApplyLowPass(ref k[2,2], in k[1,1]);
-
-            GetSobelDerivative(ref k, out var derivative);
-            CalculateNormal(in derivative, out normal);
-        }
-
-        private void PopulateKernel_3x3(ref float[,] kernel, in PixelContext context)
+        private void PopulateKernel(ref float[,] kernel, in PixelContext context)
         {
             var p = new Rgba32();
 
-            for (var kY = 0; kY < 3; kY++) {
+            for (byte kY = 0; kY < kernelSize; kY++) {
                 var pY = context.Y + kY - 1;
 
                 if (options.WrapY) context.WrapY(ref pY);
@@ -125,7 +106,7 @@ namespace PixelGraph.Common.ImageProcessors
 
                 var row = options.Source.GetPixelRowSpan(pY);
 
-                for (var kX = 0; kX < 3; kX++) {
+                for (byte kX = 0; kX < kernelSize; kX++) {
                     var pX = context.X + kX - 1;
 
                     if (options.WrapX) context.WrapX(ref pX);
@@ -151,15 +132,95 @@ namespace PixelGraph.Common.ImageProcessors
             MathEx.Normalize(ref normal);
         }
 
-        private static void GetSobelDerivative(ref float[,] kernel, out Vector2 derivative)
+        private void GetSobelDerivative(ref float[,] kernel, out Vector2 derivative)
         {
-            var topSide = kernel[0, 0] + 2f * kernel[1, 0] + kernel[2, 0];
-            var bottomSide = kernel[0, 2] + 2f * kernel[1, 2] + kernel[2, 2];
-            var leftSide = kernel[0, 0] + 2f * kernel[0, 1] + kernel[0, 2];
-            var rightSide = kernel[2, 0] + 2f * kernel[2, 1] + kernel[2, 2];
+            byte i;
+            float value;
+            var c = (kernelSize - 1) / 2;
 
-            derivative.X = leftSide - rightSide;
-            derivative.Y = topSide - bottomSide;
+            derivative.X = 0f;
+            for (i = 0; i < kernelSize; i++) {
+                if (i == c) continue;
+
+                GetColSum(in kernel, in kernelSize, in i, out value);
+
+                if (i < c) derivative.X += value;
+                else derivative.X -= value;
+            }
+
+            derivative.Y = 0f;
+            for (i = 0; i < kernelSize; i++) {
+                if (i == c) continue;
+
+                GetRowSum(in kernel, in kernelSize, in i, out value);
+
+                if (i < c) derivative.Y += value;
+                else derivative.Y -= value;
+            }
+        }
+
+        private static void BuildSobelOperator(out float[,] kernel, in byte size)
+        {
+            if (size < 1) throw new ArgumentOutOfRangeException(nameof(size));
+            
+            kernel = new float[size, size];
+            var c = (size - 1) / 2;
+
+            byte kX, kY;
+            float i, j, f;
+            for (kY = 0; kY < size; kY++) {
+                for (kX = 0; kX < size; kX++) {
+                    if (kX == c && kY == c) continue;
+
+                    i = MathF.Abs(kX - c);
+                    j = MathF.Abs(kY - c);
+                    f = i > j ? i : j;
+                    kernel[kX, kY] = f / (i * i + j * j);
+                }
+            }
+        }
+
+        private void ApplyOperator(ref float[,] kernel, in float[,] @operator)
+        {
+            var c = (kernelSize - 1) / 2;
+
+            byte kX, kY;
+            for (kY = 0; kY < kernelSize; kY++) {
+                for (kX = 0; kX < kernelSize; kX++) {
+                    if (kX == c && kY == c) continue;
+
+                    kernel[kX, kY] *= @operator[kX, kY];
+                }
+            }
+        }
+
+        //private static void ApplyHighPass(ref float[,] kernel, in byte size)
+        //{
+        //    if (kernel == null) throw new ArgumentNullException(nameof(kernel));
+        //    if (size < 1) throw new ArgumentOutOfRangeException(nameof(size));
+
+        //    var c = (size - 1) / 2;
+
+        //    for (byte kY = 0; kY < size; kY++) {
+        //        for (byte kX = 0; kX < size; kX++) {
+        //            if (kX == c && kY == c) continue;
+        //            ApplyHighPass(ref kernel[kX, kY], in kernel[c, c]);
+        //        }
+        //    }
+        //}
+
+        private static void GetRowSum(in float[,] kernel, in byte size, in byte row, out float value)
+        {
+            value = 0f;
+            for (var i = 0; i < size; i++)
+                value += kernel[i, row];
+        }
+
+        private static void GetColSum(in float[,] kernel, in byte size, in byte col, out float value)
+        {
+            value = 0f;
+            for (var i = 0; i < size; i++)
+                value += kernel[col, i];
         }
 
         private static void ApplyHighPass(ref float value, in float level)

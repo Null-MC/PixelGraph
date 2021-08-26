@@ -305,6 +305,8 @@ namespace PixelGraph.UI.Models
             AddText<decimal?>("Noise Angle", nameof(MaterialNormalProperties.Noise));
             AddText<decimal?>("Curve Angle X", nameof(MaterialNormalProperties.CurveX));
             AddText<decimal?>("Curve Angle Y", nameof(MaterialNormalProperties.CurveY));
+            AddText<decimal?>("Radius Size X", nameof(MaterialNormalProperties.RadiusX));
+            AddText<decimal?>("Radius Size Y", nameof(MaterialNormalProperties.RadiusY));
         }
     }
 

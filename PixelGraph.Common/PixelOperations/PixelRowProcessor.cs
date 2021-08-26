@@ -76,6 +76,8 @@ namespace PixelGraph.Common.PixelOperations
 
                 public void Invoke(int y)
                 {
+                    if (y < 0 || y >= frame.Height) return;
+
                     var context = new PixelRowContext(region, y);
                     var row = frame.GetPixelRowSpan(y);
                     action.Invoke(in context, row);

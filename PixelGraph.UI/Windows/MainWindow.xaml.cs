@@ -286,13 +286,23 @@ namespace PixelGraph.UI.Windows
         {
             if (RecentList.SelectedItem is not string item) return;
 
+            if (!Directory.Exists(item)) {
+                Model.RootDirectory = null;
+                MessageBox.Show(this, "The selected resource pack directory could not be found!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                await viewModel.RemoveRecentItemAsync(item);
+                return;
+            }
+
             try {
                 await Task.Run(() => viewModel.SetRootDirectoryAsync(item));
             }
-            catch (DirectoryNotFoundException) {
+            catch (Exception error) {
+                logger.LogError(error, $"Failed to load resource pack directory '{item}'!");
+
                 Dispatcher.Invoke(() => {
                     Model.RootDirectory = null;
-                    MessageBox.Show(this, "The selected resource pack directory could not be found!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(this, $"Failed to load resource pack directory! {error.UnfoldMessageString()}", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                 });
 
                 await viewModel.RemoveRecentItemAsync(item);
