@@ -100,5 +100,22 @@ namespace PixelGraph.Common.Material
                 Height = (int)(bounds.Height * height + 0.5f),
             };
         }
+        
+        public decimal? GetNormalCurveTop() => GetCurveValue(NormalCurveTop, NormalCurveY);
+        public decimal? GetNormalCurveBottom() => GetCurveValue(NormalCurveBottom, NormalCurveY);
+        public decimal? GetNormalCurveLeft() => GetCurveValue(NormalCurveLeft, NormalCurveX);
+        public decimal? GetNormalCurveRight() => GetCurveValue(NormalCurveRight, NormalCurveX);
+
+        public decimal? GetNormalRadiusTop() => NormalRadiusTop ?? NormalRadiusY;
+        public decimal? GetNormalRadiusBottom() => NormalRadiusBottom ?? NormalRadiusY;
+        public decimal? GetNormalRadiusLeft() => NormalRadiusLeft ?? NormalRadiusX;
+        public decimal? GetNormalRadiusRight() => NormalRadiusRight ?? NormalRadiusX;
+
+        private static decimal? GetCurveValue(in decimal? sideValue, in decimal? axisValue)
+        {
+            if (sideValue.HasValue) return sideValue.Value;
+            if (axisValue.HasValue) return axisValue.Value / 2;
+            return null;
+        }
     }
 }

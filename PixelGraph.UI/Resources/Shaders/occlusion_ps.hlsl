@@ -1,36 +1,12 @@
+#include "lib/occlusion_structs.hlsl"
 #define EPSILON 1e-6f
-#define MAX_RAYS 300
 
 #pragma pack_matrix(row_major)
 
 
-Texture2D<float> tex_height : register(t0);
-SamplerState sampler_height : register(s0);
-
-cbuffer cbTransforms : register(b0)
-{
-    float4x4 mViewProjection;
-    float4 vViewport;
-
-	float vQuality;
-	uint vStepCount;
-	float vHitPower = 1.5f;
-	float vZScale;
-	float vZBias;
-
-    uint vRayCount;
-    float3 vRayList[MAX_RAYS];
-};
-
-struct ps_input
-{
-	float2 tex  : TEXCOORD0;
-};
-
-
 static const float vRayCountFactor = 1.0f / (vRayCount + 1);
 
-bool ray_test(float3 position, in float3 ray, out float factor)
+bool ray_test(float3 position, const in float3 ray, out float factor)
 {
     float heightValue, hit;
     for (uint step = 1; step <= vStepCount; step++) {
@@ -53,7 +29,7 @@ bool ray_test(float3 position, in float3 ray, out float factor)
     return false;
 }
 
-float main(ps_input input) : SV_TARGET
+float main(const in ps_input input) : SV_TARGET
 {
     float heightValue = 1.0f - tex_height.SampleLevel(sampler_height, input.tex, 0);
 

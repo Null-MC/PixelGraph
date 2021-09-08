@@ -290,14 +290,14 @@ namespace PixelGraph.Common.Textures
         {
             if (filter.HasNormalRotation) {
                 var curveOptions = new NormalRotateProcessor.Options {
-                    CurveTop = (float?)filter.NormalCurveTop ?? (float?)filter.NormalCurveY ?? 0f,
-                    CurveBottom = (float?)filter.NormalCurveBottom ?? (float?)filter.NormalCurveY ?? 0f,
-                    CurveLeft = (float?)filter.NormalCurveLeft ?? (float?)filter.NormalCurveX ?? 0f,
-                    CurveRight = (float?)filter.NormalCurveRight ?? (float?)filter.NormalCurveX ?? 0f,
-                    RadiusTop = (float?)filter.NormalRadiusTop ?? (float?)filter.NormalRadiusY ?? 1f,
-                    RadiusBottom = (float?)filter.NormalRadiusBottom ?? (float?)filter.NormalRadiusY ?? 1f,
-                    RadiusLeft = (float?)filter.NormalRadiusLeft ?? (float?)filter.NormalRadiusX ?? 1f,
-                    RadiusRight = (float?)filter.NormalRadiusRight ?? (float?)filter.NormalRadiusX ?? 1f,
+                    CurveTop = (float?)filter.GetNormalCurveTop() ?? 0f,
+                    CurveBottom = (float?)filter.GetNormalCurveBottom() ?? 0f,
+                    CurveLeft = (float?)filter.GetNormalCurveLeft() ?? 0f,
+                    CurveRight = (float?)filter.GetNormalCurveRight() ?? 0f,
+                    RadiusTop = (float?)filter.GetNormalRadiusTop() ?? 1f,
+                    RadiusBottom = (float?)filter.GetNormalRadiusBottom() ?? 1f,
+                    RadiusLeft = (float?)filter.GetNormalRadiusLeft() ?? 1f,
+                    RadiusRight = (float?)filter.GetNormalRadiusRight() ?? 1f,
                     Noise = (float?)filter.NormalNoise ?? 0f,
                 };
 

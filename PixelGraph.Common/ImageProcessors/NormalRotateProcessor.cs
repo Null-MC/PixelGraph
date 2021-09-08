@@ -131,25 +131,25 @@ namespace PixelGraph.Common.ImageProcessors
                 if (hasCurveTop) {
                     fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
                     ry = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
-                    angleY += options.CurveTop * ry * 0.5f;
+                    angleY += options.CurveTop * ry;
                 }
 
                 if (hasCurveBottom) {
                     fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
                     ry = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
-                    angleY += options.CurveBottom * ry * 0.5f;
+                    angleY += options.CurveBottom * ry;
                 }
 
                 if (hasCurveLeft) {
                     fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
                     rx = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft;
-                    angleX += options.CurveLeft * rx * 0.5f;
+                    angleX += options.CurveLeft * rx;
                 }
 
                 if (hasCurveRight) {
                     fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
                     rx = MathF.Max(fx - offsetRight, 0f) * invRadiusRight;
-                    angleX += options.CurveRight * rx * 0.5f;
+                    angleX += options.CurveRight * rx;
                 }
 
                 if (hasNoise) {
