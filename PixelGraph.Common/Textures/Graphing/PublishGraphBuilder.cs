@@ -71,7 +71,7 @@ namespace PixelGraph.Common.Textures.Graphing
 
         public async Task PublishInventoryAsync(string suffix, CancellationToken token = default)
         {
-            if (!(Context.Material.PublishInventory ?? false)) return;
+            if (!(Context.Material.PublishItem ?? false)) return;
 
             var packWriteTime = Reader.GetWriteTime(Context.Profile.LocalFile) ?? DateTime.Now;
             var sourceTime = Reader.GetWriteTime(Context.Material.LocalFilename);
@@ -88,7 +88,7 @@ namespace PixelGraph.Common.Textures.Graphing
         {
             await base.ProcessTextureAsync(image, textureTag, type, token);
             
-            if (Context.Material.PublishInventory ?? false) {
+            if (Context.Material.PublishItem ?? false) {
                 // WARN: half-ass filtering - fix asap
                 if (TextureTags.Is(textureTag, TextureTags.Color)) return;
 

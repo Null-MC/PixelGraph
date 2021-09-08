@@ -90,7 +90,7 @@ namespace PixelGraph.Common.Textures
             hasOutputPower = !OutputChannelPower.NearEqual(1f);
         }
 
-        public bool TryUnmap(in byte pixelValue, out float value)
+        public readonly bool TryUnmap(in byte pixelValue, out float value)
         {
             if (InputValue.HasValue) {
                 value = InputValue.Value;
@@ -132,7 +132,7 @@ namespace PixelGraph.Common.Textures
             return true;
         }
 
-        public bool TryUnmap(in float rawValue, out float value)
+        public readonly bool TryUnmap(in float rawValue, out float value)
         {
             if (InputValue.HasValue) {
                 value = InputValue.Value;
@@ -175,7 +175,7 @@ namespace PixelGraph.Common.Textures
             return true;
         }
 
-        public void Map(ref float value, out byte finalValue)
+        public readonly void Map(ref float value, out byte finalValue)
         {
             value += OutputValueShift;
             value *= OutputValueScale;
@@ -202,7 +202,7 @@ namespace PixelGraph.Common.Textures
             if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputChannelShift, in OutputRangeMin, in OutputRangeMax);
         }
 
-        public void Map(ref float value, out float finalValue)
+        public readonly void Map(ref float value, out float finalValue)
         {
             value += OutputValueShift;
             value *= OutputValueScale;

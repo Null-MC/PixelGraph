@@ -2,10 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 
 namespace PixelGraph.UI.ViewModels
 {
-    public abstract class PropertyCollectionBase<TSource> : List<IEditPropertyRow<TSource>>, INotifyPropertyChanged
+    public abstract class PropertyCollectionBase<TSource> : List<IPropertyRow>, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -31,6 +32,12 @@ namespace PixelGraph.UI.ViewModels
             Add(row);
         }
 
+        public void AddSeparator()
+        {
+            var row = new SeparatorPropertyRowModel();
+            Add(row);
+        }
+
         private void OnRowValueChanged(object sender, PropertyValueChangedEventArgs e)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(e.PropertyName));
@@ -38,14 +45,19 @@ namespace PixelGraph.UI.ViewModels
 
         public void SetData(TSource data)
         {
-            foreach (var row in this)
+            foreach (var row in GetRows())
                 row.SetData(data);
         }
 
         public void Invalidate()
         {
-            foreach (var row in this)
+            foreach (var row in GetRows())
                 row.Invalidate();
+        }
+
+        private IEnumerable<IEditPropertyRow<TSource>> GetRows()
+        {
+            return this.OfType<IEditPropertyRow<TSource>>();
         }
     }
 

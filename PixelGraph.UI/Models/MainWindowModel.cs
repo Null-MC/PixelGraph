@@ -2,8 +2,10 @@
 using Microsoft.Xaml.Behaviors.Core;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.Tabs;
+using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -28,18 +30,19 @@ namespace PixelGraph.UI.Models
         private ContentTreeNode _selectedNode;
         private LocationModel _selectedLocation;
         private ContentTreeNode _treeRoot;
-        //private ITabModel _selectedTab;
         private ITabModel _tabListSelection;
         private ITabModel _previewTab;
         private bool _isPreviewTabSelected;
+        private ViewModes _viewMode;
+        private EditModes _editMode;
+        private string _selectedTag;
 
         public event EventHandler SelectedTabChanged;
+        public event EventHandler SelectedTagChanged;
         public event EventHandler<TabClosedEventArgs> TabClosed;
+        public event EventHandler ViewModeChanged;
 
-        //public MaterialContextModel Material {get;}
         public ProfileContextModel Profile {get;}
-        public PreviewContextModel Preview {get;}
-        //public ObservableCollection<ITabModel> PreviewTabList {get;}
         public ObservableCollection<ITabModel> TabList {get;}
         public ICommand TabCloseButtonCommand {get;}
 
@@ -49,6 +52,7 @@ namespace PixelGraph.UI.Models
         public bool HasTreeSelection => _selectedNode is ContentTreeFile;
         public bool HasTreeMaterialSelection => _selectedNode is ContentTreeMaterialDirectory;
         public bool HasTreeTextureSelection => _selectedNode is ContentTreeFile {Type: ContentNodeType.Texture};
+        public bool HasSelectedTag => _selectedTag != null;
 
         public MaterialProperties SelectedTabMaterial => (SelectedTab as MaterialTabModel)?.Material;
         public ITabModel SelectedTab => _isPreviewTabSelected ? _previewTab : _tabListSelection;
@@ -71,6 +75,77 @@ namespace PixelGraph.UI.Models
                     OnPropertyChanged(nameof(HasSelectedMaterial));
                     OnSelectedTabChanged();
                 }
+            }
+        }
+
+        public string SelectedTag {
+            get => _selectedTag;
+            set {
+                if (value == _selectedTag) return;
+
+                _selectedTag = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(HasSelectedTag));
+                OnSelectedTagChanged();
+            }
+        }
+
+        public bool IsViewModeLayer {
+            get => _viewMode == ViewModes.Layer;
+            set {
+                if (!value) return;
+                _viewMode = ViewModes.Layer;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsViewModeRender));
+                OnViewModeChanged();
+            }
+        }
+
+        public bool IsViewModeRender {
+            get => _viewMode == ViewModes.Render;
+            set {
+                if (!value) return;
+                _viewMode = ViewModes.Render;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsViewModeLayer));
+                OnViewModeChanged();
+            }
+        }
+
+        public bool IsEditModeMaterial {
+            get => _editMode == EditModes.Material;
+            set {
+                if (!value) return;
+                _editMode = EditModes.Material;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsEditModeFilters));
+                OnPropertyChanged(nameof(IsEditModeConnections));
+                //OnEditModeChanged();
+            }
+        }
+
+        public bool IsEditModeFilters {
+            get => _editMode == EditModes.Filters;
+            set {
+                if (!value) return;
+                _editMode = EditModes.Filters;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsEditModeMaterial));
+                OnPropertyChanged(nameof(IsEditModeConnections));
+                //OnEditModeChanged();
+            }
+        }
+
+        public bool IsEditModeConnections {
+            get => _editMode == EditModes.Connections;
+            set {
+                if (!value) return;
+                _editMode = EditModes.Connections;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsEditModeMaterial));
+                OnPropertyChanged(nameof(IsEditModeFilters));
+                //OnEditModeChanged();
             }
         }
 
@@ -212,6 +287,8 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public bool SupportsRender {get;}
+
         #endregion
 
 
@@ -223,12 +300,16 @@ namespace PixelGraph.UI.Models
             busyLock = new object();
 
             Profile = new ProfileContextModel();
-            Preview = new PreviewContextModel();
 
             TabList = new ObservableCollection<ITabModel>();
             TabCloseButtonCommand = new ActionCommand(OnTabCloseButtonClicked);
 
             _isInitializing = true;
+            _selectedTag = TextureTags.Color;
+
+#if !NORENDER
+            SupportsRender = true;
+#endif
         }
 
         public void EndInit()
@@ -274,10 +355,20 @@ namespace PixelGraph.UI.Models
             SelectedTabChanged?.Invoke(this, EventArgs.Empty);
         }
 
+        private void OnSelectedTagChanged()
+        {
+            SelectedTagChanged?.Invoke(this, EventArgs.Empty);
+        }
+
         private void OnTabClosed(Guid tabId)
         {
             var e = new TabClosedEventArgs(tabId);
             TabClosed?.Invoke(this, e);
+        }
+
+        private void OnViewModeChanged()
+        {
+            ViewModeChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 

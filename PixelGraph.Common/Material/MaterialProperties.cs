@@ -13,8 +13,7 @@ namespace PixelGraph.Common.Material
         public const bool DefaultWrap = true;
         public const string DefaultInputFormat = TextureFormat.Format_Raw;
         public const bool DefaultPublish = true;
-        public const bool DefaultPublishInventory = false;
-        public const bool DefaultBakeOcclusionToColor = false;
+        public const bool DefaultPublishItem = false;
 
         [YamlIgnore]
         public string Name {get; set;}
@@ -44,7 +43,7 @@ namespace PixelGraph.Common.Material
         public bool? Publish {get; set;}
 
         [YamlMember(Order = -97)]
-        public bool? PublishInventory {get; set;}
+        public bool? PublishItem {get; set;}
 
         [YamlMember(Order = -96)]
         public int? TextureSize {get; set;}
@@ -60,14 +59,6 @@ namespace PixelGraph.Common.Material
 
         [YamlMember(Order = -92)]
         public bool? WrapY {get; set;}
-
-        [YamlMember(Order = -91)]
-        public string ColorTint {get; set;}
-
-        [YamlMember(Order = -90)]
-        public bool? BakeOcclusionToColor {get; set;}
-
-        //public bool? Resizable {get; set;}
 
         public int? RangeMin {get; set;}
 
@@ -290,6 +281,30 @@ namespace PixelGraph.Common.Material
 
         #region Deprecated
 
+        [Obsolete("Replace usages of PublishInventory with PublishItem")]
+        public bool? PublishInventory {
+            get => null;
+            set => PublishItem = value;
+        }
+
+        [Obsolete("Replace usages of ColorTint with Color.ColorTint")]
+        public string ColorTint {
+            get => null;
+            set {
+                Color ??= new MaterialColorProperties();
+                Color.PreviewTint = value;
+            }
+        }
+
+        [Obsolete("Replace usages of BakeOcclusionToColor with Color.BakeOcclusion")]
+        public bool? BakeOcclusionToColor {
+            get => null;
+            set {
+                Color ??= new MaterialColorProperties();
+                Color.BakeOcclusion = value;
+            }
+        }
+
         [Obsolete("Replace usages of Wrap with WrapX and WrapY")]
         public bool? Wrap {
             get => null;
@@ -302,7 +317,7 @@ namespace PixelGraph.Common.Material
         [Obsolete("Replace usages of CreateInventory with PublishInventory")]
         [YamlMember] public bool? CreateInventory {
             get => null;
-            set => PublishInventory = value;
+            set => PublishItem = value;
         }
 
         [Obsolete("Replace usages of CtmType with CTM.Type")]

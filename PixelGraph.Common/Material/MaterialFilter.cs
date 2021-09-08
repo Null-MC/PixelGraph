@@ -4,15 +4,6 @@ using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material
 {
-    //public interface IMaterialFilter
-    //{
-    //    public string Type {get;}
-    //    public decimal? Left {get;}
-    //    public decimal? Top {get;}
-    //    public decimal? Width {get;}
-    //    public decimal? Height {get;}
-    //}
-
     public class MaterialFilter
     {
         [YamlMember(Order = 0)]
@@ -31,10 +22,7 @@ namespace PixelGraph.Common.Material
         public decimal? Height {get; set;}
 
         [YamlMember(Order = 5)]
-        public bool? WrapX {get; set;}
-
-        [YamlMember(Order = 6)]
-        public bool? WrapY {get; set;}
+        public bool? Tile {get; set;}
 
         [YamlMember(Order = 100)]
         public decimal? NormalNoise {get; set;}
@@ -43,22 +31,52 @@ namespace PixelGraph.Common.Material
         public decimal? NormalCurveX {get; set;}
 
         [YamlMember(Order = 102)]
-        public decimal? NormalCurveY {get; set;}
+        public decimal? NormalCurveLeft {get; set;}
 
         [YamlMember(Order = 103)]
-        public decimal? NormalRadiusX {get; set;}
+        public decimal? NormalCurveRight {get; set;}
 
         [YamlMember(Order = 104)]
+        public decimal? NormalCurveY {get; set;}
+
+        [YamlMember(Order = 105)]
+        public decimal? NormalCurveTop {get; set;}
+
+        [YamlMember(Order = 106)]
+        public decimal? NormalCurveBottom {get; set;}
+
+        [YamlMember(Order = 107)]
+        public decimal? NormalRadiusX {get; set;}
+
+        [YamlMember(Order = 108)]
+        public decimal? NormalRadiusLeft {get; set;}
+
+        [YamlMember(Order = 109)]
+        public decimal? NormalRadiusRight {get; set;}
+
+        [YamlMember(Order = 110)]
         public decimal? NormalRadiusY {get; set;}
 
-        [YamlIgnore]
-        public bool HasNormalRotationX => Math.Abs(NormalCurveX ?? 0m) > 0m && (NormalRadiusX ?? 1m) > 0m;
+        [YamlMember(Order = 111)]
+        public decimal? NormalRadiusTop {get; set;}
+
+        [YamlMember(Order = 112)]
+        public decimal? NormalRadiusBottom {get; set;}
 
         [YamlIgnore]
-        public bool HasNormalRotationY => Math.Abs(NormalCurveY ?? 0m) > 0m && (NormalRadiusY ?? 1m) > 0m;
+        public bool HasNormalRotationLeft => Math.Abs(NormalCurveLeft ?? NormalCurveX ?? 0m) > 0m && (NormalRadiusLeft ?? NormalRadiusX ?? 1m) > 0m;
 
         [YamlIgnore]
-        public bool HasNormalRotation => HasNormalRotationX || HasNormalRotationY || NormalNoise.HasValue;
+        public bool HasNormalRotationRight => Math.Abs(NormalCurveRight ?? NormalCurveX ?? 0m) > 0m && (NormalRadiusRight ?? NormalRadiusX ?? 1m) > 0m;
+
+        [YamlIgnore]
+        public bool HasNormalRotationTop => Math.Abs(NormalCurveTop ?? NormalCurveY ?? 0m) > 0m && (NormalRadiusTop ?? NormalRadiusY ?? 1m) > 0m;
+
+        [YamlIgnore]
+        public bool HasNormalRotationBottom => Math.Abs(NormalCurveBottom ?? NormalCurveY ?? 0m) > 0m && (NormalRadiusBottom ?? NormalRadiusY ?? 1m) > 0m;
+
+        [YamlIgnore]
+        public bool HasNormalRotation => HasNormalRotationLeft || HasNormalRotationRight || HasNormalRotationTop || HasNormalRotationBottom || NormalNoise.HasValue;
 
 
         public void GetRectangle(out RectangleF region)
@@ -76,21 +94,11 @@ namespace PixelGraph.Common.Material
             GetRectangle(out var bounds);
 
             region = new Rectangle {
-                X = (int)Math.Round(bounds.X * width),
-                Y = (int)Math.Round(bounds.Y * height),
-                Width = (int)Math.Round(bounds.Width * width),
-                Height = (int)Math.Round(bounds.Height * height),
+                X = (int)(bounds.X * width + 0.5f),
+                Y = (int)(bounds.Y * height + 0.5f),
+                Width = (int)(bounds.Width * width + 0.5f),
+                Height = (int)(bounds.Height * height + 0.5f),
             };
         }
-
-        //public Rectangle GetRectangle(float scale)
-        //{
-        //    return new Rectangle {
-        //        X = (int) MathF.Ceiling((Left ?? 0) * scale),
-        //        Y = (int) MathF.Ceiling((Top ?? 0) * scale),
-        //        Width = (int) MathF.Ceiling((Width ?? 0) * scale),
-        //        Height = (int) MathF.Ceiling((Height ?? 0) * scale),
-        //    };
-        //}
     }
 }

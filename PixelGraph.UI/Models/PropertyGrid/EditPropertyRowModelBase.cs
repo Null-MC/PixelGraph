@@ -7,14 +7,16 @@ using System.Reflection;
 
 namespace PixelGraph.UI.Models.PropertyGrid
 {
-    public interface IPropertyRow : INotifyPropertyChanged
+    public interface IPropertyRow : INotifyPropertyChanged {}
+
+    public interface IEditPropertyRow : IPropertyRow
     {
         string Name {get;}
         object ActualValue {get;}
         object EditValue {get; set;}
     }
 
-    public interface IEditPropertyRow<in TProperty> : IPropertyRow
+    public interface IEditPropertyRow<in TProperty> : IEditPropertyRow
     {
         void SetData(TProperty data);
         void Invalidate();

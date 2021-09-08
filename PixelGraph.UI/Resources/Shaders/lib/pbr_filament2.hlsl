@@ -107,7 +107,8 @@ float3 IBL_Specular(const in float3 F, const in float NoV, const in float3 r, co
 		indirect_specular = srgb_to_linear(vLightAmbient.rgb);
 	}
 	
-    const float2 env_brdf  = srgb_to_linear(tex_brdf_lut.SampleLevel(sampler_brdf_lut, float2(NoV, roughL), 0));
+    //const float2 env_brdf  = srgb_to_linear(tex_brdf_lut.SampleLevel(sampler_brdf_lut, float2(NoV, roughL), 0));
+    const float2 env_brdf  = tex_brdf_lut.SampleLevel(sampler_brdf_lut, float2(NoV, roughL), 0);
 	return indirect_specular * (F * env_brdf.x + env_brdf.y) * specular_occlusion;
 }
 

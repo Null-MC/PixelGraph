@@ -21,24 +21,25 @@ namespace PixelGraph.UI.Models
         public GeneralPropertyCollection GeneralProperties {get;}
         public OpacityPropertyCollection OpacityProperties {get;}
         public ColorPropertyCollection ColorProperties {get;}
-        public HeightPropertyCollection Height {get;}
-        public HeightEdgeFadingPropertyCollection HeightEdgeFading {get;}
-        public NormalPropertyCollection Normal {get;}
-        public NormalFilterPropertyCollection NormalFilter {get;}
-        public NormalGeneratorPropertyCollection NormalGeneration {get;}
-        public OcclusionPropertyCollection Occlusion {get;}
-        public OcclusionGeneratorPropertyCollection OcclusionGeneration {get;}
-        public SpecularPropertyCollection Specular {get;}
-        public SmoothPropertyCollection Smooth {get;}
-        public RoughPropertyCollection Rough {get;}
-        public MetalPropertyCollection Metal {get;}
-        public F0PropertyCollection F0 {get;}
-        public PorosityPropertyCollection Porosity {get;}
-        public SssPropertyCollection Sss {get; set;}
-        public EmissivePropertyCollection Emissive {get;}
+        public ColorOtherPropertyCollection ColorOtherProperties {get;}
+        public HeightPropertyCollection HeightProperties {get;}
+        public HeightEdgeFadingPropertyCollection HeightEdgeProperties {get;}
+        public NormalPropertyCollection NormalProperties {get;}
+        public NormalFilterPropertyCollection NormalFilterProperties {get;}
+        public NormalGeneratorPropertyCollection NormalGenerationProperties {get;}
+        public OcclusionPropertyCollection OcclusionProperties {get;}
+        public OcclusionGeneratorPropertyCollection OcclusionGenerationProperties {get;}
+        public SpecularPropertyCollection SpecularProperties {get;}
+        public SmoothPropertyCollection SmoothProperties {get;}
+        public RoughPropertyCollection RoughProperties {get;}
+        public MetalPropertyCollection MetalProperties {get;}
+        public F0PropertyCollection F0Properties {get;}
+        public PorosityPropertyCollection PorosityProperties {get;}
+        public SssPropertyCollection SssProperties {get; set;}
+        public EmissivePropertyCollection EmissiveProperties {get;}
 
         public bool HasMaterial => _material != null;
-        //public bool IsGeneralSelected => _selectedTag == null;
+        public bool IsGeneralSelected => TextureTags.Is(_selectedTag, TextureTags.General);
         public bool IsOpacitySelected => TextureTags.Is(_selectedTag, TextureTags.Opacity);
         public bool IsColorSelected => TextureTags.Is(_selectedTag, TextureTags.Color);
         public bool IsHeightSelected => TextureTags.Is(_selectedTag, TextureTags.Height);
@@ -62,24 +63,25 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasMaterial));
 
-                GeneralProperties.SetData(Material);
-                OpacityProperties.SetData(Material?.Opacity);
-                ColorProperties.SetData(Material?.Color);
-                Height.SetData(Material?.Height);
-                HeightEdgeFading.SetData(Material?.Height);
-                Normal.SetData(Material?.Normal);
-                NormalFilter.SetData(Material?.Normal);
-                NormalGeneration.SetData(Material?.Normal);
-                Occlusion.SetData(Material?.Occlusion);
-                OcclusionGeneration.SetData(Material?.Occlusion);
-                Specular.SetData(Material?.Specular);
-                Smooth.SetData(Material?.Smooth);
-                Rough.SetData(Material?.Rough);
-                Metal.SetData(Material?.Metal);
-                F0.SetData(Material?.F0);
-                Porosity.SetData(Material?.Porosity);
-                Sss.SetData(Material?.SSS);
-                Emissive.SetData(Material?.Emissive);
+                GeneralProperties.SetData(value);
+                OpacityProperties.SetData(value?.Opacity);
+                ColorProperties.SetData(value?.Color);
+                ColorOtherProperties.SetData(value?.Color);
+                HeightProperties.SetData(value?.Height);
+                HeightEdgeProperties.SetData(value?.Height);
+                NormalProperties.SetData(value?.Normal);
+                NormalFilterProperties.SetData(value?.Normal);
+                NormalGenerationProperties.SetData(value?.Normal);
+                OcclusionProperties.SetData(value?.Occlusion);
+                OcclusionGenerationProperties.SetData(value?.Occlusion);
+                SpecularProperties.SetData(value?.Specular);
+                SmoothProperties.SetData(value?.Smooth);
+                RoughProperties.SetData(value?.Rough);
+                MetalProperties.SetData(value?.Metal);
+                F0Properties.SetData(value?.F0);
+                PorosityProperties.SetData(value?.Porosity);
+                SssProperties.SetData(value?.SSS);
+                EmissiveProperties.SetData(value?.Emissive);
 
                 _iorToF0Value = null;
                 _iorDefaultValue = CalculateIorFromF0();
@@ -94,7 +96,7 @@ namespace PixelGraph.UI.Models
                 _selectedTag = value;
                 OnPropertyChanged();
 
-                //OnPropertyChanged(nameof(IsGeneralSelected));
+                OnPropertyChanged(nameof(IsGeneralSelected));
                 OnPropertyChanged(nameof(IsOpacitySelected));
                 OnPropertyChanged(nameof(IsColorSelected));
                 OnPropertyChanged(nameof(IsHeightSelected));
@@ -132,50 +134,53 @@ namespace PixelGraph.UI.Models
             ColorProperties = new ColorPropertyCollection();
             ColorProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Height = new HeightPropertyCollection();
-            Height.PropertyChanged += OnPropertyValueChanged;
+            ColorOtherProperties = new ColorOtherPropertyCollection();
+            ColorOtherProperties.PropertyChanged += OnPropertyValueChanged;
 
-            HeightEdgeFading = new HeightEdgeFadingPropertyCollection();
-            HeightEdgeFading.PropertyChanged += OnPropertyValueChanged;
+            HeightProperties = new HeightPropertyCollection();
+            HeightProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Normal = new NormalPropertyCollection();
-            Normal.PropertyChanged += OnPropertyValueChanged;
+            HeightEdgeProperties = new HeightEdgeFadingPropertyCollection();
+            HeightEdgeProperties.PropertyChanged += OnPropertyValueChanged;
 
-            NormalFilter = new NormalFilterPropertyCollection();
-            NormalFilter.PropertyChanged += OnPropertyValueChanged;
+            NormalProperties = new NormalPropertyCollection();
+            NormalProperties.PropertyChanged += OnPropertyValueChanged;
 
-            NormalGeneration = new NormalGeneratorPropertyCollection();
-            NormalGeneration.PropertyChanged += OnPropertyValueChanged;
+            NormalFilterProperties = new NormalFilterPropertyCollection();
+            NormalFilterProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Occlusion = new OcclusionPropertyCollection();
-            Occlusion.PropertyChanged += OnPropertyValueChanged;
+            NormalGenerationProperties = new NormalGeneratorPropertyCollection();
+            NormalGenerationProperties.PropertyChanged += OnPropertyValueChanged;
 
-            OcclusionGeneration = new OcclusionGeneratorPropertyCollection();
-            OcclusionGeneration.PropertyChanged += OnPropertyValueChanged;
+            OcclusionProperties = new OcclusionPropertyCollection();
+            OcclusionProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Specular = new SpecularPropertyCollection();
-            Specular.PropertyChanged += OnPropertyValueChanged;
+            OcclusionGenerationProperties = new OcclusionGeneratorPropertyCollection();
+            OcclusionGenerationProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Smooth = new SmoothPropertyCollection();
-            Smooth.PropertyChanged += OnPropertyValueChanged;
+            SpecularProperties = new SpecularPropertyCollection();
+            SpecularProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Rough = new RoughPropertyCollection();
-            Rough.PropertyChanged += OnPropertyValueChanged;
+            SmoothProperties = new SmoothPropertyCollection();
+            SmoothProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Metal = new MetalPropertyCollection();
-            Metal.PropertyChanged += OnPropertyValueChanged;
+            RoughProperties = new RoughPropertyCollection();
+            RoughProperties.PropertyChanged += OnPropertyValueChanged;
 
-            F0 = new F0PropertyCollection();
-            F0.PropertyChanged += OnF0PropertyValueChanged;
+            MetalProperties = new MetalPropertyCollection();
+            MetalProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Porosity = new PorosityPropertyCollection();
-            Porosity.PropertyChanged += OnPropertyValueChanged;
+            F0Properties = new F0PropertyCollection();
+            F0Properties.PropertyChanged += OnF0PropertyValueChanged;
 
-            Sss = new SssPropertyCollection();
-            Sss.PropertyChanged += OnPropertyValueChanged;
+            PorosityProperties = new PorosityPropertyCollection();
+            PorosityProperties.PropertyChanged += OnPropertyValueChanged;
 
-            Emissive = new EmissivePropertyCollection();
-            Emissive.PropertyChanged += OnPropertyValueChanged;
+            SssProperties = new SssPropertyCollection();
+            SssProperties.PropertyChanged += OnPropertyValueChanged;
+
+            EmissiveProperties = new EmissivePropertyCollection();
+            EmissiveProperties.PropertyChanged += OnPropertyValueChanged;
         }
 
         public void ConvertIorToF0()
@@ -187,7 +192,7 @@ namespace PixelGraph.UI.Models
 
             Material.F0.Value = f0;
             OnDataChanged();
-            F0.Invalidate();
+            F0Properties.Invalidate();
 
             _iorDefaultValue = _iorToF0Value;
             _iorToF0Value = null;
@@ -236,12 +241,10 @@ namespace PixelGraph.UI.Models
             var options = new SelectPropertyRowOptions(new AllTextureFormatValues(), "Text", "Value");
 
             AddSelect("Input Format", nameof(MaterialProperties.InputFormat), options, MaterialProperties.DefaultInputFormat);
-            AddBool<bool?>("Publish", nameof(MaterialProperties.Publish), MaterialProperties.DefaultPublish);
-            AddBool<bool?>("Publish Inventory", nameof(MaterialProperties.PublishInventory), MaterialProperties.DefaultPublishInventory);
+            AddBool<bool?>("Publish Texture", nameof(MaterialProperties.Publish), MaterialProperties.DefaultPublish);
+            AddBool<bool?>("Publish Item Texture", nameof(MaterialProperties.PublishItem), MaterialProperties.DefaultPublishItem);
             AddBool<bool?>("Wrap Horizontally", nameof(MaterialProperties.WrapX), MaterialProperties.DefaultWrap);
             AddBool<bool?>("Wrap Vertically", nameof(MaterialProperties.WrapY), MaterialProperties.DefaultWrap);
-            AddBool<bool?>("Bake Occlusion to Color", nameof(MaterialProperties.BakeOcclusionToColor), MaterialProperties.DefaultBakeOcclusionToColor);
-            AddText<string>("Color Tint", nameof(MaterialProperties.ColorTint));
         }
     }
 
@@ -266,6 +269,15 @@ namespace PixelGraph.UI.Models
             AddText<decimal?>("Red Scale", nameof(MaterialColorProperties.ScaleRed), 1.0m);
             AddText<decimal?>("Green Scale", nameof(MaterialColorProperties.ScaleGreen), 1.0m);
             AddText<decimal?>("Blue Scale", nameof(MaterialColorProperties.ScaleBlue), 1.0m);
+        }
+    }
+
+    public class ColorOtherPropertyCollection : PropertyCollectionBase<MaterialColorProperties>
+    {
+        public ColorOtherPropertyCollection()
+        {
+            AddBool<bool?>("Bake Occlusion", nameof(MaterialColorProperties.BakeOcclusion), MaterialColorProperties.DefaultBakeOcclusion);
+            AddText<string>("Preview Tint", nameof(MaterialColorProperties.PreviewTint));
         }
     }
 

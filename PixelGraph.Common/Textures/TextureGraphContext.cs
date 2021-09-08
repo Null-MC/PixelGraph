@@ -75,7 +75,7 @@ namespace PixelGraph.Common.Textures
         //public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
         public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
 
-        public bool BakeOcclusionToColor => Material.BakeOcclusionToColor ?? Profile.BakeOcclusionToColor
+        public bool BakeOcclusionToColor => Material.Color.BakeOcclusion ?? Profile.BakeOcclusionToColor
                                            ?? ResourcePackProfileProperties.BakeOcclusionToColorDefault;
 
 

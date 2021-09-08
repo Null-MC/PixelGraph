@@ -49,7 +49,7 @@ namespace PixelGraph.Common.Textures
             var options = new NormalMapProcessor<THeight>.Options {
                 Source = HeightImage,
                 HeightChannel = HeightChannel,
-                Strength = Strength,
+                Strength = MathF.Max(Strength, float.Epsilon),
                 Method = Method,
                 WrapX = WrapX,
                 WrapY = WrapY,
@@ -93,7 +93,7 @@ namespace PixelGraph.Common.Textures
             var normalHighFreqOptions = new NormalMapProcessor<THeight>.Options {
                 Source = HeightImage,
                 HeightChannel = HeightChannel,
-                Strength = Strength,
+                Strength = MathF.Max(Strength, float.Epsilon),
                 WrapX = WrapX,
                 WrapY = WrapY,
             };

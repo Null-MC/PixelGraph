@@ -152,10 +152,14 @@ namespace PixelGraph.Common.Textures
 
             var options = new NormalRotateProcessor.Options {
                 RestoreNormalZ = !hasNormalZ,
-                CurveX = (float?)context.Material.Normal?.CurveX ?? 0f,
-                CurveY = (float?)context.Material.Normal?.CurveY ?? 0f,
-                RadiusX = (float?)context.Material.Normal?.RadiusX ?? 1f,
-                RadiusY = (float?)context.Material.Normal?.RadiusY ?? 1f,
+                CurveTop = (float?)context.Material.Normal?.GetCurveTop() ?? 0f,
+                CurveBottom = (float?)context.Material.Normal?.GetCurveBottom() ?? 0f,
+                CurveLeft = (float?)context.Material.Normal?.GetCurveLeft() ?? 0f,
+                CurveRight = (float?)context.Material.Normal?.GetCurveRight() ?? 0f,
+                RadiusTop = (float?)context.Material.Normal?.GetRadiusTop() ?? 1f,
+                RadiusBottom = (float?)context.Material.Normal?.GetRadiusBottom() ?? 1f,
+                RadiusLeft = (float?)context.Material.Normal?.GetRadiusLeft() ?? 1f,
+                RadiusRight = (float?)context.Material.Normal?.GetRadiusRight() ?? 1f,
                 Noise = (float?)context.Material.Normal?.Noise ?? 0f,
             };
 
@@ -251,22 +255,54 @@ namespace PixelGraph.Common.Textures
         private void ApplyFiltering()
         {
             foreach (var filter in context.Material.Filters) {
-                filter.GetRectangle(NormalTexture.Width, NormalTexture.Height, out var region);
+                if (filter.Tile == true && context.IsMaterialCtm) {
+                    filter.GetRectangle(out var filterRegion);
 
-                if (filter.HasNormalRotation) {
-                    var curveOptions = new NormalRotateProcessor.Options {
-                        CurveX = (float?)filter.NormalCurveX ?? 0f,
-                        CurveY = (float?)filter.NormalCurveY ?? 0f,
-                        RadiusX = (float?)filter.NormalRadiusX ?? 1f,
-                        RadiusY = (float?)filter.NormalRadiusY ?? 1f,
-                        Noise = (float?)filter.NormalNoise ?? 0f,
-                    };
+                    foreach (var part in regions.GetAllPublishRegions(1, 0)) {
+                        var frame = part.Frames.FirstOrDefault();
+                        if (frame == null) continue;
 
-                    var curveProcessor = new NormalRotateProcessor(curveOptions);
-                    NormalTexture.Mutate(c => c.ApplyProcessor(curveProcessor, region));
+                        var srcFrame = regions.GetPublishPartFrame(0, 1, part.TileIndex);
+                        
+                        //inventoryOptions.NormalSampler.Bounds = srcFrame.SourceBounds;
+                        var x = srcFrame.SourceBounds.X + filterRegion.X * srcFrame.SourceBounds.Width;
+                        var y = srcFrame.SourceBounds.Y + filterRegion.Y * srcFrame.SourceBounds.Height;
+                        var w = srcFrame.SourceBounds.Width * filterRegion.Width;
+                        var h = srcFrame.SourceBounds.Height * filterRegion.Height;
+
+                        var region = new Rectangle(
+                            (int)(x * NormalTexture.Width + 0.5f),
+                            (int)(y * NormalTexture.Height + 0.5f),
+                            (int)(w * NormalTexture.Width + 0.5f),
+                            (int)(h * NormalTexture.Height + 0.5f));
+
+                        ApplyFilterRegion(filter, region);
+                    }
                 }
+                else {
+                    filter.GetRectangle(NormalTexture.Width, NormalTexture.Height, out var region);
+                    ApplyFilterRegion(filter, region);
+                }
+            }
+        }
 
-                //...
+        private void ApplyFilterRegion(MaterialFilter filter, Rectangle region)
+        {
+            if (filter.HasNormalRotation) {
+                var curveOptions = new NormalRotateProcessor.Options {
+                    CurveTop = (float?)filter.NormalCurveTop ?? (float?)filter.NormalCurveY ?? 0f,
+                    CurveBottom = (float?)filter.NormalCurveBottom ?? (float?)filter.NormalCurveY ?? 0f,
+                    CurveLeft = (float?)filter.NormalCurveLeft ?? (float?)filter.NormalCurveX ?? 0f,
+                    CurveRight = (float?)filter.NormalCurveRight ?? (float?)filter.NormalCurveX ?? 0f,
+                    RadiusTop = (float?)filter.NormalRadiusTop ?? (float?)filter.NormalRadiusY ?? 1f,
+                    RadiusBottom = (float?)filter.NormalRadiusBottom ?? (float?)filter.NormalRadiusY ?? 1f,
+                    RadiusLeft = (float?)filter.NormalRadiusLeft ?? (float?)filter.NormalRadiusX ?? 1f,
+                    RadiusRight = (float?)filter.NormalRadiusRight ?? (float?)filter.NormalRadiusX ?? 1f,
+                    Noise = (float?)filter.NormalNoise ?? 0f,
+                };
+
+                var curveProcessor = new NormalRotateProcessor(curveOptions);
+                NormalTexture.Mutate(c => c.ApplyProcessor(curveProcessor, region));
             }
         }
 

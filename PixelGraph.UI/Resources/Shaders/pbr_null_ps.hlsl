@@ -181,7 +181,7 @@ float4 main(const ps_input input) : SV_TARGET
     float3 final_color = final_diffuse + final_specular + final_sss + emissive;
 	float alpha = mat.alpha + lum(acc_specular + ibl_specular);
 
-    //return float4(final_sss, 1.0f);
+    //return float4(ibl_specular, 1.0f);
 	
 	final_color = tonemap_AcesFilm(final_color);
 	final_color = linear_to_srgb(final_color);

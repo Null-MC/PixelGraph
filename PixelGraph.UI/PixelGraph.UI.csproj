@@ -8,9 +8,14 @@
     <UseWPF>true</UseWPF>
     <Platforms>AnyCPU;x64</Platforms>
     <ApplicationIcon>icon.ico</ApplicationIcon>
+    <Configurations>Debug;Release;ReleaseNoRender</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoRender|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -28,7 +33,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoRender|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='ReleaseNoRender'">
+    <DefineConstants>$(DefineConstants);NORENDER</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Configuration)'!='ReleaseNoRender'">
     <Folder Include="Resources\Shaders\compiled\" />
     <EmbeddedResource Include="Resources\Shaders\compiled\**" />
   </ItemGroup>
@@ -37,13 +50,15 @@
     <Compile Remove="Controls\DataGridComboBoxExColumn.xaml.cs" />
     <Compile Remove="Controls\DataGridComboBoxExColumn2.cs" />
     <Compile Remove="Controls\PropertyGridItem.xaml.cs" />
+    <Compile Remove="Converters\BoolToEnumConverter.cs" />
     <Compile Remove="Converters\InverseBooleanConverter.cs" />
     <Compile Remove="Internal\AppConfiguration.cs" />
     <Compile Remove="Internal\ImagePreviewCache.cs" />
-    <Compile Remove="Internal\Preview\Materials\PbrMetalMaterialBuilder.cs" />
+    <Compile Remove="Helix\Materials\PbrMetalMaterialBuilder.cs" />
     <Compile Remove="Internal\Preview\PbrSpecularMeshModel3D.cs" />
     <Compile Remove="Internal\Preview\Textures\RenderPbrMetalPreviewBuilder.cs" />
     <Compile Remove="Models\MaterialContextModel.cs" />
+    <Compile Remove="Models\PreviewContextModel.cs" />
     <Compile Remove="Models\ShaderErrorWindowModel.cs" />
     <Compile Remove="ViewData\BedrockTextureFormatValues.cs" />
     <Compile Remove="ViewData\JavaTextureFormatValues.cs" />
@@ -51,6 +66,7 @@
     <Compile Remove="ViewModels\LogListVM.cs" />
     <Compile Remove="ViewModels\OutputChannelMapping.cs" />
     <Compile Remove="ViewModels\PackEncodingVM.cs" />
+    <Compile Remove="ViewModels\PreviewViewModel.cs" />
     <Compile Remove="ViewModels\PropertyGridDesignVM.cs" />
     <Compile Remove="ViewModels\TreeSearchFilter.cs" />
     <Compile Remove="Windows\ShaderErrorsWindow.xaml.cs" />
@@ -64,6 +80,7 @@
     <None Remove="Resources\Shaders\diffuse_vs.hlsl" />
     <None Remove="Resources\Shaders\lib\sky_colors.hlsl" />
     <None Remove="Resources\Shaders\lib\sky_nvidia.hlsl" />
+    <None Remove="Resources\Shaders\occlusion_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_filament_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_null_ps.hlsl" />
     <None Remove="Resources\Shaders\pbr_vs.hlsl" />
@@ -83,6 +100,20 @@
     <Page Remove="Controls\PropertyGridItem.xaml" />
     <Page Remove="Resources\MaterialDesignTheme.CheckBoxEx.xaml" />
     <Page Remove="Windows\ShaderErrorsWindow.xaml" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'=='ReleaseNoRender'">
+    <Page Remove="Controls\RenderPreviewControl.xaml" />
+    <Compile Remove="Controls\RenderPreviewControl.xaml.cs" />
+    <Compile Remove="Helix\**" />
+    <Compile Remove="Models\RenderPreviewModel.cs" />
+    <Compile Remove="ViewModels\RenderPreviewViewModel.cs" />
+    <Folder Remove="Resources\Shaders\**" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'!='ReleaseNoRender'">
+    <Page Remove="Controls\NoRenderPreviewControl.xaml" />
+    <Compile Remove="Controls\NoRenderPreviewControl.xaml.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -138,15 +169,22 @@
       <ShaderProfile>ps_4_0</ShaderProfile>
       <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_jessie_ps.cso</ObjectFileOutput>
     </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\occlusion_ps.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\occlusion_ps.cso</ObjectFileOutput>
+    </HLSLShader>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.16.1" />
-    <PackageReference Include="JeremyAnsel.HLSL.Targets" Version="1.0.10" />
-    <PackageReference Include="MahApps.Metro" Version="2.4.5" />
+    <PackageReference Include="MahApps.Metro" Version="2.4.7" />
     <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.8.0" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="3.1.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'!='ReleaseNoRender'">
+    <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.18.0" />
+    <PackageReference Include="JeremyAnsel.HLSL.Targets" Version="1.0.13" />
   </ItemGroup>
 
   <ItemGroup>

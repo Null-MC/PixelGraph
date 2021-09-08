@@ -39,7 +39,7 @@ namespace PixelGraph.UI.Controls
         {
             if (isEditing || e.Key != Key.Delete) return;
             
-            foreach (var row in SelectedItems.OfType<IPropertyRow>())
+            foreach (var row in SelectedItems.OfType<IEditPropertyRow>())
                 row.EditValue = null;
 
             e.Handled = true;
@@ -61,6 +61,7 @@ namespace PixelGraph.UI.Controls
         public DataTemplate TextBoxTemplate {get; set;}
         public DataTemplate CheckBoxTemplate {get; set;}
         public DataTemplate ComboBoxTemplate {get; set;}
+        public DataTemplate SeparatorTemplate {get; set;}
 
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
@@ -69,6 +70,7 @@ namespace PixelGraph.UI.Controls
                 ITextPropertyRow => TextBoxTemplate,
                 IBoolPropertyRow => CheckBoxTemplate,
                 ISelectPropertyRow => ComboBoxTemplate,
+                ISeparatorPropertyRow => SeparatorTemplate,
                 _ => base.SelectTemplate(item, container)
             };
         }

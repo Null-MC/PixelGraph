@@ -12,7 +12,7 @@ COPY ./PixelGraph.CLI ./PixelGraph.CLI/
 WORKDIR /src/PixelGraph.CLI
 RUN dotnet publish -c Release -o /publish \
 	--runtime alpine-x64 --self-contained true \
-	/p:PubishTrimmed=true
+	/p:PublishTrimmed=true
 
 FROM mcr.microsoft.com/dotnet/runtime:5.0-alpine
 WORKDIR /app

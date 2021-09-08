@@ -11,6 +11,7 @@ using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
+using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.Models.Tabs;
@@ -38,7 +39,12 @@ namespace PixelGraph.UI.ViewModels
         public event EventHandler<UnhandledExceptionEventArgs> TreeError;
 
         public MainWindowModel Model {get; set;}
+        public TexturePreviewModel TextureModel {get; set;}
         public Dispatcher Dispatcher {get; set;}
+
+#if !NORENDER
+        public RenderPreviewModel RenderModel {get; set;}
+#endif
 
 
         public MainWindowViewModel(IServiceProvider provider)
@@ -67,7 +73,14 @@ namespace PixelGraph.UI.ViewModels
 
             UpdateRecentProjectsList();
 
+            Model.SelectedTabChanged += OnSelectedTabChanged;
+            Model.SelectedTagChanged += OnSelectedTagChanged;
+            Model.ViewModeChanged += OnViewModeChanged;
             Model.TabClosed += OnTabClosed;
+
+#if !NORENDER
+            RenderModel.RenderModeChanged += OnRenderModeChanged;
+#endif
         }
 
         public void Clear()
@@ -231,10 +244,6 @@ namespace PixelGraph.UI.ViewModels
         {
             var locationMgr = provider.GetRequiredService<IPublishLocationManager>();
             publishLocationList = await locationMgr.LoadAsync(token);
-            //if (locations == null) return;
-
-            //var list = locations.Select(x => new LocationModel(x)).ToList();
-            //Application.Current.Dispatcher.Invoke(() => Model.PublishLocations = list);
         }
 
         public async Task LoadRecentProjectsAsync()
@@ -245,6 +254,80 @@ namespace PixelGraph.UI.ViewModels
             catch (Exception error) {
                 throw new ApplicationException("Failed to load recent projects list!", error);
             }
+        }
+
+        public async Task UpdateTabPreviewAsync(CancellationToken token = default)
+        {
+            var tab = Model.SelectedTab;
+            var context = tabPreviewMgr.Get(tab.Id);
+            if (context == null) return;
+
+            try {
+                tab.IsLoading = true;
+                await UpdateTabPreviewAsync(context, token);
+            }
+            catch (Exception) {
+                // TODO: LOG
+            }
+            finally {
+                await Dispatcher.BeginInvoke(() => tab.IsLoading = false);
+            }
+        }
+
+        private async Task UpdateTabPreviewAsync(TabPreviewContext context, CancellationToken token)
+        {
+            try {
+                if (Model.SelectedTab is MaterialTabModel materialTab) {
+#if !NORENDER
+                    if (Model.IsViewModeRender) {
+                        if (materialTab.Material == null || context.IsMaterialValid) return;
+
+                        if (!context.IsMaterialBuilderValid)
+                            await context.BuildMaterialAsync(Model, RenderModel, token);
+
+                        await Dispatcher.BeginInvoke(() => {
+                            if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
+
+                            context.UpdateMaterial(Model, RenderModel);
+                            RenderModel.ModelMaterial = context.ModelMaterial;
+                            TextureModel.Texture = null;
+                        });
+                    }
+#endif
+                    if (!Model.IsViewModeRender) {
+                        if (context.IsLayerValid) return;
+                        
+                        await Task.Run(() => context.BuildLayerAsync(Model, token), token);
+
+                        await Dispatcher.BeginInvoke(() => {
+                            if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
+
+#if !NORENDER
+                            RenderModel.ModelMaterial = null;
+#endif
+
+                            TextureModel.Texture = context.GetLayerImageSource();
+                        });
+                    }
+                }
+
+                if (Model.SelectedTab is TextureTabModel textureTab) {
+                    if (context.LayerImage != null) return;
+
+                    context.SourceFile = PathEx.Join(Model.RootDirectory, textureTab.ImageFilename);
+
+                    await Dispatcher.BeginInvoke(() => {
+                        if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
+
+#if !NORENDER
+                        RenderModel.ModelMaterial = null;
+#endif
+
+                        TextureModel.Texture = context.GetLayerImageSource();
+                    });
+                }
+            }
+            catch (OperationCanceledException) {}
         }
 
         public async Task GenerateNormalAsync(MaterialProperties material, string filename, CancellationToken token = default)
@@ -401,14 +484,6 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        private void UpdateRecentProjectsList()
-        {
-            Model.RecentDirectories.Clear();
-
-            foreach (var item in recentMgr.Items)
-                Model.RecentDirectories.Add(item);
-        }
-
         public void CloseTab(Guid tabId)
         {
             if (Model.PreviewTab?.Id == tabId) {
@@ -426,6 +501,31 @@ namespace PixelGraph.UI.ViewModels
             tabPreviewMgr.Remove(tabId);
         }
 
+        public void InvalidateTab(Guid tabId)
+        {
+            var context = tabPreviewMgr.Get(tabId);
+            if (context == null) return;
+
+            context.InvalidateLayer(false);
+
+#if !NORENDER
+            context.InvalidateMaterialBuilder(false);
+#endif
+        }
+
+        public void InvalidateAllTabs()
+        {
+            tabPreviewMgr.InvalidateAll(true);
+        }
+
+        private void UpdateRecentProjectsList()
+        {
+            Model.RecentDirectories.Clear();
+
+            foreach (var item in recentMgr.Items)
+                Model.RecentDirectories.Add(item);
+        }
+
         #region External Image Editing
 
         public async Task BeginExternalEditAsync(CancellationToken token = default)
@@ -435,12 +535,12 @@ namespace PixelGraph.UI.ViewModels
             var selectedMaterial = materialTab.Material;
             if (selectedMaterial == null) return;
 
-            if (!Model.Preview.HasSelectedTag) return;
+            if (!Model.HasSelectedTag) return;
 
             try {
                 Model.IsImageEditorOpen = true;
 
-                var success = await editUtility.EditLayerAsync(selectedMaterial, Model.Preview.SelectedTag, token);
+                var success = await editUtility.EditLayerAsync(selectedMaterial, Model.SelectedTag, token);
                 if (!success) return;
             }
             catch (Exception error) {
@@ -501,5 +601,62 @@ namespace PixelGraph.UI.ViewModels
         {
             CloseTab(e.TabId);
         }
+
+        private async void OnSelectedTabChanged(object sender, EventArgs e)
+        {
+            var tab = Model.SelectedTab;
+            if (tab == null) return;
+
+            var context = tabPreviewMgr.Get(tab.Id);
+            if (context == null) throw new ApplicationException($"Tab context not found! id={Model.SelectedTab.Id}");
+
+#if !NORENDER
+            RenderModel.ModelMaterial = context.ModelMaterial;
+#endif
+
+            TextureModel.Texture = context.GetLayerImageSource();
+            //tab.IsLoading = true;
+
+            if (Model.SelectedTab == tab)
+                await UpdateTabPreviewAsync();
+        }
+
+        private async void OnSelectedTagChanged(object sender, EventArgs e)
+        {
+            tabPreviewMgr.InvalidateAllLayers(true);
+
+            if (Model.IsViewModeRender || Model.SelectedTab == null) return;
+
+            await UpdateTabPreviewAsync();
+        }
+
+        private async void OnViewModeChanged(object sender, EventArgs e)
+        {
+            var tab = Model.SelectedTab;
+            if (tab == null) return;
+
+            var context = tabPreviewMgr.Get(tab.Id);
+            if (context == null) return;
+
+            context.InvalidateLayer(false);
+
+#if !NORENDER
+            context.InvalidateMaterial(false);
+#endif
+
+            await UpdateTabPreviewAsync();
+        }
+
+#if !NORENDER
+        private async void OnRenderModeChanged(object sender, EventArgs e)
+        {
+            if (!Model.IsViewModeRender) return;
+
+            tabPreviewMgr.InvalidateAllMaterials(true);
+
+            if (Model.SelectedTab != null)
+                await UpdateTabPreviewAsync();
+        }
+#endif
     }
 }

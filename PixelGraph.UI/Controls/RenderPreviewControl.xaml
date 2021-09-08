@@ -1,0 +1,124 @@
+﻿<UserControl x:Class="PixelGraph.UI.Controls.RenderPreviewControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:models="clr-namespace:PixelGraph.UI.Models"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:hx="http://helix-toolkit.org/wpf/SharpDX"
+             xmlns:viewData="clr-namespace:PixelGraph.UI.ViewData"
+             xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
+             xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
+             xmlns:models1="clr-namespace:PixelGraph.UI.Helix.Models"
+             d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" d:DataContext="{x:Null}"
+             Unloaded="OnControlUnloaded">
+    <UserControl.Resources>
+        <viewData:RenderModeValues x:Key="RenderModes"/>
+        <converters:VisibilityConverter x:Key="VisibilityConverter"/>
+        <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
+    </UserControl.Resources>
+    <DockPanel>
+        <DockPanel.DataContext>
+            <models:RenderPreviewModel x:Name="Model"/>
+        </DockPanel.DataContext>
+        <Border DockPanel.Dock="Top"
+                Background="{DynamicResource MahApps.Brushes.Accent4}">
+            <StackPanel Orientation="Vertical">
+                <DockPanel LastChildFill="False" Margin="2,4">
+                    <ComboBox DockPanel.Dock="Left" Margin="2,0" Padding="4,0" BorderThickness="0" ToolTip="Shader"
+                              DisplayMemberPath="Text" SelectedValuePath="Value" SelectionChanged="OnRenderModeSelectionChanged"
+                              ItemsSource="{StaticResource RenderModes}"
+                              SelectedValue="{Binding RenderMode, Mode=TwoWay}"/>
+                    <CheckBox DockPanel.Dock="Left" Content="Environment" Margin="6,0" FontWeight="Bold"
+                              Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                              IsChecked="{Binding EnableEnvironment, Mode=TwoWay}"/>
+                    <CheckBox DockPanel.Dock="Left" Content="Lights" Margin="6,0" FontWeight="Bold"
+                              Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                              IsChecked="{Binding EnableLights, Mode=TwoWay}"/>
+                    <Slider DockPanel.Dock="Right" Margin="2,0" Minimum="0" Maximum="100" Width="320"
+                            Value="{Binding Wetness, Mode=TwoWay}"/>
+                    <TextBlock DockPanel.Dock="Right" Text="Wetness:" Margin="2,0" FontWeight="Bold" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                    <Button DockPanel.Dock="Right" Margin="2,0" Padding="6,0" BorderThickness="0"
+                            Click="OnPreviewRefreshClick" ToolTip="Refresh Preview"
+                            Style="{StaticResource MahApps.Styles.Button}">
+                        <iconPacks:FontAwesome Kind="SyncSolid" Width="14" Height="14"/>
+                    </Button>
+                </DockPanel>
+                <DockPanel LastChildFill="False" Margin="2,4"
+                           Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                    <Slider DockPanel.Dock="Right" Margin="4" Minimum="-6000" Maximum="18000" Width="320"
+                            Value="{Binding TimeOfDay, Mode=TwoWay}"/>
+                    <TextBlock DockPanel.Dock="Right" Text="Time:" Margin="4" FontWeight="Bold" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                </DockPanel>
+            </StackPanel>
+        </Border>
+        <hx:Viewport3DX
+            BackgroundColor="#222"
+            Camera="{Binding Camera}"
+            CoordinateSystemLabelForeground="White"
+            EffectsManager="{Binding EffectsManager}"
+            EnableD2DRendering="False"
+            EnableSwapChainRendering="True"
+            EnableRenderFrustum="False"
+            IsShadowMappingEnabled="True"
+            ModelUpDirection="0,1,0"
+            MSAA="Two"
+            ShowCoordinateSystem="False"
+            TextBrush="White"
+            UseDefaultGestures="False"
+            ZoomExtentsWhenLoaded="True"
+            FrameRateText="{Binding FrameRateText, Mode=OneWayToSource, RelativeSource={RelativeSource AncestorType={x:Type controls:RenderPreviewControl}}}">
+            <hx:Viewport3DX.InputBindings>
+                <KeyBinding Key="B" Command="hx:ViewportCommands.BackView" />
+                <KeyBinding Key="F" Command="hx:ViewportCommands.FrontView" />
+                <KeyBinding Key="U" Command="hx:ViewportCommands.TopView" />
+                <KeyBinding Key="D" Command="hx:ViewportCommands.BottomView" />
+                <KeyBinding Key="L" Command="hx:ViewportCommands.LeftView" />
+                <KeyBinding Key="R" Command="hx:ViewportCommands.RightView" />
+                <KeyBinding Command="hx:ViewportCommands.ZoomExtents" Gesture="Control+E" />
+                <MouseBinding Command="hx:ViewportCommands.Rotate" Gesture="RightClick" />
+                <MouseBinding Command="hx:ViewportCommands.Zoom" Gesture="MiddleClick" />
+                <MouseBinding Command="hx:ViewportCommands.Pan" Gesture="LeftClick" />
+            </hx:Viewport3DX.InputBindings>
+            <models1:MinecraftScene3D x:Name="MinecraftScene"
+                TimeOfDay="{Binding TimeOfDayLinear, Mode=OneWay}"
+                SunDirection="{Binding SunDirection, Mode=OneWay}"
+                SunStrength="{Binding SunStrength, Mode=OneWay}"
+                Wetness="{Binding WetnessLinear, Mode=OneWay}"
+                ParallaxDepth="{Binding ParallaxDepth, Mode=OneWay}"
+                ParallaxSamplesMin="{Binding ParallaxSamplesMin, Mode=OneWay}"
+                ParallaxSamplesMax="{Binding ParallaxSamplesMax, Mode=OneWay}"
+                EnableLinearSampling="{Binding EnableLinearSampling, Mode=OneWay}"/>
+            <hx:ShadowMap3D Resolution="1024,1024"
+                            LightCamera="{Binding SunCamera, Mode=OneWay}"/>
+            <models1:EnvironmentCube3D x:Name="EnvironmentCubeMapSource" FaceSize="128"
+                                  IsRendering="{Binding EnableEnvironment, Mode=OneWay}"
+                                  Scene="{Binding Mode=OneWay, Source={x:Reference MinecraftScene}}"/>
+            <models1:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="32"
+                                 IsRendering="{Binding EnableEnvironment, Mode=OneWay}"
+                                 EnvironmentCubeMapSource="{Binding Mode=OneWay, Source={x:Reference EnvironmentCubeMapSource}}"/>
+            <hx:AmbientLight3D Color="#222"
+                               Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
+            <hx:DirectionalLight3D Color="{Binding SunLightColor, Mode=OneWay}"
+                                   Direction="{Binding SunLightDirection, Mode=OneWay}"
+                                   IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
+            <hx:PointLight3D Color="#C39667" Range="24" Position="5,7,5"
+                             IsRendering="{Binding EnableLights, Mode=OneWay}"/>
+            <hx:PointLight3D Color="#83D0F2" Range="16" Position="-6,-3,-3"
+                             IsRendering="{Binding EnableLights, Mode=OneWay}"/>
+            <models1:SkyDome3D IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
+            <!--<hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />-->
+            <models1:BlockMeshGeometryModel3D CullMode="Back" IsThrowingShadow="True"
+                                    Geometry="{Binding CubeModel, Mode=OneWay}"
+                                    Material="{Binding ModelMaterial, Mode=OneWay}"/>
+            <!--<pm:DebugSkyBox3D CubeMapSource="{Binding Mode=OneWay, Source={x:Reference IrradianceCube}}"/>-->
+            <!--<hx:UICompositeManipulator3D Diameter="6"
+                CanRotateX="False" CanRotateY="False" CanRotateZ="False"
+                CanTranslateX="True" CanTranslateY="True" CanTranslateZ="True"
+                Transform="{Binding PointLightTransform}"/>-->
+            <hx:ContinuousRender3D/>
+        </hx:Viewport3DX>
+    </DockPanel>
+</UserControl>

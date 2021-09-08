@@ -4,7 +4,11 @@ namespace PixelGraph.Common.Material
 {
     public class MaterialColorProperties
     {
+        public const bool DefaultBakeOcclusion = false;
+
         public string Texture {get; set;}
+        public bool? BakeOcclusion {get; set;}
+        public string PreviewTint {get; set;}
 
         public ResourcePackColorRedChannelProperties InputRed {get; set;}
         public decimal? ValueRed {get; set;}
@@ -18,10 +22,12 @@ namespace PixelGraph.Common.Material
         public decimal? ValueBlue {get; set;}
         public decimal? ScaleBlue {get; set;}
 
-
+        
         public bool HasAnyData()
         {
             if (Texture != null) return true;
+            if (BakeOcclusion.HasValue) return true;
+            if (!string.IsNullOrWhiteSpace(PreviewTint)) return true;
 
             if (InputRed != null && InputRed.HasAnyData()) return true;
             if (InputGreen != null && InputGreen.HasAnyData()) return true;
@@ -34,7 +40,7 @@ namespace PixelGraph.Common.Material
             if (ScaleRed.HasValue) return true;
             if (ScaleGreen.HasValue) return true;
             if (ScaleBlue.HasValue) return true;
-
+            
             return false;
         }
     }

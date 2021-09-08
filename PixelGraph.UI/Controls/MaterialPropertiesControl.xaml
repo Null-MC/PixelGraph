@@ -4,167 +4,156 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:PixelGraph.UI.Controls"
-             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
              xmlns:models="clr-namespace:PixelGraph.UI.Models"
              d:DesignWidth="280" d:DesignHeight="500" mc:Ignorable="d"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
     <UserControl.Resources>
-        <local:TextureItemList x:Key="TextureList"/>
         <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
         <converters:NullableConverter x:Key="NullableConverter"/>
     </UserControl.Resources>
-    <DockPanel>
-        <DockPanel.DataContext>
-            <models:MaterialPropertiesModel x:Name="Model" DataChanged="OnDataChanged"/>
-        </DockPanel.DataContext>
-        <Border DockPanel.Dock="Top" Background="{DynamicResource MahApps.Brushes.Accent4}" Height="34">
-            <DockPanel Margin="2">
-                <Button DockPanel.Dock="Right" Margin="2" Padding="6,2" BorderThickness="0"
-                        ToolTip="Edit Layer Image" Click="OnChannelEditImageButtonClick"
-                        Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"
-                        Content="{iconPacks:FontAwesome Kind=EditSolid}"/>
-                <ComboBox DisplayMemberPath="Name" SelectedValuePath="Key" Margin="2" Padding="4,0" FontSize="16" Grid.IsSharedSizeScope="True"
-                          ItemsSource="{StaticResource TextureList}"
-                          SelectedValue="{Binding SelectedTag, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-            </DockPanel>
-        </Border>
-        <Border DockPanel.Dock="Bottom" Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
-            <StackPanel Orientation="Vertical">
-                <TextBlock Margin="8,2" Text="General Properties" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                           ItemsSource="{Binding GeneralProperties, Mode=OneWay}"/>
-            </StackPanel>
-        </Border>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Background="{DynamicResource MahApps.Brushes.Gray8}">
-            <StackPanel Orientation="Vertical">
-                <local:PropertyGridControl>
-                    <DataGrid.Style>
-                        <Style TargetType="DataGrid" BasedOn="{StaticResource MahApps.Styles.DataGrid}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsOpacitySelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding OpacityProperties, Mode=OneWay}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsColorSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding ColorProperties}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsHeightSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Height}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsNormalSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Normal}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsOcclusionSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Occlusion}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsSpecularSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Specular}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsSmoothSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Smooth}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsRoughSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Rough}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsMetalSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Metal}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsF0Selected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding F0}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsPorositySelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Porosity}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsSssSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Sss}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsEmissiveSelected, Mode=OneWay}" Value="True">
-                                    <Setter Property="ItemsSource" Value="{Binding Emissive}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGrid.Style>
-                </local:PropertyGridControl>
-                <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
-                        Visibility="{Binding IsHeightSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock Margin="8,2" Text="Edge Fading" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Vertical">
+            <StackPanel.DataContext>
+                <models:MaterialPropertiesModel x:Name="Model" DataChanged="OnDataChanged"/>
+            </StackPanel.DataContext>
+            <local:PropertyGridControl>
+                <DataGrid.Style>
+                    <Style TargetType="DataGrid" BasedOn="{StaticResource MahApps.Styles.DataGrid}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsGeneralSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding GeneralProperties, Mode=OneWay}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsOpacitySelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding OpacityProperties, Mode=OneWay}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsColorSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding ColorProperties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsHeightSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding HeightProperties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsNormalSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding NormalProperties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsOcclusionSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding OcclusionProperties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsSpecularSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding SpecularProperties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsSmoothSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding SmoothProperties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsRoughSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding RoughProperties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsMetalSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding MetalProperties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsF0Selected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding F0Properties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsPorositySelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding PorosityProperties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsSssSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding SssProperties}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsEmissiveSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding EmissiveProperties}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.Style>
+            </local:PropertyGridControl>
+            <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                    Visibility="{Binding IsColorSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Margin="8,2" Text="Other" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
+                                               ItemsSource="{Binding ColorOtherProperties, Mode=OneWay}"/>
+                </StackPanel>
+            </Border>
+            <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                    Visibility="{Binding IsHeightSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Margin="8,2" Text="Edge Fading" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
+                                               ItemsSource="{Binding HeightEdgeProperties, Mode=OneWay}"/>
+                </StackPanel>
+            </Border>
+            <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                    Visibility="{Binding IsNormalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Margin="8,2" Text="Filtering" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
+                                               ItemsSource="{Binding NormalFilterProperties, Mode=OneWay}"/>
+                </StackPanel>
+            </Border>
+            <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                    Visibility="{Binding IsNormalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                <StackPanel Orientation="Vertical">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Center" BorderThickness="0"
+                                Content="Bake" ToolTip="Generates the normal texture and saves the result to the project source content." Click="OnGenerateNormalClick"
+                                Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
+                        <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                    Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                        <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                                   ItemsSource="{Binding HeightEdgeFading, Mode=OneWay}"/>
-                    </StackPanel>
-                </Border>
-                <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
-                        Visibility="{Binding IsNormalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock Margin="8,2" Text="Filtering" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                    </DockPanel>
+                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
+                                               ItemsSource="{Binding NormalGenerationProperties, Mode=OneWay}"/>
+                </StackPanel>
+            </Border>
+            <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                    Visibility="{Binding IsOcclusionSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                <StackPanel Orientation="Vertical">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Content="Bake" Click="OnGenerateOcclusionClick" Style="{DynamicResource MahApps.Styles.Button.Flat}"/>
+                        <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                    Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                        <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                                   ItemsSource="{Binding NormalFilter, Mode=OneWay}"/>
-                    </StackPanel>
-                </Border>
-                <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
-                        Visibility="{Binding IsNormalSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                    <StackPanel Orientation="Vertical">
-                        <DockPanel>
-                            <Button DockPanel.Dock="Right" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Center" BorderThickness="0"
-                                    Content="Bake" ToolTip="Generates the normal texture and saves the result to the project source content." Click="OnGenerateNormalClick"
-                                    Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
-                            <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                        </DockPanel>
-                        <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                                   ItemsSource="{Binding NormalGeneration, Mode=OneWay}"/>
-                    </StackPanel>
-                </Border>
-                <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
-                        Visibility="{Binding IsOcclusionSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                    <StackPanel Orientation="Vertical">
-                        <DockPanel>
-                            <Button DockPanel.Dock="Right" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                    Content="Bake" Click="OnGenerateOcclusionClick" Style="{DynamicResource MahApps.Styles.Button.Flat}"/>
-                            <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                        </DockPanel>
-                        <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                                   ItemsSource="{Binding OcclusionGeneration, Mode=OneWay}"/>
-                    </StackPanel>
-                </Border>
-                <Border Margin="0,20,0,0"
-                        Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
-                        Visibility="{Binding IsF0Selected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Margin="8,2" Text="IOR" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                        <TextBox Grid.Column="1" HorizontalContentAlignment="Center" KeyUp="OnF0ConverterTextBoxKeyUp"
-                            Text="{Binding IorEditValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}">
-                            <TextBox.Style>
-                                <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IorActualValue}" Value="{x:Null}">
-                                            <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                            <Setter Property="FontStyle" Value="Italic"/>
-                                        </DataTrigger>
-                                        <Trigger Property="IsKeyboardFocused" Value="True">
-                                            <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
-                                            <Setter Property="FontStyle" Value="Normal"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBox.Style>
-                        </TextBox>
-                        <Button x:Name="IorToF0ConvertButton" Grid.Column="2" DockPanel.Dock="Right" Padding="8,0" BorderThickness="0"
-                                Content="Convert" Click="OnIorToFoConvertButtonClick"
-                                Style="{StaticResource MahApps.Styles.Button.Square.Accent}"/>
-                    </Grid>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
-    </DockPanel>
+                    </DockPanel>
+                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
+                                               ItemsSource="{Binding OcclusionGenerationProperties, Mode=OneWay}"/>
+                </StackPanel>
+            </Border>
+            <Border Margin="0,20,0,0"
+                    Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                    Visibility="{Binding IsF0Selected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Margin="8,2" Text="IOR" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                    <TextBox Grid.Column="1" HorizontalContentAlignment="Center" KeyUp="OnF0ConverterTextBoxKeyUp"
+                        Text="{Binding IorEditValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IorActualValue}" Value="{x:Null}">
+                                        <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                        <Setter Property="FontStyle" Value="Italic"/>
+                                    </DataTrigger>
+                                    <Trigger Property="IsKeyboardFocused" Value="True">
+                                        <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                                        <Setter Property="FontStyle" Value="Normal"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                    <Button x:Name="IorToF0ConvertButton" Grid.Column="2" DockPanel.Dock="Right" Padding="8,0" BorderThickness="0"
+                            Content="Convert" Click="OnIorToFoConvertButtonClick"
+                            Style="{StaticResource MahApps.Styles.Button.Square.Accent}"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

@@ -10,18 +10,47 @@ namespace PixelGraph.Common.ImageProcessors
     internal class NormalRotateProcessor : PixelRowProcessor
     {
         private readonly Options options;
-        private readonly bool hasRotation, hasCurveX, hasCurveY, hasNoise;
+        private readonly bool hasRotation, hasNoise;
+        private readonly bool hasCurveTop, hasCurveBottom, hasCurveLeft, hasCurveRight;
+        private readonly float offsetTop, offsetBottom, offsetLeft, offsetRight;
+        private readonly float invRadiusTop, invRadiusBottom, invRadiusLeft, invRadiusRight;
 
 
         public NormalRotateProcessor(Options options)
         {
             this.options = options;
 
-            hasCurveX = MathF.Abs(options.CurveX) > float.Epsilon && options.RadiusX > float.Epsilon;
-            hasCurveY = MathF.Abs(options.CurveY) > float.Epsilon && options.RadiusY > float.Epsilon;
+            hasCurveTop = MathF.Abs(options.CurveTop) > float.Epsilon && options.RadiusTop > float.Epsilon;
+            hasCurveBottom = MathF.Abs(options.CurveBottom) > float.Epsilon && options.RadiusBottom > float.Epsilon;
+            hasCurveLeft = MathF.Abs(options.CurveLeft) > float.Epsilon && options.RadiusLeft > float.Epsilon;
+            hasCurveRight = MathF.Abs(options.CurveRight) > float.Epsilon && options.RadiusRight > float.Epsilon;
 
-            hasRotation = hasCurveX || hasCurveY;
+            hasRotation = hasCurveTop || hasCurveBottom || hasCurveLeft || hasCurveRight;
             hasNoise = options.Noise > float.Epsilon;
+
+            if (hasCurveTop) {
+                offsetTop = 1f - options.RadiusTop;
+                invRadiusTop = 1f / options.RadiusTop;
+            }
+            else invRadiusTop = offsetTop = 0f;
+
+            if (hasCurveBottom) {
+                offsetBottom = 1f - options.RadiusBottom;
+                invRadiusBottom = 1f / options.RadiusBottom;
+            }
+            else invRadiusBottom = offsetBottom = 0f;
+
+            if (hasCurveLeft) {
+                offsetLeft = 1f - options.RadiusLeft;
+                invRadiusLeft = 1f / options.RadiusLeft;
+            }
+            else invRadiusLeft = offsetLeft = 0f;
+
+            if (hasCurveRight) {
+                offsetRight = 1f - options.RadiusRight;
+                invRadiusRight = 1f / options.RadiusRight;
+            }
+            else invRadiusRight = offsetRight = 0f;
         }
 
         protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
@@ -34,21 +63,6 @@ namespace PixelGraph.Common.ImageProcessors
                 GenerateNoise(context.Bounds.Width, out noiseY);
             }
 
-            float irx, iry, ox, oy;
-            if (hasCurveX) {
-                ox = 1f - options.RadiusX;
-                irx = 1f / options.RadiusX;
-            }
-            else irx = ox = 0f;
-
-            if (hasCurveY) {
-                oy = 1f - options.RadiusY;
-                iry = 1f / options.RadiusY;
-            }
-            else iry = oy = 0f;
-
-            float fx, fy, rx, ry;
-            float angleX, angleY;
             var v = new Vector3();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 if (x < 0 || x >= row.Length) continue;
@@ -66,34 +80,7 @@ namespace PixelGraph.Common.ImageProcessors
                     MathEx.Normalize(ref v);
                 }
 
-                if (hasRotation || hasNoise) {
-                    angleX = MathEx.AsinD(v.X);
-                    angleY = MathEx.AsinD(v.Y);
-
-                    if (hasCurveX) {
-                        fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
-                        rx = (MathF.Min(fx + ox, 0f) + MathF.Max(fx - ox, 0f)) * irx;
-                        angleX += options.CurveX * rx * 0.5f;
-                    }
-
-                    if (hasCurveY) {
-                        fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
-                        ry = (MathF.Min(fy + oy, 0f) + MathF.Max(fy - oy, 0f)) * iry;
-                        angleY += options.CurveY * ry * 0.5f;
-                    }
-
-                    if (hasNoise) {
-                        angleX += (noiseX[x] / 127f - 1f) * options.Noise;
-                        angleY += (noiseY[x] / 127f - 1f) * options.Noise;
-                    }
-
-                    AngleToVector(in angleX, in angleY, out v);
-                }
-                else if (options.RestoreNormalZ) {
-                    var v2 = new Vector2(v.X, v.Y);
-                    var d = Vector2.Dot(v2, v2);
-                    v.Z = MathF.Sqrt(1f - d);
-                }
+                ProcessPixel(in context, ref v, in noiseX, in noiseY, in x);
 
                 pixel.SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
                 pixel.SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
@@ -112,21 +99,6 @@ namespace PixelGraph.Common.ImageProcessors
                 GenerateNoise(context.Bounds.Width, out noiseY);
             }
 
-            float irx, iry, ox, oy;
-            if (hasCurveX) {
-                ox = 1f - options.RadiusX;
-                irx = 1f / options.RadiusX;
-            }
-            else irx = ox = 0f;
-
-            if (hasCurveY) {
-                oy = 1f - options.RadiusY;
-                iry = 1f / options.RadiusY;
-            }
-            else iry = oy = 0f;
-            
-            float fx, fy, rx, ry;
-            float angleX, angleY;
             var v = new Vector3();
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 row[x].GetChannelValue(ColorChannel.Red, out var normalX);
@@ -141,38 +113,57 @@ namespace PixelGraph.Common.ImageProcessors
                     MathEx.Normalize(ref v);
                 }
 
-                if (hasRotation || hasNoise) {
-                    angleX = MathEx.AsinD(v.X);
-                    angleY = MathEx.AsinD(v.Y);
-
-                    if (hasCurveX) {
-                        fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
-                        rx = (MathF.Min(fx + ox, 0f) + MathF.Max(fx - ox, 0f)) * irx;
-                        angleX += options.CurveX * (rx - 0.5f);
-                    }
-
-                    if (hasCurveY) {
-                        fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
-                        ry = (MathF.Min(fy + oy, 0f) + MathF.Max(fy - oy, 0f)) * iry;
-                        angleY += options.CurveY * (ry - 0.5f);
-                    }
-
-                    if (hasNoise) {
-                        angleX += (noiseX[x] / 127f - 1f) * options.Noise;
-                        angleY += (noiseY[x] / 127f - 1f) * options.Noise;
-                    }
-
-                    AngleToVector(in angleX, in angleY, out v);
-                }
-                else if (options.RestoreNormalZ) {
-                    var v2 = new Vector2(v.X, v.Y);
-                    var d = Vector2.Dot(v2, v2);
-                    v.Z = MathF.Sqrt(1f - d);
-                }
+                ProcessPixel(in context, ref v, in noiseX, in noiseY, in x);
 
                 row[x].SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
                 row[x].SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
                 row[x].SetChannelValueScaledF(ColorChannel.Blue, v.Z * 0.5f + 0.5f);
+            }
+        }
+
+        private void ProcessPixel(in PixelRowContext context, ref Vector3 v, in byte[] noiseX, in byte[] noiseY, in int x)
+        {
+            if (hasRotation || hasNoise) {
+                var angleX = MathEx.AsinD(v.X);
+                var angleY = MathEx.AsinD(v.Y);
+                float fx, fy, rx, ry;
+
+                if (hasCurveTop) {
+                    fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
+                    ry = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
+                    angleY += options.CurveTop * ry * 0.5f;
+                }
+
+                if (hasCurveBottom) {
+                    fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
+                    ry = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
+                    angleY += options.CurveBottom * ry * 0.5f;
+                }
+
+                if (hasCurveLeft) {
+                    fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
+                    rx = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft;
+                    angleX += options.CurveLeft * rx * 0.5f;
+                }
+
+                if (hasCurveRight) {
+                    fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
+                    rx = MathF.Max(fx - offsetRight, 0f) * invRadiusRight;
+                    angleX += options.CurveRight * rx * 0.5f;
+                }
+
+                if (hasNoise) {
+                    var z = x - context.Bounds.Left;
+                    angleX += (noiseX[z] / 127f - 1f) * options.Noise;
+                    angleY += (noiseY[z] / 127f - 1f) * options.Noise;
+                }
+
+                AngleToVector(in angleX, in angleY, out v);
+            }
+            else if (options.RestoreNormalZ) {
+                var v2 = new Vector2(v.X, v.Y);
+                var d = Vector2.Dot(v2, v2);
+                v.Z = MathF.Sqrt(1f - d);
             }
         }
 
@@ -202,10 +193,14 @@ namespace PixelGraph.Common.ImageProcessors
         public class Options
         {
             public bool RestoreNormalZ;
-            public float CurveX = 0f;
-            public float CurveY = 0f;
-            public float RadiusX = 1f;
-            public float RadiusY = 1f;
+            public float CurveTop = 0f;
+            public float CurveBottom = 0f;
+            public float CurveLeft = 0f;
+            public float CurveRight = 0f;
+            public float RadiusTop = 1f;
+            public float RadiusBottom = 1f;
+            public float RadiusLeft = 1f;
+            public float RadiusRight = 1f;
             public float Noise = 0f;
         }
     }

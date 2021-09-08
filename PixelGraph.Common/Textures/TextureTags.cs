@@ -24,12 +24,13 @@ namespace PixelGraph.Common.Textures
         public const string MER = "mer";
 
         // Internal
-        public const string Inventory = "inventory";
+        public const string General = "general";
+        public const string Item = "item";
         public const string NormalGenerated = "normal-generated";
         public const string MagnitudeBuffer = "magnitude-buffer";
         public const string OcclusionGenerated = "occlusion-generated";
 
-        public static string[] All {get;} = {Opacity, Color, Height, Bump, Normal, Occlusion, Specular, Smooth, Rough, Metal, F0, Porosity, SubSurfaceScattering, Emissive, Inventory, MER};
+        public static string[] All {get;} = {Opacity, Color, Height, Bump, Normal, Occlusion, Specular, Smooth, Rough, Metal, F0, Porosity, SubSurfaceScattering, Emissive, Item, MER};
 
 
         public static string Get(MaterialProperties material, string tag)

@@ -16,11 +16,11 @@ using PixelGraph.UI.Models;
 using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -37,7 +37,6 @@ namespace PixelGraph.UI.Windows
         private readonly IThemeHelper themeHelper;
         private readonly ILogger<MainWindow> logger;
         private readonly MainWindowViewModel viewModel;
-        private readonly PreviewViewModel previewViewModel;
 
 
         public MainWindow(IServiceProvider provider)
@@ -51,30 +50,32 @@ namespace PixelGraph.UI.Windows
             themeHelper.ApplyCurrent(this);
 
             viewModel = new MainWindowViewModel(provider) {
+                TextureModel = texturePreview.Model,
                 Dispatcher = Dispatcher,
                 Model = Model,
             };
+
+#if !NORENDER
+            viewModel.RenderModel = renderPreview.Model;
+            PreviewKeyUp += OnWindowPreviewKeyUp;
+
+            renderPreview.RefreshClick += OnPreviewRefreshClick;
+            //renderPreview.ShaderCompileErrors += OnShaderCompileErrors;
+#endif
+
+            Model.SelectedLocation = ManualLocation;
 
             viewModel.TreeError += OnTreeViewError;
-
-            previewViewModel = new PreviewViewModel(provider) {
-                Dispatcher = Dispatcher,
-                Model = Model,
-            };
-
-            previewViewModel.ShaderCompileErrors += OnShaderCompileErrors;
-
-            Model.Preview.EnvironmentCube = EnvironmentCubeMapSource;
-            Model.Preview.IrradianceCube = IrradianceCubeMapSource;
-            Model.SelectedLocation = ManualLocation;
 
             Model.Profile.SelectionChanged += OnSelectedProfileChanged;
         }
 
-        private void OnTreeViewError(object sender, UnhandledExceptionEventArgs e)
+        private async Task RefreshPreview(CancellationToken token = default)
         {
-            var error = (Exception)e.ExceptionObject;
-            ShowError($"Failed to update content tree! {error.Message}");
+            if (Model.SelectedTab == null) return;
+
+            viewModel.InvalidateTab(Model.SelectedTab.Id);
+            await viewModel.UpdateTabPreviewAsync(token);
         }
 
         private async Task SelectRootDirectoryAsync(CancellationToken token)
@@ -215,9 +216,15 @@ namespace PixelGraph.UI.Windows
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-            var windowTask = LoadWindowAsync();
-            var previewTask = LoadPreviewAsync();
-            await Task.WhenAll(windowTask, previewTask);
+            var taskList = new List<Task>();
+
+            taskList.Add(LoadWindowAsync());
+
+#if !NORENDER
+            taskList.Add(renderPreview.InitializeAsync(provider));
+#endif
+
+            await Task.WhenAll(taskList);
 
             await Dispatcher.BeginInvoke(() => Model.EndInit());
         }
@@ -252,34 +259,6 @@ namespace PixelGraph.UI.Windows
                     ShowError($"Failed to initialize main window! {error.UnfoldMessageString()}");
                 }
             });
-        }
-
-        private async Task LoadPreviewAsync()
-        {
-            try {
-                await Task.Run(() => previewViewModel.LoadContentAsync());
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to load 3D preview content!");
-                ShowError($"Failed to load 3D preview content! {error.UnfoldMessageString()}");
-            }
-            
-            await Dispatcher.BeginInvoke(() => {
-                try {
-                    previewViewModel.Initialize();
-                    previewViewModel.UpdateSun();
-                }
-                catch (Exception error) {
-                    logger.LogError(error, "Failed to initialize 3D preview!");
-                    ShowError($"Failed to initialize 3D preview! {error.UnfoldMessageString()}");
-                }
-
-            });
-        }
-
-        private void OnWindowClosed(object sender, EventArgs e)
-        {
-            previewViewModel?.Dispose();
         }
 
         private async void OnRecentSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -383,6 +362,12 @@ namespace PixelGraph.UI.Windows
             Model.Profile.Selected = window.Model.SelectedProfileItem;
         }
 
+        private void OnTreeViewError(object sender, UnhandledExceptionEventArgs e)
+        {
+            var error = (Exception)e.ExceptionObject;
+            ShowError($"Failed to update content tree! {error.Message}");
+        }
+
         private void OnLocationsClick(object sender, RoutedEventArgs e)
         {
             var window = new PublishLocationsWindow(provider) {
@@ -410,7 +395,10 @@ namespace PixelGraph.UI.Windows
 
             if (window.ShowDialog() == true) {
                 themeHelper.ApplyCurrent(this);
-                previewViewModel.LoadAppSettings();
+
+#if !NORENDER
+                renderPreview.ViewModel.LoadAppSettings();
+#endif
             }
         }
 
@@ -452,6 +440,26 @@ namespace PixelGraph.UI.Windows
             viewModel.ReloadContent();
 
             // TODO: select the new TreeView node
+        }
+
+        private async void OnChannelEditImageButtonClick(object sender, RoutedEventArgs e)
+        {
+            var tab = Model.SelectedTab;
+            if (tab == null) return;
+
+            try {
+                await viewModel.BeginExternalEditAsync();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to launch external image editor!");
+                ShowError($"Failed to launch external image editor! {error.UnfoldMessageString()}");
+                return;
+            }
+
+            viewModel.InvalidateTab(tab.Id);
+
+            if (Model.SelectedTab == tab)
+                await viewModel.UpdateTabPreviewAsync();
         }
 
         private void OnMaterialConnectionsMenuClick(object sender, RoutedEventArgs e)
@@ -530,8 +538,10 @@ namespace PixelGraph.UI.Windows
 
             await viewModel.SaveMaterialAsync(material);
 
-            previewViewModel.Invalidate(tab.Id);
-            await previewViewModel.UpdateTabPreviewAsync(tab);
+            viewModel.InvalidateTab(tab.Id);
+
+            if (Model.SelectedTab == tab)
+                await viewModel.UpdateTabPreviewAsync();
         }
 
         private async void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -628,10 +638,9 @@ namespace PixelGraph.UI.Windows
 
             await Dispatcher.BeginInvoke(async () => {
                 if (Model.SelectedTab != materialTab) return;
-                if (!TextureTags.Is(Model.Preview.SelectedTag, TextureTags.Occlusion)) return;
+                if (!TextureTags.Is(Model.SelectedTag, TextureTags.Normal)) return;
 
-                previewViewModel.Invalidate(materialTab.Id);
-                await previewViewModel.UpdateTabPreviewAsync(materialTab);
+                await RefreshPreview();
             });
         }
 
@@ -668,10 +677,9 @@ namespace PixelGraph.UI.Windows
 
             await Dispatcher.BeginInvoke(async () => {
                 if (Model.SelectedTab != materialTab) return;
-                if (!TextureTags.Is(Model.Preview.SelectedTag, TextureTags.Occlusion)) return;
+                if (!TextureTags.Is(Model.SelectedTag, TextureTags.Occlusion)) return;
 
-                previewViewModel.Invalidate(materialTab.Id);
-                await previewViewModel.UpdateTabPreviewAsync(materialTab);
+                await RefreshPreview();
             });
         }
 
@@ -721,10 +729,10 @@ namespace PixelGraph.UI.Windows
         {
             await viewModel.UpdateSelectedProfileAsync();
 
-            previewViewModel.InvalidateAll();
+            viewModel.InvalidateAllTabs();
 
             if (Model.SelectedTab != null)
-                await previewViewModel.UpdateTabPreviewAsync(Model.SelectedTab);
+                await viewModel.UpdateTabPreviewAsync();
 
             // TODO: update recent 
         }
@@ -789,29 +797,12 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private async void OnEditLayer(object sender, EventArgs e)
-        {
-            var tab = Model.SelectedTab;
-            if (tab == null) return;
-
-            try {
-                await viewModel.BeginExternalEditAsync();
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to launch external image editor!");
-                ShowError($"Failed to launch external image editor! {error.UnfoldMessageString()}");
-                return;
-            }
-
-            previewViewModel.Invalidate(tab.Id);
-            await previewViewModel.UpdateTabPreviewAsync(tab);
-        }
-
         private void OnImageEditorCompleteClick(object sender, RoutedEventArgs e)
         {
             viewModel.CancelExternalImageEdit();
         }
 
+#if !NORENDER
         private void OnWindowPreviewKeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.R) return;
@@ -820,43 +811,20 @@ namespace PixelGraph.UI.Windows
             var rightCtrl = e.KeyboardDevice.IsKeyDown(Key.RightCtrl);
 
             if (leftCtrl || rightCtrl) {
-                previewViewModel.ReloadShaders();
-                previewViewModel.UpdateShaders();
+                renderPreview.ViewModel.ReloadShaders();
+                renderPreview.ViewModel.UpdateShaders();
                 e.Handled = true;
             }
         }
+#endif
 
-        private async void OnPreviewRefreshClick(object sender, RoutedEventArgs e)
+        private async void OnPreviewRefreshClick(object sender, EventArgs e)
         {
-            if (Model.SelectedTab == null) return;
-
-            previewViewModel.Invalidate(Model.SelectedTab.Id);
-            await previewViewModel.UpdateTabPreviewAsync(Model.SelectedTab);
-        }
-
-        private async void OnRenderModeSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (Model.IsInitializing) return;
-            await Task.Run(() => previewViewModel.SaveRenderStateAsync());
-        }
-
-        private async void OnShaderCompileErrors(object sender, ShaderCompileErrorEventArgs e)
-        {
-            var message = new StringBuilder("Failed to compile shaders!");
-
-            foreach (var error in e.Errors) {
-                message.AppendLine();
-                message.Append(error.Message);
-            }
-
-            await Dispatcher.BeginInvoke(() => {
-                MessageBox.Show(this, message.ToString(), "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-            });
+            await RefreshPreview();
         }
 
         private void OnCloseDocumentTab(object sender, CloseTabEventArgs e)
         {
-            //Model.TabList.Remove(e.Tab);
             viewModel.CloseTab(e.TabId);
         }
 

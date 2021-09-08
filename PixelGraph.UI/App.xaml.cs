@@ -1,16 +1,19 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.Internal.Preview.Shaders;
-using PixelGraph.UI.Internal.Preview.Textures;
 using PixelGraph.UI.Internal.Settings;
+using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
-using PixelGraph.UI.ViewModels;
 using PixelGraph.UI.Windows;
 using Serilog;
 using System;
 using System.Windows;
 using System.Windows.Threading;
+using PixelGraph.UI.Internal.Preview.Textures;
+
+#if !NORENDER
+using PixelGraph.UI.Helix.Shaders;
+#endif
 
 namespace PixelGraph.UI
 {
@@ -32,15 +35,18 @@ namespace PixelGraph.UI
             builder.Services.AddSingleton<IPublishLocationManager, PublishLocationManager>();
             builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
             builder.Services.AddSingleton<ITextureEditUtility, TextureEditUtility>();
-            builder.Services.AddSingleton<IShaderByteCodeManager, CustomShaderManager>();
             builder.Services.AddSingleton<ITabPreviewManager, TabPreviewManager>();
 
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
             builder.Services.AddTransient<ILayerPreviewBuilder, LayerPreviewBuilder>();
-            builder.Services.AddTransient<IRenderDiffusePreviewBuilder, RenderDiffusePreviewBuilder>();
-            builder.Services.AddTransient<IRenderPbrPreviewBuilder, RenderPbrPreviewBuilder>();
             builder.Services.AddTransient<IAppDataUtility, AppDataUtility>();
             builder.Services.AddTransient<IThemeHelper, ThemeHelper>();
+
+#if !NORENDER
+            builder.Services.AddSingleton<IShaderByteCodeManager, CustomShaderManager>();
+            builder.Services.AddTransient<IRenderDiffusePreviewBuilder, RenderDiffusePreviewBuilder>();
+            builder.Services.AddTransient<IRenderPbrPreviewBuilder, RenderPbrPreviewBuilder>();
+#endif
         }
 
         private void App_OnStartup(object sender, StartupEventArgs e)

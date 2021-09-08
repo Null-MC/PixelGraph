@@ -37,7 +37,7 @@ namespace PixelGraph.Common.IO
                 [TextureTags.MER] = "mer",
                 
                 // Internal
-                [TextureTags.Inventory] = "inventory",
+                [TextureTags.Item] = "item",
             };
 
             LocalLookup = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
@@ -58,12 +58,13 @@ namespace PixelGraph.Common.IO
                 ["mer"] = TextureTags.MER,
                 
                 // Internal
-                ["inventory"] = TextureTags.Inventory,
+                ["item"] = TextureTags.Item,
 
                 // Deprecated
                 ["alpha"] = TextureTags.Opacity,
                 ["albedo"] = TextureTags.Color,
                 ["diffuse"] = TextureTags.Color,
+                ["inventory"] = TextureTags.Item,
             };
 
             GlobalMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase) {
@@ -84,7 +85,7 @@ namespace PixelGraph.Common.IO
                 [TextureTags.MER] = name => $"{name}_mer",
 
                 // Internal
-                [TextureTags.Inventory] = name => $"{name}_inventory",
+                [TextureTags.Item] = name => $"{name}_item",
             };
 
             GlobalLookup = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
@@ -115,13 +116,14 @@ namespace PixelGraph.Common.IO
                 ["mer"] = TextureTags.MER,
 
                 // Internal
-                ["inventory"] = TextureTags.Inventory,
+                ["item"] = TextureTags.Item,
 
                 // New
 
                 // Deprecated
                 ["a"] = TextureTags.Opacity,
                 ["alpha"] = TextureTags.Opacity,
+                ["inventory"] = TextureTags.Item,
             };
         }
 
