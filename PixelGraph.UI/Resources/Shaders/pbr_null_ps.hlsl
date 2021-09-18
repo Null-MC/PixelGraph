@@ -173,7 +173,7 @@ float4 main(const ps_input input) : SV_TARGET
 		ibl_sss = SSS_IBL(view);
     }
 
-	const float3 emissive = mat.emissive * mat.albedo * 3.0f;
+	const float3 emissive = mat.emissive * mat.albedo * 16.0f;
 
 	float3 final_diffuse = (ibl_ambient + acc_diffuse) * diffuse;
 	float3 final_specular = (acc_specular + ibl_specular) * metal_albedo;

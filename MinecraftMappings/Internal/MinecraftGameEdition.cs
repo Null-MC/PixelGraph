@@ -41,5 +41,12 @@ namespace MinecraftMappings.Internal
                 .Select(entity => entity.GetLatestVersion())
                 .Where(latest => latest.Id.Equals(id));
         }
+
+        public IEnumerable<TEntityVersion> GetEntitiesByVersion<TEntityVersion>(Version version)
+            where TEntityVersion : EntityDataVersion, new()
+        {
+            return allEntitiesLazy.Value.OfType<IEntityData<TEntityVersion>>()
+                .Select(entity => entity.GetVersion(version));
+        }
     }
 }

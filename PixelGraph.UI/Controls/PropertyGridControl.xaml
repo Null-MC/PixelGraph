@@ -9,7 +9,7 @@
              mc:Ignorable="d" d:DesignHeight="120" d:DesignWidth="240"
              AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="None"
              PreparingCellForEdit="OnPreparingCellForEdit" PreviewKeyUp="OnPreviewKeyUp"
-             BeginningEdit="OnBeginningEdit" CellEditEnding="OnCellEditEnding">
+             BeginningEdit="OnBeginningEdit" CellEditEnding="OnCellEditEnding" CurrentCellChanged="OnCurrentCellChanged">
     <DataGrid.Resources>
         <convert:NullableConverter x:Key="NullableConverter"/>
         <controls:PropertyGridCellTemplateSelector x:Key="DisplayCellTemplateSelector">

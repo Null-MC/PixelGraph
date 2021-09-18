@@ -4,23 +4,25 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:PixelGraph.UI.Controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:models="clr-namespace:PixelGraph.UI.Models"
              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
-    <Grid>
-        <Grid.DataContext>
-            <models:MaterialFiltersModel x:Name="Model" DataChanged="OnDataChanged"/>
-        </Grid.DataContext>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="Auto" MinHeight="80"/>
-        </Grid.RowDefinitions>
-        <ListView Grid.Column="0" Grid.Row="0" DisplayMemberPath="Name"
-                  ItemsSource="{Binding FilterList, Mode=OneWay}"
-                  SelectedItem="{Binding SelectedFilter, Mode=TwoWay}"/>
-        <Rectangle Grid.Row="1" Fill="{StaticResource MahApps.Brushes.Gray8}"/>
-        <local:PropertyGridControl Grid.Column="0" Grid.Row="2">
+    <DockPanel>
+        <DockPanel.DataContext>
+            <models:MaterialFiltersModel x:Name="Model" DataChanged="OnDataChanged" SelectionChanged="OnSelectionChanged"/>
+        </DockPanel.DataContext>
+        <ToolBar DockPanel.Dock="Top" ToolBarTray.IsLocked="True">
+            <Button Click="OnFilterAddButtonClick" ToolTip="Add a new filter">
+                <iconPacks:FontAwesome Kind="PlusSolid"/>
+            </Button>
+            <Button Click="OnFilterDeleteButtonClick" ToolTip="Remove the selected filter"
+                    IsEnabled="{Binding HasSelectedFilter, Mode=OneWay}">
+                <iconPacks:FontAwesome Kind="TrashSolid"/>
+            </Button>
+        </ToolBar>
+        <local:PropertyGridControl DockPanel.Dock="Bottom" PropertyChanged="OnFilterPropertyChanged"
+                                   IsEnabled="{Binding HasSelectedFilter, Mode=OneWay}">
             <DataGrid.Style>
                 <Style TargetType="DataGrid" BasedOn="{StaticResource MahApps.Styles.DataGrid}">
                     <Setter Property="ItemsSource" Value="{Binding GeneralProperties, Mode=OneWay}"/>
@@ -32,5 +34,9 @@
                 </Style>
             </DataGrid.Style>
         </local:PropertyGridControl>
-    </Grid>
+        <!--<Rectangle Grid.Row="1" Fill="{StaticResource MahApps.Brushes.Gray8}"/>-->
+        <ListView Margin="0,0,0,8" DisplayMemberPath="Name"
+                  ItemsSource="{Binding FilterList, Mode=OneWay}"
+                  SelectedItem="{Binding SelectedFilter, Mode=TwoWay}"/>
+    </DockPanel>
 </UserControl>

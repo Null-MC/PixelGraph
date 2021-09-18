@@ -256,6 +256,14 @@
                             <iconPacks:PackIconFontAwesome Kind="PuzzlePieceSolid"/>
                         </RadioButton>
                     </ToolBar>
+                    <ToolBar Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                        <Button Click="OnFilterImportFileButtonClick" ToolTip="Import filters from JSON Model file">
+                            <iconPacks:PackIconFontAwesome Kind="FileImportSolid"/>
+                        </Button>
+                        <Button Click="OnFilterImportEntityButtonClick" ToolTip="Import filters from Pre-Mapped Entity">
+                            <iconPacks:PackIconFontAwesome Kind="FileImportSolid"/>
+                        </Button>
+                    </ToolBar>
                 </ToolBarTray>
                 <DockPanel Grid.Column="2" Grid.Row="1">
                     <controls:DocumentTabControl DockPanel.Dock="Top" Height="34"
@@ -272,7 +280,9 @@
                             <DockPanel Visibility="{Binding HasSelectedTab, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <Grid Visibility="{Binding HasSelectedTab, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                     <controls:TexturePreviewControl x:Name="texturePreview" RefreshClick="OnPreviewRefreshClick"
-                                                          Visibility="{Binding IsViewModeLayer, Converter={StaticResource VisibilityConverter}}"/>
+                                                                    ShowOutline="{Binding IsEditModeFilters, Mode=OneWay}"
+                                                                    OutlineBounds="{Binding SelectedFilterBounds, Mode=OneWay, ElementName=FilterEditor}"
+                                                                    Visibility="{Binding IsViewModeLayer, Converter={StaticResource VisibilityConverter}}"/>
                                     <controls:RenderPreviewControl x:Name="renderPreview"
                                                           Visibility="{Binding IsViewModeRender, Converter={StaticResource VisibilityConverter}}"/>
                                     <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -335,7 +345,7 @@
                                                                     Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                     SelectedTag="{Binding SelectedTag, Mode=OneWay}"
                                                                     Visibility="{Binding IsEditModeMaterial, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                <controls:MaterialFiltersControl DataChanged="OnMaterialChanged"
+                                <controls:MaterialFiltersControl x:Name="FilterEditor" DataChanged="OnMaterialChanged"
                                                                  Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                  SelectedTag="{Binding SelectedTag, Mode=OneWay}"
                                                                  Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>

@@ -58,6 +58,7 @@
                                 <Setter Property="Source" Value="{Binding Texture, Mode=OneWay}"/>
                                 <Setter Property="Width" Value="{Binding Texture.PixelWidth, Mode=OneWay}"/>
                                 <Setter Property="Height" Value="{Binding Texture.PixelHeight, Mode=OneWay}"/>
+                                <Setter Property="SnapsToDevicePixels" Value="True"/>
                                 <Setter Property="LayoutTransform">
                                     <Setter.Value>
                                         <ScaleTransform CenterX="0.5" CenterY="0.5"
@@ -77,24 +78,21 @@
                         <Image Grid.Column="1" Grid.Row="2" Visibility="{Binding EnableTiling, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
                         <Image Grid.Column="2" Grid.Row="2" Visibility="{Binding EnableTiling, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
 
-                        <Rectangle Grid.Column="1" Grid.Row="1" Stroke="Red" StrokeThickness="1"
+                        <Rectangle Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" 
+                                   SnapsToDevicePixels="True" Stroke="#90FF0000" StrokeThickness="1"
+                                   Width="{Binding OutlineWidth, Mode=OneWay}"
+                                   Height="{Binding OutlineHeight, Mode=OneWay}"
                                    Visibility="{Binding ShowOutline, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                            <Rectangle.Style>
-                                <Style TargetType="Rectangle">
-                                    <Setter Property="Width" Value="{Binding OutlineWidth, Mode=OneWay}"/>
-                                    <Setter Property="Height" Value="{Binding OutlineHeight, Mode=OneWay}"/>
-                                    <Setter Property="LayoutTransform">
-                                        <Setter.Value>
-                                            <TransformGroup>
-                                                <ScaleTransform CenterX="0.5" CenterY="0.5"
-                                                                ScaleX="{Binding Zoom, Mode=OneWay}"
-                                                                ScaleY="{Binding Zoom, Mode=OneWay}"/>
-                                                <TranslateTransform X="-1" Y="-1"/>
-                                            </TransformGroup>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </Rectangle.Style>
+                            <Rectangle.RenderTransform>
+                                <TransformGroup>
+                                    <TranslateTransform
+                                        X="{Binding OutlineMargin.Left}"
+                                        Y="{Binding OutlineMargin.Top}"/>
+                                    <ScaleTransform CenterX="0" CenterY="0"
+                                        ScaleX="{Binding Zoom, Mode=OneWay}"
+                                        ScaleY="{Binding Zoom, Mode=OneWay}"/>
+                                </TransformGroup>
+                            </Rectangle.RenderTransform>
                         </Rectangle>
                     </Grid>
                 </Border>

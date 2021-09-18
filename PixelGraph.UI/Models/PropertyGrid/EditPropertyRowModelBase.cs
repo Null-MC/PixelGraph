@@ -44,7 +44,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
             get => ActualValue ?? _defaultValue;
             set {
                 if (_data == null) return;
-                info.SetValue(_data, value.To<TValue>());
+                info.SetValue(_data, FormatValue<TValue>(value));
                 OnValueChanged();
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ActualValue));
@@ -61,6 +61,16 @@ namespace PixelGraph.UI.Models.PropertyGrid
             if (info == null) throw new ApplicationException($"Property '{typeof(TProperty).Name}.{propertyName}' not found!");
 
             _defaultValue = defaultValue;
+        }
+
+        protected virtual T FormatValue<T>(object value)
+        {
+            if (value is string stringValue) {
+                if (TryParseDivision(stringValue, out var decimalValue))
+                    return decimalValue.To<T>();
+            }
+
+            return value.To<T>();
         }
 
         public void SetData(TProperty data)
@@ -82,6 +92,30 @@ namespace PixelGraph.UI.Models.PropertyGrid
             };
 
             ValueChanged?.Invoke(this, e);
+        }
+
+        private static bool TryParseDivision(string text, out decimal value)
+        {
+            var i = text.IndexOf('/');
+            if (i < 0) {
+                value = 0m;
+                return false;
+            }
+
+            var numeratorString = text[..i].Trim();
+            if (!int.TryParse(numeratorString, out var numerator)) {
+                value = 0m;
+                return false;
+            }
+
+            var denominatorString = text[(i + 1)..].Trim();
+            if (!int.TryParse(denominatorString, out var denominator)) {
+                value = 0m;
+                return false;
+            }
+
+            value = numerator / (decimal)denominator;
+            return true;
         }
     }
 }

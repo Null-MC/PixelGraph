@@ -98,8 +98,11 @@ namespace PixelGraph.Common.ImageProcessors
         {
             var p = new Rgba32();
 
+            var ox = (kernelSize - 1) / 2;
+            var oy = (kernelSize - 1) / 2;
+
             for (byte kY = 0; kY < kernelSize; kY++) {
-                var pY = context.Y + kY - 1;
+                var pY = context.Y + kY - oy;
 
                 if (options.WrapY) context.WrapY(ref pY);
                 else context.ClampY(ref pY);
@@ -107,7 +110,7 @@ namespace PixelGraph.Common.ImageProcessors
                 var row = options.Source.GetPixelRowSpan(pY);
 
                 for (byte kX = 0; kX < kernelSize; kX++) {
-                    var pX = context.X + kX - 1;
+                    var pX = context.X + kX - ox;
 
                     if (options.WrapX) context.WrapX(ref pX);
                     else context.ClampX(ref pX);

@@ -134,7 +134,9 @@ namespace PixelGraph.Common.Textures
             if (!TargetFrame.HasValue && context.MaxFrameCount > 1)
                 height *= context.MaxFrameCount;
 
-            if (TargetPart.HasValue) {
+            if (context.IsMaterialMultiPart && TargetPart.HasValue) {
+                // WARN: this is breaking non-multipart materials
+
                 var f = TargetFrame ?? 0;
                 var part = regions.GetPublishPartFrame(f, FrameCount, TargetPart.Value);
                 width = (int) MathF.Ceiling(part.SourceBounds.Width * width);

@@ -1,5 +1,6 @@
 ﻿using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.PropertyGrid;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,6 +11,8 @@ namespace PixelGraph.UI.Controls
     public partial class PropertyGridControl
     {
         private bool isEditing;
+
+        public event EventHandler<PropertyGridChangedEventArgs> PropertyChanged;
 
 
         public PropertyGridControl()
@@ -53,6 +56,27 @@ namespace PixelGraph.UI.Controls
         private void OnCellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
             isEditing = false;
+
+            if (e.EditAction != DataGridEditAction.Commit) return;
+            if (e.Row.Item is not IEditPropertyRow editRow) return;
+
+            OnPropertyChanged(editRow.Name);
+        }
+
+        private void OnCurrentCellChanged(object sender, EventArgs e)
+        {
+            if (CurrentCell.Item is not IEditPropertyRow editRow) return;
+
+            OnPropertyChanged(editRow.Name);
+        }
+
+        private void OnPropertyChanged(string propertyName)
+        {
+            var e = new PropertyGridChangedEventArgs {
+                PropertyName = propertyName,
+            };
+
+            PropertyChanged?.Invoke(this, e);
         }
     }
 
@@ -74,5 +98,10 @@ namespace PixelGraph.UI.Controls
                 _ => base.SelectTemplate(item, container)
             };
         }
+    }
+
+    public class PropertyGridChangedEventArgs : EventArgs
+    {
+        public string PropertyName {get; set;}
     }
 }

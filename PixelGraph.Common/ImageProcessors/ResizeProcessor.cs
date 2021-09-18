@@ -2,6 +2,7 @@
 using PixelGraph.Common.Samplers;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -22,11 +23,11 @@ namespace PixelGraph.Common.ImageProcessors
             if (srcBounds.IsEmpty) return;
 
             float fx, fy;
-            var pixel = new Rgba32();
+            Vector4 pixel;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 GetTexCoord(in context, in x, out fx, out fy);
-                options.Sampler.Sample(fx, fy, ref pixel);
-                row[x].FromRgba32(pixel);
+                options.Sampler.SampleScaled(fx, fy, out pixel);
+                row[x].FromScaledVector4(pixel);
             }
         }
 

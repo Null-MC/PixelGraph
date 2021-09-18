@@ -24,6 +24,7 @@ namespace PixelGraph.Common.Samplers
         private static readonly Dictionary<string, Func<ISampler<TPixel>>> map = new Dictionary<string, Func<ISampler<TPixel>>>(StringComparer.InvariantCultureIgnoreCase) {
             [Samplers.Nearest] = () => new NearestSampler<TPixel>(),
             [Samplers.Bilinear] = () => new BilinearSampler<TPixel>(),
+            [Samplers.Bicubic] = () => new BicubicSampler<TPixel>(),
             [Samplers.Average] = () => new AverageSampler<TPixel>(),
         };
     }

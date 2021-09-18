@@ -3,6 +3,7 @@ using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -15,12 +16,14 @@ namespace PixelGraph.UI.Models
         private ObservableCollection<MaterialFilter> _filterList;
         private string _selectedTag;
 
+        public event EventHandler SelectionChanged;
         public event EventHandler DataChanged;
 
         public FilterGeneralPropertyCollection GeneralProperties {get;}
         public FilterNormalPropertyCollection NormalProperties {get;}
 
         public bool HasMaterial => _material != null;
+        public bool HasSelectedFilter => _selectedFilter != null;
         public bool IsGeneralSelected => TextureTags.Is(_selectedTag, TextureTags.General);
         public bool IsNormalSelected => TextureTags.Is(_selectedTag, TextureTags.Normal);
 
@@ -35,6 +38,8 @@ namespace PixelGraph.UI.Models
         public MaterialProperties Material {
             get => _material;
             set {
+                if (_material == value) return;
+
                 _material = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasMaterial));
@@ -46,11 +51,16 @@ namespace PixelGraph.UI.Models
         public MaterialFilter SelectedFilter {
             get => _selectedFilter;
             set {
+                if (_selectedFilter == value) return;
+
                 _selectedFilter = value;
                 OnPropertyChanged();
 
+                OnPropertyChanged(nameof(HasSelectedFilter));
                 GeneralProperties.SetData(value);
                 NormalProperties.SetData(value);
+
+                OnSelectionChanged();
             }
         }
 
@@ -77,12 +87,19 @@ namespace PixelGraph.UI.Models
             NormalProperties.PropertyChanged += OnPropertyValueChanged;
         }
 
-        private void UpdateFilterList()
-        {
-            FilterList = null;
+        //public void InvalidateFilterList()
+        //{
+        //    OnPropertyChanged(nameof(FilterList));
+        //}
 
-            if (_material?.Filters == null) return;
-            FilterList = new ObservableCollection<MaterialFilter>(_material.Filters);
+        public void UpdateFilterList()
+        {
+            _filterList = null;
+
+            if (_material?.Filters != null)
+                _filterList = new ObservableCollection<MaterialFilter>(_material.Filters);
+
+            OnPropertyChanged(nameof(FilterList));
         }
 
         private void OnPropertyValueChanged(object sender, PropertyChangedEventArgs e)
@@ -90,9 +107,43 @@ namespace PixelGraph.UI.Models
             OnDataChanged();
         }
 
+        private void OnSelectionChanged()
+        {
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+
         private void OnDataChanged()
         {
             DataChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void AddNewFilter()
+        {
+            var newFilter = new MaterialFilter();
+
+            _material.Filters ??= new List<MaterialFilter>();
+            _material.Filters.Add(newFilter);
+
+            if (_filterList == null) {
+                _filterList = new ObservableCollection<MaterialFilter>();
+                OnPropertyChanged(nameof(FilterList));
+            }
+
+            _filterList.Add(newFilter);
+            OnDataChanged();
+
+            SelectedFilter = newFilter;
+        }
+
+        public void DeleteSelectedFilter()
+        {
+            if (_selectedFilter == null) return;
+
+            _material.Filters.Remove(_selectedFilter);
+            _filterList.Remove(_selectedFilter);
+            OnDataChanged();
+
+            SelectedFilter = null;
         }
     }
 
