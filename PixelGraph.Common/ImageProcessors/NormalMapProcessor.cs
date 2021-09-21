@@ -11,6 +11,8 @@ namespace PixelGraph.Common.ImageProcessors
     internal class NormalMapProcessor<THeight> : PixelProcessor
         where THeight : unmanaged, IPixel<THeight>
     {
+        private const float hp = 0.5f / 255;
+
         private readonly Options options;
         private readonly float[,] _operator;
         private readonly byte kernelSize;
@@ -46,9 +48,9 @@ namespace PixelGraph.Common.ImageProcessors
             ProcessPixelNormal(in context, out var normal);
 
             var tp = new Vector4();
-            tp.SetChannelValue(ColorChannel.Red, normal.X * 0.5f + 0.5f);
-            tp.SetChannelValue(ColorChannel.Green, normal.Y * 0.5f + 0.5f);
-            tp.SetChannelValue(ColorChannel.Blue, normal.Z * 0.5f + 0.5f);
+            tp.SetChannelValue(ColorChannel.Red, normal.X * 0.5f + 0.5f - hp);
+            tp.SetChannelValue(ColorChannel.Green, normal.Y * 0.5f + 0.5f - hp);
+            tp.SetChannelValue(ColorChannel.Blue, normal.Z * 0.5f + 0.5f - hp);
             pixel.FromScaledVector4(tp);
         }
 
@@ -56,9 +58,9 @@ namespace PixelGraph.Common.ImageProcessors
         {
             ProcessPixelNormal(in context, out var normal);
 
-            pixel.SetChannelValueScaledF(ColorChannel.Red, normal.X * 0.5f + 0.5f);
-            pixel.SetChannelValueScaledF(ColorChannel.Green, normal.Y * 0.5f + 0.5f);
-            pixel.SetChannelValueScaledF(ColorChannel.Blue, normal.Z * 0.5f + 0.5f);
+            pixel.SetChannelValueScaledF(ColorChannel.Red, normal.X * 0.5f + 0.5f - hp);
+            pixel.SetChannelValueScaledF(ColorChannel.Green, normal.Y * 0.5f + 0.5f - hp);
+            pixel.SetChannelValueScaledF(ColorChannel.Blue, normal.Z * 0.5f + 0.5f - hp);
         }
 
         private void ProcessPixelNormal(in PixelContext context, out Vector3 normal)

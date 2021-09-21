@@ -71,12 +71,12 @@ namespace PixelGraph.Common.ImageProcessors
                 pixel.GetChannelValue(ColorChannel.Red, out var normalX);
                 pixel.GetChannelValue(ColorChannel.Green, out var normalY);
 
-                v.X = Math.Clamp(normalX / 127.5f - 1f, -1f, 1f);
-                v.Y = Math.Clamp(normalY / 127.5f - 1f, -1f, 1f);
+                v.X = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
+                v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
 
                 if (!options.RestoreNormalZ) {
                     pixel.GetChannelValue(ColorChannel.Blue, out var normalZ);
-                    v.Z = Math.Clamp(normalZ / 127.5f - 1f, -1f, 1f);
+                    v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
                     MathEx.Normalize(ref v);
                 }
 
@@ -104,12 +104,12 @@ namespace PixelGraph.Common.ImageProcessors
                 row[x].GetChannelValue(ColorChannel.Red, out var normalX);
                 row[x].GetChannelValue(ColorChannel.Green, out var normalY);
 
-                v.X = Math.Clamp(normalX / 127.5f - 1f, -1f, 1f);
-                v.Y = Math.Clamp(normalY / 127.5f - 1f, -1f, 1f);
+                v.X = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
+                v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
 
                 if (!options.RestoreNormalZ) {
                     row[x].GetChannelValueScaled(ColorChannel.Blue, out var normalZ);
-                    v.Z = Math.Clamp(normalZ / 127.5f - 1f, -1f, 1f);
+                    v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
                     MathEx.Normalize(ref v);
                 }
 
