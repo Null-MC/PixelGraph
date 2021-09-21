@@ -71,12 +71,12 @@ namespace PixelGraph.Common.ImageProcessors
                 pixel.GetChannelValue(ColorChannel.Red, out var normalX);
                 pixel.GetChannelValue(ColorChannel.Green, out var normalY);
 
-                v.X = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
-                v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
+                v.X = Math.Clamp(normalX / 127.5f - 1f, -1f, 1f);
+                v.Y = Math.Clamp(normalY / 127.5f - 1f, -1f, 1f);
 
                 if (!options.RestoreNormalZ) {
                     pixel.GetChannelValue(ColorChannel.Blue, out var normalZ);
-                    v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
+                    v.Z = Math.Clamp(normalZ / 127.5f - 1f, -1f, 1f);
                     MathEx.Normalize(ref v);
                 }
 
@@ -104,12 +104,12 @@ namespace PixelGraph.Common.ImageProcessors
                 row[x].GetChannelValue(ColorChannel.Red, out var normalX);
                 row[x].GetChannelValue(ColorChannel.Green, out var normalY);
 
-                v.X = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
-                v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
+                v.X = Math.Clamp(normalX / 127.5f - 1f, -1f, 1f);
+                v.Y = Math.Clamp(normalY / 127.5f - 1f, -1f, 1f);
 
                 if (!options.RestoreNormalZ) {
                     row[x].GetChannelValueScaled(ColorChannel.Blue, out var normalZ);
-                    v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
+                    v.Z = Math.Clamp(normalZ / 127.5f - 1f, -1f, 1f);
                     MathEx.Normalize(ref v);
                 }
 
@@ -124,63 +124,50 @@ namespace PixelGraph.Common.ImageProcessors
         private void ProcessPixel(in PixelRowContext context, ref Vector3 v, in byte[] noiseX, in byte[] noiseY, in int x)
         {
             if (hasRotation || hasNoise) {
-                var angleX = MathEx.AsinD(v.X);
-                var angleY = MathEx.AsinD(v.Y);
                 float fx, fy, rx, ry;
+                var q = Quaternion.Identity;
 
                 if (hasCurveTop) {
                     fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
                     ry = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
-                    angleY += options.CurveTop * ry;
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, options.CurveTop * -ry * MathEx.Deg2RadF);
                 }
 
                 if (hasCurveBottom) {
                     fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
                     ry = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
-                    angleY += options.CurveBottom * ry;
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, options.CurveBottom * -ry * MathEx.Deg2RadF);
                 }
 
                 if (hasCurveLeft) {
                     fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
                     rx = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft;
-                    angleX += options.CurveLeft * rx;
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, options.CurveLeft * rx * MathEx.Deg2RadF);
                 }
 
                 if (hasCurveRight) {
                     fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
                     rx = MathF.Max(fx - offsetRight, 0f) * invRadiusRight;
-                    angleX += options.CurveRight * rx;
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, options.CurveRight * rx * MathEx.Deg2RadF);
                 }
 
                 if (hasNoise) {
                     var z = x - context.Bounds.Left;
-                    angleX += (noiseX[z] / 127f - 1f) * options.Noise;
-                    angleY += (noiseY[z] / 127f - 1f) * options.Noise;
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[z] / 127.5f - 1f) * options.Noise * MathEx.Deg2RadF);
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[z] / 127.5f - 1f) * -options.Noise * MathEx.Deg2RadF);
                 }
 
-                AngleToVector(in angleX, in angleY, out v);
+                q = Quaternion.Normalize(q);
+                v = Vector3.Transform(v, q);
+                MathEx.Normalize(ref v);
             }
             else if (options.RestoreNormalZ) {
                 var v2 = new Vector2(v.X, v.Y);
                 var d = Vector2.Dot(v2, v2);
+                MathEx.Clamp(ref d, 0f, 1f);
                 v.Z = MathF.Sqrt(1f - d);
+                MathEx.Normalize(ref v);
             }
-        }
-
-        private static void AngleToVector(in float angleX, in float angleY, out Vector3 vector)
-        {
-            //MathEx.Clamp(ref angleX, -90f, 90f);
-            //MathEx.Clamp(ref angleY, -90f, 90f);
-
-            var sinX = MathEx.SinD(angleX);
-            var cosX = MathEx.CosD(angleX);
-            var sinY = MathEx.SinD(angleY);
-            var cosY = MathEx.CosD(angleY);
-
-            vector.X = sinX * cosY;
-            vector.Y = sinY * cosX;
-            vector.Z = cosX * cosY;
-            MathEx.Normalize(ref vector);
         }
 
         private static void GenerateNoise(in int size, out byte[] buffer)
