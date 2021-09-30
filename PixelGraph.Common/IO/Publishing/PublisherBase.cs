@@ -84,6 +84,15 @@ namespace PixelGraph.Common.IO.Publishing
 
                 switch (fileObj) {
                     case MaterialProperties material:
+                        if (material.CTM?.Type != null) {
+                            var publishConnected = packContext.Profile.PublishConnected ?? ResourcePackProfileProperties.PublishConnectedDefault;
+
+                            if (!publishConnected) {
+                                Logger.LogDebug("Skipping connected texture '{DisplayName}'. feature disabled.", material.DisplayName);
+                                break;
+                            }
+                        }
+
                         if (TryMapMaterial(material)) {
                             using var scope = provider.CreateScope();
                             var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();

@@ -29,6 +29,7 @@ namespace PixelGraph.UI.Models
         private int _parallaxSamplesMin;
         private int _parallaxSamplesMax;
         private bool _enableLinearSampling;
+        private bool _enableSlopeNormals;
         private Camera _sunCamera;
         private Vector3 _sunDirection;
         private float _sunStrength;
@@ -81,6 +82,14 @@ namespace PixelGraph.UI.Models
             get => _enableLinearSampling;
             set {
                 _enableLinearSampling = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool EnableSlopeNormals {
+            get => _enableSlopeNormals;
+            set {
+                _enableSlopeNormals = value;
                 OnPropertyChanged();
             }
         }

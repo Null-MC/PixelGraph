@@ -1,17 +1,27 @@
 #define PI 3.14159265f
-#define MEDIUMP_FLT_MAX    65504.0
-#define saturateMediump(x) min(x, MEDIUMP_FLT_MAX)
+#define IOR_N_WATER 1.333f
+#define IOR_N_AIR 1.0f
+#define WATER_ROUGH 0.1f
 
 #pragma pack_matrix(row_major)
 
+
+float F_schlick(const in float f0, const in float fd90, const in float cos_theta)
+{
+    return f0 + (fd90 - f0) * pow(1.0f - cos_theta, 5.0f);
+}
 
 float3 F_schlick(const in float3 f0, const in float3 fd90, const in float cos_theta)
 {
     return f0 + (fd90 - f0) * pow(1.0f - cos_theta, 5.0f);
 }
 
+float3 F_schlick_roughness(float3 f0, float cos_theta, float rough) {
+    return f0 + (max(1.0f - rough, f0) - f0) * pow(saturate(1.0f - cos_theta), 5.0f);
+}
+
 //https://docs.chaosgroup.com/display/OSLShaders/Complex+Fresnel+shader
-float3 F_schlick_complex(const float3 n, const float3 k, const float cos)
+float3 F_complex(const float3 n, const float3 k, const float cos)
 {
 	const float3 n2 = n*n;
 	const float3 k2 = k * k;
@@ -28,19 +38,28 @@ float3 F_schlick_complex(const float3 n, const float3 k, const float cos)
     return saturate(0.5f * (rs + rp));
 }
 
-float3 Diffuse_Burley(const in float NdotL, const in float NdotV, in float LdotH, in float roughP)
-{
-	const float fd90 = 0.5f + 2.0f * roughP * LdotH * LdotH;
-    return F_schlick(1.0f, 1.0f, NdotL) * F_schlick(1.0f, fd90, NdotV);
-}
+//float3 F_complex_wet(const float3 n, const float3 k, const float cos)
+//{
+//	const float3 n2 = n*n;
+//	const float3 k2 = k * k;
+//	const float cos2 = cos * cos;
+//
+//	const float3 rs_num = n2 + k2 - 2.0f * n*cos + cos2;
+//	const float3 rs_den = n2 + k2 + 2.0f * n*cos + cos2;
+//	const float3 rs = rs_num / rs_den;
+//
+//	const float3 rp_num = (n2 + k2) * cos2 - 2.0f * n*cos + 1.0f;
+//	const float3 rp_den = (n2 + k2) * cos2 + 2.0f * n*cos + 1.0f;
+//	const float3 rp = rp_num / rp_den;
+//     
+//    return saturate(0.5f * (rs + rp));
+//}
 
-float D_GGX(const in float NoH, const in float3 n, const in float3 h, const in float roughness)
+float D_ggx(const in float NoH, const in float roughness)
 {
-	const float3 NxH = cross(n, h);
 	const float a = NoH * roughness;
-	const float k = roughness / (dot(NxH, NxH) + a * a);
-	const float d = k * k * (1.0f / PI);
-    return saturateMediump(d);
+	const float k = roughness / (1.0f - NoH * NoH + a * a);
+	return k * k * (1.0f / PI);
 }
 
 float V_SmithGGXCorrelated(float NoV, float NoL, float roughness)
@@ -56,18 +75,63 @@ float G_Shlick_Smith_Hable(const float LdotH, const float alpha)
     return rcp(lerp(LdotH * LdotH, 1.0f, alpha * alpha * 0.25f));
 }
 
-float3 Specular_BRDF(const in float3 ior_n, const in float3 ior_k, const in float3 N, const in float3 H, const in float LoH, const in float NoH, const in float VoH, const in float roughL)
+float V_kelemen(const in float LoH) {
+    return 0.25f / (LoH * LoH);
+}
+
+float3 specular_brdf(const in float3 ior_n, const in float3 ior_k, const in float LoH, const in float NoH, const in float VoH, const in float rough)
 {
-    // Distribution
-    const float D = D_GGX(NoH, N, H, roughL);//Specular_D_GGX(alpha, NdotH);
-
     // Fresnel
-    const float3 F = F_schlick_complex(ior_n, ior_k, VoH);
+    const float3 F = F_complex(ior_n, ior_k, VoH);
 
-    // Visibility
-    const float G = G_Shlick_Smith_Hable(LoH, roughL * roughL);
+    // Distribution
+    const float D = D_ggx(NoH, rough);
 
-    return D * F * G;
+    // Geometric Visibility
+    const float G = G_Shlick_Smith_Hable(LoH, rough);
+
+	return D * F * G;
+}
+
+float3 specular_brdf_wet(const in float3 f0, const in float LoH, const in float NoH, const in float VoH, const in float rough)
+{
+    // Fresnel
+    //const float3 F = F_complex(ior_n, ior_k, VoH);
+	const float3 F = F_schlick(f0, 1.0, VoH);
+
+    // Distribution
+    const float D = D_ggx(NoH, rough);
+
+    // Geometric Visibility
+    const float G = G_Shlick_Smith_Hable(LoH, rough);
+
+	return D * F * G;
+}
+
+float3 clearcoat_brdf(const in float3 Fd, const in float3 Fr, const in float LoH, const in float NoH, const in float rough, const in float wetness)
+{
+	//return Fd + Fr;
+
+	//const float water_roughL = max(pow2(WATER_ROUGH), 0.089f);
+	const float D = D_ggx(NoH, WATER_ROUGH);
+
+	const float G = V_kelemen(LoH);
+
+	//const float f90 = 0.5f + 2.0f * rough * LoH * LoH;
+	const float F = F_schlick(IOR_N_WATER, 1.0f, LoH) * pow4(wetness);
+
+	const float Frc = D * G * F;
+
+	const float invFc = 1.0f - F;
+	return (Fd + Fr * invFc) * invFc + Frc;
+}
+
+float3 Diffuse_Burley(const in float NoL, const in float NoV, const in float LoH, const in float rough)
+{
+	const float f90 = 0.5f + 2.0f * rough * LoH * LoH;
+	const float3 light_scatter = F_schlick(1.0f, f90, NoL);
+	const float3 view_scatter = F_schlick(1.0f, f90, NoV);
+	return light_scatter * view_scatter * rcp(PI);
 }
 
 
@@ -93,8 +157,10 @@ float3 IBL_Ambient(const in float3 F, const in float3 n, const in float occlusio
     return indirect_diffuse * (1.0f - F) * occlusion;
 }
 
-float3 IBL_Specular(const in float3 F, const in float NoV, const in float3 r, const in float occlusion, const in float roughP)
+float3 IBL_Specular(const in float3 f0, const in float NoV, const in float3 r, const in float occlusion, const in float roughP)
 {
+	//return 0.0;
+
 	const float roughL = roughP * roughP;
 	const float3 specular_occlusion = IBL_SpecularOcclusion(NoV, occlusion, roughL);
 
@@ -107,8 +173,9 @@ float3 IBL_Specular(const in float3 F, const in float NoV, const in float3 r, co
 		indirect_specular = srgb_to_linear(vLightAmbient.rgb);
 	}
 	
-    //const float2 env_brdf  = srgb_to_linear(tex_brdf_lut.SampleLevel(sampler_brdf_lut, float2(NoV, roughL), 0));
-    const float2 env_brdf  = tex_brdf_lut.SampleLevel(sampler_brdf_lut, float2(NoV, roughL), 0);
+	const float2 lut_tex = float2(NoV, roughL);
+	const float3 F = F_schlick_roughness(f0, NoV, roughL);
+	const float2 env_brdf  = tex_brdf_lut.SampleLevel(sampler_brdf_lut, lut_tex, 0);
 	return indirect_specular * (F * env_brdf.x + env_brdf.y) * specular_occlusion;
 }
 

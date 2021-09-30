@@ -38,6 +38,7 @@ namespace PixelGraph.Common.Textures
         private readonly ITextureOcclusionGraph occlusionGraph;
         private readonly List<TextureChannelMapping> mappings;
         private Rgba32 defaultValues;
+        private Dictionary<ColorChannel, int> defaultPriorityValues;
         private Size bufferSize;
         private bool isGrayscale;
 
@@ -70,14 +71,15 @@ namespace PixelGraph.Common.Textures
 
         public async Task MapAsync(bool createEmpty, CancellationToken token = default)
         {
+            defaultPriorityValues = new Dictionary<ColorChannel, int>();
             defaultValues.R = defaultValues.G = defaultValues.B = defaultValues.A = 0;
             mappings.Clear();
 
             HasMappedSources = false;
             FrameCount = 1;
 
-            foreach (var channel in OutputChannels) {
-                if (channel.Color == ColorChannel.Magnitude) continue;
+            foreach (var channel in OutputChannels.OrderBy(c => c.Priority ?? 0)) {
+                //if (channel.Color == ColorChannel.Magnitude) continue;
 
                 if (TryBuildMapping(channel, createEmpty, out var mapping) || createEmpty) {
                     mappings.Add(mapping);
@@ -124,9 +126,13 @@ namespace PixelGraph.Common.Textures
             isGrayscale = mappings.All(x => x.OutputColor == ColorChannel.Red);
             if (isGrayscale) defaultValues.B = defaultValues.G = defaultValues.R;
 
+            var autoLevel = context.Material.Height?.AutoLevel
+                ?? context.Profile?.AutoLevelHeight
+                ?? ResourcePackProfileProperties.AutoLevelHeightDefault;
+
             var size = await GetBufferSizeAsync(token);
             if (!size.HasValue && !createEmpty) return null;
-            bufferSize = size ?? new Size(1);
+            bufferSize = size ?? new Size(16);
 
             var width = bufferSize.Width;
             var height = bufferSize.Height;
@@ -149,13 +155,20 @@ namespace PixelGraph.Common.Textures
 
             var mappingsWithSources = mappings
                 .Where(m => m.SourceFilename != null)
+                .OrderBy(m => m.Priority)
                 .GroupBy(m => m.SourceFilename);
 
             var mappingsWithoutSources = mappings
-                .Where(m => m.SourceFilename == null);
+                .Where(m => m.SourceFilename == null)
+                .OrderBy(m => m.Priority);
 
             var mappingsWithOutputOcclusion = mappings
-                .Where(m => m.OutputApplyOcclusion).ToArray();
+                .Where(m => m.OutputApplyOcclusion)
+                .ToArray();
+
+            var mappingsWithHeight = mappings
+                .Where(m => TextureTags.Is(m.OutputChannelID, TextureTags.Height))
+                .ToArray();
 
             try {
                 foreach (var mappingGroup in mappingsWithSources)
@@ -175,6 +188,12 @@ namespace PixelGraph.Common.Textures
                 if (mappingsWithOutputOcclusion.Any())
                     await ApplyOutputOcclusionAsync(imageResult, mappingsWithOutputOcclusion, token);
 
+                if (autoLevel && mappingsWithHeight.Any())
+                    imageResult.Mutate(imgContext => {
+                        foreach (var color in mappingsWithHeight.Select(m => m.OutputColor))
+                            AutoLevelHeight(imgContext, color);
+                    });
+
                 return imageResult;
             }
             catch {
@@ -189,11 +208,27 @@ namespace PixelGraph.Common.Textures
                 OutputSampler = outputChannel.Sampler ?? context.DefaultSampler,
 
                 //ValueShift = (float)context.Material.GetChannelShift(outputChannel.ID),
-                OutputValueScale = (float)context.Material.GetChannelScale(outputChannel.ID),
-                OutputValueShift = (float)context.Material.GetChannelShift(outputChannel.ID),
+
+                //Priority = outputChannel.Priority ?? 0,
+                //OutputValueDefault = (float?)context.Material.GetChannelDefaultValue(outputChannel.ID),
+                //OutputClipValue = (float?)context.Material.GetChannelClipValue(outputChannel.ID),
             };
 
             mapping.ApplyOutputChannel(outputChannel);
+
+            if (context.ApplyPostProcessing) {
+                mapping.OutputValueScale = (float)context.Material.GetChannelScale(outputChannel.ID);
+                mapping.OutputValueShift = (float)context.Material.GetChannelShift(outputChannel.ID);
+            }
+
+
+            // TODO: Override encoding with material?
+            //if (context.Material.TryGetChannelDefaultValue(outputChannel.ID, out var defaultValue))
+            //    mapping.OutputValueDefault = (float?)defaultValue;
+
+            //if (context.Material.GetChannelClipValue(outputChannel.ID, out var clipValue))
+            //    mapping.OutputClipValue = (float?)clipValue;
+
 
             if (context.BakeOcclusionToColor) {
                 var isColorChannel = EncodingChannel.Is(outputChannel.ID, EncodingChannel.ColorRed)
@@ -289,6 +324,45 @@ namespace PixelGraph.Common.Textures
                 }
             }
 
+            var isOutputSpecular = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Specular);
+            if (isOutputSpecular) {
+                // Smooth > Specular
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
+                    && TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
+                    mapping.ApplyInputChannel(smoothChannel);
+                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
+                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
+                    return true;
+                }
+
+                if (context.Material.TryGetChannelValue(EncodingChannel.Smooth, out value)) {
+                    mapping.ApplyInputChannel(inputChannel);
+                    mapping.InputValue = (float)value;
+                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
+                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
+                    return true;
+                }
+
+                // Metal > Specular
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel)
+                    && TryGetSourceFilename(metalChannel.Texture, out mapping.SourceFilename)) {
+                    mapping.ApplyInputChannel(metalChannel);
+                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
+                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
+                    return true;
+                }
+
+                if (context.Material.TryGetChannelValue(EncodingChannel.Metal, out value)) {
+                    var f = value > 0.5m ? 1f : 0f;
+                    var min = (float?)metalChannel.MinValue ?? 0f;
+                    var max = (float?)metalChannel.MaxValue ?? 1f;
+
+                    mapping.ApplyInputChannel(inputChannel);
+                    mapping.InputValue = min + f * (max - min);
+                    return true;
+                }
+            }
+
             //var isOutputF0 = EncodingChannel.Is(outputChannel.ID, EncodingChannel.F0);
             //var isOutputMetal = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Metal);
 
@@ -312,8 +386,8 @@ namespace PixelGraph.Common.Textures
             //    }
             //}
 
-            var defaultValue = EncodingChannel.GetDefaultValue(outputChannel.ID);
-            if (defaultValue.HasValue) mapping.InputValue = defaultValue.Value;
+            //mapping.InputValueDefault = EncodingChannel.GetDefaultValue(outputChannel.ID);
+            //if (defaultValue.HasValue) mapping.InputValue = defaultValue.Value;
 
             return false;
         }
@@ -444,9 +518,17 @@ namespace PixelGraph.Common.Textures
 
         private void ApplyDefaultValue(TextureChannelMapping mapping)
         {
-            if (!mapping.InputValue.HasValue && mapping.OutputChannelShift == 0 && !mapping.OutputChannelInverted) return;
+            //if (!mapping.InputValue.HasValue && mapping.OutputChannelShift == 0 && !mapping.OutputChannelInverted) return;
+            
+            // WARN: This was disabled because it broke something
+            // TODO: having this on breaks normal maps and vanilla pbr
+            // TODO: having this off breaks LabPbr layering
+            //if (mapping.OutputRangeMax > mapping.OutputRangeMin) {
+            if (!mapping.InputValue.HasValue && !mapping.OutputValueDefault.HasValue) return;
+            //}
 
-            var value = mapping.InputValue ?? 0f;
+            var value = mapping.InputValue ?? mapping.OutputValueDefault ?? 0f;
+            if (mapping.OutputClipValue.HasValue && value.NearEqual(mapping.OutputClipValue.Value)) return;
             //if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
             if (mapping.Invert) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
@@ -454,19 +536,32 @@ namespace PixelGraph.Common.Textures
             // TODO: scale
 
             var pixelMap = new PixelMapping(mapping);
-            pixelMap.Map(ref value, out byte finalValue);
+
+            if (!pixelMap.TryMap(ref value, out var finalValue)) return;
 
             if (isGrayscale) {
                 defaultValues.R = finalValue;
                 defaultValues.G = finalValue;
                 defaultValues.B = finalValue;
+                //defaultValues.SetChannelValue(ColorChannel.Red, in finalValue);
+                //defaultValues.SetChannelValue(ColorChannel.Green, in finalValue);
+                //defaultValues.SetChannelValue(ColorChannel.Blue, in finalValue);
+
+                if (mapping.InputValue.HasValue) {
+                    defaultPriorityValues[ColorChannel.Red] = mapping.Priority;
+                    defaultPriorityValues[ColorChannel.Green] = mapping.Priority;
+                    defaultPriorityValues[ColorChannel.Blue] = mapping.Priority;
+                }
             }
             else {
                 defaultValues.SetChannelValue(in mapping.OutputColor, in finalValue);
+
+                if (mapping.InputValue.HasValue)
+                    defaultPriorityValues[mapping.OutputColor] = mapping.Priority;
             }
         }
 
-        private async Task ApplySourceMappingAsync<TPixel>(Image<TPixel> image, string sourceFilename, TextureChannelMapping[] mappingGroup, CancellationToken token)
+        private async Task ApplySourceMappingAsync<TPixel>(Image<TPixel> image, string sourceFilename, IEnumerable<TextureChannelMapping> mappingGroup, CancellationToken token)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             if (sourceFilename == null) throw new ArgumentNullException(nameof(sourceFilename));
@@ -479,21 +574,27 @@ namespace PixelGraph.Common.Textures
 
             var options = new OverlayProcessor<Rgba32>.Options {
                 IsGrayscale = isGrayscale,
-                Samplers = mappingGroup.Select(m => {
-                    var samplerName = m.OutputSampler ?? context.DefaultSampler;
-                    var sampler = context.CreateSampler(sourceImage, samplerName);
-                    sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
-                    sampler.RangeY = (float)(sourceImage.Height / info.FrameCount) / bufferSize.Height;
+                Samplers = mappingGroup
+                    .Where(m => {
+                        if (!defaultPriorityValues.TryGetValue(m.OutputColor, out var priority)) return true;
+                        return m.Priority >= priority;
+                    })
+                    .OrderBy(m => m.Priority)
+                    .Select(m => {
+                        var samplerName = m.OutputSampler ?? context.DefaultSampler;
+                        var sampler = context.CreateSampler(sourceImage, samplerName);
+                        sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
+                        sampler.RangeY = (float)(sourceImage.Height / info.FrameCount) / bufferSize.Height;
 
-                    return new OverlayProcessor<Rgba32>.SamplerOptions {
-                        PixelMap = new PixelMapping(m),
-                        InputColor = m.InputColor,
-                        OutputColor = m.OutputColor,
-                        Invert = m.Invert,
-                        //ValueShift = m.ValueShift,
-                        Sampler = sampler,
-                    };
-                }).ToArray(),
+                        return new OverlayProcessor<Rgba32>.SamplerOptions {
+                            PixelMap = new PixelMapping(m),
+                            InputColor = m.InputColor,
+                            OutputColor = m.OutputColor,
+                            Invert = m.Invert,
+                            //ValueShift = m.ValueShift,
+                            Sampler = sampler,
+                        };
+                    }).ToArray(),
             };
 
             var processor = new OverlayProcessor<Rgba32>(options);
@@ -603,6 +704,29 @@ namespace PixelGraph.Common.Textures
             }
         }
 
+        private void AutoLevelHeight(IImageProcessingContext imgContext, ColorChannel color)
+        {
+            var size = imgContext.GetCurrentSize();
+            var scanOptions = new HistogramProcessor<L16>.Options(size.Height) {
+                Color = color,
+            };
+
+            // TODO: find max value
+            var histogramProcessor = new HistogramProcessor<L16>(scanOptions);
+            imgContext.ApplyProcessor(histogramProcessor);
+
+            var max = scanOptions.Max;
+            if (max == 255) return;
+
+            var shiftOptions = new ShiftProcessor<L16>.Options {
+                Offset = (byte)(255 - max),
+                Color = color,
+            };
+
+            var shiftProcessor = new ShiftProcessor<L16>(shiftOptions);
+            imgContext.ApplyProcessor(shiftProcessor);
+        }
+
         private RectangleF GetOutBounds(TextureRenderTile tile, TextureRenderFrame frame)
         {
             var frameBounds = tile.Bounds;
@@ -619,6 +743,9 @@ namespace PixelGraph.Common.Textures
         {
             var scale = context.TextureScale;
             var blockSize = context.Profile?.BlockTextureSize;
+
+            if (blockSize.HasValue && context.IsMaterialCtm && TargetPart.HasValue)
+                return new Size(blockSize.Value);
 
             // Use multi-part bounds if defined
             if (context.Material.TryGetSourceBounds(in blockSize, in scale, out var partBounds))

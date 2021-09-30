@@ -289,6 +289,7 @@ namespace PixelGraph.UI.Models
             AddText<decimal?>("Value", nameof(MaterialHeightProperties.Value), 0m);
             AddText<decimal?>("Shift", nameof(MaterialHeightProperties.Shift), 0m);
             AddText<decimal?>("Scale", nameof(MaterialHeightProperties.Scale), 1m);
+            AddBool<bool?>("Auto-Level", nameof(MaterialHeightProperties.AutoLevel));
         }
     }
 

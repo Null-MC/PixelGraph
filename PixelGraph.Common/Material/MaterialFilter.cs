@@ -117,5 +117,10 @@ namespace PixelGraph.Common.Material
             if (axisValue.HasValue) return axisValue.Value / 2;
             return null;
         }
+
+        public MaterialFilter Clone()
+        {
+            return (MaterialFilter)MemberwiseClone();
+        }
     }
 }

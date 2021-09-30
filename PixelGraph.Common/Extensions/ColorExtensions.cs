@@ -27,8 +27,20 @@ namespace PixelGraph.Common.Extensions
                 ColorChannel.Green => pixel.G,
                 ColorChannel.Blue => pixel.B,
                 ColorChannel.Alpha => pixel.A,
+                ColorChannel.Magnitude => GetLuma(in pixel),
                 _ => 0,
             };
+        }
+
+        private static byte GetLuma(in Rgba32 pixel)
+        {
+            const float f = 1f / 255f;
+            return (byte)(GetLuma(pixel.R * f, pixel.G * f, pixel.B * f) * 255f);
+        }
+
+        private static float GetLuma(in float red, in float green, in float blue)
+        {
+            return 0.299f * red + 0.587f * green + 0.114f * blue;
         }
 
         public static void SetChannelValue(this ref Rgb24 pixel, in ColorChannel channel, in byte value)
@@ -42,6 +54,9 @@ namespace PixelGraph.Common.Extensions
                     break;
                 case ColorChannel.Blue:
                     pixel.B = value;
+                    break;
+                case ColorChannel.Magnitude:
+                    pixel.R = pixel.G = pixel.B = value;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(channel), channel, "Unknown color channel!");
@@ -62,6 +77,9 @@ namespace PixelGraph.Common.Extensions
                     break;
                 case ColorChannel.Alpha:
                     pixel.A = value;
+                    break;
+                case ColorChannel.Magnitude:
+                    pixel.R = pixel.G = pixel.B = value;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(channel), channel, "Unknown color channel!");

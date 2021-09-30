@@ -18,8 +18,6 @@ namespace PixelGraph.UI.Models
 
         public event EventHandler DataChanged;
 
-        public TextureChannelMapping[] EncodingChannels {get;}
-
         public TextureChannelMapping Opacity {get;}
 
         public TextureChannelMapping ColorRed {get;}
@@ -235,6 +233,16 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public int? ItemTextureSize {
+            get => _loadedProfile?.ItemTextureSize;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.ItemTextureSize = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
         public decimal? TextureScale {
             get => _loadedProfile?.TextureScale;
             set {
@@ -260,6 +268,16 @@ namespace PixelGraph.UI.Models
             set {
                 if (_loadedProfile == null) return;
                 _loadedProfile.OcclusionPower = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public bool? AutoLevelHeight {
+            get => _loadedProfile?.AutoLevelHeight ?? ResourcePackProfileProperties.AutoLevelHeightDefault;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.AutoLevelHeight = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
@@ -300,34 +318,33 @@ namespace PixelGraph.UI.Models
         {
             _profiles = new ObservableCollection<ProfileItem>();
 
-            EncodingChannels = new []{
-                Opacity = new TextureChannelMapping("Opacity"),
+            Opacity = new TextureChannelMapping("Opacity");
 
-                ColorRed = new TextureChannelMapping("Color Red"),
-                ColorGreen = new TextureChannelMapping("Color Green"),
-                ColorBlue = new TextureChannelMapping("Color Blue"),
+            ColorRed = new TextureChannelMapping("Color Red");
+            ColorGreen = new TextureChannelMapping("Color Green");
+            ColorBlue = new TextureChannelMapping("Color Blue");
 
-                Height = new TextureChannelMapping("Height"),
-                Occlusion = new TextureChannelMapping("Occlusion"),
+            Height = new TextureChannelMapping("Height");
+            Occlusion = new TextureChannelMapping("Occlusion");
 
-                NormalX = new TextureChannelMapping("Normal-X"),
-                NormalY = new TextureChannelMapping("Normal-Y"),
-                NormalZ = new TextureChannelMapping("Normal-Z"),
+            NormalX = new TextureChannelMapping("Normal-X");
+            NormalY = new TextureChannelMapping("Normal-Y");
+            NormalZ = new TextureChannelMapping("Normal-Z");
 
-                Specular = new TextureChannelMapping("Specular"),
+            Specular = new TextureChannelMapping("Specular");
 
-                Smooth = new TextureChannelMapping("Smooth"),
-                Rough = new TextureChannelMapping("Rough"),
+            Smooth = new TextureChannelMapping("Smooth");
+            Rough = new TextureChannelMapping("Rough");
 
-                Metal = new TextureChannelMapping("Metal"),
-                F0 = new TextureChannelMapping("F0"),
+            Metal = new TextureChannelMapping("Metal");
+            F0 = new TextureChannelMapping("F0");
 
-                Porosity = new TextureChannelMapping("Porosity"),
+            Porosity = new TextureChannelMapping("Porosity");
 
-                SSS = new TextureChannelMapping("SubSurface Scattering"),
+            SSS = new TextureChannelMapping("SubSurface Scattering");
 
-                Emissive = new TextureChannelMapping("Emissive"),
-            };
+            Emissive = new TextureChannelMapping("Emissive");
+
 
             Opacity.DataChanged += OnPropertyDataChanged;
             
@@ -377,6 +394,7 @@ namespace PixelGraph.UI.Models
             OnPropertyChanged(nameof(EditEncodingSampler));
             OnPropertyChanged(nameof(TextureSize));
             OnPropertyChanged(nameof(BlockTextureSize));
+            OnPropertyChanged(nameof(ItemTextureSize));
             OnPropertyChanged(nameof(TextureScale));
             OnPropertyChanged(nameof(OcclusionQuality));
             OnPropertyChanged(nameof(OcclusionPower));

@@ -103,18 +103,18 @@ namespace PixelGraph.UI.Models.PropertyGrid
             }
 
             var numeratorString = text[..i].Trim();
-            if (!int.TryParse(numeratorString, out var numerator)) {
+            if (!decimal.TryParse(numeratorString, out var numerator)) {
                 value = 0m;
                 return false;
             }
 
             var denominatorString = text[(i + 1)..].Trim();
-            if (!int.TryParse(denominatorString, out var denominator)) {
+            if (!decimal.TryParse(denominatorString, out var denominator)) {
                 value = 0m;
                 return false;
             }
 
-            value = numerator / (decimal)denominator;
+            value = numerator / denominator;
             return true;
         }
     }

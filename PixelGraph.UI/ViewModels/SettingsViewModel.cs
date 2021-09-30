@@ -27,6 +27,7 @@ namespace PixelGraph.UI.ViewModels
 
             Model.RenderPreview_Enabled = appSettings.Data.RenderPreview.Enabled ?? RenderPreviewSettings.Default_Enabled;
             Model.RenderPreview_EnableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling ?? RenderPreviewSettings.Default_EnableLinearSampling;
+            Model.RenderPreview_EnableSlopeNormals = appSettings.Data.RenderPreview.EnableSlopeNormals ?? RenderPreviewSettings.Default_EnableSlopeNormals;
             //Model.RenderPreview_ParallaxEnabled = appSettings.Data.RenderPreview.ParallaxEnabled ?? RenderPreviewSettings.Default_ParallaxEnabled;
             Model.RenderPreview_ParallaxDepth = appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth;
             Model.RenderPreview_ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
@@ -53,6 +54,7 @@ namespace PixelGraph.UI.ViewModels
         {
             Model.RenderPreview_Enabled = RenderPreviewSettings.Default_Enabled;
             Model.RenderPreview_EnableLinearSampling = RenderPreviewSettings.Default_EnableLinearSampling;
+            Model.RenderPreview_EnableSlopeNormals = RenderPreviewSettings.Default_EnableSlopeNormals;
             //Model.RenderPreview_ParallaxEnabled = RenderPreviewSettings.Default_ParallaxEnabled;
             Model.RenderPreview_ParallaxDepth = RenderPreviewSettings.Default_ParallaxDepth;
             Model.RenderPreview_ParallaxSamplesMin = RenderPreviewSettings.Default_ParallaxSamplesMin;
@@ -67,6 +69,7 @@ namespace PixelGraph.UI.ViewModels
 
                 appSettings.Data.RenderPreview.Enabled = Model.RenderPreview_Enabled == RenderPreviewSettings.Default_Enabled ? null : Model.RenderPreview_Enabled;
                 appSettings.Data.RenderPreview.EnableLinearSampling = Model.RenderPreview_EnableLinearSampling == RenderPreviewSettings.Default_EnableLinearSampling ? null : Model.RenderPreview_EnableLinearSampling;
+                appSettings.Data.RenderPreview.EnableSlopeNormals = Model.RenderPreview_EnableSlopeNormals == RenderPreviewSettings.Default_EnableSlopeNormals ? null : Model.RenderPreview_EnableSlopeNormals;
                 //appSettings.Data.RenderPreview.ParallaxEnabled = Model.RenderPreview_ParallaxEnabled == RenderPreviewSettings.Default_ParallaxEnabled ? null : Model.RenderPreview_ParallaxEnabled;
                 appSettings.Data.RenderPreview.ParallaxDepth = Model.RenderPreview_ParallaxDepth == RenderPreviewSettings.Default_ParallaxDepth ? null : Model.RenderPreview_ParallaxDepth;
                 appSettings.Data.RenderPreview.ParallaxSamplesMin = Model.RenderPreview_ParallaxSamplesMin == RenderPreviewSettings.Default_ParallaxSamplesMin ? null : Model.RenderPreview_ParallaxSamplesMin;

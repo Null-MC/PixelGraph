@@ -6,5 +6,6 @@
         Automatic,
         Block,
         Entity,
+        Item,
     }
 }

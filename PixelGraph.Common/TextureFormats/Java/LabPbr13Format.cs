@@ -22,6 +22,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    DefaultValue = 255,
                 },
 
                 ColorRed = new ResourcePackColorRedChannelProperties {
@@ -100,6 +101,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Power = 1m,
                     Invert = true,
                     Perceptual = false,
+                    DefaultValue = 0,
                 },
 
                 Height = new ResourcePackHeightChannelProperties {
@@ -113,6 +115,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Power = 1m,
                     Invert = true,
                     Perceptual = false,
+                    DefaultValue = 0,
                 },
 
                 Smooth = new ResourcePackSmoothChannelProperties {
@@ -139,20 +142,22 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    ClipValue = 0m,
                 },
 
                 Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
                     Sampler = Samplers.Samplers.Nearest,
-                    MinValue = 230m,
+                    MinValue = 229m,
                     MaxValue = 255m,
-                    RangeMin = 230,
+                    RangeMin = 229,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    ClipValue = 229m,
                 },
 
                 Porosity = new ResourcePackPorosityChannelProperties {
@@ -179,6 +184,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    ClipValue = 0m,
                 },
 
                 Emissive = new ResourcePackEmissiveChannelProperties {
@@ -192,6 +198,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    DefaultValue = 0m,
                 },
             };
         }

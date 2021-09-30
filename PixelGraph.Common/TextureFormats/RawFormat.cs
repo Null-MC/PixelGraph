@@ -22,6 +22,7 @@ namespace PixelGraph.Common.TextureFormats
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    DefaultValue = 255,
                 },
 
                 ColorRed = new ResourcePackColorRedChannelProperties {

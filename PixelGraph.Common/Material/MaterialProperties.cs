@@ -142,6 +142,9 @@ namespace PixelGraph.Common.Material
 
         public bool TryGetSourceBounds(in int? blockSize, in float? scale, out Size size)
         {
+            // ERROR: this is fucking things up!
+            // TODO: move type-based size lookup to it's own method
+
             var texWidth = TextureWidth ?? TextureSize;
             var texHeight = TextureHeight ?? TextureSize;
             if (texWidth.HasValue && texHeight.HasValue) {
@@ -216,6 +219,24 @@ namespace PixelGraph.Common.Material
             return result.HasValue;
         }
 
+        //public decimal? GetChannelDefaultValue(string encodingChannel)
+        //{
+        //    if (encodingChannel == null) throw new ArgumentNullException(nameof(encodingChannel));
+
+        //    if (decimal.TryParse(encodingChannel, out var valueT)) return valueT;
+
+        //    return defaultValueMap.TryGetValue(encodingChannel, out var valueFunc) ? valueFunc(this) : null;
+        //}
+
+        //public decimal? GetChannelClipValue(string encodingChannel)
+        //{
+        //    if (encodingChannel == null) throw new ArgumentNullException(nameof(encodingChannel));
+
+        //    if (decimal.TryParse(encodingChannel, out var valueT)) return valueT;
+
+        //    return clipValueMap.TryGetValue(encodingChannel, out var valueFunc) ? valueFunc(this) : null;
+        //}
+
         public decimal GetChannelScale(string encodingChannel)
         {
             if (EncodingChannel.IsEmpty(encodingChannel)) return 1m;
@@ -238,6 +259,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.NormalX] = mat => mat.Normal?.ValueX,
             [EncodingChannel.NormalY] = mat => mat.Normal?.ValueY,
             [EncodingChannel.NormalZ] = mat => mat.Normal?.ValueZ,
+            [EncodingChannel.Specular] = mat => mat.Specular?.Value,
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Value,
             [EncodingChannel.Rough] = mat => mat.Rough?.Value,
             [EncodingChannel.Metal] = mat => mat.Metal?.Value,
@@ -255,6 +277,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Height] = mat => mat.Height?.Shift ?? 0m,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Shift ?? 0m,
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Shift ?? 0m,
+            [EncodingChannel.Specular] = mat => mat.Specular?.Shift ?? 0m,
             [EncodingChannel.Rough] = mat => mat.Rough?.Shift ?? 0m,
             [EncodingChannel.Metal] = mat => 0m,
             [EncodingChannel.F0] = mat => mat.F0?.Shift ?? 0m,
@@ -270,6 +293,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.ColorBlue] = mat => mat.Color?.ScaleBlue ?? 1m,
             [EncodingChannel.Height] = mat => mat.Height?.Scale ?? 1m,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Scale ?? 1m,
+            [EncodingChannel.Specular] = mat => mat.Specular?.Scale ?? 1m,
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Scale ?? 1m,
             [EncodingChannel.Rough] = mat => mat.Rough?.Scale ?? 1m,
             [EncodingChannel.Metal] = mat => mat.Metal?.Scale ?? 1m,

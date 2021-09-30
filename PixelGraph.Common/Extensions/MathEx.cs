@@ -79,10 +79,10 @@ namespace PixelGraph.Common.Extensions
         //    value = maxValue - (value - minValue);
         //}
 
-        //public static byte Clamp(int value)
-        //{
-        //    return (byte)Math.Clamp(value, 0, 255);
-        //}
+        public static byte Clamp(int value)
+        {
+            return (byte)Math.Clamp(value, 0, 255);
+        }
 
         //public static byte Clamp(int value, byte min, byte max)
         //{

@@ -157,6 +157,14 @@
                                 <TextBlock Text="Open Existing" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
+                        <Button Margin="4" Padding="8" FontSize="14" HorizontalContentAlignment="Left" BorderThickness="0"
+                                Click="OnConvertExistingClick" IsEnabled="False"
+                                Style="{DynamicResource MahApps.Styles.Button.Square.Accent}">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconFontAwesome Kind="BrushSolid" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Convert Existing" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                     <TextBlock Grid.Column="1" Grid.Row="0" Margin="6,6,0,0" Text="Recent Projects" FontWeight="Bold" FontSize="16"
                                Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>

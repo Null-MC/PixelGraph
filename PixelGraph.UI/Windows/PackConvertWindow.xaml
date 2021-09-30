@@ -1,28 +1,27 @@
-﻿<mah:MetroWindow x:Class="PixelGraph.UI.Windows.ImportPackWindow"
-                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                    xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
-                    xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
-                    xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
-                    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-                    xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
-                    xmlns:models="clr-namespace:PixelGraph.UI.Models"
-                    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-                    Title="Import Resource Pack" Width="800" Height="450" mc:Ignorable="d"
-                    d:DataContext="{d:DesignInstance models:ImportPackDesignVM, IsDesignTimeCreatable=True}"
-                    WindowStartupLocation="CenterOwner" Loaded="OnWindowLoaded" Closed="OnWindowClosed"
-                    TitleCharacterCasing="Normal"
-                    Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
-                    Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
+﻿<mah:MetroWindow x:Class="PixelGraph.UI.Windows.PackConvertWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:viewData="clr-namespace:PixelGraph.UI.ViewData"
+             xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
+             xmlns:models="clr-namespace:PixelGraph.UI.Models"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+             xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
+             Title="Convert Resource Pack" Width="800" Height="450" mc:Ignorable="d"
+             WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal"
+             Closed="OnWindowClosed"
+             Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+             Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
-        <vd:OptionalAllTextureFormatValues x:Key="AllTextureFormats"/>
+        <viewData:OptionalAllTextureFormatValues x:Key="AllTextureFormats"/>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
     </Window.Resources>
     <Window.DataContext>
-        <models:PackImportModel x:Name="Model" IncludeUnknownChanged="OnIncludeUnknownChanged"/>
+        <models:PackConvertModel x:Name="Model"/>
     </Window.DataContext>
     <DockPanel>
         <Grid DockPanel.Dock="Bottom">
@@ -79,6 +78,20 @@
                             </DockPanel>
                             <TextBlock TextWrapping="Wrap"
                                 Text="The texture format of the resource pack being imported."/>
+
+                            <TextBlock Text="Output Format" Margin="0,16,0,0" FontSize="14" FontWeight="Bold"
+                                       Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Padding="4,0" ToolTip="Edit Encoding" Click="OnEditEncodingClick"
+                                        Content="{iconPacks:FontAwesome Kind=EditSolid}"
+                                        Style="{StaticResource MahApps.Styles.Button.MetroSquare}"/>
+                                <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
+                                          ItemsSource="{StaticResource AllTextureFormats}"
+                                          SelectedValue="{Binding OutputFormat, Mode=TwoWay}"/>
+                            </DockPanel>
+                            <TextBlock TextWrapping="Wrap"
+                                       Text="The texture format to convert the resource pack content to."/>
+                            
                             <CheckBox Margin="0,16,0,0"
                                       IsChecked="{Binding IncludeUnknown, Mode=TwoWay}">
                                 <TextBlock Text="Unknown Files" FontSize="14" FontWeight="Bold"

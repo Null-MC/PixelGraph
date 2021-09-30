@@ -30,111 +30,104 @@
                 </StackPanel>
             </Button>
         </Grid>
-        <TabControl TabStripPlacement="Left" FontSize="22">
-            <TabItem>
-                <TabItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconFontAwesome Kind="ImageRegular" Height="20" VerticalAlignment="Center"/>
-                        <TextBlock Text="Textures" Margin="6,0" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </TabItem.Header>
+        <TabControl TabStripPlacement="Left">
+            <TabItem Header="Textures" MinWidth="160">
                 <ScrollViewer Background="{DynamicResource MahApps.Brushes.Gray10}">
-                    <StackPanel Orientation="Vertical">
-                        <GroupBox Header="Image Editor" Margin="4">
-                            <StackPanel Orientation="Vertical" Margin="4">
-                                <TextBlock Text="Executable" FontWeight="Bold" FontSize="14"/>
-                                <DockPanel>
-                                    <Button DockPanel.Dock="Right" ToolTip="Browse" Margin="1,0,0,0" Padding="6,2" BorderThickness="1"
-                                            Click="OnTextureExecutableBrowseClick"
-                                            Content="{iconPacks:FontAwesome Kind=FolderOpenSolid}"
-                                            Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
-                                    <TextBox Text="{Binding Texture_ImageEditorExe}"/>
-                                </DockPanel>
-                                <TextBlock TextWrapping="Wrap" FontSize="12"
-                                           Text="The command used to edit images."
-                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
-                                <TextBlock Text="Arguments" FontWeight="Bold" FontSize="14" Margin="0,12,0,0"/>
-                                <TextBox Text="{Binding Texture_ImageEditorArgs}"/>
-                                <TextBlock TextWrapping="Wrap" FontSize="12"
-                                           Text="The list of arguments passed to the executable. Use $1 as the image filename argument."
-                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
-                                <Button HorizontalAlignment="Right" Margin="0,16,0,0" Width="60"
-                                        Content="Reset" Click="OnResetImageEditorClick"
-                                        Style="{DynamicResource MahApps.Styles.Button}"/>
-                            </StackPanel>
-                        </GroupBox>
+                    <StackPanel Orientation="Vertical" Margin="8">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Margin="0,16,0,0" Width="60"
+                                    Content="Reset" Click="OnResetImageEditorClick"
+                                    Style="{DynamicResource MahApps.Styles.Button.Chromeless}"/>
+                            <TextBlock Text="Image Editor" FontSize="22" FontWeight="Bold"
+                                       Foreground="{DynamicResource MahApps.Brushes.Accent3}"/>
+                        </DockPanel>
+                        <Separator/>
+                        <TextBlock Text="Executable" FontSize="14" Margin="8,8,8,0"/>
+                        <DockPanel Margin="8,0,8,8">
+                            <Button DockPanel.Dock="Right" ToolTip="Browse" Margin="1,0,0,0" Padding="6,2" BorderThickness="1"
+                                    Click="OnTextureExecutableBrowseClick"
+                                    Content="{iconPacks:FontAwesome Kind=FolderOpenSolid}"
+                                    Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
+                            <TextBox ToolTip="The command used to edit images."
+                                     Text="{Binding Texture_ImageEditorExe}"/>
+                        </DockPanel>
+                        <TextBlock Text="Arguments" FontSize="14" Margin="8,8,8,0"/>
+                        <TextBox Margin="8,0,8,8"
+                                 ToolTip="The list of arguments passed to the executable. Use $1 as the image filename argument."
+                                 Text="{Binding Texture_ImageEditorArgs}"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
-            <TabItem>
-                <TabItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconFontAwesome Kind="CubeSolid" Height="20" VerticalAlignment="Center"/>
-                        <TextBlock Text="Preview" Margin="6,0" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </TabItem.Header>
+            <TabItem Header="Preview" MinWidth="160">
                 <ScrollViewer Background="{DynamicResource MahApps.Brushes.Gray10}">
-                    <StackPanel Orientation="Vertical">
-                        <CheckBox Content="Enable 3D Renderer" FontWeight="Bold" FontSize="14" Margin="12,12,12,8"
-                                  IsChecked="{Binding RenderPreview_Enabled}"/>
-                        <CheckBox Content="Enable Linear Sampling" FontWeight="Bold" FontSize="14" Margin="12,8,12,12"
-                                  IsChecked="{Binding RenderPreview_EnableLinearSampling}"
-                                  IsEnabled="{Binding RenderPreview_Enabled}"/>
-                        <GroupBox Header="Parallax Mapping" Margin="4">
-                            <StackPanel Orientation="Vertical" Margin="4">
-                                <!--<CheckBox Content="Enabled" FontWeight="Bold" FontSize="14" Margin="4"
-                                          IsChecked="{Binding RenderPreview_ParallaxEnabled}"/>-->
-                                <TextBlock Text="Maximum Depth" FontWeight="Bold" FontSize="14" Margin="0,6,0,0"/>
-                                <TextBox Text="{Binding RenderPreview_ParallaxDepth}"/>
-                                <TextBlock TextWrapping="Wrap" FontSize="12"
-                                           Text="The maximum depth for rendering parallax occlusion. Default value is 25%."
-                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
-                                <TextBlock Text="Minimum Sample Count" FontWeight="Bold" FontSize="14" Margin="0,12,0,0"/>
-                                <TextBox Text="{Binding RenderPreview_ParallaxSamplesMin}"/>
-                                <TextBlock TextWrapping="Wrap" FontSize="12"
-                                           Text="The minimum number of samples (layers) to use when rendering parallax occlusion."
-                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
-                                <TextBlock Text="Maximum Sample Count" FontWeight="Bold" FontSize="14" Margin="0,12,0,0"/>
-                                <TextBox Text="{Binding RenderPreview_ParallaxSamplesMax}"/>
-                                <TextBlock TextWrapping="Wrap" FontSize="12"
-                                           Text="The Maximum number of samples (layers) to use when rendering parallax occlusion."
-                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
-                                <Button HorizontalAlignment="Right" Margin="0,16,0,0" Width="60"
+                    <StackPanel Orientation="Vertical" Margin="8">
+                        <TextBlock Text="3D Renderer" FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource MahApps.Brushes.Accent3}"/>
+                        <Separator/>
+                        <CheckBox Content="Enable" FontSize="14" Margin="8"
+                                  IsChecked="{Binding RenderPreview_Enabled, Mode=TwoWay}"/>
+                        <StackPanel Orientation="Vertical"
+                                    IsEnabled="{Binding RenderPreview_Enabled, Mode=OneWay}">
+                            <CheckBox Content="Linear Sampling" FontSize="14" Margin="8"
+                                      ToolTip="When enabled the height and normal channels will be smoothly interpolated."
+                                      IsChecked="{Binding RenderPreview_EnableLinearSampling}"/>
+                            <CheckBox Content="Slope Normals" FontSize="14" Margin="8"
+                                      ToolTip="When enabled the vertical surfaces between pixels will have correct normals instead of using the surface normal. Requires Linear Sampling to be disabled."
+                                      IsChecked="{Binding RenderPreview_EnableSlopeNormals}"/>
+
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Width="60" VerticalAlignment="Bottom"
                                         Content="Reset" Click="OnResetRenderPreviewClick"
-                                        Style="{DynamicResource MahApps.Styles.Button}"/>
+                                        Style="{DynamicResource MahApps.Styles.Button.Chromeless}"/>
+                                <TextBlock Text="Parallax Occlusion Mapping" FontSize="22" FontWeight="Bold" Margin="0,16,0,0"
+                                           Foreground="{DynamicResource MahApps.Brushes.Accent3}"/>
+                            </DockPanel>
+                            <Separator/>
+                            <StackPanel Orientation="Horizontal" Margin="8">
+                                <TextBox Width="80" HorizontalContentAlignment="Center"
+                                         ToolTip="The maximum depth for rendering parallax occlusion. Default value is 25%."
+                                         Text="{Binding RenderPreview_ParallaxDepth}"/>
+                                <TextBlock Text="Maximum Depth" Margin="8,0" FontSize="14" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </GroupBox>
+                            <StackPanel Orientation="Horizontal" Margin="8">
+                                <TextBox Width="80" HorizontalContentAlignment="Center"
+                                         ToolTip="The minimum number of samples (layers) to use when rendering POM."
+                                         Text="{Binding RenderPreview_ParallaxSamplesMin}"/>
+                                <TextBlock Text="Minimum Sample Count" FontSize="14" Margin="8,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="8">
+                                <TextBox Width="80" HorizontalContentAlignment="Center"
+                                         ToolTip="The Maximum number of samples (layers) to use when rendering POM."
+                                         Text="{Binding RenderPreview_ParallaxSamplesMax}"/>
+                                <TextBlock Text="Maximum Sample Count" FontSize="14" Margin="8,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
-            <TabItem>
-                <TabItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconFontAwesome Kind="PaletteSolid" Height="20" VerticalAlignment="Center"/>
-                        <TextBlock Text="Theme" Margin="6,0" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </TabItem.Header>
+            <TabItem Header="Theme" MinWidth="160">
                 <ScrollViewer Background="{DynamicResource MahApps.Brushes.Gray10}">
-                    <StackPanel Orientation="Vertical" Margin="4">
-                        <GroupBox Header="Colors">
-                            <StackPanel Orientation="Vertical" Margin="4">
-                                <TextBlock Text="Base" FontSize="14" FontWeight="Bold"/>
-                                <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" ItemsSource="{StaticResource AppThemeBases}"
-                                          SelectedValue="{Binding Theme_BaseColor}"/>
-                                <TextBlock FontSize="12" TextWrapping="Wrap"
-                                           Text="The primary background color for the application."
-                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
-                                <TextBlock Text="Accent" Margin="0,16,0,0" FontSize="14" FontWeight="Bold"/>
-                                <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" ItemsSource="{StaticResource AppThemeAccents}"
-                                          SelectedValue="{Binding Theme_AccentColor}"/>
-                                <TextBlock FontSize="12" TextWrapping="Wrap"
-                                           Text="The secondary accent color for the application."
-                                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
-                                <Button HorizontalAlignment="Right" Margin="0,16,0,0" Width="60"
-                                        Content="Reset" Click="OnResetThemeColorsClick"
-                                        Style="{DynamicResource MahApps.Styles.Button}"/>
-                            </StackPanel>
-                        </GroupBox>
+                    <StackPanel Orientation="Vertical" Margin="8">
+                        <TextBlock Text="App Colors" FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource MahApps.Brushes.Accent3}"/>
+                        <Separator/>
+                        <StackPanel Orientation="Horizontal" Margin="8">
+                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
+                                      Width="80" HorizontalContentAlignment="Center"
+                                      ToolTip="The primary background color for the application."
+                                      ItemsSource="{StaticResource AppThemeBases}"
+                                      SelectedValue="{Binding Theme_BaseColor}"/>
+                            <TextBlock Text="Base Color" FontSize="14" Margin="8,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="8">
+                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
+                                      Width="80" HorizontalContentAlignment="Center"
+                                      ToolTip="The secondary accent color for the application."
+                                      ItemsSource="{StaticResource AppThemeAccents}"
+                                      SelectedValue="{Binding Theme_AccentColor}"/>
+                            <TextBlock Text="Accent Color" FontSize="14" Margin="8,0" VerticalAlignment="Center"/>
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

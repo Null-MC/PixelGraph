@@ -65,9 +65,10 @@ namespace PixelGraph.UI.Controls
 
         private void OnCurrentCellChanged(object sender, EventArgs e)
         {
-            if (CurrentCell.Item is not IEditPropertyRow editRow) return;
+            // WARN: WTF is this?!
+            //if (CurrentCell.Item is not IEditPropertyRow editRow) return;
 
-            OnPropertyChanged(editRow.Name);
+            //OnPropertyChanged(editRow.Name);
         }
 
         private void OnPropertyChanged(string propertyName)

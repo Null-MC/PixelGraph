@@ -29,6 +29,12 @@ namespace PixelGraph.UI.ViewData
                 GameEditions = new [] {GameEditions.Java},
             });
             Add(new TextureFormatValueItem {
+                Text = "Vanilla",
+                Value = TextureFormat.Format_VanillaPbr,
+                Hint = VanillaPbrFormat.Description,
+                GameEditions = new [] {GameEditions.Java},
+            });
+            Add(new TextureFormatValueItem {
                 Text = "OldPbr",
                 Value = TextureFormat.Format_OldPbr,
                 Hint = OldPbrFormat.Description,

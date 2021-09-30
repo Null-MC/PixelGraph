@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using PixelGraph.Common.Extensions;
+using PixelGraph.UI.Helix.Shaders;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Text;
@@ -8,8 +10,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using PixelGraph.Common.Extensions;
-using PixelGraph.UI.Helix.Shaders;
 
 namespace PixelGraph.UI.Controls
 {

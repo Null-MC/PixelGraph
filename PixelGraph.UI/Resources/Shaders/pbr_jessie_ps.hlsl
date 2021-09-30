@@ -157,8 +157,11 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 bitangent = normalize(input.bin);
 	const float3 view = normalize(input.eye);
 
-	float3 shadow_tex = 0;
-	const float2 tex = get_parallax_texcoord(input.tex, input.poT, saturate(dot(in_normal, view)), shadow_tex);
+	float2 shadow_tex = 0;
+    float shadow_depth = 0;
+    float tex_depth = 0;
+
+	const float2 tex = get_parallax_texcoord(input.tex, input.poT, saturate(dot(in_normal, view)), shadow_tex, shadow_depth, tex_depth);
 	
 	pbr_material mat = get_pbr_material(tex);
 	mat.rough = mat.rough * mat.rough;

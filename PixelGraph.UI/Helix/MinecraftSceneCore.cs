@@ -75,6 +75,11 @@ namespace PixelGraph.UI.Helix
             set => SetAffectsRender(ref data.EnableLinearSampling, value);
         }
 
+        public bool EnableSlopeNormals {
+            get => data.EnableSlopeNormals;
+            set => SetAffectsRender(ref data.EnableSlopeNormals, value);
+        }
+
 
         public MinecraftSceneCore() : base(RenderType.PreProc)
         {

@@ -4,6 +4,7 @@
     {
         public const bool Default_Enabled = true;
         public const bool Default_EnableLinearSampling = false;
+        public const bool Default_EnableSlopeNormals = false;
         //public const bool Default_ParallaxEnabled = true;
         public const decimal Default_ParallaxDepth = 0.25m;
         public const int Default_ParallaxSamplesMin = 4;
@@ -12,6 +13,7 @@
 
         public bool? Enabled {get; set;}
         public bool? EnableLinearSampling {get; set;}
+        public bool? EnableSlopeNormals {get; set;}
         public string SelectedMode {get; set;}
 
         //public bool? ParallaxEnabled {get; set;}

@@ -8,6 +8,13 @@
              xmlns:models="clr-namespace:PixelGraph.UI.Models"
              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
+    <UserControl.Resources>
+        <ContextMenu x:Key="ItemMenu">
+            <MenuItem Header="Duplicate" Click="OnContextMenuDuplicateClick"/>
+            <Separator/>
+            <MenuItem Header="Delete" Click="OnContextMenuDeleteClick"/>
+        </ContextMenu>
+    </UserControl.Resources>
     <DockPanel>
         <DockPanel.DataContext>
             <models:MaterialFiltersModel x:Name="Model" DataChanged="OnDataChanged" SelectionChanged="OnSelectionChanged"/>
@@ -35,8 +42,19 @@
             </DataGrid.Style>
         </local:PropertyGridControl>
         <!--<Rectangle Grid.Row="1" Fill="{StaticResource MahApps.Brushes.Gray8}"/>-->
-        <ListView Margin="0,0,0,8" DisplayMemberPath="Name"
+        <ListView x:Name="FilterList" Margin="0,0,0,8" DisplayMemberPath="Name" MouseDown="OnFilterListMouseDown"
                   ItemsSource="{Binding FilterList, Mode=OneWay}"
-                  SelectedItem="{Binding SelectedFilter, Mode=TwoWay}"/>
+                  SelectedItem="{Binding SelectedFilter, Mode=TwoWay}">
+            <ListView.Style>
+                <Style TargetType="{x:Type ListView}" BasedOn="{StaticResource MahApps.Styles.ListView}">
+                    <Setter Property="ContextMenu" Value="{StaticResource ItemMenu}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedItem, ElementName=FilterList, Mode=OneWay}" Value="{x:Null}">
+                            <Setter Property="ContextMenu" Value="{x:Null}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.Style>
+        </ListView>
     </DockPanel>
 </UserControl>

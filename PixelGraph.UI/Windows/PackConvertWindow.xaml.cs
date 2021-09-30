@@ -14,22 +14,21 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
-    public partial class ImportPackWindow : IDisposable
+    public partial class PackConvertWindow : IDisposable
     {
+        private readonly ILogger<PackConvertWindow> logger;
         private readonly CancellationTokenSource tokenSource;
         private readonly IServiceProvider provider;
-        private readonly ILogger logger;
 
 
-        public ImportPackWindow(IServiceProvider provider)
+        public PackConvertWindow(IServiceProvider provider)
         {
             this.provider = provider;
 
-            logger = provider.GetRequiredService<ILogger<ImportPackWindow>>();
+            logger = provider.GetRequiredService<ILogger<PackConvertWindow>>();
             tokenSource = new CancellationTokenSource();
 
             InitializeComponent();
@@ -40,20 +39,25 @@ namespace PixelGraph.UI.Windows
             Model.LogEvent += OnLogListAppended;
         }
 
-        private async Task LoadSourceAsync(CancellationToken token)
+        public void Dispose()
         {
-            await using var scope = BuildScope();
-            var reader = scope.GetRequiredService<IInputReader>();
-
-            reader.SetRoot(Model.ImportSource);
-
-            var root = await Task.Run(() => GetPathNode(reader, ".", token), token);
-
-            await Dispatcher.BeginInvoke(() => {
-                Model.RootNode = root;
-                Model.IsReady = true;
-            });
+            tokenSource?.Dispose();
         }
+
+        //private async Task LoadSourceAsync(CancellationToken token)
+        //{
+        //    await using var scope = BuildScope();
+        //    var reader = scope.GetRequiredService<IInputReader>();
+
+        //    reader.SetRoot(Model.ImportSource);
+
+        //    var root = await Task.Run(() => GetPathNode(reader, ".", token), token);
+
+        //    await Dispatcher.BeginInvoke(() => {
+        //        Model.RootNode = root;
+        //        Model.IsReady = true;
+        //    });
+        //}
 
         private async Task RunAsync(CancellationToken token)
         {
@@ -75,15 +79,14 @@ namespace PixelGraph.UI.Windows
             reader.SetRoot(Model.ImportSource);
             writer.SetRoot(Model.RootDirectory);
 
-            importer.AsGlobal = Model.AsGlobal;
-            importer.CopyUntracked = Model.CopyUntracked;
-            importer.IncludeUnknown = Model.IncludeUnknown;
+            Model.PackOutput.Format = Model.SourceFormat;
+
+            importer.AsGlobal = false;
+            importer.CopyUntracked = true;
+            importer.IncludeUnknown = false;
             importer.PackInput = Model.PackInput;
-
-            Model.Encoding.Format = Model.SourceFormat;
-
             importer.PackProfile = new ResourcePackProfileProperties {
-                Encoding = Model.Encoding,
+                Encoding = Model.PackOutput,
             };
 
             await importer.ImportAsync(token);
@@ -110,7 +113,7 @@ namespace PixelGraph.UI.Windows
             foreach (var childPath in reader.EnumerateDirectories(localPath)) {
                 token.ThrowIfCancellationRequested();
 
-                if (!Model.IncludeUnknown && ResourcePackImporter.IsUnknownPath(childPath)) continue;
+                if (ResourcePackImporter.IsUnknownPath(childPath)) continue;
                 
                 var childNode = GetPathNode(reader, childPath, token);
                 node.Nodes.Add(childNode);
@@ -119,7 +122,7 @@ namespace PixelGraph.UI.Windows
             foreach (var file in reader.EnumerateFiles(localPath)) {
                 token.ThrowIfCancellationRequested();
 
-                if (!Model.IncludeUnknown && ResourcePackImporter.IsUnknownFile(file)) continue;
+                if (ResourcePackImporter.IsUnknownFile(file)) continue;
 
                 var childNode = new ImportTreeFile {
                     Name = Path.GetFileName(file),
@@ -132,24 +135,13 @@ namespace PixelGraph.UI.Windows
             return node;
         }
 
-        //private static void BeginMessageBox(string message, string title)
-        //{
-        //    Application.Current.Dispatcher.Invoke(() => {
-        //        MessageBox.Show(message, title);
-        //    });
-        //}
-
-        public void Dispose()
-        {
-            tokenSource?.Dispose();
-        }
 
         #region Events
 
-        private async void OnWindowLoaded(object sender, RoutedEventArgs e)
-        {
-            await LoadSourceAsync(tokenSource.Token);
-        }
+        //private async void OnWindowLoaded(object sender, RoutedEventArgs e)
+        //{
+        //    await LoadSourceAsync(tokenSource.Token);
+        //}
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
@@ -191,7 +183,7 @@ namespace PixelGraph.UI.Windows
             var window = new TextureFormatWindow {
                 Owner = this,
                 Model = {
-                    Encoding = (ResourcePackEncoding)Model.Encoding.Clone(),
+                    Encoding = (ResourcePackEncoding)Model.PackOutput.Clone(),
                     DefaultEncoding = formatFactory.Create(),
                     //TextureFormat = Model.SourceFormat,
                     EnableSampler = false,
@@ -201,7 +193,7 @@ namespace PixelGraph.UI.Windows
 
             if (window.ShowDialog() != true) return;
 
-            Model.Encoding = (ResourcePackOutputProperties)window.Model.Encoding;
+            Model.PackOutput = (ResourcePackOutputProperties)window.Model.Encoding;
             //Model.SourceFormat = window.Model.TextureFormat;
         }
 
@@ -222,15 +214,6 @@ namespace PixelGraph.UI.Windows
         private void OnLogListAppended(object sender, LogEventArgs e)
         {
             LogList.Append(e.Level, e.Message);
-        }
-
-        private async void OnIncludeUnknownChanged(object sender, EventArgs e)
-        {
-            // TODO: cancel current load task
-
-            Model.IsReady = false;
-
-            await LoadSourceAsync(tokenSource.Token);
         }
 
         private void OnCancelButtonClick(object sender, RoutedEventArgs e)

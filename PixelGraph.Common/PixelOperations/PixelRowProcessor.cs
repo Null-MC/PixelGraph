@@ -17,10 +17,10 @@ namespace PixelGraph.Common.PixelOperations
             return new Processor<TPixel>(configuration, source, in sourceRectangle, ProcessRow);
         }
 
-        public IImageProcessor<Rgba32> CreatePixelSpecificProcessor(Configuration configuration, Image<Rgba32> source, Rectangle sourceRectangle)
-        {
-            return new Processor<Rgba32>(configuration, source, in sourceRectangle, ProcessRow);
-        }
+        //public IImageProcessor<Rgba32> CreatePixelSpecificProcessor(Configuration configuration, Image<Rgba32> source, Rectangle sourceRectangle)
+        //{
+        //    return new Processor<Rgba32>(configuration, source, in sourceRectangle, ProcessRow);
+        //}
 
         protected virtual void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> row)
             where TPixel : unmanaged, IPixel<TPixel> {}

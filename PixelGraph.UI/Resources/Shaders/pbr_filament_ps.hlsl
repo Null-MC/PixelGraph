@@ -17,9 +17,12 @@ float4 main(const ps_input input) : SV_TARGET
     const float3 bitangent = normalize(input.bin);
 	const float3 view = normalize(input.eye.xyz);
 
-	float3 shadow_tex = 0;
+	float2 shadow_tex = 0;
+    float shadow_depth = 0;
+    float tex_depth = 0;
+
     const float SNoV = saturate(dot(normal, view));
-	const float2 tex = get_parallax_texcoord(input.tex, input.poT, SNoV, shadow_tex);
+	const float2 tex = get_parallax_texcoord(input.tex, input.poT, SNoV, shadow_tex, shadow_depth, tex_depth);
 	const float3 tex_normal = calc_tex_normal(tex, normal, tangent, bitangent);
 	const pbr_material mat = get_pbr_material(tex);
 	
@@ -51,7 +54,7 @@ float4 main(const ps_input input) : SV_TARGET
         	// light parallax shadows
             const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(shadow_tex, polT, SNoL);
+            const float shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
 
             const float3 H = normalize(light_dir + view);
             const float NdotL = saturate(dot(tex_normal, light_dir));
@@ -75,7 +78,7 @@ float4 main(const ps_input input) : SV_TARGET
         	// light parallax shadows
             const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(shadow_tex, polT, SNoL);
+            const float shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
 
         	const float3 H = normalize(view + light_dir);
             const float NdotL = saturate(dot(tex_normal, light_dir));
@@ -99,7 +102,7 @@ float4 main(const ps_input input) : SV_TARGET
         	// light parallax shadows
             const float SNoL = dot(normal, light_dir);
         	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(shadow_tex, polT, SNoL);
+            const float shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
         	
             const float3 H = normalize(view + light_dir);
             const float NdotL = saturate(dot(tex_normal, light_dir));

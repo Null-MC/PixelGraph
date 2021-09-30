@@ -9,6 +9,9 @@ static const float InvGamma = 1.0f / GAMMA;
 static const float3 lum_factor = float3(0.299f, 0.587f, 0.114f);
 
 
+float3 pow2(const in float3 x) {return x*x;}
+float pow4(const in float x) {return x*x*x*x;}
+
 float4 clip_to_screen(const in float4 pos)
 {
 	float4 o = pos * 0.5f;
@@ -53,6 +56,16 @@ float ior_to_f0(const in float ior) {
 
 float3 ior_to_f0(const in float3 ior) {
 	return pow((ior - 1.0f) / (ior + 1.0f), 2.0f);
+}
+
+float3 ior_to_f0_complex(const in float3 ior_n, const in float3 ior_k) {
+	const float3 k2 = ior_k * ior_k;
+	return (pow2(ior_n - 1.0) + k2) / (pow2(ior_n + 1.0) + k2);
+}
+
+float3 ior_to_f0_complex(const in float3 ior_n_in, const in float3 ior_n_out, const in float3 ior_k) {
+	const float3 k2 = ior_k * ior_k;
+	return (pow2(ior_n_out - ior_n_in) + k2) / (pow2(ior_n_out + ior_n_in) + k2);
 }
 
 float lengthSq(const in float3 vec)

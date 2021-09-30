@@ -2,7 +2,6 @@
 using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
-using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
@@ -11,7 +10,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,10 +31,9 @@ namespace PixelGraph.Common.Textures
     internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
     {
         private readonly IServiceProvider provider;
-        private readonly IInputReader reader;
         private readonly ITextureGraphContext context;
-        private readonly ITextureSourceGraph sourceGraph;
         private readonly ITextureRegionEnumerator regions;
+        private readonly ITextureHeightGraph heightGraph;
         private Image<L8> texture;
         private bool isLoaded;
 
@@ -49,15 +46,13 @@ namespace PixelGraph.Common.Textures
 
         public TextureOcclusionGraph(
             IServiceProvider provider,
-            IInputReader reader,
             ITextureGraphContext context,
-            ITextureSourceGraph sourceGraph,
-            ITextureRegionEnumerator regions)
+            ITextureRegionEnumerator regions,
+            ITextureHeightGraph heightGraph)
         {
             this.provider = provider;
-            this.reader = reader;
             this.context = context;
-            this.sourceGraph = sourceGraph;
+            this.heightGraph = heightGraph;
             this.regions = regions;
 
             FrameCount = 1;
@@ -120,10 +115,10 @@ namespace PixelGraph.Common.Textures
 
         public async Task<Image<L8>> GenerateAsync(CancellationToken token = default)
         {
-            var (heightImage, heightFrames, heightChannel) = await GetChannelTextureAsync<Rgba32>(EncodingChannel.Height, token);
+            var heightImage = await heightGraph.GetOrCreateAsync(token);
             if (heightImage == null) return null;
 
-            FrameCount = heightFrames;
+            FrameCount = heightGraph.HeightFrameCount;
 
             var aspect = (float)heightImage.Height / heightImage.Width;
             var bufferSize = context.GetBufferSize(aspect);
@@ -151,11 +146,16 @@ namespace PixelGraph.Common.Textures
             zScale *= heightScale;
 
             var heightMapping = new TextureChannelMapping();
-            heightMapping.ApplyInputChannel(heightChannel);
+            heightMapping.ApplyInputChannel(new ResourcePackHeightChannelProperties {
+                Texture = TextureTags.Height,
+                Color = ColorChannel.Red,
+                Invert = true,
+            });
+
             heightMapping.OutputValueScale = (float)context.Material.GetChannelScale(EncodingChannel.Height);
 
-            OcclusionProcessor<Rgba32>.Options options = null;
-            OcclusionProcessor<Rgba32> processor = null;
+            OcclusionProcessor<L16>.Options options = null;
+            OcclusionProcessor<L16> processor = null;
             //OcclusionGpuProcessor<Rgba32>.Options gpuOptions = null;
             //OcclusionGpuProcessor<Rgba32> gpuProcessor = null;
             var enableGpu = false; //Gpu.IsSupported;
@@ -172,7 +172,7 @@ namespace PixelGraph.Common.Textures
                 //gpuProcessor = new OcclusionGpuProcessor<Rgba32>(gpuOptions);
             }
             else {
-                options = new OcclusionProcessor<Rgba32>.Options {
+                options = new OcclusionProcessor<L16>.Options {
                     HeightInputColor = heightMapping.InputColor,
                     HeightMapping = new PixelMapping(heightMapping),
                     HeightSampler = heightSampler,
@@ -187,7 +187,7 @@ namespace PixelGraph.Common.Textures
                 options.ZBias *= heightScale;
                 options.ZScale *= heightScale;
 
-                processor = new OcclusionProcessor<Rgba32>(options);
+                processor = new OcclusionProcessor<L16>(options);
             }
 
             var occlusionTexture = new Image<L8>(Configuration.Default, occlusionWidth, occlusionHeight);
@@ -264,47 +264,47 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task<(Image<T> image, int frameCount, ResourcePackChannelProperties channel)> GetChannelTextureAsync<T>(string encodingChannel, CancellationToken token)
-            where T : unmanaged, IPixel<T>
-        {
-            if (EncodingChannel.Is(encodingChannel, EncodingChannel.Bump)) {
-                foreach (var file in reader.EnumerateInputTextures(context.Material, TextureTags.Bump)) {
-                    if (file == null) continue;
+        //private async Task<(Image<T> image, int frameCount, ResourcePackChannelProperties channel)> GetChannelTextureAsync<T>(string encodingChannel, CancellationToken token)
+        //    where T : unmanaged, IPixel<T>
+        //{
+        //    if (EncodingChannel.Is(encodingChannel, EncodingChannel.Bump)) {
+        //        foreach (var file in reader.EnumerateInputTextures(context.Material, TextureTags.Bump)) {
+        //            if (file == null) continue;
 
-                    var info = await sourceGraph.GetOrCreateAsync(file, token);
-                    if (info == null) continue;
+        //            var info = await sourceGraph.GetOrCreateAsync(file, token);
+        //            if (info == null) continue;
 
-                    await using var stream = reader.Open(file);
+        //            await using var stream = reader.Open(file);
 
-                    var image = await Image.LoadAsync<T>(Configuration.Default, stream, token);
-                    var channel = new ResourcePackBumpChannelProperties {
-                        Color = ColorChannel.Red,
-                        Invert = true,
-                        Power = 1,
-                    };
-                    return (image, info.FrameCount, channel);
-                }
-            }
-            else {
-                foreach (var channel in context.InputEncoding.Where(c => EncodingChannel.Is(c.ID, encodingChannel))) {
-                    if (!channel.HasTexture) continue;
+        //            var image = await Image.LoadAsync<T>(Configuration.Default, stream, token);
+        //            var channel = new ResourcePackBumpChannelProperties {
+        //                Color = ColorChannel.Red,
+        //                Invert = true,
+        //                Power = 1,
+        //            };
+        //            return (image, info.FrameCount, channel);
+        //        }
+        //    }
+        //    else {
+        //        foreach (var channel in context.InputEncoding.Where(c => EncodingChannel.Is(c.ID, encodingChannel))) {
+        //            if (!channel.HasTexture) continue;
 
-                    foreach (var file in reader.EnumerateInputTextures(context.Material, channel.Texture)) {
-                        if (file == null) continue;
+        //            foreach (var file in reader.EnumerateInputTextures(context.Material, channel.Texture)) {
+        //                if (file == null) continue;
 
-                        var info = await sourceGraph.GetOrCreateAsync(file, token);
-                        if (info == null) continue;
+        //                var info = await sourceGraph.GetOrCreateAsync(file, token);
+        //                if (info == null) continue;
 
-                        await using var stream = reader.Open(file);
+        //                await using var stream = reader.Open(file);
 
-                        var image = await Image.LoadAsync<T>(Configuration.Default, stream, token);
-                        return (image, info.FrameCount, channel);
-                    }
-                }
-            }
+        //                var image = await Image.LoadAsync<T>(Configuration.Default, stream, token);
+        //                return (image, info.FrameCount, channel);
+        //            }
+        //        }
+        //    }
 
-            return (null, 0, null);
-        }
+        //    return (null, 0, null);
+        //}
 
         private int GetTileSize(in int imageWidth)
         {

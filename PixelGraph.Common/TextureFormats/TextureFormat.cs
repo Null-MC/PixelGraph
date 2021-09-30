@@ -12,6 +12,7 @@ namespace PixelGraph.Common.TextureFormats
         public const string Format_Raw = "raw";
         public const string Format_Color = "color";
         public const string Format_Specular = "specular";
+        public const string Format_VanillaPbr = "vanilla-pbr";
         public const string Format_OldPbr = "old-pbr";
         public const string Format_Lab11 = "lab-1.1";
         public const string Format_Lab12 = "lab-1.2";
@@ -36,6 +37,7 @@ namespace PixelGraph.Common.TextureFormats
                 [Format_Raw] = new RawFormat(),
                 [Format_Color] = new ColorFormat(),
                 [Format_Specular] = new SpecularFormat(),
+                [Format_VanillaPbr] = new VanillaPbrFormat(),
                 [Format_OldPbr] = new OldPbrFormat(),
                 [Format_Lab11] = new LabPbr11Format(),
                 [Format_Lab12] = new LabPbr12Format(),

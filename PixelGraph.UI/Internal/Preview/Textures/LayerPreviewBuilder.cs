@@ -21,14 +21,17 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                     new ResourcePackOpacityChannelProperties(TextureTags.Opacity, ColorChannel.Red) {
                         Sampler = mat?.Opacity?.Input?.Sampler ?? profile?.Encoding?.Opacity?.Sampler,
                         MaxValue = 255,
+                        DefaultValue = 255m,
                     },
                     new ResourcePackOpacityChannelProperties(TextureTags.Opacity, ColorChannel.Green) {
                         Sampler = mat?.Opacity?.Input?.Sampler ?? profile?.Encoding?.Opacity?.Sampler,
                         MaxValue = 255,
+                        DefaultValue = 255m,
                     },
                     new ResourcePackOpacityChannelProperties(TextureTags.Opacity, ColorChannel.Blue) {
                         Sampler = mat?.Opacity?.Input?.Sampler ?? profile?.Encoding?.Opacity?.Sampler,
                         MaxValue = 255,
+                        DefaultValue = 255m,
                     },
                 },
                 [TextureTags.Color] = (profile, mat) => new ResourcePackChannelProperties[] {
@@ -48,14 +51,17 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 [TextureTags.Height] = (profile, mat) => new ResourcePackChannelProperties[] {
                     new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Red) {
                         Sampler = mat?.Height?.Input?.Sampler ?? profile?.Encoding?.Height?.Sampler,
+                        DefaultValue = 0m,
                         Invert = true,
                     },
                     new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Green) {
                         Sampler = mat?.Height?.Input?.Sampler ?? profile?.Encoding?.Height?.Sampler,
+                        DefaultValue = 0m,
                         Invert = true,
                     },
                     new ResourcePackHeightChannelProperties(TextureTags.Height, ColorChannel.Blue) {
                         Sampler = mat?.Height?.Input?.Sampler ?? profile?.Encoding?.Height?.Sampler,
+                        DefaultValue = 0m,
                         Invert = true,
                     },
                 },
@@ -63,14 +69,17 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                     new ResourcePackOcclusionChannelProperties(TextureTags.Occlusion, ColorChannel.Red) {
                         Sampler = mat?.Occlusion?.Input?.Sampler ?? profile?.Encoding?.Occlusion?.Sampler,
                         //Invert = true,
+                        DefaultValue = 0m,
                     },
                     new ResourcePackOcclusionChannelProperties(TextureTags.Occlusion, ColorChannel.Green){
                         Sampler = mat?.Occlusion?.Input?.Sampler ?? profile?.Encoding?.Occlusion?.Sampler,
                         //Invert = true,
+                        DefaultValue = 0m,
                     },
                     new ResourcePackOcclusionChannelProperties(TextureTags.Occlusion, ColorChannel.Blue){
                         Sampler = mat?.Occlusion?.Input?.Sampler ?? profile?.Encoding?.Occlusion?.Sampler,
                         //Invert = true,
+                        DefaultValue = 0m,
                     },
                 },
                 [TextureTags.Normal] = (profile, mat) => new ResourcePackChannelProperties[] {

@@ -51,6 +51,11 @@ namespace PixelGraph.UI.Helix.Models
             set => SetValue(EnableLinearSamplingProperty, value);
         }
 
+        public bool EnableSlopeNormals {
+            get => (bool)GetValue(EnableSlopeNormalsProperty);
+            set => SetValue(EnableSlopeNormalsProperty, value);
+        }
+
 
         public void Apply(DeviceContextProxy deviceContext)
         {
@@ -82,6 +87,7 @@ namespace PixelGraph.UI.Helix.Models
             n.ParallaxSamplesMin = ParallaxSamplesMin;
             n.ParallaxSamplesMax = ParallaxSamplesMax;
             n.EnableLinearSampling = EnableLinearSampling;
+            n.EnableSlopeNormals = EnableSlopeNormals;
         }
 
         public static readonly DependencyProperty TimeOfDayProperty =
@@ -130,6 +136,12 @@ namespace PixelGraph.UI.Helix.Models
             DependencyProperty.Register(nameof(EnableLinearSampling), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.EnableLinearSampling = (bool)e.NewValue;
+            }));
+
+        public static readonly DependencyProperty EnableSlopeNormalsProperty =
+            DependencyProperty.Register(nameof(EnableSlopeNormals), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
+                if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
+                    sceneNode.EnableSlopeNormals = (bool)e.NewValue;
             }));
     }
 }

@@ -51,6 +51,11 @@ namespace PixelGraph.UI.Helix
             set => ((MinecraftSceneCore) RenderCore).EnableLinearSampling = value;
         }
 
+        public bool EnableSlopeNormals {
+            get => ((MinecraftSceneCore) RenderCore).EnableSlopeNormals;
+            set => ((MinecraftSceneCore) RenderCore).EnableSlopeNormals = value;
+        }
+
 
         public void Apply(DeviceContextProxy deviceContext)
         {
@@ -81,6 +86,7 @@ namespace PixelGraph.UI.Helix
             sceneCore.ParallaxSamplesMin = ParallaxSamplesMin;
             sceneCore.ParallaxSamplesMax = ParallaxSamplesMax;
             sceneCore.EnableLinearSampling = EnableLinearSampling;
+            sceneCore.EnableSlopeNormals = EnableSlopeNormals;
         }
 
         protected override bool CanHitTest(HitTestContext context) => false;

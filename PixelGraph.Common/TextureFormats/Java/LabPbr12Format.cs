@@ -21,6 +21,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    DefaultValue = 255,
                 },
 
                 ColorRed = new ResourcePackColorRedChannelProperties {

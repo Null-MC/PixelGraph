@@ -10,9 +10,12 @@ namespace PixelGraph.Common.ResourcePack
         public const decimal DefaultDiffuseOcclusionStrength = 1.0m;
         public const decimal DefaultOcclusionQuality = 0.06m;
         public const decimal DefaultOcclusionPower = 1.0m;
+        public const bool AutoLevelHeightDefault = false;
         public const bool AutoGenerateNormalDefault = true;
         public const bool AutoGenerateOcclusionDefault = false;
         public const bool BakeOcclusionToColorDefault = false;
+        public const bool PublishInventoryDefault = true;
+        public const bool PublishConnectedDefault = true;
 
         [YamlIgnore]
         public string LocalFile {get; set;}
@@ -78,9 +81,12 @@ namespace PixelGraph.Common.ResourcePack
 
         public int? TextureSize {get; set;}
         public int? BlockTextureSize {get; set;}
+        public int? ItemTextureSize {get; set;}
         public decimal? TextureScale {get; set;}
 
         public decimal? DiffuseOcclusionStrength {get; set;}
+
+        public bool? AutoLevelHeight {get; set;}
 
         public bool? AutoGenerateNormal {get; set;}
 
@@ -91,6 +97,10 @@ namespace PixelGraph.Common.ResourcePack
         public decimal? OcclusionQuality {get; set;}
 
         public decimal? OcclusionPower {get; set;}
+
+        public bool? PublishInventory {get; set;}
+
+        public bool? PublishConnected {get; set;}
 
 
         public ResourcePackProfileProperties()

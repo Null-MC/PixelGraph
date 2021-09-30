@@ -8,7 +8,7 @@ namespace PixelGraph.Common.ResourcePack
     {
         [YamlIgnore]
         public string ID {get;}
-
+        
         public string Texture {get; set;}
         public ColorChannel? Color {get; set;}
         public string Sampler {get; set;}
@@ -20,7 +20,9 @@ namespace PixelGraph.Common.ResourcePack
         public decimal? Power {get; set;}
         public bool? Invert {get; set;}
         public bool? Perceptual {get; set;}
-        //public bool? ApplyOcclusion {get; set;}
+        public decimal? DefaultValue {get; set;}
+        public decimal? ClipValue {get; set;}
+        public int? Priority {get; set;}
 
         [YamlIgnore]
         public bool HasTexture => Texture != null && !TextureTags.Is(Texture, TextureTags.None);
@@ -59,6 +61,9 @@ namespace PixelGraph.Common.ResourcePack
             if (channel.Invert.HasValue) Invert = channel.Invert.Value;
             if (channel.Perceptual.HasValue) Perceptual = channel.Perceptual.Value;
             //if (channel.ApplyOcclusion.HasValue) ApplyOcclusion = channel.Perceptual.Value;
+            if (channel.DefaultValue.HasValue) DefaultValue = channel.DefaultValue.Value;
+            if (channel.ClipValue.HasValue) ClipValue = channel.ClipValue.Value;
+            if (channel.Priority.HasValue) Priority = channel.Priority.Value;
         }
 
         public void Reset()
@@ -75,6 +80,9 @@ namespace PixelGraph.Common.ResourcePack
             Invert = null;
             Perceptual = null;
             //ApplyOcclusion = null;
+            DefaultValue = null;
+            ClipValue = null;
+            Priority = null;
         }
 
         public virtual bool HasAnyData()
@@ -91,6 +99,9 @@ namespace PixelGraph.Common.ResourcePack
             if (Invert.HasValue) return true;
             if (Perceptual.HasValue) return true;
             //if (ApplyOcclusion.HasValue) return true;
+            if (DefaultValue.HasValue) return true;
+            if (ClipValue.HasValue) return true;
+            if (Priority.HasValue) return true;
             return false;
         }
 

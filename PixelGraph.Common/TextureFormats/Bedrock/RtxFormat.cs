@@ -57,6 +57,7 @@ namespace PixelGraph.Common.TextureFormats.Bedrock
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    DefaultValue = 255,
                 },
 
                 NormalX = new ResourcePackNormalXChannelProperties {

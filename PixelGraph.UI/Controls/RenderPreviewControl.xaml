@@ -90,7 +90,8 @@
                 ParallaxDepth="{Binding ParallaxDepth, Mode=OneWay}"
                 ParallaxSamplesMin="{Binding ParallaxSamplesMin, Mode=OneWay}"
                 ParallaxSamplesMax="{Binding ParallaxSamplesMax, Mode=OneWay}"
-                EnableLinearSampling="{Binding EnableLinearSampling, Mode=OneWay}"/>
+                EnableLinearSampling="{Binding EnableLinearSampling, Mode=OneWay}"
+                EnableSlopeNormals="{Binding EnableSlopeNormals, Mode=OneWay}"/>
             <hx:ShadowMap3D Resolution="1024,1024"
                             LightCamera="{Binding SunCamera, Mode=OneWay}"/>
             <models1:EnvironmentCube3D x:Name="EnvironmentCubeMapSource" FaceSize="128"

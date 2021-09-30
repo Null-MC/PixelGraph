@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Textures.Graphing
 {
@@ -72,6 +73,13 @@ namespace PixelGraph.Common.Textures.Graphing
         public async Task PublishInventoryAsync(string suffix, CancellationToken token = default)
         {
             if (!(Context.Material.PublishItem ?? false)) return;
+
+            var publish = Context.Profile.PublishInventory ?? ResourcePackProfileProperties.PublishInventoryDefault;
+
+            if (!publish) {
+                logger.LogDebug("Skipping inventory texture '{DisplayName}'. feature disabled.", Context.Material.DisplayName);
+                return;
+            }
 
             var packWriteTime = Reader.GetWriteTime(Context.Profile.LocalFile) ?? DateTime.Now;
             var sourceTime = Reader.GetWriteTime(Context.Material.LocalFilename);

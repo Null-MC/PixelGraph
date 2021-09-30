@@ -215,6 +215,15 @@
                                 </Grid>
                                 <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                            Text="When defined this value will be used as the target width when publishing textures located in 'block' folders. Height is preserved through aspect ratio. This overrides the above 'Texture Size' value."/>
+                                <TextBlock Text="Item Texture Size" Style="{StaticResource FieldLabelStyle}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" MaxWidth="200"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding ItemTextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                </Grid>
+                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                           Text="When defined this value will be used as the target width when publishing textures located in 'item' folders. Height is preserved through aspect ratio. This overrides the above 'Texture Size' value."/>
                                 <TextBlock Text="Texture Scale" Style="{StaticResource FieldLabelStyle}"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -224,6 +233,17 @@
                                 </Grid>
                                 <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                            Text="When defined this value will be used as the scale to apply when publishing textures. If block/texture-size is defined it will supersede this value."/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Height">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="8" Orientation="Vertical">
+                                <CheckBox IsChecked="{Binding AutoLevelHeight, Mode=TwoWay}">
+                                    <TextBlock Text="Auto-Level" Style="{StaticResource FieldLabelStyle}"/>
+                                </CheckBox>
+                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                           Text="When enabled the height channel will be automatically shifted up to 255 to prevent POM-shifting."/>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>

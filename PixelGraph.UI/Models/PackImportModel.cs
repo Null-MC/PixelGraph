@@ -7,7 +7,7 @@ using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.UI.Models
 {
-    internal class ImportPackModel : ModelBase
+    internal class PackImportModel : ModelBase
     {
         private ImportTreeNode _rootNode;
         private string _rootDirectory;
@@ -96,7 +96,7 @@ namespace PixelGraph.UI.Models
         }
 
 
-        public ImportPackModel()
+        public PackImportModel()
         {
             Encoding = new ResourcePackOutputProperties();
 
@@ -118,7 +118,7 @@ namespace PixelGraph.UI.Models
         }
     }
 
-    internal class ImportPackDesignVM : ImportPackModel
+    internal class ImportPackDesignVM : PackImportModel
     {
         public ImportPackDesignVM()
         {

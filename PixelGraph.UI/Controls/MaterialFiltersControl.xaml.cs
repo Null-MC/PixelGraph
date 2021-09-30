@@ -2,6 +2,9 @@
 using SixLabors.ImageSharp;
 using System;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace PixelGraph.UI.Controls
 {
@@ -28,7 +31,7 @@ namespace PixelGraph.UI.Controls
         private void InvalidateSelectedFilterBounds()
         {
             if (Model.SelectedFilter != null) {
-                Model.SelectedFilter.GetRectangle(out var bounds);
+                Model.SelectedFilter.Filter.GetRectangle(out var bounds);
                 SetValue(SelectedFilterBoundsProperty, bounds);
                 return;
             }
@@ -58,10 +61,12 @@ namespace PixelGraph.UI.Controls
 
         private void OnFilterPropertyChanged(object sender, PropertyGridChangedEventArgs e)
         {
+            var row = Model.SelectedFilter;
+            if (row == null) return;
+
+            row.NotifyPropertyChanged(e.PropertyName);
+
             switch (e.PropertyName) {
-                case nameof(MaterialFilter.Name):
-                    // TODO: update list
-                    break;
                 case nameof(MaterialFilter.Left):
                 case nameof(MaterialFilter.Top):
                 case nameof(MaterialFilter.Width):
@@ -70,6 +75,27 @@ namespace PixelGraph.UI.Controls
                     InvalidateSelectedFilterBounds();
                     break;
             }
+        }
+
+        private void OnFilterListMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var r = VisualTreeHelper.HitTest(this, e.GetPosition(this));
+
+            if (r.VisualHit.GetType() != typeof(ListBoxItem))
+                FilterList.UnselectAll();
+        }
+
+        private void OnContextMenuDuplicateClick(object sender, RoutedEventArgs e)
+        {
+            var selected = Model.SelectedFilter?.Filter.Clone();
+            if (selected == null) return;
+
+            Model.AddNewFilter(selected);
+        }
+
+        private void OnContextMenuDeleteClick(object sender, RoutedEventArgs e)
+        {
+            Model.DeleteSelectedFilter();
         }
 
         private static void OnMaterialPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)

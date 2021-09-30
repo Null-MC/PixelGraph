@@ -195,7 +195,10 @@ namespace PixelGraph.Common.Textures
                 new ResourcePackColorRedChannelProperties(TextureTags.Color, ColorChannel.Red) {MaxValue = 255m},
                 new ResourcePackColorGreenChannelProperties(TextureTags.Color, ColorChannel.Green) {MaxValue = 255m},
                 new ResourcePackColorBlueChannelProperties(TextureTags.Color, ColorChannel.Blue) {MaxValue = 255m},
-                new ResourcePackOpacityChannelProperties(TextureTags.Color, ColorChannel.Alpha) {MaxValue = 255m},
+                new ResourcePackOpacityChannelProperties(TextureTags.Color, ColorChannel.Alpha) {
+                    MaxValue = 255m,
+                    DefaultValue = 255m,
+                },
             };
 
             builder.TargetFrame = TargetFrame;

@@ -33,6 +33,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                     new ResourcePackOpacityChannelProperties(TextureTags.Color, ColorChannel.Alpha) {
                         Sampler = mat?.Opacity?.Input?.Sampler ?? profile?.Encoding?.Opacity?.Sampler,
                         MaxValue = 255,
+                        DefaultValue = 255m,
                     },
                 },
                 [TextureTags.Emissive] = (profile, mat) => new ResourcePackChannelProperties[] {

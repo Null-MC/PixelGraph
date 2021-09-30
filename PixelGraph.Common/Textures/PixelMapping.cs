@@ -41,6 +41,8 @@ namespace PixelGraph.Common.Textures
         public readonly bool OutputApplyOcclusion;
         public readonly float OutputValueScale;
         public readonly float OutputValueShift;
+        public readonly float? OutputDefaultValue;
+        public readonly float? OutputClipValue;
 
         //public string SourceTag;
         //public string SourceFilename;
@@ -51,7 +53,7 @@ namespace PixelGraph.Common.Textures
         public PixelMapping(TextureChannelMapping mapping)
         {
             //InputColor = mapping.InputColor;
-            InputValue = mapping.InputValue;
+            InputValue = mapping.InputValue; // ?? mapping.InputValueDefault;
             InputMinValue = mapping.InputMinValue;
             InputMaxValue = mapping.InputMaxValue;
             InputRangeMin = mapping.InputRangeMin;
@@ -74,6 +76,8 @@ namespace PixelGraph.Common.Textures
             OutputValueScale = mapping.OutputValueScale;
             OutputValueShift = mapping.OutputValueShift;
             OutputApplyOcclusion = mapping.OutputApplyOcclusion;
+            OutputDefaultValue = mapping.OutputValueDefault;
+            OutputClipValue = mapping.OutputClipValue;
 
             // TODO: copy all mapping properties
 
@@ -190,8 +194,9 @@ namespace PixelGraph.Common.Textures
 
             var valueOut = value - OutputMinValue;
 
-            if (pixelOutputRange == 0 || valueOutputRange == 0)
+            if (pixelOutputRange == 0 || valueOutputRange == 0) {
                 valueOut = 0f;
+            }
             else if (!valueOutputRange.NearEqual(pixelOutputRange))
                 valueOut *= pixelOutputRange / valueOutputRange;
 
@@ -200,6 +205,49 @@ namespace PixelGraph.Common.Textures
             finalValue = MathEx.ClampRound(valueOut, OutputRangeMin, OutputRangeMax);
 
             if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputChannelShift, in OutputRangeMin, in OutputRangeMax);
+        }
+
+        public readonly bool TryMap(ref float value, out byte finalValue)
+        {
+            value += OutputValueShift;
+            value *= OutputValueScale;
+
+            if (hasOutputPower) value = MathF.Pow(value, OutputChannelPower);
+
+            if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
+
+            // convert from value-space to pixel-space
+            //var valueRange = OutputMaxValue - OutputMinValue;
+            //var pixelRange = OutputRangeMax - OutputRangeMin;
+
+            var valueOut = value - OutputMinValue;
+
+            if (pixelOutputRange == 0 || valueOutputRange == 0) {
+                //valueOut = 0f;
+
+                // WARN: This is not working for metals
+                // TODO: but i think turning it off will break VPBR opacity
+                //if (!valueOut.NearEqual(0f)) {
+                //    finalValue = 0;
+                //    return false;
+                //}
+
+                if (valueOut > OutputMaxValue) {
+                    finalValue = 0;
+                    return false;
+                }
+
+                valueOut = 0f;
+            }
+            else if (!valueOutputRange.NearEqual(pixelOutputRange))
+                valueOut *= pixelOutputRange / valueOutputRange;
+
+            valueOut += OutputRangeMin;
+
+            finalValue = MathEx.ClampRound(valueOut, OutputRangeMin, OutputRangeMax);
+
+            if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputChannelShift, in OutputRangeMin, in OutputRangeMax);
+            return true;
         }
 
         public readonly void Map(ref float value, out float finalValue)

@@ -129,11 +129,12 @@ cbuffer cbMinecraftScene : register(b2)
 	float SunStrength;
     float TimeOfDay;
     float Wetness;
+	bool EnableLinearSampling = false;
     float ParallaxDepth;
     int ParallaxSamplesMin;
     int ParallaxSamplesMax;
-	bool EnableLinearSampling;
-	float2 Padding2;
+	bool EnableSlopeNormals = false;
+	//float Padding2;
 };
 
 cbuffer cbLights : register(b3)

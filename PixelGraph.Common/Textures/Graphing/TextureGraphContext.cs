@@ -27,6 +27,7 @@ namespace PixelGraph.Common.Textures
         bool IsAnimated {get; set;}
         int MaxFrameCount {get; set;}
         bool PublishAsGlobal {get; set;}
+        bool ApplyPostProcessing {get; set;}
         bool IsImport {get; set;}
         bool MaterialWrapX {get;}
         bool MaterialWrapY {get;}
@@ -50,7 +51,9 @@ namespace PixelGraph.Common.Textures
     internal class TextureGraphContext : ITextureGraphContext
     {
         private static readonly Regex blockTextureExp = new(@"(?:^|\/)textures\/block(?:\/|$)", RegexOptions.Compiled);
+        private static readonly Regex itemTextureExp = new(@"(?:^|\/)textures\/item(?:\/|$)", RegexOptions.Compiled);
         private static readonly Regex ctmTextureExp = new(@"(?:^|\/)optifine\/ctm(?:\/|$)", RegexOptions.Compiled);
+        private static readonly Regex citTextureExp = new(@"(?:^|\/)optifine\/cit(?:\/|$)", RegexOptions.Compiled);
         private static readonly Regex entityTextureExp = new(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
 
         public MaterialProperties Material {get; set;}
@@ -62,6 +65,7 @@ namespace PixelGraph.Common.Textures
         public bool IsAnimated {get; set;}
         public int MaxFrameCount {get; set;}
         public bool PublishAsGlobal {get; set;}
+        public bool ApplyPostProcessing {get; set;}
         public bool IsImport {get; set;}
 
         public bool MaterialWrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
@@ -75,15 +79,15 @@ namespace PixelGraph.Common.Textures
         //public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
         public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
 
-        public bool BakeOcclusionToColor => Material.Color.BakeOcclusion ?? Profile.BakeOcclusionToColor
+        public bool BakeOcclusionToColor => Material.Color.BakeOcclusion ?? Profile?.BakeOcclusionToColor
                                            ?? ResourcePackProfileProperties.BakeOcclusionToColorDefault;
 
 
-        
         public TextureGraphContext()
         {
             InputEncoding = new List<ResourcePackChannelProperties>();
             OutputEncoding = new List<ResourcePackChannelProperties>();
+            ApplyPostProcessing = true;
             PublishAsGlobal = true;
             MaxFrameCount = 1;
         }
@@ -157,7 +161,9 @@ namespace PixelGraph.Common.Textures
 
                 if (path != null) {
                     if (blockTextureExp.IsMatch(path)) return MaterialType.Block;
+                    if (itemTextureExp.IsMatch(path)) return MaterialType.Item;
                     if (ctmTextureExp.IsMatch(path)) return MaterialType.Block;
+                    if (citTextureExp.IsMatch(path)) return MaterialType.Item;
                     if (entityTextureExp.IsMatch(path)) return MaterialType.Entity;
                 }
             }
@@ -206,10 +212,21 @@ namespace PixelGraph.Common.Textures
             }
 
             var type = GetFinalMaterialType();
+            int? targetSize;
 
             switch (type) {
                 case MaterialType.Block:
-                    var targetSize = Profile?.BlockTextureSize ?? Profile?.TextureSize;
+                    targetSize = Profile?.BlockTextureSize ?? Profile?.TextureSize;
+
+                    if (targetSize.HasValue) {
+                        var aspect = defaultAspect ?? 1f;
+                        var width = targetSize.Value;
+                        var height = (int)MathF.Ceiling(width * aspect);
+                        return new Size(width, height);
+                    }
+                    break;
+                case MaterialType.Item:
+                    targetSize = Profile?.ItemTextureSize ?? Profile?.TextureSize;
 
                     if (targetSize.HasValue) {
                         var aspect = defaultAspect ?? 1f;

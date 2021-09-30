@@ -45,6 +45,7 @@ namespace PixelGraph.Common
             Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
             Services.AddScoped<ITextureGraph, TextureGraph>();
             Services.AddScoped<ITextureSourceGraph, TextureSourceGraph>();
+            Services.AddScoped<ITextureHeightGraph, TextureHeightGraph>();
             Services.AddScoped<ITextureNormalGraph, TextureNormalGraph>();
             Services.AddScoped<ITextureOcclusionGraph, TextureOcclusionGraph>();
             Services.AddScoped<IImportGraphBuilder, ImportGraphBuilder>();

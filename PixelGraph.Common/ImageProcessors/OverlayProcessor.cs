@@ -33,11 +33,11 @@ namespace PixelGraph.Common.ImageProcessors
                 for (var i = 0; i < samplerCount; i++) {
                     var samplerOptions = options.Samplers[i];
                     var mapping = samplerOptions.PixelMap;
-                    pixelOut.GetChannelValue(in samplerOptions.OutputColor, out existingValue);
+                    //pixelOut.GetChannelValue(in samplerOptions.OutputColor, out existingValue);
 
-                    if (existingValue != 0) {
-                        if (existingValue < mapping.OutputRangeMin || existingValue > mapping.OutputRangeMax) continue;
-                    }
+                    //if (existingValue != 0) {
+                    //    if (existingValue < mapping.OutputRangeMin || existingValue > mapping.OutputRangeMax) continue;
+                    //}
 
                     pixelValue = 0;
                     if (samplerOptions.Sampler != null) {
@@ -59,7 +59,9 @@ namespace PixelGraph.Common.ImageProcessors
 
                     //value *= mapping.OutputScale;
 
-                    mapping.Map(ref value, out finalValue);
+                    if (!mapping.TryMap(ref value, out finalValue)) continue;
+
+                    if (mapping.OutputClipValue.HasValue && value.NearEqual(mapping.OutputClipValue.Value)) continue;
 
                     if (options.IsGrayscale) {
                         pixelOut.R = finalValue;

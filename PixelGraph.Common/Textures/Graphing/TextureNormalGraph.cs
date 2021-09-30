@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
-using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
@@ -40,12 +39,11 @@ namespace PixelGraph.Common.Textures
 
     internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
     {
+        private readonly ILogger<TextureNormalGraph> logger;
         private readonly IServiceProvider provider;
         private readonly ITextureGraphContext context;
-        private readonly ITextureSourceGraph sourceGraph;
         private readonly ITextureRegionEnumerator regions;
-        private readonly IInputReader reader;
-        private readonly ILogger logger;
+        private readonly ITextureHeightGraph heightGraph;
 
         public Image<Rgb24> NormalTexture {get; private set;}
         public int NormalFrameCount {get; private set;}
@@ -64,15 +62,17 @@ namespace PixelGraph.Common.Textures
             ILogger<TextureNormalGraph> logger,
             IServiceProvider provider,
             ITextureGraphContext context,
-            ITextureSourceGraph sourceGraph,
+            //ITextureSourceGraph sourceGraph,
             ITextureRegionEnumerator regions,
-            IInputReader reader)
+            ITextureHeightGraph heightGraph)
+            //IInputReader reader)
         {
             this.provider = provider;
             this.context = context;
-            this.sourceGraph = sourceGraph;
+            //this.sourceGraph = sourceGraph;
+            this.heightGraph = heightGraph;
             this.regions = regions;
-            this.reader = reader;
+            //this.reader = reader;
             this.logger = logger;
 
             NormalFrameCount = 1;
@@ -185,61 +185,56 @@ namespace PixelGraph.Common.Textures
             return true;
         }
 
-        public Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default)
-        {
-            return GenerateAsync<Rgba64>(token);
-        }
+        //public Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default)
+        //{
+        //    return GenerateAsync<Rgba64>(token);
+        //}
 
-        public async Task<Image<Rgb24>> GenerateAsync<THeight>(CancellationToken token = default)
-            where THeight : unmanaged, IPixel<THeight>
+        public async Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default)
         {
             logger.LogInformation("Generating normal map for texture {DisplayName}.", context.Material.DisplayName);
 
-            var heightChannelIn = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
+            //var heightChannelIn = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
 
-            if (heightChannelIn == null || !heightChannelIn.HasMapping)
-                throw new HeightSourceEmptyException("No height sources mapped!");
+            //if (heightChannelIn == null || !heightChannelIn.HasMapping)
+            //    throw new HeightSourceEmptyException("No height sources mapped!");
 
-            Image<THeight> heightTexture = null;
+            //Image<THeight> heightTexture = null;
 
-            try {
-                float scale;
-                (heightTexture, scale) = await LoadHeightTextureAsync<THeight>(token);
+            //float scale;
+            //(heightTexture, scale) = await LoadHeightTextureAsync<THeight>(token);
+            var heightTex = await heightGraph.GetOrCreateAsync(token);
 
-                if (heightTexture == null) {
-                    var up = new Rgb24(127, 127, 255);
-                    var size = context.GetBufferSize(1f);
-                    return new Image<Rgb24>(Configuration.Default, size?.Width ?? 1, size?.Height ?? 1, up);
-                }
-
-                if (!NormalMapMethod.TryParse(context.Material.Normal?.Method, out var normalMethod))
-                    normalMethod = NormalMapMethods.Sobel3;
-
-                var builder = new NormalMapBuilder<THeight>(regions) {
-                    HeightImage = heightTexture,
-                    HeightChannel = heightChannelIn.Color ?? ColorChannel.None,
-                    Strength = (float)(context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength),
-                    Method = normalMethod,
-                    WrapX = context.MaterialWrapX,
-                    WrapY = context.MaterialWrapY,
-
-                    // TODO: testing
-                    VarianceStrength = 0.998f,
-                    LowFreqDownscale = 4,
-                    VarianceBlur = 3f,
-                };
-
-                // WARN: testing, scale strength by resolution scaling to preserve slope
-                builder.Strength *= scale;
-
-                // WARN: temporary hard-coded
-                builder.LowFreqStrength = builder.Strength / 4f;
-
-                return builder.Build(NormalFrameCount);
+            if (heightTex == null) {
+                var up = new Rgb24(127, 127, 255);
+                var size = context.GetBufferSize(1f);
+                return new Image<Rgb24>(Configuration.Default, size?.Width ?? 1, size?.Height ?? 1, up);
             }
-            finally {
-                heightTexture?.Dispose();
-            }
+
+            if (!NormalMapMethod.TryParse(context.Material.Normal?.Method, out var normalMethod))
+                normalMethod = NormalMapMethods.Sobel3;
+
+            var builder = new NormalMapBuilder<L16>(regions) {
+                HeightImage = heightTex,
+                HeightChannel = ColorChannel.Red,
+                Strength = (float)(context.Material.Normal?.Strength ?? MaterialNormalProperties.DefaultStrength),
+                Method = normalMethod,
+                WrapX = context.MaterialWrapX,
+                WrapY = context.MaterialWrapY,
+
+                // TODO: testing
+                VarianceStrength = 0.998f,
+                LowFreqDownscale = 4,
+                VarianceBlur = 3f,
+            };
+
+            // WARN: testing, scale strength by resolution scaling to preserve slope
+            builder.Strength *= heightGraph.HeightScaleFactor;
+
+            // WARN: temporary hard-coded
+            builder.LowFreqStrength = builder.Strength / 4f;
+
+            return builder.Build(NormalFrameCount);
         }
 
         public ISampler<Rgb24> GetNormalSampler()
@@ -388,85 +383,85 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task<TextureSource> GetHeightSourceAsync(CancellationToken token)
-        {
-            var file = reader.EnumerateInputTextures(context.Material, TextureTags.Bump).FirstOrDefault();
+        //private async Task<TextureSource> GetHeightSourceAsync(CancellationToken token)
+        //{
+        //    var file = reader.EnumerateInputTextures(context.Material, TextureTags.Bump).FirstOrDefault();
 
-            if (file != null) {
-                var info = await sourceGraph.GetOrCreateAsync(file, token);
-                if (info != null) return info;
-            }
+        //    if (file != null) {
+        //        var info = await sourceGraph.GetOrCreateAsync(file, token);
+        //        if (info != null) return info;
+        //    }
 
-            file = reader.EnumerateInputTextures(context.Material, TextureTags.Height).FirstOrDefault();
-            if (file == null) return null;
+        //    file = reader.EnumerateInputTextures(context.Material, TextureTags.Height).FirstOrDefault();
+        //    if (file == null) return null;
 
-            return await sourceGraph.GetOrCreateAsync(file, token);
-        }
+        //    return await sourceGraph.GetOrCreateAsync(file, token);
+        //}
 
-        private async Task<(Image<TPixel>, float)> LoadHeightTextureAsync<TPixel>(CancellationToken token)
-            where TPixel : unmanaged, IPixel<TPixel>
-        {
-            var info = await GetHeightSourceAsync(token);
-            if (info == null) return (null, 0f);
+        //private async Task<(Image<TPixel>, float)> LoadHeightTextureAsync<TPixel>(CancellationToken token)
+        //    where TPixel : unmanaged, IPixel<TPixel>
+        //{
+        //    var info = await GetHeightSourceAsync(token);
+        //    if (info == null) return (null, 0f);
 
-            await using var stream = reader.Open(info.LocalFile);
+        //    await using var stream = reader.Open(info.LocalFile);
 
-            Image<TPixel> heightTexture = null;
-            try {
-                heightTexture = await Image.LoadAsync<TPixel>(Configuration.Default, stream, token);
-                if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
+        //    Image<TPixel> heightTexture = null;
+        //    try {
+        //        heightTexture = await Image.LoadAsync<TPixel>(Configuration.Default, stream, token);
+        //        if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
 
-                // scale height texture instead of using samplers
-                var aspect = (float)info.Height / info.Width;
-                var bufferSize = context.GetBufferSize(aspect);
-                NormalFrameCount = info.FrameCount;
-                var scale = 1f;
+        //        // scale height texture instead of using samplers
+        //        var aspect = (float)info.Height / info.Width;
+        //        var bufferSize = context.GetBufferSize(aspect);
+        //        NormalFrameCount = info.FrameCount;
+        //        var scale = 1f;
 
-                if (bufferSize.HasValue && info.Width != bufferSize.Value.Width) {
-                    scale = (float)bufferSize.Value.Width / info.Width;
-                    var scaledWidth = (int)MathF.Ceiling(info.Width * scale);
-                    var scaledHeight = (int)MathF.Ceiling(info.Height * scale * info.FrameCount);
+        //        if (bufferSize.HasValue && info.Width != bufferSize.Value.Width) {
+        //            scale = (float)bufferSize.Value.Width / info.Width;
+        //            var scaledWidth = (int)MathF.Ceiling(info.Width * scale);
+        //            var scaledHeight = (int)MathF.Ceiling(info.Height * scale * info.FrameCount);
 
-                    var samplerName = context?.Material?.Height?.Input?.Sampler
-                                      ?? context.Profile?.Encoding?.Height?.Sampler
-                                      ?? context.DefaultSampler;
+        //            var samplerName = context?.Material?.Height?.Input?.Sampler
+        //                              ?? context.Profile?.Encoding?.Height?.Sampler
+        //                              ?? context.DefaultSampler;
 
-                    var sampler = context.CreateSampler(heightTexture, samplerName);
-                    sampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
-                    sampler.RangeX = sampler.RangeY = 1f / scale;
+        //            var sampler = context.CreateSampler(heightTexture, samplerName);
+        //            sampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
+        //            sampler.RangeX = sampler.RangeY = 1f / scale;
 
-                    var options = new ResizeProcessor<TPixel>.Options {
-                        Sampler = sampler,
-                    };
+        //            var options = new ResizeProcessor<TPixel>.Options {
+        //                Sampler = sampler,
+        //            };
 
-                    var processor = new ResizeProcessor<TPixel>(options);
+        //            var processor = new ResizeProcessor<TPixel>(options);
 
-                    Image<TPixel> heightCopy = null;
-                    try {
-                        heightCopy = heightTexture;
-                        heightTexture = new Image<TPixel>(Configuration.Default, scaledWidth, scaledHeight);
+        //            Image<TPixel> heightCopy = null;
+        //            try {
+        //                heightCopy = heightTexture;
+        //                heightTexture = new Image<TPixel>(Configuration.Default, scaledWidth, scaledHeight);
 
-                        foreach (var frame in regions.GetAllRenderRegions(null, NormalFrameCount)) {
-                            foreach (var tile in frame.Tiles) {
-                                sampler.Bounds = tile.Bounds;
+        //                foreach (var frame in regions.GetAllRenderRegions(null, NormalFrameCount)) {
+        //                    foreach (var tile in frame.Tiles) {
+        //                        sampler.Bounds = tile.Bounds;
 
-                                var outBounds = tile.Bounds.ScaleTo(scaledWidth, scaledHeight);
-                                heightTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
-                            }
-                        }
-                    }
-                    finally {
-                        heightCopy?.Dispose();
-                    }
-                }
+        //                        var outBounds = tile.Bounds.ScaleTo(scaledWidth, scaledHeight);
+        //                        heightTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
+        //                    }
+        //                }
+        //            }
+        //            finally {
+        //                heightCopy?.Dispose();
+        //            }
+        //        }
                 
-                return (heightTexture, scale);
-            }
-            catch (SourceEmptyException) {throw;}
-            catch {
-                heightTexture?.Dispose();
-                throw;
-            }
-        }
+        //        return (heightTexture, scale);
+        //    }
+        //    catch (SourceEmptyException) {throw;}
+        //    catch {
+        //        heightTexture?.Dispose();
+        //        throw;
+        //    }
+        //}
     }
 }

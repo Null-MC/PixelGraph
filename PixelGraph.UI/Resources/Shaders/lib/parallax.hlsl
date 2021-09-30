@@ -14,7 +14,7 @@ float2 get_parallax_offset(const in float3x3 mTBN, const in float3 view)
 	return parallax_dir * parallax_length * ParallaxDepth;
 }
 
-float2 get_parallax_texcoord(const float2 tex, const float2 offsetT, const float NoV, out float3 shadow_tex)
+float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, const in float NoV, out float2 shadow_tex, out float shadow_depth, out float tex_depth)
 {
 	const int step_count = (int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoV);
 	const float step_size = 1.0 / step_count;
@@ -24,7 +24,7 @@ float2 get_parallax_texcoord(const float2 tex, const float2 offsetT, const float
 	float2 trace_offset = tex;
 	float2 prev_trace_offset = tex + step_offset;
 
-	float tex_depth = 1.0;
+	tex_depth = 1.0;
 	float prev_tex_depth = 1.0;
 	float prev_trace_depth = 1.0 + step_size;
 
@@ -42,14 +42,13 @@ float2 get_parallax_texcoord(const float2 tex, const float2 offsetT, const float
 	}
 
 	const float t = (prev_trace_depth - prev_tex_depth) / max(tex_depth - prev_tex_depth + prev_trace_depth - trace_depth, EPSILON);
-	float2 tex_i = prev_trace_offset - t * step_offset;
-	float depth_i = prev_trace_depth - t * step_size;
-	shadow_tex = float3(tex_i, depth_i);
+	shadow_tex = prev_trace_offset - t * step_offset;
+	shadow_depth = prev_trace_depth - t * step_size;
 	
-	return EnableLinearSampling ? tex_i : trace_offset;
+	return EnableLinearSampling ? shadow_tex : trace_offset;
 }
 
-float get_parallax_shadow(const float3 tex, const float2 offsetT, const float NoL)
+float get_parallax_shadow(const in float2 tex, const in float depth, const in float2 offsetT, const in float NoL)
 {
 	if (NoL <= 0.0) return 0.0;
 	
@@ -57,12 +56,12 @@ float get_parallax_shadow(const float3 tex, const float2 offsetT, const float No
 	const float step_size = 1.0 / step_count;
 	const float2 step_offset = step_size * offsetT;
 	
-	float trace_depth = tex.z;
-    float2 trace_tex = tex.xy + step_offset;
+	float trace_depth = depth;
+    float2 trace_tex = tex + step_offset;
 
 	[loop]
 	float result = 0.0;
-	for (int step = int(tex.z); step < step_count; ++step) {
+	for (int step = int(depth); step < step_count; ++step) {
         trace_tex += step_offset;
         trace_depth += step_size;
 
@@ -70,7 +69,7 @@ float get_parallax_shadow(const float3 tex, const float2 offsetT, const float No
 		const float h = tex_depth - trace_depth;
 		
     	if (h > 0.0) {
-	        const float dist = 1.0 + lengthSq(float3(trace_tex, trace_depth) - float3(tex.xy, 1.0)) * 20.0;
+	        const float dist = 1.0 + lengthSq(float3(trace_tex, trace_depth) - float3(tex, 1.0)) * 20.0;
 
             const float sample_result = saturate(h * soft_shadow_strength * (1.0 / dist));
     		result = max(result, sample_result);

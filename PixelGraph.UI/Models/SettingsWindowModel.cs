@@ -9,6 +9,7 @@ namespace PixelGraph.UI.Models
         private string _texture_imageEditorArgs;
         private bool _renderPreview_enabled;
         private bool _renderPreview_enableLinearSampling;
+        private bool _renderPreview_enableSlopeNormals;
         //private bool _renderPreview_parallaxEnabled;
         private decimal? _renderPreview_parallaxDepth;
         private int? _renderPreview_parallaxSamplesMin;
@@ -51,6 +52,15 @@ namespace PixelGraph.UI.Models
             get => _renderPreview_enableLinearSampling;
             set {
                 _renderPreview_enableLinearSampling = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public bool RenderPreview_EnableSlopeNormals {
+            get => _renderPreview_enableSlopeNormals;
+            set {
+                _renderPreview_enableSlopeNormals = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }

@@ -892,9 +892,18 @@ namespace PixelGraph.UI.Windows
 
         private void OnExitClick(object sender, RoutedEventArgs e)
         {
-            DialogResult = true;
+            Close();
         }
 
         #endregion
+
+        private void OnConvertExistingClick(object sender, RoutedEventArgs e)
+        {
+            var window = new PackConvertWindow(provider) {
+                Owner = this,
+            };
+
+            window.ShowDialog();
+        }
     }
 }

@@ -34,11 +34,7 @@ namespace PixelGraph.UI.Helix.Materials
                 if (tint.HasValue) mat.ColorTint = tint.Value.ToColor4();
             }
 
-            //var loader = new CustomTextureLoader();
-            //...
-
             if (TextureMap.TryGetValue(TextureTags.Color, out var albedoStream) && albedoStream != null) {
-                //var albedoContentId = Guid.NewGuid();
                 mat.AlbedoAlphaMap = TextureModel.Create(albedoStream);
             }
 
@@ -54,17 +50,4 @@ namespace PixelGraph.UI.Helix.Materials
             return mat;
         }
     }
-
-    //internal class CustomTextureLoader : ITextureInfoLoader
-    //{
-    //    public TextureInfo Load(Guid id)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-
-    //    public void Complete(Guid id, TextureInfo info, bool succeeded)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
 }
