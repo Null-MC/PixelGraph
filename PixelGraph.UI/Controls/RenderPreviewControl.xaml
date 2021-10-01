@@ -105,9 +105,9 @@
             <hx:DirectionalLight3D Color="{Binding SunLightColor, Mode=OneWay}"
                                    Direction="{Binding SunLightDirection, Mode=OneWay}"
                                    IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
-            <hx:PointLight3D Color="#C39667" Range="24" Position="5,7,5"
+            <hx:PointLight3D Color="#C39667" Range="32" Position="10,14,10"
                              IsRendering="{Binding EnableLights, Mode=OneWay}"/>
-            <hx:PointLight3D Color="#83D0F2" Range="16" Position="-6,-3,-3"
+            <hx:PointLight3D Color="#83D0F2" Range="32" Position="-12,-12,-12"
                              IsRendering="{Binding EnableLights, Mode=OneWay}"/>
             <models1:SkyDome3D IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
             <!--<hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />-->

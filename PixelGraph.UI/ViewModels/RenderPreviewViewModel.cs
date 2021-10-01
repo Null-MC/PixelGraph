@@ -72,7 +72,7 @@ namespace PixelGraph.UI.ViewModels
                 UpDirection = new Media3D.Vector3D(0f, 1f, 0f),
                 NearPlaneDistance = 1f,
                 FarPlaneDistance = 32f,
-                Width = 8,
+                Width = 24,
             };
 
             ResetViewport();
@@ -87,7 +87,7 @@ namespace PixelGraph.UI.ViewModels
             LoadAppSettings();
             UpdateShaders();
 
-            Model.CubeModel = BuildCube(4);
+            Model.CubeModel = BuildCube(4, 3, 1, 3);
             Model.BrdfLutMap = brdfLutStream;
         }
 
@@ -192,19 +192,39 @@ namespace PixelGraph.UI.ViewModels
         //    SceneChanged?.Invoke(this, EventArgs.Empty);
         //}
 
-        private static MeshGeometry3D BuildCube(int size)
+        private static MeshGeometry3D BuildCube(int cubeSize, int gridSizeX = 1, int gridSizeY = 1, int gridSizeZ = 1)
         {
             var builder = new MeshBuilder(true, true, true);
+            Vector3 offset, position;
 
-            builder.AddCubeFace(Vector3.Zero, new Vector3(1, 0, 0), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(Vector3.Zero, new Vector3(-1, 0, 0), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(Vector3.Zero, new Vector3(0, 0, 1), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(Vector3.Zero, new Vector3(0, 0, -1), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(Vector3.Zero, new Vector3(0, 1, 0), Vector3.UnitX, size, size, size);
-            builder.AddCubeFace(Vector3.Zero, new Vector3(0, -1, 0), Vector3.UnitX, size, size, size);
+            offset.X = cubeSize * (gridSizeX - 1) * 0.5f;
+            offset.Y = cubeSize * (gridSizeY - 1) * 0.5f;
+            offset.Z = cubeSize * (gridSizeZ - 1) * 0.5f;
+
+            for (var z = 0; z < gridSizeZ; z++) {
+                for (var y = 0; y < gridSizeY; y++) {
+                    for (var x = 0; x < gridSizeX; x++) {
+                        position.X = cubeSize * x - offset.X;
+                        position.Y = cubeSize * y - offset.Y;
+                        position.Z = cubeSize * z - offset.Z;
+
+                        AppendCube(builder, in position, in cubeSize);
+                    }
+                }
+            }
 
             builder.ComputeTangents(MeshFaces.Default);
             return builder.ToMeshGeometry3D();
+        }
+
+        private static void AppendCube(MeshBuilder builder, in Vector3 position, in int size)
+        {
+            builder.AddCubeFace(position, new Vector3(1, 0, 0), Vector3.UnitY, size, size, size);
+            builder.AddCubeFace(position, new Vector3(-1, 0, 0), Vector3.UnitY, size, size, size);
+            builder.AddCubeFace(position, new Vector3(0, 0, 1), Vector3.UnitY, size, size, size);
+            builder.AddCubeFace(position, new Vector3(0, 0, -1), Vector3.UnitY, size, size, size);
+            builder.AddCubeFace(position, new Vector3(0, 1, 0), Vector3.UnitX, size, size, size);
+            builder.AddCubeFace(position, new Vector3(0, -1, 0), Vector3.UnitX, size, size, size);
         }
 
         //private static MeshGeometry3D BuildBell()
