@@ -8,8 +8,14 @@
 
 #define MIN_ROUGH 0.002f
 #define WET_DARKEN 0.76f
+#define WATER_DEPTH_SCALE 6.0f
+
+#define ETA_AIR_TO_WATER (IOR_N_WATER / IOR_N_AIR)
+#define ETA_WATER_TO_AIR (IOR_N_AIR / IOR_N_WATER)
 
 #pragma pack_matrix(row_major)
+
+static const float3 up = float3(0.0f, 1.0f, 0.0f);
 
 
 float4 main(const ps_input input) : SV_TARGET
@@ -31,20 +37,32 @@ float4 main(const ps_input input) : SV_TARGET
 
     const float3x3 mTBN = float3x3(tangent, bitangent, normal);
 	float roughL = max(mat.rough * mat.rough, MIN_ROUGH);
+	
+    // Blend base colors
+	const float metal = mat.f0 > 0.9f ? 1.0f : 0.0f;
+	const float3 tint = srgb_to_linear(vMaterialDiffuse.rgb);
+    float3 diffuse = mat.albedo * tint * (1.0f - metal);
+
+    const float3 src_normal = calc_tex_normal(tex, normal, tangent, bitangent);
 
 	//-- Wetness --
-    const float wet_factor = saturate(Wetness - (1.0f - mat.porosity));
-	const float wet_darken = 1.0f - WET_DARKEN * wet_factor;
+    float surface_water = 0.0f;
+    float3 wet_normal = src_normal;
 
-    //const float surface_water = pow(saturate(Wetness - mat.porosity), 0.3f);
-    const float p1 = pow(Wetness, 1.6f) * 0.65f;
-    const float surface_water = lerp(Wetness, p1, mat.porosity);
+    if (Wetness > EPSILON) {
+		diffuse *= 1.0f - saturate(WET_DARKEN * Wetness - (1.0f - mat.porosity));
 
-    const float wet_roughL = lerp(roughL, WATER_ROUGH, saturate(surface_water * 2.0f));
+	    const float p1 = pow(abs(Wetness), 1.6f) * 0.65f;
+	    surface_water = lerp(Wetness, p1, mat.porosity);
+
+		wet_normal = calc_tex_normal(tex, normal, tangent, bitangent, surface_water * (1.0f - mat.porosity) * WATER_BLUR);
+    }
 
     //-- Slope Normals --
-    float3 tex_normal;
-    if (EnableSlopeNormals && !EnableLinearSampling && tex_depth - shadow_depth > EPSILON) {
+    float3 tex_normal = src_normal;
+
+    const float slope_depth = tex_depth - shadow_depth;
+    if (EnableSlopeNormals && !EnableLinearSampling && slope_depth > EPSILON) {
         float3 tex_size;
     	tex_normal_height.GetDimensions(0, tex_size.x, tex_size.y, tex_size.z);
 
@@ -63,136 +81,162 @@ float4 main(const ps_input input) : SV_TARGET
 			float VdotN = dot(view, tex_normal);
 			if (VdotN < 0) tex_normal = bitangent * sign(-tex_offset.y);
         }
-    }
-    else
-		tex_normal = calc_tex_normal(tex, normal, tangent, bitangent);
 
-    const float3 wet_normal = calc_tex_normal(tex, normal, tangent, bitangent, surface_water * WATER_BLUR);
-	
-    // Blend base colors
-	const float metal = mat.f0 > 0.9f ? 1.0f : 0.0f;
-	const float3 tint = srgb_to_linear(vMaterialDiffuse.rgb);
-    const float3 diffuse = mat.albedo * tint * wet_darken * (1.0f - metal);
+        wet_normal = tex_normal;
+    }
+
+    float tex_water = saturate(0.5f + 0.5f * dot(tex_normal, up)) * surface_water;
+
+    float wet_depth = 0.0f;
+	if (EnablePuddles) wet_depth = max(Wetness - (1.0f - rcp(WATER_DEPTH_SCALE)) * shadow_depth, 0.0f) * WATER_DEPTH_SCALE;
+
+    float surface_up = saturate(dot(normal, up));
+    wet_normal = lerp(wet_normal, up, surface_up * saturate(wet_depth));
+
+    float water = saturate(max(pow(abs(tex_water), 0.3f), wet_depth));
+	float wet_roughL = lerp(roughL, WATER_ROUGH, water);
+
+    const float NoV = saturate(dot(tex_normal, view));
+    const float NoV_wet = saturate(dot(wet_normal, view));
+    const float ior_in = lerp(IOR_N_AIR, IOR_N_WATER, tex_water);
 
     //-- HCM --
 	float3 ior_n, ior_k;
 	get_hcm_ior(mat.f0, ior_n, ior_k);
-	float3 metal_albedo = lerp(1.0f, mat.albedo * tint, metal);// * wet_diffuse;
-	
-    const float NoV = saturate(dot(tex_normal, view));
-    const float NoV_wet = saturate(dot(wet_normal, view));
-	const float ior_n_in = lerp(IOR_N_AIR, IOR_N_WATER, surface_water);
-    const float3 f0 = ior_to_f0_complex(ior_n_in, ior_n, ior_k);
-
-    //return float4(f0, 1);
+	float3 metal_albedo = lerp(1.0f, mat.albedo * tint, metal);
 
     float3 acc_light = 0.0;
-    //float3 acc_diffuse = 0.0;
-    //float3 acc_specular = 0.0;
     float3 acc_sss = 0.0;
+
+    float light_att, light_shadow, NoL;
+    float3 light_dir, light_color, light_diffuse, light_specular, H;
+    float LoH, NoH, VoH;
 		
 	[loop]
     for (int i = 0; i < NumLights; i++) {
-        const float3 light_color = srgb_to_linear(Lights[i].vLightColor.rgb) * 1.6f;
+        light_color = srgb_to_linear(Lights[i].vLightColor.rgb) * 1.6f;
     	
         if (Lights[i].iLightType == 1) {
-            const float3 light_dir = normalize(Lights[i].vLightDir.xyz);
-        	
-        	// light parallax shadows
-        	const float SNoL = dot(normal, light_dir);
-        	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
-            if (shadow < EPSILON) continue;
-        	
-            const float3 H = normalize(light_dir + view);
-            const float NoL = saturate(dot(tex_normal, light_dir));
-            const float LoH = saturate(dot(light_dir, H));
-            const float NoH = saturate(dot(tex_normal, H));
-            const float NoH_wet = saturate(dot(wet_normal, H));
-            const float VoH = saturate(dot(view, H));
-        	
-            // Diffuse & specular factors
-            const float3 light_diffuse = Diffuse_Burley(NoL, NoV, LoH, roughL) * diffuse * NoL;
-            const float3 light_specular = specular_brdf_wet(f0, LoH, NoH, VoH, roughL) * metal_albedo * NoL;
-			const float3 light_brdf = clearcoat_brdf(light_diffuse, light_specular, LoH, NoH_wet, wet_roughL, surface_water);
-        	//const float3 light_factor = NoL * light_color * shadow;
-        	
-            //acc_diffuse += light_diffuse * light_factor;
-            //acc_specular += light_specular * light_factor;
-        	acc_light += shadow * light_color * light_brdf;
+            light_dir = normalize(Lights[i].vLightDir.xyz);
+            light_att = 1.0f;
         }
         else if (Lights[i].iLightType == 2) {
-            float3 light_dir = Lights[i].vLightPos.xyz - input.wp.xyz;
+            light_dir = Lights[i].vLightPos.xyz - input.wp.xyz;
             const float light_dist = length(light_dir);
             light_dir = light_dir / light_dist;
-        	
-            if (Lights[i].vLightAtt.w < light_dist) continue;
 
-        	// light parallax shadows
-        	const float SNoL = dot(normal, light_dir);
-        	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
-            if (shadow < EPSILON) continue;
-        	
-            const float3 H = normalize(view + light_dir);
-            const float NoL = saturate(dot(tex_normal, light_dir));
-            const float LoH = saturate(dot(light_dir, H));
-            const float NoH = saturate(dot(tex_normal, H));
-            const float VoH = saturate(dot(view, H));
-
-        	const float att = rcp(Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
-        	
-            // Diffuse & specular factors
-            const float3 light_diffuse = Diffuse_Burley(NoL, NoV, LoH, roughL) * diffuse;
-            const float3 light_specular = specular_brdf_wet(f0, LoH, NoH, VoH, roughL) * metal_albedo;
-			const float3 light_brdf = clearcoat_brdf(light_diffuse, light_specular, LoH, NoH, wet_roughL, surface_water);
-
-        	//acc_diffuse = mad(att * shadow, NoL * light_color * light_diffuse, acc_diffuse);
-            //acc_specular = mad(att * shadow, NoL * light_color * light_specular, acc_specular);
-        	acc_light = mad(att * shadow, NoL * light_color * light_brdf, acc_light);
+        	light_att = rcp(Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
         }
         else if (Lights[i].iLightType == 3) {
-            float3 light_dir = Lights[i].vLightPos.xyz - input.wp.xyz;
+            light_dir = Lights[i].vLightPos.xyz - input.wp.xyz;
         	
             const float light_dist = length(light_dir);
-            if (Lights[i].vLightAtt.w < light_dist) continue;
+
             light_dir = light_dir / light_dist;
 
-        	// light parallax shadows
-        	const float SNoL = dot(normal, light_dir);
-        	const float2 polT = get_parallax_offset(mTBN, light_dir);
-            const float shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
-            if (shadow < EPSILON) continue;
-        	
-            const float3 H = normalize(view + light_dir);
-            const float NoL = saturate(dot(tex_normal, light_dir));
-            const float LoH = saturate(dot(light_dir, H));
-            const float NoH = saturate(dot(tex_normal, H));
-            const float VoH = saturate(dot(view, H));
-        	
-            const float3 sd = normalize(Lights[i].vLightDir.xyz); // missuse the vLightDir variable for spot-dir
-        	
-            // Diffuse & specular factors
-            const float3 light_diffuse = Diffuse_Burley(NoL, NoV, LoH, roughL) * diffuse;
-            const float3 light_specular = specular_brdf_wet(f0, LoH, NoH, VoH, roughL) * metal_albedo;
-			const float3 light_brdf = clearcoat_brdf(light_diffuse, light_specular, LoH, NoH, wet_roughL, surface_water);
-
+            const float3 sd = normalize(Lights[i].vLightDir.xyz);
             const float rho = dot(-light_dir, sd);
             const float spot = pow(saturate((rho - Lights[i].vLightSpot.x) / (Lights[i].vLightSpot.y - Lights[i].vLightSpot.x)), Lights[i].vLightSpot.z);
-            const float att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
-
-        	//acc_diffuse = mad(att * shadow, NoL * light_color * light_diffuse, acc_diffuse);
-            //acc_specular = mad(att * shadow, NoL * light_color * light_specular, acc_specular);
-        	acc_light = mad(att * shadow, NoL * light_color * light_brdf, acc_light);
+            light_att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
         }
+
+        // light parallax shadows
+        const float SNoL = dot(normal, light_dir);
+        const float2 polT = get_parallax_offset(mTBN, light_dir);
+        light_shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
+        if (light_shadow < EPSILON) continue;
+
+        NoL = saturate(dot(tex_normal, light_dir));
+        H = normalize(view + light_dir);
+        LoH = saturate(dot(light_dir, H));
+        VoH = saturate(dot(view, H));
+		NoH = saturate(dot(tex_normal, H));
+
+        // Diffuse & specular factors
+        light_diffuse = Diffuse_Burley(NoL, NoV, LoH, roughL) * diffuse;
+
+        if (Wetness > EPSILON) {
+            //const float NoL_1 = saturate(dot(wet_normal, light_dir));
+            const float NoH_1 = saturate(dot(wet_normal, H));
+
+            const float F_1 = F_full(ETA_AIR_TO_WATER, NoH_1);
+            const float T_1 = 1.0f - F_1;
+            //float Fr_1 = F_1 * (202.0f / 8.0f) * pow(NoH_1, 200.0f);
+            //float3 Fr_1 = specular_brdf(ETA_AIR_TO_WATER, LoH, NoH_1, VoH, wet_roughL);
+
+            const float3 L_2 = refract(-light_dir, -H, ETA_WATER_TO_AIR);
+			const float3 V_2 = refract(-view, -H, ETA_WATER_TO_AIR);
+            const float3 T_2 = 1.0f - F_full(ETA_WATER_TO_AIR, saturate(dot(V_2, H)));
+            const float3 H_2 = normalize(V_2 + L_2);
+
+            const float  VoH_2 = lerp(VoH, saturate(dot(V_2, H_2)), tex_water);
+			const float  NoH_2 = lerp(NoH, saturate(dot(tex_normal, H_2)), tex_water);
+			const float  LoH_2 = lerp(LoH, saturate(dot(L_2, H_2)), tex_water);
+			const float  NoL_2 = lerp(NoL, saturate(dot(tex_normal, L_2)), tex_water);
+			const float  NoV_2 = lerp(NoV, saturate(dot(tex_normal, V_2)), tex_water);
+
+            //float3 F_2, Fr_2;
+            //if (mat.f0 > 0.9f) F_2 = F_conductor(VoH_2, ior_in, ior_n, ior_k);
+            //else F_2 = F_full(ior_n.r / ior_in, VoH_2);
+
+            //float  SpecPower = exp2((1.0f - wet_roughL) * 11.0f);
+
+			//Fr_2 = light_diffuse * light_att + F_2 * ((SpecPower + 2.0f) / 8.0f) * pow(NoH_2, SpecPower) * metal_albedo;
+			const float3 Fr_2 = mat.f0 > 0.9f
+        		? specular_brdf_conductor(ior_in, ior_n, ior_k, LoH_2, NoH_2, VoH_2, roughL) * metal_albedo
+        		: specular_brdf(ior_n.r, LoH_2, NoH_2, VoH_2, roughL);
+
+            //return float4(F_2 * ((SpecPower + 2.0f) / 8.0f) * pow(NoH_2, SpecPower) * metal_albedo, 1);
+
+            const float dist = (0.2f * surface_water + 2.0f * wet_depth) * rcp(max(NoV_2, 0.001f)) + rcp(max(NoL_2, 0.001f));
+            const float3 absorption = exp(-float3(0.0035f, 0.0004f, 0.0f) * dist);
+
+            //float3 Fr = Fr_1 + T_1 * Fr_2 * Absorption * T_2;
+            //light_specular = Fr_1 + T_1 * Fr_2 * Absorption * T_2;
+            light_specular = T_1 * Fr_2 * absorption * T_2;
+
+            const float3 Fr_1 = specular_brdf_clearcoat(ETA_AIR_TO_WATER, light_diffuse, light_specular, LoH, NoH_1, VoH, wet_roughL, water);
+
+			acc_light += light_shadow * NoL * light_color * light_att * Fr_1;
+        }
+        else {
+			light_specular = mat.f0 > 0.9f
+        		? specular_brdf_conductor(IOR_N_AIR, ior_n, ior_k, LoH, NoH, VoH, roughL) * metal_albedo
+        		: specular_brdf(ior_n.r, LoH, NoH, VoH, roughL);
+
+			acc_light += light_shadow * NoL * light_color * light_att * (light_diffuse + light_specular);
+        }
+
+		//acc_light += light_shadow * NoL * light_color * light_att * (light_diffuse + light_specular);
     }
 
-	const float3 r = reflect(-view, tex_normal);
-	const float3 ibl_ior_n_out = lerp(ior_n, IOR_N_WATER, surface_water);
-	//const float3 ibl_ior_k = lerp(ior_k, 0.0f, surface_water); // WARN: I don't think this is right
-    const float3 ibl_f0 = ior_to_f0_complex(IOR_N_AIR, ibl_ior_n_out, ior_k);
-	float3 ibl_ambient = IBL_Ambient(ibl_f0, tex_normal, mat.occlusion);
-	float3 ibl_specular = IBL_Specular(ibl_f0, NoV_wet, r, mat.occlusion, wet_roughL);
+	const float3 r = reflect(-view, wet_normal);
+
+    const float3 ibl_f0_ambient = ior_to_f0_complex(ior_in, ior_n, ior_k);
+	const float3 ibl_F_ambient = F_schlick_roughness(ibl_f0_ambient, NoV, roughL);
+	const float3 ibl_ambient = IBL_ambient(ibl_F_ambient, r) * mat.occlusion;
+
+	float3 ibl_specular = IBL_specular(ibl_F_ambient, NoV, r, mat.occlusion, roughL) * metal_albedo;
+
+    if (Wetness > EPSILON) {
+		float3 ibl_F_water = F_full(ETA_AIR_TO_WATER, NoV_wet);
+
+        H = normalize(r + view);
+        VoH = saturate(dot(view, H));
+        float3 V2 = refract(-view, -H, ETA_WATER_TO_AIR);
+        float NoV_2 = saturate(dot(tex_normal, V2));
+        float NoL_2 = saturate(dot(r, V2));
+
+        float T12 = 1.0f - F_full(ETA_AIR_TO_WATER, VoH) * tex_water;
+        float T21 = 1.0f - F_full(ETA_WATER_TO_AIR, saturate(dot(V2, H))) * tex_water;
+
+        float dist = (0.2f * surface_water + 2.0f * wet_depth) * rcp(max(NoV_2, 0.001f)) + rcp(max(NoL_2, 0.001f));
+		float3 absorption = exp(-float3(0.0035, 0.0004, 0.0) * dist);
+
+        ibl_specular *= T12 * T21 * absorption;
+
+		ibl_specular += IBL_specular(ibl_F_water, NoV_wet, r, mat.occlusion, wet_roughL) * metal_albedo * water;
+    }
 
 	float sss_strength = 0.0f;
 	float3 ibl_sss = 0.0f;
@@ -204,7 +248,6 @@ float4 main(const ps_input input) : SV_TARGET
 		
 		float4 sp = mul(wp, vLightViewProjection);
 		float thickness = SSS_Thickness(sp.xyz / sp.w);
-		//return float4(thickness, 0, 0, 1);
 
 		float sss_dist = lerp(160.0f, 60.0f, sqrt(mat.sss));
 		sss_strength = saturate(1.0f / (1.0f + thickness * sss_dist)) * mat.sss;
@@ -215,19 +258,14 @@ float4 main(const ps_input input) : SV_TARGET
 
 	const float3 emissive = mat.emissive * mat.albedo * 16.0f;
 
-	float3 final_ambient = ibl_ambient * diffuse;
-	//float3 final_diffuse = acc_diffuse * diffuse;
-	//float3 final_specular = (acc_specular + ibl_specular) * metal_albedo;
+	float3 ibl_final = ibl_ambient * diffuse + ibl_specular;
 	float3 final_sss = diffuse * (acc_sss + ibl_sss) * sss_strength;
-    //float3 final_color = final_diffuse + final_specular + final_sss + emissive;
-    float3 final_color =  final_ambient + acc_light + (ibl_specular * metal_albedo) + final_sss + emissive;
-	float alpha = mat.alpha; // + lum(acc_specular + ibl_specular);
+    float3 final_color = ibl_final + acc_light + final_sss + emissive;
+	float alpha = mat.alpha;
 
-    //return float4(ibl_specular, 1.0f);
-	
 	final_color = tonemap_AcesFilm(final_color);
 	final_color = linear_to_srgb(final_color);
 	//final_color = tonemap_HejlBurgess(final_color);
-	
+
     return float4(final_color, alpha);
 }

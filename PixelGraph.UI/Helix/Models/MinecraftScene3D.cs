@@ -1,9 +1,9 @@
-﻿using System.Windows;
-using HelixToolkit.SharpDX.Core.Model.Scene;
+﻿using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
 using SharpDX;
+using System.Windows;
 
 namespace PixelGraph.UI.Helix.Models
 {
@@ -56,6 +56,11 @@ namespace PixelGraph.UI.Helix.Models
             set => SetValue(EnableSlopeNormalsProperty, value);
         }
 
+        public bool EnablePuddles {
+            get => (bool)GetValue(EnablePuddlesProperty);
+            set => SetValue(EnablePuddlesProperty, value);
+        }
+
 
         public void Apply(DeviceContextProxy deviceContext)
         {
@@ -88,6 +93,7 @@ namespace PixelGraph.UI.Helix.Models
             n.ParallaxSamplesMax = ParallaxSamplesMax;
             n.EnableLinearSampling = EnableLinearSampling;
             n.EnableSlopeNormals = EnableSlopeNormals;
+            n.EnablePuddles = EnablePuddles;
         }
 
         public static readonly DependencyProperty TimeOfDayProperty =
@@ -142,6 +148,12 @@ namespace PixelGraph.UI.Helix.Models
             DependencyProperty.Register(nameof(EnableSlopeNormals), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.EnableSlopeNormals = (bool)e.NewValue;
+            }));
+
+        public static readonly DependencyProperty EnablePuddlesProperty =
+            DependencyProperty.Register(nameof(EnablePuddles), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
+                if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
+                    sceneNode.EnablePuddles = (bool)e.NewValue;
             }));
     }
 }

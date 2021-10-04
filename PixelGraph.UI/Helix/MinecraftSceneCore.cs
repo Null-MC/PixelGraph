@@ -80,6 +80,11 @@ namespace PixelGraph.UI.Helix
             set => SetAffectsRender(ref data.EnableSlopeNormals, value);
         }
 
+        public bool EnablePuddles {
+            get => data.EnablePuddles;
+            set => SetAffectsRender(ref data.EnablePuddles, value);
+        }
+
 
         public MinecraftSceneCore() : base(RenderType.PreProc)
         {

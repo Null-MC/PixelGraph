@@ -3,7 +3,7 @@
 #define IOR_N_WATER 1.333f
 #define F0_WATER 0.02f
 #define WATER_ROUGH 0.008f
-#define WATER_BLUR 2.0f
+#define WATER_BLUR 1.2f
 
 #pragma pack_matrix(row_major)
 
@@ -22,41 +22,24 @@ float3 F_schlick_roughness(float3 f0, float cos_theta, float rough) {
     return f0 + (max(1.0f - rough, f0) - f0) * pow(saturate(1.0f - cos_theta), 5.0f);
 }
 
-//// https://docs.chaosgroup.com/display/OSLShaders/Complex+Fresnel+shader
-//float3 F_complex(const float3 n, const float3 k, const float cos)
-//{
-//	const float3 n2 = n*n;
-//	const float3 k2 = k * k;
-//	const float cos2 = cos * cos;
-//
-//	const float3 rs_num = n2 + k2 - 2.0f * n*cos + cos2;
-//	const float3 rs_den = n2 + k2 + 2.0f * n*cos + cos2;
-//	const float3 rs = rs_num / rs_den;
-//
-//	const float3 rp_num = (n2 + k2) * cos2 - 2.0f * n*cos + 1.0f;
-//	const float3 rp_den = (n2 + k2) * cos2 + 2.0f * n*cos + 1.0f;
-//	const float3 rp = rp_num / rp_den;
-//     
-//    return saturate(0.5f * (rs + rp));
-//}
-
 // https://seblagarde.wordpress.com/2013/03/19/water-drop-3a-physically-based-wet-surfaces/
-float F_full(const in float eta, const in float cos_theta)
+// Eta is relative IOR : N2/N1 with to / From
+float F_full(const in float eta, const in float VoH)
 {
-	const float temp = eta * eta + cos_theta * cos_theta - 1.0f;
+	const float temp = eta * eta + VoH * VoH - 1.0f;
 
 	if (temp < 0.0f) return 1.0f;
 	const float g = sqrt(temp);
 
-	return 0.5f * pow2((g - cos_theta) / (g + cos_theta)) * (1.0f + pow2(((g + cos_theta) * cos_theta - 1.0f) / ((g - cos_theta) * cos_theta + 1.0f)));
+	return 0.5f * pow2((g - VoH) / (g + VoH)) * (1.0f + pow2(((g + VoH) * VoH - 1.0f) / ((g - VoH) * VoH + 1.0f)));
 }
 
-float3 F_conductor(const float3 cos_theta, const float n1, const float3 n2, const float3 k)
+float3 F_conductor(const in float VoH, const in float n1, const in float3 n2, const in float3 k)
 {
 	const float3 eta = n2 / n1;
 	const float3 eta_k = k / n1;
 
-	const float cos_theta2 = cos_theta * cos_theta;
+	const float cos_theta2 = VoH * VoH;
 	const float sin_theta2 = 1.0f - cos_theta2;
 	const float3 eta2 = eta * eta;
 	const float3 eta_k2 = eta_k * eta_k;
@@ -65,7 +48,7 @@ float3 F_conductor(const float3 cos_theta, const float n1, const float3 n2, cons
 	const float3 a2_plus_b2 = sqrt(t0 * t0 + 4.0f * eta2 * eta_k2);
 	const float3 t1 = a2_plus_b2 + cos_theta2;
 	const float3 a = sqrt(0.5f * (a2_plus_b2 + t0));
-	const float3 t2 = 2.0f * a * cos_theta;
+	const float3 t2 = 2.0f * a * VoH;
 	const float3 rs = (t1 - t2) / (t1 + t2);
 
 	const float3 t3 = cos_theta2 * a2_plus_b2 + sin_theta2 * sin_theta2;
@@ -99,10 +82,10 @@ float V_kelemen(const in float LoH) {
     return 0.25f / (LoH * LoH);
 }
 
-float3 specular_brdf(const in float3 ior_n, const in float3 ior_k, const in float LoH, const in float NoH, const in float VoH, const in float rough)
+float specular_brdf(const in float eta, const in float LoH, const in float NoH, const in float VoH, const in float rough)
 {
     // Fresnel
-    const float3 F = F_complex(ior_n, ior_k, VoH);
+    const float F = F_full(eta, VoH);
 
     // Distribution
     const float D = D_ggx(NoH, rough);
@@ -113,11 +96,10 @@ float3 specular_brdf(const in float3 ior_n, const in float3 ior_k, const in floa
 	return D * F * G;
 }
 
-float3 specular_brdf_wet(const in float3 f0, const in float LoH, const in float NoH, const in float VoH, const in float rough)
+float3 specular_brdf_conductor(const in float ior_n1, const in float3 ior_n2, const in float3 ior_k, const in float LoH, const in float NoH, const in float VoH, const in float rough)
 {
     // Fresnel
-    //const float3 F = F_complex(ior_n, ior_k, VoH);
-	const float3 F = F_schlick(f0, 1.0, VoH);
+    const float3 F = F_conductor(VoH, ior_n1, ior_n2, ior_k);
 
     // Distribution
     const float D = D_ggx(NoH, rough);
@@ -128,7 +110,22 @@ float3 specular_brdf_wet(const in float3 f0, const in float LoH, const in float 
 	return D * F * G;
 }
 
-float3 clearcoat_brdf(const in float3 Fd, const in float3 Fr, const in float LoH, const in float NoH, const in float rough, const in float wetness)
+//float3 specular_brdf_wet(const in float3 f0, const in float LoH, const in float NoH, const in float VoH, const in float rough)
+//{
+//    // Fresnel
+//    //const float3 F = F_complex(ior_n, ior_k, VoH);
+//	const float3 F = F_schlick(f0, 1.0, VoH);
+//
+//    // Distribution
+//    const float D = D_ggx(NoH, rough);
+//
+//    // Geometric Visibility
+//    const float G = G_Shlick_Smith_Hable(LoH, rough);
+//
+//	return D * F * G;
+//}
+
+float3 specular_brdf_clearcoat(const in float eta, const in float3 Fd, const in float3 Fr, const in float LoH, const in float NoH, const in float VoH, const in float rough, const in float wetness)
 {
 	//return Fd + Fr;
 
@@ -138,7 +135,8 @@ float3 clearcoat_brdf(const in float3 Fd, const in float3 Fr, const in float LoH
 	const float G = V_kelemen(LoH);
 
 	//const float f90 = 0.5f + 2.0f * rough * LoH * LoH;
-	const float F = F_schlick(F0_WATER, 1.0f, LoH) * wetness;
+	//const float F = F_schlick(F0_WATER, 1.0f, LoH) * wetness;
+	const float F = F_full(eta, VoH) * wetness;
 
 	const float Frc = D * G * F;
 
@@ -146,11 +144,11 @@ float3 clearcoat_brdf(const in float3 Fd, const in float3 Fr, const in float LoH
 	return (Fd + Fr * invFc) * invFc + Frc;
 }
 
-float3 Diffuse_Burley(const in float NoL, const in float NoV, const in float LoH, const in float rough)
+float Diffuse_Burley(const in float NoL, const in float NoV, const in float LoH, const in float rough)
 {
 	const float f90 = 0.5f + 2.0f * rough * LoH * LoH;
-	const float3 light_scatter = F_schlick(1.0f, f90, NoL);
-	const float3 view_scatter = F_schlick(1.0f, f90, NoV);
+	const float light_scatter = F_schlick(1.0f, f90, NoL);
+	const float view_scatter = F_schlick(1.0f, f90, NoV);
 	return light_scatter * view_scatter * rcp(PI);
 }
 
@@ -164,28 +162,24 @@ float IBL_SpecularOcclusion(float NoV, float ao, float rough)
     return saturate(x1 - 1.0f + ao);
 }
 
-float3 IBL_Ambient(const in float3 F, const in float3 n, const in float occlusion)
+float3 IBL_ambient(const in float3 F, const in float3 reflect)
 {
-    float3 indirect_diffuse;
-    if (bHasCubeMap) {
-    	indirect_diffuse = tex_irradiance.SampleLevel(sampler_irradiance, n, 0);
-    }
-	else {
-		indirect_diffuse = srgb_to_linear(vLightAmbient.rgb);
-	}
-		
-    return indirect_diffuse * (1.0f - F) * occlusion * rcp(PI);
+    float3 irradiance = bHasCubeMap
+		? tex_irradiance.SampleLevel(sampler_irradiance, reflect, 0)
+		: srgb_to_linear(vLightAmbient.rgb);
+
+    return irradiance * (1.0f - F); // * rcp(PI);
 }
 
-float3 IBL_Specular(const in float3 f0, const in float NoV, const in float3 r, const in float occlusion, const in float roughL)
+float3 IBL_specular(const in float3 F, const in float NoV, const in float3 r, const in float occlusion, const in float roughL)
 {
 	//return 0.0;
 
-	const float roughP = sqrt(roughL);
 	const float3 specular_occlusion = IBL_SpecularOcclusion(NoV, occlusion, roughL);
 
     float3 indirect_specular;
     if (bHasCubeMap) {
+		const float roughP = sqrt(roughL);
 		const float mip = roughP * NumEnvironmentMapMipLevels;
 	    indirect_specular = tex_environment.SampleLevel(sampler_environment, r, mip);
     }
@@ -194,7 +188,6 @@ float3 IBL_Specular(const in float3 f0, const in float NoV, const in float3 r, c
 	}
 	
 	const float2 lut_tex = float2(NoV, roughL);
-	const float3 F = F_schlick_roughness(f0, NoV, roughL);
 	const float2 env_brdf  = tex_brdf_lut.SampleLevel(sampler_brdf_lut, lut_tex, 0);
 	return indirect_specular * (F * env_brdf.x + env_brdf.y) * specular_occlusion;
 }

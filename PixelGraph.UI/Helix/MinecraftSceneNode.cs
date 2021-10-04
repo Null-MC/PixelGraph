@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.SharpDX.Core.Render;
 using SharpDX;
+using System.Collections.Generic;
 
 namespace PixelGraph.UI.Helix
 {
@@ -56,6 +56,11 @@ namespace PixelGraph.UI.Helix
             set => ((MinecraftSceneCore) RenderCore).EnableSlopeNormals = value;
         }
 
+        public bool EnablePuddles {
+            get => ((MinecraftSceneCore) RenderCore).EnablePuddles;
+            set => ((MinecraftSceneCore) RenderCore).EnablePuddles = value;
+        }
+
 
         public void Apply(DeviceContextProxy deviceContext)
         {
@@ -87,6 +92,7 @@ namespace PixelGraph.UI.Helix
             sceneCore.ParallaxSamplesMax = ParallaxSamplesMax;
             sceneCore.EnableLinearSampling = EnableLinearSampling;
             sceneCore.EnableSlopeNormals = EnableSlopeNormals;
+            sceneCore.EnablePuddles = EnablePuddles;
         }
 
         protected override bool CanHitTest(HitTestContext context) => false;

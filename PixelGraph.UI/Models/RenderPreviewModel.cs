@@ -30,6 +30,7 @@ namespace PixelGraph.UI.Models
         private int _parallaxSamplesMax;
         private bool _enableLinearSampling;
         private bool _enableSlopeNormals;
+        private bool _enablePuddles;
         private Camera _sunCamera;
         private Vector3 _sunDirection;
         private float _sunStrength;
@@ -90,6 +91,14 @@ namespace PixelGraph.UI.Models
             get => _enableSlopeNormals;
             set {
                 _enableSlopeNormals = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool EnablePuddles {
+            get => _enablePuddles;
+            set {
+                _enablePuddles = value;
                 OnPropertyChanged();
             }
         }

@@ -4,12 +4,18 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Helix.Shaders;
 using PixelGraph.UI.ViewModels;
 using System;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using HelixToolkit.SharpDX.Core.Utilities;
+using HelixToolkit.Wpf.SharpDX;
+using SharpDX;
+using SharpDX.Direct3D11;
 
 namespace PixelGraph.UI.Controls
 {
@@ -89,6 +95,11 @@ namespace PixelGraph.UI.Controls
                     ShowWindowError($"Failed to initialize 3D preview! {error.UnfoldMessageString()}");
                 }
             });
+        }
+
+        public BitmapSource TakeScreenshot()
+        {
+            return viewport3D.RenderBitmap();
         }
 
         private void ThrowShaderCompileErrors(ShaderCompileError[] errors)

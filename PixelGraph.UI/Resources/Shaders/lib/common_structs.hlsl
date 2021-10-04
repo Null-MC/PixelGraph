@@ -125,11 +125,12 @@ cbuffer cbMesh : register(b1)
 
 cbuffer cbMinecraftScene : register(b2)
 {
+	bool EnableLinearSampling = false;
 	float3 SunDirection;
 	float SunStrength;
     float TimeOfDay;
     float Wetness;
-	bool EnableLinearSampling = false;
+    bool EnablePuddles = false;
     float ParallaxDepth;
     int ParallaxSamplesMin;
     int ParallaxSamplesMax;

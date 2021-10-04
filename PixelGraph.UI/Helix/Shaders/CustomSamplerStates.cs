@@ -38,7 +38,7 @@ namespace PixelGraph.UI.Helix.Shaders
             };
 
             Height_Point = new SamplerStateDescription {
-                Filter = Filter.MinMagMipPoint,
+                Filter = Filter.MinMagPointMipLinear,
                 AddressU = TextureAddressMode.Wrap,
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Clamp,

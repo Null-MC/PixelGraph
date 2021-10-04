@@ -54,7 +54,7 @@
                 </DockPanel>
             </StackPanel>
         </Border>
-        <hx:Viewport3DX
+        <hx:Viewport3DX x:Name="viewport3D"
             BackgroundColor="#222"
             Camera="{Binding Camera}"
             CoordinateSystemLabelForeground="White"
@@ -91,7 +91,8 @@
                 ParallaxSamplesMin="{Binding ParallaxSamplesMin, Mode=OneWay}"
                 ParallaxSamplesMax="{Binding ParallaxSamplesMax, Mode=OneWay}"
                 EnableLinearSampling="{Binding EnableLinearSampling, Mode=OneWay}"
-                EnableSlopeNormals="{Binding EnableSlopeNormals, Mode=OneWay}"/>
+                EnableSlopeNormals="{Binding EnableSlopeNormals, Mode=OneWay}"
+                EnablePuddles="{Binding EnablePuddles, Mode=OneWay}"/>
             <hx:ShadowMap3D Resolution="1024,1024"
                             LightCamera="{Binding SunCamera, Mode=OneWay}"/>
             <models1:EnvironmentCube3D x:Name="EnvironmentCubeMapSource" FaceSize="128"
@@ -105,9 +106,9 @@
             <hx:DirectionalLight3D Color="{Binding SunLightColor, Mode=OneWay}"
                                    Direction="{Binding SunLightDirection, Mode=OneWay}"
                                    IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
-            <hx:PointLight3D Color="#C39667" Range="32" Position="10,14,10"
+            <hx:PointLight3D Color="#C39667" Range="20" Position="10,14,10"
                              IsRendering="{Binding EnableLights, Mode=OneWay}"/>
-            <hx:PointLight3D Color="#83D0F2" Range="32" Position="-12,-12,-12"
+            <hx:PointLight3D Color="#83D0F2" Range="20" Position="-12,-12,-12"
                              IsRendering="{Binding EnableLights, Mode=OneWay}"/>
             <models1:SkyDome3D IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
             <!--<hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />-->

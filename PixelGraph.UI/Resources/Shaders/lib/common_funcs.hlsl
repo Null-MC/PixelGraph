@@ -64,9 +64,9 @@ float3 ior_to_f0_complex(const in float3 ior_n, const in float3 ior_k) {
 	return (pow2(ior_n - 1.0) + k2) / (pow2(ior_n + 1.0) + k2);
 }
 
-float3 ior_to_f0_complex(const in float3 ior_n_in, const in float3 ior_n_out, const in float3 ior_k) {
+float3 ior_to_f0_complex(const in float3 ior_n_out, const in float3 ior_n_in, const in float3 ior_k) {
 	const float3 k2 = ior_k * ior_k;
-	return (pow2(ior_n_out - ior_n_in) + k2) / (pow2(ior_n_out + ior_n_in) + k2);
+	return (pow2(ior_n_in - ior_n_out) + k2) / (pow2(ior_n_in + ior_n_out) + k2);
 }
 
 float lengthSq(const in float3 vec)

@@ -27,6 +27,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
@@ -805,15 +806,46 @@ namespace PixelGraph.UI.Windows
 #if !NORENDER
         private void OnWindowPreviewKeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key != Key.R) return;
+            if (e.Key == Key.R) {
+                var leftCtrl = e.KeyboardDevice.IsKeyDown(Key.LeftCtrl);
+                var rightCtrl = e.KeyboardDevice.IsKeyDown(Key.RightCtrl);
 
-            var leftCtrl = e.KeyboardDevice.IsKeyDown(Key.LeftCtrl);
-            var rightCtrl = e.KeyboardDevice.IsKeyDown(Key.RightCtrl);
+                if (leftCtrl || rightCtrl) {
+                    renderPreview.ViewModel.ReloadShaders();
+                    renderPreview.ViewModel.UpdateShaders();
+                    e.Handled = true;
+                }
+            }
 
-            if (leftCtrl || rightCtrl) {
-                renderPreview.ViewModel.ReloadShaders();
-                renderPreview.ViewModel.UpdateShaders();
-                e.Handled = true;
+            if (Model.IsViewModeRender) {
+                if (e.Key == Key.PrintScreen) {
+                    var screenshot = renderPreview.TakeScreenshot();
+                    e.Handled = true;
+
+                    Clipboard.SetImage(screenshot);
+                    // TODO: show "copied to clipboard" toast
+                }
+
+                if (e.Key == Key.F2) {
+                    var screenshot = renderPreview.TakeScreenshot();
+                    e.Handled = true;
+
+                    var saveFileDialog = new VistaSaveFileDialog {
+                        Title = "Save ScreenShot",
+                        Filter = "Bitmap File|*.bmp|PNG File|*.png",
+                        FileName = $"{DateTime.Now:yyyyMMdd-HHmmss}.png",
+                        OverwritePrompt = true,
+                        AddExtension = true,
+                    };
+
+                    var result = saveFileDialog.ShowDialog();
+                    if (result != true) return;
+
+                    using var fileStream = new FileStream(saveFileDialog.FileName, FileMode.Create);
+                    var encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(screenshot));
+                    encoder.Save(fileStream);
+                }
             }
         }
 #endif

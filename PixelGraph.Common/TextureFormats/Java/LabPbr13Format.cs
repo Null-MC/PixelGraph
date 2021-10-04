@@ -158,6 +158,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                     Perceptual = false,
                     ClipValue = 229m,
+                    Priority = 1,
                 },
 
                 Porosity = new ResourcePackPorosityChannelProperties {
