@@ -1,4 +1,4 @@
-﻿using MinecraftMappings.Internal;
+﻿using MinecraftMappings.Internal.Entities;
 using MinecraftMappings.Minecraft.Java;
 using PixelGraph.UI.Internal;
 using System;

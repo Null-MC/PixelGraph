@@ -10,6 +10,7 @@
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
              xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
              xmlns:models1="clr-namespace:PixelGraph.UI.Helix.Models"
+             xmlns:controls1="clr-namespace:PixelGraph.UI.Helix.Controls"
              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" d:DataContext="{x:Null}"
              Unloaded="OnControlUnloaded">
     <UserControl.Resources>
@@ -19,7 +20,7 @@
     </UserControl.Resources>
     <DockPanel>
         <DockPanel.DataContext>
-            <models:RenderPreviewModel x:Name="Model"/>
+            <models:RenderPreviewModel x:Name="Model" ModelChanged="OnModelModelChanged"/>
         </DockPanel.DataContext>
         <Border DockPanel.Dock="Top"
                 Background="{DynamicResource MahApps.Brushes.Accent4}">
@@ -64,7 +65,7 @@
             EnableRenderFrustum="False"
             IsShadowMappingEnabled="True"
             ModelUpDirection="0,1,0"
-            MSAA="Two"
+            MSAA="Disable"
             ShowCoordinateSystem="False"
             TextBrush="White"
             UseDefaultGestures="False"
@@ -106,14 +107,14 @@
             <hx:DirectionalLight3D Color="{Binding SunLightColor, Mode=OneWay}"
                                    Direction="{Binding SunLightDirection, Mode=OneWay}"
                                    IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
-            <hx:PointLight3D Color="#C39667" Range="20" Position="10,14,10"
+            <hx:PointLight3D Color="#C39667" Range="20" Position="10,14,8"
                              IsRendering="{Binding EnableLights, Mode=OneWay}"/>
-            <hx:PointLight3D Color="#83D0F2" Range="20" Position="-12,-12,-12"
+            <hx:PointLight3D Color="#83D0F2" Range="20" Position="-12,-12,-10"
                              IsRendering="{Binding EnableLights, Mode=OneWay}"/>
             <models1:SkyDome3D IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
             <!--<hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />-->
-            <models1:BlockMeshGeometryModel3D CullMode="Back" IsThrowingShadow="True"
-                                    Geometry="{Binding CubeModel, Mode=OneWay}"
+            <controls1:BlockMeshGeometryModel3D CullMode="Back" IsThrowingShadow="True"
+                                    Geometry="{Binding BlockMesh, Mode=OneWay}"
                                     Material="{Binding ModelMaterial, Mode=OneWay}"/>
             <!--<pm:DebugSkyBox3D CubeMapSource="{Binding Mode=OneWay, Source={x:Reference IrradianceCube}}"/>-->
             <!--<hx:UICompositeManipulator3D Diameter="6"

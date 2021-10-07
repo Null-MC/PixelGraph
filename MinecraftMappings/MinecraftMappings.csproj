@@ -11,7 +11,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Internal\Models\JavaModelVersion.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Minecraft\Bedrock\Entities\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
   </ItemGroup>
 
 </Project>

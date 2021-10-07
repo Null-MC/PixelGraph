@@ -210,7 +210,7 @@ float SSS_Thickness(float3 sp)
 	sp.y = mad(-0.5f, sp.y, 0.5f);
 	//sp.z -= vShadowMapInfo.z;
 
-	const float d = tex_shadow.SampleLevel(sampler_sss, sp.xy, 0);
+	const float d = tex_shadow.SampleLevel(sampler_light, sp.xy, 0);
 	return saturate(sp.z - d + SSS_MinThickness);
 }
 

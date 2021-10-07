@@ -295,6 +295,7 @@ namespace PixelGraph.UI.ViewModels
 
                             context.UpdateMaterial(Model, RenderModel);
                             RenderModel.ModelMaterial = context.ModelMaterial;
+                            RenderModel.SetModel(materialTab.Material.ModelType, materialTab.Material.ModelFile);
                             TextureModel.Texture = null;
                         });
                     }

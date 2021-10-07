@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Preview.Textures;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
@@ -9,9 +10,9 @@ using Serilog;
 using System;
 using System.Windows;
 using System.Windows.Threading;
-using PixelGraph.UI.Internal.Preview.Textures;
 
 #if !NORENDER
+using PixelGraph.UI.Helix.Models;
 using PixelGraph.UI.Helix.Shaders;
 #endif
 
@@ -46,6 +47,8 @@ namespace PixelGraph.UI
             builder.Services.AddSingleton<IShaderByteCodeManager, CustomShaderManager>();
             builder.Services.AddTransient<IRenderDiffusePreviewBuilder, RenderDiffusePreviewBuilder>();
             builder.Services.AddTransient<IRenderPbrPreviewBuilder, RenderPbrPreviewBuilder>();
+            builder.Services.AddTransient<IModelBuilder, ModelBuilder>();
+            builder.Services.AddTransient<IBlockModelParser, BlockModelParser>();
 #endif
         }
 

@@ -1,4 +1,5 @@
 ﻿using MinecraftMappings.Internal;
+using MinecraftMappings.Internal.Blocks;
 
 namespace MinecraftMappings.Minecraft.Bedrock.Blocks
 {

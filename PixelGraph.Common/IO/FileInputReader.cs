@@ -55,6 +55,11 @@ namespace PixelGraph.Common.IO
             return Path.GetFullPath(fullFile);
         }
 
+        public override string GetRelativePath(string fullPath)
+        {
+            return PathEx.TryGetRelative(root, fullPath, out var localPath) ? localPath : fullPath;
+        }
+
         public override DateTime? GetWriteTime(string localFile)
         {
             var fullFile = PathEx.Join(root, localFile);

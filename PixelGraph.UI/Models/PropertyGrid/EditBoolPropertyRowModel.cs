@@ -2,7 +2,9 @@
 {
     public interface IBoolPropertyRow : IPropertyRow {}
 
-    public interface IEditBoolPropertyRow<in TProperty> : IBoolPropertyRow, IEditPropertyRow<TProperty> {}
+    public interface IEditBoolPropertyRow : IBoolPropertyRow, IEditPropertyRow {}
+
+    public interface IEditBoolPropertyRow<in TProperty> : IEditBoolPropertyRow, IEditPropertyRow<TProperty> {}
 
     public class EditBoolPropertyRowModel<TProperty, TValue> : EditPropertyRowModelBase<TProperty, TValue>, IEditBoolPropertyRow<TProperty>
     {

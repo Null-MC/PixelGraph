@@ -1,4 +1,4 @@
-﻿namespace MinecraftMappings.Internal
+﻿namespace MinecraftMappings.Internal.Blocks
 {
     public abstract class BedrockBlockData : BlockData<BedrockBlockDataVersion>
     {

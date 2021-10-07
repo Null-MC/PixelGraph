@@ -238,5 +238,12 @@ namespace PixelGraph.Common.Extensions
         //{
         //    value = 1d - Math.Sqrt(1d - value);
         //}
+
+        //public static void CrossProduct(in Vector3 vector1, in Vector3 vector2, out Vector3 result)
+        //{
+        //    result.X = vector1.Y * vector2.Z - vector1.Z * vector2.Y;
+        //    result.Y = vector1.Z * vector2.X - vector1.X * vector2.Z;
+        //    result.Z = vector1.X * vector2.Y - vector1.Y * vector2.X;
+        //}
     }
 }

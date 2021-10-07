@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:convert="clr-namespace:PixelGraph.UI.Converters"
              xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
              xmlns:propertyGrid="clr-namespace:PixelGraph.UI.Models.PropertyGrid"
@@ -15,14 +16,25 @@
         <controls:PropertyGridCellTemplateSelector x:Key="DisplayCellTemplateSelector">
             <controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:ITextPropertyRow}">
-                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Text="{Binding EditValue, Mode=OneWay}"/>
+                    <TextBlock VerticalAlignment="Center"
+                               Text="{Binding ActualValue, Mode=OneWay}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource MahApps.Styles.TextBlock}">
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFileSelect, Mode=OneWay}">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:IBoolPropertyRow}">
                     <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="False"
-                              IsChecked="{Binding EditValue, Mode=OneWay}"/>
+                              IsChecked="{Binding ActualValue, Mode=OneWay}"/>
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
@@ -37,42 +49,55 @@
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.SeparatorTemplate>
         </controls:PropertyGridCellTemplateSelector>
-        <controls:PropertyGridCellTemplateSelector x:Key="EditCellTemplateSelector">
-            <controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
-                <DataTemplate DataType="{x:Type propertyGrid:ITextPropertyRow}">
-                    <TextBox HorizontalContentAlignment="Center" Margin="0" Padding="6,0" VerticalContentAlignment="Center" IsTabStop="False"
-                             BorderThickness="0" BorderBrush="{x:Null}" Background="Transparent"
-                             Text="{Binding EditValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+        <controls:PropertyGridEditCellTemplateSelector x:Key="EditCellTemplateSelector">
+            <controls:PropertyGridEditCellTemplateSelector.TextBoxTemplate>
+                <DataTemplate DataType="{x:Type propertyGrid:IEditTextPropertyRow}">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Margin="6,0" Click="OnSelectFileClick"
+                                Style="{StaticResource MahApps.Styles.Button.Chromeless}"
+                                Visibility="{Binding IsFileSelect, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <iconPacks:PackIconFontAwesome Kind="FileImportSolid"/>
+                        </Button>
+                        <TextBox HorizontalContentAlignment="Center" Margin="0" Padding="6,0" VerticalContentAlignment="Center" IsTabStop="False"
+                                 BorderThickness="0" BorderBrush="{x:Null}" Background="Transparent"
+                                 Text="{Binding EditValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                    </DockPanel>
                 </DataTemplate>
-            </controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
-            <controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
-                <DataTemplate DataType="{x:Type propertyGrid:IBoolPropertyRow}">
+            </controls:PropertyGridEditCellTemplateSelector.TextBoxTemplate>
+            <controls:PropertyGridEditCellTemplateSelector.CheckBoxTemplate>
+                <DataTemplate DataType="{x:Type propertyGrid:IEditBoolPropertyRow}">
                     <CheckBox HorizontalAlignment="Center" Margin="0" Padding="6,0" VerticalAlignment="Center" IsTabStop="False"
                               IsChecked="{Binding EditValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableConverter}}"/>
                 </DataTemplate>
-            </controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
-            <controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
-                <DataTemplate DataType="{x:Type propertyGrid:ISelectPropertyRow}">
+            </controls:PropertyGridEditCellTemplateSelector.CheckBoxTemplate>
+            <controls:PropertyGridEditCellTemplateSelector.ComboBoxTemplate>
+                <DataTemplate DataType="{x:Type propertyGrid:IEditSelectPropertyRow}">
                     <ComboBox HorizontalContentAlignment="Center" Margin="0" Padding="6,0" IsTabStop="False"
                               BorderThickness="0" BorderBrush="{x:Null}" Background="Transparent"
                               DisplayMemberPath="{Binding Options.DisplayMemberPath, Mode=OneWay}"
                               SelectedValuePath="{Binding Options.SelectedValuePath, Mode=OneWay}"
                               ItemsSource="{Binding Options.Items, Mode=OneWay}"
-                              SelectedValue="{Binding EditValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                              SelectedValue="{Binding EditValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource MahApps.Styles.ComboBoxItem}">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                    </ComboBox>
                 </DataTemplate>
-            </controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
-            <controls:PropertyGridCellTemplateSelector.SeparatorTemplate>
+            </controls:PropertyGridEditCellTemplateSelector.ComboBoxTemplate>
+            <controls:PropertyGridEditCellTemplateSelector.SeparatorTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:ISeparatorPropertyRow}">
                     <Rectangle Height="3" Fill="Black"/>
                 </DataTemplate>
-            </controls:PropertyGridCellTemplateSelector.SeparatorTemplate>
-        </controls:PropertyGridCellTemplateSelector>
+            </controls:PropertyGridEditCellTemplateSelector.SeparatorTemplate>
+        </controls:PropertyGridEditCellTemplateSelector>
     </DataGrid.Resources>
     <DataGrid.Columns>
-        <DataGridTextColumn Width="1*" IsReadOnly="True"
+        <DataGridTextColumn Width="Auto" IsReadOnly="True"
                             Foreground="{DynamicResource MahApps.Brushes.Gray4}"
                             Binding="{Binding Name, Mode=OneTime}"/>
-        <DataGridTemplateColumn Width="1*"
+        <DataGridTemplateColumn Width="*"
                                 CellTemplateSelector="{StaticResource DisplayCellTemplateSelector}"
                                 CellEditingTemplateSelector="{StaticResource EditCellTemplateSelector}">
             <DataGridTemplateColumn.CellStyle>

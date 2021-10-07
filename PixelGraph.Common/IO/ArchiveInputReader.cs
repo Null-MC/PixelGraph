@@ -48,7 +48,13 @@ namespace PixelGraph.Common.IO
 
         public override string GetFullPath(string localFile)
         {
+            // ERROR: This looks very fucking wrong but I don't want to break things rn
             return Path.GetFullPath(localFile);
+        }
+
+        public override string GetRelativePath(string fullPath)
+        {
+            throw new NotImplementedException();
         }
 
         public override Stream Open(string localFile)

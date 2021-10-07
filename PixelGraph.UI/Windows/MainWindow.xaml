@@ -348,8 +348,9 @@
                                 </DockPanel>
                             </Border>
                             <Grid>
-                                <controls:MaterialPropertiesControl DataChanged="OnMaterialChanged"
+                                <controls:MaterialPropertiesControl DataChanged="OnMaterialChanged" ModelChanged="OnMaterialPropertiesModelChanged"
                                                                     GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
+                                                                    ProjectRootPath="{Binding RootDirectory, Mode=OneWay}"
                                                                     Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                     SelectedTag="{Binding SelectedTag, Mode=OneWay}"
                                                                     Visibility="{Binding IsEditModeMaterial, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>

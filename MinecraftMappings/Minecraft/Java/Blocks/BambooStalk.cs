@@ -1,4 +1,5 @@
 ﻿using MinecraftMappings.Internal;
+using MinecraftMappings.Internal.Blocks;
 using BedrockBlocks = MinecraftMappings.Minecraft.Bedrock.Blocks;
 
 namespace MinecraftMappings.Minecraft.Java.Blocks

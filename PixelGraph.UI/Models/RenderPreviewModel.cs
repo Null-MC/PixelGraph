@@ -1,12 +1,13 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Extensions;
+using PixelGraph.UI.Helix.CubeMaps;
+using PixelGraph.UI.Helix.Models;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview;
 using SharpDX;
 using System;
 using System.IO;
-using PixelGraph.UI.Helix.CubeMaps;
 using Media = System.Windows.Media;
 
 namespace PixelGraph.UI.Models
@@ -17,11 +18,13 @@ namespace PixelGraph.UI.Models
         private ICubeMapSource _environmentCube;
         private ICubeMapSource _irradianceCube;
         private Material _modelMaterial;
-        private MeshGeometry3D _cubeModel;
+        private BlockMeshGeometry3D _blockMesh;
         private PerspectiveCamera _camera;
         //private ImageSource _layerImage;
         private Stream _brdfLutMap;
         //private string _selectedTag;
+        private string _modelType;
+        private string _modelFile;
         private bool _enableEnvironment;
         private bool _enableLights;
         private RenderPreviewModes _renderMode;
@@ -42,6 +45,7 @@ namespace PixelGraph.UI.Models
         public event EventHandler RenderModeChanged;
         public event EventHandler RenderSceneChanged;
         //public event EventHandler SelectedTagChanged;
+        public event EventHandler ModelChanged;
 
         //public bool HasSelectedTag => _selectedTag != null;
         public Media.Media3D.Vector3D SunLightDirection => -_sunDirection.ToVector3D();
@@ -232,10 +236,10 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public MeshGeometry3D CubeModel {
-            get => _cubeModel;
+        public BlockMeshGeometry3D BlockMesh {
+            get => _blockMesh;
             set {
-                _cubeModel = value;
+                _blockMesh = value;
                 OnPropertyChanged();
             }
         }
@@ -248,11 +252,40 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public string ModelType {
+            get => _modelType;
+            set {
+                _modelType = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string ModelFile {
+            get => _modelFile;
+            set {
+                _modelFile = value;
+                OnPropertyChanged();
+            }
+        }
+
 
         public RenderPreviewModel()
         {
             _enableEnvironment = true;
             _timeOfDay = 6_000;
+        }
+
+        public void SetModel(string type, string localFile)
+        {
+            ModelType = type;
+            ModelFile = localFile;
+            OnModelChanged();
+            // TODO: Notify RenderViewModel somehow
+        }
+
+        protected virtual void OnModelChanged()
+        {
+            ModelChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private float GetLinearTimeOfDay()

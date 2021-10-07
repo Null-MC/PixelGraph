@@ -1,4 +1,4 @@
-﻿namespace MinecraftMappings.Internal
+﻿namespace MinecraftMappings.Internal.Items
 {
     public abstract class BedrockItemData : ItemData<BedrockItemDataVersion>
     {

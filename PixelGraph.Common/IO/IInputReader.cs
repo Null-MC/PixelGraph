@@ -16,6 +16,7 @@ namespace PixelGraph.Common.IO
         IEnumerable<string> EnumerateAllTextures(MaterialProperties material);
         bool FileExists(string localFile);
         string GetFullPath(string localFile);
+        string GetRelativePath(string fullPath);
         Stream Open(string localFile);
         DateTime? GetWriteTime(string localFile);
     }

@@ -1,6 +1,9 @@
-﻿using PixelGraph.UI.Internal;
+﻿using Ookii.Dialogs.Wpf;
+using PixelGraph.Common.Extensions;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.PropertyGrid;
 using System;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,6 +16,11 @@ namespace PixelGraph.UI.Controls
         private bool isEditing;
 
         public event EventHandler<PropertyGridChangedEventArgs> PropertyChanged;
+
+        public string ProjectRootPath {
+            get => (string)GetValue(ProjectRootPathProperty);
+            set => SetValue(ProjectRootPathProperty, value);
+        }
 
 
         public PropertyGridControl()
@@ -79,6 +87,63 @@ namespace PixelGraph.UI.Controls
 
             PropertyChanged?.Invoke(this, e);
         }
+
+        private string GetSourcePath(IEditPropertyRow editRow)
+        {
+            if (editRow.EditValue is string sourceValue) {
+                if (File.Exists(sourceValue)) return sourceValue;
+
+                var fullPath = PathEx.Join(ProjectRootPath, sourceValue);
+                fullPath = Path.GetFullPath(fullPath);
+
+                if (File.Exists(fullPath)) return fullPath;
+            }
+
+            // WARN: Add DefaultDirectory option instead since the control isn't type specific
+            //var modelsPath = PathEx.Join(ProjectRootPath, "assets/minecraft/models");
+
+            //if (Directory.Exists(modelsPath))
+            //    return modelsPath;
+
+            return null;
+        }
+
+        private void OnSelectFileClick(object sender, RoutedEventArgs e)
+        {
+            var button = sender as UIElement;
+            var row = button?.FindParent<DataGridRow>();
+            if (row?.DataContext is not IEditTextPropertyRow editRow) return;
+
+            if (string.IsNullOrEmpty(ProjectRootPath)) {
+                // TODO: log and alert
+                return;
+            }
+
+            var dialog = new VistaOpenFileDialog {
+                Title = "Select Model File",
+                Filter = "JSON File|*.json|All Files|*.*",
+                CheckFileExists = true,
+            };
+
+            var sourcePath = GetSourcePath(editRow);
+            if (sourcePath != null) {
+                dialog.InitialDirectory = Path.GetDirectoryName(sourcePath);
+                dialog.FileName = sourcePath;
+            }
+
+            var window = Window.GetWindow(this);
+            if (dialog.ShowDialog(window) != true) return;
+
+            if (PathEx.TryGetRelative(ProjectRootPath, dialog.FileName, out var localPath)) {
+                editRow.EditValue = localPath;
+            }
+            else {
+                if (window != null) MessageBox.Show(window, "The selected path must be within the project root!", "Warning!", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        public static readonly DependencyProperty ProjectRootPathProperty = DependencyProperty
+            .Register(nameof(ProjectRootPath), typeof(string), typeof(PropertyGridControl));
     }
 
     public class PropertyGridCellTemplateSelector : DataTemplateSelector
@@ -95,6 +160,26 @@ namespace PixelGraph.UI.Controls
                 ITextPropertyRow => TextBoxTemplate,
                 IBoolPropertyRow => CheckBoxTemplate,
                 ISelectPropertyRow => ComboBoxTemplate,
+                ISeparatorPropertyRow => SeparatorTemplate,
+                _ => base.SelectTemplate(item, container)
+            };
+        }
+    }
+
+    public class PropertyGridEditCellTemplateSelector : DataTemplateSelector
+    {
+        public DataTemplate TextBoxTemplate {get; set;}
+        public DataTemplate CheckBoxTemplate {get; set;}
+        public DataTemplate ComboBoxTemplate {get; set;}
+        public DataTemplate SeparatorTemplate {get; set;}
+
+
+        public override DataTemplate SelectTemplate(object item, DependencyObject container)
+        {
+            return item switch {
+                IEditTextPropertyRow => TextBoxTemplate,
+                IEditBoolPropertyRow => CheckBoxTemplate,
+                IEditSelectPropertyRow => ComboBoxTemplate,
                 ISeparatorPropertyRow => SeparatorTemplate,
                 _ => base.SelectTemplate(item, container)
             };

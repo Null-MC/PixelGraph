@@ -10,6 +10,7 @@ namespace PixelGraph.UI.Helix.Shaders
         public static readonly SamplerStateDescription Height_Point;
         public static readonly SamplerStateDescription Height_Linear;
         public static readonly SamplerStateDescription Shadow;
+        public static readonly SamplerStateDescription Light;
         public static readonly SamplerStateDescription Environment;
         public static readonly SamplerStateDescription Irradiance;
         public static readonly SamplerStateDescription BrdfLut;
@@ -61,7 +62,16 @@ namespace PixelGraph.UI.Helix.Shaders
                 AddressU = TextureAddressMode.Border,
                 AddressV = TextureAddressMode.Border,
                 AddressW = TextureAddressMode.Border,
-                Filter = Filter.MinMagLinearMipPoint,
+                Filter = Filter.ComparisonMinMagMipPoint,
+                ComparisonFunction = Comparison.Less,
+                BorderColor = new RawColor4(1, 1, 1, 0),
+            };
+
+            Light = new SamplerStateDescription {
+                AddressU = TextureAddressMode.Border,
+                AddressV = TextureAddressMode.Border,
+                AddressW = TextureAddressMode.Border,
+                Filter = Filter.MinMagMipPoint,
                 ComparisonFunction = Comparison.Never,
                 BorderColor = new RawColor4(1, 1, 1, 0),
             };

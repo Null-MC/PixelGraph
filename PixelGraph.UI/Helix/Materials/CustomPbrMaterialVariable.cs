@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.SharpDX.Core.ShaderManager;
@@ -7,6 +6,7 @@ using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.SharpDX.Core.Utilities;
 using PixelGraph.UI.Helix.Shaders;
 using SharpDX.Direct3D11;
+using System.Runtime.CompilerServices;
 using PixelShader = HelixToolkit.SharpDX.Core.Shaders.PixelShader;
 
 namespace PixelGraph.UI.Helix.Materials
@@ -14,7 +14,7 @@ namespace PixelGraph.UI.Helix.Materials
     internal class CustomPbrMaterialVariable : MaterialVariable
     {
         private const int NUMTEXTURES = 5;
-        private const int NUMSAMPLERS = 6;
+        private const int NUMSAMPLERS = 7;
 
         private const int
             AlbedoAlphaMapIdx = 0,
@@ -29,7 +29,8 @@ namespace PixelGraph.UI.Helix.Materials
             EnvironmentSamplerIdx = 2,
             IrradianceSamplerIdx = 3,
             BrdfLutSamplerIdx = 4,
-            ShadowSamplerIdx = 5;
+            ShadowSamplerIdx = 5,
+            LightSamplerIdx = 6;
 
         private readonly CustomPbrMaterialCore material;
 
@@ -40,7 +41,7 @@ namespace PixelGraph.UI.Helix.Materials
 
         private int texShadowSlot, texEnvironmentSlot, texIrradianceSlot, texBrdfLutSlot;
         private int texAlbedoAlphaSlot, texNormalHeightSlot, texRoughF0OcclusionSlot, texPorositySssEmissiveSlot;
-        private int samplerSurfaceSlot, samplerHeightSlot, samplerEnvironmentSlot, samplerIrradianceSlot, samplerBrdfLutSlot, samplerShadowSlot;
+        private int samplerSurfaceSlot, samplerHeightSlot, samplerEnvironmentSlot, samplerIrradianceSlot, samplerBrdfLutSlot, samplerShadowSlot, samplerLightSlot;
         private uint textureIndex;
 
         private int texShadowAlbedoAlphaSlot, texShadowNormalHeightSlot;
@@ -157,6 +158,7 @@ namespace PixelGraph.UI.Helix.Materials
             if (material.RenderShadowMap && context.IsShadowMapEnabled) {
                 shaderPass.PixelShader.BindTexture(deviceContext, texShadowSlot, context.SharedResource.ShadowView);
                 shaderPass.PixelShader.BindSampler(deviceContext, samplerShadowSlot, samplerResources[ShadowSamplerIdx]);
+                shaderPass.PixelShader.BindSampler(deviceContext, samplerLightSlot, samplerResources[LightSamplerIdx]);
             }
 
             return true;
@@ -231,6 +233,7 @@ namespace PixelGraph.UI.Helix.Materials
             samplerSurfaceSlot = pbrPassSamplerMap.TryGetBindSlot(CustomSamplerStateNames.SurfaceSampler);
             samplerHeightSlot = pbrPassSamplerMap.TryGetBindSlot(CustomSamplerStateNames.HeightSampler);
             samplerShadowSlot = pbrPassSamplerMap.TryGetBindSlot(CustomSamplerStateNames.ShadowMapSampler);
+            samplerLightSlot = pbrPassSamplerMap.TryGetBindSlot(CustomSamplerStateNames.LightMapSampler);
             samplerEnvironmentSlot = pbrPassSamplerMap.TryGetBindSlot(CustomSamplerStateNames.EnvironmentCubeSampler);
             samplerIrradianceSlot = pbrPassSamplerMap.TryGetBindSlot(CustomSamplerStateNames.IrradianceCubeSampler);
             samplerBrdfLutSlot = pbrPassSamplerMap.TryGetBindSlot(CustomSamplerStateNames.BrdfLutSampler);
@@ -285,6 +288,7 @@ namespace PixelGraph.UI.Helix.Materials
             var newSurfaceSampler = statePoolManager.Register(material.SurfaceMapSampler);
             var newHeightSampler = statePoolManager.Register(material.HeightMapSampler);
             var newShadowSampler = statePoolManager.Register(material.ShadowMapSampler);
+            var newLightSampler = statePoolManager.Register(material.LightMapSampler);
             var newSkySampler = statePoolManager.Register(material.EnvironmentMapSampler);
             var newIrradianceSampler = statePoolManager.Register(material.IrradianceMapSampler);
             var newBrdfLutSampler = statePoolManager.Register(material.BrdfLutMapSampler);
@@ -292,6 +296,7 @@ namespace PixelGraph.UI.Helix.Materials
             RemoveAndDispose(ref samplerResources[SurfaceSamplerIdx]);
             RemoveAndDispose(ref samplerResources[HeightSamplerIdx]);
             RemoveAndDispose(ref samplerResources[ShadowSamplerIdx]);
+            RemoveAndDispose(ref samplerResources[LightSamplerIdx]);
             RemoveAndDispose(ref samplerResources[EnvironmentSamplerIdx]);
             RemoveAndDispose(ref samplerResources[IrradianceSamplerIdx]);
             RemoveAndDispose(ref samplerResources[BrdfLutSamplerIdx]);
@@ -300,6 +305,7 @@ namespace PixelGraph.UI.Helix.Materials
                 samplerResources[SurfaceSamplerIdx] = Collect(newSurfaceSampler);
                 samplerResources[HeightSamplerIdx] = Collect(newHeightSampler);
                 samplerResources[ShadowSamplerIdx] = Collect(newShadowSampler);
+                samplerResources[LightSamplerIdx] = Collect(newLightSampler);
                 samplerResources[EnvironmentSamplerIdx] = Collect(newSkySampler);
                 samplerResources[IrradianceSamplerIdx] = Collect(newIrradianceSampler);
                 samplerResources[BrdfLutSamplerIdx] = Collect(newBrdfLutSampler);

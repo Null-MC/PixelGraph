@@ -1,4 +1,4 @@
-﻿namespace MinecraftMappings.Internal
+﻿namespace MinecraftMappings.Internal.Models
 {
     public class UVRegion
     {

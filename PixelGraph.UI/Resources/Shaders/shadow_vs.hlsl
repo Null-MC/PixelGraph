@@ -22,7 +22,8 @@ ps_shadow main(vs_input input)
 	float3 bin = mul(binormal, (float3x3) mWorld);
 	
 	const float3x3 mTBN = float3x3(tan, bin, output.nor);
-	output.poT = get_parallax_offset(mTBN, SunDirection);
+	//const float2 aspect = get_parallax_aspect(abs(input.tex_max - input.tex_min));
+	output.poT = get_parallax_offset(mTBN, SunDirection);// * aspect;
 	
     return output;
 }

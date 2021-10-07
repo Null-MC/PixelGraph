@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using HelixToolkit.Wpf.SharpDX;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Helix.Shaders;
 using PixelGraph.UI.ViewModels;
 using System;
-using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,10 +12,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using HelixToolkit.SharpDX.Core.Utilities;
-using HelixToolkit.Wpf.SharpDX;
-using SharpDX;
-using SharpDX.Direct3D11;
 
 namespace PixelGraph.UI.Controls
 {
@@ -52,7 +48,6 @@ namespace PixelGraph.UI.Controls
             logger = provider.GetRequiredService<ILogger<RenderPreviewControl>>();
 
             ViewModel = new RenderPreviewViewModel(provider) {
-                Dispatcher = Dispatcher,
                 Model = Model,
             };
 
@@ -95,6 +90,20 @@ namespace PixelGraph.UI.Controls
                     ShowWindowError($"Failed to initialize 3D preview! {error.UnfoldMessageString()}");
                 }
             });
+        }
+
+        public void UpdateModel()
+        {
+            try {
+                ViewModel.UpdateModel();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to load model!");
+                // TODO: show warning message!
+
+                var window = Window.GetWindow(this);
+                if (window != null) MessageBox.Show(window, "Failed to load model!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         public BitmapSource TakeScreenshot()
@@ -148,6 +157,11 @@ namespace PixelGraph.UI.Controls
             }
 
             await Dispatcher.BeginInvoke(() => ShowWindowError(message.ToString()));
+        }
+
+        private void OnModelModelChanged(object sender, EventArgs e)
+        {
+            ViewModel.UpdateModel();
         }
 
         private void ShowWindowError(string message)

@@ -9,12 +9,14 @@ struct vs_input
 	float3 nor : NORMAL;
 	float3 tan : TANGENT;
 	float3 bin : BINORMAL;
-	float2 tex : TEXCOORD;
+	float2 tex : TEXCOORD0;
+	float2 tex_min : TEXCOORD1;
+	float2 tex_max : TEXCOORD2;
     float4 col : COLOR;
-	float4 mr0 : TEXCOORD1;
-	float4 mr1 : TEXCOORD2;
-	float4 mr2 : TEXCOORD3;
-	float4 mr3 : TEXCOORD4;
+	//float4 mr0 : TEXCOORD1;
+	//float4 mr1 : TEXCOORD2;
+	//float4 mr2 : TEXCOORD3;
+	//float4 mr3 : TEXCOORD4;
 };
 
 struct ps_input
@@ -27,8 +29,8 @@ struct ps_input
 	float3 tan  : TANGENT;
 	float3 bin  : BINORMAL;
 	float2 tex  : TEXCOORD0;
-
-	//float4 p2   : POSITION3;
+	float2 tex_min : TEXCOORD1;
+	float2 tex_max : TEXCOORD2;
 };
 
 struct ps_input_cube
@@ -174,6 +176,6 @@ SamplerState sampler_surface : register(s0);
 SamplerState sampler_irradiance : register(s1);
 SamplerState sampler_height : register(s2);
 SamplerState sampler_environment : register(s4);
-//SamplerComparisonState sampler_shadow : register(s5);
-SamplerState sampler_sss : register(s6);
+SamplerComparisonState sampler_shadow : register(s5);
+SamplerState sampler_light : register(s6);
 SamplerState sampler_brdf_lut : register(s7);

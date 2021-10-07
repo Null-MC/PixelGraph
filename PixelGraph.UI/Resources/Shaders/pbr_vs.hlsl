@@ -18,9 +18,20 @@ ps_input main(const vs_input input)
 	output.nor = mul(input.nor, (float3x3) mWorld);
 	output.tan = mul(input.tan, (float3x3) mWorld);
 	output.bin = mul(binormal, (float3x3) mWorld);
-	
+
+	output.tex_min = input.tex_min;
+	output.tex_max = input.tex_max;
+
+	//const float2 aspect = get_parallax_aspect(input.tex_max - input.tex_min);
+
 	const float3x3 mTBN = float3x3(output.tan, output.bin, output.nor);
-	output.poT = get_parallax_offset(mTBN, normalize(output.eye.xyz));
+	output.poT = get_parallax_offset(mTBN, normalize(output.eye.xyz));// * aspect;
+
+	//float4 result = float4(0, 0, 0, 1);
+    if (input.tex_max.x < input.tex_min.x) output.poT.y *= -1;
+    //if (input.tex_max.y < input.tex_min.y) output.poT.y *= -1;
+    //return result;
+
 
 	//output.p2 = clip_to_screen(output.pos);
 

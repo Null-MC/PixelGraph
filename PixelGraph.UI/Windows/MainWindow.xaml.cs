@@ -34,9 +34,9 @@ namespace PixelGraph.UI.Windows
 {
     public partial class MainWindow
     {
+        private readonly ILogger<MainWindow> logger;
         private readonly IServiceProvider provider;
         private readonly IThemeHelper themeHelper;
-        private readonly ILogger<MainWindow> logger;
         private readonly MainWindowViewModel viewModel;
 
 
@@ -922,13 +922,6 @@ namespace PixelGraph.UI.Windows
             viewModel.CloseAllTabs();
         }
 
-        private void OnExitClick(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
-
-        #endregion
-
         private void OnConvertExistingClick(object sender, RoutedEventArgs e)
         {
             var window = new PackConvertWindow(provider) {
@@ -937,5 +930,17 @@ namespace PixelGraph.UI.Windows
 
             window.ShowDialog();
         }
+
+        private void OnMaterialPropertiesModelChanged(object sender, EventArgs e)
+        {
+            renderPreview.UpdateModel();
+        }
+
+        private void OnExitClick(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        #endregion
     }
 }

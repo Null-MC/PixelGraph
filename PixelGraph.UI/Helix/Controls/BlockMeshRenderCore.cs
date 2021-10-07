@@ -2,7 +2,7 @@
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Render;
 
-namespace PixelGraph.UI.Helix.Models
+namespace PixelGraph.UI.Helix.Controls
 {
     internal class BlockMeshRenderCore : MeshRenderCore
     {

@@ -4,5 +4,8 @@ namespace PixelGraph.UI.Models.PropertyGrid
 {
     public interface ISeparatorPropertyRow : IPropertyRow {}
 
-    public class SeparatorPropertyRowModel : ModelBase, ISeparatorPropertyRow {}
+    public class SeparatorPropertyRowModel : ModelBase, ISeparatorPropertyRow
+    {
+        public object ActualValue => null;
+    }
 }

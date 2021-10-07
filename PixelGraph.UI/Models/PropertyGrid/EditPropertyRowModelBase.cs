@@ -7,12 +7,14 @@ using System.Reflection;
 
 namespace PixelGraph.UI.Models.PropertyGrid
 {
-    public interface IPropertyRow : INotifyPropertyChanged {}
+    public interface IPropertyRow : INotifyPropertyChanged
+    {
+        object ActualValue {get;}
+    }
 
     public interface IEditPropertyRow : IPropertyRow
     {
         string Name {get;}
-        object ActualValue {get;}
         object EditValue {get; set;}
     }
 
@@ -85,7 +87,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
             OnPropertyChanged(nameof(EditValue));
         }
 
-        private void OnValueChanged()
+        protected virtual void OnValueChanged()
         {
             var e = new PropertyValueChangedEventArgs {
                 PropertyName = propertyName,

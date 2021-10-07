@@ -60,5 +60,10 @@ namespace PixelGraph.Tests.Internal.Mocks
         {
             return PathEx.Join(Root, localPath);
         }
+
+        public override string GetRelativePath(string fullPath)
+        {
+            return PathEx.TryGetRelative(Root, fullPath, out var localPath) ? localPath : fullPath;
+        }
     }
 }

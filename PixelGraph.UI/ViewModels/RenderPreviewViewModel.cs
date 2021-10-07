@@ -1,32 +1,37 @@
-﻿using HelixToolkit.SharpDX.Core;
-using HelixToolkit.Wpf.SharpDX;
+﻿using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
+using MinecraftMappings.Minecraft.Java.Entities;
+using PixelGraph.Common.IO;
+using PixelGraph.Common.Models;
+using PixelGraph.UI.Helix;
+using PixelGraph.UI.Helix.Models;
+using PixelGraph.UI.Helix.Shaders;
 using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
-using SharpDX;
 using SharpDX.DXGI;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
-using PixelGraph.UI.Helix;
-using PixelGraph.UI.Helix.Shaders;
 using Media3D = System.Windows.Media.Media3D;
 
 namespace PixelGraph.UI.ViewModels
 {
     public class RenderPreviewViewModel : IDisposable
     {
+        private const float CubeSize = 4f;
+
         private static readonly Lazy<Factory1> deviceFactory;
 
         private readonly IServiceProvider provider;
         private readonly IAppSettings appSettings;
         private readonly ITabPreviewManager tabPreviewMgr;
+        private readonly IModelBuilder modelBuilder;
         private Stream brdfLutStream;
 
         //public event EventHandler SceneChanged;
@@ -34,7 +39,6 @@ namespace PixelGraph.UI.ViewModels
 
         public RenderPreviewModel Model {get; set;}
         //public MainWindowModel MainModel {get; set;}
-        public Dispatcher Dispatcher {get; set;}
 
 
         static RenderPreviewViewModel()
@@ -48,6 +52,7 @@ namespace PixelGraph.UI.ViewModels
 
             appSettings = provider.GetRequiredService<IAppSettings>();
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
+            modelBuilder = provider.GetRequiredService<IModelBuilder>();
         }
 
         public void Dispose()
@@ -87,8 +92,9 @@ namespace PixelGraph.UI.ViewModels
             LoadAppSettings();
             UpdateShaders();
 
-            Model.CubeModel = BuildCube(4, 3, 1, 3);
             Model.BrdfLutMap = brdfLutStream;
+
+            UpdateModel();
         }
 
         public void LoadAppSettings()
@@ -110,7 +116,7 @@ namespace PixelGraph.UI.ViewModels
             const float sun_overlap = 0.06f;
             const float sun_power = 0.9f;
             const float sun_azimuth = 30f;
-            const float sun_roll = 15f;
+            const float sun_roll = 25f;
 
             MinecraftTime.GetSunAngle(sun_azimuth, sun_roll, Model.TimeOfDayLinear, out var sunDirection);
             Model.SunDirection = sunDirection;
@@ -140,6 +146,44 @@ namespace PixelGraph.UI.ViewModels
         {
             Model.EffectsManager?.Dispose();
             Model.EffectsManager = new PreviewEffectsManager(provider);
+        }
+
+        public void UpdateModel()
+        {
+            var map = new Dictionary<string, Func<BlockMeshGeometry3D>>(StringComparer.InvariantCultureIgnoreCase) {
+                [ModelType.File] = BuildModelFile,
+                [ModelType.Cube] = () => modelBuilder.BuildCube(CubeSize),
+                [ModelType.Cross] = () => modelBuilder.BuildCross(CubeSize),
+                [ModelType.Plane] = () => modelBuilder.BuildCube(CubeSize, 4, 1, 4),
+                [ModelType.Bell] = () => modelBuilder.BuildEntity(CubeSize, new BellBody().GetLatestVersion()),
+            };
+
+            if (Model.ModelType != null) {
+                if (!map.TryGetValue(Model.ModelType, out var meshFunc))
+                    throw new ApplicationException($"Unknown model type '{Model.ModelType}'!");
+
+                Model.BlockMesh = meshFunc();
+            }
+            else {
+                Model.BlockMesh = modelBuilder.BuildCube(CubeSize);
+            }
+        }
+
+        private BlockMeshGeometry3D BuildModelFile()
+        {
+            if (Model.ModelFile == null) return null;
+
+            var reader = provider.GetRequiredService<IInputReader>();
+            var parser = provider.GetRequiredService<IBlockModelParser>();
+
+            var filename = reader.GetFullPath(Model.ModelFile);
+            var localPath = Path.GetDirectoryName(filename);
+            var localFile = Path.GetFileName(filename);
+
+            var model = parser.LoadRecursive(localPath, localFile);
+            if (model == null) throw new ApplicationException("Failed to load model!");
+
+            return modelBuilder.BuildModel(CubeSize, model);
         }
 
         public void ResetViewport()
@@ -191,65 +235,6 @@ namespace PixelGraph.UI.ViewModels
         //private void OnSceneChanged()
         //{
         //    SceneChanged?.Invoke(this, EventArgs.Empty);
-        //}
-
-        private static MeshGeometry3D BuildCube(int cubeSize, int gridSizeX = 1, int gridSizeY = 1, int gridSizeZ = 1)
-        {
-            var builder = new MeshBuilder(true, true, true);
-            Vector3 offset, position;
-
-            offset.X = cubeSize * (gridSizeX - 1) * 0.5f;
-            offset.Y = cubeSize * (gridSizeY - 1) * 0.5f;
-            offset.Z = cubeSize * (gridSizeZ - 1) * 0.5f;
-
-            for (var z = 0; z < gridSizeZ; z++) {
-                for (var y = 0; y < gridSizeY; y++) {
-                    for (var x = 0; x < gridSizeX; x++) {
-                        position.X = cubeSize * x - offset.X;
-                        position.Y = cubeSize * y - offset.Y;
-                        position.Z = cubeSize * z - offset.Z;
-
-                        AppendCube(builder, in position, in cubeSize);
-                    }
-                }
-            }
-
-            builder.ComputeTangents(MeshFaces.Default);
-            return builder.ToMeshGeometry3D();
-        }
-
-        private static void AppendCube(MeshBuilder builder, in Vector3 position, in int size)
-        {
-            builder.AddCubeFace(position, new Vector3(1, 0, 0), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(position, new Vector3(-1, 0, 0), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(position, new Vector3(0, 0, 1), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(position, new Vector3(0, 0, -1), Vector3.UnitY, size, size, size);
-            builder.AddCubeFace(position, new Vector3(0, 1, 0), Vector3.UnitX, size, size, size);
-            builder.AddCubeFace(position, new Vector3(0, -1, 0), Vector3.UnitX, size, size, size);
-        }
-
-        //private static MeshGeometry3D BuildBell()
-        //{
-        //    var builder = new MeshBuilder(true, true, true);
-
-        //    var centerTop = new Vector3(0f, -2.5f, 0f);
-        //    builder.AddEntityCubeFace(centerTop, new Vector3( 1, 0,  0), Vector3.UnitY, 6, 6, 7, new Vector2(0f, 3/16f), new Vector2(3/16f, 6.5f/16f));
-        //    builder.AddEntityCubeFace(centerTop, new Vector3(-1, 0,  0), Vector3.UnitY, 6, 6, 7, new Vector2(6/16f, 3/16f), new Vector2(9/16f, 6.5f/16f));
-        //    builder.AddEntityCubeFace(centerTop, new Vector3( 0, 0,  1), Vector3.UnitY, 6, 6, 7, new Vector2(9/16f, 3/16f), new Vector2(12/16f, 6.5f/16f));
-        //    builder.AddEntityCubeFace(centerTop, new Vector3( 0, 0, -1), Vector3.UnitY, 6, 6, 7, new Vector2(3/16f, 3/16f), new Vector2(6/16f, 6.5f/16f));
-        //    builder.AddEntityCubeFace(centerTop, new Vector3( 0, 1,  0), Vector3.UnitX, 7, 6, 6, new Vector2(6/16f, 0f), new Vector2(9/16f, 3/16f));
-
-        //    var centerBottom = new Vector3(0f, -7f, 0f);
-        //    builder.AddEntityCubeFace(centerBottom, new Vector3( 1,  0,  0), Vector3.UnitY, 8, 8, 2, new Vector2(0f, 10.5f/16f), new Vector2(4/16f, 11.5f/16f));
-        //    builder.AddEntityCubeFace(centerBottom, new Vector3(-1,  0,  0), Vector3.UnitY, 8, 8, 2, new Vector2(8/16f, 10.5f/16f), new Vector2(12/16f, 11.5f/16f));
-        //    builder.AddEntityCubeFace(centerBottom, new Vector3( 0,  0,  1), Vector3.UnitY, 8, 8, 2, new Vector2(12/16f, 10.5f/16f), new Vector2(1f, 11.5f/16f));
-        //    builder.AddEntityCubeFace(centerBottom, new Vector3( 0,  0, -1), Vector3.UnitY, 8, 8, 2, new Vector2(4/16f, 10.5f/16f), new Vector2(8/16f, 11.5f/16f));
-        //    builder.AddEntityCubeFace(centerBottom, new Vector3( 0,  1,  0), Vector3.UnitX, 2, 8, 8, new Vector2(8/16f, 6.5f/16f), new Vector2(12/16f, 10.5f/16f));
-        //    builder.AddEntityCubeFace(centerBottom, new Vector3( 0, -1,  0), Vector3.UnitX, 2, 8, 8, new Vector2(4/16f, 6.5f/16f), new Vector2(8/16f, 10.5f/16f));
-
-        //    //builder.Scale();
-        //    builder.ComputeTangents(MeshFaces.Default);
-        //    return builder.ToMeshGeometry3D();
         //}
     }
 

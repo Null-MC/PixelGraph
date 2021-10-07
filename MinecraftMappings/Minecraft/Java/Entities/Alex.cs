@@ -1,4 +1,5 @@
 ﻿using MinecraftMappings.Internal;
+using MinecraftMappings.Internal.Entities;
 
 namespace MinecraftMappings.Minecraft.Java.Entities
 {

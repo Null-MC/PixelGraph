@@ -99,3 +99,51 @@ float3 calc_tex_normal(const in float2 tex, const in float3 normal, const in flo
 	tangent_to_world(tex_normal, normal, tangent, bitangent);
 	return tex_normal;
 }
+
+
+// Shadows
+
+float shadow_lookup(const in float3 loc, const in float2 offset)
+{
+    return tex_shadow.SampleCmpLevelZero(sampler_shadow, loc.xy + offset, loc.z);
+}
+
+float shadow_strength(in float3 sp)
+{
+    float2 xy = abs(sp).xy - float2(1, 1);
+    
+    if (xy.x > 0 || xy.y > 0 || sp.z < 0 || sp.z > 1) return 1;
+
+    sp.x = mad(0.5, sp.x, 0.5f);
+    sp.y = mad(-0.5, sp.y, 0.5f);
+
+    //apply shadow map bias
+    sp.z -= vShadowMapInfo.z;
+
+    //// --- not in shadow, hard cut
+    //float shadowMapDepth = texShadowMap.Sample(PointSampler, sp.xy+offsets[1]).r;
+    //return whengt(shadowMapDepth, sp.z);
+
+    //// --- basic hardware PCF - single texel
+    //float shadowFactor = texShadowMap.SampleCmpLevelZero(samplerShadow, sp.xy, sp.z).r;
+
+    //// --- PCF sampling for shadow map
+    float sum = 0;
+    const float range = 1.5;
+    const float2 scale = rcp(vShadowMapSize);
+    float x, y;
+
+    //// ---perform PCF filtering on a 4 x 4 texel neighborhood
+    [unroll]
+    for (y = -range; y <= range; y += 1.0f) {
+	    for (x = -range; x <= range; x += 1.0f) {
+		    sum += shadow_lookup(sp, float2(x, y) * scale);
+	    }
+    }
+
+    const float shadow_factor = sum / 16.0f;
+	return shadow_factor;
+
+    // now, put the shadow-strength into the 0-nonTeil range
+    return vShadowMapInfo.x + shadow_factor * (1.0f - vShadowMapInfo.x);
+}

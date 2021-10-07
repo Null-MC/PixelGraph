@@ -1,11 +1,11 @@
-﻿using System;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using PixelGraph.UI.Helix.CubeMaps;
 using PixelGraph.UI.Helix.Shaders;
 using SharpDX;
 using SharpDX.Direct3D11;
+using System;
 
 namespace PixelGraph.UI.Helix.Materials
 {
@@ -21,6 +21,7 @@ namespace PixelGraph.UI.Helix.Materials
         private SamplerStateDescription _surfaceMapSampler;
         private SamplerStateDescription _heightMapSampler;
         private SamplerStateDescription _shadowMapSampler;
+        private SamplerStateDescription _lightMapSampler;
         private SamplerStateDescription _environmentMapSampler;
         private SamplerStateDescription _irradianceMapSampler;
         private SamplerStateDescription _brdfLutMapSampler;
@@ -81,6 +82,11 @@ namespace PixelGraph.UI.Helix.Materials
             set => Set(ref _shadowMapSampler, value);
         }
 
+        public SamplerStateDescription LightMapSampler {
+            get => _lightMapSampler;
+            set => Set(ref _lightMapSampler, value);
+        }
+
         public SamplerStateDescription EnvironmentMapSampler {
             get => _environmentMapSampler;
             set => Set(ref _environmentMapSampler, value);
@@ -120,6 +126,7 @@ namespace PixelGraph.UI.Helix.Materials
             _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
             _heightMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
             _shadowMapSampler = CustomSamplerStates.Shadow;
+            _lightMapSampler = CustomSamplerStates.Light;
             _environmentMapSampler = CustomSamplerStates.Environment;
             _irradianceMapSampler = CustomSamplerStates.Irradiance;
             _brdfLutMapSampler = CustomSamplerStates.BrdfLut;

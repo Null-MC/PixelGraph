@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace MinecraftMappings.Internal
+namespace MinecraftMappings.Internal.Entities
 {
     public interface IEntityData
     {
@@ -48,6 +48,17 @@ namespace MinecraftMappings.Internal
             Versions = new List<TVersion>();
         }
 
+        public EntityVersionBuilder<TVersion> AddVersion(string id, string version)
+        {
+            var entityVersion = new TVersion {
+                Id = id,
+                TextVersion = version,
+            };
+
+            Versions.Add(entityVersion);
+            return new EntityVersionBuilder<TVersion>(entityVersion);
+        }
+
         public TVersion GetLatestVersion()
         {
             return Versions.OrderByDescending(v => v.ParsedVersion)
@@ -58,33 +69,6 @@ namespace MinecraftMappings.Internal
         {
             return Versions.OrderByDescending(e => e.ParsedVersion)
                 .FirstOrDefault(e => e.ParsedVersion <= version);
-        }
-    }
-
-    public abstract class EntityDataVersion
-    {
-        private readonly Lazy<Version> _parsedVersion;
-
-        public string Id {get; set;}
-        public string Path {get; set;}
-        //public string MinVersion {get; set;}
-        //public string MaxVersion {get; set;}
-        public string TextVersion {get; set;}
-        //public int FrameCount {get; set;} = 1;
-
-        public List<UVRegion> UVMappings {get; set;}
-
-        public Version ParsedVersion => _parsedVersion.Value;
-
-
-        protected EntityDataVersion()
-        {
-            _parsedVersion = new Lazy<Version>(() => {
-                if (TextVersion == null) return null;
-                return Version.Parse(TextVersion);
-            });
-
-            UVMappings = new List<UVRegion>();
         }
     }
 }

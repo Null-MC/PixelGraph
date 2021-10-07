@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -32,6 +33,17 @@ namespace PixelGraph.Common.Extensions
                 .Replace("\\*", ".+");
 
             return Regex.IsMatch(name, $"^{regexPattern}$");
+        }
+
+        public static bool TryGetRelative(string rootPath, string fullPath, out string localPath)
+        {
+            if (!fullPath.StartsWith(rootPath, StringComparison.InvariantCultureIgnoreCase)) {
+                localPath = fullPath;
+                return false;
+            }
+
+            localPath = fullPath[rootPath.Length..].TrimStart('\\', '/');
+            return true;
         }
 
         //public static string[] Split(string path)

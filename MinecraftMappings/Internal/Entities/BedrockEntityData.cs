@@ -1,4 +1,4 @@
-﻿namespace MinecraftMappings.Internal
+﻿namespace MinecraftMappings.Internal.Entities
 {
     public abstract class BedrockEntityData : EntityData<BedrockEntityDataVersion>
     {

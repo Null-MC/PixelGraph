@@ -18,6 +18,14 @@ namespace PixelGraph.UI.ViewModels
             Add(row);
         }
 
+        public void AddTextFile<TValue>(string displayName, string propertyName, TValue defaultValue = default)
+        {
+            var row = new EditTextPropertyRowModel<TSource, TValue>(displayName, propertyName, defaultValue);
+            row.IsFileSelect = true;
+            row.ValueChanged += OnRowValueChanged;
+            Add(row);
+        }
+
         public void AddBool<TValue>(string displayName, string propertyName, TValue defaultValue = default)
         {
             var row = new EditBoolPropertyRowModel<TSource, TValue>(displayName, propertyName, defaultValue);
@@ -32,11 +40,11 @@ namespace PixelGraph.UI.ViewModels
             Add(row);
         }
 
-        public void AddSeparator()
-        {
-            var row = new SeparatorPropertyRowModel();
-            Add(row);
-        }
+        //public void AddSeparator()
+        //{
+        //    var row = new SeparatorPropertyRowModel();
+        //    Add(row);
+        //}
 
         private void OnRowValueChanged(object sender, PropertyValueChangedEventArgs e)
         {

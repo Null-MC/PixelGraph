@@ -30,10 +30,20 @@ float4 main(const ps_input input) : SV_TARGET
     float tex_depth = 0;
 
     const float SNoV = saturate(dot(normal, view));
+	//const float2 tex_aspect = get_parallax_aspect(input.tex_max - input.tex_min);
 	const float2 tex = get_parallax_texcoord(input.tex, input.poT, SNoV, shadow_tex, shadow_depth, tex_depth);
 	const pbr_material mat = get_pbr_material(tex);
 
 	clip(mat.alpha - EPSILON);
+
+    //float2 offset = abs(input.tex - input.tex_min);
+    //float2 range = abs(input.tex_max - input.tex_min);
+    //return float4(offset / range, 0, 1);
+
+    //float4 result = float4(0, 0, 0, 1);
+    //if (input.tex_max.x < input.tex_min.x) result.r = 1;
+    //if (input.tex_max.y < input.tex_min.y) result.g = 1;
+    //return result;
 
     const float3x3 mTBN = float3x3(tangent, bitangent, normal);
 	float roughL = max(mat.rough * mat.rough, MIN_ROUGH);
@@ -63,9 +73,8 @@ float4 main(const ps_input input) : SV_TARGET
 
     const float slope_depth = tex_depth - shadow_depth;
     if (EnableSlopeNormals && !EnableLinearSampling && slope_depth > EPSILON) {
-        float3 tex_size;
-    	tex_normal_height.GetDimensions(0, tex_size.x, tex_size.y, tex_size.z);
-
+	    float3 tex_size;
+	    tex_normal_height.GetDimensions(0, tex_size.x, tex_size.y, tex_size.z);
         float2 tex_snapped = round(tex * tex_size.xy) / tex_size.xy;
         float2 tex_offset = tex - tex_snapped;
 
@@ -111,14 +120,29 @@ float4 main(const ps_input input) : SV_TARGET
     float light_att, light_shadow, NoL;
     float3 light_dir, light_color, light_diffuse, light_specular, H;
     float LoH, NoH, VoH;
-		
+
 	[loop]
     for (int i = 0; i < NumLights; i++) {
         light_color = srgb_to_linear(Lights[i].vLightColor.rgb) * 1.6f;
+        light_shadow = 1.0f;
     	
         if (Lights[i].iLightType == 1) {
             light_dir = normalize(Lights[i].vLightDir.xyz);
             light_att = 1.0f;
+
+            if (bHasShadowMap && bRenderShadowMap) {
+	            float d = dot(light_dir, normal);
+
+	            if (d > 0) {
+					float4 sp = mul(input.wp, vLightViewProjection);
+	                light_shadow = shadow_strength(sp.xyz / sp.w);
+	            }
+                else {
+	                light_shadow = 0.0f;
+                }
+			}
+
+            //return float4(light_att, light_att, light_att, 1);
         }
         else if (Lights[i].iLightType == 2) {
             light_dir = Lights[i].vLightPos.xyz - input.wp.xyz;
@@ -142,8 +166,8 @@ float4 main(const ps_input input) : SV_TARGET
 
         // light parallax shadows
         const float SNoL = dot(normal, light_dir);
-        const float2 polT = get_parallax_offset(mTBN, light_dir);
-        light_shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
+        const float2 polT = get_parallax_offset(mTBN, light_dir);// * tex_aspect;
+        light_shadow *= get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
         if (light_shadow < EPSILON) continue;
 
         NoL = saturate(dot(tex_normal, light_dir));
@@ -263,9 +287,9 @@ float4 main(const ps_input input) : SV_TARGET
     float3 final_color = ibl_final + acc_light + final_sss + emissive;
 	float alpha = mat.alpha;
 
-	final_color = tonemap_AcesFilm(final_color);
-	final_color = linear_to_srgb(final_color);
-	//final_color = tonemap_HejlBurgess(final_color);
+	//final_color = tonemap_AcesFilm(final_color);
+	//final_color = linear_to_srgb(final_color);
+	final_color = tonemap_HejlBurgess(final_color);
 
     return float4(final_color, alpha);
 }

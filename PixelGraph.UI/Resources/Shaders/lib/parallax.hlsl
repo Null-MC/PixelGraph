@@ -5,6 +5,20 @@
 static const float soft_shadow_strength = 60.0;
 
 
+float2 get_parallax_aspect(const in float2 tex_size)
+{
+	const float aspect = abs(tex_size.x / tex_size.y);
+	//if (aspect > 1.0f) return float2(rcp(aspect), 1.0f);
+	//return float2(0,0);
+
+	float signX = sign(tex_size.x);
+	float signY = sign(tex_size.y);
+
+	return aspect > 1.0f
+		       ? float2(rcp(aspect) * signX, 1.0f)
+		       : float2(1.0f, aspect);
+}
+
 float2 get_parallax_offset(const in float3x3 mTBN, const in float3 view)
 {
 	const float3 lightT = mul(mTBN, view);
@@ -31,7 +45,7 @@ float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, const
 	[loop]
 	for (int step = 0; step < step_count; ++step) {
 		tex_depth = tex_normal_height.SampleLevel(sampler_height, trace_offset, 0).a;
-		if (trace_depth < tex_depth) break;
+		if (trace_depth <= tex_depth) break;
 
 		prev_tex_depth = tex_depth;
 		prev_trace_depth = trace_depth;

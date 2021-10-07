@@ -3,31 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace MinecraftMappings.Internal
+namespace MinecraftMappings.Internal.Blocks
 {
-    public interface IItemData
+    public interface IBlockData
     {
         string Name {get;}
     }
 
-    public interface IItemData<out TItemVersion> : IItemData
-        where TItemVersion : ItemDataVersion
+    public interface IBlockData<out TBlockVersion> : IBlockData
+        where TBlockVersion : BlockDataVersion
     {
-        TItemVersion GetLatestVersion();
+        TBlockVersion GetLatestVersion();
     }
 
-    public abstract class ItemData : IItemData
+    public abstract class BlockData : IBlockData
     {
         public string Name {get;}
 
 
-        protected ItemData(string name)
+        protected BlockData(string name)
         {
             Name = name;
         }
 
         public static IEnumerable<T> FromAssembly<T>()
-            where T : IItemData
+            where T : IBlockData
         {
             return Assembly.GetExecutingAssembly()
                 .ExportedTypes.Where(t => t.IsClass && !t.IsAbstract)
@@ -36,13 +36,13 @@ namespace MinecraftMappings.Internal
         }
     }
 
-    public abstract class ItemData<TVersion> : ItemData, IItemData<TVersion>
-        where TVersion : ItemDataVersion, new()
+    public abstract class BlockData<TVersion> : BlockData, IBlockData<TVersion>
+        where TVersion : BlockDataVersion, new()
     {
         public List<TVersion> Versions {get;}
 
 
-        protected ItemData(string name) : base(name)
+        protected BlockData(string name) : base(name)
         {
             Versions = new List<TVersion>();
         }
@@ -53,22 +53,22 @@ namespace MinecraftMappings.Internal
             return Versions.FirstOrDefault();
         }
 
-        protected void AddVersion(string id, Action<TVersion> versionAction = null)
+        protected void AddVersion(string id, Action<TVersion> versionAction)
         {
             var version = new TVersion {
                 Id = id,
             };
 
-            versionAction?.Invoke(version);
+            versionAction(version);
             Versions.Add(version);
         }
     }
 
-    public abstract class ItemDataVersion
+    public abstract class BlockDataVersion
     {
         public string Id {get; set;}
         public GameVersion MinVersion {get; set;}
         public GameVersion MaxVersion {get; set;}
-        //public int FrameCount {get; set;} = 1;
+        public int FrameCount {get; set;} = 1;
     }
 }

@@ -1,4 +1,4 @@
-﻿using MinecraftMappings.Internal;
+﻿using MinecraftMappings.Internal.Entities;
 using System.Linq;
 
 namespace MinecraftMappings.Minecraft.Java.Models

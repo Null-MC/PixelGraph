@@ -1,4 +1,5 @@
 ﻿using MinecraftMappings.Internal;
+using MinecraftMappings.Internal.Items;
 
 namespace MinecraftMappings.Minecraft.Java.Items
 {

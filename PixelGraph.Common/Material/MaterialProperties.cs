@@ -12,6 +12,7 @@ namespace PixelGraph.Common.Material
     {
         public const bool DefaultWrap = true;
         public const string DefaultInputFormat = TextureFormat.Format_Raw;
+        public const string DefaultModelType = Models.ModelType.Cube;
         public const bool DefaultPublish = true;
         public const bool DefaultPublishItem = false;
 
@@ -92,6 +93,10 @@ namespace PixelGraph.Common.Material
         public MaterialSssProperties SSS {get; set;}
 
         public MaterialEmissiveProperties Emissive {get; set;}
+
+        public string ModelType {get; set;}
+
+        public string ModelFile {get; set;}
 
         [YamlMember(Alias = "ctm", Order = 100)]
         public MaterialConnectionProperties CTM {get; set;}
