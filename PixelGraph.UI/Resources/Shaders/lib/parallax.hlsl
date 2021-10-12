@@ -5,26 +5,16 @@
 static const float soft_shadow_strength = 60.0;
 
 
-float2 get_parallax_aspect(const in float2 tex_size)
-{
-	const float aspect = abs(tex_size.x / tex_size.y);
-	//if (aspect > 1.0f) return float2(rcp(aspect), 1.0f);
-	//return float2(0,0);
-
-	float signX = sign(tex_size.x);
-	float signY = sign(tex_size.y);
-
-	return aspect > 1.0f
-		       ? float2(rcp(aspect) * signX, 1.0f)
-		       : float2(1.0f, aspect);
-}
-
-float2 get_parallax_offset(const in float3x3 mTBN, const in float3 view)
+float2 get_parallax_offset(const in float3x3 mTBN, const in float3 view, const in float2 uv_size)
 {
 	const float3 lightT = mul(mTBN, view);
 	const float length_sq = dot(lightT, lightT);
 	const float parallax_length = sqrt(length_sq - lightT.z * lightT.z) / lightT.z;
-	const float2 parallax_dir = normalize(lightT.xy);
+	float2 parallax_dir = normalize(lightT.xy);
+
+ //   if (uv_size.x < 0.0f) parallax_dir.x *= -1;
+	//if (uv_size.y < 0.0f) parallax_dir.y *= -1;
+
 	return parallax_dir * parallax_length * ParallaxDepth;
 }
 

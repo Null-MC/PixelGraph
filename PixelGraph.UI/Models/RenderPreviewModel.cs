@@ -1,6 +1,5 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
-using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Helix.CubeMaps;
 using PixelGraph.UI.Helix.Models;
 using PixelGraph.UI.Internal;
@@ -23,9 +22,9 @@ namespace PixelGraph.UI.Models
         //private ImageSource _layerImage;
         private Stream _brdfLutMap;
         //private string _selectedTag;
-        private string _modelType;
-        private string _modelFile;
-        private bool _enableEnvironment;
+        //private string _modelType;
+        //private string _modelFile;
+        //private bool _enableEnvironment;
         private bool _enableLights;
         private RenderPreviewModes _renderMode;
         private float _parallaxDepth;
@@ -37,7 +36,7 @@ namespace PixelGraph.UI.Models
         private Camera _sunCamera;
         private Vector3 _sunDirection;
         private float _sunStrength;
-        private int _timeOfDay;
+        //private int _timeOfDay;
         private int _wetness;
         //private string _frameRateText;
         private bool _isLoaded;
@@ -107,23 +106,23 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public int TimeOfDay {
-            get => _timeOfDay;
-            set {
-                _timeOfDay = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(TimeOfDayLinear));
-            }
-        }
+        //public int TimeOfDay {
+        //    get => _timeOfDay;
+        //    set {
+        //        _timeOfDay = value;
+        //        OnPropertyChanged();
+        //        OnPropertyChanged(nameof(TimeOfDayLinear));
+        //    }
+        //}
 
-        public float TimeOfDayLinear {
-            get => GetLinearTimeOfDay();
-            set {
-                SetTimeOfDay(value);
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(TimeOfDay));
-            }
-        }
+        //public float TimeOfDayLinear {
+        //    get => GetLinearTimeOfDay();
+        //    set {
+        //        SetTimeOfDay(value);
+        //        OnPropertyChanged();
+        //        OnPropertyChanged(nameof(TimeOfDay));
+        //    }
+        //}
 
         public Camera SunCamera {
             get => _sunCamera;
@@ -186,14 +185,14 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public bool EnableEnvironment {
-            get => _enableEnvironment;
-            set {
-                _enableEnvironment = value;
-                OnPropertyChanged();
-                OnRenderSceneChanged();
-            }
-        }
+        //public bool EnableEnvironment {
+        //    get => _enableEnvironment;
+        //    set {
+        //        _enableEnvironment = value;
+        //        OnPropertyChanged();
+        //        OnRenderSceneChanged();
+        //    }
+        //}
 
         public bool EnableLights {
             get => _enableLights;
@@ -252,33 +251,32 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public string ModelType {
-            get => _modelType;
-            set {
-                _modelType = value;
-                OnPropertyChanged();
-            }
-        }
+        //public string ModelType {
+        //    get => _modelType;
+        //    set {
+        //        _modelType = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
-        public string ModelFile {
-            get => _modelFile;
-            set {
-                _modelFile = value;
-                OnPropertyChanged();
-            }
-        }
+        //public string ModelFile {
+        //    get => _modelFile;
+        //    set {
+        //        _modelFile = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
 
-        public RenderPreviewModel()
+        //public RenderPreviewModel()
+        //{
+        //    _enableEnvironment = true;
+        //}
+
+        public void SetModel()
         {
-            _enableEnvironment = true;
-            _timeOfDay = 6_000;
-        }
-
-        public void SetModel(string type, string localFile)
-        {
-            ModelType = type;
-            ModelFile = localFile;
+            //ModelType = type;
+            //ModelFile = localFile;
             OnModelChanged();
             // TODO: Notify RenderViewModel somehow
         }
@@ -286,18 +284,6 @@ namespace PixelGraph.UI.Models
         protected virtual void OnModelChanged()
         {
             ModelChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        private float GetLinearTimeOfDay()
-        {
-            var t = _timeOfDay;
-            MathEx.Wrap(ref t, 0, 24_000);
-            return t / 24_000f;
-        }
-
-        private void SetTimeOfDay(float value)
-        {
-            TimeOfDay = (int)(value * 24_000f);
         }
 
         private void OnRenderModeChanged()

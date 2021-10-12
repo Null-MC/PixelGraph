@@ -5,6 +5,8 @@
 
 #pragma pack_matrix(row_major)
 
+static const float3 min_light = float3(0.003f, 0.004f, 0.008f);
+
 
 struct ScatteringParams
 {

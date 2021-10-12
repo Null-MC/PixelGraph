@@ -4,6 +4,7 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Models.Scene;
 using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
@@ -78,6 +79,8 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public ScenePropertiesModel SceneModel {get;}
+
         public string SelectedTag {
             get => _selectedTag;
             set {
@@ -121,6 +124,7 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsEditModeFilters));
                 OnPropertyChanged(nameof(IsEditModeConnections));
+                OnPropertyChanged(nameof(IsEditModeScene));
                 //OnEditModeChanged();
             }
         }
@@ -133,6 +137,7 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsEditModeMaterial));
                 OnPropertyChanged(nameof(IsEditModeConnections));
+                OnPropertyChanged(nameof(IsEditModeScene));
                 //OnEditModeChanged();
             }
         }
@@ -145,6 +150,20 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsEditModeMaterial));
                 OnPropertyChanged(nameof(IsEditModeFilters));
+                OnPropertyChanged(nameof(IsEditModeScene));
+                //OnEditModeChanged();
+            }
+        }
+
+        public bool IsEditModeScene {
+            get => _editMode == EditModes.Scene;
+            set {
+                if (!value) return;
+                _editMode = EditModes.Scene;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsEditModeMaterial));
+                OnPropertyChanged(nameof(IsEditModeFilters));
+                OnPropertyChanged(nameof(IsEditModeConnections));
                 //OnEditModeChanged();
             }
         }
@@ -309,6 +328,7 @@ namespace PixelGraph.UI.Models
 
 #if !NORENDER
             SupportsRender = true;
+            SceneModel = new ScenePropertiesModel();
 #endif
         }
 

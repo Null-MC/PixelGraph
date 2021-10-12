@@ -30,20 +30,10 @@ float4 main(const ps_input input) : SV_TARGET
     float tex_depth = 0;
 
     const float SNoV = saturate(dot(normal, view));
-	//const float2 tex_aspect = get_parallax_aspect(input.tex_max - input.tex_min);
 	const float2 tex = get_parallax_texcoord(input.tex, input.poT, SNoV, shadow_tex, shadow_depth, tex_depth);
 	const pbr_material mat = get_pbr_material(tex);
 
 	clip(mat.alpha - EPSILON);
-
-    //float2 offset = abs(input.tex - input.tex_min);
-    //float2 range = abs(input.tex_max - input.tex_min);
-    //return float4(offset / range, 0, 1);
-
-    //float4 result = float4(0, 0, 0, 1);
-    //if (input.tex_max.x < input.tex_min.x) result.r = 1;
-    //if (input.tex_max.y < input.tex_min.y) result.g = 1;
-    //return result;
 
     const float3x3 mTBN = float3x3(tangent, bitangent, normal);
 	float roughL = max(mat.rough * mat.rough, MIN_ROUGH);
@@ -121,6 +111,8 @@ float4 main(const ps_input input) : SV_TARGET
     float3 light_dir, light_color, light_diffuse, light_specular, H;
     float LoH, NoH, VoH;
 
+    float spec_strength = 0.0f;
+
 	[loop]
     for (int i = 0; i < NumLights; i++) {
         light_color = srgb_to_linear(Lights[i].vLightColor.rgb) * 1.6f;
@@ -166,7 +158,7 @@ float4 main(const ps_input input) : SV_TARGET
 
         // light parallax shadows
         const float SNoL = dot(normal, light_dir);
-        const float2 polT = get_parallax_offset(mTBN, light_dir);// * tex_aspect;
+        const float2 polT = get_parallax_offset(mTBN, light_dir, input.tex_max - input.tex_min);
         light_shadow *= get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
         if (light_shadow < EPSILON) continue;
 
@@ -228,10 +220,10 @@ float4 main(const ps_input input) : SV_TARGET
         		? specular_brdf_conductor(IOR_N_AIR, ior_n, ior_k, LoH, NoH, VoH, roughL) * metal_albedo
         		: specular_brdf(ior_n.r, LoH, NoH, VoH, roughL);
 
-			acc_light += light_shadow * NoL * light_color * light_att * (light_diffuse + light_specular);
+            const float3 light_factor = light_shadow * NoL * light_color * light_att;
+			acc_light += light_factor * (light_diffuse + light_specular);
+            spec_strength += lum(light_factor * light_specular);
         }
-
-		//acc_light += light_shadow * NoL * light_color * light_att * (light_diffuse + light_specular);
     }
 
 	const float3 r = reflect(-view, wet_normal);
@@ -262,6 +254,8 @@ float4 main(const ps_input input) : SV_TARGET
 		ibl_specular += IBL_specular(ibl_F_water, NoV_wet, r, mat.occlusion, wet_roughL) * metal_albedo * water;
     }
 
+    spec_strength += lum(ibl_specular);
+
 	float sss_strength = 0.0f;
 	float3 ibl_sss = 0.0f;
 	if (bHasCubeMap && bRenderShadowMap) {
@@ -285,7 +279,7 @@ float4 main(const ps_input input) : SV_TARGET
 	float3 ibl_final = ibl_ambient * diffuse + ibl_specular;
 	float3 final_sss = diffuse * (acc_sss + ibl_sss) * sss_strength;
     float3 final_color = ibl_final + acc_light + final_sss + emissive;
-	float alpha = mat.alpha;
+	float alpha = mat.alpha + spec_strength / PI;
 
 	//final_color = tonemap_AcesFilm(final_color);
 	//final_color = linear_to_srgb(final_color);

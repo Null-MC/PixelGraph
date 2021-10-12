@@ -41,12 +41,33 @@ namespace PixelGraph.UI.Helix.Models
         {
             var searchPath = rootPath;
 
+            var localFile2 = PathEx.Localize(localFile);
+
+            if (!localFile2.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
+                localFile2 += ".json";
+
+            var modelsBlockPath = PathEx.Join(rootPath, "assets/minecraft/models/block", localFile2);
+            modelsBlockPath = PathEx.Localize(modelsBlockPath);
+
+            if (File.Exists(modelsBlockPath)) {
+                var json = ParseModelJson(modelsBlockPath);
+                return ParseModelFile(json);
+            }
+
+            var modelsPath = PathEx.Join(rootPath, "assets/minecraft/models", localFile2);
+            modelsPath = PathEx.Localize(modelsPath);
+
+            if (File.Exists(modelsPath)) {
+                var json = ParseModelJson(modelsPath);
+                return ParseModelFile(json);
+            }
+
             while (searchPath != null) {
-                var localPath = PathEx.Join(searchPath, localFile);
+                var localPath = PathEx.Join(searchPath, localFile2);
                 localPath = PathEx.Localize(localPath);
 
-                if (!localPath.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
-                    localPath += ".json";
+                //if (!localPath.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
+                //    localPath += ".json";
 
                 if (File.Exists(localPath)) {
                     var json = ParseModelJson(localPath);
@@ -92,6 +113,8 @@ namespace PixelGraph.UI.Helix.Models
 
         private static void ParseElement(ModelElement modelElement, JToken element)
         {
+            modelElement.Name = element.Value<string>("name");
+
             var from_array = element.Value<JArray>("from")?.ToObject<float[]>();
             if (from_array == null || from_array.Length != 3)
                 throw new ApplicationException("Element 'from' must contain 3 values!");

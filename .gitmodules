@@ -1,0 +1,3 @@
+[submodule "MinecraftMappings.NET"]
+	path = MinecraftMappings.NET
+	url = https://github.com/null511/MinecraftMappings.NET.git

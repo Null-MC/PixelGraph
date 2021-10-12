@@ -1,4 +1,6 @@
-﻿using PixelGraph.Common.Material;
+﻿using MinecraftMappings.Internal.Blocks;
+using MinecraftMappings.Minecraft;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.PropertyGrid;
@@ -6,6 +8,7 @@ using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.Models
@@ -273,12 +276,34 @@ namespace PixelGraph.UI.Models
 
     public class GeneralModelPropertyCollection : PropertyCollectionBase<MaterialProperties>
     {
+        private readonly IEditSelectPropertyRow<MaterialProperties> fileRow;
+
         public GeneralModelPropertyCollection()
         {
-            var options = new SelectPropertyRowOptions(new ModelTypeValues(), "Text", "Value");
+            var typeOptions = new SelectPropertyRowOptions(new ModelTypeValues(), "Text", "Value");
+            AddSelect("Type", nameof(MaterialProperties.ModelType), typeOptions, MaterialProperties.DefaultModelType);
 
-            AddSelect("Type", nameof(MaterialProperties.ModelType), options, MaterialProperties.DefaultModelType);
-            AddTextFile<string>("File", nameof(MaterialProperties.ModelFile));
+            var allModelFiles = Minecraft.Java.AllModels
+                .Select(md => new ModelTypeValues.Item {
+                    Text = md.Name,
+                    Value = md.GetLatestVersion()?.Id,
+                });
+
+            var fileOptions = new SelectPropertyRowOptions(allModelFiles, "Value", "Value");
+            fileRow = AddTextSelect<string>("File", nameof(MaterialProperties.ModelFile), fileOptions);
+        }
+
+        public override void SetData(MaterialProperties data)
+        {
+            base.SetData(data);
+
+            if (data != null) {
+                var modelData = Minecraft.Java.GetModelForTexture<JavaBlockDataVersion>(data.Name);
+                fileRow.DefaultValue = modelData?.GetLatestVersion()?.Id;
+            }
+            else {
+                fileRow.DefaultValue = null;
+            }
         }
     }
 

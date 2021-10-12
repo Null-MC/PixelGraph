@@ -57,6 +57,8 @@ namespace PixelGraph.UI.Windows
             };
 
 #if !NORENDER
+            viewModel.SceneModel = Model.SceneModel;
+            //renderPreview.ViewModel.SceneModel = Model.SceneModel;
             viewModel.RenderModel = renderPreview.Model;
             PreviewKeyUp += OnWindowPreviewKeyUp;
 
@@ -931,9 +933,13 @@ namespace PixelGraph.UI.Windows
             window.ShowDialog();
         }
 
-        private void OnMaterialPropertiesModelChanged(object sender, EventArgs e)
+        private async void OnMaterialPropertiesModelChanged(object sender, EventArgs e)
         {
-            renderPreview.UpdateModel();
+            //renderPreview.UpdateModel(Model.SelectedTabMaterial);
+            if (Model.SelectedTab == null) return;
+
+            //viewModel.InvalidateTabModel();
+            await viewModel.UpdateTabPreviewAsync();
         }
 
         private void OnExitClick(object sender, RoutedEventArgs e)

@@ -16,6 +16,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
     {
         string Name {get;}
         object EditValue {get; set;}
+        object DefaultValue {get; set;}
     }
 
     public interface IEditPropertyRow<in TProperty> : IEditPropertyRow
@@ -28,7 +29,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
     {
         private readonly PropertyInfo info;
         private readonly string propertyName;
-        private readonly object _defaultValue;
+        private object _defaultValue;
         private TProperty _data;
 
         public event EventHandler<PropertyValueChangedEventArgs> ValueChanged;
@@ -53,6 +54,16 @@ namespace PixelGraph.UI.Models.PropertyGrid
             }
         }
 
+        public object DefaultValue {
+            get => _defaultValue;
+            set {
+                if (_data == null) return;
+                _defaultValue = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(EditValue));
+            }
+        }
+
 
         protected EditPropertyRowModelBase(string name, string propertyName, object defaultValue = null)
         {
@@ -64,6 +75,17 @@ namespace PixelGraph.UI.Models.PropertyGrid
 
             _defaultValue = defaultValue;
         }
+
+        //protected EditPropertyRowModelBase(string name, string propertyName, Func<object> defaultFunc)
+        //{
+        //    this.propertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
+        //    Name = name ?? throw new ArgumentNullException(nameof(name));
+
+        //    info = typeof(TProperty).GetProperty(propertyName);
+        //    if (info == null) throw new ApplicationException($"Property '{typeof(TProperty).Name}.{propertyName}' not found!");
+
+        //    _defaultFunc = defaultFunc;
+        //}
 
         protected virtual T FormatValue<T>(object value)
         {

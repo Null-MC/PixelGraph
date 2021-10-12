@@ -5,5 +5,6 @@
         Material,
         Filters,
         Connections,
+        Scene,
     }
 }

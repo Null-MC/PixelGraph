@@ -202,6 +202,12 @@ namespace PixelGraph.Common.Extensions
             while (value > max) value -= max - min;
         }
 
+        public static void Wrap(ref float value, in float min, in float max)
+        {
+            while (value < min) value += max - min;
+            while (value > max) value -= max - min;
+        }
+
         //public static void Cycle(ref byte value, in int offset)
         //{
         //    var x = value + offset;

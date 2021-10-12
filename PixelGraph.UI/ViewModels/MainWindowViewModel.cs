@@ -14,6 +14,7 @@ using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
+using PixelGraph.UI.Models.Scene;
 using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewData;
 using SixLabors.ImageSharp;
@@ -43,6 +44,7 @@ namespace PixelGraph.UI.ViewModels
         public Dispatcher Dispatcher {get; set;}
 
 #if !NORENDER
+        public ScenePropertiesModel SceneModel {get; set;}
         public RenderPreviewModel RenderModel {get; set;}
 #endif
 
@@ -288,14 +290,15 @@ namespace PixelGraph.UI.ViewModels
                         if (materialTab.Material == null || context.IsMaterialValid) return;
 
                         if (!context.IsMaterialBuilderValid)
-                            await context.BuildMaterialAsync(Model, RenderModel, token);
+                            await context.BuildMaterialAsync(Model, SceneModel, RenderModel, token);
 
                         await Dispatcher.BeginInvoke(() => {
                             if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
 
-                            context.UpdateMaterial(Model, RenderModel);
-                            RenderModel.ModelMaterial = context.ModelMaterial;
-                            RenderModel.SetModel(materialTab.Material.ModelType, materialTab.Material.ModelFile);
+                            RenderModel.ModelMaterial = context.UpdateMaterial(Model, SceneModel, RenderModel);
+                            RenderModel.BlockMesh = context.UpdateModel(Model);
+                            //RenderModel.SetModel();
+                            
                             TextureModel.Texture = null;
                         });
                     }
@@ -310,6 +313,7 @@ namespace PixelGraph.UI.ViewModels
 
 #if !NORENDER
                             RenderModel.ModelMaterial = null;
+                            RenderModel.BlockMesh = null;
 #endif
 
                             TextureModel.Texture = context.GetLayerImageSource();
@@ -327,6 +331,7 @@ namespace PixelGraph.UI.ViewModels
 
 #if !NORENDER
                         RenderModel.ModelMaterial = null;
+                        RenderModel.BlockMesh = null;
 #endif
 
                         TextureModel.Texture = context.GetLayerImageSource();

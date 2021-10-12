@@ -53,7 +53,7 @@ float4 main(const ps_input input) : SV_TARGET
 
         	// light parallax shadows
             const float SNoL = dot(normal, light_dir);
-        	const float2 polT = get_parallax_offset(mTBN, light_dir);
+        	const float2 polT = get_parallax_offset(mTBN, light_dir, input.tex_max - input.tex_min);
             const float shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
 
             const float3 H = normalize(light_dir + view);
@@ -77,7 +77,7 @@ float4 main(const ps_input input) : SV_TARGET
 
         	// light parallax shadows
             const float SNoL = dot(normal, light_dir);
-        	const float2 polT = get_parallax_offset(mTBN, light_dir);
+        	const float2 polT = get_parallax_offset(mTBN, light_dir, input.tex_max - input.tex_min);
             const float shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
 
         	const float3 H = normalize(view + light_dir);
@@ -101,7 +101,7 @@ float4 main(const ps_input input) : SV_TARGET
 
         	// light parallax shadows
             const float SNoL = dot(normal, light_dir);
-        	const float2 polT = get_parallax_offset(mTBN, light_dir);
+        	const float2 polT = get_parallax_offset(mTBN, light_dir, input.tex_max - input.tex_min);
             const float shadow = get_parallax_shadow(shadow_tex, shadow_depth, polT, SNoL);
         	
             const float3 H = normalize(view + light_dir);

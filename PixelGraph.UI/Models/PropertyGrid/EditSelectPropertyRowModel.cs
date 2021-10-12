@@ -10,17 +10,26 @@ namespace PixelGraph.UI.Models.PropertyGrid
         SelectPropertyRowOptions Options {get;}
     }
 
-    public interface IEditSelectPropertyRow : ISelectPropertyRow, IEditPropertyRow {}
+    public interface IEditSelectPropertyRow : ISelectPropertyRow, IEditPropertyRow
+    {
+        public bool CanEditText {get; set;}
+    }
 
     public interface IEditSelectPropertyRow<in TProperty> : IEditSelectPropertyRow, IEditPropertyRow<TProperty> {}
 
     public class EditSelectPropertyRowModel<TProperty, TValue> : EditPropertyRowModelBase<TProperty, TValue>, IEditSelectPropertyRow<TProperty>
     {
+        public bool CanEditText {get; set;}
         public SelectPropertyRowOptions Options {get;}
         public string DisplayValue => Options.GetDisplayValue(EditValue);
 
 
         public EditSelectPropertyRowModel(string name, string propertyName, SelectPropertyRowOptions options, object defaultValue = null) : base(name, propertyName, defaultValue)
+        {
+            Options = options;
+        }
+
+        public EditSelectPropertyRowModel(string name, string propertyName, SelectPropertyRowOptions options, Func<object> defaultFunc) : base(name, propertyName, defaultFunc)
         {
             Options = options;
         }

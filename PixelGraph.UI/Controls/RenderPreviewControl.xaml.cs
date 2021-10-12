@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Helix.Shaders;
+using PixelGraph.UI.Models.Scene;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Text;
@@ -23,6 +24,11 @@ namespace PixelGraph.UI.Controls
         public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
 
         public RenderPreviewViewModel ViewModel {get; private set;}
+
+        public ScenePropertiesModel SceneModel {
+            get => (ScenePropertiesModel)GetValue(SceneModelProperty);
+            set => SetValue(SceneModelProperty, value);
+        }
 
         public string FrameRateText {
             get => (string)GetValue(FrameRateTextProperty);
@@ -48,9 +54,11 @@ namespace PixelGraph.UI.Controls
             logger = provider.GetRequiredService<ILogger<RenderPreviewControl>>();
 
             ViewModel = new RenderPreviewViewModel(provider) {
-                Model = Model,
+                SceneModel = SceneModel,
+                RenderModel = Model,
             };
 
+            SceneModel.SunChanged += OnSceneSunChanged;
             ViewModel.ShaderCompileErrors += OnViewModelShaderCompileErrors;
 
             ViewModel.Initialize();
@@ -92,19 +100,19 @@ namespace PixelGraph.UI.Controls
             });
         }
 
-        public void UpdateModel()
-        {
-            try {
-                ViewModel.UpdateModel();
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to load model!");
-                // TODO: show warning message!
+        //public void UpdateModel(MaterialProperties material)
+        //{
+        //    try {
+        //        ViewModel.UpdateModel(material);
+        //    }
+        //    catch (Exception error) {
+        //        logger.LogError(error, "Failed to load model!");
+        //        // TODO: show warning message!
 
-                var window = Window.GetWindow(this);
-                if (window != null) MessageBox.Show(window, "Failed to load model!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
+        //        var window = Window.GetWindow(this);
+        //        if (window != null) MessageBox.Show(window, "Failed to load model!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+        //    }
+        //}
 
         public BitmapSource TakeScreenshot()
         {
@@ -159,9 +167,14 @@ namespace PixelGraph.UI.Controls
             await Dispatcher.BeginInvoke(() => ShowWindowError(message.ToString()));
         }
 
-        private void OnModelModelChanged(object sender, EventArgs e)
+        //private void OnModelModelChanged(object sender, EventArgs e)
+        //{
+        //    ViewModel.UpdateModel();
+        //}
+
+        private void OnSceneSunChanged(object sender, EventArgs e)
         {
-            ViewModel.UpdateModel();
+            ViewModel.UpdateSun();
         }
 
         private void ShowWindowError(string message)
@@ -171,6 +184,9 @@ namespace PixelGraph.UI.Controls
 
             MessageBox.Show(window, message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+
+        public static readonly DependencyProperty SceneModelProperty = DependencyProperty
+            .Register(nameof(SceneModel), typeof(ScenePropertiesModel), typeof(RenderPreviewControl));
 
         public static readonly DependencyProperty FrameRateTextProperty = DependencyProperty
             .Register(nameof(FrameRateText), typeof(string), typeof(RenderPreviewControl));

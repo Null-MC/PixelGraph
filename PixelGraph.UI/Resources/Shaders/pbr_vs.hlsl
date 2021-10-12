@@ -25,7 +25,7 @@ ps_input main(const vs_input input)
 	//const float2 aspect = get_parallax_aspect(input.tex_max - input.tex_min);
 
 	const float3x3 mTBN = float3x3(output.tan, output.bin, output.nor);
-	output.poT = get_parallax_offset(mTBN, normalize(output.eye.xyz));// * aspect;
+	output.poT = get_parallax_offset(mTBN, normalize(output.eye.xyz), input.tex_max - input.tex_min);// * aspect;
 
 	//float4 result = float4(0, 0, 0, 1);
     if (input.tex_max.x < input.tex_min.x) output.poT.y *= -1;

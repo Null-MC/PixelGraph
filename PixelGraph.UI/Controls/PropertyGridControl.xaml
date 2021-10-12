@@ -15,9 +15,9 @@
         <convert:NullableConverter x:Key="NullableConverter"/>
         <controls:PropertyGridCellTemplateSelector x:Key="DisplayCellTemplateSelector">
             <controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
-                <DataTemplate DataType="{x:Type propertyGrid:ITextPropertyRow}">
+                <DataTemplate DataType="{x:Type propertyGrid:IEditTextPropertyRow}">
                     <TextBlock VerticalAlignment="Center"
-                               Text="{Binding ActualValue, Mode=OneWay}">
+                               Text="{Binding EditValue, Mode=OneWay}">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock" BasedOn="{StaticResource MahApps.Styles.TextBlock}">
                                 <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -32,15 +32,15 @@
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
-                <DataTemplate DataType="{x:Type propertyGrid:IBoolPropertyRow}">
+                <DataTemplate DataType="{x:Type propertyGrid:IEditBoolPropertyRow}">
                     <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="False"
-                              IsChecked="{Binding ActualValue, Mode=OneWay}"/>
+                              IsChecked="{Binding EditValue, Mode=OneWay}"/>
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.CheckBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
-                <DataTemplate DataType="{x:Type propertyGrid:ISelectPropertyRow}">
+                <DataTemplate DataType="{x:Type propertyGrid:IEditSelectPropertyRow}">
                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Text="{Binding DisplayValue, Mode=OneWay}"/>
+                               Text="{Binding EditValue, Mode=OneWay}"/>
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.SeparatorTemplate>
@@ -77,12 +77,23 @@
                               DisplayMemberPath="{Binding Options.DisplayMemberPath, Mode=OneWay}"
                               SelectedValuePath="{Binding Options.SelectedValuePath, Mode=OneWay}"
                               ItemsSource="{Binding Options.Items, Mode=OneWay}"
-                              SelectedValue="{Binding EditValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                              IsEditable="{Binding CanEditText, Mode=OneWay}">
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem" BasedOn="{StaticResource MahApps.Styles.ComboBoxItem}">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                             </Style>
                         </ComboBox.ItemContainerStyle>
+                        <ComboBox.Style>
+                            <Style TargetType="ComboBox" BasedOn="{StaticResource MahApps.Styles.ComboBox}">
+                                <Setter Property="SelectedValue" Value="{Binding EditValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CanEditText, Mode=OneWay}" Value="True">
+                                        <Setter Property="SelectedValue" Value="{x:Null}"/>
+                                        <Setter Property="Text" Value="{Binding EditValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.Style>
                     </ComboBox>
                 </DataTemplate>
             </controls:PropertyGridEditCellTemplateSelector.ComboBoxTemplate>

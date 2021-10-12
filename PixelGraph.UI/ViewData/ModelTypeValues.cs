@@ -7,10 +7,12 @@ namespace PixelGraph.UI.ViewData
     {
         public ModelTypeValues()
         {
+            Add(new Item {Text = "Bell", Value = ModelType.Bell});
+            Add(new Item {Text = "Boat", Value = ModelType.Boat});
+            Add(new Item {Text = "Cow", Value = ModelType.Cow});
             Add(new Item {Text = "Cube", Value = ModelType.Cube});
-            Add(new Item {Text = "Cross", Value = ModelType.Cross});
             Add(new Item {Text = "Plane", Value = ModelType.Plane});
-            Add(new Item {Text = "File", Value = ModelType.File});
+            Add(new Item {Text = "Zombie", Value = ModelType.Zombie});
         }
 
         public class Item

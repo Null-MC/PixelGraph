@@ -23,7 +23,7 @@ ps_shadow main(vs_input input)
 	
 	const float3x3 mTBN = float3x3(tan, bin, output.nor);
 	//const float2 aspect = get_parallax_aspect(abs(input.tex_max - input.tex_min));
-	output.poT = get_parallax_offset(mTBN, SunDirection);// * aspect;
+	output.poT = get_parallax_offset(mTBN, SunDirection, input.tex_max - input.tex_min);// * aspect;
 	
     return output;
 }

@@ -250,6 +250,8 @@
                                      IsChecked="{Binding IsViewModeRender, Mode=TwoWay}">
                             <iconPacks:PackIconFontAwesome Kind="CubeSolid"/>
                         </RadioButton>
+                    </ToolBar>
+                    <ToolBar ToolBarTray.IsLocked="True">
                         <Separator/>
                         <RadioButton GroupName="Edit" ToolTip="Edit Material"
                                      IsChecked="{Binding IsEditModeMaterial, Mode=TwoWay}">
@@ -263,8 +265,14 @@
                                      IsChecked="{Binding IsEditModeConnections, Mode=TwoWay}">
                             <iconPacks:PackIconFontAwesome Kind="PuzzlePieceSolid"/>
                         </RadioButton>
+                        <RadioButton GroupName="Edit" ToolTip="Edit Scene"
+                                     IsChecked="{Binding IsEditModeScene, Mode=TwoWay}">
+                            <iconPacks:PackIconFontAwesome Kind="CloudMoonRainSolid"/>
+                        </RadioButton>
                     </ToolBar>
-                    <ToolBar Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                    <ToolBar ToolBarTray.IsLocked="True"
+                             Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                        <Separator/>
                         <Button Click="OnFilterImportFileButtonClick" ToolTip="Import filters from JSON Model file">
                             <iconPacks:PackIconFontAwesome Kind="FileImportSolid"/>
                         </Button>
@@ -292,7 +300,8 @@
                                                                     OutlineBounds="{Binding SelectedFilterBounds, Mode=OneWay, ElementName=FilterEditor}"
                                                                     Visibility="{Binding IsViewModeLayer, Converter={StaticResource VisibilityConverter}}"/>
                                     <controls:RenderPreviewControl x:Name="renderPreview"
-                                                          Visibility="{Binding IsViewModeRender, Converter={StaticResource VisibilityConverter}}"/>
+                                                                   SceneModel="{Binding SceneModel, Mode=OneTime}"
+                                                                   Visibility="{Binding IsViewModeRender, Converter={StaticResource VisibilityConverter}}"/>
                                     <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                 Visibility="{Binding Preview.IsLoading, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                         <Button Width="20" Height="20" Margin="0,0,4,0" ToolTip="Cancel" Click="OnPreviewCancelClick" Padding="0" VerticalAlignment="Center"
@@ -362,6 +371,9 @@
                                       Visibility="{Binding IsEditModeConnections, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <TextBlock Text="Coming Soon..." HorizontalAlignment="Center" Margin="8"/>
                                 </Grid>
+                                <controls:ScenePropertiesControl
+                                    Model="{Binding SceneModel, Mode=OneWay}"
+                                    Visibility="{Binding IsEditModeScene, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             </Grid>
                         </DockPanel>
                     </Grid>

@@ -1,20 +1,15 @@
 ﻿using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
-using MinecraftMappings.Minecraft.Java.Entities;
-using PixelGraph.Common.IO;
-using PixelGraph.Common.Models;
 using PixelGraph.UI.Helix;
-using PixelGraph.UI.Helix.Models;
 using PixelGraph.UI.Helix.Shaders;
 using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
+using PixelGraph.UI.Models.Scene;
 using SharpDX.DXGI;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,20 +19,20 @@ namespace PixelGraph.UI.ViewModels
 {
     public class RenderPreviewViewModel : IDisposable
     {
-        private const float CubeSize = 4f;
+        //private const float CubeSize = 4f;
 
         private static readonly Lazy<Factory1> deviceFactory;
 
         private readonly IServiceProvider provider;
         private readonly IAppSettings appSettings;
         private readonly ITabPreviewManager tabPreviewMgr;
-        private readonly IModelBuilder modelBuilder;
         private Stream brdfLutStream;
 
         //public event EventHandler SceneChanged;
         public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
 
-        public RenderPreviewModel Model {get; set;}
+        public ScenePropertiesModel SceneModel {get; set;}
+        public RenderPreviewModel RenderModel {get; set;}
         //public MainWindowModel MainModel {get; set;}
 
 
@@ -52,7 +47,7 @@ namespace PixelGraph.UI.ViewModels
 
             appSettings = provider.GetRequiredService<IAppSettings>();
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
-            modelBuilder = provider.GetRequiredService<IModelBuilder>();
+            //modelBuilder = provider.GetRequiredService<IModelBuilder>();
         }
 
         public void Dispose()
@@ -69,11 +64,11 @@ namespace PixelGraph.UI.ViewModels
 
         public void Initialize()
         {
-            Model.Camera = new PerspectiveCamera {
+            RenderModel.Camera = new PerspectiveCamera {
                 UpDirection = new Media3D.Vector3D(0, 1, 0),
             };
 
-            Model.SunCamera = new OrthographicCamera {
+            RenderModel.SunCamera = new OrthographicCamera {
                 UpDirection = new Media3D.Vector3D(0f, 1f, 0f),
                 NearPlaneDistance = 1f,
                 FarPlaneDistance = 32f,
@@ -82,9 +77,9 @@ namespace PixelGraph.UI.ViewModels
 
             ResetViewport();
 
-            Model.PropertyChanged += OnPreviewPropertyChanged;
-            Model.RenderModeChanged += OnRenderModeChanged;
-            Model.RenderSceneChanged += OnRenderSceneChanged;
+            //RenderModel.PropertyChanged += OnPreviewPropertyChanged;
+            RenderModel.RenderModeChanged += OnRenderModeChanged;
+            RenderModel.RenderSceneChanged += OnRenderSceneChanged;
         }
 
         public void Prepare()
@@ -92,45 +87,38 @@ namespace PixelGraph.UI.ViewModels
             LoadAppSettings();
             UpdateShaders();
 
-            Model.BrdfLutMap = brdfLutStream;
+            RenderModel.BrdfLutMap = brdfLutStream;
 
-            UpdateModel();
+            //UpdateModel();
         }
 
         public void LoadAppSettings()
         {
-            Model.ParallaxDepth = (float)(appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth);
-            Model.ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
-            Model.ParallaxSamplesMax = appSettings.Data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
-            Model.EnableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling ?? RenderPreviewSettings.Default_EnableLinearSampling;
-            Model.EnableSlopeNormals = appSettings.Data.RenderPreview.EnableSlopeNormals ?? RenderPreviewSettings.Default_EnableSlopeNormals;
-            Model.EnablePuddles = appSettings.Data.RenderPreview.EnablePuddles ?? RenderPreviewSettings.Default_EnablePuddles;
+            RenderModel.ParallaxDepth = (float)(appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth);
+            RenderModel.ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
+            RenderModel.ParallaxSamplesMax = appSettings.Data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
+            RenderModel.EnableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling ?? RenderPreviewSettings.Default_EnableLinearSampling;
+            RenderModel.EnableSlopeNormals = appSettings.Data.RenderPreview.EnableSlopeNormals ?? RenderPreviewSettings.Default_EnableSlopeNormals;
+            RenderModel.EnablePuddles = appSettings.Data.RenderPreview.EnablePuddles ?? RenderPreviewSettings.Default_EnablePuddles;
 
             if (appSettings.Data.RenderPreview.SelectedMode != null)
                 if (RenderPreviewMode.TryParse(appSettings.Data.RenderPreview.SelectedMode, out var renderMode))
-                    Model.RenderMode = renderMode;
+                    RenderModel.RenderMode = renderMode;
         }
 
         public void UpdateSun()
         {
-            const float sun_overlap = 0.06f;
-            const float sun_power = 0.9f;
-            const float sun_azimuth = 30f;
-            const float sun_roll = 25f;
+            SceneModel.GetSunAngle(out var sunDirection, out var sunStrength);
 
-            MinecraftTime.GetSunAngle(sun_azimuth, sun_roll, Model.TimeOfDayLinear, out var sunDirection);
-            Model.SunDirection = sunDirection;
-
-            var strength = MinecraftTime.GetSunStrength(Model.TimeOfDayLinear, sun_overlap, sun_power);
-            Model.SunStrength = strength;
-
-            Model.SunCamera.Position = (sunDirection * 20f).ToPoint3D();
-            Model.SunCamera.LookDirection = -sunDirection.ToVector3D();
+            RenderModel.SunDirection = sunDirection;
+            RenderModel.SunStrength = sunStrength;
+            RenderModel.SunCamera.Position = (sunDirection * 32f).ToPoint3D();
+            RenderModel.SunCamera.LookDirection = -sunDirection.ToVector3D();
         }
 
         public Task SaveRenderStateAsync(CancellationToken token = default)
         {
-            appSettings.Data.RenderPreview.SelectedMode = RenderPreviewMode.GetString(Model.RenderMode);
+            appSettings.Data.RenderPreview.SelectedMode = RenderPreviewMode.GetString(RenderModel.RenderMode);
             return appSettings.SaveAsync(token);
         }
 
@@ -144,68 +132,65 @@ namespace PixelGraph.UI.ViewModels
 
         public void UpdateShaders()
         {
-            Model.EffectsManager?.Dispose();
-            Model.EffectsManager = new PreviewEffectsManager(provider);
+            RenderModel.EffectsManager?.Dispose();
+            RenderModel.EffectsManager = new PreviewEffectsManager(provider);
         }
 
-        public void UpdateModel()
-        {
-            var map = new Dictionary<string, Func<BlockMeshGeometry3D>>(StringComparer.InvariantCultureIgnoreCase) {
-                [ModelType.File] = BuildModelFile,
-                [ModelType.Cube] = () => modelBuilder.BuildCube(CubeSize),
-                [ModelType.Cross] = () => modelBuilder.BuildCross(CubeSize),
-                [ModelType.Plane] = () => modelBuilder.BuildCube(CubeSize, 4, 1, 4),
-                [ModelType.Bell] = () => modelBuilder.BuildEntity(CubeSize, new BellBody().GetLatestVersion()),
-            };
+        //public void UpdateModel(MaterialProperties material)
+        //{
+        //    var map = new Dictionary<string, Func<BlockMeshGeometry3D>>(StringComparer.InvariantCultureIgnoreCase) {
+        //        [ModelType.Bell] = () => modelBuilder.BuildEntity(CubeSize, new BellBody().GetLatestVersion()),
+        //        [ModelType.Boat] = () => modelBuilder.BuildEntity(CubeSize, new Boat().GetLatestVersion()),
+        //        [ModelType.Cow] = () => modelBuilder.BuildEntity(CubeSize, new Cow().GetLatestVersion()),
+        //        [ModelType.Cube] = () => modelBuilder.BuildCube(CubeSize),
+        //        [ModelType.Plane] = () => modelBuilder.BuildCube(CubeSize, 4, 1, 4),
+        //        [ModelType.Zombie] = () => modelBuilder.BuildEntity(CubeSize, new Zombie().GetLatestVersion()),
+        //    };
 
-            if (Model.ModelType != null) {
-                if (!map.TryGetValue(Model.ModelType, out var meshFunc))
-                    throw new ApplicationException($"Unknown model type '{Model.ModelType}'!");
+        //    if (!string.IsNullOrWhiteSpace(material.ModelFile)) {
+        //        try {
+        //            RenderModel.BlockMesh = BuildModelFile(material);
+        //            return;
+        //        }
+        //        catch (Exception) {
+        //            // TODO: log error!
+        //        }
+        //    }
 
-                Model.BlockMesh = meshFunc();
-            }
-            else {
-                Model.BlockMesh = modelBuilder.BuildCube(CubeSize);
-            }
-        }
+        //    if (material.ModelType != null) {
+        //        if (map.TryGetValue(material.ModelType, out var meshFunc)) {
+        //            RenderModel.BlockMesh = meshFunc();
+        //            if (RenderModel.BlockMesh != null) return;
+        //        }
+        //        else {
+        //            //throw new ApplicationException($"Unknown model type '{Model.ModelType}'!");
+        //            // TODO: log error!
+        //        }
+        //    }
 
-        private BlockMeshGeometry3D BuildModelFile()
-        {
-            if (Model.ModelFile == null) return null;
-
-            var reader = provider.GetRequiredService<IInputReader>();
-            var parser = provider.GetRequiredService<IBlockModelParser>();
-
-            var filename = reader.GetFullPath(Model.ModelFile);
-            var localPath = Path.GetDirectoryName(filename);
-            var localFile = Path.GetFileName(filename);
-
-            var model = parser.LoadRecursive(localPath, localFile);
-            if (model == null) throw new ApplicationException("Failed to load model!");
-
-            return modelBuilder.BuildModel(CubeSize, model);
-        }
+        //    RenderModel.BlockMesh = modelBuilder.BuildCube(CubeSize);
+        //}
 
         public void ResetViewport()
         {
-            Model.Camera.Position = new Media3D.Point3D(10, 10, 10);
-            Model.Camera.LookDirection = new Media3D.Vector3D(-10, -10, -10);
+            RenderModel.Camera.Position = new Media3D.Point3D(10, 10, 10);
+            RenderModel.Camera.LookDirection = new Media3D.Vector3D(-10, -10, -10);
 
-            Model.TimeOfDay = 8_000;
+            SceneModel.TimeOfDay = 4_000;
         }
 
         public string GetDeviceName()
         {
-            if (Model.EffectsManager == null) return null;
+            if (RenderModel.EffectsManager == null) return null;
 
-            var adapter = deviceFactory.Value.GetAdapter(Model.EffectsManager.AdapterIndex);
+            var adapter = deviceFactory.Value.GetAdapter(RenderModel.EffectsManager.AdapterIndex);
             return adapter.Description.Description;
         }
 
-        private void OnPreviewPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(Model.TimeOfDay)) UpdateSun();
-        }
+        //private void OnPreviewPropertyChanged(object sender, PropertyChangedEventArgs e)
+        //{
+        //    if (e.PropertyName == nameof(RenderModel.TimeOfDay)) UpdateSun();
+        //}
 
         private void OnShaderCompileErrors(ShaderCompileError[] errors)
         {
