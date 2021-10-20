@@ -16,7 +16,7 @@ namespace PixelGraph.UI.ViewModels
             if (string.IsNullOrWhiteSpace(Model.GameVersion)) return;
             var version = Version.Parse(Model.GameVersion);
 
-            foreach (var entity in Minecraft.Java.AllEntities) {
+            foreach (var entity in Minecraft.Java.AllEntityModels) {
                 var entityVersion = entity.GetVersion(version);
                 if (entityVersion == null) continue;
 

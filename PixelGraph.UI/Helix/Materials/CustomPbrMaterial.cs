@@ -1,14 +1,14 @@
-﻿using System.Windows;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.Wpf.SharpDX;
-using PixelGraph.UI.Helix.CubeMaps;
-using PixelGraph.UI.Helix.Shaders;
+using PixelGraph.Rendering.CubeMaps;
+using PixelGraph.Rendering.Shaders;
 using SharpDX;
 using SharpDX.Direct3D11;
+using System.Windows;
 
-namespace PixelGraph.UI.Helix.Materials
+namespace PixelGraph.Rendering.Materials
 {
     public class CustomPbrMaterial : Material
     {

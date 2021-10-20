@@ -156,7 +156,7 @@ namespace PixelGraph.Common.Textures
         {
             var type = GetMaterialType();
 
-            if (type == MaterialType.Automatic) {
+            if (type == MaterialType.Automatic && !string.IsNullOrWhiteSpace(Material.LocalPath)) {
                 var path = PathEx.Normalize(Material.LocalPath);
 
                 if (path != null) {

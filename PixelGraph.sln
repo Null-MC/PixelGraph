@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelGraph.UI", "PixelGraph
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelGraph.Tests", "PixelGraph.Tests\PixelGraph.Tests.csproj", "{F890D8CF-90E6-4806-A631-782EEA7C8AFC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinecraftMappings", "MinecraftMappings\MinecraftMappings.csproj", "{81514350-9048-4144-ACD1-8A20346E596A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinecraftMappings.NET", "MinecraftMappings.NET\MinecraftMappings.NET\MinecraftMappings.NET.csproj", "{81514350-9048-4144-ACD1-8A20346E596A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixelGraph.Rendering", "PixelGraph.Rendering\PixelGraph.Rendering.csproj", "{6BA6057F-2D3B-4F89-B934-B55820ED121C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -104,6 +106,22 @@ Global
 		{81514350-9048-4144-ACD1-8A20346E596A}.Test|Any CPU.Build.0 = Debug|Any CPU
 		{81514350-9048-4144-ACD1-8A20346E596A}.Test|x64.ActiveCfg = Debug|Any CPU
 		{81514350-9048-4144-ACD1-8A20346E596A}.Test|x64.Build.0 = Debug|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Debug|x64.Build.0 = Debug|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Release|x64.ActiveCfg = Release|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Release|x64.Build.0 = Release|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.ReleaseNoRender|Any CPU.ActiveCfg = Release|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.ReleaseNoRender|Any CPU.Build.0 = Release|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.ReleaseNoRender|x64.ActiveCfg = Release|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.ReleaseNoRender|x64.Build.0 = Release|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Test|x64.ActiveCfg = Debug|Any CPU
+		{6BA6057F-2D3B-4F89-B934-B55820ED121C}.Test|x64.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

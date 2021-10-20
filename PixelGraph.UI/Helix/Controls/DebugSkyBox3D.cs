@@ -2,8 +2,8 @@
 using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
-using PixelGraph.UI.Helix.CubeMaps;
-using PixelGraph.UI.Helix.Sky;
+using PixelGraph.Rendering.CubeMaps;
+using PixelGraph.Rendering.Sky;
 
 namespace PixelGraph.UI.Helix.Models
 {

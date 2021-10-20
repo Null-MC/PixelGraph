@@ -1,12 +1,12 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
-using PixelGraph.UI.Helix.CubeMaps;
-using PixelGraph.UI.Helix.Models;
+using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview;
 using SharpDX;
 using System;
 using System.IO;
+using PixelGraph.Common.Material;
 using Media = System.Windows.Media;
 
 namespace PixelGraph.UI.Models
@@ -16,11 +16,13 @@ namespace PixelGraph.UI.Models
         private IEffectsManager _effectsManager;
         private ICubeMapSource _environmentCube;
         private ICubeMapSource _irradianceCube;
-        private Material _modelMaterial;
-        private BlockMeshGeometry3D _blockMesh;
+        //private Material _modelMaterial;
+        //private MultiTexturedMesh _blockMesh;
+        private ObservableElement3DCollection _meshParts;
         private PerspectiveCamera _camera;
         //private ImageSource _layerImage;
         private Stream _brdfLutMap;
+        private MaterialProperties _missingMaterial;
         //private string _selectedTag;
         //private string _modelType;
         //private string _modelFile;
@@ -227,6 +229,14 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public MaterialProperties MissingMaterial {
+            get => _missingMaterial;
+            set {
+                _missingMaterial = value;
+                OnPropertyChanged();
+            }
+        }
+
         public PerspectiveCamera Camera {
             get => _camera;
             set {
@@ -235,21 +245,29 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public BlockMeshGeometry3D BlockMesh {
-            get => _blockMesh;
+        public ObservableElement3DCollection MeshParts {
+            get => _meshParts;
             set {
-                _blockMesh = value;
+                _meshParts = value;
                 OnPropertyChanged();
             }
         }
 
-        public Material ModelMaterial {
-            get => _modelMaterial;
-            set {
-                _modelMaterial = value;
-                OnPropertyChanged();
-            }
-        }
+        //public MultiTexturedMesh BlockMesh {
+        //    get => _blockMesh;
+        //    set {
+        //        _blockMesh = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
+
+        //public Material ModelMaterial {
+        //    get => _modelMaterial;
+        //    set {
+        //        _modelMaterial = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
         //public string ModelType {
         //    get => _modelType;
@@ -268,23 +286,24 @@ namespace PixelGraph.UI.Models
         //}
 
 
-        //public RenderPreviewModel()
+        public RenderPreviewModel()
+        {
+            //_enableEnvironment = true;
+            _meshParts = new ObservableElement3DCollection();
+        }
+
+        //public void SetModel()
         //{
-        //    _enableEnvironment = true;
+        //    //ModelType = type;
+        //    //ModelFile = localFile;
+        //    OnModelChanged();
+        //    // TODO: Notify RenderViewModel somehow
         //}
 
-        public void SetModel()
-        {
-            //ModelType = type;
-            //ModelFile = localFile;
-            OnModelChanged();
-            // TODO: Notify RenderViewModel somehow
-        }
-
-        protected virtual void OnModelChanged()
-        {
-            ModelChanged?.Invoke(this, EventArgs.Empty);
-        }
+        //protected virtual void OnModelChanged()
+        //{
+        //    ModelChanged?.Invoke(this, EventArgs.Empty);
+        //}
 
         private void OnRenderModeChanged()
         {

@@ -16,7 +16,7 @@ namespace PixelGraph.UI.ViewModels
             switch (Model.GameObjectType) {
                 case GameObjectTypes.Block:
                 case GameObjectTypes.Optifine_CTM:
-                    foreach (var block in Minecraft.Java.AllBlocks) {
+                    foreach (var block in Minecraft.Java.AllBlockTextures) {
                         var latest = block.GetLatestVersion();
 
                         Model.GameObjectNames.Add(new GameObjectOption {
@@ -35,7 +35,7 @@ namespace PixelGraph.UI.ViewModels
                     }
                     break;
                 case GameObjectTypes.Entity:
-                    foreach (var entity in Minecraft.Java.AllEntities) {
+                    foreach (var entity in Minecraft.Java.AllEntityTextures) {
                         var latest = entity.GetLatestVersion();
 
                         var e = new GameObjectOption {

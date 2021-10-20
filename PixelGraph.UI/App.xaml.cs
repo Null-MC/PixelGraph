@@ -10,10 +10,12 @@ using Serilog;
 using System;
 using System.Windows;
 using System.Windows.Threading;
+using PixelGraph.UI.Helix;
+using PixelGraph.UI.Helix.Models;
 
 #if !NORENDER
-using PixelGraph.UI.Helix.Models;
-using PixelGraph.UI.Helix.Shaders;
+using PixelGraph.Rendering.Models;
+using PixelGraph.Rendering.Shaders;
 #endif
 
 namespace PixelGraph.UI
@@ -37,6 +39,7 @@ namespace PixelGraph.UI
             builder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
             builder.Services.AddSingleton<ITextureEditUtility, TextureEditUtility>();
             builder.Services.AddSingleton<ITabPreviewManager, TabPreviewManager>();
+            builder.Services.AddSingleton<IMaterialPropertiesCache, MaterialPropertiesCache>();
 
             builder.Services.AddTransient<IServiceBuilder, ServiceBuilder>();
             builder.Services.AddTransient<ILayerPreviewBuilder, LayerPreviewBuilder>();

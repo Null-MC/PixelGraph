@@ -403,6 +403,7 @@ namespace PixelGraph.Common.IO.Publishing
             ["assets/minecraft/textures/block/acacia_log_top"] = "textures/blocks/log_acacia_top",
             ["assets/minecraft/textures/block/dark_oak_log"] = "textures/blocks/log_big_oak",
             ["assets/minecraft/textures/block/dark_oak_log_top"] = "textures/blocks/log_big_oak_top",
+
             ["assets/minecraft/textures/block/birch_log"] = "textures/blocks/log_birch",
             ["assets/minecraft/textures/block/birch_log_top"] = "textures/blocks/log_birch_top",
             ["assets/minecraft/textures/block/jungle_log"] = "textures/blocks/log_jungle",

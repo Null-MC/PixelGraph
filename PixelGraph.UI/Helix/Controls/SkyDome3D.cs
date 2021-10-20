@@ -1,6 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.Wpf.SharpDX;
-using PixelGraph.UI.Helix.Sky;
+using PixelGraph.Rendering.Sky;
 
 namespace PixelGraph.UI.Helix.Models
 {

@@ -52,6 +52,7 @@ namespace PixelGraph.Common.IO
         public override string GetFullPath(string localFile)
         {
             var fullFile = PathEx.Join(root, localFile);
+            fullFile = PathEx.Localize(fullFile);
             return Path.GetFullPath(fullFile);
         }
 

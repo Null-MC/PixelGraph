@@ -1,5 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.Wpf.SharpDX;
+using PixelGraph.Rendering.BlockMesh;
 
 namespace PixelGraph.UI.Helix.Controls
 {

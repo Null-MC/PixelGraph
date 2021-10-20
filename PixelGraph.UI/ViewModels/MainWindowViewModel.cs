@@ -9,6 +9,8 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
+using PixelGraph.Rendering.Models;
+using PixelGraph.UI.Helix;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
@@ -35,6 +37,7 @@ namespace PixelGraph.UI.ViewModels
         private readonly IRecentPathManager recentMgr;
         private readonly ITextureEditUtility editUtility;
         private readonly ITabPreviewManager tabPreviewMgr;
+        private readonly IMaterialPropertiesCache materialCache;
         private LocationDataModel[] publishLocationList;
 
         public event EventHandler<UnhandledExceptionEventArgs> TreeError;
@@ -57,6 +60,7 @@ namespace PixelGraph.UI.ViewModels
             recentMgr = provider.GetRequiredService<IRecentPathManager>();
             editUtility = provider.GetRequiredService<ITextureEditUtility>();
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
+            materialCache = provider.GetRequiredService<IMaterialPropertiesCache>();
         }
 
         public void Initialize()
@@ -93,6 +97,7 @@ namespace PixelGraph.UI.ViewModels
             Model.RootDirectory = null;
 
             Model.Profile.List.Clear();
+            materialCache.Clear();
         }
 
         public void CloseAllTabs()
@@ -108,6 +113,7 @@ namespace PixelGraph.UI.ViewModels
         public async Task SetRootDirectoryAsync(string path, CancellationToken token = default)
         {
             Model.RootDirectory = path;
+            materialCache.RootDirectory = path;
 
             await LoadRootDirectoryAsync();
 
@@ -198,6 +204,9 @@ namespace PixelGraph.UI.ViewModels
         {
             if (Model.PreviewTab == null) return;
 
+            if (Model.PreviewTab is MaterialTabModel materialTab && materialTab.MaterialRegistration != null)
+                materialCache.Release(materialTab.MaterialRegistration);
+
             tabPreviewMgr.Remove(Model.PreviewTab.Id);
             Model.PreviewTab = null;
             Model.IsPreviewTabSelected = false;
@@ -206,7 +215,7 @@ namespace PixelGraph.UI.ViewModels
         public void SetPreviewTab(ITabModel newTab)
         {
             if (Model.PreviewTab != null)
-                tabPreviewMgr.Remove(Model.PreviewTab.Id);
+                ClearPreviewTab();
 
             var context = new TabPreviewContext(provider) {
                 Id = newTab.Id,
@@ -285,18 +294,53 @@ namespace PixelGraph.UI.ViewModels
         {
             try {
                 if (Model.SelectedTab is MaterialTabModel materialTab) {
+                    var material = materialTab.MaterialRegistration.Value;
+                    if (material == null || context.IsMaterialValid) return;
+
 #if !NORENDER
                     if (Model.IsViewModeRender) {
-                        if (materialTab.Material == null || context.IsMaterialValid) return;
+                        //if (!context.IsMaterialBuilderValid)
+                        //    await context.BuildModelMeshAsync(material, token);
 
-                        if (!context.IsMaterialBuilderValid)
-                            await context.BuildMaterialAsync(Model, SceneModel, RenderModel, token);
+                        var renderContext = new RenderContext {
+                            PackInput = Model.PackInput,
+                            PackProfile = Model.Profile.Loaded,
+                            DefaultMaterial = Model.SelectedTabMaterial,
+                            MissingMaterial = RenderModel.MissingMaterial,
+                            EnvironmentCubeMap = RenderModel.EnvironmentCube,
+                            IrradianceCubeMap = RenderModel.IrradianceCube,
+                            EnvironmentEnabled = SceneModel.SunEnabled,
+                            BrdfLutMap = RenderModel.BrdfLutMap,
+                        };
+
+                        try {
+                            await context.BuildModelMeshAsync(RenderModel.RenderMode, renderContext, token);
+                        }
+                        catch (Exception error) {
+                            logger.LogError(error, "Failed to build model mesh!");
+                            // TODO: show error modal!
+                        }
 
                         await Dispatcher.BeginInvoke(() => {
                             if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
 
-                            RenderModel.ModelMaterial = context.UpdateMaterial(Model, SceneModel, RenderModel);
-                            RenderModel.BlockMesh = context.UpdateModel(Model);
+                            //RenderModel.MeshParts.Clear();
+
+                            //var srcMeshParts = context.UpdateModel(Model);
+                            //foreach (var (textureId, partData) in srcMeshParts) {
+                            //    var part = new BlockMeshGeometryModel3D();
+                            //    part.Geometry = partData.Geometry;
+
+                            //    // TODO: load actual material textures
+                            //    part.Material = material;
+
+                            //    RenderModel.MeshParts.Add(part);
+                            //}
+
+                            //RenderModel.BlockMesh = context.UpdateModel(Model);
+                            //RenderModel.ModelMaterial = context.UpdateMaterial(Model, SceneModel, RenderModel);
+                            context.UpdateModelParts();
+                            RenderModel.MeshParts = context.Mesh.ModelParts;
                             //RenderModel.SetModel();
                             
                             TextureModel.Texture = null;
@@ -305,15 +349,18 @@ namespace PixelGraph.UI.ViewModels
 #endif
                     if (!Model.IsViewModeRender) {
                         if (context.IsLayerValid) return;
-                        
-                        await Task.Run(() => context.BuildLayerAsync(Model, token), token);
+
+                        await Task.Run(() => context.BuildLayerAsync(
+                            Model.PackInput, Model.Profile.Loaded,
+                            material, Model.SelectedTag, token), token);
 
                         await Dispatcher.BeginInvoke(() => {
                             if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
 
 #if !NORENDER
-                            RenderModel.ModelMaterial = null;
-                            RenderModel.BlockMesh = null;
+                            //RenderModel.ModelMaterial = null;
+                            //RenderModel.BlockMesh = null;
+                            RenderModel.MeshParts.Clear();
 #endif
 
                             TextureModel.Texture = context.GetLayerImageSource();
@@ -330,8 +377,9 @@ namespace PixelGraph.UI.ViewModels
                         if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
 
 #if !NORENDER
-                        RenderModel.ModelMaterial = null;
-                        RenderModel.BlockMesh = null;
+                        //RenderModel.ModelMaterial = null;
+                        //RenderModel.BlockMesh = null;
+                        RenderModel.MeshParts.Clear();
 #endif
 
                         TextureModel.Texture = context.GetLayerImageSource();
@@ -487,27 +535,29 @@ namespace PixelGraph.UI.ViewModels
         public async Task LoadTabContentAsync(ITabModel tabModel, CancellationToken token = default)
         {
             if (tabModel is MaterialTabModel materialTab) {
-                var reader = provider.GetRequiredService<IInputReader>();
-                var matReader = provider.GetRequiredService<IMaterialReader>();
-
-                reader.SetRoot(Model.RootDirectory);
-                materialTab.Material = await matReader.LoadAsync(materialTab.MaterialFilename, token);
+                materialTab.MaterialRegistration = await materialCache.RegisterAsync(materialTab.MaterialFilename, token);
             }
         }
 
         public void CloseTab(Guid tabId)
         {
+            ITabModel tab = null;
             if (Model.PreviewTab?.Id == tabId) {
+                tab = Model.PreviewTab;
                 Model.PreviewTab = null;
             }
             else {
                 for (var i = Model.TabList.Count - 1; i >= 0; i--) {
                     if (Model.TabList[i].Id != tabId) continue;
 
+                    tab = Model.TabList[i];
                     Model.TabList.RemoveAt(i);
                     break;
                 }
             }
+
+            if (tab is MaterialTabModel materialTab && materialTab.MaterialRegistration != null)
+                materialCache.Release(materialTab.MaterialRegistration);
 
             tabPreviewMgr.Remove(tabId);
         }
@@ -543,7 +593,7 @@ namespace PixelGraph.UI.ViewModels
         {
             if (Model.SelectedTab is not MaterialTabModel materialTab) return;
             
-            var selectedMaterial = materialTab.Material;
+            var selectedMaterial = materialTab.MaterialRegistration.Value;
             if (selectedMaterial == null) return;
 
             if (!Model.HasSelectedTag) return;
@@ -622,7 +672,8 @@ namespace PixelGraph.UI.ViewModels
             if (context == null) throw new ApplicationException($"Tab context not found! id={Model.SelectedTab.Id}");
 
 #if !NORENDER
-            RenderModel.ModelMaterial = context.ModelMaterial;
+            RenderModel.MeshParts = context.Mesh.ModelParts;
+            //RenderModel.ModelMaterial = context.ModelMaterial;
 #endif
 
             TextureModel.Texture = context.GetLayerImageSource();

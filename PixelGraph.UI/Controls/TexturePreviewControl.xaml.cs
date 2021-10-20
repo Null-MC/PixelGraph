@@ -1,7 +1,7 @@
-﻿using System;
+﻿using SixLabors.ImageSharp;
+using System;
 using System.Windows;
 using System.Windows.Input;
-using SixLabors.ImageSharp;
 
 namespace PixelGraph.UI.Controls
 {

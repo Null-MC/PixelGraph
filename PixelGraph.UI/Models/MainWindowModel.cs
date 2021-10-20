@@ -55,7 +55,7 @@ namespace PixelGraph.UI.Models
         public bool HasTreeTextureSelection => _selectedNode is ContentTreeFile {Type: ContentNodeType.Texture};
         public bool HasSelectedTag => _selectedTag != null;
 
-        public MaterialProperties SelectedTabMaterial => (SelectedTab as MaterialTabModel)?.Material;
+        public MaterialProperties SelectedTabMaterial => (SelectedTab as MaterialTabModel)?.MaterialRegistration?.Value;
         public ITabModel SelectedTab => _isPreviewTabSelected ? _previewTab : _tabListSelection;
         public bool HasSelectedMaterial => SelectedTab is MaterialTabModel;
         public bool HasSelectedTab => IsPreviewTabSelected || TabListSelection != null;

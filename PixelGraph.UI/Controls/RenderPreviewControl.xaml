@@ -83,7 +83,7 @@
                 EnableLinearSampling="{Binding EnableLinearSampling, Mode=OneWay}"
                 EnableSlopeNormals="{Binding EnableSlopeNormals, Mode=OneWay}"
                 EnablePuddles="{Binding EnablePuddles, Mode=OneWay}"/>
-            <hx:ShadowMap3D Resolution="2048,2048" Bias="0.01" FarFieldDistance="128"
+            <hx:ShadowMap3D Resolution="1024,1024" Bias="0.001" NearFieldDistance="1" FarFieldDistance="128" OrthoWidth="64"
                             LightCamera="{Binding SunCamera, Mode=OneWay}"/>
             <models1:EnvironmentCube3D x:Name="EnvironmentCubeMapSource" FaceSize="128"
                                   IsRendering="{Binding EnableEnvironment, Mode=OneWay}"
@@ -102,9 +102,10 @@
                              IsRendering="{Binding EnableLights, Mode=OneWay}"/>
             <models1:SkyDome3D IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
             <!--<hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />-->
-            <controls1:BlockMeshGeometryModel3D CullMode="Back" IsThrowingShadow="True"
+            <hx:GroupModel3D ItemsSource="{Binding MeshParts, Mode=OneWay}"/>
+            <!--<controls1:BlockMeshGeometryModel3D CullMode="Back" IsThrowingShadow="True"
                                     Geometry="{Binding BlockMesh, Mode=OneWay}"
-                                    Material="{Binding ModelMaterial, Mode=OneWay}"/>
+                                    Material="{Binding ModelMaterial, Mode=OneWay}"/>-->
             <!--<pm:DebugSkyBox3D CubeMapSource="{Binding Mode=OneWay, Source={x:Reference IrradianceCube}}"/>-->
             <!--<hx:UICompositeManipulator3D Diameter="6"
                 CanRotateX="False" CanRotateY="False" CanRotateZ="False"

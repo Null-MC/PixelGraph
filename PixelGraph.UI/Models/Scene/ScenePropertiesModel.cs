@@ -3,6 +3,7 @@ using PixelGraph.UI.Helix;
 using PixelGraph.UI.Internal;
 using SharpDX;
 using System;
+using PixelGraph.Rendering;
 
 namespace PixelGraph.UI.Models.Scene
 {

@@ -1,54 +1,42 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
+using PixelGraph.Rendering.Models;
+using PixelGraph.UI.Helix.Models;
 using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Preview.Textures;
-using PixelGraph.UI.Internal.Settings;
-using PixelGraph.UI.Models;
-using PixelGraph.UI.Models.Tabs;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using MinecraftMappings.Internal.Blocks;
-using MinecraftMappings.Minecraft;
-using MinecraftMappings.Minecraft.Java.Models.Entity;
-using PixelGraph.Common.IO;
-using PixelGraph.Common.Material;
-using PixelGraph.Common.Models;
 
 #if !NORENDER
-using System.IO;
-using HelixToolkit.Wpf.SharpDX;
-using PixelGraph.UI.Helix.Materials;
-using PixelGraph.UI.Helix.Models;
-using PixelGraph.UI.Helix.Shaders;
-using PixelGraph.UI.Models.Scene;
 #endif
 
 namespace PixelGraph.UI.Internal.Tabs
 {
     public class TabPreviewContext : IDisposable
     {
-        private const float CubeSize = 4f;
-
-        private static readonly Dictionary<string, Func<IModelBuilder, BlockMeshGeometry3D>> map = new(StringComparer.InvariantCultureIgnoreCase) {
-                [ModelType.Bell] = builder => builder.BuildEntity(CubeSize, new BellBody().GetLatestVersion()),
-                [ModelType.Boat] = builder => builder.BuildEntity(CubeSize, new Boat().GetLatestVersion()),
-                [ModelType.Cow] = builder => builder.BuildEntity(CubeSize, new Cow().GetLatestVersion()),
-                [ModelType.Cube] = builder => builder.BuildCube(CubeSize),
-                [ModelType.Plane] = builder => builder.BuildCube(CubeSize, 4, 1, 4),
-                [ModelType.Zombie] = builder => builder.BuildEntity(CubeSize, new Zombie().GetLatestVersion()),
-            };
+//#if !NORENDER
+//        private static readonly Dictionary<string, Func<IModelBuilder, BlockMeshGeometry3D>> map = new(StringComparer.InvariantCultureIgnoreCase) {
+//                [ModelType.Bell] = builder => builder.BuildEntity(CubeSize, new BellBody().GetLatestVersion()),
+//                [ModelType.Boat] = builder => builder.BuildEntity(CubeSize, new Boat().GetLatestVersion()),
+//                [ModelType.Cow] = builder => builder.BuildEntity(CubeSize, new Cow().GetLatestVersion()),
+//                [ModelType.Cube] = builder => builder.BuildCube(CubeSize),
+//                [ModelType.Plane] = builder => builder.BuildCube(CubeSize, 4, 1, 4),
+//                [ModelType.Zombie] = builder => builder.BuildEntity(CubeSize, new Zombie().GetLatestVersion()),
+//            };
+//#endif
 
         private readonly IServiceProvider provider;
-        private readonly IAppSettings appSettings;
+        //private readonly IAppSettings appSettings;
         private readonly object lockHandle;
         private CancellationTokenSource tokenSource;
         private BitmapSource _layerImageSource;
-
+        
         public Guid Id {get; set;}
         public string SourceFile {get; set;}
         public Image<Rgb24> LayerImage {get; set;}
@@ -60,10 +48,12 @@ namespace PixelGraph.UI.Internal.Tabs
         //public string CurrentLayerTag {get; private set;}
 
 #if !NORENDER
-        private IMaterialBuilder materialBuilder;
-        private IModelBuilder modelBuilder;
+        public MultiPartMeshBuilder Mesh {get;}
+        //private IMaterialBuilder materialBuilder;
+        //private IModelBuilder modelBuilder;
+        //public ObservableElement3DCollection ModelParts {get; private set;}
 
-        public Material ModelMaterial {get; set;}
+        //public Material ModelMaterial {get; set;}
 #endif
 
 
@@ -71,10 +61,13 @@ namespace PixelGraph.UI.Internal.Tabs
         {
             this.provider = provider;
 
-            appSettings = provider.GetRequiredService<IAppSettings>();
-            modelBuilder = provider.GetRequiredService<IModelBuilder>();
+            //appSettings = provider.GetRequiredService<IAppSettings>();
+            //modelBuilder = provider.GetRequiredService<IModelBuilder>();
 
             lockHandle = new object();
+
+            Mesh = new MultiPartMeshBuilder(provider);
+            //ModelParts = new ObservableElement3DCollection();
         }
         
         public void Dispose()
@@ -83,33 +76,49 @@ namespace PixelGraph.UI.Internal.Tabs
             GC.SuppressFinalize(this);
         }
 
-        #if !NORENDER
-        public async Task BuildMaterialAsync(MainWindowModel mainModel, ScenePropertiesModel sceneModel, RenderPreviewModel renderModel, CancellationToken token = default)
+#if !NORENDER
+        public async Task BuildModelMeshAsync(RenderPreviewModes renderMode, IRenderContext renderContext, CancellationToken token = default)
         {
             var mergedToken = StartNewToken(token);
-            var builder = GetMaterialBuilder(mainModel, sceneModel, renderModel);
+            //var builder = GetMaterialBuilder(mainModel, sceneModel, renderModel);
 
-            await Task.Run(() => builder.UpdateAllTexturesAsync(mergedToken), mergedToken);
+            //await Task.Run(() => builder.UpdateAllTexturesAsync(mergedToken), mergedToken);
 
+            //await Task.Run(() => Mesh.Build(renderMode, renderContext), mergedToken);
+            await Mesh.BuildAsync(renderMode, renderContext, mergedToken);
+            //Mesh.UpdateModelParts();
+
+            //IsMaterialBuilderValid = true;
+        }
+
+        public void UpdateModelParts()
+        {
+            //var mergedToken = StartNewToken(token);
+            //var builder = GetMaterialBuilder(mainModel, sceneModel, renderModel);
+
+            //await Task.Run(() => builder.UpdateAllTexturesAsync(mergedToken), mergedToken);
+
+            //await Task.Run(() => Mesh.Build(renderMode, renderContext), mergedToken);
+            Mesh.UpdateModelParts();
             IsMaterialBuilderValid = true;
         }
 #endif
 
-        public async Task BuildLayerAsync(MainWindowModel model, CancellationToken token = default)
+        public async Task BuildLayerAsync(ResourcePackInputProperties packInput, ResourcePackProfileProperties packProfile, MaterialProperties material, string textureTag, CancellationToken token = default)
         {
             //var mergedToken = StartNewToken(token);
 
-            var material = (model.SelectedTab as MaterialTabModel)?.Material;
+            //var material = (model.SelectedTab as MaterialTabModel)?.Material;
             // WARN: (i think) There's a race condition between loading material and updating preview
-            if (material == null) return;
+            //if (material == null) return;
 
             using var previewBuilder = provider.GetRequiredService<ILayerPreviewBuilder>();
 
-            previewBuilder.Input = model.PackInput;
-            previewBuilder.Profile = model.Profile.Loaded;
-            previewBuilder.Material = material;
+            previewBuilder.Input = packInput;
+            previewBuilder.Profile = packProfile;
+            previewBuilder.Material = material; 
 
-            var tag = model.SelectedTag;
+            var tag = textureTag;
             if (TextureTags.Is(tag, TextureTags.General))
                 tag = TextureTags.Color;
 
@@ -140,80 +149,101 @@ namespace PixelGraph.UI.Internal.Tabs
         }
 
         #if !NORENDER
-        public Material UpdateMaterial(MainWindowModel mainModel, ScenePropertiesModel sceneModel, RenderPreviewModel renderModel)
-        {
-            var builder = GetMaterialBuilder(mainModel, sceneModel, renderModel);
+        //public Material UpdateMaterial(MainWindowModel mainModel, ScenePropertiesModel sceneModel, RenderPreviewModel renderModel)
+        //{
+        //    var builder = GetMaterialBuilder(mainModel, sceneModel, renderModel);
 
-            var enableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling
-                ?? RenderPreviewSettings.Default_EnableLinearSampling;
+        //    var enableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling
+        //        ?? RenderPreviewSettings.Default_EnableLinearSampling;
 
-            //builder.ColorSampler = enableLinearSampling
-            //    ? CustomSamplerStates.Color_Linear
-            //    : CustomSamplerStates.Color_Point;
-            builder.ColorSampler = CustomSamplerStates.Color_Point;
+        //    //builder.ColorSampler = enableLinearSampling
+        //    //    ? CustomSamplerStates.Color_Linear
+        //    //    : CustomSamplerStates.Color_Point;
+        //    builder.ColorSampler = CustomSamplerStates.Color_Point;
 
-            builder.HeightSampler = enableLinearSampling
-                ? CustomSamplerStates.Height_Linear
-                : CustomSamplerStates.Height_Point;
+        //    builder.HeightSampler = enableLinearSampling
+        //        ? CustomSamplerStates.Height_Linear
+        //        : CustomSamplerStates.Height_Point;
 
-            builder.PassName = renderModel.RenderMode switch {
-                RenderPreviewModes.PbrFilament => CustomPassNames.PbrFilament,
-                RenderPreviewModes.PbrJessie => CustomPassNames.PbrJessie,
-                RenderPreviewModes.PbrNull => CustomPassNames.PbrNull,
-                _ => null,
-            };
+        //    builder.PassName = renderModel.RenderMode switch {
+        //        RenderPreviewModes.PbrFilament => CustomPassNames.PbrFilament,
+        //        RenderPreviewModes.PbrJessie => CustomPassNames.PbrJessie,
+        //        RenderPreviewModes.PbrNull => CustomPassNames.PbrNull,
+        //        _ => null,
+        //    };
 
-            builder.PassNameOIT = renderModel.RenderMode switch {
-                RenderPreviewModes.PbrFilament => CustomPassNames.PbrFilamentOIT,
-                RenderPreviewModes.PbrJessie => CustomPassNames.PbrJessieOIT,
-                RenderPreviewModes.PbrNull => CustomPassNames.PbrNullOIT,
-                _ => null,
-            };
+        //    builder.PassNameOIT = renderModel.RenderMode switch {
+        //        RenderPreviewModes.PbrFilament => CustomPassNames.PbrFilamentOIT,
+        //        RenderPreviewModes.PbrJessie => CustomPassNames.PbrJessieOIT,
+        //        RenderPreviewModes.PbrNull => CustomPassNames.PbrNullOIT,
+        //        _ => null,
+        //    };
 
-            ModelMaterial = builder.BuildMaterial();
-            if (ModelMaterial.CanFreeze) ModelMaterial.Freeze();
-            IsMaterialValid = true;
+        //    ModelMaterial = builder.BuildMaterial();
+        //    if (ModelMaterial.CanFreeze) ModelMaterial.Freeze();
+        //    IsMaterialValid = true;
 
-            return ModelMaterial;
-        }
+        //    return ModelMaterial;
+        //}
 
-        public BlockMeshGeometry3D UpdateModel(MainWindowModel mainModel)
-        {
-            var material = mainModel.SelectedTabMaterial;
-            if (material == null) return null;
+        //public ObservableElement3DCollection UpdateModel(MainWindowModel mainModel)
+        //{
+        //    var material = mainModel.SelectedTabMaterial;
+        //    if (material == null) return null;
 
-            try {
-                var model = BuildModelFile(material);
-                if (model != null) return model;
-            }
-            catch (Exception) {
-                // TODO: log error!
-            }
+        //    try {
+        //        var model = BuildModelFile(material);
+        //        if (model != null) {
+        //            // TODO: 
+                    
+                    
+        //            return model;
+        //        }
+        //    }
+        //    catch (Exception) {
+        //        // TODO: log error!
+        //    }
 
-            if (material.ModelType != null) {
-                if (map.TryGetValue(material.ModelType, out var meshFunc)) {
-                    return meshFunc(modelBuilder);
-                }
-                else {
-                    //throw new ApplicationException($"Unknown model type '{Model.ModelType}'!");
-                    // TODO: log error!
-                }
-            }
+        //    var mesh = new MultiTexturedMesh();
+        //    BlockMeshGeometry3D meshPart;
 
-            return modelBuilder.BuildCube(CubeSize);
-        }
+        //    if (material.ModelType != null) {
+        //        if (map.TryGetValue(material.ModelType, out var meshFunc)) {
+        //            meshPart = meshFunc(modelBuilder);
+        //            mesh.Set("texture", material.LocalFilename, meshPart);
+        //            return mesh;
+        //        }
+        //        else {
+        //            //throw new ApplicationException($"Unknown model type '{Model.ModelType}'!");
+        //            // TODO: log error!
+        //        }
+        //    }
+
+        //    //mesh.Set("texture", material.LocalFilename, meshPart);
+        //    //return mesh;
+
+        //    var modelPart = new BlockMeshGeometryModel3D();
+        //    modelPart.Geometry = modelBuilder.BuildCube(CubeSize);
+
+        //    // TODO: load actual material textures
+        //    part.Material = material;
+
+        //    RenderModel.MeshParts.Add(part);
+        //}
 
         public void InvalidateMaterialBuilder(bool clear)
         {
             IsMaterialBuilderValid = false;
             IsMaterialValid = false;
-            if (clear) ModelMaterial = null;
+            //if (clear) ModelMaterial = null;
+            if (clear) Mesh.ClearTextureBuilders();
         }
 
         public void InvalidateMaterial(bool clear)
         {
             IsMaterialValid = false;
-            if (clear) ModelMaterial = null;
+            //if (clear) ModelMaterial = null;
+            if (clear) Mesh.ClearTextureBuilders();
         }
 #endif
 
@@ -237,7 +267,8 @@ namespace PixelGraph.UI.Internal.Tabs
         protected virtual void Dispose(bool disposing)
         {
 #if !NORENDER
-            materialBuilder?.Dispose();
+            //materialBuilder?.Dispose();
+            Mesh.Dispose();
 #endif
 
             LayerImage = null;
@@ -247,87 +278,7 @@ namespace PixelGraph.UI.Internal.Tabs
             IsMaterialValid = false;
         }
         
-        #if !NORENDER
-        private IMaterialBuilder GetMaterialBuilder(MainWindowModel mainModel, ScenePropertiesModel sceneModel, RenderPreviewModel renderModel)
-        {
-            switch (renderModel.RenderMode) {
-                case RenderPreviewModes.Diffuse:
-                    if (materialBuilder is DiffuseMaterialBuilder diffuseBuilder) {
-                        diffuseBuilder.PackInput = mainModel.PackInput;
-                        diffuseBuilder.PackProfile = mainModel.Profile.Loaded;
-                        diffuseBuilder.Material = (mainModel.SelectedTab as MaterialTabModel)?.Material;
-                        diffuseBuilder.EnvironmentCubeMapSource = renderModel.EnvironmentCube;
-                        diffuseBuilder.RenderEnvironmentMap = sceneModel.SunEnabled;
-                        return diffuseBuilder;
-                    }
-
-                    materialBuilder?.Dispose();
-
-                    materialBuilder = new DiffuseMaterialBuilder(provider) {
-                        PackInput = mainModel.PackInput,
-                        PackProfile = mainModel.Profile.Loaded,
-                        Material = (mainModel.SelectedTab as MaterialTabModel)?.Material,
-                        EnvironmentCubeMapSource = renderModel.EnvironmentCube,
-                        RenderEnvironmentMap = sceneModel.SunEnabled,
-                    };
-
-                    return materialBuilder;
-
-                case RenderPreviewModes.PbrFilament:
-                case RenderPreviewModes.PbrJessie:
-                case RenderPreviewModes.PbrNull:
-                    if (materialBuilder is PbrMaterialBuilder pbrBuilder) {
-                        pbrBuilder.PackInput = mainModel.PackInput;
-                        pbrBuilder.PackProfile = mainModel.Profile.Loaded;
-                        pbrBuilder.Material = (mainModel.SelectedTab as MaterialTabModel)?.Material;
-                        pbrBuilder.EnvironmentCubeMapSource = renderModel.EnvironmentCube;
-                        pbrBuilder.IrradianceCubeMapSource = renderModel.IrradianceCube;
-                        pbrBuilder.RenderEnvironmentMap = sceneModel.SunEnabled;
-                        return pbrBuilder;
-                    }
-
-                    materialBuilder?.Dispose();
-
-                    materialBuilder = new PbrMaterialBuilder(provider) {
-                        PackInput = mainModel.PackInput,
-                        PackProfile = mainModel.Profile.Loaded,
-                        Material = (mainModel.SelectedTab as MaterialTabModel)?.Material,
-                        EnvironmentCubeMapSource = renderModel.EnvironmentCube,
-                        IrradianceCubeMapSource = renderModel.IrradianceCube,
-                        RenderEnvironmentMap = sceneModel.SunEnabled,
-                        BrdfLutMap = renderModel.BrdfLutMap,
-                    };
-
-                    return materialBuilder;
-
-                default:
-                    throw new ApplicationException();
-            }
-        }
-
-        private BlockMeshGeometry3D BuildModelFile(MaterialProperties material)
-        {
-            var modelFile = material.ModelFile;
-
-            if (modelFile == null) {
-                var modelData = Minecraft.Java.GetModelForTexture<JavaBlockDataVersion>(material.Name);
-                modelFile = modelData?.GetLatestVersion()?.Id;
-            }
-
-            if (modelFile == null) return null;
-
-            var reader = provider.GetRequiredService<IInputReader>();
-            var parser = provider.GetRequiredService<IBlockModelParser>();
-
-            var filename = reader.GetFullPath(modelFile);
-            var localPath = Path.GetDirectoryName(filename);
-            var localFile = Path.GetFileName(filename);
-
-            var model = parser.LoadRecursive(localPath, localFile);
-            if (model == null) throw new ApplicationException($"Failed to load model file '{modelFile}'!");
-
-            return modelBuilder.BuildModel(CubeSize, model);
-        }
+#if !NORENDER
 
         private CancellationToken StartNewToken(CancellationToken token)
         {

@@ -4,6 +4,7 @@ using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
 using SharpDX;
 using System.Windows;
+using PixelGraph.Rendering;
 
 namespace PixelGraph.UI.Helix.Models
 {

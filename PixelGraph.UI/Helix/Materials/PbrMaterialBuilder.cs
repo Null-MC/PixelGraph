@@ -1,9 +1,10 @@
-﻿using System;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
 using MahApps.Metro.Controls;
 using PixelGraph.Common.Textures;
+using PixelGraph.Rendering.Materials;
 using PixelGraph.UI.Internal.Preview.Textures;
+using System;
 
 namespace PixelGraph.UI.Helix.Materials
 {

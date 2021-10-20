@@ -1,26 +1,26 @@
 ﻿using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.UI.Helix;
-using PixelGraph.UI.Helix.Shaders;
+using PixelGraph.Rendering;
+using PixelGraph.Rendering.Shaders;
+using PixelGraph.Rendering.Utilities;
 using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
-using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.Models.Scene;
+using SharpDX;
 using SharpDX.DXGI;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Material;
 using Media3D = System.Windows.Media.Media3D;
 
 namespace PixelGraph.UI.ViewModels
 {
     public class RenderPreviewViewModel : IDisposable
     {
-        //private const float CubeSize = 4f;
-
         private static readonly Lazy<Factory1> deviceFactory;
 
         private readonly IServiceProvider provider;
@@ -57,7 +57,7 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task LoadContentAsync()
         {
-            brdfLutStream = await ResourceLoader.BufferAsync("PixelGraph.UI.Resources.brdf_lut.dds");
+            brdfLutStream = await ResourceLoader.BufferAsync("PixelGraph.Rendering.Resources.brdf_lut.dds");
 
             ReloadShaders();
         }
@@ -70,9 +70,9 @@ namespace PixelGraph.UI.ViewModels
 
             RenderModel.SunCamera = new OrthographicCamera {
                 UpDirection = new Media3D.Vector3D(0f, 1f, 0f),
-                NearPlaneDistance = 1f,
-                FarPlaneDistance = 32f,
-                Width = 24,
+                //NearPlaneDistance = 1f,
+                //FarPlaneDistance = 128f,
+                //Width = 512,
             };
 
             ResetViewport();
@@ -88,6 +88,15 @@ namespace PixelGraph.UI.ViewModels
             UpdateShaders();
 
             RenderModel.BrdfLutMap = brdfLutStream;
+
+            RenderModel.MissingMaterial = new MaterialProperties {
+                Color = new MaterialColorProperties {
+                    //ValueRed = 248m,
+                    //ValueGreen = 0m,
+                    //ValueBlue = 248m,
+                    Texture = "<missing>",
+                }
+            };
 
             //UpdateModel();
         }
@@ -112,8 +121,10 @@ namespace PixelGraph.UI.ViewModels
 
             RenderModel.SunDirection = sunDirection;
             RenderModel.SunStrength = sunStrength;
-            RenderModel.SunCamera.Position = (sunDirection * 32f).ToPoint3D();
+            RenderModel.SunCamera.Position = (new Vector3(0f, 2f, 0f) + sunDirection * 32f).ToPoint3D();
             RenderModel.SunCamera.LookDirection = -sunDirection.ToVector3D();
+
+            //RenderModel.SunCamera.ZoomExtents(viewport3D, new Media3D.Point3D(), 32f, 0D);
         }
 
         public Task SaveRenderStateAsync(CancellationToken token = default)

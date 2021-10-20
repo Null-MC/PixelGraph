@@ -3,7 +3,8 @@ using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.SharpDX.Core.Utilities;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
-using PixelGraph.UI.Helix.CubeMaps;
+using PixelGraph.Rendering;
+using PixelGraph.Rendering.CubeMaps;
 
 namespace PixelGraph.UI.Helix.Models
 {

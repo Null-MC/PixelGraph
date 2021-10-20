@@ -1,4 +1,4 @@
-﻿using MinecraftMappings.Internal.Entities;
+﻿using MinecraftMappings.Internal.Models.Entity;
 using MinecraftMappings.Minecraft.Java;
 using PixelGraph.UI.Internal;
 using System;
@@ -9,7 +9,7 @@ namespace PixelGraph.UI.Models
     public class ImportEntityFiltersModel : ModelBase
     {
         protected string _gameVersion;
-        protected JavaEntityDataVersion _gameEntity;
+        protected JavaEntityModelVersion _gameEntity;
 
         public event EventHandler GameVersionChanged;
         //public event EventHandler GameEntityChanged;
@@ -25,7 +25,7 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public JavaEntityDataVersion GameEntity {
+        public JavaEntityModelVersion GameEntity {
             get => _gameEntity;
             set {
                 _gameEntity = value;
@@ -56,6 +56,6 @@ namespace PixelGraph.UI.Models
     public class GameEntityNameOption
     {
         public string Name {get; set;}
-        public JavaEntityDataVersion Data {get; set;}
+        public JavaEntityModelVersion Data {get; set;}
     }
 }

@@ -229,7 +229,10 @@ namespace PixelGraph.UI.Windows
 
             await Task.WhenAll(taskList);
 
-            await Dispatcher.BeginInvoke(() => Model.EndInit());
+            await Dispatcher.BeginInvoke(() => {
+                Model.EndInit();
+                renderPreview.Model.IsLoaded = true;
+            });
         }
 
         private async Task LoadWindowAsync()
@@ -536,7 +539,7 @@ namespace PixelGraph.UI.Windows
         private async void OnMaterialChanged(object sender, EventArgs e)
         {
             var tab = Model.SelectedTab as MaterialTabModel;
-            var material = tab?.Material;
+            var material = tab?.MaterialRegistration.Value;
             if (material == null) return;
 
             await viewModel.SaveMaterialAsync(material);
@@ -612,7 +615,7 @@ namespace PixelGraph.UI.Windows
         {
             if (Model.SelectedTab is not MaterialTabModel materialTab) return;
 
-            var material = materialTab.Material;
+            var material = materialTab.MaterialRegistration.Value;
             if (material == null) return;
 
             var outputName = TextureTags.Get(material, TextureTags.Normal);
@@ -651,7 +654,7 @@ namespace PixelGraph.UI.Windows
         {
             if (Model.SelectedTab is not MaterialTabModel materialTab) return;
 
-            var material = materialTab.Material;
+            var material = materialTab.MaterialRegistration.Value;
             if (material == null) return;
 
             var outputName = TextureTags.Get(material, TextureTags.Occlusion);

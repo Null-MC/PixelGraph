@@ -1,8 +1,9 @@
 ﻿using MinecraftMappings.Internal.Models;
+using MinecraftMappings.Internal.Models.Block;
 using MinecraftMappings.Minecraft;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO;
 using SharpDX;
 using System;
 using System.IO;
@@ -12,18 +13,26 @@ namespace PixelGraph.UI.Helix.Models
 {
     internal interface IBlockModelParser
     {
-        ModelVersion LoadRecursive(string rootPath, string localFile);
+        BlockModelVersion LoadRecursive(string localFile);
     }
 
     internal class BlockModelParser : IBlockModelParser
     {
-        public ModelVersion LoadRecursive(string rootPath, string localFile)
+        private readonly IMinecraftResourceLocator locator;
+
+
+        public BlockModelParser(IMinecraftResourceLocator locator)
         {
-            var finalModel = new ModelVersion();
+            this.locator = locator;
+        }
+
+        public BlockModelVersion LoadRecursive(string localFile)
+        {
+            var finalModel = new BlockModelVersion();
             var filename = localFile;
 
             do {
-                var parentModel = FindModel(rootPath, filename);
+                var parentModel = FindModel(filename);
                 if (parentModel == null) break;
 
                 MergeModels(finalModel, parentModel);
@@ -37,49 +46,19 @@ namespace PixelGraph.UI.Helix.Models
             return finalModel;
         }
 
-        private static ModelVersion FindModel(string rootPath, string localFile)
+        private BlockModelVersion FindModel(string searchFile)
         {
-            var searchPath = rootPath;
+            var modelFile = searchFile;
 
-            var localFile2 = PathEx.Localize(localFile);
+            if (!modelFile.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
+                modelFile = $"{modelFile}.json";
 
-            if (!localFile2.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
-                localFile2 += ".json";
-
-            var modelsBlockPath = PathEx.Join(rootPath, "assets/minecraft/models/block", localFile2);
-            modelsBlockPath = PathEx.Localize(modelsBlockPath);
-
-            if (File.Exists(modelsBlockPath)) {
-                var json = ParseModelJson(modelsBlockPath);
+            if (locator.FindModel(modelFile, out var localFile)) {
+                var json = ParseModelJson(localFile);
                 return ParseModelFile(json);
             }
-
-            var modelsPath = PathEx.Join(rootPath, "assets/minecraft/models", localFile2);
-            modelsPath = PathEx.Localize(modelsPath);
-
-            if (File.Exists(modelsPath)) {
-                var json = ParseModelJson(modelsPath);
-                return ParseModelFile(json);
-            }
-
-            while (searchPath != null) {
-                var localPath = PathEx.Join(searchPath, localFile2);
-                localPath = PathEx.Localize(localPath);
-
-                //if (!localPath.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
-                //    localPath += ".json";
-
-                if (File.Exists(localPath)) {
-                    var json = ParseModelJson(localPath);
-                    return ParseModelFile(json);
-                }
-
-                searchPath = Path.GetDirectoryName(searchPath);
-            }
-
-            // TODO: locate matching path segment
-
-            var name = Path.GetFileName(localFile);
+            
+            var name = Path.GetFileName(searchFile);
 
             var parentModel = Minecraft.Java.FindModelVersionById(name).FirstOrDefault();
             if (parentModel != null) return parentModel;
@@ -87,9 +66,9 @@ namespace PixelGraph.UI.Helix.Models
             throw new ApplicationException($"Failed to locate parent model file '{name}'!");
         }
 
-        private static ModelVersion ParseModelFile(JToken jsonData)
+        private static BlockModelVersion ParseModelFile(JToken jsonData)
         {
-            var model = new ModelVersion {
+            var model = new BlockModelVersion {
                 Parent = jsonData.Value<string>("parent"),
             };
 
@@ -182,7 +161,7 @@ namespace PixelGraph.UI.Helix.Models
             }
         }
 
-        private static void MergeModels(ModelVersion editModel, ModelVersion parentModel)
+        private static void MergeModels(BlockModelVersion editModel, BlockModelVersion parentModel)
         {
             foreach (var textureName in parentModel.Textures.Keys) {
                 if (editModel.Textures.ContainsKey(textureName)) continue;

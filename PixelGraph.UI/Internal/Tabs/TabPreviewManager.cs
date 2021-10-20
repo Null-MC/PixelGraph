@@ -89,7 +89,7 @@ namespace PixelGraph.UI.Internal.Tabs
                 context.InvalidateMaterial(clear);
 
                 if (clear) {
-                    context.ModelMaterial = null;
+                    context.Mesh.ClearTextureBuilders();
                 }
             }
         }

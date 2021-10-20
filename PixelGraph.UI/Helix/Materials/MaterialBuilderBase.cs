@@ -1,21 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
-using PixelGraph.UI.Helix.CubeMaps;
+using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.UI.Internal.Preview.Textures;
 using SharpDX.Direct3D11;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Helix.Materials
+namespace PixelGraph.Rendering.Materials
 {
     internal interface IMaterialBuilder : IDisposable, IAsyncDisposable
     {
@@ -27,6 +27,10 @@ namespace PixelGraph.UI.Helix.Materials
         ResourcePackInputProperties PackInput {get; set;}
         ResourcePackProfileProperties PackProfile {get; set;}
         MaterialProperties Material {get; set;}
+        ICubeMapSource EnvironmentCubeMapSource {get; set;}
+        ICubeMapSource IrradianceCubeMapSource {get; set;}
+        TextureModel BrdfLutMap {get; set;}
+        bool RenderEnvironmentMap {get; set;}
 
         Task UpdateAllTexturesAsync(CancellationToken token = default);
         Task UpdateTexturesByTagAsync(string textureTag, CancellationToken token = default);

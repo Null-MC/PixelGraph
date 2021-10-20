@@ -41,6 +41,7 @@ namespace PixelGraph.Common
             Services.AddSingleton<IPublishReader, PublishReader>();
             Services.AddSingleton<IDefaultPublishMapping, DefaultPublishMapping>();
             Services.AddSingleton<IJavaToBedrockPublishMapping, JavaToBedrockPublishMapping>();
+            Services.AddSingleton<IMinecraftResourceLocator, MinecraftResourceLocator>();
 
             Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
             Services.AddScoped<ITextureGraph, TextureGraph>();

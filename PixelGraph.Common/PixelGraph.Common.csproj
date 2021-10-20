@@ -45,7 +45,7 @@
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta11" />
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
   </ItemGroup>
@@ -57,9 +57,5 @@
   <ItemGroup Condition="'$(Configuration)'!='Release-UI'">
     <Compile Remove="GpuProcessors\**" />
   </ItemGroup>-->
-
-  <ItemGroup>
-    <ProjectReference Include="..\MinecraftMappings\MinecraftMappings.csproj" />
-  </ItemGroup>
 
 </Project>

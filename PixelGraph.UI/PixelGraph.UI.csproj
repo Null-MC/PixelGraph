@@ -21,22 +21,18 @@
     <DefineConstants>$(DefineConstants);NORENDER</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(Configuration)'!='ReleaseNoRender'">
-    <Folder Include="Resources\Shaders\compiled\" />
-    <EmbeddedResource Include="Resources\Shaders\compiled\**" />
-  </ItemGroup>
-
   <ItemGroup>
     <Compile Remove="Controls\DataGridComboBoxExColumn.xaml.cs" />
     <Compile Remove="Controls\DataGridComboBoxExColumn2.cs" />
     <Compile Remove="Controls\PropertyGridItem.xaml.cs" />
     <Compile Remove="Converters\BoolToEnumConverter.cs" />
     <Compile Remove="Converters\InverseBooleanConverter.cs" />
+    <Compile Remove="Helix\MeshMaterialBuilderCache.cs" />
     <Compile Remove="Internal\AppConfiguration.cs" />
     <Compile Remove="Internal\ImagePreviewCache.cs" />
-    <Compile Remove="Helix\Materials\PbrMetalMaterialBuilder.cs" />
     <Compile Remove="Internal\Preview\PbrSpecularMeshModel3D.cs" />
     <Compile Remove="Internal\Preview\Textures\RenderPbrMetalPreviewBuilder.cs" />
+    <Compile Remove="Internal\Utilities\ResourceLoader.cs" />
     <Compile Remove="Models\MaterialContextModel.cs" />
     <Compile Remove="Models\PreviewContextModel.cs" />
     <Compile Remove="Models\ShaderErrorWindowModel.cs" />
@@ -54,32 +50,12 @@
 
   <ItemGroup>
     <None Remove="icon.ico" />
-    <None Remove="Resources\brdf_lut.dds" />
-    <None Remove="Resources\Shaders\compile.cmd" />
-    <None Remove="Resources\Shaders\diffuse_ps.hlsl" />
-    <None Remove="Resources\Shaders\diffuse_vs.hlsl" />
-    <None Remove="Resources\Shaders\lib\sky_colors.hlsl" />
-    <None Remove="Resources\Shaders\lib\sky_nvidia.hlsl" />
-    <None Remove="Resources\Shaders\occlusion_ps.hlsl" />
-    <None Remove="Resources\Shaders\occlusion_vs.hlsl" />
-    <None Remove="Resources\Shaders\pbr_filament_ps.hlsl" />
-    <None Remove="Resources\Shaders\pbr_null_ps.hlsl" />
-    <None Remove="Resources\Shaders\pbr_vs.hlsl" />
-    <None Remove="Resources\Shaders\shadow_ps.hlsl" />
-    <None Remove="Resources\Shaders\shadow_vs.hlsl" />
-    <None Remove="Resources\Shaders\sky_final_ps.hlsl" />
-    <None Remove="Resources\Shaders\sky_irradiance_ps.hlsl" />
-    <None Remove="Resources\Shaders\sky_ps.hlsl" />
-    <None Remove="Resources\Shaders\sky_vs.hlsl" />
-    <None Remove="Resources\sky.dds" />
-    <None Remove="Resources\sky2.dds" />
     <None Remove="Resources\tiled_bg.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Page Remove="Controls\DataGridComboBoxExColumn.xaml" />
     <Page Remove="Controls\PropertyGridItem.xaml" />
-    <Page Remove="Resources\MaterialDesignTheme.CheckBoxEx.xaml" />
     <Page Remove="Windows\ShaderErrorsWindow.xaml" />
   </ItemGroup>
 
@@ -89,7 +65,6 @@
     <Compile Remove="Helix\**" />
     <Compile Remove="Models\RenderPreviewModel.cs" />
     <Compile Remove="ViewModels\RenderPreviewViewModel.cs" />
-    <Folder Remove="Resources\Shaders\**" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'!='ReleaseNoRender'">
@@ -98,89 +73,32 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\brdf_lut.dds" />
+    <Resource Include="Resources\tiled_bg.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <HLSLShader Include="Resources\Shaders\pbr_null_ps.hlsl">
-      <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_null_ps.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\shadow_ps.hlsl">
-      <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\shadow_ps.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\sky_irradiance_ps.hlsl">
-      <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_irradiance_ps.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\sky_final_ps.hlsl">
-      <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_final_ps.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\shadow_vs.hlsl">
-      <ShaderProfile>vs_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\shadow_vs.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\sky_vs.hlsl">
-      <ShaderProfile>vs_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_vs.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\sky_ps.hlsl">
-      <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_ps.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\diffuse_vs.hlsl">
-      <ShaderProfile>vs_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\diffuse_vs.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\diffuse_ps.hlsl">
-      <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\diffuse_ps.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\pbr_vs.hlsl">
-      <ShaderProfile>vs_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_vs.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\pbr_filament_ps.hlsl">
-      <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_filament_ps.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\pbr_jessie_ps.hlsl">
-      <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_jessie_ps.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\occlusion_vs.hlsl">
-      <ShaderProfile>vs_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\occlusion_vs.cso</ObjectFileOutput>
-    </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\occlusion_ps.hlsl">
-      <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\occlusion_ps.cso</ObjectFileOutput>
-    </HLSLShader>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MahApps.Metro" Version="2.4.7" />
-    <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.8.0" />
-    <PackageReference Include="Ookii.Dialogs.Wpf" Version="3.1.0" />
+    <PackageReference Include="MahApps.Metro" Version="2.4.9" />
+    <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.10.0" />
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="4.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'!='ReleaseNoRender'">
-    <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.18.0" />
-    <PackageReference Include="JeremyAnsel.HLSL.Targets" Version="1.0.13" />
+    <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.19.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MinecraftMappings\MinecraftMappings.csproj" />
+    <ProjectReference Include="..\MinecraftMappings.NET\MinecraftMappings.NET\MinecraftMappings.NET.csproj" />
     <ProjectReference Include="..\PixelGraph.Common\PixelGraph.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'!='ReleaseNoRender'">
+    <ProjectReference Include="..\PixelGraph.Rendering\PixelGraph.Rendering.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="icon.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\tiled_bg.png" />
   </ItemGroup>
 </Project>

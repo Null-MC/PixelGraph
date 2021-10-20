@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
-using PixelGraph.UI.Helix.Shaders;
 using PixelGraph.UI.Models.Scene;
 using PixelGraph.UI.ViewModels;
 using System;
@@ -13,6 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using PixelGraph.Rendering.Shaders;
 
 namespace PixelGraph.UI.Controls
 {

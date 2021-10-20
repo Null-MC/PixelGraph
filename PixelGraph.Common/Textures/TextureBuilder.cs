@@ -561,16 +561,48 @@ namespace PixelGraph.Common.Textures
             }
         }
 
+        private async Task<Image<Rgba32>> GetSourceImageAsync(string filename, CancellationToken token)
+        {
+            if (string.Equals(filename, "<missing>", StringComparison.InvariantCultureIgnoreCase))
+                return BuildMissingImage(2);
+
+            await using var sourceStream = reader.Open(filename);
+            var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
+            return sourceImage;
+        }
+
+        private Image<Rgba32> BuildMissingImage(int size)
+        {
+            // TODO: Use a loop to populate full bounds
+
+            return new Image<Rgba32>(Configuration.Default, size, size, new Rgba32(0, 0, 0, 255)) {
+                [1, 0] = new Rgba32(248, 0, 248, 255),
+                [0, 1] = new Rgba32(248, 0, 248, 255),
+            };
+        }
+
         private async Task ApplySourceMappingAsync<TPixel>(Image<TPixel> image, string sourceFilename, IEnumerable<TextureChannelMapping> mappingGroup, CancellationToken token)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             if (sourceFilename == null) throw new ArgumentNullException(nameof(sourceFilename));
 
-            var info = await sourceGraph.GetOrCreateAsync(sourceFilename, token);
-            if (info == null) return;
+            TextureSource info;
+            if (string.Equals(sourceFilename, "<missing>", StringComparison.InvariantCultureIgnoreCase)) {
+                info = new TextureSource {
+                    FrameCount = 1,
+                    Width = 2,
+                    Height = 2,
+                };
+            }
+            else {
+                info = await sourceGraph.GetOrCreateAsync(sourceFilename, token);
+                if (info == null) return;
 
-            await using var sourceStream = reader.Open(sourceFilename);
-            using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
+                //await using var sourceStream = reader.Open(sourceFilename);
+                //using var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
+            }
+
+            using var sourceImage = await GetSourceImageAsync(sourceFilename, token);
 
             var options = new OverlayProcessor<Rgba32>.Options {
                 IsGrayscale = isGrayscale,
