@@ -297,7 +297,7 @@ namespace PixelGraph.UI.Models
             base.SetData(data);
 
             if (data != null) {
-                var modelData = Minecraft.Java.GetModelForTexture<JavaBlockTextureVersion>(data.Name);
+                var modelData = Minecraft.Java.GetBlockModelForTexture<JavaBlockTextureVersion>(data.Name);
                 fileRow.DefaultValue = modelData?.GetLatestVersion()?.Id;
             }
             else {

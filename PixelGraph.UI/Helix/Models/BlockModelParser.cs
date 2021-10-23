@@ -60,7 +60,7 @@ namespace PixelGraph.UI.Helix.Models
             
             var name = Path.GetFileName(searchFile);
 
-            var parentModel = Minecraft.Java.FindModelVersionById(name).FirstOrDefault();
+            var parentModel = Minecraft.Java.FindBlockModelVersionById(name).FirstOrDefault();
             if (parentModel != null) return parentModel;
 
             throw new ApplicationException($"Failed to locate parent model file '{name}'!");

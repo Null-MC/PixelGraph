@@ -142,6 +142,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    DefaultValue = 0.04m,
                     ClipValue = 0m,
                 },
 

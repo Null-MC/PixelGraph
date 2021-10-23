@@ -4,7 +4,9 @@ using MinecraftMappings.Internal.Models;
 using MinecraftMappings.Internal.Models.Block;
 using MinecraftMappings.Internal.Models.Entity;
 using MinecraftMappings.Internal.Textures.Block;
+using MinecraftMappings.Internal.Textures.Entity;
 using MinecraftMappings.Minecraft;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
@@ -36,6 +38,7 @@ namespace PixelGraph.UI.Helix.Models
         private readonly IMinecraftResourceLocator locator;
         private readonly Dictionary<string, IMaterialBuilder> materialMap;
         private readonly List<(IModelBuilder, IMaterialBuilder)> partsList;
+        private bool isEntity = false;
 
         public ObservableElement3DCollection ModelParts {get;}
 
@@ -59,12 +62,41 @@ namespace PixelGraph.UI.Helix.Models
             ClearTextureBuilders();
         }
 
+        private bool IsEntityPath(string materialPath)
+        {
+            return PathEx.Normalize(materialPath).Contains("minecraft/textures/entity");
+
+            // TODO
+            return false;
+        }
+
         public async Task BuildAsync(RenderPreviewModes renderMode, IRenderContext renderContext, CancellationToken token = default)
         {
             var modelFile = renderContext.DefaultMaterial.ModelFile;
+            isEntity = false;
+
+            if (modelFile == null && IsEntityPath(renderContext.DefaultMaterial.LocalPath)) {
+                var entityVersion = Minecraft.Java.GetEntityModelForTexture<JavaEntityTextureVersion>(renderContext.DefaultMaterial.Name)?.GetLatestVersion();
+
+                if (entityVersion != null) {
+                    await BuildEntityModelAsync(renderMode, renderContext, entityVersion, token);
+                    return;
+                }
+            }
+
+            if (modelFile?.StartsWith("entity/", StringComparison.InvariantCultureIgnoreCase) ?? false) {
+                // Build Entity-Model
+                var modelId = Path.GetFileName(modelFile);
+                var entityVersion = Minecraft.Java.FindEntityModelVersionById<JavaEntityModelVersion>(modelId).FirstOrDefault();
+
+                if (entityVersion != null) {
+                    await BuildEntityModelAsync(renderMode, renderContext, entityVersion, token);
+                    return;
+                }
+            }
 
             if (modelFile == null) {
-                var modelData = Minecraft.Java.GetModelForTexture<JavaBlockTextureVersion>(renderContext.DefaultMaterial.Name);
+                var modelData = Minecraft.Java.GetBlockModelForTexture<JavaBlockTextureVersion>(renderContext.DefaultMaterial.Name);
                 modelFile = modelData?.GetLatestVersion()?.Id;
             }
 
@@ -84,23 +116,29 @@ namespace PixelGraph.UI.Helix.Models
                 return;
             }
 
-            if (modelFile.StartsWith("entity/", StringComparison.InvariantCultureIgnoreCase)) {
-                // Build Entity-Model
-                var modelId = Path.GetFileName(modelFile);
-                var entityModel = Minecraft.Java.FindEntityModelVersionById<JavaEntityModelVersion>(modelId).FirstOrDefault();
-
-                if (entityModel != null) {
-                    BuildEntityModel(renderMode, renderContext, entityModel);
-                    return;
-                }
-            }
-
             // Build Block-Model
             var blockModel = parser.LoadRecursive(modelFile);
             if (blockModel == null) throw new ApplicationException($"Failed to load model file '{modelFile}'!");
 
             FlattenBlockModelTextures(blockModel);
             await BuildMaterialMapAsync(renderMode, renderContext, blockModel.Textures, token);
+            
+            // Apply default material if no textures are mapped
+            if (materialMap.Count == 0) {
+                var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
+                await materialBuilder.UpdateAllTexturesAsync(token);
+
+                materialMap["all"] = materialBuilder;
+
+                foreach (var element in blockModel.Elements) {
+                    foreach (var face in ModelElement.AllFaces) {
+                        var modelFace = element.GetFace(face);
+                        if (modelFace != null)
+                            modelFace.Texture = "#all";
+                    }
+                }
+            }
+
             BuildBlockModel(blockModel);
         }
 
@@ -113,8 +151,10 @@ namespace PixelGraph.UI.Helix.Models
 
             foreach (var (modelBuilder, materialBuilder) in partsList) {
                 var modelPart = new BlockMeshGeometryModel3D {
-                    CullMode = CullMode.Back,
                     IsThrowingShadow = true,
+                    CullMode = isEntity
+                        ? CullMode.None
+                        : CullMode.Back,
                 };
 
                 modelPart.Geometry = modelBuilder.ToBlockMeshGeometry3D();
@@ -152,12 +192,9 @@ namespace PixelGraph.UI.Helix.Models
 
                         if (!string.Equals(faceData.Texture, $"#{textureId}")) continue;
 
-                        //var name = faceData.Texture[1..];
                         faceData.Texture = remappedFile;
                     }
                 }
-
-                //model.Textures.Remove(textureId);
             }
 
             foreach (var textureId in remappedKeys)
@@ -169,24 +206,26 @@ namespace PixelGraph.UI.Helix.Models
             partsList.Clear();
 
             foreach (var (textureId, matBuilder) in materialMap) {
-                var modelBuilder = new ModelBuilder();
+                var modelBuilder = new BlockModelBuilder();
                 modelBuilder.BuildModel(CubeSize, model, textureId);
                 partsList.Add((modelBuilder, matBuilder));
             }
         }
 
-        private void BuildEntityModel(RenderPreviewModes renderMode, IRenderContext renderContext, EntityModelVersion model)
+        private async Task BuildEntityModelAsync(RenderPreviewModes renderMode, IRenderContext renderContext, EntityModelVersion model, CancellationToken token)
         {
             ClearTextureBuilders();
 
-            var modelBuilder = new ModelBuilder();
+            var modelBuilder = new EntityModelBuilder();
             modelBuilder.BuildEntity(CubeSize, model);
 
             var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
+            await materialBuilder.UpdateAllTexturesAsync(token);
             // using default/selected material instead of lookup
 
             partsList.Clear();
             partsList.Add((modelBuilder, materialBuilder));
+            isEntity = true;
         }
 
         public void ClearTextureBuilders()
@@ -206,7 +245,12 @@ namespace PixelGraph.UI.Helix.Models
 
                 // find material from textureFile
                 MaterialProperties material;
-                if (locator.FindLocalMaterial(textureFile, out var materialFile)) {
+
+                var fileName = Path.GetFileNameWithoutExtension(textureFile);
+                if (string.Equals(fileName, renderContext.DefaultMaterial.Name, StringComparison.InvariantCultureIgnoreCase)) {
+                    material = renderContext.DefaultMaterial;
+                }
+                else if (locator.FindLocalMaterial(textureFile, out var materialFile)) {
                     material = await materialReader.LoadAsync(materialFile, token);
                 }
                 else {
@@ -214,22 +258,12 @@ namespace PixelGraph.UI.Helix.Models
                     // TODO: log error, missing texture
 
                     material = renderContext.MissingMaterial;
-                    //materialMap[textureId] = missingMaterialBuilder;
-                    //continue;
                 }
 
                 var materialBuilder = UpdateMaterial(renderMode, renderContext, material);
                 await materialBuilder.UpdateAllTexturesAsync(token);
 
                 materialMap[textureId] = materialBuilder;
-            }
-
-            // Apply default material if no textures are mapped
-            if (materialMap.Count == 0) {
-                var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
-                await materialBuilder.UpdateAllTexturesAsync(token);
-
-                materialMap["all"] = materialBuilder;
             }
         }
 

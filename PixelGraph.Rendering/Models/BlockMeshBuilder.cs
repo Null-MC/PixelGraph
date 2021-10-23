@@ -25,46 +25,6 @@ namespace PixelGraph.Rendering.Models
             textureCoordinateMaxs = new Vector2Collection();
         }
 
-        //public BlockMeshGeometry3D ToBlockMesh() //(bool freeze = false)
-        //{
-        //    if (TriangleIndices.Count == 0) {
-        //        var emptyGeometry = new BlockMeshGeometry3D();
-        //        //if (freeze) emptyGeometry.Freeze();
-
-        //        return emptyGeometry;
-        //    }
-
-        //    if (Normals != null && Positions.Count != Normals.Count)
-        //        throw new InvalidOperationException("Wrong number of normals.");
-
-        //    if (TextureCoordinates != null && Positions.Count != TextureCoordinates.Count)
-        //        throw new InvalidOperationException("Wrong number of texture coordinates.");
-
-        //    var mg = new BlockMeshGeometry3D {
-        //        Positions = new Vector3Collection(Positions),
-        //        TriangleIndices = new IntCollection(TriangleIndices)
-        //    };
-
-        //    if (Normals != null) {
-        //        mg.Normals = new Vector3Collection(Normals);
-        //    }
-
-        //    if (TextureCoordinates != null) {
-        //        mg.TextureCoordinates = new Vector2Collection(TextureCoordinates);
-        //    }
-
-        //    if (textureCoordinateMins != null) {
-        //        mg.TextureCoordinateMins = new Vector2Collection(textureCoordinateMins);
-        //    }
-
-        //    if (textureCoordinateMaxs != null) {
-        //        mg.TextureCoordinateMaxs = new Vector2Collection(textureCoordinateMaxs);
-        //    }
-
-        //    //if (freeze) mg.Freeze();
-        //    return mg;
-        //}
-
         public void Clear()
         {
             Positions.Clear();

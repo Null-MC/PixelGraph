@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.Common.Textures
+namespace PixelGraph.Common.Textures.Graphing
 {
     public interface ITextureGraph
     {
