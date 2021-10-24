@@ -3,13 +3,14 @@
   <PropertyGroup>
     <Version>1.6.1</Version>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>PixelGraph</AssemblyName>
     <UseWPF>true</UseWPF>
     <Platforms>AnyCPU;x64</Platforms>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <Configurations>Debug;Release;ReleaseNoRender</Configurations>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -38,6 +39,7 @@
     <Compile Remove="Models\ShaderErrorWindowModel.cs" />
     <Compile Remove="ViewData\BedrockTextureFormatValues.cs" />
     <Compile Remove="ViewData\JavaTextureFormatValues.cs" />
+    <Compile Remove="ViewData\ModelTypeValues.cs" />
     <Compile Remove="ViewModels\InputVMX.cs" />
     <Compile Remove="ViewModels\LogListVM.cs" />
     <Compile Remove="ViewModels\OutputChannelMapping.cs" />

@@ -12,7 +12,7 @@ namespace PixelGraph.Common.Material
     {
         public const bool DefaultWrap = true;
         public const string DefaultInputFormat = TextureFormat.Format_Raw;
-        public const string DefaultModelType = Models.ModelType.Cube;
+        //public const string DefaultModelType = Models.ModelType.Cube;
         public const bool DefaultPublish = true;
         public const bool DefaultPublishItem = false;
 
@@ -94,9 +94,9 @@ namespace PixelGraph.Common.Material
 
         public MaterialEmissiveProperties Emissive {get; set;}
 
-        public string ModelType {get; set;}
+        public string Model {get; set;}
 
-        public string ModelFile {get; set;}
+        public string BlendMode {get; set;}
 
         [YamlMember(Alias = "ctm", Order = 100)]
         public MaterialConnectionProperties CTM {get; set;}
@@ -124,6 +124,8 @@ namespace PixelGraph.Common.Material
             Porosity = new MaterialPorosityProperties();
             SSS = new MaterialSssProperties();
             Emissive = new MaterialEmissiveProperties();
+
+            //BlendMode = BlendModes.Opaque;
         }
 
         public Size GetMultiPartBounds()
@@ -392,6 +394,19 @@ namespace PixelGraph.Common.Material
         public MaterialColorProperties Diffuse {
             get => null;
             set => Color = value;
+        }
+
+        [Obsolete("Replace usages of ModelType with Model")]
+        public string ModelType {
+            get => null;
+            set {}
+            //set => Model = value;
+        }
+
+        [Obsolete("Replace usages of ModelFile with Model")]
+        public string ModelFile {
+            get => null;
+            set => Model = value;
         }
 
         #endregion

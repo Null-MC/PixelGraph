@@ -12,6 +12,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -87,7 +88,8 @@ namespace PixelGraph.Rendering.Materials
 
         public virtual async Task UpdateAllTexturesAsync(CancellationToken token = default)
         {
-            foreach (var tag in TextureMap.Keys) {
+            var allKeys = TextureMap.Keys.ToArray();
+            foreach (var tag in allKeys) {
                 if (TextureMap.TryGetValue(tag, out var existing) && existing != null)
                     await existing.DisposeAsync();
 

@@ -224,8 +224,7 @@ namespace PixelGraph.UI.Models
         {
             OnDataChanged();
 
-            var isModelProperty = (e.PropertyName?.Equals(nameof(MaterialProperties.ModelType)) ?? false)
-                || (e.PropertyName?.Equals(nameof(MaterialProperties.ModelFile)) ?? false);
+            var isModelProperty = e.PropertyName?.Equals(nameof(MaterialProperties.Model)) ?? false;
 
             if (isModelProperty) OnModelChanged();
         }
@@ -275,12 +274,13 @@ namespace PixelGraph.UI.Models
 
     public class GeneralModelPropertyCollection : PropertyCollectionBase<MaterialProperties>
     {
-        private readonly IEditTextPropertyRow<MaterialProperties> fileRow;
+        private readonly IEditTextPropertyRow<MaterialProperties> modelRow;
+        private readonly IEditSelectPropertyRow<MaterialProperties> blendRow;
 
         public GeneralModelPropertyCollection()
         {
-            var typeOptions = new SelectPropertyRowOptions(new ModelTypeValues(), "Text", "Value");
-            AddSelect("Type", nameof(MaterialProperties.ModelType), typeOptions, MaterialProperties.DefaultModelType);
+            var blendOptions = new SelectPropertyRowOptions(new BlendModeValues(), "Text", "Value");
+            //AddSelect("Type", nameof(MaterialProperties.ModelType), typeOptions, MaterialProperties.DefaultModelType);
 
             //var allModelFiles = Minecraft.Java.AllModels
             //    .Select(md => new ModelTypeValues.Item {
@@ -289,7 +289,9 @@ namespace PixelGraph.UI.Models
             //    });
 
             //var fileOptions = new SelectPropertyRowOptions(allModelFiles, "Value", "Value");
-            fileRow = AddTextFile<string>("File", nameof(MaterialProperties.ModelFile));
+
+            modelRow = AddTextFile<string>("Model", nameof(MaterialProperties.Model));
+            blendRow = AddSelect<string>("Blend", nameof(MaterialProperties.BlendMode), blendOptions);
         }
 
         public override void SetData(MaterialProperties data)
@@ -297,11 +299,17 @@ namespace PixelGraph.UI.Models
             base.SetData(data);
 
             if (data != null) {
+                // TODO: add automatic entity support?
+
                 var modelData = Minecraft.Java.GetBlockModelForTexture<JavaBlockTextureVersion>(data.Name);
-                fileRow.DefaultValue = modelData?.GetLatestVersion()?.Id;
+                modelRow.DefaultValue = modelData?.GetLatestVersion()?.Id;
+
+                // TODO: get default blendMode
+                blendRow.DefaultValue = BlendMode.Opaque;
             }
             else {
-                fileRow.DefaultValue = null;
+                modelRow.DefaultValue = null;
+                blendRow.DefaultValue = null;
             }
         }
     }

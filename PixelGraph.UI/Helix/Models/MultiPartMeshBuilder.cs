@@ -72,7 +72,7 @@ namespace PixelGraph.UI.Helix.Models
 
         public async Task BuildAsync(RenderPreviewModes renderMode, IRenderContext renderContext, CancellationToken token = default)
         {
-            var modelFile = renderContext.DefaultMaterial.ModelFile;
+            var modelFile = renderContext.DefaultMaterial.Model;
             isEntity = false;
 
             if (modelFile == null && IsEntityPath(renderContext.DefaultMaterial.LocalPath)) {
