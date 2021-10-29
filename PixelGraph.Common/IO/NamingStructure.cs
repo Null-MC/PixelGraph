@@ -207,7 +207,7 @@ namespace PixelGraph.Common.IO
 
         public static string GetOutputPropertiesName(MaterialProperties material, bool global)
         {
-            var isLocalCtm = material.CTM?.Type != null && !material.UseGlobalMatching;
+            var isLocalCtm = material.CTM?.Method != null && !material.UseGlobalMatching;
             var path = GetPath(material, global && !isLocalCtm);
             var filename = PathEx.Join(path, $"{material.Name}.properties");
             return PathEx.Localize(filename);
@@ -223,7 +223,7 @@ namespace PixelGraph.Common.IO
 
         public static string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global)
         {
-            var path = GetPath(material, global && material.CTM?.Type == null);
+            var path = GetPath(material, global && material.CTM?.Method == null);
             var ext = GetExtension(pack);
             var name = Get(tag, material.Name, $"{ext}.mcmeta", global);
             var filename = PathEx.Join(path, name);

@@ -7,5 +7,10 @@ namespace PixelGraph.UI.Models.PropertyGrid
     public class SeparatorPropertyRowModel : ModelBase, ISeparatorPropertyRow
     {
         public object ActualValue => null;
+
+        public bool Enabled {
+            get => true;
+            set {}
+        }
     }
 }

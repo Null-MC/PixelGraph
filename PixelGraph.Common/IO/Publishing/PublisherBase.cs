@@ -4,8 +4,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
+using PixelGraph.Common.Textures.Graphing.Builders;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,10 +24,10 @@ namespace PixelGraph.Common.IO.Publishing
         where TMapping : IPublisherMapping
     {
         private readonly IServiceProvider provider;
-        private readonly IInputReader reader;
         private readonly IPublishReader loader;
 
         protected ILogger<IPublisher> Logger {get;}
+        protected IInputReader Reader {get;}
         protected IOutputWriter Writer {get;}
         protected TMapping Mapping {get;}
 
@@ -42,7 +42,8 @@ namespace PixelGraph.Common.IO.Publishing
         {
             this.provider = provider;
             this.loader = loader;
-            this.reader = reader;
+
+            Reader = reader;
             Mapping = mapping;
             Logger = logger;
 
@@ -76,15 +77,15 @@ namespace PixelGraph.Common.IO.Publishing
 
         private async Task PublishContentAsync(ResourcePackContext packContext, CancellationToken token = default)
         {
-            var genericPublisher = new GenericTexturePublisher(packContext.Profile, reader, Writer);
-            var packWriteTime = reader.GetWriteTime(packContext.Profile.LocalFile) ?? DateTime.Now;
+            var genericPublisher = new GenericTexturePublisher(packContext.Profile, Reader, Writer);
+            var packWriteTime = Reader.GetWriteTime(packContext.Profile.LocalFile) ?? DateTime.Now;
 
             await foreach (var fileObj in loader.LoadAsync(token)) {
                 token.ThrowIfCancellationRequested();
 
                 switch (fileObj) {
                     case MaterialProperties material:
-                        if (material.CTM?.Type != null) {
+                        if (material.CTM?.Method != null) {
                             var publishConnected = packContext.Profile.PublishConnected ?? ResourcePackProfileProperties.PublishConnectedDefault;
 
                             if (!publishConnected) {
@@ -166,7 +167,7 @@ namespace PixelGraph.Common.IO.Publishing
                 return;
             }
 
-            var sourceTime = reader.GetWriteTime(sourceFile);
+            var sourceTime = Reader.GetWriteTime(sourceFile);
             var destinationTime = Writer.GetWriteTime(destFile);
 
             if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
@@ -178,7 +179,7 @@ namespace PixelGraph.Common.IO.Publishing
                 await genericPublisher.PublishAsync(sourceFile, null, destFile, token);
             }
             else {
-                await using var srcStream = reader.Open(sourceFile);
+                await using var srcStream = Reader.Open(sourceFile);
                 await using var destStream = Writer.Open(destFile);
                 await srcStream.CopyToAsync(destStream, token);
             }

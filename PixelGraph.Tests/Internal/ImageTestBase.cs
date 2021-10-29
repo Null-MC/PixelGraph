@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Textures.Graphing.Builders;
 using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.Internal

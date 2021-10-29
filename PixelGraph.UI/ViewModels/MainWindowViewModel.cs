@@ -9,6 +9,7 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Rendering.Models;
 using PixelGraph.UI.Helix;
 using PixelGraph.UI.Internal;

@@ -16,7 +16,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.Rendering.Materials
+namespace PixelGraph.UI.Helix.Materials
 {
     internal interface IMaterialBuilder : IDisposable, IAsyncDisposable
     {
@@ -33,8 +33,8 @@ namespace PixelGraph.Rendering.Materials
         TextureModel BrdfLutMap {get; set;}
         bool RenderEnvironmentMap {get; set;}
 
-        Task UpdateAllTexturesAsync(CancellationToken token = default);
-        Task UpdateTexturesByTagAsync(string textureTag, CancellationToken token = default);
+        Task UpdateAllTexturesAsync(int part = 0, CancellationToken token = default);
+        Task UpdateTexturesByTagAsync(string textureTag, int part = 0, CancellationToken token = default);
         Task ClearAllTexturesAsync();
         void ClearAllTextures();
         Material BuildMaterial();
@@ -86,7 +86,7 @@ namespace PixelGraph.Rendering.Materials
 
         public abstract Material BuildMaterial();
 
-        public virtual async Task UpdateAllTexturesAsync(CancellationToken token = default)
+        public virtual async Task UpdateAllTexturesAsync(int part = 0, CancellationToken token = default)
         {
             var allKeys = TextureMap.Keys.ToArray();
             foreach (var tag in allKeys) {
@@ -94,17 +94,17 @@ namespace PixelGraph.Rendering.Materials
                     await existing.DisposeAsync();
 
                 using var previewBuilder = GetPreviewBuilder();
-                TextureMap[tag] = await GetTextureStreamAsync(previewBuilder, tag, 0, 0, token);
+                TextureMap[tag] = await GetTextureStreamAsync(previewBuilder, tag, 0, part, token);
             }
         }
 
-        public virtual async Task UpdateTexturesByTagAsync(string textureTag, CancellationToken token = default)
+        public virtual async Task UpdateTexturesByTagAsync(string textureTag, int part = 0, CancellationToken token = default)
         {
             if (!TextureMap.TryGetValue(textureTag, out var existing)) return;
             if (existing != null) await existing.DisposeAsync();
 
             using var previewBuilder = GetPreviewBuilder();
-            TextureMap[textureTag] = await GetTextureStreamAsync(previewBuilder, textureTag, 0, 0, token);
+            TextureMap[textureTag] = await GetTextureStreamAsync(previewBuilder, textureTag, 0, part, token);
         }
 
         public virtual void ClearAllTextures()

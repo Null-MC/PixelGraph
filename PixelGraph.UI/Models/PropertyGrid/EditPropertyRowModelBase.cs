@@ -9,6 +9,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
 {
     public interface IPropertyRow : INotifyPropertyChanged
     {
+        bool Enabled {get; set;}
         object ActualValue {get;}
     }
 
@@ -16,6 +17,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
     {
         string Name {get;}
         object EditValue {get; set;}
+        object EditDisplayValue {get;}
         object DefaultValue {get; set;}
     }
 
@@ -35,6 +37,9 @@ namespace PixelGraph.UI.Models.PropertyGrid
         public event EventHandler<PropertyValueChangedEventArgs> ValueChanged;
 
         public string Name {get;}
+        public bool Enabled {get; set;}
+
+        public object EditDisplayValue => GetDisplayValue();
 
         public object ActualValue {
             get {
@@ -51,6 +56,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
                 OnValueChanged();
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ActualValue));
+                OnPropertyChanged(nameof(EditDisplayValue));
             }
         }
 
@@ -61,6 +67,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
                 _defaultValue = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(EditValue));
+                OnPropertyChanged(nameof(EditDisplayValue));
             }
         }
 
@@ -74,6 +81,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
             if (info == null) throw new ApplicationException($"Property '{typeof(TProperty).Name}.{propertyName}' not found!");
 
             _defaultValue = defaultValue;
+            Enabled = true;
         }
 
         //protected EditPropertyRowModelBase(string name, string propertyName, Func<object> defaultFunc)
@@ -107,7 +115,10 @@ namespace PixelGraph.UI.Models.PropertyGrid
         {
             OnPropertyChanged(nameof(ActualValue));
             OnPropertyChanged(nameof(EditValue));
+            OnPropertyChanged(nameof(EditDisplayValue));
         }
+
+        protected virtual object GetDisplayValue() => EditValue;
 
         protected virtual void OnValueChanged()
         {

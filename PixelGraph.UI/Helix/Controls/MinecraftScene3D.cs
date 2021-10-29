@@ -1,12 +1,12 @@
-﻿using HelixToolkit.SharpDX.Core.Model.Scene;
+﻿using System.Windows;
+using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
-using SharpDX;
-using System.Windows;
 using PixelGraph.Rendering;
+using SharpDX;
 
-namespace PixelGraph.UI.Helix.Models
+namespace PixelGraph.UI.Helix.Controls
 {
     public class MinecraftScene3D : Element3D, IMinecraftScene
     {

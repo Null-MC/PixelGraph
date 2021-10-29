@@ -6,7 +6,7 @@ using HelixToolkit.Wpf.SharpDX.Model;
 using PixelGraph.Rendering;
 using PixelGraph.Rendering.CubeMaps;
 
-namespace PixelGraph.UI.Helix.Models
+namespace PixelGraph.UI.Helix.Controls
 {
     public class EnvironmentCube3D : Element3D, ICubeMapSource
     {

@@ -6,6 +6,7 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
+using PixelGraph.Common.Textures.Graphing.Builders;
 using Serilog;
 
 namespace PixelGraph.Common

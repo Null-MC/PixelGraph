@@ -367,10 +367,9 @@
                                                                  Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                  SelectedTag="{Binding SelectedTag, Mode=OneWay}"
                                                                  Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                <Grid
-                                      Visibility="{Binding IsEditModeConnections, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <TextBlock Text="Coming Soon..." HorizontalAlignment="Center" Margin="8"/>
-                                </Grid>
+                                <controls:MaterialConnectionsControl x:Name="ConnectionsEditor" DataChanged="OnMaterialChanged"
+                                                                 Material="{Binding SelectedTabMaterial, Mode=OneWay}"
+                                                                 Visibility="{Binding IsEditModeConnections, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <controls:ScenePropertiesControl
                                     Model="{Binding SceneModel, Mode=OneWay}"
                                     Visibility="{Binding IsEditModeScene, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>

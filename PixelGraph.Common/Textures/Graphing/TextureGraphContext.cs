@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace PixelGraph.Common.Textures
+namespace PixelGraph.Common.Textures.Graphing
 {
     public interface ITextureGraphContext
     {
@@ -71,7 +71,7 @@ namespace PixelGraph.Common.Textures
         public bool MaterialWrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool MaterialWrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
         public bool IsMaterialMultiPart => Material.Parts?.Any() ?? false;
-        public bool IsMaterialCtm => !string.IsNullOrWhiteSpace(Material.CTM?.Type);
+        public bool IsMaterialCtm => !string.IsNullOrWhiteSpace(Material.CTM?.Method);
         public float? TextureScale => (float?)Profile?.TextureScale;
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
         //public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;

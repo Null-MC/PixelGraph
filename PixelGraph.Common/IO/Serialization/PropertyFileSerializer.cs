@@ -1,8 +1,7 @@
-﻿using PixelGraph.Common.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,23 +14,13 @@ namespace PixelGraph.Common.IO.Serialization
     //    Task WriteAsync(StreamWriter writer, T properties, CancellationToken token = default);
     //}
 
-    internal class PropertyFileSerializer<T> //: IPropertyWriter<T>
-        where T : new()
+    internal class PropertyFileSerializer //: IPropertyWriter<T>
     {
-        private readonly Dictionary<string, PropertyInfo> propertyMap;
+        public string Separator {get; set;} = "=";
 
 
-        public PropertyFileSerializer()
+        public async IAsyncEnumerable<KeyValuePair<string, string>> ReadAsync(StreamReader reader, [EnumeratorCancellation] CancellationToken token = default)
         {
-            propertyMap = new Dictionary<string, PropertyInfo>(StringComparer.InvariantCultureIgnoreCase);
-
-            MapTypeProperties();
-        }
-
-        public async Task<T> ReadAsync(StreamReader reader, CancellationToken token = default)
-        {
-            var data = new T();
-
             string line;
             while ((line = await reader.ReadLineAsync()) != null) {
                 token.ThrowIfCancellationRequested();
@@ -40,47 +29,28 @@ namespace PixelGraph.Common.IO.Serialization
                 if (line.StartsWith('#') || string.IsNullOrEmpty(line)) continue;
 
                 if (!TryParseLine(line, out var propertyName, out var value))
-                    throw new ApplicationException("Failed to parse property line '{line}'!");
+                    throw new ApplicationException($"Failed to parse property line '{line}'!");
 
-                SetProperty(data, propertyName, value);
-            }
-
-            return data;
-        }
-
-        public async Task WriteAsync(StreamWriter writer, T properties, CancellationToken token = default)
-        {
-            foreach (var property in propertyMap.Values) {
-                var valueObj = property.GetValue(properties);
-                if (valueObj == null) return;
-
-                var valueStr = valueObj as string ?? valueObj.ToString();
-
-                await writer.WriteAsync(property.Name);
-                await writer.WriteAsync(" = ");
-                await writer.WriteLineAsync(valueStr);
+                //SetProperty(data, propertyName, value);
+                yield return new KeyValuePair<string, string>(propertyName, value);
             }
         }
 
-        private void MapTypeProperties()
+        public async Task WriteAsync(StreamWriter writer, IEnumerable<KeyValuePair<string, string>> properties, CancellationToken token = default)
         {
-            var propertyList = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.IgnoreCase);
+            foreach (var (propertName, propertyValue) in properties) {
+                token.ThrowIfCancellationRequested();
+                if (propertyValue == null) continue;
 
-            foreach (var property in propertyList)
-                propertyMap[property.Name] = property;
+                await writer.WriteAsync(propertName);
+                await writer.WriteAsync(Separator);
+                await writer.WriteLineAsync(propertyValue);
+            }
         }
 
-        private void SetProperty(T obj, string propertyName, string value)
+        private bool TryParseLine(string line, out string propertyName, out string value)
         {
-            if (!propertyMap.TryGetValue(propertyName, out var property))
-                throw new ApplicationException($"Property '{propertyName}' not found on type '{typeof(T).Name}'!");
-
-            property.SetValue(obj, value.To(property.PropertyType));
-        }
-
-        private static bool TryParseLine(string line, out string propertyName, out string value)
-        {
-            var i = line.IndexOf('=');
+            var i = line.IndexOf(Separator, StringComparison.InvariantCultureIgnoreCase);
 
             if (i < 0) {
                 propertyName = value = null;
@@ -88,7 +58,7 @@ namespace PixelGraph.Common.IO.Serialization
             }
 
             propertyName = line[..i].TrimEnd();
-            value = line[(i+1)..].TrimStart();
+            value = line[(i+Separator.Length)..].TrimStart();
             return true;
         }
     }

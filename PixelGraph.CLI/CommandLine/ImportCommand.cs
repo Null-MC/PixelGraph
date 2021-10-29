@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Textures.Graphing.Builders;
 
 namespace PixelGraph.CLI.CommandLine
 {

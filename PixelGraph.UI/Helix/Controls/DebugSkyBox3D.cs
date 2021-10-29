@@ -5,7 +5,7 @@ using HelixToolkit.Wpf.SharpDX.Model;
 using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.Rendering.Sky;
 
-namespace PixelGraph.UI.Helix.Models
+namespace PixelGraph.UI.Helix.Controls
 {
     public class DebugSkyBox3D : Element3D
     {

@@ -40,7 +40,7 @@
             <controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:IEditSelectPropertyRow}">
                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Text="{Binding EditValue, Mode=OneWay}"/>
+                               Text="{Binding EditDisplayValue, Mode=OneWay}"/>
                 </DataTemplate>
             </controls:PropertyGridCellTemplateSelector.ComboBoxTemplate>
             <controls:PropertyGridCellTemplateSelector.SeparatorTemplate>
@@ -52,7 +52,7 @@
         <controls:PropertyGridEditCellTemplateSelector x:Key="EditCellTemplateSelector">
             <controls:PropertyGridEditCellTemplateSelector.TextBoxTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:IEditTextPropertyRow}">
-                    <DockPanel>
+                    <DockPanel IsEnabled="{Binding Enabled, Mode=OneWay}">
                         <Button DockPanel.Dock="Right" Margin="6,0" Click="OnSelectFileClick"
                                 Style="{StaticResource MahApps.Styles.Button.Chromeless}"
                                 Visibility="{Binding IsFileSelect, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -67,6 +67,7 @@
             <controls:PropertyGridEditCellTemplateSelector.CheckBoxTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:IEditBoolPropertyRow}">
                     <CheckBox HorizontalAlignment="Center" Margin="0" Padding="6,0" VerticalAlignment="Center" IsTabStop="False"
+                              IsEnabled="{Binding Enabled, Mode=OneWay}"
                               IsChecked="{Binding EditValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource NullableConverter}}"/>
                 </DataTemplate>
             </controls:PropertyGridEditCellTemplateSelector.CheckBoxTemplate>
@@ -74,6 +75,7 @@
                 <DataTemplate DataType="{x:Type propertyGrid:IEditSelectPropertyRow}">
                     <ComboBox HorizontalContentAlignment="Center" Margin="0" Padding="6,0" IsTabStop="False"
                               BorderThickness="0" BorderBrush="{x:Null}" Background="Transparent"
+                              IsEnabled="{Binding Enabled, Mode=OneWay}"
                               DisplayMemberPath="{Binding Options.DisplayMemberPath, Mode=OneWay}"
                               SelectedValuePath="{Binding Options.SelectedValuePath, Mode=OneWay}"
                               ItemsSource="{Binding Options.Items, Mode=OneWay}"

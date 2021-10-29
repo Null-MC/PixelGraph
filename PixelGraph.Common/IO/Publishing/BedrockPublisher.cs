@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Textures.Graphing;
 
 namespace PixelGraph.Common.IO.Publishing
 {
@@ -100,7 +101,7 @@ namespace PixelGraph.Common.IO.Publishing
                 return Mapping.TryMap(sourceFile, out _);
             }) ?? false) return true;
 
-            if (material.CTM?.Type != null) {
+            if (material.CTM?.Method != null) {
                 // TODO
                 return false;
             }

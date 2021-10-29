@@ -9,6 +9,7 @@ using PixelGraph.Common.Textures.Graphing;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Textures.Graphing.Builders;
 
 namespace PixelGraph.Common.IO.Importing
 {

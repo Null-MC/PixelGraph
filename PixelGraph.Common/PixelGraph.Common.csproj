@@ -36,6 +36,7 @@
     <Compile Remove="Samplers\PointSampler.cs" />
     <Compile Remove="Samplers\SamplerScope.cs" />
     <Compile Remove="Textures\Graphing\CtmTextureMap.cs" />
+    <Compile Remove="Textures\TextureConnectionTypes.cs" />
     <Compile Remove="GpuProcessors\**" />
   </ItemGroup>
 

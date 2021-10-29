@@ -2,7 +2,7 @@
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Rendering.Sky;
 
-namespace PixelGraph.UI.Helix.Models
+namespace PixelGraph.UI.Helix.Controls
 {
     public class SkyDome3D : Element3D
     {

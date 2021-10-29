@@ -1,21 +1,21 @@
-﻿using Microsoft.Extensions.Logging;
-using PixelGraph.Common.ConnectedTextures;
-using PixelGraph.Common.Effects;
-using PixelGraph.Common.Extensions;
-using PixelGraph.Common.ImageProcessors;
-using PixelGraph.Common.IO;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using PixelGraph.Common.ConnectedTextures;
+using PixelGraph.Common.Effects;
+using PixelGraph.Common.Extensions;
+using PixelGraph.Common.ImageProcessors;
+using PixelGraph.Common.IO;
 using PixelGraph.Common.ResourcePack;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
-namespace PixelGraph.Common.Textures.Graphing
+namespace PixelGraph.Common.Textures.Graphing.Builders
 {
     public interface IPublishGraphBuilder
     {
@@ -62,7 +62,7 @@ namespace PixelGraph.Common.Textures.Graphing
                 if (!IsOutputUpToDate(packWriteTime, sourceTime)) {
                     logger.LogDebug("Publishing material '{DisplayName}'.", Context.Material.DisplayName);
                     await ProcessAllTexturesAsync(true, token);
-                    await CopyPropertiesAsync(token);
+                    //await CopyPropertiesAsync(token);
                 }
                 else {
                     logger.LogDebug("Skipping up-to-date material '{DisplayName}'.", Context.Material.DisplayName);
@@ -194,7 +194,7 @@ namespace PixelGraph.Common.Textures.Graphing
 
         private IEnumerable<string> GetMaterialOutputFiles(IEnumerable<string> textureTags)
         {
-            var repeatCount = new Lazy<int>(() => (Context.Material.CTM?.CountX ?? 1) * (Context.Material.CTM?.CountY ?? 1));
+            //var gridCount = new Lazy<int>(() => (Context.Material.CTM?.Width ?? 1) * (Context.Material.CTM?.Height ?? 1));
 
             var ext = NamingStructure.GetExtension(Context.Profile);
             var sourcePath = Context.Material.LocalPath;
@@ -211,13 +211,7 @@ namespace PixelGraph.Common.Textures.Graphing
                     }
                 }
                 else if (Context.IsMaterialCtm) {
-                    var tileCount = Context.Material.CTM?.Type switch {
-                        CtmTypes.Compact => 5,
-                        CtmTypes.Expanded => 47,
-                        CtmTypes.Full => 47,
-                        CtmTypes.Repeat => repeatCount.Value,
-                        _ => 1,
-                    };
+                    var tileCount = CtmTypes.GetBounds(Context.Material.CTM)?.Total ?? 1;
 
                     for (var i = 0; i < tileCount; i++) {
                         var usePlaceholder = Context.Material.CTM?.Placeholder ?? false;

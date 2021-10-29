@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
@@ -9,11 +12,8 @@ using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace PixelGraph.Common.Textures
+namespace PixelGraph.Common.Textures.Graphing
 {
     public interface ITextureOcclusionGraph
     {
@@ -311,14 +311,14 @@ namespace PixelGraph.Common.Textures
             var profileSize = context.Profile?.BlockTextureSize ?? context.Profile?.TextureSize;
             if (profileSize.HasValue) return profileSize.Value;
 
-            if (CtmTypes.Is(CtmTypes.Compact, context.Material.CTM?.Type))
+            if (CtmTypes.Is(CtmTypes.Compact, context.Material.CTM?.Method))
                 return imageWidth / 5;
             
-            if (CtmTypes.Is(CtmTypes.Full, context.Material.CTM?.Type))
+            if (CtmTypes.Is(CtmTypes.Full, context.Material.CTM?.Method))
                 return imageWidth / 12;
             
-            if (CtmTypes.Is(CtmTypes.Repeat, context.Material.CTM?.Type))
-                return imageWidth / (context.Material.CTM?.CountX ?? 1);
+            if (CtmTypes.Is(CtmTypes.Repeat, context.Material.CTM?.Method))
+                return imageWidth / (context.Material.CTM?.Width ?? 1);
 
             return imageWidth;
         }

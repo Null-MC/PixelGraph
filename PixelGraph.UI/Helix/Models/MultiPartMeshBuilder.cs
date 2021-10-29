@@ -10,7 +10,6 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
-using PixelGraph.Rendering.Materials;
 using PixelGraph.Rendering.Models;
 using PixelGraph.Rendering.Shaders;
 using PixelGraph.UI.Helix.Controls;
@@ -38,7 +37,7 @@ namespace PixelGraph.UI.Helix.Models
         private readonly IMinecraftResourceLocator locator;
         private readonly Dictionary<string, IMaterialBuilder> materialMap;
         private readonly List<(IModelBuilder, IMaterialBuilder)> partsList;
-        private bool isEntity = false;
+        private bool isEntity;
 
         public ObservableElement3DCollection ModelParts {get;}
 
@@ -108,7 +107,7 @@ namespace PixelGraph.UI.Helix.Models
                 ClearTextureBuilders();
 
                 var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
-                await materialBuilder.UpdateAllTexturesAsync(token);
+                await materialBuilder.UpdateAllTexturesAsync(0, token);
 
                 materialMap["all"] = materialBuilder;
 
@@ -126,7 +125,7 @@ namespace PixelGraph.UI.Helix.Models
             // Apply default material if no textures are mapped
             if (materialMap.Count == 0) {
                 var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
-                await materialBuilder.UpdateAllTexturesAsync(token);
+                await materialBuilder.UpdateAllTexturesAsync(0, token);
 
                 materialMap["all"] = materialBuilder;
 
@@ -220,7 +219,7 @@ namespace PixelGraph.UI.Helix.Models
             modelBuilder.BuildEntity(CubeSize, model);
 
             var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
-            await materialBuilder.UpdateAllTexturesAsync(token);
+            await materialBuilder.UpdateAllTexturesAsync(0, token);
             // using default/selected material instead of lookup
 
             partsList.Clear();
@@ -245,9 +244,13 @@ namespace PixelGraph.UI.Helix.Models
 
                 // find material from textureFile
                 MaterialProperties material;
+                int partIndex = 0;
 
                 var fileName = Path.GetFileNameWithoutExtension(textureFile);
                 if (string.Equals(fileName, renderContext.DefaultMaterial.Name, StringComparison.InvariantCultureIgnoreCase)) {
+                    material = renderContext.DefaultMaterial;
+                }
+                else if (renderContext.DefaultMaterial.TryGetPartIndex(fileName, out partIndex)) {
                     material = renderContext.DefaultMaterial;
                 }
                 else if (locator.FindLocalMaterial(textureFile, out var materialFile)) {
@@ -261,7 +264,7 @@ namespace PixelGraph.UI.Helix.Models
                 }
 
                 var materialBuilder = UpdateMaterial(renderMode, renderContext, material);
-                await materialBuilder.UpdateAllTexturesAsync(token);
+                await materialBuilder.UpdateAllTexturesAsync(partIndex, token);
 
                 materialMap[textureId] = materialBuilder;
             }

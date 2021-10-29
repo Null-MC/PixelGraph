@@ -6,7 +6,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
 {
     public interface ISelectPropertyRow : IPropertyRow
     {
-        string DisplayValue {get;}
+        //string DisplayValue {get;}
         SelectPropertyRowOptions Options {get;}
     }
 
@@ -21,7 +21,7 @@ namespace PixelGraph.UI.Models.PropertyGrid
     {
         public bool CanEditText {get; set;}
         public SelectPropertyRowOptions Options {get;}
-        public string DisplayValue => Options.GetDisplayValue(EditValue);
+        //public string DisplayValue => Options.GetDisplayValue(EditValue);
 
 
         public EditSelectPropertyRowModel(string name, string propertyName, SelectPropertyRowOptions options, object defaultValue = null) : base(name, propertyName, defaultValue)
@@ -34,19 +34,24 @@ namespace PixelGraph.UI.Models.PropertyGrid
             Options = options;
         }
 
-        protected override void OnValueChanged()
+        protected override object GetDisplayValue()
         {
-            base.OnValueChanged();
-
-            OnPropertyChanged(nameof(DisplayValue));
+            return Options.GetDisplayValue(EditValue);
         }
 
-        public override void Invalidate()
-        {
-            base.Invalidate();
+        //protected override void OnValueChanged()
+        //{
+        //    base.OnValueChanged();
 
-            OnPropertyChanged(nameof(DisplayValue));
-        }
+        //    OnPropertyChanged(nameof(DisplayValue));
+        //}
+
+        //public override void Invalidate()
+        //{
+        //    base.Invalidate();
+
+        //    OnPropertyChanged(nameof(DisplayValue));
+        //}
     }
 
     public class SelectPropertyRowOptions

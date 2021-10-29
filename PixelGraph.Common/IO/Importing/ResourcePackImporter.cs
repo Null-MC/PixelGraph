@@ -30,7 +30,7 @@ namespace PixelGraph.Common.IO.Importing
         private static readonly Regex entityPathExp = new("^assets/minecraft/textures/entity/?$", RegexOptions.IgnoreCase);
         private static readonly Regex ctmExp = new("^assets/minecraft/optifine/ctm/?$", RegexOptions.IgnoreCase);
 
-        private static readonly PropertyFileSerializer<CtmProperties> ctmPropertySerializer;
+        private static readonly ObjectPropertyFileSerializer<CtmProperties> ctmPropertySerializer;
 
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
@@ -45,7 +45,7 @@ namespace PixelGraph.Common.IO.Importing
 
         static ResourcePackImporter()
         {
-            ctmPropertySerializer = new PropertyFileSerializer<CtmProperties>();
+            ctmPropertySerializer = new ObjectPropertyFileSerializer<CtmProperties>();
         }
 
         public ResourcePackImporter(IServiceProvider provider)

@@ -4,6 +4,7 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System.Linq;
+using PixelGraph.Common.Textures.Graphing;
 
 namespace PixelGraph.Common.Effects
 {

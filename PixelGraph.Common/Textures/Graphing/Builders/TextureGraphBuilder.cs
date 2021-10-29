@@ -1,16 +1,16 @@
-﻿using Microsoft.Extensions.Logging;
-using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using ImageExtensions = PixelGraph.Common.IO.ImageExtensions;
 
-namespace PixelGraph.Common.Textures.Graphing
+namespace PixelGraph.Common.Textures.Graphing.Builders
 {
     internal abstract class TextureGraphBuilder
     {

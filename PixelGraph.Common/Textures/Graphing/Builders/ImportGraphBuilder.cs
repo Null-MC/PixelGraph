@@ -1,14 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace PixelGraph.Common.Textures.Graphing
+namespace PixelGraph.Common.Textures.Graphing.Builders
 {
     public interface IImportGraphBuilder
     {

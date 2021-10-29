@@ -128,6 +128,26 @@ namespace PixelGraph.Common.Material
             //BlendMode = BlendModes.Opaque;
         }
 
+        public bool TryGetPartIndex(string name, out int partIndex)
+        {
+            if (Parts == null) {
+                partIndex = 0;
+                return false;
+            }
+
+            for (var i = 0; i < Parts.Count; i++) {
+                if (!string.Equals(Parts[i].Name, name, StringComparison.InvariantCultureIgnoreCase)) continue;
+
+                partIndex = i;
+                return true;
+            }
+
+            //part = Parts.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.InvariantCultureIgnoreCase));
+            //return part != null;
+            partIndex = 0;
+            return false;
+        }
+
         public Size GetMultiPartBounds()
         {
             var size = new Size();
@@ -163,22 +183,12 @@ namespace PixelGraph.Common.Material
                 return true;
             }
 
-            if (!string.IsNullOrWhiteSpace(CTM?.Type)) {
-                if (blockSize.HasValue) {
-                    switch (CTM.Type) {
-                        case CtmTypes.Compact:
-                            size = new Size(blockSize.Value * 5, blockSize.Value);
-                            return true;
-                        case CtmTypes.Full:
-                        case CtmTypes.Expanded:
-                            size = new Size(blockSize.Value * 12, blockSize.Value * 4);
-                            return true;
-                        case CtmTypes.Repeat:
-                            var countX = CTM.CountX ?? 1;
-                            var countY = CTM.CountY ?? 1;
-                            size = new Size(blockSize.Value * countX, blockSize.Value * countY);
-                            return true;
-                    }
+            if (!string.IsNullOrWhiteSpace(CTM?.Method) && blockSize.HasValue) {
+                var bounds = CtmTypes.GetBounds(CTM);
+
+                if (bounds != null) {
+                    size = new Size(blockSize.Value * bounds.Width, blockSize.Value * bounds.Height);
+                    return true;
                 }
             }
 

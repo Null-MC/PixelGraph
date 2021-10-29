@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.ConnectedTextures;
+using PixelGraph.Common.Textures.Graphing;
 using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
@@ -43,11 +44,10 @@ namespace PixelGraph.Common.Textures
             };
 
             var tileCount = GetPublishTileCount();
+            //var isFullCtm = CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Full);
+            //var isCompactCtm = CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Compact);
 
-            var isFullCtm = CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Full);
-            var isCompactCtm = CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Compact);
-
-            if (isFullCtm || isCompactCtm) {
+            if (context.Material.CTM?.Method != null) {
                 frame.Tiles = Enumerable.Range(0, tileCount)
                     .Select(z => new TextureRenderTile {
                         Index = z,
@@ -129,14 +129,8 @@ namespace PixelGraph.Common.Textures
             if (context.IsMaterialMultiPart)
                 return context.Material.Parts.Count;
 
-            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Compact))
-                return 5;
-
-            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Full))
-                return 47;
-
-            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Repeat))
-                return (context.Material.CTM?.CountX ?? 1) * (context.Material.CTM?.CountY ?? 1);
+            if (context.IsMaterialCtm)
+                return CtmTypes.GetBounds(context.Material?.CTM)?.Total ?? 1;
 
             return 1;
         }
@@ -168,32 +162,10 @@ namespace PixelGraph.Common.Textures
                 };
             }
 
-            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Compact)) {
-                const float tileWidth = 1f / 5f;
-
-                return new RectangleF {
-                    X = tileIndex * tileWidth,
-                    Y = wrappedIndex * frameHeight,
-                    Width = tileWidth,
-                    Height = frameHeight,
-                };
-            }
-
-            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Full)) {
-                const float tileWidth = 1f / 12f;
-                var tileHeight = frameHeight / 4f;
-
-                return new RectangleF {
-                    X = (tileIndex % 12) * tileWidth,
-                    Y = wrappedIndex * frameHeight + tileIndex / 12 * tileHeight,
-                    Width = tileWidth,
-                    Height = tileHeight,
-                };
-            }
-
-            if (CtmTypes.Is(context.Material.CTM?.Type, CtmTypes.Repeat)) {
-                var tileCountX = context.Material.CTM?.CountX ?? 1;
-                var tileCountY = context.Material.CTM?.CountY ?? 1;
+            if (context.IsMaterialCtm) {
+                var bounds = CtmTypes.GetBounds(context.Material.CTM);
+                var tileCountX = bounds?.Width ?? 1;
+                var tileCountY = bounds?.Height ?? 1;
 
                 var tileWidth = 1f / tileCountX;
                 var tileHeight = frameHeight / tileCountY;
@@ -205,6 +177,44 @@ namespace PixelGraph.Common.Textures
                     Height = tileHeight,
                 };
             }
+
+            //if (CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Horizontal)
+            // || CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Vertical)) {
+            //    const float tileWidth = 1f / 4f;
+
+            //    return new RectangleF {
+            //        X = tileIndex * tileWidth,
+            //        Y = wrappedIndex * frameHeight,
+            //        Width = tileWidth,
+            //        Height = frameHeight,
+            //    };
+            //}
+
+            //if (CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Compact)) {
+            //    const float tileWidth = 1f / 5f;
+
+            //    return new RectangleF {
+            //        X = tileIndex * tileWidth,
+            //        Y = wrappedIndex * frameHeight,
+            //        Width = tileWidth,
+            //        Height = frameHeight,
+            //    };
+            //}
+
+            //if (CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Full)) {
+            //    const float tileWidth = 1f / 12f;
+            //    var tileHeight = frameHeight / 4f;
+
+            //    return new RectangleF {
+            //        X = (tileIndex % 12) * tileWidth,
+            //        Y = wrappedIndex * frameHeight + tileIndex / 12 * tileHeight,
+            //        Width = tileWidth,
+            //        Height = tileHeight,
+            //    };
+            //}
+
+            //if (CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Repeat)) {
+            //}
 
             return GetFrameBounds(frameIndex, frameCount);
         }
