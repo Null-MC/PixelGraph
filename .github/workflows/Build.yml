@@ -8,6 +8,8 @@ jobs:
     if: github.event.inputs.version == ''
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Build
         run: dotnet build -c Test
       - name: Test
