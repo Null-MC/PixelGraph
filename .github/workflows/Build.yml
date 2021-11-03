@@ -1,4 +1,4 @@
-name: Build
+name: BuildTest
 on: [push, pull_request]
 
 jobs:
@@ -11,6 +11,6 @@ jobs:
         with:
           submodules: recursive
       - name: Build
-        run: dotnet build -c Test
+        run: dotnet build PixelGraph.Tests -c Test
       - name: Test
-        run: dotnet test -c Test
+        run: dotnet test PixelGraph.Tests -c Test
