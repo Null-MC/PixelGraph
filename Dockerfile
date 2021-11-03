@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:3.1 as build
+FROM mcr.microsoft.com/dotnet/sdk:5.0 as build
 WORKDIR /src
 COPY ./PixelGraph.sln ./
 COPY ./MinecraftMappings.NET/MinecraftMappings.NET/MinecraftMappings.NET.csproj ./MinecraftMappings.NET/MinecraftMappings.NET/
