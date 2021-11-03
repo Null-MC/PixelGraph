@@ -7,8 +7,8 @@ using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
-using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
+using PixelGraph.Common.Textures.Graphing.Builders;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -16,7 +16,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Textures.Graphing.Builders;
 
 namespace PixelGraph.CLI.CommandLine
 {
@@ -86,7 +85,6 @@ namespace PixelGraph.CLI.CommandLine
         private class Executor
         {
             private readonly IServiceProvider provider;
-            //private readonly ITextureGraphBuilder graphBuilder;
             private readonly IResourcePackReader packReader;
             private readonly IInputReader reader;
             private readonly IOutputWriter writer;
@@ -94,13 +92,11 @@ namespace PixelGraph.CLI.CommandLine
 
             public Executor(
                 IServiceProvider provider,
-                //ITextureGraphBuilder graphBuilder,
                 IResourcePackReader packReader,
                 IInputReader reader,
                 IOutputWriter writer)
             {
                 this.provider = provider;
-                //this.graphBuilder = graphBuilder;
                 this.packReader = packReader;
                 this.reader = reader;
                 this.writer = writer;
@@ -128,7 +124,6 @@ namespace PixelGraph.CLI.CommandLine
 
                 var fullFile = Path.GetFullPath(textureFilename);
                 var packProfile = await packReader.ReadProfileAsync(fullFile);
-                //pack.Properties["input.format"] = inputFormat;
                 packProfile.Encoding.Format = outputFormat;
 
                 var packInput = new ResourcePackInputProperties {
@@ -153,7 +148,6 @@ namespace PixelGraph.CLI.CommandLine
                     context.Material = material;
 
                     await graphBuilder.PublishAsync(token);
-                    //await graphBuilder.PublishInventoryAsync(token);
                 }
                 finally {
                     timer.Stop();

@@ -6,8 +6,8 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
+using PixelGraph.Common.Textures.Graphing.Builders;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -15,7 +15,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Textures.Graphing.Builders;
 
 namespace PixelGraph.CLI.CommandLine
 {
@@ -132,11 +131,6 @@ namespace PixelGraph.CLI.CommandLine
                     reader.SetRoot(root);
                     writer.SetRoot(destinationPath);
 
-                    // ERROR: Load actual pack-input file!
-                    //var packPath = Path.GetDirectoryName(textureFilename);
-                    //var packInput = await packReader.ReadInputAsync(?);
-                    //var packProfile = await packReader.ReadProfileAsync(packPath);
-
                     var packInput = new ResourcePackInputProperties {
                         Format = inputFormat,
                     };
@@ -160,7 +154,6 @@ namespace PixelGraph.CLI.CommandLine
                     };
 
                     await graphBuilder.ImportAsync(token);
-                    //await graphBuilder.PublishInventoryAsync(token);
 
                     const string localFile = "mat.yml";
                     await packWriter.WriteAsync(localFile, packProfile);

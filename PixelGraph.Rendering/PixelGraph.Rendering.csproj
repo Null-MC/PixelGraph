@@ -1,16 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Version>1.7.0</Version>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Internal\RegistrationCounterCache.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="Resources\brdf_lut.dds" />
+    <Compile Remove="GpuImageProcessors\**" />
+    <EmbeddedResource Remove="GpuImageProcessors\**" />
+    <None Remove="GpuImageProcessors\**" />
     <None Remove="Resources\Shaders\**\*.cso" />
     <None Remove="Resources\Shaders\*.hlsl" />
   </ItemGroup>
@@ -31,7 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Internal\" />
     <Folder Include="Resources\Shaders\compiled\" />
   </ItemGroup>
 

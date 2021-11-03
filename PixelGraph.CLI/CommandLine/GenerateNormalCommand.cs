@@ -6,6 +6,7 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using SixLabors.ImageSharp;
 using System;
 using System.CommandLine;
@@ -15,7 +16,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Textures.Graphing;
 
 namespace PixelGraph.CLI.CommandLine
 {
@@ -87,7 +87,6 @@ namespace PixelGraph.CLI.CommandLine
         internal class Executor
         {
             private readonly IServiceProvider provider;
-            //private readonly INamingStructure naming;
             private readonly IInputReader reader;
             private readonly IResourcePackReader packReader;
             private readonly IMaterialReader materialReader;
@@ -96,14 +95,12 @@ namespace PixelGraph.CLI.CommandLine
 
             public Executor(
                 IServiceProvider provider,
-                //INamingStructure naming,
                 IInputReader reader,
                 IResourcePackReader packReader,
                 IMaterialReader materialReader,
                 ILogger<Executor> logger)
             {
                 this.provider = provider;
-                //this.naming = naming;
                 this.reader = reader;
                 this.packReader = packReader;
                 this.materialReader = materialReader;
@@ -137,7 +134,6 @@ namespace PixelGraph.CLI.CommandLine
                 var timer = Stopwatch.StartNew();
 
                 if (normalFilename == null) {
-                    //var finalName = normalFilename ?? NamingStructure.GetOutputTextureName(packProfile, material.Name, TextureTags.Normal, material.UseGlobalMatching);
                     var ext = NamingStructure.GetExtension(packProfile);
                     normalFilename = NamingStructure.Get(TextureTags.Normal, material.Name, ext, material.UseGlobalMatching);
                 }
