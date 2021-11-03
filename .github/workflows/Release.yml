@@ -38,6 +38,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Publish Windows-UI-x64 Binary
         run: |
           dotnet build PixelGraph.UI -c Release
