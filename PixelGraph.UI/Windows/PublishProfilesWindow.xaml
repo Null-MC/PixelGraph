@@ -1,19 +1,19 @@
 ﻿<mah:MetroWindow x:Class="PixelGraph.UI.Windows.PackProfilesWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
-        xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
-        xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
-        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
-        xmlns:models="clr-namespace:PixelGraph.UI.Models"
-        Title="Publishing Profiles" Width="1000" Height="600" mc:Ignorable="d" 
-        WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal" SaveWindowPosition="True"
-        d:DataContext="{d:DesignInstance models:PublishProfilesDesignerModel, IsDesignTimeCreatable=True}"
-        Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
-        Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                 xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
+                 xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
+                 xmlns:models="clr-namespace:PixelGraph.UI.Models"
+                 xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
+                 Title="Publishing Profiles" Width="1000" Height="600" mc:Ignorable="d" 
+                 WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal" SaveWindowPosition="True"
+                 d:DataContext="{d:DesignInstance models:PublishProfilesDesignerModel, IsDesignTimeCreatable=True}"
+                 Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+                 Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
         <vd:GameEditionValues x:Key="GameEditions"/>
         <vd:ImageEncodingValues x:Key="ImageEncodings"/>
@@ -124,6 +124,29 @@
                                     </Style>
                                 </ComboBox.Style>
                             </ComboBox>
+                            <CheckBox Content="Palettize" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                      ToolTip="When enabled the published images will be compressed to a color palette."
+                                      IsChecked="{Binding EnablePalette, Mode=TwoWay}"/>
+                            <TextBlock Text="Palette Colors" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"
+                                       Visibility="{Binding EnablePalette, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <TextBox Text="{Binding EditPaletteColors, Mode=TwoWay, Converter={StaticResource NullableConverter}}"
+                                     Visibility="{Binding EnablePalette, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PaletteColors}" Value="{x:Null}">
+                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                                <Setter Property="FontStyle" Value="Italic"/>
+                                            </DataTrigger>
+                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                                                <Setter Property="FontStyle" Value="Normal"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
                         </StackPanel>
                     </Grid>
                 </ScrollViewer>

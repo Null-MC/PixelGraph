@@ -32,6 +32,18 @@ namespace PixelGraph.UI.ViewModels
             return row;
         }
 
+        protected IEditTextPropertyRow<TSource> AddTextColor<TValue>(string displayName, string propertyName, TValue defaultValue = default)
+        {
+            var row = new EditTextPropertyRowModel<TSource, TValue>(displayName, propertyName, defaultValue) {
+                IsColorSelect = true,
+            };
+
+            row.ValueChanged += OnRowValueChanged;
+            Add(row);
+
+            return row;
+        }
+
         protected IEditBoolPropertyRow<TSource> AddBool<TValue>(string displayName, string propertyName, TValue defaultValue = default)
         {
             var row = new EditBoolPropertyRowModel<TSource, TValue>(displayName, propertyName, defaultValue);

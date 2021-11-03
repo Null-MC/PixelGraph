@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
@@ -13,6 +9,10 @@ using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures.Graphing
 {
@@ -382,86 +382,5 @@ namespace PixelGraph.Common.Textures.Graphing
                 }
             }
         }
-
-        //private async Task<TextureSource> GetHeightSourceAsync(CancellationToken token)
-        //{
-        //    var file = reader.EnumerateInputTextures(context.Material, TextureTags.Bump).FirstOrDefault();
-
-        //    if (file != null) {
-        //        var info = await sourceGraph.GetOrCreateAsync(file, token);
-        //        if (info != null) return info;
-        //    }
-
-        //    file = reader.EnumerateInputTextures(context.Material, TextureTags.Height).FirstOrDefault();
-        //    if (file == null) return null;
-
-        //    return await sourceGraph.GetOrCreateAsync(file, token);
-        //}
-
-        //private async Task<(Image<TPixel>, float)> LoadHeightTextureAsync<TPixel>(CancellationToken token)
-        //    where TPixel : unmanaged, IPixel<TPixel>
-        //{
-        //    var info = await GetHeightSourceAsync(token);
-        //    if (info == null) return (null, 0f);
-
-        //    await using var stream = reader.Open(info.LocalFile);
-
-        //    Image<TPixel> heightTexture = null;
-        //    try {
-        //        heightTexture = await Image.LoadAsync<TPixel>(Configuration.Default, stream, token);
-        //        if (heightTexture == null) throw new SourceEmptyException("No height source textures found!");
-
-        //        // scale height texture instead of using samplers
-        //        var aspect = (float)info.Height / info.Width;
-        //        var bufferSize = context.GetBufferSize(aspect);
-        //        NormalFrameCount = info.FrameCount;
-        //        var scale = 1f;
-
-        //        if (bufferSize.HasValue && info.Width != bufferSize.Value.Width) {
-        //            scale = (float)bufferSize.Value.Width / info.Width;
-        //            var scaledWidth = (int)MathF.Ceiling(info.Width * scale);
-        //            var scaledHeight = (int)MathF.Ceiling(info.Height * scale * info.FrameCount);
-
-        //            var samplerName = context?.Material?.Height?.Input?.Sampler
-        //                              ?? context.Profile?.Encoding?.Height?.Sampler
-        //                              ?? context.DefaultSampler;
-
-        //            var sampler = context.CreateSampler(heightTexture, samplerName);
-        //            sampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
-        //            sampler.RangeX = sampler.RangeY = 1f / scale;
-
-        //            var options = new ResizeProcessor<TPixel>.Options {
-        //                Sampler = sampler,
-        //            };
-
-        //            var processor = new ResizeProcessor<TPixel>(options);
-
-        //            Image<TPixel> heightCopy = null;
-        //            try {
-        //                heightCopy = heightTexture;
-        //                heightTexture = new Image<TPixel>(Configuration.Default, scaledWidth, scaledHeight);
-
-        //                foreach (var frame in regions.GetAllRenderRegions(null, NormalFrameCount)) {
-        //                    foreach (var tile in frame.Tiles) {
-        //                        sampler.Bounds = tile.Bounds;
-
-        //                        var outBounds = tile.Bounds.ScaleTo(scaledWidth, scaledHeight);
-        //                        heightTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
-        //                    }
-        //                }
-        //            }
-        //            finally {
-        //                heightCopy?.Dispose();
-        //            }
-        //        }
-                
-        //        return (heightTexture, scale);
-        //    }
-        //    catch (SourceEmptyException) {throw;}
-        //    catch {
-        //        heightTexture?.Dispose();
-        //        throw;
-        //    }
-        //}
     }
 }

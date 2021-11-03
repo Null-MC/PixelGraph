@@ -22,6 +22,11 @@ namespace PixelGraph.UI.ViewModels
         public void LoadData()
         {
             Model.IsLoading = true;
+
+            Model.App_Concurrency = appSettings.Data.Concurrency;
+            Model.App_ThemeBaseColor = appSettings.Data.ThemeBaseColor;
+            Model.App_ThemeAccentColor = appSettings.Data.ThemeAccentColor;
+
             Model.Texture_ImageEditorExe = appSettings.Data.TextureEditorExecutable;
             Model.Texture_ImageEditorArgs = appSettings.Data.TextureEditorArguments;
 
@@ -33,9 +38,7 @@ namespace PixelGraph.UI.ViewModels
             Model.RenderPreview_ParallaxDepth = appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth;
             Model.RenderPreview_ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
             Model.RenderPreview_ParallaxSamplesMax = appSettings.Data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
-
-            Model.Theme_BaseColor = appSettings.Data.ThemeBaseColor;
-            Model.Theme_AccentColor = appSettings.Data.ThemeAccentColor;
+            
             Model.IsLoading = false;
         }
 
@@ -47,8 +50,8 @@ namespace PixelGraph.UI.ViewModels
 
         public void ResetThemeColors()
         {
-            Model.Theme_BaseColor = AppSettingsDataModel.DefaultThemeBaseColor;
-            Model.Theme_AccentColor = AppSettingsDataModel.DefaultThemeAccentColor;
+            Model.App_ThemeBaseColor = AppSettingsDataModel.DefaultThemeBaseColor;
+            Model.App_ThemeAccentColor = AppSettingsDataModel.DefaultThemeAccentColor;
         }
 
         public void ResetRenderPreview()
@@ -66,6 +69,10 @@ namespace PixelGraph.UI.ViewModels
         public async Task<bool> SaveSettingsAsync(CancellationToken token)
         {
             try {
+                appSettings.Data.Concurrency = Model.App_Concurrency;
+                appSettings.Data.ThemeBaseColor = Model.App_ThemeBaseColor;
+                appSettings.Data.ThemeAccentColor = Model.App_ThemeAccentColor;
+
                 appSettings.Data.TextureEditorExecutable = Model.Texture_ImageEditorExe;
                 appSettings.Data.TextureEditorArguments = Model.Texture_ImageEditorArgs;
 
@@ -77,9 +84,6 @@ namespace PixelGraph.UI.ViewModels
                 appSettings.Data.RenderPreview.ParallaxDepth = Model.RenderPreview_ParallaxDepth == RenderPreviewSettings.Default_ParallaxDepth ? null : Model.RenderPreview_ParallaxDepth;
                 appSettings.Data.RenderPreview.ParallaxSamplesMin = Model.RenderPreview_ParallaxSamplesMin == RenderPreviewSettings.Default_ParallaxSamplesMin ? null : Model.RenderPreview_ParallaxSamplesMin;
                 appSettings.Data.RenderPreview.ParallaxSamplesMax = Model.RenderPreview_ParallaxSamplesMax == RenderPreviewSettings.Default_ParallaxSamplesMax ? null : Model.RenderPreview_ParallaxSamplesMax;
-
-                appSettings.Data.ThemeBaseColor = Model.Theme_BaseColor;
-                appSettings.Data.ThemeAccentColor = Model.Theme_AccentColor;
 
                 await appSettings.SaveAsync(token);
                 return true;

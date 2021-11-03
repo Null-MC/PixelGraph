@@ -1,12 +1,12 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
+using PixelGraph.Common.Material;
 using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview;
 using SharpDX;
 using System;
 using System.IO;
-using PixelGraph.Common.Material;
 using Media = System.Windows.Media;
 
 namespace PixelGraph.UI.Models
@@ -46,7 +46,7 @@ namespace PixelGraph.UI.Models
         public event EventHandler RenderModeChanged;
         public event EventHandler RenderSceneChanged;
         //public event EventHandler SelectedTagChanged;
-        public event EventHandler ModelChanged;
+        //public event EventHandler ModelChanged;
 
         //public bool HasSelectedTag => _selectedTag != null;
         public Media.Media3D.Vector3D SunLightDirection => -_sunDirection.ToVector3D();

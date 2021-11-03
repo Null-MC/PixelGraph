@@ -48,9 +48,13 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             var srcHeight = image.Height;
 
             if (srcWidth == 1 && srcHeight == 1) {
+                // TODO: set material values instead?
+
                 await ImageWriter.WriteAsync(image, type, destFile, token);
             }
             else {
+                // TODO: set material values instead?
+
                 var firstFrame = part.Frames.First();
                 var frameCount = part.Frames.Length;
                 var partWidth = (int)(firstFrame.SourceBounds.Width * srcWidth);

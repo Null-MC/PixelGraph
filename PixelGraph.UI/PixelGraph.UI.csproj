@@ -47,6 +47,7 @@
     <Compile Remove="ViewModels\PreviewViewModel.cs" />
     <Compile Remove="ViewModels\PropertyGridDesignVM.cs" />
     <Compile Remove="ViewModels\TreeSearchFilter.cs" />
+    <Compile Remove="Windows\MaterialFiltersWindow.xaml.cs" />
     <Compile Remove="Windows\ShaderErrorsWindow.xaml.cs" />
   </ItemGroup>
 
@@ -58,6 +59,7 @@
   <ItemGroup>
     <Page Remove="Controls\DataGridComboBoxExColumn.xaml" />
     <Page Remove="Controls\PropertyGridItem.xaml" />
+    <Page Remove="Windows\MaterialFiltersWindow.xaml" />
     <Page Remove="Windows\ShaderErrorsWindow.xaml" />
   </ItemGroup>
 

@@ -518,7 +518,7 @@ namespace PixelGraph.UI.Windows
             };
 
             if (Model.SelectedLocation != null && !Model.SelectedLocation.IsManualSelect) {
-                var name = Model.Profile.Loaded.Name ?? Path.GetFileNameWithoutExtension(Model.Profile.Selected.LocalFile);
+                var name = Model.Profile.Loaded.Name ?? GetDefaultPackProfileName(Model.Profile.Selected.LocalFile);
                 if (name == null) throw new ApplicationException("Unable to determine profile name!");
 
                 window.Model.Destination = Path.Combine(Model.SelectedLocation.Path, name);
@@ -534,6 +534,16 @@ namespace PixelGraph.UI.Windows
             }
 
             window.ShowDialog();
+        }
+
+        private static string GetDefaultPackProfileName(string localFile)
+        {
+            var name = Path.GetFileName(localFile);
+
+            if (name.EndsWith(".pack.yml", StringComparison.InvariantCultureIgnoreCase))
+                name = name[..^9];
+
+            return Path.GetFileNameWithoutExtension(name);
         }
 
         private async void OnMaterialChanged(object sender, EventArgs e)

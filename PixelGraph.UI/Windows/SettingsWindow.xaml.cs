@@ -26,13 +26,11 @@ namespace PixelGraph.UI.Windows
             };
 
             viewModel.LoadData();
-
-            //Model.DataChanged += OnVMDataChanged;
         }
 
         private void OnVMDataChanged(object sender, EventArgs e)
         {
-            ThemeManager.Current.ChangeTheme(this, $"{Model.Theme_BaseColor}.{Model.Theme_AccentColor}");
+            ThemeManager.Current.ChangeTheme(this, $"{Model.App_ThemeBaseColor}.{Model.App_ThemeAccentColor}");
         }
 
         private void OnResetImageEditorClick(object sender, RoutedEventArgs e)
@@ -40,7 +38,7 @@ namespace PixelGraph.UI.Windows
             viewModel.ResetImageEditor();
         }
 
-        private void OnResetThemeColorsClick(object sender, RoutedEventArgs e)
+        private void OnResetAppThemeColorsClick(object sender, RoutedEventArgs e)
         {
             viewModel.ResetThemeColors();
         }

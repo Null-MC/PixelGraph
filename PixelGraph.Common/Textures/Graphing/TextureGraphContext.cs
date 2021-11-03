@@ -39,6 +39,8 @@ namespace PixelGraph.Common.Textures.Graphing
         //bool AutoMaterial {get;}
         bool AutoGenerateOcclusion {get;}
         bool BakeOcclusionToColor {get;}
+        bool EnablePalette {get;}
+        int PaletteColors {get;}
 
         void ApplyInputEncoding();
         void ApplyOutputEncoding();
@@ -72,6 +74,7 @@ namespace PixelGraph.Common.Textures.Graphing
         public bool MaterialWrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
         public bool IsMaterialMultiPart => Material.Parts?.Any() ?? false;
         public bool IsMaterialCtm => !string.IsNullOrWhiteSpace(Material.CTM?.Method);
+
         public float? TextureScale => (float?)Profile?.TextureScale;
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
         //public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
@@ -81,6 +84,10 @@ namespace PixelGraph.Common.Textures.Graphing
 
         public bool BakeOcclusionToColor => Material.Color.BakeOcclusion ?? Profile?.BakeOcclusionToColor
                                            ?? ResourcePackProfileProperties.BakeOcclusionToColorDefault;
+
+        //public bool EnablePalette => Material.EnablePalette ?? Profile?.EnablePalette ?? false;
+        public bool EnablePalette => Profile?.Encoding?.EnablePalette ?? false;
+        public int PaletteColors => Profile?.Encoding?.PaletteColors ?? ResourcePackOutputProperties.DefaultPaletteColors;
 
 
         public TextureGraphContext()

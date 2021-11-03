@@ -35,12 +35,11 @@ namespace PixelGraph.CLI.CommandLine
             this.logger = logger;
 
             Command = new Command("publish", "Publishes the specified profile.") {
-                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, FileInfo, bool>(RunAsync),
+                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, FileInfo, bool, int>(RunAsync),
             };
 
             Command.AddOption(new Option<FileInfo>(
-                new [] {"-p", "--profile"},
-                () => new FileInfo("pack.json"),
+                new [] {"-p", "--profile"}, () => new FileInfo("pack.json"),
                 "The file name of the profile to publish."));
 
             Command.AddOption(new Option<DirectoryInfo>(
@@ -52,12 +51,15 @@ namespace PixelGraph.CLI.CommandLine
                 "Generates a compressed ZIP archive of the published contents."));
 
             Command.AddOption(new Option<bool>(
-                new [] {"-c", "--clean"},
-                () => false,
+                new [] {"-c", "--clean"}, () => false,
                 "Generates a compressed ZIP archive of the published contents."));
+
+            Command.AddOption(new Option<int>(
+                new [] {"--concurrency"}, () => Environment.ProcessorCount,
+                "Sets the level of concurrency for importing/publishing files. Default value is the system processor count."));
         }
 
-        private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, FileInfo zip, bool clean)
+        private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, FileInfo zip, bool clean, int concurrency)
         {
             factory.AddFileInput();
             if (zip != null) factory.AddArchiveOutput();
@@ -70,6 +72,7 @@ namespace PixelGraph.CLI.CommandLine
                 var destPath = zip?.FullName ?? destination.FullName;
 
                 var executor = provider.GetRequiredService<Executor>();
+                executor.Concurrency = concurrency;
                 executor.CleanDestination = clean;
 
                 await executor.ExecuteAsync(profile.FullName, destPath, lifetime.Token);
@@ -95,6 +98,7 @@ namespace PixelGraph.CLI.CommandLine
             private readonly IResourcePackReader packReader;
 
             public bool CleanDestination {get; set;}
+            public int Concurrency {get; set;}
 
 
             public Executor(
@@ -141,6 +145,8 @@ namespace PixelGraph.CLI.CommandLine
                     };
 
                     var publisher = GetPublisher(packProfile);
+                    publisher.Concurrency = Concurrency;
+
                     await publisher.PublishAsync(context, CleanDestination, token);
                 }
                 finally {

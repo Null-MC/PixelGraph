@@ -292,6 +292,7 @@ namespace PixelGraph.UI.Models
 
             modelRow = AddTextFile<string>("Model", nameof(MaterialProperties.Model));
             blendRow = AddSelect<string>("Blend", nameof(MaterialProperties.BlendMode), blendOptions);
+            AddTextColor<string>("Tint", nameof(MaterialProperties.ColorTint));
         }
 
         public override void SetData(MaterialProperties data)

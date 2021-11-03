@@ -22,7 +22,7 @@
     <DockPanel>
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource MahApps.Brushes.Highlight}">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="4,4,4,4">
-                <CheckBox Content="Close when complete" Margin="4,4,20,4" FontSize="12" Checked="OnCloseCheckBoxChecked"
+                <CheckBox Content="Close when complete" Margin="4,4,20,4" FontSize="12"
                           IsChecked="{Binding CloseOnComplete, Mode=TwoWay}"/>
                 <Button Content="Cancel" Margin="4" Click="OnCancelButtonClick" Width="80"
                         Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>

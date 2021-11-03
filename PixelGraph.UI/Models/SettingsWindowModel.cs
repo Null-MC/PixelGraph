@@ -5,6 +5,7 @@ namespace PixelGraph.UI.Models
 {
     public class SettingsWindowModel : ModelBase
     {
+        private int? _app_Concurrency;
         private string _texture_imageEditorExe;
         private string _texture_imageEditorArgs;
         private bool _renderPreview_enabled;
@@ -21,6 +22,24 @@ namespace PixelGraph.UI.Models
         public event EventHandler DataChanged;
 
         public bool IsLoading {get; set;}
+
+        public int? App_Concurrency {
+            get => _app_Concurrency;
+            set {
+                if (_app_Concurrency == value) return;
+                if (value < 1) throw new ArgumentOutOfRangeException(nameof(App_Concurrency), "value must be greater than 0!");
+                _app_Concurrency = value;
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(App_EditConcurrency));
+                OnDataChanged();
+            }
+        }
+
+        public int? App_EditConcurrency {
+            get => _app_Concurrency ?? Environment.ProcessorCount;
+            set => App_Concurrency = value;
+        }
 
         public string Texture_ImageEditorExe {
             get => _texture_imageEditorExe;
@@ -112,7 +131,7 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public string Theme_BaseColor {
+        public string App_ThemeBaseColor {
             get => _theme_baseColor;
             set {
                 _theme_baseColor = value;
@@ -121,7 +140,7 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public string Theme_AccentColor {
+        public string App_ThemeAccentColor {
             get => _theme_accentColor;
             set {
                 _theme_accentColor = value;

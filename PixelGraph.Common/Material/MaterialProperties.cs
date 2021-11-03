@@ -98,6 +98,8 @@ namespace PixelGraph.Common.Material
 
         public string BlendMode {get; set;}
 
+        public string ColorTint {get; set;}
+
         [YamlMember(Alias = "ctm", Order = 100)]
         public MaterialConnectionProperties CTM {get; set;}
 
@@ -328,14 +330,14 @@ namespace PixelGraph.Common.Material
             set => PublishItem = value;
         }
 
-        [Obsolete("Replace usages of ColorTint with Color.ColorTint")]
-        public string ColorTint {
-            get => null;
-            set {
-                Color ??= new MaterialColorProperties();
-                Color.PreviewTint = value;
-            }
-        }
+        //[Obsolete("Replace usages of ColorTint with Color.ColorTint")]
+        //public string ColorTint {
+        //    get => null;
+        //    set {
+        //        Color ??= new MaterialColorProperties();
+        //        Color.PreviewTint = value;
+        //    }
+        //}
 
         [Obsolete("Replace usages of BakeOcclusionToColor with Color.BakeOcclusion")]
         public bool? BakeOcclusionToColor {

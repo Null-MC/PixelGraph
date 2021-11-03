@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Bmp;
@@ -6,6 +7,7 @@ using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Tga;
+using SixLabors.ImageSharp.Processing.Processors.Quantization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,17 +18,27 @@ namespace PixelGraph.Common.IO
 {
     public interface IImageWriter
     {
+        //bool EnablePalette {get; set;}
+
         Task WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token);
     }
 
     internal class ImageWriter : IImageWriter
     {
-        private static readonly Dictionary<string, Func<ImageChannels, IImageEncoder>> map;
+        private readonly Dictionary<string, Func<ImageChannels, IImageEncoder>> map;
+        private readonly ITextureGraphContext context;
         private readonly IOutputWriter writer;
 
+        //public bool EnablePalette {get; set;}
 
-        static ImageWriter()
+
+        public ImageWriter(
+            ITextureGraphContext context,
+            IOutputWriter writer)
         {
+            this.context = context;
+            this.writer = writer;
+
             map = new Dictionary<string, Func<ImageChannels, IImageEncoder>>(StringComparer.InvariantCultureIgnoreCase) {
                 ["bmp"] = GetBitmapEncoder,
                 ["png"] = GetPngEncoder,
@@ -35,11 +47,8 @@ namespace PixelGraph.Common.IO
                 ["jpeg"] = GetJpegEncoder,
                 ["gif"] = GetGifEncoder,
             };
-        }
 
-        public ImageWriter(IOutputWriter writer)
-        {
-            this.writer = writer;
+            //EnablePalette = false;
         }
 
         public async Task WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token)
@@ -53,7 +62,7 @@ namespace PixelGraph.Common.IO
             await image.SaveAsync(stream, encoder, token);
         }
 
-        private static IImageEncoder GetEncoder(string ext, ImageChannels type)
+        private IImageEncoder GetEncoder(string ext, ImageChannels type)
         {
             if (map.TryGetValue(ext, out var encoderFunc)) return encoderFunc(type);
             throw new ApplicationException($"Unsupported image encoding '{ext}'!");
@@ -71,21 +80,51 @@ namespace PixelGraph.Common.IO
             };
         }
 
-        private static PngEncoder GetPngEncoder(ImageChannels type)
+        private PngEncoder GetPngEncoder(ImageChannels type)
         {
-            return new() {
+            var encoder = new PngEncoder {
                 FilterMethod = PngFilterMethod.Adaptive,
-                CompressionLevel = PngCompressionLevel.BestCompression,
+                ChunkFilter = PngChunkFilter.ExcludeExifChunk | PngChunkFilter.ExcludeTextChunks,
+                CompressionLevel = PngCompressionLevel.Level9,
                 BitDepth = PngBitDepth.Bit8,
+
                 TransparentColorMode = type == ImageChannels.ColorAlpha
                     ? PngTransparentColorMode.Preserve
                     : PngTransparentColorMode.Clear,
+
                 ColorType = type switch {
                     ImageChannels.ColorAlpha => PngColorType.RgbWithAlpha,
                     ImageChannels.Color => PngColorType.Rgb,
                     _ => PngColorType.Grayscale
                 },
             };
+
+
+            if (context.EnablePalette) {
+                encoder.Quantizer = new WuQuantizer(new QuantizerOptions {
+                    MaxColors = context.PaletteColors,
+                    //Dither = ,
+                    //DitherScale = ,
+                });
+
+                encoder.ColorType = PngColorType.Palette;
+                encoder.BitDepth = GetBitDepth(context.PaletteColors);
+            }
+
+            return encoder;
+        }
+
+        private PngBitDepth GetBitDepth(in int colors)
+        {
+            if (colors < 1 || colors > 256) throw new ArgumentOutOfRangeException(nameof(colors));
+
+            if (colors <= 2) return PngBitDepth.Bit1;
+            if (colors <= 4) return PngBitDepth.Bit2;
+            if (colors <= 16) return PngBitDepth.Bit4;
+            if (colors <= 256) return PngBitDepth.Bit8;
+            //if (colors <= 256) return PngBitDepth.Bit16;
+
+            throw new ApplicationException("Unexpected bit count!");
         }
 
         private static TgaEncoder GetTgaEncoder(ImageChannels type)

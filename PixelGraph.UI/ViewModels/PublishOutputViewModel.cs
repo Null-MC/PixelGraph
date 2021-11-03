@@ -8,6 +8,7 @@ using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Models;
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,11 +19,17 @@ namespace PixelGraph.UI.ViewModels
         private readonly IServiceProvider provider;
         private readonly IAppSettings settings;
         private readonly CancellationTokenSource tokenSource;
+        private PublishOutputModel _model;
         private volatile bool isRunning;
 
         public event EventHandler<LogEventArgs> LogAppended;
 
-        public PublishOutputModel Model {get; set;}
+        public PublishOutputModel Model {
+            get => _model;
+            set {
+                if (_model != value) SetModel(value);
+            }
+        }
 
 
         public PublishOutputViewModel(IServiceProvider provider)
@@ -51,13 +58,6 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public Task UpdateSettingsAsync(CancellationToken token = default)
-        {
-            settings.Data.PublishCloseOnComplete = Model.CloseOnComplete;
-
-            return settings.SaveAsync(token);
-        }
-
         public void Cancel()
         {
             if (!isRunning) return;
@@ -68,6 +68,7 @@ namespace PixelGraph.UI.ViewModels
 
         private async Task PublishInternalAsync(CancellationToken token)
         {
+            var appSettings = provider.GetRequiredService<IAppSettings>();
             var builder = provider.GetRequiredService<IServiceBuilder>();
             builder.AddFileInput();
 
@@ -88,7 +89,6 @@ namespace PixelGraph.UI.ViewModels
             await using var scope = builder.Build();
             var reader = scope.GetRequiredService<IInputReader>();
             var writer = scope.GetRequiredService<IOutputWriter>();
-            //var packReader = scope.GetRequiredService<IResourcePackReader>();
 
             reader.SetRoot(Model.RootDirectory);
             writer.SetRoot(Model.Destination);
@@ -97,14 +97,38 @@ namespace PixelGraph.UI.ViewModels
             writer.Prepare();
 
             var context = new ResourcePackContext {
-                Input = Model.Input, // await packReader.ReadInputAsync("input.yml"),
-                Profile = Model.Profile, // await packReader.ReadProfileAsync(Model.Profile.LocalFile),
-                //UseGlobalOutput = true,
+                Input = Model.Input,
+                Profile = Model.Profile,
             };
 
             OnLogAppended(LogLevel.None, "Publishing content...");
             var publisher = GetPublisher(scope, context.Profile);
+            publisher.Concurrency = appSettings.Data.Concurrency ?? Environment.ProcessorCount;
+
             await publisher.PublishAsync(context, Model.Clean, token);
+        }
+
+        private void SetModel(PublishOutputModel newModel)
+        {
+            if (_model != null) {
+                _model.PropertyChanged -= OnModelPropertyChanged;
+            }
+
+            _model = newModel;
+
+            if (_model != null) {
+                _model.PropertyChanged += OnModelPropertyChanged;
+            }
+        }
+
+        private async void OnModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (string.Equals(e.PropertyName, nameof(PublishOutputModel.CloseOnComplete))) {
+                if (Model.IsLoading) return;
+
+                settings.Data.PublishCloseOnComplete = Model.CloseOnComplete;
+                await settings.SaveAsync();
+            }
         }
 
         private void OnInternalLog(object sender, LogEventArgs e)

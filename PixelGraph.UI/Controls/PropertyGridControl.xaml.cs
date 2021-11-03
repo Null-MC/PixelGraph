@@ -1,4 +1,5 @@
-﻿using Ookii.Dialogs.Wpf;
+﻿using MahApps.Metro.Controls;
+using Ookii.Dialogs.Wpf;
 using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.PropertyGrid;
@@ -141,6 +142,15 @@ namespace PixelGraph.UI.Controls
                 if (window != null) MessageBox.Show(window, "The selected path must be within the project root!", "Warning!", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
+
+        //private void OnSelectColorClick(object sender, RoutedEventArgs e)
+        //{
+        //    var button = sender as UIElement;
+        //    var row = button?.FindParent<DataGridRow>();
+        //    if (row?.DataContext is not IEditTextPropertyRow editRow) return;
+
+        //    throw new NotImplementedException();
+        //}
 
         public static readonly DependencyProperty ProjectRootPathProperty = DependencyProperty
             .Register(nameof(ProjectRootPath), typeof(string), typeof(PropertyGridControl));

@@ -38,7 +38,6 @@ namespace PixelGraph.Common
             Services.AddSingleton<IMaterialWriter, MaterialWriter>();
             Services.AddSingleton<IJavaPublisher, JavaPublisher>();
             Services.AddSingleton<IBedrockPublisher, BedrockPublisher>();
-            Services.AddSingleton<IImageWriter, ImageWriter>();
             Services.AddSingleton<IPublishReader, PublishReader>();
             Services.AddSingleton<IDefaultPublishMapping, DefaultPublishMapping>();
             Services.AddSingleton<IJavaToBedrockPublishMapping, JavaToBedrockPublishMapping>();
@@ -54,6 +53,7 @@ namespace PixelGraph.Common
             Services.AddScoped<IPublishGraphBuilder, PublishGraphBuilder>();
             Services.AddScoped<ITextureRegionEnumerator, TextureRegionEnumerator>();
             Services.AddScoped<IEdgeFadeImageEffect, EdgeFadeImageEffect>();
+            Services.AddScoped<IImageWriter, ImageWriter>();
 
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
             Services.AddTransient<IMaterialImporter, MaterialImporter>();

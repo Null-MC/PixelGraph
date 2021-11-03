@@ -253,6 +253,7 @@ namespace PixelGraph.UI.Helix.Models
                 else if (renderContext.DefaultMaterial.TryGetPartIndex(fileName, out partIndex)) {
                     material = renderContext.DefaultMaterial;
                 }
+                //else if (renderContext.DefaultMaterial.CTM.Method)
                 else if (locator.FindLocalMaterial(textureFile, out var materialFile)) {
                     material = await materialReader.LoadAsync(materialFile, token);
                 }
@@ -260,7 +261,8 @@ namespace PixelGraph.UI.Helix.Models
                     //throw new ApplicationException($"Unable to locate material '{textureFile}'!");
                     // TODO: log error, missing texture
 
-                    material = renderContext.MissingMaterial;
+                    //material = renderContext.MissingMaterial;
+                    material = renderContext.DefaultMaterial;
                 }
 
                 var materialBuilder = UpdateMaterial(renderMode, renderContext, material);

@@ -53,6 +53,7 @@ namespace PixelGraph.UI.Models
         public decimal OcclusionQualityDefault => ResourcePackProfileProperties.DefaultOcclusionQuality;
         public decimal OcclusionPowerDefault => ResourcePackProfileProperties.DefaultOcclusionPower;
         public string PackName => _loadedProfile?.Name;
+        public int? PaletteColors => _loadedProfile?.Encoding?.PaletteColors;
         public string EncodingSampler => _loadedProfile?.Encoding?.Sampler;
         public string ImageEncoding => _loadedProfile?.Encoding?.Image;
 
@@ -193,6 +194,34 @@ namespace PixelGraph.UI.Models
                 _loadedProfile.Encoding.Image = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ImageEncoding));
+
+                UpdateDefaultValues();
+                OnDataChanged();
+            }
+        }
+
+        public bool EnablePalette {
+            get => _loadedProfile?.Encoding?.EnablePalette ?? false;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
+                _loadedProfile.Encoding.EnablePalette = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ImageEncoding));
+
+                UpdateDefaultValues();
+                OnDataChanged();
+            }
+        }
+
+        public int? EditPaletteColors {
+            get => _loadedProfile?.Encoding?.PaletteColors ?? ResourcePackOutputProperties.DefaultPaletteColors;
+            set {
+                if (_loadedProfile == null) return;
+                _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
+                _loadedProfile.Encoding.PaletteColors = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PaletteColors));
 
                 UpdateDefaultValues();
                 OnDataChanged();
@@ -390,6 +419,7 @@ namespace PixelGraph.UI.Models
             OnPropertyChanged(nameof(TextureFormat));
             OnPropertyChanged(nameof(ImageEncoding));
             OnPropertyChanged(nameof(EditImageEncoding));
+            OnPropertyChanged(nameof(EnablePalette));
             OnPropertyChanged(nameof(EncodingSampler));
             OnPropertyChanged(nameof(EditEncodingSampler));
             OnPropertyChanged(nameof(TextureSize));

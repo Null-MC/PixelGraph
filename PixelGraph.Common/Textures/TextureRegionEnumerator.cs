@@ -47,7 +47,7 @@ namespace PixelGraph.Common.Textures
             //var isFullCtm = CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Full);
             //var isCompactCtm = CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Compact);
 
-            if (context.Material.CTM?.Method != null) {
+            if (context.IsMaterialCtm && !CtmTypes.Is(CtmTypes.Repeat, context.Material.CTM?.Method)) {
                 frame.Tiles = Enumerable.Range(0, tileCount)
                     .Select(z => new TextureRenderTile {
                         Index = z,

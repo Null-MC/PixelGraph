@@ -100,7 +100,7 @@ namespace PixelGraph.Rendering.Models
             Vector3 normal, up;
 
             foreach (var face in EntityElementCube.Faces) {
-                var region = cube.GetFaceRectangle(face, element.MirrorUVX);
+                var region = cube.GetFaceRectangle(face, element.MirrorTexU);
 
                 up = GetUpVector(face);
                 normal = GetFaceNormal(face);

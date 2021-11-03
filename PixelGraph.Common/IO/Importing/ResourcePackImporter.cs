@@ -26,9 +26,9 @@ namespace PixelGraph.Common.IO.Importing
 
     public class ResourcePackImporter : IResourcePackImporter
     {
-        private static readonly Regex blockPathExp = new("^assets/minecraft/textures/block/?$", RegexOptions.IgnoreCase);
-        private static readonly Regex entityPathExp = new("^assets/minecraft/textures/entity/?$", RegexOptions.IgnoreCase);
-        private static readonly Regex ctmExp = new("^assets/minecraft/optifine/ctm/?$", RegexOptions.IgnoreCase);
+        private static readonly Regex blockPathExp = new(@"^assets/[\w-]+/textures/block/?", RegexOptions.IgnoreCase);
+        private static readonly Regex entityPathExp = new(@"^assets/[\w-]+/textures/entity/?", RegexOptions.IgnoreCase);
+        private static readonly Regex ctmExp = new(@"^assets/[\w-]+/optifine/ctm/?", RegexOptions.IgnoreCase);
 
         private static readonly ObjectPropertyFileSerializer<CtmProperties> ctmPropertySerializer;
 
@@ -145,7 +145,7 @@ namespace PixelGraph.Common.IO.Importing
 
         private IEnumerable<string> ParseCtmTiles(CtmProperties properties, string localPath)
         {
-            var parts = properties.Tiles?.Trim().Split(' ', '\t');
+            var parts = properties.Tiles?.Trim().Split(new [] {' ', '\t'});
             if (parts == null || parts.Length == 0) yield break;
 
             foreach (var part in parts) {

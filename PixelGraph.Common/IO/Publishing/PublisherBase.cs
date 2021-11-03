@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures.Graphing;
@@ -17,10 +18,36 @@ namespace PixelGraph.Common.IO.Publishing
 {
     public interface IPublisher
     {
+        int Concurrency {get; set;}
+
         Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default);
     }
 
-    internal abstract class PublisherBase<TMapping> : IPublisher
+    internal abstract class PublisherBase : IPublisher
+    {
+        public abstract int Concurrency {get; set;}
+
+
+        public abstract Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default);
+
+        protected static readonly string[] ResizeIgnoreList = {
+            Path.Combine("assets", "minecraft", "textures", "font"),
+            Path.Combine("assets", "minecraft", "textures", "gui"),
+            Path.Combine("assets", "minecraft", "textures", "colormap"),
+            Path.Combine("assets", "minecraft", "textures", "misc"),
+            Path.Combine("assets", "minecraft", "optifine", "colormap"),
+            Path.Combine("pack", "minecraft", "optifine", "colormap"),
+        };
+
+        protected static readonly HashSet<string> FileIgnoreList = new(StringComparer.InvariantCultureIgnoreCase) {
+            "input.yml",
+            "source.txt",
+            "readme.txt",
+            "readme.md",
+        };
+    }
+
+    internal abstract class PublisherBase<TMapping> : PublisherBase, IPublisher
         where TMapping : IPublisherMapping
     {
         private readonly IServiceProvider provider;
@@ -30,6 +57,8 @@ namespace PixelGraph.Common.IO.Publishing
         protected IInputReader Reader {get;}
         protected IOutputWriter Writer {get;}
         protected TMapping Mapping {get;}
+
+        public override int Concurrency {get; set;} = 1;
 
 
         protected PublisherBase(
@@ -50,7 +79,7 @@ namespace PixelGraph.Common.IO.Publishing
             Writer = writer;
         }
 
-        public async Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default)
+        public override async Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
 
@@ -80,9 +109,7 @@ namespace PixelGraph.Common.IO.Publishing
             var genericPublisher = new GenericTexturePublisher(packContext.Profile, Reader, Writer);
             var packWriteTime = Reader.GetWriteTime(packContext.Profile.LocalFile) ?? DateTime.Now;
 
-            await foreach (var fileObj in loader.LoadAsync(token)) {
-                token.ThrowIfCancellationRequested();
-
+            await loader.LoadAsync(token).AsyncParallelForEach(async fileObj => {
                 switch (fileObj) {
                     case MaterialProperties material:
                         if (material.CTM?.Method != null) {
@@ -121,7 +148,7 @@ namespace PixelGraph.Common.IO.Publishing
                         }
                         break;
                 }
-            }
+            }, Concurrency, null, token);
         }
 
         protected abstract Task PublishPackMetaAsync(ResourcePackProfileProperties pack, CancellationToken token);
@@ -162,7 +189,7 @@ namespace PixelGraph.Common.IO.Publishing
         protected virtual async Task PublishFileAsync(GenericTexturePublisher genericPublisher, DateTime packWriteTime, string sourceFile, string destFile, CancellationToken token)
         {
             var file = Path.GetFileName(sourceFile);
-            if (fileIgnoreList.Contains(file)) {
+            if (FileIgnoreList.Contains(file)) {
                 Logger.LogDebug("Skipping ignored file {sourceFile}.", sourceFile);
                 return;
             }
@@ -189,11 +216,6 @@ namespace PixelGraph.Common.IO.Publishing
 
         protected virtual Task OnMaterialPublishedAsync(IServiceProvider scopeProvider, CancellationToken token) => Task.CompletedTask;
 
-        //protected virtual Task OnPartPublishedAsync(ITextureGraphContext context, string partName, CancellationToken token)
-        //{
-        //    return Task.CompletedTask;
-        //}
-
         protected static async Task WriteJsonAsync(Stream stream, object content, Formatting formatting, CancellationToken token)
         {
             await using var writer = new StreamWriter(stream);
@@ -219,23 +241,7 @@ namespace PixelGraph.Common.IO.Publishing
             var name = Path.GetFileNameWithoutExtension(localFile);
             if (string.IsNullOrEmpty(path) && string.Equals("pack", name, StringComparison.InvariantCultureIgnoreCase)) return false;
 
-            return !resizeIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
+            return !ResizeIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
         }
-
-        private static readonly string[] resizeIgnoreList = {
-            Path.Combine("assets", "minecraft", "textures", "font"),
-            Path.Combine("assets", "minecraft", "textures", "gui"),
-            Path.Combine("assets", "minecraft", "textures", "colormap"),
-            Path.Combine("assets", "minecraft", "textures", "misc"),
-            Path.Combine("assets", "minecraft", "optifine", "colormap"),
-            Path.Combine("pack", "minecraft", "optifine", "colormap"),
-        };
-
-        private static readonly HashSet<string> fileIgnoreList = new(StringComparer.InvariantCultureIgnoreCase) {
-            "input.yml",
-            "source.txt",
-            "readme.txt",
-            "readme.md",
-        };
     }
 }

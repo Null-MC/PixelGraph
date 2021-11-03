@@ -58,8 +58,8 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
 
                 OnPropertyChanged(nameof(HasSelectedFilter));
-                GeneralProperties.SetData(_selectedFilter?.Filter);
-                NormalProperties.SetData(_selectedFilter?.Filter);
+                GeneralProperties.SetData(_selectedFilter);
+                NormalProperties.SetData(_selectedFilter);
 
                 OnSelectionChanged();
             }
@@ -79,19 +79,12 @@ namespace PixelGraph.UI.Models
 
         public MaterialFiltersModel()
         {
-            //FilterList = new ObservableCollection<MaterialFilter>();
-
             GeneralProperties = new FilterGeneralPropertyCollection();
             GeneralProperties.PropertyChanged += OnPropertyValueChanged;
 
             NormalProperties = new FilterNormalPropertyCollection();
             NormalProperties.PropertyChanged += OnPropertyValueChanged;
         }
-
-        //public void InvalidateFilterList()
-        //{
-        //    OnPropertyChanged(nameof(FilterList));
-        //}
 
         public void UpdateFilterList()
         {
@@ -152,38 +145,38 @@ namespace PixelGraph.UI.Models
         }
     }
 
-    public class FilterGeneralPropertyCollection : PropertyCollectionBase<MaterialFilter>
+    public class FilterGeneralPropertyCollection : PropertyCollectionBase<ObservableMaterialFilter>
     {
         public FilterGeneralPropertyCollection()
         {
-            AddText<string>("Name", nameof(MaterialFilter.Name));
-            AddText<decimal?>("Left", nameof(MaterialFilter.Left));
-            AddText<decimal?>("Top", nameof(MaterialFilter.Top));
-            AddText<decimal?>("Width", nameof(MaterialFilter.Width));
-            AddText<decimal?>("Height", nameof(MaterialFilter.Height));
-            AddBool<bool?>("Tile", nameof(MaterialFilter.Tile), false);
+            AddText<string>("Name", nameof(ObservableMaterialFilter.Name));
+            AddText<decimal?>("Left", nameof(ObservableMaterialFilter.Left));
+            AddText<decimal?>("Top", nameof(ObservableMaterialFilter.Top));
+            AddText<decimal?>("Width", nameof(ObservableMaterialFilter.Width));
+            AddText<decimal?>("Height", nameof(ObservableMaterialFilter.Height));
+            AddBool<bool?>("Tile", nameof(ObservableMaterialFilter.Tile), false);
         }
     }
 
-    public class FilterNormalPropertyCollection : PropertyCollectionBase<MaterialFilter>
+    public class FilterNormalPropertyCollection : PropertyCollectionBase<ObservableMaterialFilter>
     {
         public FilterNormalPropertyCollection()
         {
-            AddText<decimal?>("Noise", nameof(MaterialFilter.NormalNoise));
+            AddText<decimal?>("Noise", nameof(ObservableMaterialFilter.NormalNoise));
             //AddSeparator();
-            AddText<decimal?>("Curve X", nameof(MaterialFilter.NormalCurveX));
-            AddText<decimal?>("Curve Left", nameof(MaterialFilter.NormalCurveLeft));
-            AddText<decimal?>("Curve Right", nameof(MaterialFilter.NormalCurveRight));
-            AddText<decimal?>("Curve Y", nameof(MaterialFilter.NormalCurveY));
-            AddText<decimal?>("Curve Top", nameof(MaterialFilter.NormalCurveTop));
-            AddText<decimal?>("Curve Bottom", nameof(MaterialFilter.NormalCurveBottom));
+            AddText<decimal?>("Curve X", nameof(ObservableMaterialFilter.NormalCurveX));
+            AddText<decimal?>("Curve Left", nameof(ObservableMaterialFilter.NormalCurveLeft));
+            AddText<decimal?>("Curve Right", nameof(ObservableMaterialFilter.NormalCurveRight));
+            AddText<decimal?>("Curve Y", nameof(ObservableMaterialFilter.NormalCurveY));
+            AddText<decimal?>("Curve Top", nameof(ObservableMaterialFilter.NormalCurveTop));
+            AddText<decimal?>("Curve Bottom", nameof(ObservableMaterialFilter.NormalCurveBottom));
             //AddSeparator();
-            AddText<decimal?>("Radius X", nameof(MaterialFilter.NormalRadiusX));
-            AddText<decimal?>("Radius Left", nameof(MaterialFilter.NormalRadiusLeft));
-            AddText<decimal?>("Radius Right", nameof(MaterialFilter.NormalRadiusRight));
-            AddText<decimal?>("Radius Y", nameof(MaterialFilter.NormalRadiusY));
-            AddText<decimal?>("Radius Top", nameof(MaterialFilter.NormalRadiusTop));
-            AddText<decimal?>("Radius Bottom", nameof(MaterialFilter.NormalRadiusBottom));
+            AddText<decimal?>("Radius X", nameof(ObservableMaterialFilter.NormalRadiusX));
+            AddText<decimal?>("Radius Left", nameof(ObservableMaterialFilter.NormalRadiusLeft));
+            AddText<decimal?>("Radius Right", nameof(ObservableMaterialFilter.NormalRadiusRight));
+            AddText<decimal?>("Radius Y", nameof(ObservableMaterialFilter.NormalRadiusY));
+            AddText<decimal?>("Radius Top", nameof(ObservableMaterialFilter.NormalRadiusTop));
+            AddText<decimal?>("Radius Bottom", nameof(ObservableMaterialFilter.NormalRadiusBottom));
         }
     }
 }

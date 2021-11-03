@@ -3,6 +3,7 @@
     public interface ITextPropertyRow : IPropertyRow
     {
         bool IsFileSelect {get; set;}
+        bool IsColorSelect {get; set;}
     }
 
     public interface IEditTextPropertyRow : ITextPropertyRow, IEditPropertyRow {}
@@ -12,6 +13,7 @@
     public class EditTextPropertyRowModel<TProperty, TValue> : EditPropertyRowModelBase<TProperty, TValue>, IEditTextPropertyRow<TProperty>
     {
         public bool IsFileSelect {get; set;}
+        public bool IsColorSelect {get; set;}
         
         public EditTextPropertyRowModel(string name, string propertyName, object defaultValue = null) : base(name, propertyName, defaultValue) {}
     }

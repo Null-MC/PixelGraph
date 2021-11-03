@@ -7,8 +7,11 @@
         public const string DefaultThemeBaseColor = "dark";
         public const string DefaultThemeAccentColor = "emerald";
 
+        public int? Concurrency {get; set;}
+
         public string SelectedPublishLocation {get; set;}
         public bool PublishCloseOnComplete {get; set;}
+
         public string TextureEditorExecutable {get; set;}
         public string TextureEditorArguments {get; set;}
 

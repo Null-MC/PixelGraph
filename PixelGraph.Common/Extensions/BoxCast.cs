@@ -18,6 +18,10 @@ namespace PixelGraph.Common.Extensions
                 return Enum.Parse(t, stringValue, true);
             }
 
+            //if (value is Color colorValue && targetType == typeof(string)) {
+            //    return  colorValue as string;
+            //}
+
             return Convert.ChangeType(value, t);
         }
 

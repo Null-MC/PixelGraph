@@ -14,6 +14,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Quantization;
 
 namespace PixelGraph.UI.Internal.Preview.Textures
 {
@@ -82,6 +84,9 @@ namespace PixelGraph.UI.Internal.Preview.Textures
 
             if (image.Width > 1 || image.Height > 1) {
                 var edgeFadeEffect = scope.ServiceProvider.GetRequiredService<IEdgeFadeImageEffect>();
+                var quantizer = new Lazy<IQuantizer>(() => new WuQuantizer(new QuantizerOptions {
+                    MaxColors = context.PaletteColors,
+                }));
 
                 try {
                     foreach (var part in regions.GetAllPublishRegions(context.MaxFrameCount, targetFrame, targetPart)) {
@@ -90,6 +95,10 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                                 : frame.SourceBounds.ScaleTo(image.Width, image.Height);
 
                             edgeFadeEffect.Apply(image, tag, outBounds);
+
+                            if (context.EnablePalette) {
+                                image.Mutate(imgContext => imgContext.Quantize(quantizer.Value));
+                            }
                         }
                     }
                 }

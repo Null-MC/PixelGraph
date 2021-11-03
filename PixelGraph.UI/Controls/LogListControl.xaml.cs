@@ -1,6 +1,7 @@
 ﻿using MahApps.Metro.Controls;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,8 +14,8 @@ namespace PixelGraph.UI.Controls
     {
         private const int LinesPerParagraph = 20;
 
+        private readonly ConcurrentQueue<Message> queue;
         private readonly Lazy<ScrollViewer> scrollViewerTask;
-        //private readonly FontFamily fontFamily;
         private readonly Thickness marginSize;
         private Paragraph currentParagraph;
         private int paragraphLineCount;
@@ -24,32 +25,40 @@ namespace PixelGraph.UI.Controls
         {
             InitializeComponent();
 
+            queue = new ConcurrentQueue<Message>();
             scrollViewerTask = new Lazy<ScrollViewer>(GetScrollViewer);
-            //fontFamily = new FontFamily("Consolas");
             marginSize = new Thickness(0);
         }
 
         public void Append(LogLevel level, string text)
         {
-            this.BeginInvoke(() => AppendInternal(level, text));
+            queue.Enqueue(new Message(level, text));
+
+            this.BeginInvoke(() => {
+                var any = false;
+                while (queue.TryDequeue(out var message)) {
+                    AppendInternal(message);
+                    if (!any) any = true;
+                }
+
+                if (any) scrollViewerTask.Value.ScrollToBottom();
+            });
         }
 
-        private void AppendInternal(LogLevel level, string text)
+        private void AppendInternal(Message message)
         {
             if (currentParagraph == null) {
                 currentParagraph = new Paragraph {
                     BreakPageBefore = false,
                     KeepTogether = true,
-                    //FontFamily = fontFamily,
                     Margin = marginSize,
-                    //FontSize = 12,
                 };
 
                 Document.Blocks.Add(currentParagraph);
             }
 
-            var run = new Run(text) {
-                Foreground = logBrushMap[level],
+            var run = new Run(message.Text) {
+                Foreground = logBrushMap[message.Level],
             };
 
             currentParagraph.Inlines.Add(run);
@@ -62,23 +71,16 @@ namespace PixelGraph.UI.Controls
             else {
                 currentParagraph.Inlines.Add(new LineBreak());
             }
-
-            scrollViewerTask.Value.ScrollToBottom();
         }
 
         private ScrollViewer GetScrollViewer()
         {
-            //var listbox = (ListBox)VisualTreeHelper.GetChild(this, 0);
-            //var border = (Border)VisualTreeHelper.GetChild(listbox, 0);
-            //return (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
-
             DependencyObject obj = this;
 
             do {
-                if (VisualTreeHelper.GetChildrenCount(obj) > 0)
-                    obj = VisualTreeHelper.GetChild(obj as Visual, 0);
-                else
-                    return null;
+                if (VisualTreeHelper.GetChildrenCount(obj) <= 0) return null;
+                if (obj is not Visual visualObj) return null;
+                obj = VisualTreeHelper.GetChild(visualObj, 0);
             }
             while (obj is not ScrollViewer);
 
@@ -94,5 +96,18 @@ namespace PixelGraph.UI.Controls
             [LogLevel.Critical] = Brushes.Red,
             [LogLevel.Trace] = Brushes.Purple,
         };
+
+        private class Message
+        {
+            public readonly LogLevel Level;
+            public readonly string Text;
+
+
+            public Message(LogLevel level, string text)
+            {
+                Level = level;
+                Text = text;
+            }
+        }
     }
 }

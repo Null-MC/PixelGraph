@@ -155,7 +155,7 @@ namespace PixelGraph.UI.Models
             var hasMatchTiles = !string.IsNullOrWhiteSpace(material?.CTM?.MatchTiles);
             matchBlocksRow.DefaultValue = !hasMatchTiles ? material?.Name : null;
 
-            var bounds = material != null ? CtmTypes.GetBounds(material.CTM) : null;
+            var bounds = material?.CTM != null ? CtmTypes.GetBounds(material.CTM) : null;
             widthRow.DefaultValue = bounds?.Width ?? 1;
             heightRow.DefaultValue = bounds?.Height ?? 1;
 

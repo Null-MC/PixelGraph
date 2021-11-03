@@ -4,6 +4,7 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
+using PixelGraph.Common.Textures.Graphing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -12,7 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Textures.Graphing;
 
 namespace PixelGraph.Common.Textures
 {
@@ -326,7 +326,7 @@ namespace PixelGraph.Common.Textures
             }
 
             var isOutputSpecular = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Specular);
-            if (isOutputSpecular) {
+            if (isOutputSpecular && !context.IsImport) {
                 // Smooth > Specular
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
                     && TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
