@@ -2,7 +2,7 @@
 
 PixelGraph is an application for publishing Minecraft resource packs, specially tooled for PBR materials. It allows you to work in a "raw" texture space and automates publishing to one or more encodings, rather than trying to directly encode your textures as design-time. Yaml configuration files can also be used to apply final adjustments to your compiled textures. A cross-platform command-line version is also available, allowing you to completely automating your publishing process from your remote content repository.
 
-<img src="https://github.com/null511/PixelGraph/raw/master/media/LAB11.png" alt="PBR Workflow" />
+<img src="https://github.com/null511/PixelGraph/raw/master/media/UI.png" alt="User Interface" />
 
  - **Simplify your workflow** by adjusting text instead of pixels. Getting image-based material values just right can be tedious, time consuming, and destructive.
 
@@ -11,32 +11,34 @@ PixelGraph is an application for publishing Minecraft resource packs, specially 
  - **Support more users** by publishing multiple packs with varying quality. The resolution and included textures can be altered using either the command-line or Publishing Profiles to create multiple distributions.
 
  - **Automate** Normal & AO generation, resizing, and channel-swapping so that you can spend more time designing and less time repeating yourself.
- 
+
+<img src="https://github.com/null511/PixelGraph/raw/master/media/LAB11.png" alt="PBR Workflow" />
+
 ### Normal-Map Generation
 
-<img src="https://github.com/null511/PixelGraph/raw/master/media/NormalGeneration.png" alt="Normal-Map from Height-Map" height="140px"/>
-
 Allows normal-map textures to be created from height-maps as needed during publishing, or by prerendering them beforehand. Strength, blur, and wrapping can be managed using the textures matching pbr-properties file.
+
+<img src="https://github.com/null511/PixelGraph/raw/master/media/NormalGeneration.png" alt="Normal-Map from Height-Map" height="180px"/>
  
 ### Occlusion-Map Generation
 
-<img src="https://github.com/null511/PixelGraph/raw/master/media/OcclusionGeneration.png" alt="Occlusion-Map from Height-Map" height="140px"/>
-
 Allows ambient-occlusion textures to be created from height-maps as needed during publishing, or by prerendering them beforehand. Quality, Z-scale, step-count, and wrapping can be managed using the materials properties.
+
+<img src="https://github.com/null511/PixelGraph/raw/master/media/OcclusionGeneration.png" alt="Occlusion-Map from Height-Map" height="180px"/>
 
 ## Installation
 
 For manual installation, download the latest standalone executable from the [Releases](https://github.com/null511/PixelGraph/releases) page. For automated usage see [Docker Usage](https://github.com/null511/PixelGraph/wiki/Installation#docker). Visit the [wiki](https://github.com/null511/PixelGraph/wiki/Installation) for more information.
 
-## Usage
+## Manual Usage
 
-A single Pack-Input file lives in the root of the workspace (`~/input.yml`) which specifies the default formatting of all content. The example below uses a 'raw' encoding which manages each channel in a different texture; The 'smooth' texture has been set to use 'Perceptual-Smoothness' rather than the default linear smoothness.
+A single Pack-Input file lives in the root of the workspace (`~/input.yml`) which specifies the default formatting of all content. The example below uses a 'raw' encoding which manages each channel in a different texture; The 'height' channel has been set to inverted.
 
 ```yml
 # ~/input.yml
 format: raw
-smooth:
-  red: smooth2
+height:
+  invert: true
 ```
 
 One or more Pack-Profiles are used to describe a publishing routine; they also live in the project root and should match the naming convention `~/<name>.pack.yml`. Each profile can specify pack details, encoding, format, resizing, etc; this allows a single set of content to be published for multiple resolutions and encodings, ie `pbr-lab1.3-64x` or `default-128x`
