@@ -1,12 +1,12 @@
 FROM mcr.microsoft.com/dotnet/sdk:5.0 as build
 WORKDIR /src
 COPY ./PixelGraph.sln ./
-#COPY ./MinecraftMappings/MinecraftMappings.csproj ./MinecraftMappings/
+COPY ./MinecraftMappings.NET/MinecraftMappings.NET/MinecraftMappings.NET.csproj ./MinecraftMappings.NET/MinecraftMappings.NET/
 COPY ./PixelGraph.Common/PixelGraph.Common.csproj ./PixelGraph.Common/
 COPY ./PixelGraph.CLI/PixelGraph.CLI.csproj ./PixelGraph.CLI/
 RUN dotnet restore ./PixelGraph.Common/PixelGraph.Common.csproj && \
 	dotnet restore ./PixelGraph.CLI/PixelGraph.CLI.csproj
-#COPY ./MinecraftMappings ./MinecraftMappings/
+COPY ./MinecraftMappings.NET/MinecraftMappings.NET ./MinecraftMappings.NET/MinecraftMappings.NET/
 COPY ./PixelGraph.Common ./PixelGraph.Common/
 COPY ./PixelGraph.CLI ./PixelGraph.CLI/
 WORKDIR /src/PixelGraph.CLI
