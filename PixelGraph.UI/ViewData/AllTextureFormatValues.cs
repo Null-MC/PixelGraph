@@ -29,31 +29,31 @@ namespace PixelGraph.UI.ViewData
                 GameEditions = new [] {GameEditions.Java},
             });
             Add(new TextureFormatValueItem {
-                Text = "Vanilla",
-                Value = TextureFormat.Format_VanillaPbr,
-                Hint = VanillaPbrFormat.Description,
+                Text = "Alpha-PBR",
+                Value = TextureFormat.Format_AlphaPbr,
+                Hint = AlphaPbrFormat.Description,
                 GameEditions = new [] {GameEditions.Java},
             });
             Add(new TextureFormatValueItem {
-                Text = "OldPbr",
+                Text = "Old-PBR",
                 Value = TextureFormat.Format_OldPbr,
                 Hint = OldPbrFormat.Description,
                 GameEditions = new [] {GameEditions.Java},
             });
             Add(new TextureFormatValueItem {
-                Text = "LabPbr 1.1",
+                Text = "Lab-PBR 1.1",
                 Value = TextureFormat.Format_Lab11,
                 Hint = LabPbr11Format.Description,
                 GameEditions = new [] {GameEditions.Java},
             });
             Add(new TextureFormatValueItem {
-                Text = "LabPbr 1.2",
+                Text = "Lab-PBR 1.2",
                 Value = TextureFormat.Format_Lab12,
                 Hint = LabPbr12Format.Description,
                 GameEditions = new [] {GameEditions.Java},
             });
             Add(new TextureFormatValueItem {
-                Text = "LabPbr 1.3",
+                Text = "Lab-PBR 1.3",
                 Value = TextureFormat.Format_Lab13,
                 Hint = LabPbr13Format.Description,
                 GameEditions = new [] {GameEditions.Java},

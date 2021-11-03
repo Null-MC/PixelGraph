@@ -3,7 +3,7 @@ using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.TextureFormats.Java
 {
-    public class VanillaPbrFormat : ITextureFormatFactory
+    public class AlphaPbrFormat : ITextureFormatFactory
     {
         public const string Description = "Uses a diffuse color map, with special encoding of the alpha channel for PBR materials. Proposed by Espen 2021";
 

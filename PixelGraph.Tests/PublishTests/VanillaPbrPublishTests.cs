@@ -2,8 +2,8 @@
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
-using System.Threading.Tasks;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,7 +23,7 @@ namespace PixelGraph.Tests.PublishTests
 
             packProfile = new ResourcePackProfileProperties {
                 Encoding = {
-                    Format = TextureFormat.Format_VanillaPbr,
+                    Format = TextureFormat.Format_AlphaPbr,
                 },
             };
         }
