@@ -165,11 +165,13 @@ namespace PixelGraph.Tests.PublishTests
             PixelAssert.RedEquals(value, image);
         }
 
-        [InlineData(  0)]
-        [InlineData(100)]
-        [InlineData(155)]
-        [InlineData(229)]
-        [Theory] public async Task F0TextureTest(byte value)
+        [InlineData(  0,  10)]
+        [InlineData(  6,   6)]
+        [InlineData(100, 100)]
+        [InlineData(155, 155)]
+        [InlineData(229, 229)]
+        [InlineData(255, 229)]
+        [Theory] public async Task F0TextureTest(byte actualValue, byte expectedValue)
         {
             await using var graph = Graph();
 
@@ -180,11 +182,11 @@ namespace PixelGraph.Tests.PublishTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/f0.png", value);
+            await graph.CreateImageAsync("assets/test/f0.png", actualValue);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_s.png");
-            PixelAssert.GreenEquals(value, image);
+            PixelAssert.GreenEquals(expectedValue, image);
         }
 
         [InlineData(230)]
@@ -315,13 +317,13 @@ namespace PixelGraph.Tests.PublishTests
 
             using var image = await graph.GetImageAsync("assets/test_s.png");
 
-            PixelAssert.Equals(0, 0, 0, 255, image);
-            PixelAssert.Equals(200, 0, 0, 255, image, 1);
-            PixelAssert.Equals(0, 10, 0, 255, image, 2);
-            PixelAssert.Equals(0, 231, 0, 255, image, 3);
-            PixelAssert.Equals(0, 0, 32, 255, image, 4);
-            PixelAssert.Equals(0, 0, 160, 255, image, 5);
-            PixelAssert.Equals(0, 0, 0, 99, image, 6);
+            PixelAssert.Equals(  0,  10,   0, 255, image);
+            PixelAssert.Equals(200,  10,   0, 255, image, 1);
+            PixelAssert.Equals(  0,  10,   0, 255, image, 2);
+            PixelAssert.Equals(  0, 231,   0, 255, image, 3);
+            PixelAssert.Equals(  0,  10,  32, 255, image, 4);
+            PixelAssert.Equals(  0,  10, 160, 255, image, 5);
+            PixelAssert.Equals(  0,  10,   0,  99, image, 6);
         }
     }
 }
