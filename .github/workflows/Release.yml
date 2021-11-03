@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Publish CLI Binaries
         run: |
           cd PixelGraph.CLI
@@ -61,6 +63,8 @@ jobs:
     needs: [publish-cli, publish-ui]
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Download Windows-CLI-x64 Binary
         uses: actions/download-artifact@v2
         with:
