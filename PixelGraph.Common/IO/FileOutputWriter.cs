@@ -1,6 +1,7 @@
 ﻿using PixelGraph.Common.Extensions;
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO
@@ -9,6 +10,8 @@ namespace PixelGraph.Common.IO
     {
         private string destinationPath;
 
+
+        public bool AllowConcurrency => true;
 
         public void SetRoot(string absolutePath)
         {
@@ -21,20 +24,22 @@ namespace PixelGraph.Common.IO
                 Directory.CreateDirectory(destinationPath);
         }
 
-        public Stream Open(string localFilename)
+        public async Task OpenAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
             var filename = PathEx.Join(destinationPath, localFilename);
             CreateMissingDirectory(filename);
 
-            return File.Open(filename, FileMode.Create, FileAccess.Write);
+            await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
+            await writeFunc(stream);
         }
 
-        public Stream OpenReadWrite(string localFilename)
+        public async Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
             var filename = PathEx.Join(destinationPath, localFilename);
             CreateMissingDirectory(filename);
 
-            return File.Open(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            await using var stream = File.Open(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            await writeFunc(stream);
         }
 
         public bool FileExists(string localFile)

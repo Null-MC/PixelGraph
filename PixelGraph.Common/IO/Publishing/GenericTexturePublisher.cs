@@ -46,8 +46,9 @@ namespace PixelGraph.Common.IO.Publishing
             using var sourceImage = await LoadSourceImageAsync(sourceFile, sourceColor, token);
             using var resizedImage = Resize(sourceImage);
 
-            await using var stream = Writer.Open(destinationFile);
-            await (resizedImage ?? sourceImage).SaveAsPngAsync(stream, token);
+            await Writer.OpenAsync(destinationFile, async stream => {
+                await (resizedImage ?? sourceImage).SaveAsPngAsync(stream, token);
+            }, token);
         }
 
         protected Image Resize<TPixel>(Image<TPixel> source)

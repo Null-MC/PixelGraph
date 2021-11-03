@@ -512,13 +512,14 @@ namespace PixelGraph.UI.ViewModels
                 //...
             };
 
-            await matWriter.WriteAsync(material);
+            await matWriter.WriteAsync(material, token);
 
             var ext = Path.GetExtension(filename);
             var destFile = PathEx.Join(localPath, itemName, $"albedo{ext}");
             await using (var sourceStream = reader.Open(filename)) {
-                await using var destStream = writer.Open(destFile);
-                await sourceStream.CopyToAsync(destStream, token);
+                await writer.OpenAsync(destFile, async destStream => {
+                    await sourceStream.CopyToAsync(destStream, token);
+                }, token);
             }
 
             writer.Delete(filename);

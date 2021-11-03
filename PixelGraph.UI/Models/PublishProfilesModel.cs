@@ -420,6 +420,8 @@ namespace PixelGraph.UI.Models
             OnPropertyChanged(nameof(ImageEncoding));
             OnPropertyChanged(nameof(EditImageEncoding));
             OnPropertyChanged(nameof(EnablePalette));
+            OnPropertyChanged(nameof(PaletteColors));
+            OnPropertyChanged(nameof(EditPaletteColors));
             OnPropertyChanged(nameof(EncodingSampler));
             OnPropertyChanged(nameof(EditEncodingSampler));
             OnPropertyChanged(nameof(TextureSize));

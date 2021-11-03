@@ -103,6 +103,8 @@ namespace PixelGraph.UI.ViewModels
 
             OnLogAppended(LogLevel.None, "Publishing content...");
             var publisher = GetPublisher(scope, context.Profile);
+
+            //if (writer.AllowConcurrency)
             publisher.Concurrency = appSettings.Data.Concurrency ?? Environment.ProcessorCount;
 
             await publisher.PublishAsync(context, Model.Clean, token);

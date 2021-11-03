@@ -187,8 +187,9 @@ namespace PixelGraph.Common.IO.Importing
         private async Task CopyFileAsync(string file, CancellationToken token)
         {
             await using var sourceStream = reader.Open(file);
-            await using var destStream = writer.Open(file);
-            await sourceStream.CopyToAsync(destStream, token);
+            await writer.OpenAsync(file, async destStream => {
+                await sourceStream.CopyToAsync(destStream, token);
+            }, token);
         }
 
         private static string ExtractTextureFile(ICollection<string> files, string name)

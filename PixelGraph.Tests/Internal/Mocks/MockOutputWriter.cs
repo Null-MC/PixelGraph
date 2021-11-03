@@ -1,8 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PixelGraph.Tests.Internal.Mocks
 {
@@ -17,6 +18,8 @@ namespace PixelGraph.Tests.Internal.Mocks
             Content = content;
         }
 
+        public bool AllowConcurrency => true;
+
         public void SetRoot(string absolutePath)
         {
             Root = absolutePath;
@@ -24,14 +27,14 @@ namespace PixelGraph.Tests.Internal.Mocks
 
         public void Prepare() {}
 
-        public Stream Open(string localFilename)
+        public async Task OpenAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
-            var mockStream = new MockStream();
+            await using var mockStream = new MockStream();
             Content.Add(localFilename, mockStream);
-            return mockStream;
+            await writeFunc(mockStream);
         }
 
-        public Stream OpenReadWrite(string localFilename) => Open(localFilename);
+        public Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default) => OpenAsync(localFilename, writeFunc, token);
 
         public bool FileExists(string localFile)
         {

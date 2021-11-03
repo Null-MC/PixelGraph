@@ -145,6 +145,8 @@ namespace PixelGraph.CLI.CommandLine
                     };
 
                     var publisher = GetPublisher(packProfile);
+
+                    //if (writer.AllowConcurrency)
                     publisher.Concurrency = Concurrency;
 
                     await publisher.PublishAsync(context, CleanDestination, token);

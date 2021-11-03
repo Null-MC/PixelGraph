@@ -1,6 +1,7 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ResourcePack;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -9,8 +10,8 @@ namespace PixelGraph.Common.IO.Serialization
 {
     public interface IResourcePackWriter
     {
-        Task WriteAsync(string localFile, ResourcePackInputProperties packInput);
-        Task WriteAsync(string localFile, ResourcePackProfileProperties packProfile);
+        Task WriteAsync(string localFile, ResourcePackInputProperties packInput, CancellationToken token = default);
+        Task WriteAsync(string localFile, ResourcePackProfileProperties packProfile, CancellationToken token = default);
     }
 
     internal class ResourcePackWriter : IResourcePackWriter
@@ -30,18 +31,20 @@ namespace PixelGraph.Common.IO.Serialization
                 .Build();
         }
         
-        public async Task WriteAsync(string localFile, ResourcePackInputProperties packInput)
+        public Task WriteAsync(string localFile, ResourcePackInputProperties packInput, CancellationToken token = default)
         {
-            await using var stream = writer.Open(localFile);
-            await using var streamWriter = new StreamWriter(stream);
-            serializer.Serialize(streamWriter, packInput);
+            return writer.OpenAsync(localFile, async stream => {
+                await using var streamWriter = new StreamWriter(stream);
+                serializer.Serialize(streamWriter, packInput);
+            }, token);
         }
 
-        public async Task WriteAsync(string localFile, ResourcePackProfileProperties packProfile)
+        public Task WriteAsync(string localFile, ResourcePackProfileProperties packProfile, CancellationToken token = default)
         {
-            await using var stream = writer.Open(localFile);
-            await using var streamWriter = new StreamWriter(stream);
-            serializer.Serialize(streamWriter, packProfile);
+            return writer.OpenAsync(localFile, async stream => {
+                await using var streamWriter = new StreamWriter(stream);
+                serializer.Serialize(streamWriter, packProfile);
+            }, token);
         }
     }
 }

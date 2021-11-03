@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0 as build
+FROM mcr.microsoft.com/dotnet/sdk:3.1 as build
 WORKDIR /src
 COPY ./PixelGraph.sln ./
 COPY ./MinecraftMappings.NET/MinecraftMappings.NET/MinecraftMappings.NET.csproj ./MinecraftMappings.NET/MinecraftMappings.NET/
@@ -14,7 +14,7 @@ RUN dotnet publish -c Release -o /publish \
 	--runtime alpine-x64 --self-contained true \
 	/p:PublishTrimmed=true
 
-FROM mcr.microsoft.com/dotnet/runtime:5.0-alpine
+FROM mcr.microsoft.com/dotnet/runtime:3.1-alpine
 WORKDIR /app
 COPY --from=build /publish ./
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1

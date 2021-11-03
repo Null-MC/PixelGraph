@@ -6,12 +6,12 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Textures.Graphing;
 
 namespace PixelGraph.Common.IO.Publishing
 {
@@ -51,8 +51,9 @@ namespace PixelGraph.Common.IO.Publishing
             var isRtx = TextureFormat.Is(pack.Encoding.Format, TextureFormat.Format_Rtx);
             if (isRtx) packMeta.Capabilities.Add("raytraced");
 
-            await using var stream = Writer.Open("manifest.json");
-            await WriteJsonAsync(stream, packMeta, Formatting.Indented, token);
+            await Writer.OpenAsync("manifest.json", async stream => {
+                await WriteJsonAsync(stream, packMeta, Formatting.Indented, token);
+            }, token);
         }
 
         protected override async Task OnMaterialPublishedAsync(IServiceProvider scopeProvider, CancellationToken token)
@@ -125,8 +126,9 @@ namespace PixelGraph.Common.IO.Publishing
 
             var name = $"{matName}.texture_set.json";
             var localFile = PathEx.Join(matPath, name);
-            await using var stream = Writer.Open(localFile);
-            await WriteJsonAsync(stream, meta, Formatting.Indented, token);
+            await Writer.OpenAsync(localFile, async stream => {
+                await WriteJsonAsync(stream, meta, Formatting.Indented, token);
+            }, token);
         }
 
         private static readonly Dictionary<string, string> fileMap = new(StringComparer.InvariantCultureIgnoreCase) {

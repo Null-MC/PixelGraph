@@ -18,8 +18,6 @@ namespace PixelGraph.Common.IO
 {
     public interface IImageWriter
     {
-        //bool EnablePalette {get; set;}
-
         Task WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token);
     }
 
@@ -28,8 +26,6 @@ namespace PixelGraph.Common.IO
         private readonly Dictionary<string, Func<ImageChannels, IImageEncoder>> map;
         private readonly ITextureGraphContext context;
         private readonly IOutputWriter writer;
-
-        //public bool EnablePalette {get; set;}
 
 
         public ImageWriter(
@@ -47,8 +43,6 @@ namespace PixelGraph.Common.IO
                 ["jpeg"] = GetJpegEncoder,
                 ["gif"] = GetGifEncoder,
             };
-
-            //EnablePalette = false;
         }
 
         public async Task WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token)
@@ -58,8 +52,9 @@ namespace PixelGraph.Common.IO
             var ext = Path.GetExtension(localFile)?.TrimStart('.');
 
             var encoder = GetEncoder(ext, type);
-            await using var stream = writer.Open(localFile);
-            await image.SaveAsync(stream, encoder, token);
+            await writer.OpenAsync(localFile, async stream => {
+                await image.SaveAsync(stream, encoder, token);
+            }, token);
         }
 
         private IImageEncoder GetEncoder(string ext, ImageChannels type)

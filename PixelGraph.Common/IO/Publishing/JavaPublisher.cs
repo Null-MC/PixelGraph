@@ -27,7 +27,7 @@ namespace PixelGraph.Common.IO.Publishing
             IOutputWriter writer,
             IDefaultPublishMapping mapping) : base(logger, provider, loader, reader, writer, mapping) {}
 
-        protected override Task PublishPackMetaAsync(ResourcePackProfileProperties pack, CancellationToken token)
+        protected override async Task PublishPackMetaAsync(ResourcePackProfileProperties pack, CancellationToken token)
         {
             var packMeta = new JavaPackMetadata {
                 PackFormat = pack.Format ?? ResourcePackProfileProperties.DefaultJavaFormat,
@@ -39,8 +39,9 @@ namespace PixelGraph.Common.IO.Publishing
             }
 
             var data = new {pack = packMeta};
-            using var stream = Writer.Open("pack.mcmeta");
-            return WriteJsonAsync(stream, data, Formatting.Indented, token);
+            await Writer.OpenAsync("pack.mcmeta", async stream => {
+                await WriteJsonAsync(stream, data, Formatting.Indented, token);
+            }, token);
         }
 
         protected override async Task OnMaterialPublishedAsync(IServiceProvider scopeProvider, CancellationToken token)
@@ -97,9 +98,10 @@ namespace PixelGraph.Common.IO.Publishing
             if (!hasProperties) return;
 
             var propsFileOut = NamingStructure.GetOutputPropertiesName(material, true);
-            await using var destStream = Writer.Open(propsFileOut);
-            await using var writer = new StreamWriter(destStream);
-            await propertySerializer.WriteAsync(writer, properties, token);
+            await Writer.OpenAsync(propsFileOut, async stream => {
+                await using var writer = new StreamWriter(stream);
+                await propertySerializer.WriteAsync(writer, properties, token);
+            }, token);
         }
     }
 }

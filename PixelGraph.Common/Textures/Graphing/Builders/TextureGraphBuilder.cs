@@ -141,8 +141,9 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             var propsFileOut = NamingStructure.GetOutputPropertiesName(Context.Material, Context.PublishAsGlobal);
 
             await using var sourceStream = Reader.Open(propsFileIn);
-            await using var destStream = Writer.Open(propsFileOut);
-            await sourceStream.CopyToAsync(destStream, token);
+            await Writer.OpenAsync(propsFileOut, async destStream => {
+                await sourceStream.CopyToAsync(destStream, token);
+            }, token);
         }
 
         protected async Task ImportMetaAsync(CancellationToken token)
@@ -180,8 +181,9 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
         private async Task CopyMetaFileAsync(string metaFileIn, string metaFileOut, CancellationToken token)
         {
             await using var sourceStream = Reader.Open(metaFileIn);
-            await using var destStream = Writer.Open(metaFileOut);
-            await sourceStream.CopyToAsync(destStream, token);
+            await Writer.OpenAsync(metaFileOut, async destStream => {
+                await sourceStream.CopyToAsync(destStream, token);
+            }, token);
         }
     }
 }

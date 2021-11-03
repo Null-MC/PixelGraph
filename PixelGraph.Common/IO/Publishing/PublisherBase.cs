@@ -47,7 +47,7 @@ namespace PixelGraph.Common.IO.Publishing
         };
     }
 
-    internal abstract class PublisherBase<TMapping> : PublisherBase, IPublisher
+    internal abstract class PublisherBase<TMapping> : PublisherBase
         where TMapping : IPublisherMapping
     {
         private readonly IServiceProvider provider;
@@ -207,8 +207,9 @@ namespace PixelGraph.Common.IO.Publishing
             }
             else {
                 await using var srcStream = Reader.Open(sourceFile);
-                await using var destStream = Writer.Open(destFile);
-                await srcStream.CopyToAsync(destStream, token);
+                await Writer.OpenAsync(destFile, async destStream => {
+                    await srcStream.CopyToAsync(destStream, token);
+                }, token);
             }
 
             Logger.LogInformation("Published untracked file {destFile}.", destFile);
