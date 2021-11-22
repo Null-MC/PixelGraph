@@ -206,9 +206,17 @@ namespace PixelGraph.Common.Textures
             await builder.MapAsync(false, token);
             //if (!builder.HasMappedSources) return null;
 
+            Size? targetSize = null;
+            if (TextureSizeUtility.TryGetItemSize(context.Profile, out var itemSize))
+                targetSize = itemSize;
+            else if (TextureSizeUtility.TryGetBlockSize(context.Profile, out var blockSize))
+                targetSize = blockSize;
+            else if (TextureSizeUtility.TryGetTextureSize(context.Profile, out var texSize))
+                targetSize = texSize;
+
             Image<Rgba32> image = null;
             try {
-                image = await builder.BuildAsync<Rgba32>(false, token);
+                image = await builder.BuildAsync<Rgba32>(false, targetSize, token);
                 return image;
             }
             catch {

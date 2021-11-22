@@ -29,6 +29,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using MinecraftMappings.Internal.Models.Block;
+using MinecraftMappings.Internal.Textures.Block;
+using MinecraftMappings.Minecraft;
+using PixelGraph.UI.Helix.Models;
 
 namespace PixelGraph.UI.Windows
 {
@@ -55,6 +59,9 @@ namespace PixelGraph.UI.Windows
                 Dispatcher = Dispatcher,
                 Model = Model,
             };
+
+            FilterEditor.Initialize(provider);
+            //ConnectionsEditor.Provider = provider;
 
 #if !NORENDER
             viewModel.SceneModel = Model.SceneModel;
@@ -868,63 +875,6 @@ namespace PixelGraph.UI.Windows
         private async void OnPreviewRefreshClick(object sender, EventArgs e)
         {
             await RefreshPreview();
-        }
-
-        private void OnFilterImportFileButtonClick(object sender, RoutedEventArgs e)
-        {
-            var dialog = new VistaOpenFileDialog {
-                Title = "Import Model",
-                Filter = "JSON File|*.json|All Files|*.*",
-                CheckFileExists = true,
-            };
-
-            if (dialog.ShowDialog(this) != true) return;
-
-            //await viewModel.ImportModelFiltersAsync(dialog.FileName);
-        }
-
-        private async void OnFilterImportEntityButtonClick(object sender, RoutedEventArgs e)
-        {
-            var material = Model.SelectedTabMaterial;
-            if (material == null) return;
-
-            var window = new ImportEntityFiltersWindow(provider) {
-                Owner = this,
-            };
-
-            if (window.ShowDialog() != true) return;
-
-            if (material.Filters is {Count: 0}) {
-                var confirm = MessageBox.Show(this, "Would you like to clear the existing filters before importing? This operation cannot be undone!", "Warning", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
-                if (confirm == MessageBoxResult.Cancel) return;
-                
-                if (confirm == MessageBoxResult.Yes)
-                    material.Filters.Clear();
-            }
-
-            material.Filters ??= new List<MaterialFilter>();
-
-            var entityVersion = window.Model.GameEntity;
-            foreach (var region in entityVersion.UVMappings) {
-                var filter = new MaterialFilter {
-                    Name = region.Name,
-                    Top = new decimal(region.Top),
-                    Left = new decimal(region.Left),
-                    Width = new decimal(region.Width),
-                    Height = new decimal(region.Height),
-                };
-                
-                material.Filters.Add(filter);
-            }
-            
-            FilterEditor.Model.UpdateFilterList();
-
-            await viewModel.SaveMaterialAsync(material);
-
-            //viewModel.InvalidateTab(tab.Id);
-
-            //if (Model.SelectedTab == tab)
-            //    await viewModel.UpdateTabPreviewAsync();
         }
 
         private void OnCloseDocumentTab(object sender, CloseTabEventArgs e)

@@ -15,7 +15,7 @@ using System.Windows.Input;
 
 namespace PixelGraph.UI.Models
 {
-    public class MainWindowModel : ModelBase, ISearchParameters
+    internal class MainWindowModel : ModelBase, ISearchParameters
     {
         #region Properties
 
@@ -42,6 +42,8 @@ namespace PixelGraph.UI.Models
         public event EventHandler SelectedTagChanged;
         public event EventHandler<TabClosedEventArgs> TabClosed;
         public event EventHandler ViewModeChanged;
+
+        public MaterialConnectionsModel ConnectionsModel {get; set;}
 
         public ProfileContextModel Profile {get;}
         public ObservableCollection<ITabModel> TabList {get;}

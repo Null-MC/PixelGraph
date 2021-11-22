@@ -36,6 +36,11 @@ namespace PixelGraph.Common.TextureFormats
             return string.IsNullOrWhiteSpace(channel) || string.Equals(channel, None, StringComparison.InvariantCultureIgnoreCase);
         }
 
+        public static bool IsColor(string channel)
+        {
+            return Is(channel, ColorRed) || Is(channel, ColorGreen) || Is(channel, ColorBlue);
+        }
+
         public static byte? GetDefaultValue(string encodingChannel)
         {
             return defaultValueMap.TryGetValue(encodingChannel, out var value) ? value : null;

@@ -255,7 +255,7 @@ namespace PixelGraph.Common.Textures.Graphing
 
             Image<TPixel> image = null;
             try {
-                image = await builder.BuildAsync<TPixel>(false, token);
+                image = await builder.BuildAsync<TPixel>(false, null, token);
                 return (image, builder.FrameCount);
             }
             catch {
@@ -311,14 +311,13 @@ namespace PixelGraph.Common.Textures.Graphing
             var profileSize = context.Profile?.BlockTextureSize ?? context.Profile?.TextureSize;
             if (profileSize.HasValue) return profileSize.Value;
 
-            if (CtmTypes.Is(CtmTypes.Compact, context.Material.CTM?.Method))
-                return imageWidth / 5;
-            
-            if (CtmTypes.Is(CtmTypes.Full, context.Material.CTM?.Method))
-                return imageWidth / 12;
-            
-            if (CtmTypes.Is(CtmTypes.Repeat, context.Material.CTM?.Method))
-                return imageWidth / (context.Material.CTM?.Width ?? 1);
+            if (context.Material.CTM?.Method != null) {
+                var bounds = CtmTypes.GetBounds(context.Material.CTM);
+                var w = context.Material.CTM.Width ?? bounds.Width;
+                //var h = context.Material.CTM.Height ?? bounds.Height;
+
+                return imageWidth / w;
+            }
 
             return imageWidth;
         }

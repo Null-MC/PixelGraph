@@ -127,7 +127,7 @@ namespace PixelGraph.Common.Textures.Graphing
 
                 await builder.MapAsync(false, token);
                 if (builder.HasMappedSources) {
-                    NormalTexture = await builder.BuildAsync<Rgb24>(false, token);
+                    NormalTexture = await builder.BuildAsync<Rgb24>(false, null, token);
 
                     if (NormalTexture != null) {
                         NormalFrameCount = builder.FrameCount;

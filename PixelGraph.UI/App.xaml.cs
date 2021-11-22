@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
+using PixelGraph.UI.Helix;
+using PixelGraph.UI.Helix.Models;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview.Textures;
 using PixelGraph.UI.Internal.Settings;
@@ -10,12 +12,11 @@ using Serilog;
 using System;
 using System.Windows;
 using System.Windows.Threading;
-using PixelGraph.UI.Helix;
-using PixelGraph.UI.Helix.Models;
 
 #if !NORENDER
 using PixelGraph.Rendering.Models;
 using PixelGraph.Rendering.Shaders;
+using PixelGraph.UI.Internal.Models;
 #endif
 
 namespace PixelGraph.UI
@@ -54,6 +55,7 @@ namespace PixelGraph.UI
             builder.Services.AddTransient<IBlockModelBuilder, BlockModelBuilder>();
             builder.Services.AddTransient<IEntityModelBuilder, EntityModelBuilder>();
             builder.Services.AddTransient<IBlockModelParser, BlockModelParser>();
+            builder.Services.AddTransient<IModelLoader, ModelLoader>();
 #endif
         }
 

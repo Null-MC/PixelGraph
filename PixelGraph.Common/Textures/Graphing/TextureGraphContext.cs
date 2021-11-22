@@ -82,8 +82,17 @@ namespace PixelGraph.Common.Textures.Graphing
         //public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
         public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
 
-        public bool BakeOcclusionToColor => Material.Color.BakeOcclusion ?? Profile?.BakeOcclusionToColor
-                                           ?? ResourcePackProfileProperties.BakeOcclusionToColorDefault;
+        public bool BakeOcclusionToColor {
+            get {
+                var matVal = Material.Color.BakeOcclusion;
+                var profileVal = Profile?.BakeOcclusionToColor;
+
+                if (!matVal.HasValue && !profileVal.HasValue)
+                    return ResourcePackProfileProperties.BakeOcclusionToColorDefault;
+
+                return (matVal ?? false) || (profileVal ?? false);
+            }
+        }
 
         //public bool EnablePalette => Material.EnablePalette ?? Profile?.EnablePalette ?? false;
         public bool EnablePalette => Profile?.Encoding?.EnablePalette ?? false;
@@ -149,31 +158,21 @@ namespace PixelGraph.Common.Textures.Graphing
             return sampler;
         }
 
-        public MaterialType GetMaterialType()
-        {
-            if (!string.IsNullOrWhiteSpace(Material?.Type)) {
-                if (Enum.TryParse(typeof(MaterialType), Material.Type, out var type) && type != null)
-                    return (MaterialType) type;
-            }
-            
-            return MaterialType.Automatic;
-        }
-
         public MaterialType GetFinalMaterialType()
         {
-            var type = GetMaterialType();
+            var type = Material.GetMaterialType();
 
-            if (type == MaterialType.Automatic && !string.IsNullOrWhiteSpace(Material.LocalPath)) {
-                var path = PathEx.Normalize(Material.LocalPath);
+            if (type != MaterialType.Automatic || string.IsNullOrWhiteSpace(Material.LocalPath))
+                return type;
 
-                if (path != null) {
-                    if (blockTextureExp.IsMatch(path)) return MaterialType.Block;
-                    if (itemTextureExp.IsMatch(path)) return MaterialType.Item;
-                    if (ctmTextureExp.IsMatch(path)) return MaterialType.Block;
-                    if (citTextureExp.IsMatch(path)) return MaterialType.Item;
-                    if (entityTextureExp.IsMatch(path)) return MaterialType.Entity;
-                }
-            }
+            var path = PathEx.Normalize(Material.LocalPath);
+            if (path == null) return type;
+
+            if (blockTextureExp.IsMatch(path)) return MaterialType.Block;
+            if (itemTextureExp.IsMatch(path)) return MaterialType.Item;
+            if (ctmTextureExp.IsMatch(path)) return MaterialType.Block;
+            if (citTextureExp.IsMatch(path)) return MaterialType.Item;
+            if (entityTextureExp.IsMatch(path)) return MaterialType.Entity;
 
             return type;
         }
@@ -219,39 +218,7 @@ namespace PixelGraph.Common.Textures.Graphing
             }
 
             var type = GetFinalMaterialType();
-            int? targetSize;
-
-            switch (type) {
-                case MaterialType.Block:
-                    targetSize = Profile?.BlockTextureSize ?? Profile?.TextureSize;
-
-                    if (targetSize.HasValue) {
-                        var aspect = defaultAspect ?? 1f;
-                        var width = targetSize.Value;
-                        var height = (int)MathF.Ceiling(width * aspect);
-                        return new Size(width, height);
-                    }
-                    break;
-                case MaterialType.Item:
-                    targetSize = Profile?.ItemTextureSize ?? Profile?.TextureSize;
-
-                    if (targetSize.HasValue) {
-                        var aspect = defaultAspect ?? 1f;
-                        var width = targetSize.Value;
-                        var height = (int)MathF.Ceiling(width * aspect);
-                        return new Size(width, height);
-                    }
-                    break;
-            }
-
-            if (Profile?.TextureSize.HasValue ?? false) {
-                var aspect = defaultAspect ?? 1f;
-                var width = Profile.TextureSize.Value;
-                var height = (int)MathF.Ceiling(width * aspect);
-                return new Size(width, height);
-            }
-
-            return null;
+            return TextureSizeUtility.GetSizeByType(Profile, type, defaultAspect);
         }
 
         public Size? GetBufferSize(float aspect)

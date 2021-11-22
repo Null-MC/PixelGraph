@@ -106,7 +106,7 @@ namespace PixelGraph.Common.Textures.Graphing
             if (!builderMap.TryGetValue(textureTag, out var builder))
                 throw new ApplicationException($"No texture builder found for tag '{textureTag}'!");
 
-            return await builder.BuildAsync<TPixel>(createEmpty, token);
+            return await builder.BuildAsync<TPixel>(createEmpty, null, token);
         }
 
         public int GetMaxFrameCount()

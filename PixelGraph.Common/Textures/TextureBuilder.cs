@@ -26,7 +26,7 @@ namespace PixelGraph.Common.Textures
         int? TargetPart {get; set;}
 
         Task MapAsync(bool createEmpty, CancellationToken token = default);
-        Task<Image<TPixel>>  BuildAsync<TPixel>(bool createEmpty, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
+        Task<Image<TPixel>>  BuildAsync<TPixel>(bool createEmpty, Size? targetSize = null, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
     }
 
     internal class TextureBuilder : ITextureBuilder
@@ -119,7 +119,7 @@ namespace PixelGraph.Common.Textures
             }
         }
         
-        public async Task<Image<TPixel>> BuildAsync<TPixel>(bool createEmpty, CancellationToken token = default)
+        public async Task<Image<TPixel>> BuildAsync<TPixel>(bool createEmpty, Size? targetSize = null, CancellationToken token = default)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             if (!createEmpty && mappings.Count == 0) return null;
@@ -131,9 +131,14 @@ namespace PixelGraph.Common.Textures
                 ?? context.Profile?.AutoLevelHeight
                 ?? ResourcePackProfileProperties.AutoLevelHeightDefault;
 
-            var size = await GetBufferSizeAsync(token);
-            if (!size.HasValue && !createEmpty) return null;
-            bufferSize = size ?? new Size(16);
+            if (targetSize.HasValue) {
+                bufferSize = targetSize.Value;
+            }
+            else {
+                var size = await GetBufferSizeAsync(token);
+                if (!size.HasValue && !createEmpty) return null;
+                bufferSize = size ?? new Size(16);
+            }
 
             var width = bufferSize.Width;
             var height = bufferSize.Height;
@@ -232,11 +237,8 @@ namespace PixelGraph.Common.Textures
 
 
             if (context.BakeOcclusionToColor) {
-                var isColorChannel = EncodingChannel.Is(outputChannel.ID, EncodingChannel.ColorRed)
-                                  || EncodingChannel.Is(outputChannel.ID, EncodingChannel.ColorGreen)
-                                  || EncodingChannel.Is(outputChannel.ID, EncodingChannel.ColorBlue);
-
-                if (isColorChannel) mapping.OutputApplyOcclusion = true;
+                if (EncodingChannel.IsColor(outputChannel.ID))
+                    mapping.OutputApplyOcclusion = true;
             }
 
             var inputChannel = InputChannels.FirstOrDefault(i => EncodingChannel.Is(i.ID, outputChannel.ID));

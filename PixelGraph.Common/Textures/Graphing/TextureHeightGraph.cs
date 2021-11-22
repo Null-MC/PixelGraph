@@ -92,7 +92,7 @@ namespace PixelGraph.Common.Textures.Graphing
             await builder.MapAsync(false, token);
 
             if (builder.HasMappedSources) {
-                HeightTexture = await builder.BuildAsync<L16>(false, token);
+                HeightTexture = await builder.BuildAsync<L16>(false, null, token);
 
                 if (HeightTexture != null) {
                     HeightFrameCount = builder.FrameCount;

@@ -224,7 +224,7 @@
                         <iconPacks:PackIconFontAwesome Kind="FileSolid" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </ToggleButton>
                 </Grid>
-                <controls:ContentTreeView Grid.Column="0" Grid.Row="1" x:Name="ContentTree" MouseDoubleClick="OnContentTreeMouseDoubleClick"
+                <controls:ContentTreeView Grid.Column="0" Grid.Row="1" MouseDoubleClick="OnContentTreeMouseDoubleClick"
                                           SelectedItemChanged="OnTextureTreeSelectedItemChanged"
                                           PreviewMouseRightButtonDown="OnContentTreePreviewMouseRightButtonDown"
                                           ItemsSource="{Binding TreeRoot.Nodes, Mode=OneWay}">
@@ -269,16 +269,6 @@
                                      IsChecked="{Binding IsEditModeScene, Mode=TwoWay}">
                             <iconPacks:PackIconFontAwesome Kind="CloudMoonRainSolid"/>
                         </RadioButton>
-                    </ToolBar>
-                    <ToolBar ToolBarTray.IsLocked="True"
-                             Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                        <Separator/>
-                        <Button Click="OnFilterImportFileButtonClick" ToolTip="Import filters from JSON Model file">
-                            <iconPacks:PackIconFontAwesome Kind="FileImportSolid"/>
-                        </Button>
-                        <Button Click="OnFilterImportEntityButtonClick" ToolTip="Import filters from Pre-Mapped Entity">
-                            <iconPacks:PackIconFontAwesome Kind="FileImportSolid"/>
-                        </Button>
                     </ToolBar>
                 </ToolBarTray>
                 <DockPanel Grid.Column="2" Grid.Row="1">
@@ -368,8 +358,9 @@
                                                                  SelectedTag="{Binding SelectedTag, Mode=OneWay}"
                                                                  Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <controls:MaterialConnectionsControl x:Name="ConnectionsEditor" DataChanged="OnMaterialChanged"
-                                                                 Material="{Binding SelectedTabMaterial, Mode=OneWay}"
-                                                                 Visibility="{Binding IsEditModeConnections, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                                                     DataContext="{Binding ., Mode=OneWay}"
+                                                                     Material="{Binding SelectedTabMaterial, Mode=OneWay}"
+                                                                     Visibility="{Binding IsEditModeConnections, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <controls:ScenePropertiesControl
                                     Model="{Binding SceneModel, Mode=OneWay}"
                                     Visibility="{Binding IsEditModeScene, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>

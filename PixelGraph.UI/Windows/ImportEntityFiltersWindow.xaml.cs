@@ -3,7 +3,6 @@ using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Windows;
-using MinecraftMappings.Minecraft.Java;
 
 namespace PixelGraph.UI.Windows
 {

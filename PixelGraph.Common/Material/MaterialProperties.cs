@@ -209,6 +209,17 @@ namespace PixelGraph.Common.Material
             return false;
         }
 
+        public MaterialType GetMaterialType()
+        {
+            if (string.IsNullOrWhiteSpace(Type))
+                return MaterialType.Automatic;
+
+            if (Enum.TryParse(typeof(MaterialType), Type, out var type) && type != null)
+                return (MaterialType) type;
+
+            return MaterialType.Automatic;
+        }
+
         public MaterialProperties Clone()
         {
             var clone = (MaterialProperties)MemberwiseClone();

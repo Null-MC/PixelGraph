@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.ConnectedTextures;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -107,8 +108,25 @@ namespace PixelGraph.Common.IO.Serialization
         {
             await using var stream = reader.Open(localFile);
             using var streamReader = new StreamReader(stream);
-            return deserializer.Deserialize<MaterialProperties>(streamReader)
+            var document = deserializer.Deserialize<MaterialProperties>(streamReader)
                 ?? new MaterialProperties();
+
+            if (document.CTM?.Method != null && parseMap.TryGetValue(document.CTM.Method, out var replaceMethod))
+                document.CTM.Method = replaceMethod;
+
+            return document;
         }
+
+        /// <summary> For deprecated mappings </summary>
+        private static readonly Dictionary<string, string> parseMap = new(StringComparer.InvariantCultureIgnoreCase) {
+            ["full"] = CtmTypes.Optifine_Full,
+            ["compact"] = CtmTypes.Optifine_Compact,
+            ["horizontal"] = CtmTypes.Optifine_Horizontal,
+            ["vertical"] = CtmTypes.Optifine_Vertical,
+            ["top"] = CtmTypes.Optifine_Top,
+            ["random"] = CtmTypes.Optifine_Random,
+            ["repeat"] = CtmTypes.Optifine_Repeat,
+            ["fixed"] = CtmTypes.Optifine_Fixed,
+        };
     }
 }

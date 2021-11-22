@@ -31,7 +31,9 @@ namespace PixelGraph.UI.Helix.Materials
             };
 
             if (Material.Color?.PreviewTint != null) {
-                var tint = ColorHelper.ColorFromString(Material.Color.PreviewTint);
+                var tint_hex = Material.Color.PreviewTint;
+                if (!tint_hex.StartsWith('#')) tint_hex = '#'+tint_hex;
+                var tint = ColorHelper.ColorFromString(tint_hex);
                 if (tint.HasValue) mat.ColorTint = tint.Value.ToColor4();
             }
 

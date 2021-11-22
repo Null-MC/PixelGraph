@@ -3,10 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using MinecraftMappings.Internal.Models;
 using MinecraftMappings.Internal.Models.Block;
 using MinecraftMappings.Internal.Models.Entity;
-using MinecraftMappings.Internal.Textures.Block;
-using MinecraftMappings.Internal.Textures.Entity;
-using MinecraftMappings.Minecraft;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
@@ -14,6 +10,7 @@ using PixelGraph.Rendering.Models;
 using PixelGraph.Rendering.Shaders;
 using PixelGraph.UI.Helix.Controls;
 using PixelGraph.UI.Helix.Materials;
+using PixelGraph.UI.Internal.Models;
 using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Settings;
 using SharpDX.Direct3D11;
@@ -32,7 +29,7 @@ namespace PixelGraph.UI.Helix.Models
 
         private readonly IServiceProvider provider;
         private readonly IAppSettings appSettings;
-        private readonly IBlockModelParser parser;
+        private readonly IModelLoader modelLoader;
         private readonly IMaterialReader materialReader;
         private readonly IMinecraftResourceLocator locator;
         private readonly Dictionary<string, IMaterialBuilder> materialMap;
@@ -47,7 +44,7 @@ namespace PixelGraph.UI.Helix.Models
             this.provider = provider;
 
             appSettings = provider.GetRequiredService<IAppSettings>();
-            parser = provider.GetRequiredService<IBlockModelParser>();
+            modelLoader = provider.GetRequiredService<IModelLoader>();
             materialReader = provider.GetRequiredService<IMaterialReader>();
             locator = provider.GetRequiredService<IMinecraftResourceLocator>();
 
@@ -61,84 +58,36 @@ namespace PixelGraph.UI.Helix.Models
             ClearTextureBuilders();
         }
 
-        private bool IsEntityPath(string materialPath)
-        {
-            return PathEx.Normalize(materialPath).Contains("minecraft/textures/entity");
-
-            // TODO
-            return false;
-        }
-
         public async Task BuildAsync(RenderPreviewModes renderMode, IRenderContext renderContext, CancellationToken token = default)
         {
-            var modelFile = renderContext.DefaultMaterial.Model;
-            isEntity = false;
-
-            if (modelFile == null && IsEntityPath(renderContext.DefaultMaterial.LocalPath)) {
-                var entityVersion = Minecraft.Java.GetEntityModelForTexture<JavaEntityTextureVersion>(renderContext.DefaultMaterial.Name)?.GetLatestVersion();
-
-                if (entityVersion != null) {
-                    await BuildEntityModelAsync(renderMode, renderContext, entityVersion, token);
-                    return;
-                }
-            }
-
-            if (modelFile?.StartsWith("entity/", StringComparison.InvariantCultureIgnoreCase) ?? false) {
-                // Build Entity-Model
-                var modelId = Path.GetFileName(modelFile);
-                var entityVersion = Minecraft.Java.FindEntityModelVersionById<JavaEntityModelVersion>(modelId).FirstOrDefault();
-
-                if (entityVersion != null) {
-                    await BuildEntityModelAsync(renderMode, renderContext, entityVersion, token);
-                    return;
-                }
-            }
-
-            if (modelFile == null) {
-                var modelData = Minecraft.Java.GetBlockModelForTexture<JavaBlockTextureVersion>(renderContext.DefaultMaterial.Name);
-                modelFile = modelData?.GetLatestVersion()?.Id;
-            }
-
-            if (modelFile == null) {
-                var model = parser.LoadRecursive("blocks/cube_all");
-                model.Textures["all"] = renderContext.DefaultMaterial.LocalFilename;
-                FlattenBlockModelTextures(model);
-
-                ClearTextureBuilders();
-
-                var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
-                await materialBuilder.UpdateAllTexturesAsync(0, token);
-
-                materialMap["all"] = materialBuilder;
-
-                BuildBlockModel(model);
+            var entityModel = modelLoader.GetEntityModel(renderContext.DefaultMaterial);
+            if (entityModel != null) {
+                await BuildEntityModelAsync(renderMode, renderContext, entityModel, token);
                 return;
             }
 
-            // Build Block-Model
-            var blockModel = parser.LoadRecursive(modelFile);
-            if (blockModel == null) throw new ApplicationException($"Failed to load model file '{modelFile}'!");
+            var blockModel = modelLoader.GetBlockModel(renderContext.DefaultMaterial);
+            if (blockModel != null) {
+                FlattenBlockModelTextures(blockModel);
 
-            FlattenBlockModelTextures(blockModel);
-            await BuildMaterialMapAsync(renderMode, renderContext, blockModel.Textures, token);
+                await BuildMaterialMapAsync(renderMode, renderContext, blockModel.Textures, token);
             
-            // Apply default material if no textures are mapped
-            if (materialMap.Count == 0) {
-                var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
-                await materialBuilder.UpdateAllTexturesAsync(0, token);
+                // Apply default material if no textures are mapped
+                if (materialMap.Count == 0) {
+                    var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
+                    await materialBuilder.UpdateAllTexturesAsync(0, token);
 
-                materialMap["all"] = materialBuilder;
+                    materialMap["all"] = materialBuilder;
 
-                foreach (var element in blockModel.Elements) {
-                    foreach (var face in ModelElement.AllFaces) {
-                        var modelFace = element.GetFace(face);
-                        if (modelFace != null)
-                            modelFace.Texture = "#all";
-                    }
+                    foreach (var element in blockModel.Elements)
+                        element.SetTexture("#all");
                 }
+
+                BuildBlockModel(blockModel);
+                return;
             }
 
-            BuildBlockModel(blockModel);
+            throw new ApplicationException("Failed to load model file!");
         }
 
         /// <summary>

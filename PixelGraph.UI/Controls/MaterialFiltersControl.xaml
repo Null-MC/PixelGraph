@@ -15,9 +15,9 @@
             <MenuItem Header="Delete" Click="OnContextMenuDeleteClick"/>
         </ContextMenu>
     </UserControl.Resources>
-    <DockPanel>
+    <DockPanel d:DataContext="{d:DesignInstance models:MaterialFiltersViewModel, IsDesignTimeCreatable=True}">
         <DockPanel.DataContext>
-            <models:MaterialFiltersModel x:Name="Model" DataChanged="OnDataChanged" SelectionChanged="OnSelectionChanged"/>
+            <models:MaterialFiltersViewModel x:Name="Model" DataChanged="OnModelDataChanged" SelectionChanged="OnSelectionChanged"/>
         </DockPanel.DataContext>
         <ToolBar DockPanel.Dock="Top" ToolBarTray.IsLocked="True">
             <Button Click="OnFilterAddButtonClick" ToolTip="Add a new filter">
@@ -26,6 +26,9 @@
             <Button Click="OnFilterDeleteButtonClick" ToolTip="Remove the selected filter"
                     IsEnabled="{Binding HasSelectedFilter, Mode=OneWay}">
                 <iconPacks:FontAwesome Kind="TrashSolid"/>
+            </Button>
+            <Button Click="OnFilterImportFromModelButtonClick" ToolTip="Import filters from current Model">
+                <iconPacks:PackIconFontAwesome Kind="FileImportSolid"/>
             </Button>
         </ToolBar>
         <local:PropertyGridControl DockPanel.Dock="Bottom" PropertyChanged="OnFilterPropertyChanged"

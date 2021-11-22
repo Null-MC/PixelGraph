@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MinecraftMappings.Internal.Models;
+using MinecraftMappings.Internal.Models.Entity;
 using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
@@ -13,6 +15,7 @@ using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Rendering.Models;
 using PixelGraph.UI.Helix;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Models;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
@@ -22,12 +25,15 @@ using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewData;
 using SixLabors.ImageSharp;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using RectangleF = SharpDX.RectangleF;
 
 namespace PixelGraph.UI.ViewModels
 {

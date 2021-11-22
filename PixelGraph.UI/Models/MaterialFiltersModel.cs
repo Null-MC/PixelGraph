@@ -1,17 +1,22 @@
-﻿using PixelGraph.Common.Material;
+﻿using MinecraftMappings.Internal.Models;
+using MinecraftMappings.Internal.Models.Entity;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Models;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 
 namespace PixelGraph.UI.Models
 {
-    internal class MaterialFiltersModel : ModelBase
+    internal class MaterialFiltersViewModel : ModelBase
     {
+        //private readonly IServiceProvider provider;
         private MaterialProperties _material;
         private ObservableMaterialFilter _selectedFilter;
         private ObservableCollection<ObservableMaterialFilter> _filterList;
@@ -77,13 +82,39 @@ namespace PixelGraph.UI.Models
         }
 
 
-        public MaterialFiltersModel()
+        public MaterialFiltersViewModel() //(IServiceProvider provider)
         {
+            //this.provider = provider;
+
             GeneralProperties = new FilterGeneralPropertyCollection();
             GeneralProperties.PropertyChanged += OnPropertyValueChanged;
 
             NormalProperties = new FilterNormalPropertyCollection();
             NormalProperties.PropertyChanged += OnPropertyValueChanged;
+        }
+
+        public void ImportFiltersFromModel(IModelLoader loader)
+        {
+            //var loader = provider.GetRequiredService<IModelLoader>();
+            var entityModel = loader.GetEntityModel(Material);
+            
+            if (entityModel != null) {
+                var filters = ImportFiltersFromEntityModel(entityModel);
+                Material.Filters.AddRange(filters);
+                OnDataChanged();
+                return;
+            }
+
+            var blockModel = loader.GetBlockModel(Material);
+            if (blockModel != null) {
+                throw new NotImplementedException();
+                // TODO
+
+                OnDataChanged();
+                return;
+            }
+
+            throw new ApplicationException("No model found!");
         }
 
         public void UpdateFilterList()
@@ -96,6 +127,66 @@ namespace PixelGraph.UI.Models
             }
 
             OnPropertyChanged(nameof(FilterList));
+        }
+
+        private static IEnumerable<MaterialFilter> ImportFiltersFromEntityModel(EntityModelVersion model)
+        {
+            var existingRegions = new List<SharpDX.RectangleF>();
+            var nameBuilder = new StringBuilder();
+
+            IEnumerable<MaterialFilter> ProcessElements(IEnumerable<EntityElement> elements) {
+                foreach (var element in elements) {
+                    if (element.Cubes != null) {
+                        var cubeIndex = 1;
+
+                        foreach (var cube in element.Cubes) {
+                            foreach (var face in ModelElement.AllFaces) {
+                                var region = cube.GetFaceRectangle(face, element.MirrorTexU);
+
+                                if (existingRegions.Contains(region)) continue;
+                                existingRegions.Add(region);
+
+                                var faceName = face switch {
+                                    ElementFaces.Up => "up",
+                                    ElementFaces.Down => "down",
+                                    ElementFaces.North => "north",
+                                    ElementFaces.South => "south",
+                                    ElementFaces.West => "west",
+                                    ElementFaces.East => "east",
+                                    _ => throw new ArgumentOutOfRangeException(),
+                                };
+
+                                nameBuilder.Clear();
+
+                                if (!string.IsNullOrWhiteSpace(element.Name))
+                                    nameBuilder.Append(element.Name);
+
+                                if (cubeIndex > 1)
+                                    nameBuilder.Append(cubeIndex);
+
+                                nameBuilder.Append('-');
+                                nameBuilder.Append(faceName);
+
+                                yield return new MaterialFilter {
+                                    Name = $"{nameBuilder}",
+                                    Top = new decimal(region.Top / model.TextureSize.Y),
+                                    Left = new decimal(region.Left / model.TextureSize.X),
+                                    Width = new decimal(region.Width / model.TextureSize.X),
+                                    Height = new decimal(region.Height / model.TextureSize.Y),
+                                };
+                            }
+
+                            cubeIndex++;
+                        }
+                    }
+
+                    if (element.Submodels == null) continue;
+                    foreach (var filter in ProcessElements(element.Submodels))
+                        yield return filter;
+                }
+            }
+
+            return ProcessElements(model.Elements);
         }
 
         private void OnPropertyValueChanged(object sender, PropertyChangedEventArgs e)

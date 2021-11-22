@@ -1,6 +1,10 @@
-﻿using PixelGraph.Common.Material;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using PixelGraph.Common.Material;
+using PixelGraph.UI.Internal.Models;
 using SixLabors.ImageSharp;
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -12,9 +16,14 @@ namespace PixelGraph.UI.Controls
     {
         public event EventHandler DataChanged;
 
+        private IServiceProvider _provider {get; set;}
+        private ILogger<MaterialFiltersControl> logger;
+
+        //private MaterialFiltersViewModel Model => DataContext as MaterialFiltersViewModel;
         public RectangleF? SelectedFilterBounds => (RectangleF?)GetValue(SelectedFilterBoundsProperty);
 
         public MaterialProperties Material {
+            //get => (MaterialProperties)GetValue(MaterialProperty);
             set => SetValue(MaterialProperty, value);
         }
 
@@ -28,6 +37,18 @@ namespace PixelGraph.UI.Controls
             InitializeComponent();
         }
 
+        public void Initialize(IServiceProvider provider)
+        {
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
+
+            logger = provider.GetRequiredService<ILogger<MaterialFiltersControl>>();
+        }
+
+        protected virtual void OnDataChanged()
+        {
+            DataChanged?.Invoke(this, EventArgs.Empty);
+        }
+
         private void InvalidateSelectedFilterBounds()
         {
             if (Model.SelectedFilter != null) {
@@ -39,9 +60,9 @@ namespace PixelGraph.UI.Controls
             SetValue(SelectedFilterBoundsProperty, null);
         }
 
-        private void OnDataChanged(object sender, EventArgs e)
+        private void OnModelDataChanged(object sender, EventArgs e)
         {
-            DataChanged?.Invoke(this, EventArgs.Empty);
+            OnDataChanged();
         }
 
         private void OnSelectionChanged(object sender, EventArgs e)
@@ -57,6 +78,35 @@ namespace PixelGraph.UI.Controls
         private void OnFilterDeleteButtonClick(object sender, RoutedEventArgs e)
         {
             Model.DeleteSelectedFilter();
+        }
+
+        private void OnFilterImportFromModelButtonClick(object sender, RoutedEventArgs e)
+        {
+            var material = Model.Material;
+            if (material == null) return;
+
+            var window = Window.GetWindow(this);
+            if (window == null) throw new ApplicationException("Unable to locate parent window handle!");
+
+            material.Filters ??= new List<MaterialFilter>();
+
+            if (material.Filters.Count > 0) {
+                var confirm = MessageBox.Show(window, "Would you like to clear the existing filters before importing? This operation cannot be undone!", "Warning", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
+                if (confirm == MessageBoxResult.Cancel) return;
+                
+                if (confirm == MessageBoxResult.Yes)
+                    material.Filters.Clear();
+            }
+
+            try {
+                var loader = _provider.GetRequiredService<IModelLoader>();
+                Model.ImportFiltersFromModel(loader);
+                Model.UpdateFilterList();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to import UV mappings from entity model!");
+                MessageBox.Show(window, "Failed to import UV mappings from entity model!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void OnFilterPropertyChanged(object sender, PropertyGridChangedEventArgs e)
@@ -107,6 +157,8 @@ namespace PixelGraph.UI.Controls
         private static void OnSelectedTagPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
             if (sender is not MaterialFiltersControl control) return;
+            if (control.Model == null) return;
+
             control.Model.SelectedTag = e.NewValue as string;
         }
 

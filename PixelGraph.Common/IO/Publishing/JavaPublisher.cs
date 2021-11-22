@@ -73,7 +73,10 @@ namespace PixelGraph.Common.IO.Publishing
             }
 
             if (material.CTM?.Method != null) {
-                properties["method"] = material.CTM.Method;
+                if (!optifineWriteMap.TryGetValue(material.CTM.Method, out var ctmWriteMethod))
+                    throw new ApplicationException($"Unable to map CTM type '{material.CTM.Method}'!");
+
+                properties["method"] = ctmWriteMethod;
 
                 if (material.CTM.Width.HasValue || !properties.ContainsKey("width"))
                     properties["width"] = (material.CTM.Width ?? 1).ToString("N0");
@@ -88,8 +91,14 @@ namespace PixelGraph.Common.IO.Publishing
                     properties["matchTiles"] = material.CTM.MatchTiles;
 
                 if (!properties.ContainsKey("tiles")) {
+                    var hasPlaceholder = material.CTM?.Placeholder ?? false;
+                    var minTile = hasPlaceholder ? "1" : "0";
                     var tileCount = CtmTypes.GetBounds(material.CTM)?.Total ?? 1;
-                    properties["tiles"] = $"0-{tileCount-1:N0}";
+                    var maxTile = tileCount > 1 ? $"-{tileCount-1:N0}" : "";
+
+                    if (hasPlaceholder) minTile = $"textures/block/{material.Name} {minTile}";
+
+                    properties["tiles"] = $"{minTile}{maxTile}";
                 }
 
                 hasProperties = true;
@@ -103,5 +112,23 @@ namespace PixelGraph.Common.IO.Publishing
                 await propertySerializer.WriteAsync(writer, properties, token);
             }, token);
         }
+
+        private static readonly Dictionary<string, string> optifineWriteMap = new(StringComparer.InvariantCultureIgnoreCase) {
+            [CtmTypes.Optifine_Full] = "ctm",
+            [CtmTypes.Optifine_Compact] = "ctm_compact",
+            [CtmTypes.Optifine_Horizontal] = "horizontal",
+            [CtmTypes.Optifine_Vertical] = "vertical",
+            [CtmTypes.Optifine_HorizontalVertical] = "horizontal+vertical",
+            [CtmTypes.Optifine_VerticalHorizontal] = "vertical+horizontal",
+            [CtmTypes.Optifine_Top] = "top",
+            [CtmTypes.Optifine_Random] = "random",
+            [CtmTypes.Optifine_Repeat] = "repeat",
+            [CtmTypes.Optifine_Fixed] = "fixed",
+            [CtmTypes.Optifine_Overlay] = "overlay",
+            [CtmTypes.Optifine_OverlayFull] = "overlay_ctm",
+            [CtmTypes.Optifine_OverlayRandom] = "overlay_random",
+            [CtmTypes.Optifine_OverlayRepeat] = "overlay_repeat",
+            [CtmTypes.Optifine_OverlayFixed] = "overlay_fixed",
+        };
     }
 }

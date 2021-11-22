@@ -40,6 +40,9 @@ namespace PixelGraph.UI.Models
                 //OnPropertyChanged(nameof(IsTypeCTM));
                 OnPropertyChanged(nameof(IsMethodNotNone));
 
+                if (_material != null)
+                    _material.CTM ??= new MaterialConnectionProperties();
+
                 PrimaryProperties.SetData(_material?.CTM);
                 ConnectionProperties.SetData(_material);
 
