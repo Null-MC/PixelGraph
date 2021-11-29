@@ -9,7 +9,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace PixelGraph.UI.Helix.Models
+namespace PixelGraph.UI.Internal.Models
 {
     internal interface IBlockModelParser
     {

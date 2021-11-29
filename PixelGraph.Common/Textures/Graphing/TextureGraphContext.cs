@@ -218,7 +218,10 @@ namespace PixelGraph.Common.Textures.Graphing
             }
 
             var type = GetFinalMaterialType();
-            return TextureSizeUtility.GetSizeByType(Profile, type, defaultAspect);
+            if (Profile != null)
+                return TextureSizeUtility.GetSizeByType(Profile, type, defaultAspect);
+
+            return null;
         }
 
         public Size? GetBufferSize(float aspect)

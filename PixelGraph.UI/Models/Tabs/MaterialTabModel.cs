@@ -1,5 +1,5 @@
 ﻿using PixelGraph.Common.Material;
-using PixelGraph.UI.Helix;
+using PixelGraph.UI.Internal.Caching;
 
 namespace PixelGraph.UI.Models.Tabs
 {

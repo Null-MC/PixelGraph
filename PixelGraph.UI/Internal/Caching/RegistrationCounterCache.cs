@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Helix
+namespace PixelGraph.UI.Internal.Caching
 {
-    internal abstract class AsyncRegistrationCounterCache<TKey, TValue>
+    internal abstract class RegistrationCounterCache<TKey, TValue>
     {
         private readonly Dictionary<TKey, CounterCacheItem<TValue>> map;
 
 
-        protected AsyncRegistrationCounterCache(IEqualityComparer<TKey> keyComparer)
+        protected RegistrationCounterCache(IEqualityComparer<TKey> keyComparer)
         {
             map = new Dictionary<TKey, CounterCacheItem<TValue>>(keyComparer);
         }
 
-        protected async Task<CacheRegistration<TKey, TValue>> RegisterAsync(TKey key, Func<TKey, Task<TValue>> createFunc)
+        protected CacheRegistration<TKey, TValue> Register(TKey key, Func<TKey, TValue> createFunc)
         {
             var registrationId = Guid.NewGuid();
-            var counter = await GetOrCreateAsync(key, createFunc);
+            var counter = GetOrCreate(key, createFunc);
             counter.Registrations.Add(registrationId);
 
             return new CacheRegistration<TKey, TValue>(key, counter.Item, registrationId);
@@ -34,25 +33,44 @@ namespace PixelGraph.UI.Helix
             }
         }
 
-        public void Clear()
-        {
-            foreach (var counter in map.Values) {
-                if (counter.Item is IDisposable disposable)
-                    disposable.Dispose();
-            }
-
-            map.Clear();
-        }
-
-        private async Task<CounterCacheItem<TValue>> GetOrCreateAsync(TKey key, Func<TKey, Task<TValue>> createValueFunc)
+        private CounterCacheItem<TValue> GetOrCreate(TKey key, Func<TKey, TValue> createValueFunc)
         {
             if (map.TryGetValue(key, out var counter)) return counter;
 
-            var value = await createValueFunc(key);
+            var value = createValueFunc(key);
             counter = new CounterCacheItem<TValue>(value);
             map[key] = counter;
 
             return counter;
+        }
+    }
+
+    internal class CounterCacheItem<T>
+    {
+        public T Item {get;}
+        public List<Guid> Registrations {get;}
+
+
+        public CounterCacheItem(T item)
+        {
+            Item = item;
+
+            Registrations = new List<Guid>();
+        }
+    }
+
+    public class CacheRegistration<TKey, TValue>
+    {
+        public TKey Key {get;}
+        public TValue Value {get;}
+        public Guid RegistrationId {get;}
+
+
+        public CacheRegistration(TKey key, TValue data, Guid registrationId)
+        {
+            Key = key;
+            Value = data;
+            RegistrationId = registrationId;
         }
     }
 }

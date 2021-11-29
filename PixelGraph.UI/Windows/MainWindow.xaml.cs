@@ -29,10 +29,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using MinecraftMappings.Internal.Models.Block;
-using MinecraftMappings.Internal.Textures.Block;
-using MinecraftMappings.Minecraft;
-using PixelGraph.UI.Helix.Models;
 
 namespace PixelGraph.UI.Windows
 {
@@ -238,7 +234,10 @@ namespace PixelGraph.UI.Windows
 
             await Dispatcher.BeginInvoke(() => {
                 Model.EndInit();
+
+#if !NORENDER
                 renderPreview.Model.IsLoaded = true;
+#endif
             });
         }
 

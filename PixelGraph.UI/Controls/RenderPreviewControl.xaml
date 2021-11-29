@@ -9,7 +9,6 @@
              xmlns:viewData="clr-namespace:PixelGraph.UI.ViewData"
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
              xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
-             xmlns:models1="clr-namespace:PixelGraph.UI.Helix.Models"
              xmlns:controls1="clr-namespace:PixelGraph.UI.Helix.Controls"
              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" d:DataContext="{x:Null}"
              Unloaded="OnControlUnloaded">

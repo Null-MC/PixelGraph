@@ -5,7 +5,6 @@ using MinecraftMappings.Internal.Textures.Entity;
 using MinecraftMappings.Minecraft;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
-using PixelGraph.UI.Helix.Models;
 using System;
 using System.IO;
 using System.Linq;

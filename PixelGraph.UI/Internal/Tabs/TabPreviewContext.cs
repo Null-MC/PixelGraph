@@ -2,8 +2,6 @@
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
-using PixelGraph.Rendering.Models;
-using PixelGraph.UI.Helix.Models;
 using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Preview.Textures;
 using SixLabors.ImageSharp;
@@ -14,6 +12,8 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 #if !NORENDER
+using PixelGraph.Rendering.Models;
+using PixelGraph.UI.Helix.Models;
 #endif
 
 namespace PixelGraph.UI.Internal.Tabs
@@ -61,13 +61,11 @@ namespace PixelGraph.UI.Internal.Tabs
         {
             this.provider = provider;
 
-            //appSettings = provider.GetRequiredService<IAppSettings>();
-            //modelBuilder = provider.GetRequiredService<IModelBuilder>();
-
             lockHandle = new object();
 
+#if !RELEASENORENDER
             Mesh = new MultiPartMeshBuilder(provider);
-            //ModelParts = new ObservableElement3DCollection();
+#endif
         }
         
         public void Dispose()

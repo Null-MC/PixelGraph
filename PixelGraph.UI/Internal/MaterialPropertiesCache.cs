@@ -2,11 +2,12 @@
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
+using PixelGraph.UI.Internal.Caching;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Helix
+namespace PixelGraph.UI.Internal
 {
     internal interface IMaterialPropertiesCache
     {

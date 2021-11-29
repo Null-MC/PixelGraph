@@ -44,9 +44,8 @@ jobs:
           submodules: recursive
       - name: Publish Windows-UI-x64 Binary
         run: |
-          dotnet build PixelGraph.UI -c Release
           dotnet publish PixelGraph.UI -c Release -r win-x64 -o publish/win-ui-x64 -p:PublishSingleFile=true --self-contained false
-          dotnet publish PixelGraph.UI -c Release-NoRenderPreview -r win7-x64 -o publish/wine-ui-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true --self-contained
+          dotnet publish PixelGraph.UI -c ReleaseNoRender -r win7-x64 -o publish/wine-ui-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true --self-contained
       - name: Upload Windows-UI-x64 Binary
         uses: actions/upload-artifact@v2
         with:

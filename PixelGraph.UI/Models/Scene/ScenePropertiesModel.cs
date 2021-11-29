@@ -1,9 +1,11 @@
-﻿using PixelGraph.Common.Extensions;
-using PixelGraph.UI.Helix;
-using PixelGraph.UI.Internal;
-using SharpDX;
+﻿using PixelGraph.UI.Internal;
 using System;
+
+#if !RELEASENORENDER
+using PixelGraph.Common.Extensions;
 using PixelGraph.Rendering;
+using SharpDX;
+#endif
 
 namespace PixelGraph.UI.Models.Scene
 {
@@ -60,6 +62,8 @@ namespace PixelGraph.UI.Models.Scene
             _timeOfDay = 6_000;
         }
 
+#if !RELEASENORENDER
+
         public void GetSunAngle(out Vector3 sunAngle, out float strength)
         {
             const float sun_overlap = 0.0f;
@@ -81,6 +85,8 @@ namespace PixelGraph.UI.Models.Scene
         {
             TimeOfDay = (int)(value * 24_000f);
         }
+
+#endif
 
         protected void OnSunChanged()
         {
