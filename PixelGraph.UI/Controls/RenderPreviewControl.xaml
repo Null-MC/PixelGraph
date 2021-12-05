@@ -82,6 +82,9 @@
                 EnableLinearSampling="{Binding EnableLinearSampling, Mode=OneWay}"
                 EnableSlopeNormals="{Binding EnableSlopeNormals, Mode=OneWay}"
                 EnablePuddles="{Binding EnablePuddles, Mode=OneWay}"/>
+            <controls1:MinecraftMesh3D x:Name="MinecraftMesh"
+                                       BlendMode="{Binding MeshBlendMode, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                                       TintColor="{Binding MeshTintColor, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
             <hx:ShadowMap3D Resolution="1024,1024" Bias="0.001" NearFieldDistance="1" FarFieldDistance="128" OrthoWidth="64"
                             LightCamera="{Binding SunCamera, Mode=OneWay}"/>
             <controls1:EnvironmentCube3D x:Name="EnvironmentCubeMapSource" FaceSize="128"

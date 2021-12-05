@@ -2,13 +2,13 @@
 using MinecraftMappings.Minecraft;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
+using PixelGraph.Rendering.Materials;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.PropertyGrid;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.Models
 {
@@ -19,7 +19,7 @@ namespace PixelGraph.UI.Models
         private decimal? _iorToF0Value;
         private decimal? _iorDefaultValue;
 
-        public event EventHandler DataChanged;
+        public event EventHandler<MaterialPropertyChangedEventArgs> DataChanged;
         public event EventHandler ModelChanged;
 
         public GeneralPropertyCollection GeneralProperties {get;}
@@ -138,58 +138,58 @@ namespace PixelGraph.UI.Models
             GeneralModelProperties.PropertyChanged += OnGeneralPropertyValueChanged;
 
             OpacityProperties = new OpacityPropertyCollection();
-            OpacityProperties.PropertyChanged += OnPropertyValueChanged;
+            OpacityProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialOpacityProperties), e.PropertyName);
 
             ColorProperties = new ColorPropertyCollection();
-            ColorProperties.PropertyChanged += OnPropertyValueChanged;
+            ColorProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialColorProperties), e.PropertyName);
 
             ColorOtherProperties = new ColorOtherPropertyCollection();
-            ColorOtherProperties.PropertyChanged += OnPropertyValueChanged;
+            ColorOtherProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialColorProperties), e.PropertyName);
 
             HeightProperties = new HeightPropertyCollection();
-            HeightProperties.PropertyChanged += OnPropertyValueChanged;
+            HeightProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialHeightProperties), e.PropertyName);
 
             HeightEdgeProperties = new HeightEdgeFadingPropertyCollection();
-            HeightEdgeProperties.PropertyChanged += OnPropertyValueChanged;
+            HeightEdgeProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialHeightProperties), e.PropertyName);
 
             NormalProperties = new NormalPropertyCollection();
-            NormalProperties.PropertyChanged += OnPropertyValueChanged;
+            NormalProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialNormalProperties), e.PropertyName);
 
             NormalFilterProperties = new NormalFilterPropertyCollection();
-            NormalFilterProperties.PropertyChanged += OnPropertyValueChanged;
+            NormalFilterProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialNormalProperties), e.PropertyName);
 
             NormalGenerationProperties = new NormalGeneratorPropertyCollection();
-            NormalGenerationProperties.PropertyChanged += OnPropertyValueChanged;
+            NormalGenerationProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialNormalProperties), e.PropertyName);
 
             OcclusionProperties = new OcclusionPropertyCollection();
-            OcclusionProperties.PropertyChanged += OnPropertyValueChanged;
+            OcclusionProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialOcclusionProperties), e.PropertyName);
 
             OcclusionGenerationProperties = new OcclusionGeneratorPropertyCollection();
-            OcclusionGenerationProperties.PropertyChanged += OnPropertyValueChanged;
+            OcclusionGenerationProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialOcclusionProperties), e.PropertyName);
 
             SpecularProperties = new SpecularPropertyCollection();
-            SpecularProperties.PropertyChanged += OnPropertyValueChanged;
+            SpecularProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialSpecularProperties), e.PropertyName);
 
             SmoothProperties = new SmoothPropertyCollection();
-            SmoothProperties.PropertyChanged += OnPropertyValueChanged;
+            SmoothProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialSmoothProperties), e.PropertyName);
 
             RoughProperties = new RoughPropertyCollection();
-            RoughProperties.PropertyChanged += OnPropertyValueChanged;
+            RoughProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialRoughProperties), e.PropertyName);
 
             MetalProperties = new MetalPropertyCollection();
-            MetalProperties.PropertyChanged += OnPropertyValueChanged;
+            MetalProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialMetalProperties), e.PropertyName);
 
             F0Properties = new F0PropertyCollection();
             F0Properties.PropertyChanged += OnF0PropertyValueChanged;
 
             PorosityProperties = new PorosityPropertyCollection();
-            PorosityProperties.PropertyChanged += OnPropertyValueChanged;
+            PorosityProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialPorosityProperties), e.PropertyName);
 
             SssProperties = new SssPropertyCollection();
-            SssProperties.PropertyChanged += OnPropertyValueChanged;
+            SssProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialSssProperties), e.PropertyName);
 
             EmissiveProperties = new EmissivePropertyCollection();
-            EmissiveProperties.PropertyChanged += OnPropertyValueChanged;
+            EmissiveProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialEmissiveProperties), e.PropertyName);
         }
 
         public void ConvertIorToF0()
@@ -200,7 +200,7 @@ namespace PixelGraph.UI.Models
             var f0 = Math.Round((decimal)(t * t), 3);
 
             Material.F0.Value = f0;
-            OnDataChanged();
+            OnDataChanged(nameof(MaterialF0Properties), nameof(MaterialF0Properties.Value));
             F0Properties.Invalidate();
 
             _iorDefaultValue = _iorToF0Value;
@@ -222,7 +222,7 @@ namespace PixelGraph.UI.Models
 
         private void OnGeneralPropertyValueChanged(object sender, PropertyChangedEventArgs e)
         {
-            OnDataChanged();
+            OnDataChanged(nameof(MaterialProperties), e.PropertyName);
 
             var isModelProperty = e.PropertyName?.Equals(nameof(MaterialProperties.Model)) ?? false;
 
@@ -238,23 +238,36 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged(nameof(IorEditValue));
             }
 
-            OnDataChanged();
+            OnDataChanged(nameof(MaterialF0Properties), e.PropertyName);
         }
 
-        private void OnPropertyValueChanged(object sender, PropertyChangedEventArgs e)
-        {
-            OnDataChanged();
-        }
+        //private void OnPropertyValueChanged(object sender, PropertyChangedEventArgs e)
+        //{
+        //    OnDataChanged();
+        //}
 
-        private void OnDataChanged([CallerMemberName] string propertyName = null)
+        private void OnDataChanged(string className, string propertyName)
         {
-            var e = new PropertyChangedEventArgs(propertyName);
+            var e = new MaterialPropertyChangedEventArgs(className, propertyName);
             DataChanged?.Invoke(this, e);
         }
 
         protected virtual void OnModelChanged()
         {
             ModelChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    public class MaterialPropertyChangedEventArgs : EventArgs
+    {
+        public string ClassName {get; set;}
+        public string PropertyName {get; set;}
+
+
+        public MaterialPropertyChangedEventArgs(string className, string propertyName)
+        {
+            ClassName = className;
+            PropertyName = propertyName;
         }
     }
 
@@ -292,7 +305,7 @@ namespace PixelGraph.UI.Models
 
             modelRow = AddTextFile<string>("Model", nameof(MaterialProperties.Model));
             blendRow = AddSelect<string>("Blend", nameof(MaterialProperties.BlendMode), blendOptions);
-            AddTextColor<string>("Tint", nameof(MaterialProperties.ColorTint));
+            AddTextColor<string>("Tint", nameof(MaterialProperties.TintColor));
         }
 
         public override void SetData(MaterialProperties data)
@@ -306,7 +319,7 @@ namespace PixelGraph.UI.Models
                 modelRow.DefaultValue = modelData?.GetLatestVersion()?.Id;
 
                 // TODO: get default blendMode
-                blendRow.DefaultValue = BlendMode.Opaque;
+                blendRow.DefaultValue = BlendModes.OpaqueText;
             }
             else {
                 modelRow.DefaultValue = null;
@@ -344,7 +357,7 @@ namespace PixelGraph.UI.Models
         public ColorOtherPropertyCollection()
         {
             AddBool<bool?>("Bake Occlusion", nameof(MaterialColorProperties.BakeOcclusion), MaterialColorProperties.DefaultBakeOcclusion);
-            AddText<string>("Preview Tint", nameof(MaterialColorProperties.PreviewTint));
+            //AddText<string>("Preview Tint", nameof(MaterialColorProperties.PreviewTint));
         }
     }
 

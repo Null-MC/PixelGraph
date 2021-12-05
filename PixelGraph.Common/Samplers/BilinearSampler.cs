@@ -1,7 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
@@ -19,9 +18,9 @@ namespace PixelGraph.Common.Samplers
         {
             GetTexCoord(in x, in y, out var fx, out var fy);
 
-            var pxMin = (int)MathF.Floor(fx);
+            var pxMin = (int)(fx + 0.25f);
             var pxMax = pxMin + 1;
-            var pyMin = (int)MathF.Floor(fy);
+            var pyMin = (int)(fy + 0.25f);
             var pyMax = pyMin + 1;
 
             var px = fx - pxMin;

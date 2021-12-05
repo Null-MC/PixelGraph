@@ -21,7 +21,7 @@
 #pragma pack_matrix(row_major)
 
 static const float3 up = float3(0.0f, 1.0f, 0.0f);
-static const int blendMode = BLEND_CUTOUT;
+//static const int blendMode = BLEND_CUTOUT;
 
 
 float4 main(const ps_input input) : SV_TARGET
@@ -77,9 +77,9 @@ float4 main(const ps_input input) : SV_TARGET
 
 	const pbr_material mat = get_pbr_material(tex);
 
-    if (blendMode == BLEND_CUTOUT)
+    if (BlendMode == BLEND_CUTOUT)
 		clip(mat.alpha - CUTOUT_THRESHOLD);
-    else if (blendMode == BLEND_TRANSPARENT)
+    else if (BlendMode == BLEND_TRANSPARENT)
 		clip(mat.alpha - EPSILON);
 
     //if (wet_depth > EPSILON) return float4(0,1,0,1);
@@ -89,7 +89,8 @@ float4 main(const ps_input input) : SV_TARGET
 	
     // Blend base colors
 	const float metal = mat.f0 > 0.9f ? 1.0f : 0.0f;
-	const float3 tint = srgb_to_linear(vMaterialDiffuse.rgb);
+	//const float3 tint = srgb_to_linear(vMaterialDiffuse.rgb);
+	const float3 tint = srgb_to_linear(TintColor);
     float3 diffuse = mat.albedo * tint * (1.0f - metal);
 
     const float3 src_normal = calc_tex_normal(tex, normal, tangent, bitangent);
@@ -353,7 +354,7 @@ float4 main(const ps_input input) : SV_TARGET
     float3 final_color = ibl_final + acc_light + final_sss + emissive;
 
 	float alpha = mat.alpha + spec_strength;
-    if (blendMode != BLEND_TRANSPARENT) alpha = 1.0f;
+    if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
 	//final_color = tonemap_AcesFilm(final_color);
 	//final_color = linear_to_srgb(final_color);

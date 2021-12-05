@@ -10,7 +10,7 @@ namespace PixelGraph.Common.Samplers
     internal abstract class SamplerBase<TPixel> : ISampler<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        protected const float HalfPixel = 0.5f + float.Epsilon;
+        //protected const float HalfPixel = 0.5f + float.Epsilon;
 
         public Image<TPixel> Image {get; set;}
         public float RangeX {get; set;}
@@ -44,34 +44,36 @@ namespace PixelGraph.Common.Samplers
 
         protected void GetTexCoord(in float x, in float y, out float fx, out float fy)
         {
-            fx = (Bounds.X + x * Bounds.Width) * Image.Width - HalfPixel;
-            fy = (Bounds.Y + y * Bounds.Height) * Image.Height - HalfPixel;
+            fx = (Bounds.X + x * Bounds.Width) * (Image.Width - 1);
+            fy = (Bounds.Y + y * Bounds.Height) * (Image.Height - 1);
         }
 
         protected void WrapCoordX(ref int x)
         {
-            if (Bounds.Width == 0 || Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
-            while (x < Bounds.Left * Image.Width) x += (int)(Bounds.Width * Image.Width);
-            while (x >= Bounds.Right * Image.Width) x -= (int)(Bounds.Width * Image.Width);
+            if (Bounds.Width == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
+            var width = (int)(Bounds.Width * Image.Width + 0.25f);
+            while (x < Bounds.Left * (Image.Width - 1)) x += width;
+            while (x > Bounds.Right * (Image.Width - 1)) x -= width;
         }
 
         protected void WrapCoordY(ref int y)
         {
-            if (Bounds.Width == 0 || Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
-            while (y < Bounds.Top * Image.Height) y += (int)(Bounds.Height * Image.Height);
-            while (y >= Bounds.Bottom * Image.Height) y -= (int)(Bounds.Height * Image.Height);
+            if (Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
+            var height = (int)(Bounds.Height * Image.Height + 0.25f);
+            while (y < Bounds.Top * (Image.Height - 1)) y += height;
+            while (y > Bounds.Bottom * (Image.Height - 1)) y -= height;
         }
 
         protected void ClampCoordX(ref int x)
         {
-            if (Bounds.Width == 0 || Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
+            if (Bounds.Width == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
             if (x < Bounds.Left * Image.Width) x = (int)(Bounds.Left * Image.Width);
             if (x >= Bounds.Right * Image.Width) x = (int)(Bounds.Right * Image.Width) - 1;
         }
 
         protected void ClampCoordY(ref int y)
         {
-            if (Bounds.Width == 0 || Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
+            if (Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
             if (y < Bounds.Top * Image.Height) y = (int)(Bounds.Top * Image.Height);
             if (y >= Bounds.Bottom * Image.Height) y = (int)(Bounds.Bottom * Image.Height) - 1;
         }

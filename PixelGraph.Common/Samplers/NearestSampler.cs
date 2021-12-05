@@ -1,5 +1,4 @@
 ﻿using SixLabors.ImageSharp.PixelFormats;
-using System;
 
 namespace PixelGraph.Common.Samplers
 {
@@ -10,8 +9,8 @@ namespace PixelGraph.Common.Samplers
         {
             GetTexCoord(in x, in y, out var fx, out var fy);
 
-            var px = (int)MathF.Floor(fx + HalfPixel);
-            var py = (int)MathF.Floor(fy + HalfPixel);
+            var px = (int)(fx + 0.25f);
+            var py = (int)(fy + 0.25f);
 
             if (WrapX) WrapCoordX(ref px);
             else ClampCoordX(ref px);

@@ -17,8 +17,8 @@ namespace PixelGraph.Common.Samplers
             var stepX = (int)MathF.Ceiling(minRangeX);
             var stepY = (int)MathF.Ceiling(minRangeY);
 
-            var pxMin = (int)MathF.Floor(fx);
-            var pyMin = (int)MathF.Floor(fy);
+            var pxMin = (int)(fx + 0.25f);
+            var pyMin = (int)(fy + 0.25f);
             var pxMax = pxMin + stepX;
             var pyMax = pyMin + stepY;
 

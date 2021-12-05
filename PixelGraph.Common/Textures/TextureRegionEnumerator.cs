@@ -170,51 +170,15 @@ namespace PixelGraph.Common.Textures
                 var tileWidth = 1f / tileCountX;
                 var tileHeight = frameHeight / tileCountY;
 
+                var row = (int)(tileIndex / tileCountX + 0.25f);
+
                 return new RectangleF {
-                    X = (tileIndex % tileCountX) * tileWidth,
-                    Y = wrappedIndex * frameHeight + tileIndex / tileCountX * tileHeight,
+                    X = tileIndex % tileCountX * tileWidth,
+                    Y = wrappedIndex * frameHeight + row * tileHeight,
                     Width = tileWidth,
                     Height = tileHeight,
                 };
             }
-
-            //if (CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Horizontal)
-            // || CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Vertical)) {
-            //    const float tileWidth = 1f / 4f;
-
-            //    return new RectangleF {
-            //        X = tileIndex * tileWidth,
-            //        Y = wrappedIndex * frameHeight,
-            //        Width = tileWidth,
-            //        Height = frameHeight,
-            //    };
-            //}
-
-            //if (CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Compact)) {
-            //    const float tileWidth = 1f / 5f;
-
-            //    return new RectangleF {
-            //        X = tileIndex * tileWidth,
-            //        Y = wrappedIndex * frameHeight,
-            //        Width = tileWidth,
-            //        Height = frameHeight,
-            //    };
-            //}
-
-            //if (CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Full)) {
-            //    const float tileWidth = 1f / 12f;
-            //    var tileHeight = frameHeight / 4f;
-
-            //    return new RectangleF {
-            //        X = (tileIndex % 12) * tileWidth,
-            //        Y = wrappedIndex * frameHeight + tileIndex / 12 * tileHeight,
-            //        Width = tileWidth,
-            //        Height = tileHeight,
-            //    };
-            //}
-
-            //if (CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Repeat)) {
-            //}
 
             return GetFrameBounds(frameIndex, frameCount);
         }
@@ -225,18 +189,6 @@ namespace PixelGraph.Common.Textures
         public int Index {get; set;}
         public RectangleF Bounds {get; set;}
         public TextureRenderTile[] Tiles {get; set;}
-
-
-        //public IEnumerable<TextureRenderTile> GetAllTiles(int? part = null)
-        //{
-        //    if (part.HasValue) {
-        //        yield return Tiles[part.Value];
-        //        yield break;
-        //    }
-
-        //    foreach (var tile in Tiles)
-        //        yield return tile;
-        //}
     }
 
     public class TextureRenderTile

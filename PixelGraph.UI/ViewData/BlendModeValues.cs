@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using PixelGraph.Rendering.Materials;
+using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData
 {
@@ -6,9 +7,9 @@ namespace PixelGraph.UI.ViewData
     {
         public BlendModeValues()
         {
-            Add(new Item {Text = "Opaque", Value = BlendMode.Opaque});
-            Add(new Item {Text = "Cutout", Value = BlendMode.Cutout});
-            Add(new Item {Text = "Transparent", Value = BlendMode.Transparent});
+            Add(new Item {Text = "Opaque", Value = BlendModes.OpaqueText});
+            Add(new Item {Text = "Cutout", Value = BlendModes.CutoutText});
+            Add(new Item {Text = "Transparent", Value = BlendModes.TransparentText});
         }
 
         public class Item
@@ -16,12 +17,5 @@ namespace PixelGraph.UI.ViewData
             public string Text {get; set;}
             public string Value {get; set;}
         }
-    }
-
-    internal static class BlendMode
-    {
-        public const string Opaque = "opaque";
-        public const string Cutout = "cutout";
-        public const string Transparent = "transparent";
     }
 }

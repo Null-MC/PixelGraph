@@ -6,7 +6,7 @@ using HelixToolkit.SharpDX.Core.Shaders;
 using PixelGraph.Rendering.Shaders;
 using SharpDX;
 
-namespace PixelGraph.Rendering
+namespace PixelGraph.Rendering.Minecraft
 {
     public interface IMinecraftScene
     {

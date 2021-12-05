@@ -1,16 +1,17 @@
-﻿using System.Windows;
-using HelixToolkit.SharpDX.Core.Model.Scene;
+﻿using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
-using PixelGraph.Rendering;
+using PixelGraph.Rendering.Minecraft;
 using SharpDX;
+using System.Windows;
 
 namespace PixelGraph.UI.Helix.Controls
 {
     public class MinecraftScene3D : Element3D, IMinecraftScene
     {
-        public bool IsRenderValid => ((MinecraftSceneNode) SceneNode).IsRenderValid;
+        private MinecraftSceneNode MCSceneNode => SceneNode as MinecraftSceneNode;
+        public bool IsRenderValid => MCSceneNode.IsRenderValid;
 
         public float TimeOfDay {
             get => (float)GetValue(TimeOfDayProperty);
@@ -65,14 +66,12 @@ namespace PixelGraph.UI.Helix.Controls
 
         public void Apply(DeviceContextProxy deviceContext)
         {
-            if (SceneNode is MinecraftSceneNode node)
-                node.Apply(deviceContext);
+            MCSceneNode?.Apply(deviceContext);
         }
 
         public void ResetValidation()
         {
-            if (SceneNode is MinecraftSceneNode node)
-                node.ResetValidation();
+            MCSceneNode?.ResetValidation();
         }
 
         protected override SceneNode OnCreateSceneNode()

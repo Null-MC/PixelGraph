@@ -552,7 +552,7 @@ namespace PixelGraph.UI.Windows
             return Path.GetFileNameWithoutExtension(name);
         }
 
-        private async void OnMaterialChanged(object sender, EventArgs e)
+        private async Task UpdateMaterialProperties(MaterialPropertyChangedEventArgs e)
         {
             var tab = Model.SelectedTab as MaterialTabModel;
             var material = tab?.MaterialRegistration.Value;
@@ -560,10 +560,35 @@ namespace PixelGraph.UI.Windows
 
             await viewModel.SaveMaterialAsync(material);
 
+            if (Model.SelectedTab is MaterialTabModel matTab) {
+                if (string.Equals(e.ClassName, nameof(MaterialProperties), StringComparison.InvariantCultureIgnoreCase)) {
+                    if (string.Equals(e.PropertyName, nameof(MaterialProperties.BlendMode), StringComparison.InvariantCultureIgnoreCase))
+                        renderPreview.Model.MeshBlendMode = matTab.MaterialRegistration?.Value.BlendMode;
+
+                    if (string.Equals(e.PropertyName, nameof(MaterialProperties.TintColor), StringComparison.InvariantCultureIgnoreCase))
+                        renderPreview.Model.MeshTintColor = matTab.MaterialRegistration?.Value.TintColor;
+                }
+            }
+
             viewModel.InvalidateTab(tab.Id);
 
             if (Model.SelectedTab == tab)
                 await viewModel.UpdateTabPreviewAsync();
+        }
+
+        private async void OnMaterialPropertyChanged(object sender, MaterialPropertyChangedEventArgs e)
+        {
+            await UpdateMaterialProperties(e);
+        }
+
+        private async void OnMaterialFiltersChanged(object sender, EventArgs e)
+        {
+            await UpdateMaterialProperties(new MaterialPropertyChangedEventArgs(null, null));
+        }
+
+        private async void OnMaterialConnectionsChanged(object sender, EventArgs e)
+        {
+            await UpdateMaterialProperties(new MaterialPropertyChangedEventArgs(null, null));
         }
 
         private async void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -899,6 +924,8 @@ namespace PixelGraph.UI.Windows
         {
             //renderPreview.UpdateModel(Model.SelectedTabMaterial);
             if (Model.SelectedTab == null) return;
+
+            //await UpdateMaterialProperties(e);
 
             //viewModel.InvalidateTabModel();
             await viewModel.UpdateTabPreviewAsync();

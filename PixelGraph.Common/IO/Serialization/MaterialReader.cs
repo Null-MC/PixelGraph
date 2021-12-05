@@ -1,11 +1,11 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common.ConnectedTextures;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.ConnectedTextures;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -63,6 +63,8 @@ namespace PixelGraph.Common.IO.Serialization
                     material.Name = material.Name[..^8];
             }
 
+            Upgrade(material);
+
             return material;
         }
 
@@ -77,6 +79,8 @@ namespace PixelGraph.Common.IO.Serialization
 
             if (string.IsNullOrWhiteSpace(material.Name))
                 material.Name = Path.GetFileName(itemPath);
+
+            Upgrade(material);
 
             return material;
         }
@@ -102,6 +106,15 @@ namespace PixelGraph.Common.IO.Serialization
 
             results = resultList.ToArray();
             return true;
+        }
+
+        /// <summary>
+        /// Migrates material properties from deprecated fields to their new locations.
+        /// </summary>
+        private void Upgrade(MaterialProperties material)
+        {
+            if (material.Color?.__PreviewTint != null && material.TintColor == null)
+                material.TintColor = material.Color?.__PreviewTint;
         }
 
         private async Task<MaterialProperties> ParseDocumentAsync(string localFile)

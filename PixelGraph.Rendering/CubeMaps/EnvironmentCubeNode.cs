@@ -2,26 +2,28 @@
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.SharpDX.Core.Utilities;
+using PixelGraph.Rendering.Minecraft;
+using PixelGraph.Rendering.Shaders;
 using SharpDX;
 using System.Collections.Generic;
-using PixelGraph.Rendering.Shaders;
 
 namespace PixelGraph.Rendering.CubeMaps
 {
     public class EnvironmentCubeNode : SceneNode, ICubeMapSource
     {
         public IMinecraftScene Scene {
-            get => ((EnvironmentCubeCore)RenderCore).Scene;
-            set => ((EnvironmentCubeCore)RenderCore).Scene = value;
+            get => EnvCubeCore.Scene;
+            set => EnvCubeCore.Scene = value;
         }
 
         public int FaceSize {
-            get => ((EnvironmentCubeCore)RenderCore).FaceSize;
-            set => ((EnvironmentCubeCore)RenderCore).FaceSize = value;
+            get => EnvCubeCore.FaceSize;
+            set => EnvCubeCore.FaceSize = value;
         }
 
-        public ShaderResourceViewProxy CubeMap => ((EnvironmentCubeCore)RenderCore).CubeMap;
-        public long LastUpdated => ((EnvironmentCubeCore)RenderCore)?.LastUpdated ?? 0;
+        private EnvironmentCubeCore EnvCubeCore => RenderCore as EnvironmentCubeCore;
+        public ShaderResourceViewProxy CubeMap => EnvCubeCore?.CubeMap;
+        public long LastUpdated => EnvCubeCore?.LastUpdated ?? 0;
 
 
         //public EnvironmentCubeNode()

@@ -100,8 +100,8 @@ cbuffer cbMesh : register(b1)
     bool bHasInstances = false;
     bool bHasInstanceParams = false;
     bool bHasBones = false;
-    float4 vParams = float4(0, 0, 0, 0);
-    float4 vColor = float4(1, 1, 1, 1);
+    float4 vParams = 0.0f;
+    float4 vColor = 1.0f;
     float4 wireframeColor;
     bool3 bParams;
     bool bBatched = false;
@@ -151,7 +151,14 @@ cbuffer cbMinecraftScene : register(b2)
     int ParallaxSamplesMin;
     int ParallaxSamplesMax;
 	bool EnableSlopeNormals = false;
+    //int OpacityMode;
 	//float Padding2;
+};
+
+cbuffer cbMinecraftMesh : register(b4) 
+{
+    int BlendMode = 0;
+    float3 TintColor = 1.0f;
 };
 
 cbuffer cbLights : register(b3)

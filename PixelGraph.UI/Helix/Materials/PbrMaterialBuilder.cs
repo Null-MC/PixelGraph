@@ -1,9 +1,8 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
-using MahApps.Metro.Controls;
 using PixelGraph.Common.Textures;
-using PixelGraph.Rendering.Materials;
 using PixelGraph.UI.Internal.Preview.Textures;
+using PixelGraph.UI.Internal.Utilities;
 using System;
 
 namespace PixelGraph.UI.Helix.Materials
@@ -30,10 +29,9 @@ namespace PixelGraph.UI.Helix.Materials
                 RenderShadowMap = true,
             };
 
-            if (Material.Color?.PreviewTint != null) {
-                var tint_hex = Material.Color.PreviewTint;
-                if (!tint_hex.StartsWith('#')) tint_hex = '#'+tint_hex;
-                var tint = ColorHelper.ColorFromString(tint_hex);
+            if (Material.TintColor != null) {
+                //if (!tint_hex.StartsWith('#')) tint_hex = '#'+tint_hex;
+                var tint = ColorHelper.RGBFromHex(Material.TintColor);
                 if (tint.HasValue) mat.ColorTint = tint.Value.ToColor4();
             }
 

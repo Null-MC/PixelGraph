@@ -1,5 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using Ookii.Dialogs.Wpf;
+﻿using Ookii.Dialogs.Wpf;
 using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.PropertyGrid;

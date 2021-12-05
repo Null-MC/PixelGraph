@@ -1,5 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Render;
+using PixelGraph.Rendering.Minecraft;
 using PixelGraph.Rendering.Sky;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;

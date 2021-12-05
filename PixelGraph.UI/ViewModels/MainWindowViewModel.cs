@@ -676,6 +676,12 @@ namespace PixelGraph.UI.ViewModels
             if (context == null) throw new ApplicationException($"Tab context not found! id={Model.SelectedTab.Id}");
 
 #if !NORENDER
+            if (tab is MaterialTabModel matTab) {
+                var mat = matTab.MaterialRegistration.Value;
+                RenderModel.MeshBlendMode = mat?.BlendMode;
+                RenderModel.MeshTintColor = mat?.TintColor;
+            }
+
             RenderModel.MeshParts = context.Mesh.ModelParts;
             //RenderModel.ModelMaterial = context.ModelMaterial;
 #endif
@@ -683,8 +689,7 @@ namespace PixelGraph.UI.ViewModels
             TextureModel.Texture = context.GetLayerImageSource();
             //tab.IsLoading = true;
 
-            if (Model.SelectedTab == tab)
-                await UpdateTabPreviewAsync();
+            await UpdateTabPreviewAsync();
         }
 
         private async void OnSelectedTagChanged(object sender, EventArgs e)

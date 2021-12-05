@@ -347,17 +347,17 @@
                                 </DockPanel>
                             </Border>
                             <Grid>
-                                <controls:MaterialPropertiesControl DataChanged="OnMaterialChanged" ModelChanged="OnMaterialPropertiesModelChanged"
+                                <controls:MaterialPropertiesControl DataChanged="OnMaterialPropertyChanged" ModelChanged="OnMaterialPropertiesModelChanged"
                                                                     GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
                                                                     ProjectRootPath="{Binding RootDirectory, Mode=OneWay}"
                                                                     Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                     SelectedTag="{Binding SelectedTag, Mode=OneWay}"
                                                                     Visibility="{Binding IsEditModeMaterial, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                <controls:MaterialFiltersControl x:Name="FilterEditor" DataChanged="OnMaterialChanged"
+                                <controls:MaterialFiltersControl x:Name="FilterEditor" DataChanged="OnMaterialFiltersChanged"
                                                                  Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                  SelectedTag="{Binding SelectedTag, Mode=OneWay}"
                                                                  Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                <controls:MaterialConnectionsControl x:Name="ConnectionsEditor" DataChanged="OnMaterialChanged"
+                                <controls:MaterialConnectionsControl x:Name="ConnectionsEditor" DataChanged="OnMaterialConnectionsChanged"
                                                                      DataContext="{Binding ., Mode=OneWay}"
                                                                      Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                      Visibility="{Binding IsEditModeConnections, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>

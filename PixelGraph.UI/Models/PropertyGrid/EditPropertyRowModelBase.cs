@@ -4,6 +4,8 @@ using PixelGraph.UI.ViewModels;
 using System;
 using System.ComponentModel;
 using System.Reflection;
+using System.Windows.Media;
+using PixelGraph.UI.Internal.Utilities;
 
 namespace PixelGraph.UI.Models.PropertyGrid
 {
@@ -101,6 +103,9 @@ namespace PixelGraph.UI.Models.PropertyGrid
                 if (TryParseDivision(stringValue, out var decimalValue))
                     return decimalValue.To<T>();
             }
+
+            if (value is Color colorValue && typeof(T) == typeof(string))
+                return ColorHelper.ToHexRGB(colorValue).To<T>();
 
             return value.To<T>();
         }

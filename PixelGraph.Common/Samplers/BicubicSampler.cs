@@ -1,7 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
@@ -19,8 +18,8 @@ namespace PixelGraph.Common.Samplers
         {
             GetTexCoord(in x, in y, out var fx, out var fy);
 
-            var pxMin = (int)MathF.Floor(fx);
-            var pyMin = (int)MathF.Floor(fy);
+            var pxMin = (int)(fx + 0.25f);
+            var pyMin = (int)(fy + 0.25f);
 
             var px = fx - pxMin;
             var py = fy - pyMin;
@@ -77,12 +76,11 @@ namespace PixelGraph.Common.Samplers
 
         private static float CubicHermite(in float A, in float B, in float C, in float D, in float t)
         {
-            var a = -A / 2.0f + (3.0f*B) / 2.0f - (3.0f*C) / 2.0f + D / 2.0f;
-            var b = A - (5.0f*B) / 2.0f + 2.0f*C - D / 2.0f;
-            var c = -A / 2.0f + C / 2.0f;
-            var d = B;
+            var a = -A / 2f + 3f*B / 2f - 3f*C / 2f + D / 2f;
+            var b = A - 5f*B / 2f + 2f*C - D / 2f;
+            var c = -A / 2f + C / 2f;
  
-            return a*t*t*t + b*t*t + c*t + d;
+            return a*t*t*t + b*t*t + c*t + B;
         }
     }
 }

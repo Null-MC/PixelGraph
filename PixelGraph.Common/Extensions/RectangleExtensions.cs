@@ -8,10 +8,10 @@ namespace PixelGraph.Common.Extensions
         public static Rectangle ScaleTo(this in RectangleF rectangle, in int width, in int height)
         {
             return new Rectangle {
-                X = (int)MathF.Ceiling(rectangle.X * width),
-                Y = (int)MathF.Ceiling(rectangle.Y * height),
-                Width = (int)MathF.Ceiling(rectangle.Width * width),
-                Height = (int)MathF.Ceiling(rectangle.Height * height),
+                X = (int)MathF.Floor(rectangle.X * width + 0.25f),
+                Y = (int)MathF.Floor(rectangle.Y * height + 0.25f),
+                Width = (int)MathF.Floor(rectangle.Width * width + 0.25f),
+                Height = (int)MathF.Floor(rectangle.Height * height + 0.25f),
             };
         }
     }

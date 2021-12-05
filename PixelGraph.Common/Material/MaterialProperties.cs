@@ -98,7 +98,7 @@ namespace PixelGraph.Common.Material
 
         public string BlendMode {get; set;}
 
-        public string ColorTint {get; set;}
+        public string TintColor {get; set;}
 
         [YamlMember(Alias = "ctm", Order = 100)]
         public MaterialConnectionProperties CTM {get; set;}
@@ -430,6 +430,12 @@ namespace PixelGraph.Common.Material
         public string ModelFile {
             get => null;
             set => Model = value;
+        }
+
+        [Obsolete("Replace usages of ColorTint with TintColor")]
+        public string ColorTint {
+            get => null;
+            set => TintColor = value;
         }
 
         #endregion

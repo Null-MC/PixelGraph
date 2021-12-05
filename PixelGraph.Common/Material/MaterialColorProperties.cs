@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using System;
+using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Material
 {
@@ -8,7 +9,6 @@ namespace PixelGraph.Common.Material
 
         public string Texture {get; set;}
         public bool? BakeOcclusion {get; set;}
-        public string PreviewTint {get; set;}
 
         public ResourcePackColorRedChannelProperties InputRed {get; set;}
         public decimal? ValueRed {get; set;}
@@ -27,7 +27,7 @@ namespace PixelGraph.Common.Material
         {
             if (Texture != null) return true;
             if (BakeOcclusion.HasValue) return true;
-            if (!string.IsNullOrWhiteSpace(PreviewTint)) return true;
+            //if (!string.IsNullOrWhiteSpace(PreviewTint)) return true;
 
             if (InputRed != null && InputRed.HasAnyData()) return true;
             if (InputGreen != null && InputGreen.HasAnyData()) return true;
@@ -43,5 +43,16 @@ namespace PixelGraph.Common.Material
             
             return false;
         }
+
+        #region Deprecated
+
+        public string __PreviewTint;
+        [Obsolete("Replace usages of mat.Color.PreviewTint with mat.ColorTint")]
+        public string PreviewTint {
+            get => null;
+            set => __PreviewTint = value;
+        }
+
+        #endregion
     }
 }

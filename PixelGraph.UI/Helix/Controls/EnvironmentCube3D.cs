@@ -1,10 +1,10 @@
-﻿using System.Windows;
-using HelixToolkit.SharpDX.Core.Model.Scene;
+﻿using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.SharpDX.Core.Utilities;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
-using PixelGraph.Rendering;
 using PixelGraph.Rendering.CubeMaps;
+using PixelGraph.Rendering.Minecraft;
+using System.Windows;
 
 namespace PixelGraph.UI.Helix.Controls
 {
@@ -20,8 +20,9 @@ namespace PixelGraph.UI.Helix.Controls
             set => SetValue(FaceSizeProperty, value);
         }
 
-        public ShaderResourceViewProxy CubeMap => ((EnvironmentCubeNode)SceneNode)?.CubeMap;
-        public long LastUpdated => ((EnvironmentCubeNode)SceneNode)?.LastUpdated ?? 0;
+        private EnvironmentCubeNode EnvCubeNode => SceneNode as EnvironmentCubeNode;
+        public ShaderResourceViewProxy CubeMap => EnvCubeNode?.CubeMap;
+        public long LastUpdated => EnvCubeNode?.LastUpdated ?? 0;
 
 
         protected override SceneNode OnCreateSceneNode()

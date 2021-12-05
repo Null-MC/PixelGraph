@@ -16,17 +16,10 @@ namespace PixelGraph.UI.Models
         private IEffectsManager _effectsManager;
         private ICubeMapSource _environmentCube;
         private ICubeMapSource _irradianceCube;
-        //private Material _modelMaterial;
-        //private MultiTexturedMesh _blockMesh;
         private ObservableElement3DCollection _meshParts;
         private PerspectiveCamera _camera;
-        //private ImageSource _layerImage;
         private Stream _brdfLutMap;
         private MaterialProperties _missingMaterial;
-        //private string _selectedTag;
-        //private string _modelType;
-        //private string _modelFile;
-        //private bool _enableEnvironment;
         private bool _enableLights;
         private RenderPreviewModes _renderMode;
         private float _parallaxDepth;
@@ -38,17 +31,14 @@ namespace PixelGraph.UI.Models
         private Camera _sunCamera;
         private Vector3 _sunDirection;
         private float _sunStrength;
-        //private int _timeOfDay;
         private int _wetness;
-        //private string _frameRateText;
+        private string _meshBlendMode;
+        private string _meshTintColor;
         private bool _isLoaded;
 
         public event EventHandler RenderModeChanged;
         public event EventHandler RenderSceneChanged;
-        //public event EventHandler SelectedTagChanged;
-        //public event EventHandler ModelChanged;
 
-        //public bool HasSelectedTag => _selectedTag != null;
         public Media.Media3D.Vector3D SunLightDirection => -_sunDirection.ToVector3D();
         public Media.Color SunLightColor => new Color4(_sunStrength, _sunStrength, _sunStrength, _sunStrength).ToColor();
 
@@ -107,24 +97,6 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
             }
         }
-
-        //public int TimeOfDay {
-        //    get => _timeOfDay;
-        //    set {
-        //        _timeOfDay = value;
-        //        OnPropertyChanged();
-        //        OnPropertyChanged(nameof(TimeOfDayLinear));
-        //    }
-        //}
-
-        //public float TimeOfDayLinear {
-        //    get => GetLinearTimeOfDay();
-        //    set {
-        //        SetTimeOfDay(value);
-        //        OnPropertyChanged();
-        //        OnPropertyChanged(nameof(TimeOfDay));
-        //    }
-        //}
 
         public Camera SunCamera {
             get => _sunCamera;
@@ -187,15 +159,6 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        //public bool EnableEnvironment {
-        //    get => _enableEnvironment;
-        //    set {
-        //        _enableEnvironment = value;
-        //        OnPropertyChanged();
-        //        OnRenderSceneChanged();
-        //    }
-        //}
-
         public bool EnableLights {
             get => _enableLights;
             set {
@@ -253,57 +216,27 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        //public MultiTexturedMesh BlockMesh {
-        //    get => _blockMesh;
-        //    set {
-        //        _blockMesh = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
+        public string MeshBlendMode {
+            get => _meshBlendMode;
+            set {
+                _meshBlendMode = value;
+                OnPropertyChanged();
+            }
+        }
 
-        //public Material ModelMaterial {
-        //    get => _modelMaterial;
-        //    set {
-        //        _modelMaterial = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
-        //public string ModelType {
-        //    get => _modelType;
-        //    set {
-        //        _modelType = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
-        //public string ModelFile {
-        //    get => _modelFile;
-        //    set {
-        //        _modelFile = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
+        public string MeshTintColor {
+            get => _meshTintColor;
+            set {
+                _meshTintColor = value;
+                OnPropertyChanged();
+            }
+        }
 
 
         public RenderPreviewModel()
         {
-            //_enableEnvironment = true;
             _meshParts = new ObservableElement3DCollection();
         }
-
-        //public void SetModel()
-        //{
-        //    //ModelType = type;
-        //    //ModelFile = localFile;
-        //    OnModelChanged();
-        //    // TODO: Notify RenderViewModel somehow
-        //}
-
-        //protected virtual void OnModelChanged()
-        //{
-        //    ModelChanged?.Invoke(this, EventArgs.Empty);
-        //}
 
         private void OnRenderModeChanged()
         {

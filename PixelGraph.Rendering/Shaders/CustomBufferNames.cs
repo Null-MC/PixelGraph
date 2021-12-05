@@ -14,5 +14,6 @@
         public const string ShadowMapTB = "tex_shadow";
 
         public const string MinecraftSceneCB = "cbMinecraftScene";
+        public const string MinecraftMeshCB = "cbMinecraftMesh";
     }
 }

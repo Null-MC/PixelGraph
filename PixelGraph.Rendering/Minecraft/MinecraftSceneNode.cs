@@ -5,73 +5,72 @@ using HelixToolkit.SharpDX.Core.Render;
 using SharpDX;
 using System.Collections.Generic;
 
-namespace PixelGraph.Rendering
+namespace PixelGraph.Rendering.Minecraft
 {
     public class MinecraftSceneNode : SceneNode, IMinecraftScene
     {
-        public bool IsRenderValid => ((MinecraftSceneCore) RenderCore).IsRenderValid;
+        private MinecraftSceneCore SceneCore => RenderCore as MinecraftSceneCore;
+        public bool IsRenderValid => SceneCore.IsRenderValid;
 
         public float TimeOfDay {
-            get => ((MinecraftSceneCore) RenderCore).TimeOfDay;
-            set => ((MinecraftSceneCore) RenderCore).TimeOfDay = value;
+            get => SceneCore.TimeOfDay;
+            set => SceneCore.TimeOfDay = value;
         }
 
         public Vector3 SunDirection {
-            get => ((MinecraftSceneCore) RenderCore).SunDirection;
-            set => ((MinecraftSceneCore) RenderCore).SunDirection = value;
+            get => SceneCore.SunDirection;
+            set => SceneCore.SunDirection = value;
         }
 
         public float SunStrength {
-            get => ((MinecraftSceneCore) RenderCore).SunStrength;
-            set => ((MinecraftSceneCore) RenderCore).SunStrength = value;
+            get => SceneCore.SunStrength;
+            set => SceneCore.SunStrength = value;
         }
 
         public float Wetness {
-            get => ((MinecraftSceneCore) RenderCore).Wetness;
-            set => ((MinecraftSceneCore) RenderCore).Wetness = value;
+            get => SceneCore.Wetness;
+            set => SceneCore.Wetness = value;
         }
 
         public float ParallaxDepth {
-            get => ((MinecraftSceneCore) RenderCore).ParallaxDepth;
-            set => ((MinecraftSceneCore) RenderCore).ParallaxDepth = value;
+            get => SceneCore.ParallaxDepth;
+            set => SceneCore.ParallaxDepth = value;
         }
 
         public int ParallaxSamplesMin {
-            get => ((MinecraftSceneCore) RenderCore).ParallaxSamplesMin;
-            set => ((MinecraftSceneCore) RenderCore).ParallaxSamplesMin = value;
+            get => SceneCore.ParallaxSamplesMin;
+            set => SceneCore.ParallaxSamplesMin = value;
         }
 
         public int ParallaxSamplesMax {
-            get => ((MinecraftSceneCore) RenderCore).ParallaxSamplesMax;
-            set => ((MinecraftSceneCore) RenderCore).ParallaxSamplesMax = value;
+            get => SceneCore.ParallaxSamplesMax;
+            set => SceneCore.ParallaxSamplesMax = value;
         }
 
         public bool EnableLinearSampling {
-            get => ((MinecraftSceneCore) RenderCore).EnableLinearSampling;
-            set => ((MinecraftSceneCore) RenderCore).EnableLinearSampling = value;
+            get => SceneCore.EnableLinearSampling;
+            set => SceneCore.EnableLinearSampling = value;
         }
 
         public bool EnableSlopeNormals {
-            get => ((MinecraftSceneCore) RenderCore).EnableSlopeNormals;
-            set => ((MinecraftSceneCore) RenderCore).EnableSlopeNormals = value;
+            get => SceneCore.EnableSlopeNormals;
+            set => SceneCore.EnableSlopeNormals = value;
         }
 
         public bool EnablePuddles {
-            get => ((MinecraftSceneCore) RenderCore).EnablePuddles;
-            set => ((MinecraftSceneCore) RenderCore).EnablePuddles = value;
+            get => SceneCore.EnablePuddles;
+            set => SceneCore.EnablePuddles = value;
         }
 
 
         public void Apply(DeviceContextProxy deviceContext)
         {
-            if (RenderCore is MinecraftSceneCore sceneCore)
-                sceneCore.Apply(deviceContext);
+            SceneCore?.Apply(deviceContext);
         }
 
         public void ResetValidation()
         {
-            if (RenderCore is MinecraftSceneCore sceneCore)
-                sceneCore.ResetValidation();
+            SceneCore?.ResetValidation();
         }
 
         protected override RenderCore OnCreateRenderCore()

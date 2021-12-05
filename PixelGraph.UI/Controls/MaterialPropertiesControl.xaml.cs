@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.Material;
+using PixelGraph.UI.Models;
 using System;
 using System.Windows;
 using System.Windows.Input;
@@ -9,7 +10,7 @@ namespace PixelGraph.UI.Controls
     {
         public event EventHandler GenerateNormal;
         public event EventHandler GenerateOcclusion;
-        public event EventHandler DataChanged;
+        public event EventHandler<MaterialPropertyChangedEventArgs> DataChanged;
         public event EventHandler ModelChanged;
 
         public string ProjectRootPath {
@@ -33,9 +34,9 @@ namespace PixelGraph.UI.Controls
             InitializeComponent();
         }
 
-        protected virtual void OnDataChanged(object sender, EventArgs e)
+        protected virtual void OnDataChanged(object sender, MaterialPropertyChangedEventArgs e)
         {
-            DataChanged?.Invoke(this, EventArgs.Empty);
+            DataChanged?.Invoke(this, e);
         }
 
         protected virtual void OnModelChanged()
