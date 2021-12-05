@@ -22,7 +22,8 @@ namespace PixelGraph.Common.ImageProcessors
         protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
         {
             byte occlusionPixel;
-            float fx, fy, occlusionValue;
+            double fx, fy;
+            float occlusionValue;
             var colorCount = options.MappingColors.Length;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var albedoPixel = row[x].ToScaledVector4();

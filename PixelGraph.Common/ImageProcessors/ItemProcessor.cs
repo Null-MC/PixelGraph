@@ -23,7 +23,8 @@ namespace PixelGraph.Common.ImageProcessors
         protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
         {
             Vector4 normal;
-            float fx, fy, occlusionPixel, occlusionValue;
+            double fx, fy;
+            float occlusionPixel, occlusionValue;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
                 GetTexCoord(in context, in x, out fx, out fy);

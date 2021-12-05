@@ -7,7 +7,7 @@ namespace PixelGraph.Common.Samplers
     internal class AverageSampler<TPixel> : SamplerBase<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        public override void Sample(in float x, in float y, ref Rgba32 pixel)
+        public override void Sample(in double x, in double y, ref Rgba32 pixel)
         {
             GetTexCoord(in x, in y, out var fx, out var fy);
             
@@ -17,8 +17,8 @@ namespace PixelGraph.Common.Samplers
             var stepX = (int)MathF.Ceiling(minRangeX);
             var stepY = (int)MathF.Ceiling(minRangeY);
 
-            var pxMin = (int)(fx + 0.25f);
-            var pyMin = (int)(fy + 0.25f);
+            var pxMin = (int)(fx - 0.5f);
+            var pyMin = (int)(fy - 0.5f);
             var pxMax = pxMin + stepX;
             var pyMax = pyMin + stepY;
 

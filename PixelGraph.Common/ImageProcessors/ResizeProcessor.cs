@@ -22,7 +22,7 @@ namespace PixelGraph.Common.ImageProcessors
             var srcBounds = context.Bounds;
             if (srcBounds.IsEmpty) return;
 
-            float fx, fy;
+            double fx, fy;
             Vector4 pixel;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 GetTexCoord(in context, in x, out fx, out fy);

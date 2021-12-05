@@ -20,38 +20,38 @@ namespace PixelGraph.Common.Samplers
         public RectangleF Bounds {get; set;}
 
 
-        public abstract void Sample(in float x, in float y, ref Rgba32 pixel);
+        public abstract void Sample(in double x, in double y, ref Rgba32 pixel);
 
-        public virtual void SampleScaled(in float x, in float y, out Vector4 vector)
+        public virtual void SampleScaled(in double x, in double y, out Vector4 vector)
         {
             var pixel = new Rgba32();
             Sample(in x, in y, ref pixel);
             vector = pixel.ToScaledVector4();
         }
 
-        public virtual void Sample(in float x, in float y, in ColorChannel color, out byte pixelValue)
+        public virtual void Sample(in double x, in double y, in ColorChannel color, out byte pixelValue)
         {
             var pixel = new Rgba32();
             Sample(in x, in y, ref pixel);
             pixel.GetChannelValue(in color, out pixelValue);
         }
 
-        public virtual void SampleScaled(in float x, in float y, in ColorChannel color, out float pixelValue)
+        public virtual void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue)
         {
             Sample(in x, in y, in color, out var _value);
             pixelValue = _value / 255f;
         }
 
-        protected void GetTexCoord(in float x, in float y, out float fx, out float fy)
+        protected void GetTexCoord(in double x, in double y, out float fx, out float fy)
         {
-            fx = (Bounds.X + x * Bounds.Width) * (Image.Width - 1);
-            fy = (Bounds.Y + y * Bounds.Height) * (Image.Height - 1);
+            fx = (float)((Bounds.X + x * Bounds.Width) * Image.Width);
+            fy = (float)((Bounds.Y + y * Bounds.Height) * Image.Height);
         }
 
         protected void WrapCoordX(ref int x)
         {
             if (Bounds.Width == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
-            var width = (int)(Bounds.Width * Image.Width + 0.25f);
+            var width = (int)(Bounds.Width * Image.Width + 0.5f);
             while (x < Bounds.Left * (Image.Width - 1)) x += width;
             while (x > Bounds.Right * (Image.Width - 1)) x -= width;
         }
@@ -59,7 +59,7 @@ namespace PixelGraph.Common.Samplers
         protected void WrapCoordY(ref int y)
         {
             if (Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
-            var height = (int)(Bounds.Height * Image.Height + 0.25f);
+            var height = (int)(Bounds.Height * Image.Height + 0.5f);
             while (y < Bounds.Top * (Image.Height - 1)) y += height;
             while (y > Bounds.Bottom * (Image.Height - 1)) y -= height;
         }

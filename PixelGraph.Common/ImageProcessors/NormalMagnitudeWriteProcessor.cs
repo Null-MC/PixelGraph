@@ -22,7 +22,8 @@ namespace PixelGraph.Common.ImageProcessors
         protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
             Vector3 normal;
-            float fx, fy, valueIn, value, ValueOut;
+            double fx, fy;
+            float valueIn, value, ValueOut;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 GetTexCoord(in context, in x, out fx, out fy);
                 options.MagSampler.SampleScaled(in fx, in fy, in options.InputColor, out valueIn);

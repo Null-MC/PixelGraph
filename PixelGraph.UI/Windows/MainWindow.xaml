@@ -266,7 +266,8 @@
                             <iconPacks:PackIconFontAwesome Kind="PuzzlePieceSolid"/>
                         </RadioButton>
                         <RadioButton GroupName="Edit" ToolTip="Edit Scene"
-                                     IsChecked="{Binding IsEditModeScene, Mode=TwoWay}">
+                                     IsChecked="{Binding IsEditModeScene, Mode=TwoWay}"
+                                     Visibility="{Binding SupportsRender, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <iconPacks:PackIconFontAwesome Kind="CloudMoonRainSolid"/>
                         </RadioButton>
                     </ToolBar>

@@ -1,4 +1,5 @@
-﻿using PixelGraph.Rendering.Materials;
+﻿#if !NORENDER
+using PixelGraph.Rendering.Materials;
 using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData
@@ -19,3 +20,4 @@ namespace PixelGraph.UI.ViewData
         }
     }
 }
+#endif

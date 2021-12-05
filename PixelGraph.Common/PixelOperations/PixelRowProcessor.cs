@@ -30,13 +30,15 @@ namespace PixelGraph.Common.PixelOperations
             ProcessRow<Rgba32>(in context, row);
         }
 
-        protected void GetTexCoord(in PixelRowContext context, in int x, out float fx, out float fy)
+        protected void GetTexCoord(in PixelRowContext context, in int x, out double fx, out double fy)
         {
-            fx = (x - context.Bounds.X + HalfPixel) / context.Bounds.Width;
-            fy = (context.Y - context.Bounds.Y + HalfPixel) / context.Bounds.Height;
+            //fx = (x - context.Bounds.X + HalfPixel) / (context.Bounds.Width - 1);
+            //fy = (context.Y - context.Bounds.Y + HalfPixel) / (context.Bounds.Height);
+
+            GetTexCoord(in context, x, context.Y, out fx, out fy);
         }
 
-        protected void GetTexCoord(in PixelRowContext context, in float x, in float y, out float fx, out float fy)
+        protected void GetTexCoord(in PixelRowContext context, in float x, in float y, out double fx, out double fy)
         {
             fx = (x - context.Bounds.X + HalfPixel) / context.Bounds.Width;
             fy = (y - context.Bounds.Y + HalfPixel) / context.Bounds.Height;

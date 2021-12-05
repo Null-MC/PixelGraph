@@ -27,8 +27,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+
+#if !NORENDER
+using System.Windows.Media.Imaging;
+#endif
 
 namespace PixelGraph.UI.Windows
 {
@@ -560,6 +563,7 @@ namespace PixelGraph.UI.Windows
 
             await viewModel.SaveMaterialAsync(material);
 
+#if !NORENDER
             if (Model.SelectedTab is MaterialTabModel matTab) {
                 if (string.Equals(e.ClassName, nameof(MaterialProperties), StringComparison.InvariantCultureIgnoreCase)) {
                     if (string.Equals(e.PropertyName, nameof(MaterialProperties.BlendMode), StringComparison.InvariantCultureIgnoreCase))
@@ -569,6 +573,7 @@ namespace PixelGraph.UI.Windows
                         renderPreview.Model.MeshTintColor = matTab.MaterialRegistration?.Value.TintColor;
                 }
             }
+#endif
 
             viewModel.InvalidateTab(tab.Id);
 

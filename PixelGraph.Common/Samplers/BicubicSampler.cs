@@ -8,21 +8,21 @@ namespace PixelGraph.Common.Samplers
     internal class BicubicSampler<TPixel> : SamplerBase<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        public override void Sample(in float x, in float y, ref Rgba32 pixel)
+        public override void Sample(in double x, in double y, ref Rgba32 pixel)
         {
             SampleScaled(in x, in y, out var vector);
             pixel.FromScaledVector4(vector);
         }
 
-        public override void SampleScaled(in float x, in float y, out Vector4 vector)
+        public override void SampleScaled(in double x, in double y, out Vector4 vector)
         {
             GetTexCoord(in x, in y, out var fx, out var fy);
 
-            var pxMin = (int)(fx + 0.25f);
-            var pyMin = (int)(fy + 0.25f);
+            var pxMin = (int)(fx - 0.5f);
+            var pyMin = (int)(fy - 0.5f);
 
-            var px = fx - pxMin;
-            var py = fy - pyMin;
+            var px = fx - pxMin - 0.5f;
+            var py = fy - pyMin - 0.5f;
 
             var k = new Vector4[4][];
 
@@ -53,14 +53,14 @@ namespace PixelGraph.Common.Samplers
             CubicHermite(in col, in py, out vector);
         }
 
-        public override void Sample(in float fx, in float fy, in ColorChannel color, out byte pixelValue)
+        public override void Sample(in double fx, in double fy, in ColorChannel color, out byte pixelValue)
         {
             var pixel = new Rgba32();
             Sample(in fx, in fy, ref pixel);
             pixel.GetChannelValue(color, out pixelValue);
         }
 
-        public override void SampleScaled(in float fx, in float fy, in ColorChannel color, out float pixelValue)
+        public override void SampleScaled(in double fx, in double fy, in ColorChannel color, out float pixelValue)
         {
             SampleScaled(in fx, in fy, out var vector);
             vector.GetChannelValue(color, out pixelValue);

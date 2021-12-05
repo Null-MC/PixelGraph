@@ -34,7 +34,8 @@ namespace PixelGraph.Common.ImageProcessors
             var zScale = options.ZScale; // * options.HeightMapping.ValueScale;
             var hasZScale = !zScale.NearEqual(1f);
 
-            float fx, fy, heightPixel, heightValue, rayHitFactor;
+            double fx, fy;
+            float heightPixel, heightValue, rayHitFactor;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 options.Token.ThrowIfCancellationRequested();
 
@@ -73,7 +74,8 @@ namespace PixelGraph.Common.ImageProcessors
             var hasZScale = !zScale.NearEqual(1f);
             var hasHitPower = !options.HitPower.NearEqual(1f);
 
-            float fx, fy, heightPixel, heightValue;
+            double fx, fy;
+            float heightPixel, heightValue;
             for (var step = 1; step <= options.StepCount; step++) {
                 position.Add(in ray);
 

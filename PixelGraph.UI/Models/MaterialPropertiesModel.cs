@@ -2,13 +2,16 @@
 using MinecraftMappings.Minecraft;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
-using PixelGraph.Rendering.Materials;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.PropertyGrid;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.ComponentModel;
+
+#if !NORENDER
+using PixelGraph.Rendering.Materials;
+#endif
 
 namespace PixelGraph.UI.Models
 {
@@ -292,19 +295,14 @@ namespace PixelGraph.UI.Models
 
         public GeneralModelPropertyCollection()
         {
-            var blendOptions = new SelectPropertyRowOptions(new BlendModeValues(), "Text", "Value");
-            //AddSelect("Type", nameof(MaterialProperties.ModelType), typeOptions, MaterialProperties.DefaultModelType);
-
-            //var allModelFiles = Minecraft.Java.AllModels
-            //    .Select(md => new ModelTypeValues.Item {
-            //        Text = md.Name,
-            //        Value = md.GetLatestVersion()?.Id,
-            //    });
-
-            //var fileOptions = new SelectPropertyRowOptions(allModelFiles, "Value", "Value");
 
             modelRow = AddTextFile<string>("Model", nameof(MaterialProperties.Model));
+
+#if !NORENDER
+            var blendOptions = new SelectPropertyRowOptions(new BlendModeValues(), "Text", "Value");
             blendRow = AddSelect<string>("Blend", nameof(MaterialProperties.BlendMode), blendOptions);
+#endif
+
             AddTextColor<string>("Tint", nameof(MaterialProperties.TintColor));
         }
 
@@ -318,12 +316,17 @@ namespace PixelGraph.UI.Models
                 var modelData = Minecraft.Java.GetBlockModelForTexture<JavaBlockTextureVersion>(data.Name);
                 modelRow.DefaultValue = modelData?.GetLatestVersion()?.Id;
 
+#if !NORENDER
                 // TODO: get default blendMode
                 blendRow.DefaultValue = BlendModes.OpaqueText;
+#endif
             }
             else {
                 modelRow.DefaultValue = null;
+
+#if !NORENDER
                 blendRow.DefaultValue = null;
+#endif
             }
         }
     }

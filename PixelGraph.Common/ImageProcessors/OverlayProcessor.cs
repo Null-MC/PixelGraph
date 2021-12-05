@@ -25,7 +25,8 @@ namespace PixelGraph.Common.ImageProcessors
             var samplerCount = options.Samplers.Length;
             //var samplerKeys = options.Samplers.Keys.ToArray();
 
-            float fx, fy, value;
+            float value;
+            double fx, fy;
             byte finalValue, pixelValue;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 row[x].ToRgba32(ref pixelOut);

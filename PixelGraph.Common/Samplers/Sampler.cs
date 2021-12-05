@@ -39,10 +39,10 @@ namespace PixelGraph.Common.Samplers
         bool WrapY {get; set;}
         RectangleF Bounds {get; set;}
 
-        void Sample(in float x, in float y, ref Rgba32 pixel);
-        void SampleScaled(in float x, in float y, out Vector4 pixel);
+        void Sample(in double x, in double y, ref Rgba32 pixel);
+        void SampleScaled(in double x, in double y, out Vector4 pixel);
 
-        void Sample(in float x, in float y, in ColorChannel color, out byte pixelValue);
-        void SampleScaled(in float x, in float y, in ColorChannel color, out float pixelValue);
+        void Sample(in double x, in double y, in ColorChannel color, out byte pixelValue);
+        void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue);
     }
 }
