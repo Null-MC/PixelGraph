@@ -27,7 +27,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
     {
         private readonly ILogger<PublishGraphBuilder> logger;
         private readonly IEdgeFadeImageEffect edgeFadeEffect;
-        private readonly IInventoryTextureGenerator itemGenerator;
+        private readonly IItemTextureGenerator itemGenerator;
         private string matMetaFileIn;
 
 
@@ -40,7 +40,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             IImageWriter imageWriter,
             IEdgeFadeImageEffect edgeFadeEffect,
             ITextureRegionEnumerator regions,
-            IInventoryTextureGenerator itemGenerator)
+            IItemTextureGenerator itemGenerator)
             : base(context, graph, reader, writer, imageWriter, regions, logger)
         {
             this.edgeFadeEffect = edgeFadeEffect;

@@ -1,5 +1,5 @@
 ﻿#if !NORENDER
-using PixelGraph.Rendering.Materials;
+using MinecraftMappings.Internal;
 using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData

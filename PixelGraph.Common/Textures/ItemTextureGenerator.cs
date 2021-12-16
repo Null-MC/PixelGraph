@@ -16,12 +16,12 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures
 {
-    public interface IInventoryTextureGenerator
+    public interface IItemTextureGenerator
     {
         Task<Image<Rgba32>> CreateAsync(ITextureGraph graph, CancellationToken token = default);
     }
 
-    internal class InventoryTextureGenerator : IInventoryTextureGenerator
+    internal class ItemTextureGenerator : IItemTextureGenerator
     {
         private const int TargetFrame = 0;
 
@@ -36,7 +36,7 @@ namespace PixelGraph.Common.Textures
         private Image<Rgba32> emissiveImage;
 
 
-        public InventoryTextureGenerator(
+        public ItemTextureGenerator(
             IServiceProvider provider,
             ITextureGraphContext context,
             ITextureSourceGraph sourceGraph,
@@ -118,7 +118,13 @@ namespace PixelGraph.Common.Textures
 
                 // Make image square
                 if (image.Width != image.Height) {
-                    var temp = SquareImage(image);
+                    var targetSize = Math.Max(image.Width, image.Height);
+                    //var targetSize = context.Profile.ItemTextureSize
+                    //    ?? context.Profile.BlockTextureSize
+                    //    ?? context.Profile.TextureSize;
+
+                    //if (targetSize.HasValue) {
+                    var temp = SquareImage(image, targetSize);
 
                     try {
                         image.Dispose();
@@ -128,6 +134,7 @@ namespace PixelGraph.Common.Textures
                         temp.Dispose();
                         throw;
                     }
+                    //}
                 }
 
                 return image;
@@ -141,11 +148,10 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private Image<TPixel> SquareImage<TPixel>(Image<TPixel> image)
+        private Image<TPixel> SquareImage<TPixel>(Image<TPixel> image, int targetSize)
             where TPixel : unmanaged, IPixel<TPixel>
         {
-            var size = Math.Max(image.Width, image.Height);
-            var temp = new Image<TPixel>(size, size);
+            var temp = new Image<TPixel>(targetSize, targetSize);
 
             try {
                 var copyOptions = new CopyRegionProcessor<TPixel>.Options {
@@ -155,8 +161,8 @@ namespace PixelGraph.Common.Textures
                 };
 
                 var outBounds = new Rectangle(
-                    (size - image.Width) / 2,
-                    (size - image.Height) / 2,
+                    (targetSize - image.Width) / 2,
+                    (targetSize - image.Height) / 2,
                     image.Width, image.Height);
 
                 var processor = new CopyRegionProcessor<TPixel>(copyOptions);
@@ -206,12 +212,18 @@ namespace PixelGraph.Common.Textures
             await builder.MapAsync(false, token);
             //if (!builder.HasMappedSources) return null;
 
+            float? aspect = null;
+            if (context.IsMaterialMultiPart) {
+                var (width, height) = context.Material.GetMultiPartBounds();
+                aspect = (float)height / width;
+            }
+
             Size? targetSize = null;
-            if (TextureSizeUtility.TryGetItemSize(context.Profile, out var itemSize))
+            if (TextureSizeUtility.TryGetItemSize(context.Profile, out var itemSize, aspect))
                 targetSize = itemSize;
-            else if (TextureSizeUtility.TryGetBlockSize(context.Profile, out var blockSize))
+            else if (TextureSizeUtility.TryGetBlockSize(context.Profile, out var blockSize, aspect))
                 targetSize = blockSize;
-            else if (TextureSizeUtility.TryGetTextureSize(context.Profile, out var texSize))
+            else if (TextureSizeUtility.TryGetTextureSize(context.Profile, out var texSize, aspect))
                 targetSize = texSize;
 
             Image<Rgba32> image = null;

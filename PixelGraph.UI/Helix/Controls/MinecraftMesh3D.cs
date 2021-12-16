@@ -2,7 +2,7 @@
 using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
-using PixelGraph.Rendering.Materials;
+using MinecraftMappings.Internal;
 using PixelGraph.Rendering.Minecraft;
 using PixelGraph.UI.Internal.Utilities;
 using SharpDX;

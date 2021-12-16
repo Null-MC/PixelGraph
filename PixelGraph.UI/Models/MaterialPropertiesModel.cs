@@ -8,10 +8,8 @@ using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.ComponentModel;
-
-#if !NORENDER
-using PixelGraph.Rendering.Materials;
-#endif
+using System.Linq;
+using MinecraftMappings.Internal;
 
 namespace PixelGraph.UI.Models
 {
@@ -26,7 +24,7 @@ namespace PixelGraph.UI.Models
         public event EventHandler ModelChanged;
 
         public GeneralPropertyCollection GeneralProperties {get;}
-        public GeneralModelPropertyCollection GeneralModelProperties {get;}
+        public GeneralPreviewPropertyCollection GeneralModelProperties {get;}
         public OpacityPropertyCollection OpacityProperties {get;}
         public ColorPropertyCollection ColorProperties {get;}
         public ColorOtherPropertyCollection ColorOtherProperties {get;}
@@ -137,7 +135,7 @@ namespace PixelGraph.UI.Models
             GeneralProperties = new GeneralPropertyCollection();
             GeneralProperties.PropertyChanged += OnGeneralPropertyValueChanged;
 
-            GeneralModelProperties = new GeneralModelPropertyCollection();
+            GeneralModelProperties = new GeneralPreviewPropertyCollection();
             GeneralModelProperties.PropertyChanged += OnGeneralPropertyValueChanged;
 
             OpacityProperties = new OpacityPropertyCollection();
@@ -288,12 +286,12 @@ namespace PixelGraph.UI.Models
         }
     }
 
-    public class GeneralModelPropertyCollection : PropertyCollectionBase<MaterialProperties>
+    public class GeneralPreviewPropertyCollection : PropertyCollectionBase<MaterialProperties>
     {
         private readonly IEditTextPropertyRow<MaterialProperties> modelRow;
         private readonly IEditSelectPropertyRow<MaterialProperties> blendRow;
 
-        public GeneralModelPropertyCollection()
+        public GeneralPreviewPropertyCollection()
         {
 
             modelRow = AddTextFile<string>("Model", nameof(MaterialProperties.Model));
@@ -318,7 +316,10 @@ namespace PixelGraph.UI.Models
 
 #if !NORENDER
                 // TODO: get default blendMode
-                blendRow.DefaultValue = BlendModes.OpaqueText;
+                var textureData = Minecraft.Java.FindBlockTexturesById<JavaBlockTexture, JavaBlockTextureVersion>(data.Name).FirstOrDefault();
+                blendRow.DefaultValue = textureData != null
+                    ? BlendModes.ToString(textureData.BlendMode)
+                    : BlendModes.OpaqueText;
 #endif
             }
             else {

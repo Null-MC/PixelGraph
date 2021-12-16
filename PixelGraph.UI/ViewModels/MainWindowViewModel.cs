@@ -678,8 +678,9 @@ namespace PixelGraph.UI.ViewModels
 #if !NORENDER
             if (tab is MaterialTabModel matTab) {
                 var mat = matTab.MaterialRegistration.Value;
-                RenderModel.MeshBlendMode = mat?.BlendMode;
-                RenderModel.MeshTintColor = mat?.TintColor;
+                RenderModel.ApplyMaterial(mat);
+                //RenderModel.MeshBlendMode = mat?.BlendMode;
+                //RenderModel.MeshTintColor = mat?.TintColor;
             }
 
             RenderModel.MeshParts = context.Mesh.ModelParts;

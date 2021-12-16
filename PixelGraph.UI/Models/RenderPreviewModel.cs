@@ -7,6 +7,10 @@ using PixelGraph.UI.Internal.Preview;
 using SharpDX;
 using System;
 using System.IO;
+using System.Linq;
+using MinecraftMappings.Internal;
+using MinecraftMappings.Internal.Textures.Block;
+using MinecraftMappings.Minecraft;
 using Media = System.Windows.Media;
 
 namespace PixelGraph.UI.Models
@@ -236,6 +240,18 @@ namespace PixelGraph.UI.Models
         public RenderPreviewModel()
         {
             _meshParts = new ObservableElement3DCollection();
+        }
+
+        public void ApplyMaterial(MaterialProperties material)
+        {
+            var blend = material?.BlendMode;
+            if (material != null && blend == null) {
+                var textureData = Minecraft.Java.FindBlockTexturesById<JavaBlockTexture, JavaBlockTextureVersion>(material.Name).FirstOrDefault();
+                if (textureData != null) blend = BlendModes.ToString(textureData.BlendMode);
+            }
+
+            MeshBlendMode = blend ?? BlendModes.OpaqueText;
+            MeshTintColor = material?.TintColor;
         }
 
         private void OnRenderModeChanged()

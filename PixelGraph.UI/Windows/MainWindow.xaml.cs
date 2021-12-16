@@ -566,11 +566,17 @@ namespace PixelGraph.UI.Windows
 #if !NORENDER
             if (Model.SelectedTab is MaterialTabModel matTab) {
                 if (string.Equals(e.ClassName, nameof(MaterialProperties), StringComparison.InvariantCultureIgnoreCase)) {
+                    var updatePreview = false;
+
                     if (string.Equals(e.PropertyName, nameof(MaterialProperties.BlendMode), StringComparison.InvariantCultureIgnoreCase))
-                        renderPreview.Model.MeshBlendMode = matTab.MaterialRegistration?.Value.BlendMode;
+                        updatePreview = true;
 
                     if (string.Equals(e.PropertyName, nameof(MaterialProperties.TintColor), StringComparison.InvariantCultureIgnoreCase))
-                        renderPreview.Model.MeshTintColor = matTab.MaterialRegistration?.Value.TintColor;
+                        updatePreview = true;
+
+                    if (updatePreview) {
+                        renderPreview.Model.ApplyMaterial(matTab.MaterialRegistration?.Value);
+                    }
                 }
             }
 #endif
