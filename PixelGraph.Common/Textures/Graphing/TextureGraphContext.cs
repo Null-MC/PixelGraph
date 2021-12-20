@@ -7,7 +7,6 @@ using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -18,8 +17,8 @@ namespace PixelGraph.Common.Textures.Graphing
         MaterialProperties Material {get; set;}
         ResourcePackInputProperties Input {get; set;}
         ResourcePackProfileProperties Profile {get; set;}
-        List<ResourcePackChannelProperties> InputEncoding {get; set;}
-        List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        TextureMappingCollection InputEncoding {get; set;}
+        TextureMappingCollection OutputEncoding {get; set;}
         IPublisherMapping Mapping {get; set;}
 
         //string DestinationName {get; set;}
@@ -61,8 +60,8 @@ namespace PixelGraph.Common.Textures.Graphing
         public MaterialProperties Material {get; set;}
         public ResourcePackInputProperties Input {get; set;}
         public ResourcePackProfileProperties Profile {get; set;}
-        public List<ResourcePackChannelProperties> InputEncoding {get; set;}
-        public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        public TextureMappingCollection InputEncoding {get; set;}
+        public TextureMappingCollection OutputEncoding {get; set;}
         public IPublisherMapping Mapping {get; set;}
         public bool IsAnimated {get; set;}
         public int MaxFrameCount {get; set;}
@@ -101,8 +100,8 @@ namespace PixelGraph.Common.Textures.Graphing
 
         public TextureGraphContext()
         {
-            InputEncoding = new List<ResourcePackChannelProperties>();
-            OutputEncoding = new List<ResourcePackChannelProperties>();
+            //InputEncoding = new List<ResourcePackChannelProperties>();
+            //OutputEncoding = new List<ResourcePackChannelProperties>();
             ApplyPostProcessing = true;
             PublishAsGlobal = true;
             MaxFrameCount = 1;
@@ -121,31 +120,27 @@ namespace PixelGraph.Common.Textures.Graphing
 
         public void ApplyInputEncoding()
         {
-            var inputEncoding = BuildEncoding(Input.Format);
-            inputEncoding.Merge(Input);
-            inputEncoding.Merge(Material);
+            InputEncoding = BuildEncoding(Input.Format);
+            InputEncoding.Merge(Input);
+            InputEncoding.Merge(Material);
 
-            var outputEncoding = BuildEncoding(Profile.Encoding.Format);
-            outputEncoding.Merge(Profile.Encoding);
+            OutputEncoding = BuildEncoding(Profile.Encoding.Format);
+            OutputEncoding.Merge(Profile.Encoding);
 
-            InputEncoding = inputEncoding.GetMapped().ToList();
-            OutputEncoding = outputEncoding.GetMapped().ToList();
+            //InputEncoding = inputEncoding.GetTexturesWithMappings().ToList();
+            //OutputEncoding = outputEncoding.GetTexturesWithMappings().ToList();
         }
 
         public void ApplyOutputEncoding()
         {
-            var inputEncoding = BuildEncoding(Profile.Encoding.Format);
-            inputEncoding.Merge(Profile.Encoding);
+            InputEncoding = BuildEncoding(Profile.Encoding.Format);
+            InputEncoding.Merge(Profile.Encoding);
+            if (!InputEncoding.GetTexturesWithMappings().Any()) throw new ApplicationException("Input encoding is empty!");
 
-            var outputEncoding = BuildEncoding(Input.Format);
-            outputEncoding.Merge(Input);
+            OutputEncoding = BuildEncoding(Input.Format);
+            OutputEncoding.Merge(Input);
             // TODO: layer material properties on top of pack encoding?
-
-            InputEncoding = inputEncoding.GetMapped().ToList();
-            if (InputEncoding.Count == 0) throw new ApplicationException("Input encoding is empty!");
-
-            OutputEncoding = outputEncoding.GetMapped().ToList();
-            if (OutputEncoding.Count == 0) throw new ApplicationException("Output encoding is empty!");
+            if (!OutputEncoding.GetTexturesWithMappings().Any()) throw new ApplicationException("Output encoding is empty!");
         }
 
         public ISampler<T> CreateSampler<T>(Image<T> image, string name) where T : unmanaged, IPixel<T>
@@ -242,15 +237,15 @@ namespace PixelGraph.Common.Textures.Graphing
             //return new Size(width, height);
         }
 
-        private static ResourcePackEncoding BuildEncoding(string format)
+        private static TextureMappingCollection BuildEncoding(string format)
         {
-            ResourcePackEncoding encoding = null;
+            TextureMappingCollection encoding = null;
             if (!string.IsNullOrWhiteSpace(format)) {
                 var formatFactory = TextureFormat.GetFactory(format);
                 encoding = formatFactory?.Create();
             }
 
-            return encoding ?? new ResourcePackEncoding();
+            return encoding ?? new TextureMappingCollection();
         }
     }
 }

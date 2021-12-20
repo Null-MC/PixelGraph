@@ -86,7 +86,7 @@ namespace PixelGraph.Common.Textures.Graphing
             }
         }
 
-        public async Task MapAsync(string textureTag, bool createEmpty, int? frame = null, int? part = null, CancellationToken token = default)
+        public async Task MapAsync(TextureMapping texture, bool createEmpty, int? frame = null, int? part = null, CancellationToken token = default)
         {
             var builder = provider.GetRequiredService<ITextureBuilder>();
 

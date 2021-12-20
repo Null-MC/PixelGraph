@@ -9,13 +9,12 @@ using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Quantization;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal.Preview.Textures
 {
@@ -40,7 +39,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
         public MaterialProperties Material {get; set;}
         public ResourcePackProfileProperties Profile {get; set;}
 
-        protected IDictionary<string, Func<ResourcePackProfileProperties, MaterialProperties, ResourcePackChannelProperties[]>> TagMap {get; set;}
+        protected IDictionary<string, Func<ResourcePackProfileProperties, MaterialProperties, TextureMapping[]>> TagMap {get; set;}
         public CancellationToken Token => tokenSource.Token;
 
 
@@ -66,11 +65,12 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             var matMetaFileIn = NamingStructure.GetInputMetaName(Material);
             context.IsAnimated = reader.FileExists(matMetaFileIn);
 
-            var inputEncoding = GetEncoding(Input?.Format);
-            inputEncoding.Merge(Input);
-            inputEncoding.Merge(Material);
-            context.InputEncoding = inputEncoding.GetMapped().ToList();
+            context.InputEncoding = GetEncoding(Input?.Format);
+            context.InputEncoding.Merge(Input);
+            context.InputEncoding.Merge(Material);
+            //= inputEncoding.GetTexturesWithMappings();
 
+            context.OutputEncoding = new TextureMappingCollection();
             if (TryGetChannels(tag, out var channels))
                 context.OutputEncoding.AddRange(channels);
 
@@ -121,27 +121,27 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             tokenSource?.Dispose();
         }
 
-        private bool TryGetChannels(string textureTag, out ResourcePackChannelProperties[] channels)
+        private bool TryGetChannels(string textureTag, out TextureMapping[] textureMaps)
         {
             if (TagMap.TryGetValue(textureTag, out var channelFunc)) {
-                channels = channelFunc(Profile, Material);
+                textureMaps = channelFunc(Profile, Material);
                 return true;
             }
 
-            channels = null;
+            textureMaps = null;
             return false;
         }
 
-        private static ResourcePackEncoding GetEncoding(string format)
+        private static TextureMappingCollection GetEncoding(string format)
         {
-            ResourcePackEncoding encoding = null;
+            TextureMappingCollection encoding = null;
 
             if (format != null) {
                 var factory = TextureFormat.GetFactory(format);
                 if (factory != null) encoding = factory.Create();
             }
 
-            return encoding ?? new ResourcePackEncoding();
+            return encoding ?? new TextureMappingCollection();
         }
     }
 }

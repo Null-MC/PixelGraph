@@ -49,43 +49,41 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
         /// <returns>An array of all published texture tags.</returns>
         protected async Task ProcessAllTexturesAsync(bool createEmpty, CancellationToken token)
         {
-            var allOutputTags = Context.OutputEncoding
-                .Select(e => e.Texture).Distinct().ToArray();
+            var allOutputTextures = Context.OutputEncoding.GetTexturesWithMappings().ToArray();
 
             try {
                 await Graph.PreBuildNormalTextureAsync(token);
             }
             catch (HeightSourceEmptyException) {}
 
-            foreach (var tag in allOutputTags)
-                await Graph.MapAsync(tag, createEmpty, null, null, token);
+            foreach (var texture in allOutputTextures)
+                await Graph.MapAsync(texture, createEmpty, null, null, token);
 
             Context.MaxFrameCount = Graph.GetMaxFrameCount();
             
-            foreach (var tag in allOutputTags) {
-                var tagOutputEncoding = Context.OutputEncoding
-                    .Where(e => TextureTags.Is(e.Texture, tag)).ToArray();
+            foreach (var texture in allOutputTextures) {
+                var channels = texture.Channels.Where(c => c.HasMapping).ToArray();
 
-                if (tagOutputEncoding.Any()) {
-                    var hasAlpha = tagOutputEncoding.Any(c => c.Color == ColorChannel.Alpha);
-                    var hasColor = tagOutputEncoding.Any(c => c.Color != ColorChannel.Red);
+                if (channels.Any()) {
+                    var hasAlpha = channels.Any(c => c.Color == ColorChannel.Alpha);
+                    var hasColor = channels.Any(c => c.Color != ColorChannel.Red);
 
                     if (hasAlpha) {
-                        using var image = await Graph.CreateImageAsync<Rgba32>(tag, createEmpty, token);
-                        await ProcessTextureAsync(image, tag, ImageChannels.ColorAlpha, token);
+                        using var image = await Graph.CreateImageAsync<Rgba32>(texture, createEmpty, token);
+                        await ProcessTextureAsync(image, texture, ImageChannels.ColorAlpha, token);
                     }
                     else if (hasColor) {
-                        using var image = await Graph.CreateImageAsync<Rgb24>(tag, createEmpty, token);
-                        await ProcessTextureAsync(image, tag, ImageChannels.Color, token);
+                        using var image = await Graph.CreateImageAsync<Rgb24>(texture, createEmpty, token);
+                        await ProcessTextureAsync(image, texture, ImageChannels.Color, token);
                     }
                     else {
-                        using var image = await Graph.CreateImageAsync<L8>(tag, createEmpty, token);
-                        await ProcessTextureAsync(image, tag, ImageChannels.Gray, token);
+                        using var image = await Graph.CreateImageAsync<L8>(texture, createEmpty, token);
+                        await ProcessTextureAsync(image, texture, ImageChannels.Gray, token);
                     }
                 }
 
                 if (Context.IsAnimated || Context.IsImport)
-                    await CopyMetaAsync(tag, token);
+                    await CopyMetaAsync(texture, token);
             }
         }
 
