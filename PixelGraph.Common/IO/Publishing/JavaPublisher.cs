@@ -92,9 +92,9 @@ namespace PixelGraph.Common.IO.Publishing
 
                 if (!properties.ContainsKey("tiles")) {
                     var hasPlaceholder = material.CTM?.Placeholder ?? false;
-                    var minTile = hasPlaceholder ? "1" : "0";
+                    var minTile = hasPlaceholder ? "2" : "1";
                     var tileCount = CtmTypes.GetBounds(material.CTM)?.Total ?? 1;
-                    var maxTile = tileCount > 1 ? $"-{tileCount-1:N0}" : "";
+                    var maxTile = tileCount > 1 ? $"-{tileCount:N0}" : "";
 
                     if (hasPlaceholder) minTile = $"textures/block/{material.Name} {minTile}";
 
