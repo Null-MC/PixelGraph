@@ -3,6 +3,11 @@
 #define EPSILON 1e-6f
 #define GAMMA 2.4
 
+#define BLEND_SOLID 0
+#define BLEND_CUTOUT 1
+#define BLEND_TRANSPARENT 2
+#define CUTOUT_THRESHOLD 0.1f
+
 #pragma pack_matrix(row_major)
 
 static const float InvGamma = 1.0f / GAMMA;

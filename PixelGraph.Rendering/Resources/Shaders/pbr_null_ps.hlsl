@@ -13,11 +13,6 @@
 #define ETA_AIR_TO_WATER (IOR_N_WATER / IOR_N_AIR)
 #define ETA_WATER_TO_AIR (IOR_N_AIR / IOR_N_WATER)
 
-#define BLEND_SOLID 0
-#define BLEND_CUTOUT 1
-#define BLEND_TRANSPARENT 2
-#define CUTOUT_THRESHOLD 0.1f
-
 #pragma pack_matrix(row_major)
 
 static const float3 up = float3(0.0f, 1.0f, 0.0f);
@@ -113,23 +108,7 @@ float4 main(const ps_input input) : SV_TARGET
 
     const float slope_depth = tex_depth - shadow_tex.z;
     if (EnableSlopeNormals && !EnableLinearSampling && slope_depth > EPSILON) {
-	    float3 tex_size;
-	    tex_normal_height.GetDimensions(0, tex_size.x, tex_size.y, tex_size.z);
-        float2 tex_snapped = round(tex * tex_size.xy) / tex_size.xy;
-        float2 tex_offset = tex - tex_snapped;
-
-        if (abs(tex_offset.y) < abs(tex_offset.x)) {
-        	tex_normal = bitangent * sign(-tex_offset.y);
-
-			float VdotN = dot(view, tex_normal);
-			if (VdotN < 0) tex_normal = tangent * sign(-tex_offset.x);
-        }
-        else {
-        	tex_normal = tangent * sign(-tex_offset.x);
-
-			float VdotN = dot(view, tex_normal);
-			if (VdotN < 0) tex_normal = bitangent * sign(-tex_offset.y);
-        }
+        tex_normal = get_slope_normal(tex, view, tangent, bitangent);
 
         wet_normal = tex_normal;
     }
@@ -159,12 +138,12 @@ float4 main(const ps_input input) : SV_TARGET
 
     float3 acc_light = 0.0;
     float3 acc_sss = 0.0;
+    float spec_strength = 0.0f;
 
     float light_att, light_shadow, NoL;
     float3 light_dir, light_color, light_diffuse, light_specular, H;
     float LoH, NoH, VoH;
 
-    float spec_strength = 0.0f;
 	const float4x4 mShadowViewProj = mul(vLightView, vLightProjection);
 
 	[loop]

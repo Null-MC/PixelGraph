@@ -2,6 +2,7 @@
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
@@ -14,7 +15,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Material;
 
 namespace PixelGraph.Common.Textures
 {
@@ -717,6 +717,9 @@ namespace PixelGraph.Common.Textures
 
                 foreach (var frame in regions.GetAllRenderRegions()) {
                     foreach (var tile in frame.Tiles) {
+                        if (emissiveSampler != null)
+                            emissiveSampler.Bounds = tile.SourceBounds;
+
                         occlusionSampler.Bounds = tile.SourceBounds;
 
                         var outBounds = tile.DestBounds.ScaleTo(image.Width, image.Height);

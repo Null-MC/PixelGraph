@@ -141,3 +141,26 @@ float get_parallax_shadow(const in float3 tex, const in float2 offsetT, const in
 
     return 1.0 - result;
 }
+
+float3 get_slope_normal(const in float2 tex, const in float3 view, const in float3 tangent, const in float3 bitangent)
+{
+	float3 tex_size, tex_normal;
+    tex_normal_height.GetDimensions(0, tex_size.x, tex_size.y, tex_size.z);
+	const float2 tex_snapped = round(tex * tex_size.xy) / tex_size.xy;
+    float2 tex_offset = tex - tex_snapped;
+
+    if (abs(tex_offset.y) < abs(tex_offset.x)) {
+        tex_normal = bitangent * sign(-tex_offset.y);
+
+        const float VoN = dot(view, tex_normal);
+		if (VoN < 0) tex_normal = tangent * sign(-tex_offset.x);
+    }
+    else {
+        tex_normal = tangent * sign(-tex_offset.x);
+
+		float VoN = dot(view, tex_normal);
+		if (VoN < 0) tex_normal = bitangent * sign(-tex_offset.y);
+    }
+
+	return tex_normal;
+}

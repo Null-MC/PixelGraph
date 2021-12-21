@@ -167,12 +167,28 @@ namespace PixelGraph.UI.Models
                                 nameBuilder.Append('-');
                                 nameBuilder.Append(faceName);
 
+                                var left = region.Left / model.TextureSize.X;
+                                var width = region.Width / model.TextureSize.X;
+
+                                if (width < 0f) {
+                                    width = -width;
+                                    left -= width;
+                                }
+
+                                var top = region.Top / model.TextureSize.Y;
+                                var height = region.Height / model.TextureSize.Y;
+
+                                if (height < 0f) {
+                                    height = -height;
+                                    top -= height;
+                                }
+
                                 yield return new MaterialFilter {
                                     Name = $"{nameBuilder}",
-                                    Top = new decimal(region.Top / model.TextureSize.Y),
-                                    Left = new decimal(region.Left / model.TextureSize.X),
-                                    Width = new decimal(region.Width / model.TextureSize.X),
-                                    Height = new decimal(region.Height / model.TextureSize.Y),
+                                    Top = new decimal(top),
+                                    Left = new decimal(left),
+                                    Width = new decimal(width),
+                                    Height = new decimal(height),
                                 };
                             }
 
