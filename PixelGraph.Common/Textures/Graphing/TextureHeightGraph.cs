@@ -15,10 +15,7 @@ namespace PixelGraph.Common.Textures.Graphing
 {
     public interface ITextureHeightGraph
     {
-        //Image<L16> HeightTexture {get;}
         int HeightFrameCount {get;}
-        //int HeightFrameWidth {get;}
-        //int HeightFrameHeight {get;}
         float HeightScaleFactor {get;}
 
         Task<Image<L16>> GetOrCreateAsync(CancellationToken token = default);
@@ -28,36 +25,31 @@ namespace PixelGraph.Common.Textures.Graphing
     {
         private readonly IServiceProvider provider;
         private readonly ITextureGraphContext context;
-        private readonly ITextureRegionEnumerator regions;
+        private Image<L16> heightTexture;
         private bool isLoaded;
 
-        public Image<L16> HeightTexture {get; private set;}
         public int HeightFrameCount {get; private set;}
-        //public int HeightFrameWidth {get; private set;}
-        //public int HeightFrameHeight {get; private set;}
         public float HeightScaleFactor {get; private set;}
 
 
         public TextureHeightGraph (
             IServiceProvider provider,
-            ITextureGraphContext context,
-            ITextureRegionEnumerator regions)
+            ITextureGraphContext context)
         {
             this.provider = provider;
             this.context = context;
-            this.regions = regions;
 
             HeightFrameCount = 1;
         }
 
         public void Dispose()
         {
-            HeightTexture?.Dispose();
+            heightTexture?.Dispose();
         }
 
         public async Task<Image<L16>> GetOrCreateAsync(CancellationToken token = default)
         {
-            if (isLoaded) return HeightTexture;
+            if (isLoaded) return heightTexture;
             isLoaded = true;
 
             HeightScaleFactor = 1f;
@@ -77,6 +69,7 @@ namespace PixelGraph.Common.Textures.Graphing
             heightContext.Profile = context.Profile;
             heightContext.Material = context.Material;
             heightContext.IsImport = context.IsImport;
+            heightContext.IsAnimated = context.IsAnimated;
             heightContext.ApplyPostProcessing = false;
             
             builder.InputChannels = new [] {heightChannel};
@@ -92,34 +85,34 @@ namespace PixelGraph.Common.Textures.Graphing
             await builder.MapAsync(false, token);
 
             if (builder.HasMappedSources) {
-                HeightTexture = await builder.BuildAsync<L16>(false, null, token);
+                heightTexture = await builder.BuildAsync<L16>(false, null, token);
 
-                if (HeightTexture != null) {
+                if (heightTexture != null) {
                     HeightFrameCount = builder.FrameCount;
 
                     if (context.Profile != null) Resize();
                 }
             }
 
-            return HeightTexture;
+            return heightTexture;
         }
 
         private void Resize()
         {
-            var aspect = (float)HeightTexture.Height / HeightTexture.Width;
+            var aspect = (float)heightTexture.Height / heightTexture.Width;
             var bufferSize = context.GetBufferSize(aspect);
 
-            if (!bufferSize.HasValue || HeightTexture.Width == bufferSize.Value.Width) return;
+            if (!bufferSize.HasValue || heightTexture.Width == bufferSize.Value.Width) return;
 
-            HeightScaleFactor = (float)bufferSize.Value.Width / HeightTexture.Width;
-            var scaledWidth = (int)MathF.Ceiling(HeightTexture.Width * HeightScaleFactor);
-            var scaledHeight = (int)MathF.Ceiling(HeightTexture.Height * HeightScaleFactor);
+            HeightScaleFactor = (float)bufferSize.Value.Width / heightTexture.Width;
+            var scaledWidth = (int)MathF.Ceiling(heightTexture.Width * HeightScaleFactor);
+            var scaledHeight = (int)MathF.Ceiling(heightTexture.Height * HeightScaleFactor);
 
             var samplerName = context?.Material?.Height?.Input?.Sampler
                               ?? context.Profile?.Encoding?.Height?.Sampler
                               ?? context.DefaultSampler;
 
-            var sampler = context.CreateSampler(HeightTexture, samplerName);
+            var sampler = context.CreateSampler(heightTexture, samplerName);
             sampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
             sampler.RangeX = sampler.RangeY = 1f / HeightScaleFactor;
 
@@ -128,18 +121,20 @@ namespace PixelGraph.Common.Textures.Graphing
             };
 
             var processor = new ResizeProcessor<L16>(options);
+            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            regions.SourceFrameCount = HeightFrameCount;
+            regions.DestFrameCount = HeightFrameCount;
 
             Image<L16> heightCopy = null;
             try {
-                heightCopy = HeightTexture;
-                HeightTexture = new Image<L16>(Configuration.Default, scaledWidth, scaledHeight);
+                heightCopy = heightTexture;
+                heightTexture = new Image<L16>(Configuration.Default, scaledWidth, scaledHeight);
 
-                foreach (var frame in regions.GetAllRenderRegions(null, HeightFrameCount)) {
+                foreach (var frame in regions.GetAllRenderRegions()) {
                     foreach (var tile in frame.Tiles) {
-                        sampler.Bounds = tile.Bounds;
-
-                        var outBounds = tile.Bounds.ScaleTo(scaledWidth, scaledHeight);
-                        HeightTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                        sampler.Bounds = tile.SourceBounds;
+                        var outBounds = tile.DestBounds.ScaleTo(scaledWidth, scaledHeight);
+                        heightTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
                     }
                 }
             }

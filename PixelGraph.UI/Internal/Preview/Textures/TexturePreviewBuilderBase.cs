@@ -9,13 +9,13 @@ using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Quantization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Processors.Quantization;
 
 namespace PixelGraph.UI.Internal.Preview.Textures
 {
@@ -56,7 +56,6 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             var scope = provider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
             var graph = scope.ServiceProvider.GetRequiredService<ITextureGraph>();
-            var regions = scope.ServiceProvider.GetRequiredService<ITextureRegionEnumerator>();
             var reader = scope.ServiceProvider.GetRequiredService<IInputReader>();
 
             context.Input = Input;
@@ -78,6 +77,13 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 await graph.PreBuildNormalTextureAsync(tokenSource.Token);
 
             await graph.MapAsync(tag, true, targetFrame, targetPart, Token);
+            context.MaxFrameCount = graph.GetMaxFrameCount();
+
+            var regions = scope.ServiceProvider.GetRequiredService<ITextureRegionEnumerator>();
+            regions.SourceFrameCount = context.MaxFrameCount;
+            regions.DestFrameCount = context.MaxFrameCount;
+            regions.TargetFrame = targetFrame;
+            regions.TargetPart = targetPart;
 
             var image = await graph.CreateImageAsync<TPixel>(tag, true, tokenSource.Token);
             if (image == null) return null;
@@ -89,9 +95,10 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 }));
 
                 try {
-                    foreach (var part in regions.GetAllPublishRegions(context.MaxFrameCount, targetFrame, targetPart)) {
+                    foreach (var part in regions.GetAllPublishRegions()) {
                         foreach (var frame in part.Frames) {
-                            var outBounds = targetPart.HasValue ? new Rectangle(0, 0, image.Width, image.Height)
+                            var outBounds = targetPart.HasValue
+                                ? new Rectangle(0, 0, image.Width, image.Height)
                                 : frame.SourceBounds.ScaleTo(image.Width, image.Height);
 
                             edgeFadeEffect.Apply(image, tag, outBounds);

@@ -30,7 +30,7 @@ namespace PixelGraph.Common.Textures
         private readonly ITextureSourceGraph sourceGraph;
         private readonly ITextureNormalGraph normalGraph;
         private readonly ITextureOcclusionGraph occlusionGraph;
-        private readonly ITextureRegionEnumerator regions;
+        //private readonly ITextureRegionEnumerator regions;
         private readonly IInputReader reader;
 
         private Image<Rgba32> emissiveImage;
@@ -42,7 +42,7 @@ namespace PixelGraph.Common.Textures
             ITextureSourceGraph sourceGraph,
             ITextureNormalGraph normalGraph,
             ITextureOcclusionGraph occlusionGraph,
-            ITextureRegionEnumerator regions,
+            //ITextureRegionEnumerator regions,
             IInputReader reader)
         {
             this.provider = provider;
@@ -50,7 +50,7 @@ namespace PixelGraph.Common.Textures
             this.sourceGraph = sourceGraph;
             this.normalGraph = normalGraph;
             this.occlusionGraph = occlusionGraph;
-            this.regions = regions;
+            //this.regions = regions;
             this.reader = reader;
         }
 
@@ -91,25 +91,24 @@ namespace PixelGraph.Common.Textures
 
                 if (inventoryOptions.NormalSampler != null || inventoryOptions.OcclusionSampler != null) {
                     var processor = new ItemProcessor<L8, Rgba32>(inventoryOptions);
+                    var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+                    regions.SourceFrameCount = 1; //FrameCount;
+                    regions.DestFrameCount = 1;
+                    regions.TargetFrame = 0;
+                    //regions.TargetPart = TargetPart;
 
-                    foreach (var part in regions.GetAllPublishRegions(1)) {
+                    foreach (var part in regions.GetAllPublishRegions()) {
                         var frame = part.Frames.FirstOrDefault();
                         if (frame == null) continue;
 
-                        if (inventoryOptions.NormalSampler != null) {
-                            var srcFrame = regions.GetPublishPartFrame(TargetFrame, normalGraph.NormalFrameCount, part.TileIndex);
-                            inventoryOptions.NormalSampler.Bounds = srcFrame.SourceBounds;
-                        }
+                        if (inventoryOptions.NormalSampler != null)
+                            inventoryOptions.NormalSampler.Bounds = regions.GetFrameTileBounds(TargetFrame, normalGraph.NormalFrameCount, part.TileIndex);
 
-                        if (inventoryOptions.OcclusionSampler != null) {
-                            var srcFrame = regions.GetPublishPartFrame(TargetFrame, occlusionGraph.FrameCount, part.TileIndex);
-                            inventoryOptions.OcclusionSampler.Bounds = srcFrame.SourceBounds;
-                        }
+                        if (inventoryOptions.OcclusionSampler != null)
+                            inventoryOptions.OcclusionSampler.Bounds = regions.GetFrameTileBounds(TargetFrame, occlusionGraph.FrameCount, part.TileIndex);
 
-                        if (emissiveChannel != null && emissiveInfo != null) {
-                            var srcFrame = regions.GetPublishPartFrame(TargetFrame, emissiveInfo.FrameCount, part.TileIndex);
-                            inventoryOptions.EmissiveSampler.Bounds = srcFrame.SourceBounds;
-                        }
+                        if (emissiveChannel != null && emissiveInfo != null)
+                            inventoryOptions.EmissiveSampler.Bounds = regions.GetFrameTileBounds(TargetFrame, emissiveInfo.FrameCount, part.TileIndex);
 
                         var outBounds = frame.SourceBounds.ScaleTo(image.Width, image.Height);
                         image.Mutate(c => c.ApplyProcessor(processor, outBounds));

@@ -42,7 +42,6 @@ namespace PixelGraph.Common.Textures.Graphing
         private readonly ILogger<TextureNormalGraph> logger;
         private readonly IServiceProvider provider;
         private readonly ITextureGraphContext context;
-        private readonly ITextureRegionEnumerator regions;
         private readonly ITextureHeightGraph heightGraph;
 
         public Image<Rgb24> NormalTexture {get; private set;}
@@ -62,17 +61,11 @@ namespace PixelGraph.Common.Textures.Graphing
             ILogger<TextureNormalGraph> logger,
             IServiceProvider provider,
             ITextureGraphContext context,
-            //ITextureSourceGraph sourceGraph,
-            ITextureRegionEnumerator regions,
             ITextureHeightGraph heightGraph)
-            //IInputReader reader)
         {
             this.provider = provider;
             this.context = context;
-            //this.sourceGraph = sourceGraph;
             this.heightGraph = heightGraph;
-            this.regions = regions;
-            //this.reader = reader;
             this.logger = logger;
 
             NormalFrameCount = 1;
@@ -106,6 +99,7 @@ namespace PixelGraph.Common.Textures.Graphing
                 normalContext.Profile = context.Profile;
                 normalContext.Material = context.Material;
                 normalContext.IsImport = context.IsImport;
+                normalContext.IsAnimated = context.IsAnimated;
                 
                 builder.InputChannels = new [] {normalXChannel, normalYChannel, normalZChannel}
                     .Where(x => x != null).ToArray();
@@ -126,6 +120,7 @@ namespace PixelGraph.Common.Textures.Graphing
                 };
 
                 await builder.MapAsync(false, token);
+
                 if (builder.HasMappedSources) {
                     NormalTexture = await builder.BuildAsync<Rgb24>(false, null, token);
 
@@ -185,24 +180,10 @@ namespace PixelGraph.Common.Textures.Graphing
             return true;
         }
 
-        //public Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default)
-        //{
-        //    return GenerateAsync<Rgba64>(token);
-        //}
-
         public async Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default)
         {
             logger.LogInformation("Generating normal map for texture {DisplayName}.", context.Material.DisplayName);
 
-            //var heightChannelIn = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.Height));
-
-            //if (heightChannelIn == null || !heightChannelIn.HasMapping)
-            //    throw new HeightSourceEmptyException("No height sources mapped!");
-
-            //Image<THeight> heightTexture = null;
-
-            //float scale;
-            //(heightTexture, scale) = await LoadHeightTextureAsync<THeight>(token);
             var heightTex = await heightGraph.GetOrCreateAsync(token);
 
             if (heightTex == null) {
@@ -211,8 +192,14 @@ namespace PixelGraph.Common.Textures.Graphing
                 return new Image<Rgb24>(Configuration.Default, size?.Width ?? 1, size?.Height ?? 1, up);
             }
 
+            NormalFrameCount = heightGraph.HeightFrameCount;
+
             if (!NormalMapMethod.TryParse(context.Material.Normal?.Method, out var normalMethod))
                 normalMethod = NormalMapMethods.Sobel3;
+
+            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            regions.SourceFrameCount = NormalFrameCount;
+            regions.DestFrameCount = NormalFrameCount;
 
             var builder = new NormalMapBuilder<L16>(regions) {
                 HeightImage = heightTex,
@@ -234,7 +221,7 @@ namespace PixelGraph.Common.Textures.Graphing
             // WARN: temporary hard-coded
             builder.LowFreqStrength = builder.Strength / 4f;
 
-            return builder.Build(NormalFrameCount);
+            return builder.Build();
         }
 
         public ISampler<Rgb24> GetNormalSampler()
@@ -249,21 +236,22 @@ namespace PixelGraph.Common.Textures.Graphing
 
         private void ApplyFiltering()
         {
+            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            regions.SourceFrameCount = NormalFrameCount;
+            regions.DestFrameCount = NormalFrameCount;
+
             foreach (var filter in context.Material.Filters) {
                 if (filter.Tile == true && context.IsMaterialCtm) {
                     filter.GetRectangle(out var filterRegion);
 
-                    foreach (var part in regions.GetAllPublishRegions(1, 0)) {
+                    foreach (var part in regions.GetAllPublishRegions()) {
                         var frame = part.Frames.FirstOrDefault();
                         if (frame == null) continue;
 
-                        var srcFrame = regions.GetPublishPartFrame(0, 1, part.TileIndex);
-                        
-                        //inventoryOptions.NormalSampler.Bounds = srcFrame.SourceBounds;
-                        var x = srcFrame.SourceBounds.X + filterRegion.X * srcFrame.SourceBounds.Width;
-                        var y = srcFrame.SourceBounds.Y + filterRegion.Y * srcFrame.SourceBounds.Height;
-                        var w = srcFrame.SourceBounds.Width * filterRegion.Width;
-                        var h = srcFrame.SourceBounds.Height * filterRegion.Height;
+                        var x = frame.SourceBounds.X + filterRegion.X * frame.SourceBounds.Width;
+                        var y = frame.SourceBounds.Y + filterRegion.Y * frame.SourceBounds.Height;
+                        var w = frame.SourceBounds.Width * filterRegion.Width;
+                        var h = frame.SourceBounds.Height * filterRegion.Height;
 
                         var region = new Rectangle(
                             (int)(x * NormalTexture.Width + 0.5f),
@@ -371,13 +359,14 @@ namespace PixelGraph.Common.Textures.Graphing
             }
 
             var processor = new NormalMagnitudeWriteProcessor<L8>(options);
+            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            regions.SourceFrameCount = srcFrameCount;
+            regions.DestFrameCount = NormalFrameCount;
 
-            foreach (var frame in regions.GetAllRenderRegions(null, NormalFrameCount)) {
+            foreach (var frame in regions.GetAllRenderRegions()) {
                 foreach (var part in frame.Tiles) {
-                    var srcPart = regions.GetRenderRegion(frame.Index, srcFrameCount);
-                    options.MagSampler.Bounds = srcPart.Tiles[part.Index].Bounds;
-
-                    var outBounds = part.Bounds.ScaleTo(NormalTexture.Width, NormalTexture.Height);
+                    options.MagSampler.Bounds = part.SourceBounds;
+                    var outBounds = part.DestBounds.ScaleTo(NormalTexture.Width, NormalTexture.Height);
                     NormalTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }
             }

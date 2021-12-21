@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Effects;
 using PixelGraph.Common.Extensions;
@@ -33,15 +34,15 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
 
         public PublishGraphBuilder(
             ILogger<PublishGraphBuilder> logger,
+            IServiceProvider provider,
             ITextureGraphContext context,
             ITextureGraph graph,
             IInputReader reader,
             IOutputWriter writer,
             IImageWriter imageWriter,
             IEdgeFadeImageEffect edgeFadeEffect,
-            ITextureRegionEnumerator regions,
             IItemTextureGenerator itemGenerator)
-            : base(context, graph, reader, writer, imageWriter, regions, logger)
+            : base(provider, context, graph, reader, writer, imageWriter, logger)
         {
             this.edgeFadeEffect = edgeFadeEffect;
             this.itemGenerator = itemGenerator;
@@ -109,12 +110,15 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                     _n = NamingStructure.Get(textureTag, _n, ext, true);
                     destFile = Path.Combine(_p, _n);
 
-                    var part = Regions.GetAllPublishRegions(1, 0, null).First();
+                    var regions = Provider.GetRequiredService<ITextureRegionEnumerator>();
+                    regions.SourceFrameCount = Context.MaxFrameCount;
+                    regions.DestFrameCount = Context.MaxFrameCount;
+
+                    var part = regions.GetAllPublishRegions().First();
                     using var regionImage = GetImageRegion(image, part);
 
                     edgeFadeEffect.Apply(regionImage, textureTag);
 
-                    //imageWriter.Format = context.ImageFormat;
                     await ImageWriter.WriteAsync(regionImage, type, destFile, token);
 
                     logger.LogInformation("Published inventory texture {destFile}.", destFile);
@@ -194,8 +198,6 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
 
         private IEnumerable<string> GetMaterialOutputFiles(IEnumerable<string> textureTags)
         {
-            //var gridCount = new Lazy<int>(() => (Context.Material.CTM?.Width ?? 1) * (Context.Material.CTM?.Height ?? 1));
-
             var ext = NamingStructure.GetExtension(Context.Profile);
             var sourcePath = Context.Material.LocalPath;
             if (!Context.PublishAsGlobal || (Context.IsMaterialCtm && !Context.Material.UseGlobalMatching))
@@ -261,7 +263,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             return true;
         }
 
-        private Image<TPixel> GetImageRegion<TPixel>(Image<TPixel> image, TexturePublishPart part, int? targetFrame = null)
+        private static Image<TPixel> GetImageRegion<TPixel>(Image<TPixel> image, TexturePublishPart part, int? targetFrame = null)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             var srcWidth = image.Width;

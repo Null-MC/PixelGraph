@@ -32,7 +32,7 @@ namespace PixelGraph.Common.Textures.Graphing
     {
         private readonly IServiceProvider provider;
         private readonly ITextureGraphContext context;
-        private readonly ITextureRegionEnumerator regions;
+        //private readonly ITextureRegionEnumerator regions;
         private readonly ITextureHeightGraph heightGraph;
         private Image<L8> texture;
         private bool isLoaded;
@@ -47,13 +47,13 @@ namespace PixelGraph.Common.Textures.Graphing
         public TextureOcclusionGraph(
             IServiceProvider provider,
             ITextureGraphContext context,
-            ITextureRegionEnumerator regions,
+            //ITextureRegionEnumerator regions,
             ITextureHeightGraph heightGraph)
         {
             this.provider = provider;
             this.context = context;
             this.heightGraph = heightGraph;
-            this.regions = regions;
+            //this.regions = regions;
 
             FrameCount = 1;
         }
@@ -199,10 +199,16 @@ namespace PixelGraph.Common.Textures.Graphing
                 Invert = true,
             };
 
+            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            regions.SourceFrameCount = FrameCount;
+            regions.DestFrameCount = FrameCount;
+            //regions.TargetFrame = 0;
+            //regions.TargetPart = TargetPart;
+
             try {
-                foreach (var frame in regions.GetAllRenderRegions(null, FrameCount)) {
+                foreach (var frame in regions.GetAllRenderRegions()) {
                     foreach (var tile in frame.Tiles) {
-                        var outBounds = tile.Bounds.ScaleTo(occlusionWidth, occlusionHeight);
+                        var outBounds = tile.DestBounds.ScaleTo(occlusionWidth, occlusionHeight);
 
                         if (enableGpu) {
                             //gpuOptions.StepCount = (int)MathF.Max(outBounds.Width * stepDistance, 1f);
@@ -214,7 +220,7 @@ namespace PixelGraph.Common.Textures.Graphing
                         else {
                             var size = GetTileSize(in occlusionWidth);
                             options.StepCount = (int) MathF.Max(size * stepDistance, 1f);
-                            heightSampler.Bounds = tile.Bounds;
+                            heightSampler.Bounds = tile.SourceBounds;
 
                             occlusionTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
                         }

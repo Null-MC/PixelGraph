@@ -51,7 +51,6 @@ namespace PixelGraph.Common
             Services.AddScoped<ITextureOcclusionGraph, TextureOcclusionGraph>();
             Services.AddScoped<IImportGraphBuilder, ImportGraphBuilder>();
             Services.AddScoped<IPublishGraphBuilder, PublishGraphBuilder>();
-            Services.AddScoped<ITextureRegionEnumerator, TextureRegionEnumerator>();
             Services.AddScoped<IEdgeFadeImageEffect, EdgeFadeImageEffect>();
             Services.AddScoped<IImageWriter, ImageWriter>();
 
@@ -59,6 +58,7 @@ namespace PixelGraph.Common
             Services.AddTransient<IMaterialImporter, MaterialImporter>();
             Services.AddTransient<IItemTextureGenerator, ItemTextureGenerator>();
             Services.AddTransient<ITextureBuilder, TextureBuilder>();
+            Services.AddTransient<ITextureRegionEnumerator, TextureRegionEnumerator>();
         }
 
         public void AddFileInput()

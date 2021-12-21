@@ -1,12 +1,13 @@
-﻿using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures.Graphing.Builders
 {
@@ -22,13 +23,14 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
 
         public ImportGraphBuilder(
             ILogger<ImportGraphBuilder> logger,
+            IServiceProvider provider,
             ITextureGraphContext context,
             ITextureGraph graph,
             IInputReader reader,
             IOutputWriter writer,
-            IImageWriter imageWriter,
-            ITextureRegionEnumerator regions)
-            : base(context, graph, reader, writer, imageWriter, regions, logger)
+            IImageWriter imageWriter)
+            //ITextureRegionEnumerator regions)
+            : base(provider, context, graph, reader, writer, imageWriter, logger)
         {
             this.logger = logger;
         }

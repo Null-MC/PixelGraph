@@ -125,6 +125,7 @@ namespace PixelGraph.Tests.GenerationTests
 
             var context = new TextureGraphContext();
             var regions = new TextureRegionEnumerator(context);
+
             using var builder = new NormalMapBuilder<Rgba32>(regions) {
                 HeightImage = heightImage,
                 HeightChannel = ColorChannel.Red,
@@ -138,7 +139,7 @@ namespace PixelGraph.Tests.GenerationTests
                 WrapY = false,
             };
 
-            using var normalImage = builder.Build(1);
+            using var normalImage = builder.Build();
             await SaveImageAsync("Output/final.png", normalImage);
             await SaveImageAsync("Output/variance.png", builder.VarianceMap);
         }

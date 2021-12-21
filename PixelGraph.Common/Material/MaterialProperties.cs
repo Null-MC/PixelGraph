@@ -155,13 +155,13 @@ namespace PixelGraph.Common.Material
             var size = new Size();
 
             foreach (var part in Parts) {
-                if (part.Left.HasValue && part.Width.HasValue) {
-                    var partWidth = part.Left.Value + part.Width.Value;
+                if (part.Width.HasValue) {
+                    var partWidth = (part.Left ?? 0) + part.Width.Value;
                     if (partWidth > size.Width) size.Width = partWidth;
                 }
 
-                if (part.Top.HasValue && part.Height.HasValue) {
-                    var partHeight = part.Top.Value + part.Height.Value;
+                if (part.Height.HasValue) {
+                    var partHeight = (part.Top ?? 0) + part.Height.Value;
                     if (partHeight > size.Height) size.Height = partHeight;
                 }
             }

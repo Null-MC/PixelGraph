@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using SixLabors.ImageSharp;
@@ -16,29 +17,29 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
     {
         private readonly ILogger logger;
 
+        protected IServiceProvider Provider {get;}
         protected IInputReader Reader {get;}
         protected IOutputWriter Writer {get;}
         protected IImageWriter ImageWriter {get;}
-        protected ITextureRegionEnumerator Regions {get;}
         protected ITextureGraphContext Context {get;}
         protected ITextureGraph Graph {get;}
 
 
         protected TextureGraphBuilder(
+            IServiceProvider provider,
             ITextureGraphContext context,
             ITextureGraph graph,
             IInputReader reader,
             IOutputWriter writer,
             IImageWriter imageWriter,
-            ITextureRegionEnumerator regions,
             ILogger logger)
         {
             this.logger = logger;
 
+            Provider = provider;
             Reader = reader;
             Writer = writer;
             ImageWriter = imageWriter;
-            Regions = regions;
             Context = context;
             Graph = graph;
         }
@@ -105,7 +106,11 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             var usePlaceholder = Context.Material.CTM?.Placeholder ?? false;
             var ext = NamingStructure.GetExtension(Context.Profile);
 
-            foreach (var part in Regions.GetAllPublishRegions(maxFrameCount)) {
+            var regions = Provider.GetRequiredService<ITextureRegionEnumerator>();
+            regions.SourceFrameCount = maxFrameCount;
+            regions.DestFrameCount = maxFrameCount;
+
+            foreach (var part in regions.GetAllPublishRegions()) {
                 string destFile;
                 if (usePlaceholder && part.TileIndex == 0) {
                     var placeholderPath = PathEx.Join("assets", "minecraft", "textures", "block");

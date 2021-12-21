@@ -111,8 +111,10 @@ namespace PixelGraph.Common.Textures.Graphing
 
         public int GetMaxFrameCount()
         {
-            if (builderMap.Count == 0) return 1;
-            return builderMap.Values.Max(b => b.FrameCount);
+            var min = Math.Max(normalGraph.NormalFrameCount, 1);
+            if (builderMap.Count == 0) return min;
+            var builderMax = builderMap.Values.Max(b => b.FrameCount);
+            return Math.Max(min, builderMax);
         }
 
         private void UpsertInputChannel<T>(Action<T> channelAction)

@@ -37,14 +37,14 @@ namespace PixelGraph.Common.Textures
             VarianceMap?.Dispose();
         }
 
-        public Image<Rgb24> Build(int frameCount)
+        public Image<Rgb24> Build()
         {
             return Method == NormalMapMethods.Variance
-                ? BuildVariance(frameCount)
-                : BuildSimple(frameCount);
+                ? BuildVariance()
+                : BuildSimple();
         }
 
-        private Image<Rgb24> BuildSimple(int frameCount)
+        private Image<Rgb24> BuildSimple()
         {
             var options = new NormalMapProcessor<THeight>.Options {
                 Source = HeightImage,
@@ -62,9 +62,9 @@ namespace PixelGraph.Common.Textures
 
                 resultImage = new Image<Rgb24>(Configuration.Default, HeightImage.Width, HeightImage.Height);
 
-                foreach (var frame in regions.GetAllRenderRegions(null, frameCount)) {
+                foreach (var frame in regions.GetAllRenderRegions()) {
                     foreach (var tile in frame.Tiles) {
-                        var outBounds = tile.Bounds.ScaleTo(HeightImage.Width, HeightImage.Height);
+                        var outBounds = tile.DestBounds.ScaleTo(HeightImage.Width, HeightImage.Height);
                         resultImage.Mutate(c => c.ApplyProcessor(processor, outBounds));
                     }
                 }
@@ -77,7 +77,7 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private Image<Rgb24> BuildVariance(int frameCount)
+        private Image<Rgb24> BuildVariance()
         {
             if (LowFreqDownscale <= 1f) throw new ArgumentOutOfRangeException(nameof(LowFreqDownscale), "Variance downscale must be greater than 1!");
 
@@ -159,11 +159,11 @@ namespace PixelGraph.Common.Textures
 
                 resultImage = new Image<Rgb24>(Configuration.Default, srcWidth, srcHeight);
 
-                foreach (var frame in regions.GetAllRenderRegions(null, frameCount)) {
+                foreach (var frame in regions.GetAllRenderRegions()) {
                     foreach (var tile in frame.Tiles) {
                         //sampler.Bounds = tile.Bounds;
 
-                        var outBounds = tile.Bounds.ScaleTo(srcWidth, srcHeight);
+                        var outBounds = tile.DestBounds.ScaleTo(srcWidth, srcHeight);
                         resultImage.Mutate(c => c.ApplyProcessor(blendProcessor, outBounds));
                     }
                 }

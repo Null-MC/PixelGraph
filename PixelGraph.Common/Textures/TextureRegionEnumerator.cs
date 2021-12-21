@@ -1,7 +1,6 @@
 ﻿using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Textures.Graphing;
 using SixLabors.ImageSharp;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,80 +8,95 @@ namespace PixelGraph.Common.Textures
 {
     public interface ITextureRegionEnumerator
     {
-        IEnumerable<TextureRenderFrame> GetAllRenderRegions(int? index, int frameCount);
-        IEnumerable<TexturePublishPart> GetAllPublishRegions(int frameCount, int? frame = null, int? part = null);
-        TextureRenderFrame GetRenderRegion(int index, int frameCount);
-        TexturePublishFrame GetPublishPartFrame(int frameIndex, int frameCount, int tileIndex);
+        int SourceFrameCount {get; set;}
+        int DestFrameCount {get; set;}
+        int? TargetFrame {get; set;}
+        int? TargetPart {get; set;}
+
+        IEnumerable<TextureRenderFrame> GetAllRenderRegions();
+        IEnumerable<TexturePublishPart> GetAllPublishRegions();
+        TexturePublishFrame GetPublishPartFrame(int frameIndex, int tileIndex);
+        RectangleF GetFrameTileBounds(int frameIndex, int frameCount, int tileIndex);
     }
 
     internal class TextureRegionEnumerator : ITextureRegionEnumerator
     {
         private readonly ITextureGraphContext context;
 
+        public int SourceFrameCount {get; set;}
+        public int DestFrameCount {get; set;}
+        public int? TargetFrame {get; set;}
+        public int? TargetPart {get; set;}
+
+        private int ActualDestFrameCount => TargetFrame.HasValue ? 1 : DestFrameCount;
+
 
         public TextureRegionEnumerator(ITextureGraphContext context)
         {
             this.context = context;
+
+            SourceFrameCount = 1;
+            DestFrameCount = 1;
         }
 
-        public IEnumerable<TextureRenderFrame> GetAllRenderRegions(int? index, int frameCount)
+        public IEnumerable<TextureRenderFrame> GetAllRenderRegions()
         {
-            if (index.HasValue) {
-                yield return GetRenderRegion(index.Value, frameCount);
+            if (TargetFrame.HasValue || TargetPart.HasValue) {
+                yield return GetRenderRegion(TargetFrame ?? 0);
                 yield break;
             }
 
-            for (var frame = 0; frame < frameCount; frame++)
-                yield return GetRenderRegion(frame, frameCount);
+            for (var frame = 0; frame < DestFrameCount; frame++)
+                yield return GetRenderRegion(frame);
         }
 
-        public TextureRenderFrame GetRenderRegion(int index, int frameCount)
+        private TextureRenderFrame GetRenderRegion(int frameIndex)
         {
-            var frame = new TextureRenderFrame {
-                Index = index % frameCount,
-                Bounds = GetFrameBounds(index, frameCount),
-            };
-
-            var tileCount = GetPublishTileCount();
-            //var isFullCtm = CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Full);
-            //var isCompactCtm = CtmTypes.Is(context.Material.CTM?.Method, CtmTypes.Compact);
+            var renderFrame = new TextureRenderFrame();
 
             if (context.IsMaterialCtm && !CtmTypes.IsConnectedType(context.Material.CTM?.Method)) {
-                frame.Tiles = Enumerable.Range(0, tileCount)
+                var tileCount = GetPublishTileCount();
+                var tileRange = TargetPart.HasValue
+                    ? Enumerable.Repeat(TargetPart.Value, 1)
+                    : Enumerable.Range(0, tileCount);
+
+                renderFrame.Tiles = tileRange
                     .Select(z => new TextureRenderTile {
-                        Index = z,
-                        Bounds = GetFrameTileBounds(index, frameCount, z),
+                        SourceBounds = GetFrameTileBounds(frameIndex, SourceFrameCount, z),
+                        DestBounds = GetFrameTileBounds(frameIndex, ActualDestFrameCount, z),
                     }).ToArray();
             }
             else {
-                frame.Tiles = new[] {
+                renderFrame.Tiles = new[] {
                     new TextureRenderTile {
-                        Index = 0,
-                        Bounds = GetFrameBounds(index, frameCount),
+                        SourceBounds = TargetPart.HasValue
+                            ? GetFrameTileBounds(frameIndex, SourceFrameCount, TargetPart.Value)
+                            : GetFrameBounds(frameIndex, SourceFrameCount),
+                        DestBounds = GetFrameBounds(frameIndex, ActualDestFrameCount),
                     },
                 };
             }
 
-            return frame;
+            return renderFrame;
         }
 
-        public IEnumerable<TexturePublishPart> GetAllPublishRegions(int frameCount, int? frame = null, int? part = null)
+        public IEnumerable<TexturePublishPart> GetAllPublishRegions()
         {
-            if (frameCount <= 0) throw new ArgumentOutOfRangeException(nameof(frameCount));
-
             IEnumerable<TexturePublishFrame> GetFrames(int partIndex) {
-                if (frame.HasValue) return new [] {GetPublishPartFrame(frame.Value, frameCount, partIndex)};
+                if (TargetFrame.HasValue) return new [] {GetPublishPartFrame(TargetFrame.Value, partIndex)};
 
-                return Enumerable.Range(0, frameCount)
-                    .Select(f => GetPublishPartFrame(f, frameCount, partIndex));
+                return Enumerable.Range(0, DestFrameCount)
+                    .Select(f => GetPublishPartFrame(f, partIndex));
             }
 
-            if (part.HasValue) {
+            if (TargetPart.HasValue) {
+                var p = TargetPart.Value;
+
                 return new TexturePublishPart[] {
                     new() {
-                        Name = GetTileName(part.Value),
-                        TileIndex = part.Value,
-                        Frames = GetFrames(part.Value).ToArray(),
+                        Name = GetTileName(p),
+                        TileIndex = p,
+                        Frames = GetFrames(p).ToArray(),
                     }
                 };
             }
@@ -103,23 +117,24 @@ namespace PixelGraph.Common.Textures
                 return context.Material.Parts[index].Name;
 
             if (context.IsMaterialCtm)
-                return index.ToString();
+                return (index + 1).ToString();
 
             return context.Material.Name;
         }
 
-        public TexturePublishFrame GetPublishPartFrame(int frameIndex, int frameCount, int tileIndex)
+        public TexturePublishFrame GetPublishPartFrame(int frameIndex, int tileIndex)
         {
-            var frameHeight = 1f / frameCount;
+            var frameHeight = 1d;
+            if (!TargetFrame.HasValue && ActualDestFrameCount > 1)
+                frameHeight = 1d / ActualDestFrameCount;
 
             return new TexturePublishFrame {
-                FrameIndex = frameIndex,
-                SourceBounds = GetFrameTileBounds(frameIndex, frameCount, tileIndex),
+                SourceBounds = GetFrameTileBounds(frameIndex, SourceFrameCount, tileIndex),
                 DestBounds = new RectangleF {
                     X = 0f,
-                    Y = frameIndex * frameHeight,
+                    Y = (float)(frameIndex * frameHeight),
                     Width = 1f,
-                    Height = frameHeight,
+                    Height = (float)frameHeight,
                 },
             };
         }
@@ -135,7 +150,7 @@ namespace PixelGraph.Common.Textures
             return 1;
         }
 
-        private RectangleF GetFrameBounds(int frame, int frameCount)
+        private static RectangleF GetFrameBounds(int frame, int frameCount)
         {
             var frameHeight = 1f;
             if (frameCount > 1) frameHeight /= frameCount;
@@ -153,12 +168,13 @@ namespace PixelGraph.Common.Textures
             if (context.IsMaterialMultiPart) {
                 var part = context.Material.Parts[tileIndex];
                 var (maxWidth, maxHeight) = context.Material.GetMultiPartBounds();
+                if (maxWidth == 0 || maxHeight == 0) return RectangleF.Empty;
 
                 return new RectangleF {
                     X = (float)(part.Left ?? 0) / maxWidth,
                     Y = (float)(part.Top ?? 0) / maxHeight * frameHeight + wrappedIndex * frameHeight,
-                    Width = (float)(part.Width ?? 0) / maxWidth,
-                    Height = (float)(part.Height ?? 0) / maxHeight * frameHeight,
+                    Width = (float)(part.Width ?? 1) / maxWidth,
+                    Height = (float)(part.Height ?? 1) / maxHeight * frameHeight,
                 };
             }
 
@@ -186,15 +202,13 @@ namespace PixelGraph.Common.Textures
 
     public class TextureRenderFrame
     {
-        public int Index {get; set;}
-        public RectangleF Bounds {get; set;}
         public TextureRenderTile[] Tiles {get; set;}
     }
 
     public class TextureRenderTile
     {
-        public int Index {get; set;}
-        public RectangleF Bounds {get; set;}
+        public RectangleF SourceBounds {get; set;}
+        public RectangleF DestBounds {get; set;}
     }
 
     public class TexturePublishPart
@@ -206,7 +220,6 @@ namespace PixelGraph.Common.Textures
 
     public class TexturePublishFrame
     {
-        public int FrameIndex {get; set;}
         public RectangleF SourceBounds {get; set;}
         public RectangleF DestBounds {get; set;}
     }
