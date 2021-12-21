@@ -48,6 +48,7 @@ namespace PixelGraph.Common.Textures.Graphing
         Size? GetTextureSize(float? defaultAspect);
         Size? GetBufferSize(float aspect);
         //string GetMetaInputFilename();
+        MaterialType GetFinalMaterialType();
     }
 
     internal class TextureGraphContext : ITextureGraphContext

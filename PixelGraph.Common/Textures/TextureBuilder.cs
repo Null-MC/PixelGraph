@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Material;
 
 namespace PixelGraph.Common.Textures
 {
@@ -136,7 +137,20 @@ namespace PixelGraph.Common.Textures
             else {
                 var size = await GetBufferSizeAsync(token);
                 if (!size.HasValue && !createEmpty) return null;
-                bufferSize = size ?? new Size(16);
+
+                var defaultSize = 16;
+                if (!size.HasValue && context.Profile != null) {
+                    switch (context.GetFinalMaterialType()) {
+                        case MaterialType.Block:
+                            defaultSize = context.Profile.BlockTextureSize ?? defaultSize;
+                            break;
+                        case MaterialType.Item:
+                            defaultSize = context.Profile.ItemTextureSize ?? defaultSize;
+                            break;
+                    }
+                }
+
+                bufferSize = size ?? new Size(defaultSize);
             }
 
             var width = bufferSize.Width;
@@ -147,8 +161,12 @@ namespace PixelGraph.Common.Textures
                 //if (context.MaxFrameCount > 1)
                 //    height *= context.MaxFrameCount;
 
-                if (FrameCount > 1)
-                    height *= FrameCount;
+                // WARN: this one doesn't work for empty textures
+                //if (FrameCount > 1)
+                //    height *= FrameCount;
+
+                var maxFrames = Math.Max(context.MaxFrameCount, FrameCount);
+                if (maxFrames > 1) height *= maxFrames;
             }
 
             if (context.IsMaterialMultiPart && TargetPart.HasValue) {
