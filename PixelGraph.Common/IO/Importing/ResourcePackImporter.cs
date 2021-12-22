@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using System;
 using System.Collections.Generic;
@@ -26,11 +25,10 @@ namespace PixelGraph.Common.IO.Importing
 
     public class ResourcePackImporter : IResourcePackImporter
     {
-        private static readonly Regex blockPathExp = new(@"^assets/[\w-]+/textures/block/?", RegexOptions.IgnoreCase);
-        private static readonly Regex entityPathExp = new(@"^assets/[\w-]+/textures/entity/?", RegexOptions.IgnoreCase);
-        private static readonly Regex ctmExp = new(@"^assets/[\w-]+/optifine/ctm/?", RegexOptions.IgnoreCase);
+        private static readonly Regex isPathMaterialExp = new(@"^assets/[\w-]+/textures/(?:block|item|entity|models|painting)/?", RegexOptions.IgnoreCase);
+        //private static readonly Regex ctmExp = new(@"^assets/[\w-]+/optifine/ctm/?", RegexOptions.IgnoreCase);
 
-        private static readonly ObjectPropertyFileSerializer<CtmProperties> ctmPropertySerializer;
+        //private static readonly ObjectPropertyFileSerializer<CtmProperties> ctmPropertySerializer;
 
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
@@ -43,10 +41,10 @@ namespace PixelGraph.Common.IO.Importing
         public ResourcePackProfileProperties PackProfile {get; set;}
 
 
-        static ResourcePackImporter()
-        {
-            ctmPropertySerializer = new ObjectPropertyFileSerializer<CtmProperties>();
-        }
+        //static ResourcePackImporter()
+        //{
+        //    ctmPropertySerializer = new ObjectPropertyFileSerializer<CtmProperties>();
+        //}
 
         public ResourcePackImporter(IServiceProvider provider)
         {
@@ -226,24 +224,12 @@ namespace PixelGraph.Common.IO.Importing
                 path = PathEx.Normalize(path);
                 if (path == null) continue;
 
-                if (blockPathExp.IsMatch(path)) {
+                if (isPathMaterialExp.IsMatch(path)) {
                     //var javaBlock = Minecraft.Java.FindBlockById(name).FirstOrDefault();
 
                     //if (javaBlock != null || javaEntity != null) {
                     //    yield return name;
                     //    continue;
-                    //}
-
-                    yield return name;
-                    continue;
-                }
-
-                if (entityPathExp.IsMatch(path)) {
-                    //var javaEntity = Minecraft.Java.FindEntityById(name).FirstOrDefault();
-
-                    //if (javaEntity != null) {
-                    //    yield return name;
-                    //    //continue;
                     //}
 
                     yield return name;
