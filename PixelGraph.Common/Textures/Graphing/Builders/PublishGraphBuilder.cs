@@ -21,7 +21,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
     public interface IPublishGraphBuilder
     {
         Task PublishAsync(CancellationToken token = default);
-        Task PublishInventoryAsync(string suffix, CancellationToken token = default);
+        Task PublishInventoryAsync(CancellationToken token = default);
     }
 
     internal class PublishGraphBuilder : TextureGraphBuilder, IPublishGraphBuilder
@@ -71,10 +71,8 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             }
         }
 
-        public async Task PublishInventoryAsync(string suffix, CancellationToken token = default)
+        public async Task PublishInventoryAsync(CancellationToken token = default)
         {
-            if (!(Context.Material.PublishItem ?? false)) return;
-
             var publish = Context.Profile.PublishInventory ?? ResourcePackProfileProperties.PublishInventoryDefault;
 
             if (!publish) {
@@ -85,8 +83,11 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             var packWriteTime = Reader.GetWriteTime(Context.Profile.LocalFile) ?? DateTime.Now;
             var sourceTime = Reader.GetWriteTime(Context.Material.LocalFilename);
             
-            if (!IsInventoryUpToDate(suffix, packWriteTime, sourceTime)) {
-                await GenerateInventoryTextureAsync(suffix, token);
+            var ext = NamingStructure.GetExtension(Context.Profile);
+            if (!GetMappedInventoryName($"_inventory.{ext}", out var destFile)) return;
+
+            if (!IsInventoryUpToDate(destFile, packWriteTime, sourceTime)) {
+                await GenerateInventoryTextureAsync(destFile, token);
             }
             else {
                 logger.LogDebug("Skipping up-to-date inventory texture for material '{DisplayName}.", Context.Material.DisplayName);
@@ -137,10 +138,8 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             logger.LogInformation("Published material texture '{destFile}'.", destFile);
         }
 
-        private async Task GenerateInventoryTextureAsync(string suffix, CancellationToken token = default)
+        private async Task GenerateInventoryTextureAsync(string destFile, CancellationToken token = default)
         {
-            if (!GetMappedInventoryName(suffix, out var destFile)) return;
-
             // Generate item image
             using var itemImage = await itemGenerator.CreateAsync(Graph, token);
             if (itemImage == null) {
@@ -239,9 +238,9 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             }
         }
 
-        private bool IsInventoryUpToDate(in string suffix, in DateTime packWriteTime, in DateTime? sourceTime)
+        private bool IsInventoryUpToDate(in string destFile, in DateTime packWriteTime, in DateTime? sourceTime)
         {
-            if (!GetMappedInventoryName(suffix, out var destFile)) return false;
+            //if (!GetMappedInventoryName(suffix, out var destFile)) return false;
 
             var destinationTime = Writer.GetWriteTime(destFile);
             return IsUpToDate(packWriteTime, sourceTime, destinationTime);
@@ -251,7 +250,9 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
         {
             var sourcePath = Context.Material.LocalPath;
 
-            if (!Context.PublishAsGlobal || (Context.IsMaterialCtm && !Context.Material.UseGlobalMatching))
+            if (Context.IsMaterialCtm)
+                sourcePath = PathEx.Join("assets", "minecraft", "textures", "block");
+            else if (!Context.PublishAsGlobal) // || (Context.IsMaterialCtm && !Context.Material.UseGlobalMatching)
                 sourcePath = PathEx.Join(sourcePath, Context.Material.Name);
 
             if (!Context.Mapping.TryMap(sourcePath, Context.Material.Name, out var destPath, out var destName)) {

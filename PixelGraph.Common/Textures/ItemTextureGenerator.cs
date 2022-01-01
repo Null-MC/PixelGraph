@@ -95,6 +95,10 @@ namespace PixelGraph.Common.Textures
                     regions.SourceFrameCount = 1; //FrameCount;
                     regions.DestFrameCount = 1;
                     regions.TargetFrame = 0;
+
+                    if (context.IsMaterialCtm)
+                        regions.TargetPart = 0;
+
                     //regions.TargetPart = TargetPart;
 
                     foreach (var part in regions.GetAllPublishRegions()) {
@@ -183,6 +187,7 @@ namespace PixelGraph.Common.Textures
             subContext.Input = context.Input;
             subContext.Profile = context.Profile;
             subContext.Material = context.Material;
+            subContext.IsAnimated = context.IsAnimated;
 
             if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorRed, out var redInputChannel))
                 subContext.InputEncoding.Add(redInputChannel);
@@ -206,6 +211,9 @@ namespace PixelGraph.Common.Textures
                     DefaultValue = 255m,
                 },
             };
+
+            if (context.IsMaterialCtm)
+                builder.TargetPart = 0;
 
             builder.TargetFrame = TargetFrame;
             await builder.MapAsync(false, token);

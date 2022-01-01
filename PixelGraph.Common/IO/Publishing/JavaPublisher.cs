@@ -47,12 +47,12 @@ namespace PixelGraph.Common.IO.Publishing
         protected override async Task OnMaterialPublishedAsync(IServiceProvider scopeProvider, CancellationToken token)
         {
             var graphContext = scopeProvider.GetRequiredService<ITextureGraphContext>();
-            var graphBuilder = scopeProvider.GetRequiredService<IPublishGraphBuilder>();
-
-            var ext = NamingStructure.GetExtension(graphContext.Profile);
-            await graphBuilder.PublishInventoryAsync($"_inventory.{ext}", token);
-
             await BuildCtmPropertiesAsync(graphContext.Material, token);
+
+            if (graphContext.Material.PublishItem ?? false) {
+                var graphBuilder = scopeProvider.GetRequiredService<IPublishGraphBuilder>();
+                await graphBuilder.PublishInventoryAsync(token);
+            }
         }
 
         private async Task BuildCtmPropertiesAsync(MaterialProperties material, CancellationToken token)
@@ -96,7 +96,7 @@ namespace PixelGraph.Common.IO.Publishing
                     var tileCount = CtmTypes.GetBounds(material.CTM)?.Total ?? 1;
                     var maxTile = tileCount > 1 ? $"-{tileCount:N0}" : "";
 
-                    if (hasPlaceholder) minTile = $"textures/block/{material.Name} {minTile}";
+                    if (hasPlaceholder) minTile = $"<default> {minTile}";
 
                     properties["tiles"] = $"{minTile}{maxTile}";
                 }

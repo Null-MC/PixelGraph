@@ -2,8 +2,8 @@
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
+using PixelGraph.Common.Textures.Graphing.Builders;
 using PixelGraph.Tests.Internal.Mocks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -11,7 +11,6 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Textures.Graphing.Builders;
 using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.Internal
@@ -107,7 +106,7 @@ namespace PixelGraph.Tests.Internal
             graphContext.Mapping = new DefaultPublishMapping();
 
             await graphBuilder.PublishAsync(token);
-            await graphBuilder.PublishInventoryAsync("inventory", token);
+            await graphBuilder.PublishInventoryAsync(token);
         }
 
         public Task<Image<Rgba32>> GetImageAsync(string localFile)
