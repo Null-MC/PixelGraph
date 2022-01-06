@@ -30,7 +30,7 @@ namespace PixelGraph.Common.Textures
         public readonly float InputValueShift;
 
         //public readonly ColorChannel OutputColor;
-        public readonly string OutputSampler;
+        //public readonly string OutputSampler;
         public readonly float OutputMinValue;
         public readonly float OutputMaxValue;
         public readonly byte OutputRangeMin;
@@ -44,6 +44,7 @@ namespace PixelGraph.Common.Textures
         public readonly float? OutputDefaultValue;
         public readonly float? OutputClipValue;
 
+        public readonly string Sampler;
         //public string SourceTag;
         //public string SourceFilename;
         //public float ValueShift;
@@ -65,7 +66,7 @@ namespace PixelGraph.Common.Textures
             InputValueShift = mapping.InputValueShift;
 
             //OutputColor = mapping.OutputColor;
-            OutputSampler = mapping.OutputSampler;
+            //OutputSampler = mapping.OutputSampler;
             OutputMinValue = mapping.OutputMinValue;
             OutputMaxValue = mapping.OutputMaxValue;
             OutputRangeMin = mapping.OutputRangeMin;
@@ -78,6 +79,8 @@ namespace PixelGraph.Common.Textures
             OutputApplyOcclusion = mapping.OutputApplyOcclusion;
             OutputDefaultValue = mapping.OutputValueDefault;
             OutputClipValue = mapping.OutputClipValue;
+
+            Sampler = mapping.Sampler;
 
             // TODO: copy all mapping properties
 

@@ -40,8 +40,18 @@ namespace PixelGraph.Common.PixelOperations
 
         protected void GetTexCoord(in PixelRowContext context, in float x, in float y, out double fx, out double fy)
         {
-            fx = (x - context.Bounds.X + HalfPixel) / context.Bounds.Width;
-            fy = (y - context.Bounds.Y + HalfPixel) / context.Bounds.Height;
+            fx = (x - context.Bounds.X) / context.Bounds.Width;
+            fy = (y - context.Bounds.Y) / context.Bounds.Height;
+            //var innerWidth = context.Bounds.Width - 1;
+            //var innerHeight = context.Bounds.Height - 1;
+
+            //if (innerWidth <= 0 || innerHeight <= 0) {
+            //    fx = fy = 0;
+            //    return;
+            //}
+
+            //fx = (x - context.Bounds.X) / innerWidth;
+            //fy = (y - context.Bounds.Y) / innerHeight;
         }
 
         private class Processor<TPixel> : ImageProcessor<TPixel>

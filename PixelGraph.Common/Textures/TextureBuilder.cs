@@ -239,7 +239,7 @@ namespace PixelGraph.Common.Textures
         private bool TryBuildMapping(ResourcePackChannelProperties outputChannel, bool createEmpty, out TextureChannelMapping mapping)
         {
             mapping = new TextureChannelMapping {
-                OutputSampler = outputChannel.Sampler ?? context.DefaultSampler,
+                Sampler = outputChannel.Sampler,
             };
 
             mapping.ApplyOutputChannel(outputChannel);
@@ -622,7 +622,7 @@ namespace PixelGraph.Common.Textures
                     })
                     .OrderBy(m => m.Priority)
                     .Select(m => {
-                        var samplerName = m.OutputSampler ?? context.DefaultSampler;
+                        var samplerName = m.Sampler ?? context.DefaultSampler;
                         var sampler = context.CreateSampler(sourceImage, samplerName);
                         sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
                         sampler.RangeY = (float)(sourceImage.Height / info.FrameCount) / bufferSize.Height;

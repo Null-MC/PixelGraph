@@ -520,9 +520,7 @@ namespace PixelGraph.UI.Windows
                     RootDirectory = Model.RootDirectory,
                     Input = Model.PackInput,
                     Profile = Model.Profile.Loaded,
-
-                    // TODO: Attach this to something on the UI
-                    Clean = false,
+                    Clean = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
                 },
             };
 

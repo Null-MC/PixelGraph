@@ -20,7 +20,7 @@ namespace PixelGraph.Common.Textures
 
         public string OutputChannelID;
         public ColorChannel OutputColor;
-        public string OutputSampler;
+        //public string OutputSampler;
         public float OutputMinValue;
         public float OutputMaxValue;
         public byte OutputRangeMin;
@@ -38,6 +38,7 @@ namespace PixelGraph.Common.Textures
         public string SourceTag;
         public string SourceFilename;
         public int Priority;
+        public string Sampler;
         //public float ValueShift;
         //public float ValueScale;
         //public bool IsMetalToF0;
@@ -57,6 +58,8 @@ namespace PixelGraph.Common.Textures
             InputChannelShift = channel.Shift ?? 0;
             InputChannelPower = (float?)channel.Power ?? 1f;
             InputChannelInverted = channel.Invert ?? false;
+
+            Sampler = channel.Sampler;
         }
 
         public void ApplyOutputChannel(ResourcePackChannelProperties channel)
@@ -75,6 +78,8 @@ namespace PixelGraph.Common.Textures
             OutputValueDefault = (float?)channel.DefaultValue;
             OutputClipValue = (float?)channel.ClipValue;
             Priority = channel.Priority ?? 0;
+
+            Sampler = channel.Sampler;
         }
     }
 }

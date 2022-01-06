@@ -185,7 +185,7 @@ namespace PixelGraph.Common.Textures.Graphing
                     var width = Material.TextureWidth.Value;
                     var height = Material.TextureHeight.Value;
 
-                    if (Profile.TextureScale.HasValue) {
+                    if (Profile != null && Profile.TextureScale.HasValue) {
                         var scale = (float)Profile.TextureScale.Value;
                         width = (int)MathF.Ceiling(width * scale);
                         height = (int)MathF.Ceiling(height * scale);
@@ -196,6 +196,16 @@ namespace PixelGraph.Common.Textures.Graphing
 
                 if (defaultAspect.HasValue) {
                     // TODO: return width, width*aspect
+                    var width = Material.TextureWidth.Value;
+                    var height = (int)(width * defaultAspect);
+
+                    if (Profile != null && Profile.TextureScale.HasValue) {
+                        var scale = (float)Profile.TextureScale.Value;
+                        width = (int)MathF.Ceiling(width * scale);
+                        height = (int)MathF.Ceiling(height * scale);
+                    }
+
+                    return new Size(width, height);
                 }
             }
             else if (Material.TextureHeight.HasValue) {

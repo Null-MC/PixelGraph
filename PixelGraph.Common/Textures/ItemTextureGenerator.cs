@@ -114,7 +114,7 @@ namespace PixelGraph.Common.Textures
                         if (emissiveChannel != null && emissiveInfo != null)
                             inventoryOptions.EmissiveSampler.Bounds = regions.GetFrameTileBounds(TargetFrame, emissiveInfo.FrameCount, part.TileIndex);
 
-                        var outBounds = frame.SourceBounds.ScaleTo(image.Width, image.Height);
+                        var outBounds = frame.DestBounds.ScaleTo(image.Width, image.Height);
                         image.Mutate(c => c.ApplyProcessor(processor, outBounds));
                     }
                 }
@@ -257,7 +257,9 @@ namespace PixelGraph.Common.Textures
             await using var stream = reader.Open(emissiveFile);
             emissiveImage = await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
 
-            var samplerName = context.Profile?.Encoding?.Emissive?.Sampler ?? context.DefaultSampler;
+            var samplerName = context.Profile?.Encoding?.Emissive?.Sampler
+                           ?? context.DefaultSampler;
+
             var sampler = context.CreateSampler(emissiveImage, samplerName);
 
             // TODO: SET THESE PROPERLY!

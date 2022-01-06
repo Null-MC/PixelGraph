@@ -46,22 +46,36 @@ namespace PixelGraph.Common.Samplers
         {
             fx = (float)((Bounds.X + x * Bounds.Width) * Image.Width);
             fy = (float)((Bounds.Y + y * Bounds.Height) * Image.Height);
+            //fx = (float)((Bounds.X + x * Bounds.Width) * (Image.Width - 1));
+            //fy = (float)((Bounds.Y + y * Bounds.Height) * (Image.Height - 1));
         }
 
         protected void WrapCoordX(ref int x)
         {
             if (Bounds.Width == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
-            var width = (int)(Bounds.Width * Image.Width + 0.5f);
-            while (x < Bounds.Left * (Image.Width - 1)) x += width;
-            while (x > Bounds.Right * (Image.Width - 1)) x -= width;
+
+            //var width = (int)(Bounds.Width * Image.Width + 0.5f);
+            var innerImageWidth = Image.Width - 1;
+            var outerBoundsWidth = (int)(Bounds.Width * Image.Width);
+            var left = (int)(Bounds.Left * innerImageWidth);
+            var right = (int)(Bounds.Right * innerImageWidth);
+
+            while (x < left) x += outerBoundsWidth;
+            while (x > right) x -= outerBoundsWidth;
         }
 
         protected void WrapCoordY(ref int y)
         {
             if (Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
-            var height = (int)(Bounds.Height * Image.Height + 0.5f);
-            while (y < Bounds.Top * (Image.Height - 1)) y += height;
-            while (y > Bounds.Bottom * (Image.Height - 1)) y -= height;
+
+            //var height = (int)(Bounds.Height * Image.Height + 0.5f);
+            var innerImageHeight = Image.Height - 1;
+            var outerBoundsHeight = (int)(Bounds.Height * Image.Height);
+            var top = (int)(Bounds.Top * innerImageHeight);
+            var bottom = (int)(Bounds.Bottom * innerImageHeight);
+
+            while (y < top) y += outerBoundsHeight;
+            while (y > bottom) y -= outerBoundsHeight;
         }
 
         protected void ClampCoordX(ref int x)

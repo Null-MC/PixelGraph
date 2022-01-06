@@ -18,13 +18,13 @@ namespace PixelGraph.Common.Samplers
         {
             GetTexCoord(in x, in y, out var fx, out var fy);
 
-            var pxMin = (int)(fx - 0.5f);
+            var pxMin = (int)fx; //(fx + 0.5f);
             var pxMax = pxMin + 1;
-            var pyMin = (int)(fy - 0.5f);
+            var pyMin = (int)fy; //(fy + 0.5f);
             var pyMax = pyMin + 1;
 
-            var px = fx - pxMin - 0.5f;
-            var py = fy - pyMin - 0.5f;
+            var px = fx - pxMin;// - 0.5f;
+            var py = fy - pyMin;// - 0.5f;
 
             if (WrapX) {
                 WrapCoordX(ref pxMin);

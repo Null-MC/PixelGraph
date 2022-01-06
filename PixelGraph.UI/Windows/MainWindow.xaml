@@ -52,6 +52,7 @@
                 </ComboBox.ItemsSource>
             </ComboBox>
             <Button Content="Publish" Click="OnPublishMenuItemClick"
+                    ToolTip="Compiles all textures to the specified profile. Hold shift for a clean build."
                     IsEnabled="{Binding Profile.HasSelection, Mode=OneWay}"/>
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>
