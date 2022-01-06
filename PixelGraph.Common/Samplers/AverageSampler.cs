@@ -16,9 +16,10 @@ namespace PixelGraph.Common.Samplers
             
             var stepX = (int)MathF.Ceiling(minRangeX);
             var stepY = (int)MathF.Ceiling(minRangeY);
+            var weight = stepX * stepY;
 
-            var pxMin = (int)(fx - 0.5f);
-            var pyMin = (int)(fy - 0.5f);
+            var pxMin = (int)fx; //(fx - 0.5f);
+            var pyMin = (int)fy; //(fy - 0.5f);
             var pxMax = pxMin + stepX;
             var pyMax = pyMin + stepY;
 
@@ -29,18 +30,19 @@ namespace PixelGraph.Common.Samplers
                 if (WrapY) WrapCoordY(ref _py);
                 else ClampCoordY(ref _py);
 
+                var row = Image.GetPixelRowSpan(_py);
+
                 for (var px = pxMin; px < pxMax; px++) {
                     var _px = px;
 
                     if (WrapX) WrapCoordX(ref _px);
                     else ClampCoordX(ref _px);
 
-                    color += Image[_px, _py].ToScaledVector4();
+                    color += row[_px].ToScaledVector4();
                 }
             }
 
-            var h = stepX * stepY;
-            pixel.FromScaledVector4(color / h);
+            pixel.FromScaledVector4(color / weight);
         }
     }
 }

@@ -11,6 +11,7 @@ namespace PixelGraph.Common.Samplers
         where TPixel : unmanaged, IPixel<TPixel>
     {
         //protected const float HalfPixel = 0.5f + float.Epsilon;
+        private const float RgbToLinear = 1f / 255f;
 
         public Image<TPixel> Image {get; set;}
         public float RangeX {get; set;}
@@ -39,7 +40,7 @@ namespace PixelGraph.Common.Samplers
         public virtual void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue)
         {
             Sample(in x, in y, in color, out var _value);
-            pixelValue = _value / 255f;
+            pixelValue = _value * RgbToLinear;
         }
 
         protected void GetTexCoord(in double x, in double y, out float fx, out float fy)
