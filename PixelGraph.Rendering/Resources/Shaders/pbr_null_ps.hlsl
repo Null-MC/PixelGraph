@@ -323,27 +323,33 @@ float4 main(const ps_input input) : SV_TARGET
 
 	float sss_strength = 0.0f;
 	float3 ibl_sss = 0.0f;
-	if (bHasCubeMap && bRenderShadowMap) {
-        float4 wp = input.wp;
 
-		float depth_offset = (1.0f - shadow_tex.z) / SNoV;
-        wp.xyz -= view * depth_offset * ParallaxDepth * CUBE_SIZE;
-		
-		float4 sp = mul(wp, mShadowViewProj);
+	if (bHasCubeMap && bRenderShadowMap) {
+  //      float4 wp = input.wp;
+
+		//float depth_offset = (1.0f - shadow_tex.z) / SNoV;
+  //      wp.xyz -= view * depth_offset * ParallaxDepth * CUBE_SIZE;
+		//
+		//float4 sp = mul(wp, mShadowViewProj);
 		float thickness = SSS_Thickness(sp.xyz / sp.w);
 
 		float sss_dist = lerp(160.0f, 60.0f, sqrt(mat.sss));
-		sss_strength = saturate(1.0f / (1.0f + thickness * sss_dist)) * mat.sss;
+		sss_strength = rcp(1.0f + thickness * sss_dist) * mat.sss * SunStrength;
 		
 		acc_sss += SSS_Light(tex_normal, view, SunDirection) * SunStrength;
 		ibl_sss = SSS_IBL(view);
-    }
+	}
 
 	const float3 emissive = mat.emissive * mat.albedo * 16.0f;
 
 	float3 ibl_final = ibl_ambient + ibl_specular;
-	float3 final_sss = diffuse * (acc_sss + ibl_sss) * sss_strength;
-    float3 final_color = ibl_final + acc_light + final_sss + emissive;
+
+	float3 final_sss = diffuse * (acc_sss + ibl_sss);
+
+    float3 final_color = ibl_final + emissive;
+
+    final_color += acc_light * (1 - sss_strength);
+	final_color += final_sss * sss_strength;
 
 	float alpha = mat.alpha + spec_strength;
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
