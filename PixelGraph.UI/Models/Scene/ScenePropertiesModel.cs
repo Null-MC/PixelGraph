@@ -71,7 +71,7 @@ namespace PixelGraph.UI.Models.Scene
 
             var time = GetLinearTimeOfDay();
             MinecraftTime.GetSunAngle(_sunAzimuth, _sunTilt, time, out sunAngle);
-            strength = MinecraftTime.GetSunStrength(time, sun_overlap, sun_power);
+            strength = MinecraftTime.GetSunStrength(in sunAngle, sun_overlap, sun_power);
         }
 
         public float GetLinearTimeOfDay()

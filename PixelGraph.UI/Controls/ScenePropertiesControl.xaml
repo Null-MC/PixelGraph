@@ -23,7 +23,7 @@
                 <TextBlock Grid.Column="0" Grid.Row="0" Text="Time:"
                            VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
                 <Slider Grid.Column="1" Grid.Row="0" Margin="4"
-                        Minimum="-6000" Maximum="18000"
+                        Minimum="-12000" Maximum="12000"
                         Value="{Binding TimeOfDay, Mode=TwoWay}"/>
                 <TextBlock Grid.Column="0" Grid.Row="1" Text="Tilt:"
                            VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>

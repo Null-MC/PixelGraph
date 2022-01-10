@@ -7,7 +7,7 @@
 #include "lib/tonemap.hlsl"
 
 #define MIN_ROUGH 0.002f
-#define WET_DARKEN 0.76f
+#define WET_DARKEN 0.89f
 #define WATER_DEPTH_SCALE 6.0f
 
 #define ETA_AIR_TO_WATER (IOR_N_WATER / IOR_N_AIR)
@@ -38,7 +38,7 @@ float4 main(const ps_input input) : SV_TARGET
     float water_level_max = 0.0f;
 
 	if (EnablePuddles) {
-		water_level_min = Wetness * saturate(surface_up); // max(Wetness - (1.0f - rcp(WATER_DEPTH_SCALE)), 0.0f) * WATER_DEPTH_SCALE;
+		water_level_min = sqrt(Wetness) * saturate(surface_up); // max(Wetness - (1.0f - rcp(WATER_DEPTH_SCALE)), 0.0f) * WATER_DEPTH_SCALE;
 		water_level_max = water_level_min * water_max; // max(Wetness - (1.0f - rcp(WATER_DEPTH_SCALE)), 0.0f) * WATER_DEPTH_SCALE;
         //return float4(0, 0, water_level, 1);
     }
@@ -58,8 +58,9 @@ float4 main(const ps_input input) : SV_TARGET
         water_tex.z = 0.0f;
     }
 
-    const float pom_depth = 1.0f - tex_depth;// abs((tex - input.tex) / input.poT);
-    const float3 pom_wp = input.wp.xyz + pom_depth * -view * CUBE_SIZE * ParallaxDepth;
+    float pom_depth = (1.0f - tex_depth) / max(SNoV, EPSILON) * CUBE_SIZE * ParallaxDepth;
+    const float3 pom_wp = input.wp.xyz - pom_depth * view;
+    //return float4(pom_wp / CUBE_SIZE, 1);
 
     const float water_pom_depth = 1.0f - max(water_level_min, tex_depth);// abs((tex - input.tex) / input.poT);
     const float3 water_pom_wp = input.wp.xyz + water_pom_depth * -view * CUBE_SIZE * ParallaxDepth;
@@ -145,10 +146,23 @@ float4 main(const ps_input input) : SV_TARGET
     float LoH, NoH, VoH;
 
 	const float4x4 mShadowViewProj = mul(vLightView, vLightProjection);
+	const float4 sp = mul(float4(pom_wp, 1), mShadowViewProj);
+	//const float4 sp = mul(input.wp, mShadowViewProj);
+
+    //return float4(abs(pom_wp - input.wp.xyz), 1);
+
+
+    // WARN: TESTING
+    //light_shadow = shadow_strength(sp.xyz / sp.w);
+    //return float4(light_shadow, light_shadow, light_shadow, 1);
+	//const float shadow_depth = tex_shadow.SampleLevel(sampler_light, sp.xy / sp.w, 0);
+	//const float shadow_depth = sp.z / sp.w;
+	//return float4(shadow_depth, shadow_depth, shadow_depth, 1);
+
 
 	[loop]
     for (int i = 0; i < NumLights; i++) {
-        light_color = srgb_to_linear(Lights[i].vLightColor.rgb) * 1.6f;
+        light_color = srgb_to_linear(Lights[i].vLightColor.rgb) * 6.0f;
         light_shadow = 1.0f;
     	
         if (Lights[i].iLightType == 1) {
@@ -159,7 +173,6 @@ float4 main(const ps_input input) : SV_TARGET
 	            float d = dot(light_dir, normal);
 
 	            if (d > 0) {
-					const float4 sp = mul(float4(pom_wp, input.wp.w), mShadowViewProj);
 	                light_shadow = shadow_strength(sp.xyz / sp.w);
 	            }
                 else {
@@ -214,8 +227,8 @@ float4 main(const ps_input input) : SV_TARGET
 	            float d2 = dot(light_dir, normal);
 
 	            if (d2 > 0) {
-					float4 sp = mul(float4(water_pom_wp, input.wp.w), mShadowViewProj);
-	                water_shadow *= shadow_strength(sp.xyz / sp.w);
+					float4 wet_sp = mul(float4(water_pom_wp, input.wp.w), mShadowViewProj);
+	                water_shadow *= shadow_strength(wet_sp.xyz / wet_sp.w);
 
 	                //water_shadow = shadow_strength(sp.xyz / sp.w);
                     //return float4(water_shadow, 0, 0, 1);
@@ -284,7 +297,7 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 ibl_F_ambient = F_schlick_roughness(ibl_f0_ambient, NoV, roughL);
 	const float3 ibl_ambient = IBL_ambient(ibl_F_ambient, r) * diffuse * mat.occlusion;
 
-	float3 ibl_specular = IBL_specular(ibl_F_ambient, NoV, r, mat.occlusion, roughL) * metal_albedo;
+	float3 ibl_specular = IBL_specular(ibl_F_ambient, NoV, r, mat.occlusion, mat.rough) * metal_albedo;
 
     if (Wetness > EPSILON) {
 		float3 ibl_F_water = F_full(ETA_AIR_TO_WATER, NoV_wet);

@@ -141,6 +141,7 @@ float shadow_strength(in float3 sp)
     //// ---perform PCF filtering on a 4 x 4 texel neighborhood
     [unroll]
     for (y = -range; y <= range; y += 1.0f) {
+		[unroll]
 	    for (x = -range; x <= range; x += 1.0f) {
 		    sum += shadow_lookup(sp, float2(x, y) * scale);
 	    }

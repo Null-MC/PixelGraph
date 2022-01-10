@@ -68,13 +68,15 @@ namespace PixelGraph.Rendering
             sunAngle.Z = -MathF.Sin(elevationR) * MathEx.SinD(azimuth) - MathF.Cos(elevationR) * MathEx.SinD(tilt) * MathEx.CosD(azimuth);
         }
 
-        public static float GetSunStrength(in float time, in float overlap, in float power)
+        public static float GetSunStrength(in Vector3 sunAngle, in float overlap, in float power)
         {
-            GetSunElevation(in time, out var elevationR);
+            //GetSunElevation(in time, out var elevationR);
 
-            var s = MathF.Cos(elevationR);
-            var f = MathF.Max(s * (1f - overlap) + overlap, 0f);
-            return MathF.Pow(f, power);
+            //var s = MathF.Cos(elevationR);
+            var s = Vector3.Dot(sunAngle, Vector3.UnitY);
+            //var f = MathF.Max(s * (1f - overlap) + overlap, 0f);
+            //return MathF.Pow(f, power) * 1_000f;
+            return MathF.Max(s, 0f);
         }
 
         /// <summary>
@@ -84,7 +86,7 @@ namespace PixelGraph.Rendering
         /// <param name="elevation">The resulting elevation angle of the sun in radians.</param>
         private static void GetSunElevation(in float time, out float elevation)
         {
-            var ang = time - 0.25f;
+            var ang = time;// - 0.25f;
             MathEx.Wrap(ref ang, 0f, 1f);
             elevation = (ang + (MathF.Cos(ang * MathF.PI) * -0.5f + 0.5f - ang) / 3f) * 2f*MathF.PI; //0-2pi, rolls over from 2pi to 0 at noon.
         }

@@ -57,7 +57,8 @@ struct ps_shadow
 {
     float4 pos : SV_POSITION;
 	float2 tex : TEXCOORD0;
-	float2 poT : POSITION0;
+	float4 wp  : POSITION0;
+	float2 poT : POSITION1;
     float3 nor : NORMAL;
 };
 

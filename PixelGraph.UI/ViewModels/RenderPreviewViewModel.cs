@@ -121,7 +121,7 @@ namespace PixelGraph.UI.ViewModels
 
             RenderModel.SunDirection = sunDirection;
             RenderModel.SunStrength = sunStrength;
-            RenderModel.SunCamera.Position = (new Vector3(0f, 2f, 0f) + sunDirection * 32f).ToPoint3D();
+            RenderModel.SunCamera.Position = (new Vector3(0f, 2f, 0f) + sunDirection * 16f).ToPoint3D();
             RenderModel.SunCamera.LookDirection = -sunDirection.ToVector3D();
 
             //RenderModel.SunCamera.ZoomExtents(viewport3D, new Media3D.Point3D(), 32f, 0D);

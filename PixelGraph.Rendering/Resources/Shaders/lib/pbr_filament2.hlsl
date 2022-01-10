@@ -171,15 +171,16 @@ float3 IBL_ambient(const in float3 F, const in float3 reflect)
     return irradiance * (1.0f - F); // * rcp(PI);
 }
 
-float3 IBL_specular(const in float3 F, const in float NoV, const in float3 r, const in float occlusion, const in float roughL)
+float3 IBL_specular(const in float3 F, const in float NoV, const in float3 r, const in float occlusion, const in float roughP)
 {
 	//return 0.0;
 
+	const float roughL = roughP * roughP;
 	const float3 specular_occlusion = IBL_SpecularOcclusion(NoV, occlusion, roughL);
 
     float3 indirect_specular;
     if (bHasCubeMap) {
-		const float roughP = sqrt(roughL);
+		//const float roughP = sqrt(roughL);
 		const float mip = roughP * NumEnvironmentMapMipLevels;
 	    indirect_specular = tex_environment.SampleLevel(sampler_environment, r, mip);
     }
@@ -187,7 +188,7 @@ float3 IBL_specular(const in float3 F, const in float NoV, const in float3 r, co
 		indirect_specular = srgb_to_linear(vLightAmbient.rgb);
 	}
 	
-	const float2 lut_tex = float2(NoV, roughL);
+	const float2 lut_tex = float2(NoV, roughP);
 	const float2 env_brdf  = tex_brdf_lut.SampleLevel(sampler_brdf_lut, lut_tex, 0);
 	return indirect_specular * (F * env_brdf.x + env_brdf.y) * specular_occlusion;
 }
@@ -208,10 +209,25 @@ float SSS_Thickness(float3 sp)
 
 	sp.x = mad(0.5f, sp.x, 0.5f);
 	sp.y = mad(-0.5f, sp.y, 0.5f);
-	//sp.z -= vShadowMapInfo.z;
+	sp.z -= vShadowMapInfo.z;
 
-	const float d = tex_shadow.SampleLevel(sampler_light, sp.xy, 0);
-	return saturate(sp.z - d + SSS_MinThickness);
+	//const float d = tex_shadow.SampleLevel(sampler_light, sp.xy, 0);
+	float sum = 0;
+    const float range = 1.5;
+    const float2 scale = rcp(vShadowMapSize);
+    float x, y;
+	float2 tex;
+
+	[unroll]
+    for (y = -range; y <= range; y += 1.0f) {
+		[unroll]
+	    for (x = -range; x <= range; x += 1.0f) {
+			tex = sp.xy + float2(x, y) * scale;
+		    sum += tex_shadow.SampleLevel(sampler_light, tex, 0);
+	    }
+    }
+
+	return saturate(sp.z - sum * 0.0625f + SSS_MinThickness);
 }
 
 float SSS_Attenuation(const in float3 light_dir)
