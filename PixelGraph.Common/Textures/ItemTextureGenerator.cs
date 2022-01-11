@@ -30,7 +30,6 @@ namespace PixelGraph.Common.Textures
         private readonly ITextureSourceGraph sourceGraph;
         private readonly ITextureNormalGraph normalGraph;
         private readonly ITextureOcclusionGraph occlusionGraph;
-        //private readonly ITextureRegionEnumerator regions;
         private readonly IInputReader reader;
 
         private Image<Rgba32> emissiveImage;
@@ -42,7 +41,6 @@ namespace PixelGraph.Common.Textures
             ITextureSourceGraph sourceGraph,
             ITextureNormalGraph normalGraph,
             ITextureOcclusionGraph occlusionGraph,
-            //ITextureRegionEnumerator regions,
             IInputReader reader)
         {
             this.provider = provider;
@@ -50,7 +48,6 @@ namespace PixelGraph.Common.Textures
             this.sourceGraph = sourceGraph;
             this.normalGraph = normalGraph;
             this.occlusionGraph = occlusionGraph;
-            //this.regions = regions;
             this.reader = reader;
         }
 
@@ -122,11 +119,6 @@ namespace PixelGraph.Common.Textures
                 // Make image square
                 if (image.Width != image.Height) {
                     var targetSize = Math.Max(image.Width, image.Height);
-                    //var targetSize = context.Profile.ItemTextureSize
-                    //    ?? context.Profile.BlockTextureSize
-                    //    ?? context.Profile.TextureSize;
-
-                    //if (targetSize.HasValue) {
                     var temp = SquareImage(image, targetSize);
 
                     try {
@@ -137,7 +129,6 @@ namespace PixelGraph.Common.Textures
                         temp.Dispose();
                         throw;
                     }
-                    //}
                 }
 
                 return image;
@@ -148,33 +139,6 @@ namespace PixelGraph.Common.Textures
             }
             finally {
                 emissiveImage?.Dispose();
-            }
-        }
-
-        private Image<TPixel> SquareImage<TPixel>(Image<TPixel> image, int targetSize)
-            where TPixel : unmanaged, IPixel<TPixel>
-        {
-            var temp = new Image<TPixel>(targetSize, targetSize);
-
-            try {
-                var copyOptions = new CopyRegionProcessor<TPixel>.Options {
-                    SourceImage = image,
-                    SourceX = 0,
-                    SourceY = 0,
-                };
-
-                var outBounds = new Rectangle(
-                    (targetSize - image.Width) / 2,
-                    (targetSize - image.Height) / 2,
-                    image.Width, image.Height);
-
-                var processor = new CopyRegionProcessor<TPixel>(copyOptions);
-                temp.Mutate(c => c.ApplyProcessor(processor, outBounds));
-                return temp;
-            }
-            catch {
-                temp.Dispose();
-                throw;
             }
         }
 
@@ -267,6 +231,33 @@ namespace PixelGraph.Common.Textures
             sampler.RangeY = 1f;
 
             return sampler;
+        }
+
+        private static Image<TPixel> SquareImage<TPixel>(Image<TPixel> image, int targetSize)
+            where TPixel : unmanaged, IPixel<TPixel>
+        {
+            var temp = new Image<TPixel>(targetSize, targetSize);
+
+            try {
+                var copyOptions = new CopyRegionProcessor<TPixel>.Options {
+                    SourceImage = image,
+                    SourceX = 0,
+                    SourceY = 0,
+                };
+
+                var outBounds = new Rectangle(
+                    (targetSize - image.Width) / 2,
+                    (targetSize - image.Height) / 2,
+                    image.Width, image.Height);
+
+                var processor = new CopyRegionProcessor<TPixel>(copyOptions);
+                temp.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                return temp;
+            }
+            catch {
+                temp.Dispose();
+                throw;
+            }
         }
     }
 }

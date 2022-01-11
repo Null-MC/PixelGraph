@@ -19,6 +19,7 @@ namespace PixelGraph.Common.Textures
         private readonly IInputReader fileReader;
         private readonly ITextureGraphContext context;
         private readonly Dictionary<string, TextureSource> sourceMap;
+        private readonly Lazy<float?> expectedAspect;
 
 
         public TextureSourceGraph(
@@ -29,6 +30,7 @@ namespace PixelGraph.Common.Textures
             this.context = context;
 
             sourceMap = new Dictionary<string, TextureSource>(StringComparer.OrdinalIgnoreCase);
+            expectedAspect = new Lazy<float?>(context.GetExpectedAspect);
         }
 
         public bool TryGet(string tag, out TextureSource source)
@@ -56,8 +58,14 @@ namespace PixelGraph.Common.Textures
             };
 
             if (context.IsAnimated) {
-                source.FrameCount = source.Height / source.Width;
-                source.Height = source.Width;
+                var frameHeight = source.Width;
+                //var expectedAspect = context.GetExpectedAspect();
+
+                if (expectedAspect.Value.HasValue)
+                    frameHeight = (int)(source.Width / expectedAspect.Value.Value + 0.5f);
+
+                source.FrameCount = source.Height / frameHeight;
+                source.Height = frameHeight;
             }
 
             return sourceMap[localFile] = source;

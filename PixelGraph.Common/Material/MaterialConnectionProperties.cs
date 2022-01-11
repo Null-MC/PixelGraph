@@ -15,6 +15,7 @@ namespace PixelGraph.Common.Material
         //public bool? InnerSeams {get; set;}
         //public bool? Linked {get; set;}
         public bool? Placeholder {get; set;}
+        public int? TileStartIndex {get; set;}
 
 
         #region Deprecated

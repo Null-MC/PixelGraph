@@ -54,17 +54,30 @@ namespace PixelGraph.Common.Textures
         {
             var renderFrame = new TextureRenderFrame();
 
-            if (context.IsMaterialCtm && !CtmTypes.IsConnectedType(context.Material.CTM?.Method)) {
-                var tileCount = GetPublishTileCount();
+            if (context.IsMaterialCtm) {
                 var tileRange = TargetPart.HasValue
                     ? Enumerable.Repeat(TargetPart.Value, 1)
-                    : Enumerable.Range(0, tileCount);
+                    : Enumerable.Range(0, GetPublishTileCount());
 
-                renderFrame.Tiles = tileRange
-                    .Select(z => new TextureRenderTile {
-                        SourceBounds = GetFrameTileBounds(frameIndex, SourceFrameCount, z),
-                        DestBounds = GetFrameTileBounds(frameIndex, ActualDestFrameCount, z),
-                    }).ToArray();
+                if (CtmTypes.IsConnectedType(context.Material.CTM?.Method)) {
+                    renderFrame.Tiles = new[] {
+                        new TextureRenderTile {
+                            SourceBounds = TargetPart.HasValue
+                                ? GetFrameTileBounds(frameIndex, SourceFrameCount, TargetPart.Value)
+                                : GetFrameBounds(frameIndex, SourceFrameCount),
+                            DestBounds = GetFrameBounds(frameIndex, ActualDestFrameCount),
+                        },
+                    };
+                }
+                else {
+                    renderFrame.Tiles = tileRange
+                        .Select(z => new TextureRenderTile {
+                            SourceBounds = GetFrameTileBounds(frameIndex, SourceFrameCount, z),
+                            DestBounds = TargetPart.HasValue
+                                ? GetFrameBounds(frameIndex, ActualDestFrameCount)
+                                : GetFrameTileBounds(frameIndex, ActualDestFrameCount, z),
+                        }).ToArray();
+                }
             }
             else {
                 renderFrame.Tiles = new[] {

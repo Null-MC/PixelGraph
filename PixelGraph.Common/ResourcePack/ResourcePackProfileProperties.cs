@@ -102,6 +102,8 @@ namespace PixelGraph.Common.ResourcePack
 
         public bool? PublishConnected {get; set;}
 
+        public int? TileStartIndex {get; set;}
+
 
         public ResourcePackProfileProperties()
         {

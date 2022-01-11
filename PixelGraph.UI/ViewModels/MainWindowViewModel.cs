@@ -406,9 +406,13 @@ namespace PixelGraph.UI.ViewModels
                     using var scope = provider.CreateScope();
                     var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
                     var graph = scope.ServiceProvider.GetRequiredService<ITextureNormalGraph>();
+                    var reader = scope.ServiceProvider.GetRequiredService<IInputReader>();
 
                     context.Input = Model.PackInput;
                     context.Material = material;
+
+                    var matMetaFileIn = NamingStructure.GetInputMetaName(material);
+                    context.IsAnimated = reader.FileExists(matMetaFileIn);
 
                     context.InputEncoding = inputEncoding.GetMapped().ToList();
                     context.OutputEncoding = inputEncoding.GetMapped().ToList();
@@ -436,9 +440,13 @@ namespace PixelGraph.UI.ViewModels
                     using var scope = provider.CreateScope();
                     var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
                     var graph = scope.ServiceProvider.GetRequiredService<ITextureOcclusionGraph>();
+                    var reader = scope.ServiceProvider.GetRequiredService<IInputReader>();
 
                     context.Input = Model.PackInput;
                     context.Material = material;
+
+                    var matMetaFileIn = NamingStructure.GetInputMetaName(material);
+                    context.IsAnimated = reader.FileExists(matMetaFileIn);
 
                     context.InputEncoding = inputEncoding.GetMapped().ToList();
                     context.OutputEncoding = inputEncoding.GetMapped().ToList();

@@ -178,9 +178,14 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 if (!Reader.FileExists(metaFileIn)) return;
             }
 
-            var metaFileOut = NamingStructure.GetOutputMetaName(Context.Profile, Context.Material, tag, Context.PublishAsGlobal);
+            var partNames = Context.IsMaterialMultiPart
+                ? Context.Material.Parts.Select(p => p.Name)
+                : Enumerable.Repeat(Context.Material.Name, 1);
 
-            await CopyMetaFileAsync(metaFileIn, metaFileOut, token);
+            foreach (var partName in partNames) {
+                var metaFileOut = NamingStructure.GetOutputMetaName(Context.Profile, Context.Material, partName, tag, Context.PublishAsGlobal);
+                await CopyMetaFileAsync(metaFileIn, metaFileOut, token);
+            }
         }
 
         private async Task CopyMetaFileAsync(string metaFileIn, string metaFileOut, CancellationToken token)

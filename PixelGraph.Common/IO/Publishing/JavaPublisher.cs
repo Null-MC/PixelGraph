@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.IO.Serialization;
-using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
@@ -47,7 +46,7 @@ namespace PixelGraph.Common.IO.Publishing
         protected override async Task OnMaterialPublishedAsync(IServiceProvider scopeProvider, CancellationToken token)
         {
             var graphContext = scopeProvider.GetRequiredService<ITextureGraphContext>();
-            await BuildCtmPropertiesAsync(graphContext.Material, token);
+            await BuildCtmPropertiesAsync(graphContext, token);
 
             if (graphContext.Material.PublishItem ?? false) {
                 var graphBuilder = scopeProvider.GetRequiredService<IPublishGraphBuilder>();
@@ -55,9 +54,9 @@ namespace PixelGraph.Common.IO.Publishing
             }
         }
 
-        private async Task BuildCtmPropertiesAsync(MaterialProperties material, CancellationToken token)
+        private async Task BuildCtmPropertiesAsync(ITextureGraphContext context, CancellationToken token)
         {
-            var propsFileIn = NamingStructure.GetInputPropertiesName(material);
+            var propsFileIn = NamingStructure.GetInputPropertiesName(context.Material);
             var properties = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             var propertySerializer = new PropertyFileSerializer();
             var hasProperties = false;
@@ -72,33 +71,36 @@ namespace PixelGraph.Common.IO.Publishing
                 hasProperties = true;
             }
 
-            if (material.CTM?.Method != null) {
-                if (!optifineWriteMap.TryGetValue(material.CTM.Method, out var ctmWriteMethod))
-                    throw new ApplicationException($"Unable to map CTM type '{material.CTM.Method}'!");
+            if (context.Material.CTM?.Method != null) {
+                if (!optifineWriteMap.TryGetValue(context.Material.CTM.Method, out var ctmWriteMethod))
+                    throw new ApplicationException($"Unable to map CTM type '{context.Material.CTM.Method}'!");
 
                 properties["method"] = ctmWriteMethod;
 
-                if (material.CTM.Width.HasValue || !properties.ContainsKey("width"))
-                    properties["width"] = (material.CTM.Width ?? 1).ToString("N0");
+                if (context.Material.CTM.Width.HasValue || !properties.ContainsKey("width"))
+                    properties["width"] = (context.Material.CTM.Width ?? 1).ToString("N0");
 
-                if (material.CTM.Height.HasValue || !properties.ContainsKey("height"))
-                    properties["height"] = (material.CTM.Height ?? 1).ToString("N0");
+                if (context.Material.CTM.Height.HasValue || !properties.ContainsKey("height"))
+                    properties["height"] = (context.Material.CTM.Height ?? 1).ToString("N0");
 
-                if (material.CTM.MatchBlocks != null)
-                    properties["matchBlocks"] = material.CTM.MatchBlocks;
+                if (context.Material.CTM.MatchBlocks != null)
+                    properties["matchBlocks"] = context.Material.CTM.MatchBlocks;
 
-                if (material.CTM.MatchTiles != null)
-                    properties["matchTiles"] = material.CTM.MatchTiles;
+                if (context.Material.CTM.MatchTiles != null)
+                    properties["matchTiles"] = context.Material.CTM.MatchTiles;
 
                 if (!properties.ContainsKey("tiles")) {
-                    var hasPlaceholder = material.CTM?.Placeholder ?? false;
-                    var minTile = hasPlaceholder ? "2" : "1";
-                    var tileCount = CtmTypes.GetBounds(material.CTM)?.Total ?? 1;
-                    var maxTile = tileCount > 1 ? $"-{tileCount:N0}" : "";
+                    var minTile = context.Profile?.TileStartIndex ??
+                                  context.Material?.CTM?.TileStartIndex ?? 1;
 
-                    if (hasPlaceholder) minTile = $"<default> {minTile}";
+                    var hasPlaceholder = context.Material.CTM?.Placeholder ?? false;
+                    var tileCount = CtmTypes.GetBounds(context.Material.CTM)?.Total ?? 1;
+                    var maxTile = minTile + tileCount - 1;
+                    if (hasPlaceholder) minTile++;
 
-                    properties["tiles"] = $"{minTile}{maxTile}";
+                    var result = $"{minTile:N0}{maxTile:N0}";
+                    if (hasPlaceholder) result = $"<default> {result}";
+                    properties["tiles"] = result;
                 }
 
                 hasProperties = true;
@@ -106,7 +108,7 @@ namespace PixelGraph.Common.IO.Publishing
 
             if (!hasProperties) return;
 
-            var propsFileOut = NamingStructure.GetOutputPropertiesName(material, true);
+            var propsFileOut = NamingStructure.GetOutputPropertiesName(context.Material, true);
             await Writer.OpenAsync(propsFileOut, async stream => {
                 await using var writer = new StreamWriter(stream);
                 await propertySerializer.WriteAsync(writer, properties, token);

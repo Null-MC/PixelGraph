@@ -677,8 +677,8 @@ namespace PixelGraph.Common.Textures
                 OcclusionSampler = occlusionSampler,
             };
 
+            TextureSource emissiveInfo;
             Image<Rgba32> emissiveImage = null;
-            TextureSource emissiveInfo = null;
             ISampler<Rgba32> emissiveSampler = null;
             try {
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Emissive, out var emissiveChannel)

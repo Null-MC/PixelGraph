@@ -223,9 +223,14 @@ namespace PixelGraph.Common.IO
 
         public static string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global)
         {
+            return GetOutputMetaName(pack, material, material.Name, tag, global);
+        }
+
+        public static string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string mat_name, string tag, bool global)
+        {
             var path = GetPath(material, global && material.CTM?.Method == null);
             var ext = GetExtension(pack);
-            var name = Get(tag, material.Name, $"{ext}.mcmeta", global);
+            var name = Get(tag, mat_name, $"{ext}.mcmeta", global);
             var filename = PathEx.Join(path, name);
             return PathEx.Localize(filename);
         }

@@ -45,6 +45,7 @@ namespace PixelGraph.Common.Textures.Graphing
         void ApplyInputEncoding();
         void ApplyOutputEncoding();
         ISampler<T> CreateSampler<T>(Image<T> image, string name) where T : unmanaged, IPixel<T>;
+        float? GetExpectedAspect();
         Size? GetTextureSize(float? defaultAspect);
         Size? GetBufferSize(float aspect);
         //string GetMetaInputFilename();
@@ -176,6 +177,16 @@ namespace PixelGraph.Common.Textures.Graphing
             if (entityTextureExp.IsMatch(path)) return MaterialType.Entity;
 
             return type;
+        }
+
+        public float? GetExpectedAspect()
+        {
+            if (IsMaterialMultiPart) {
+                var (width, height) = Material.GetMultiPartBounds();
+                return width / (float)height;
+            }
+
+            return null;
         }
 
         public Size? GetTextureSize(float? defaultAspect)
