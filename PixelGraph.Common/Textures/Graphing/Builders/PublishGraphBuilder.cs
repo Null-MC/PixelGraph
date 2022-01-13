@@ -214,11 +214,16 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 else if (Context.IsMaterialCtm) {
                     var tileCount = CtmTypes.GetBounds(Context.Material.CTM)?.Total ?? 1;
 
-                    for (var i = 0; i < tileCount; i++) {
-                        var usePlaceholder = Context.Material.CTM?.Placeholder ?? false;
-                        var name = usePlaceholder ? Context.Material.Name : i.ToString();
-                        var sourceName = NamingStructure.Get(tag, name, ext, true);
+                    var usePlaceholder = Context.Material.CTM?.Placeholder ?? false;
+                    var firstTileIndex = Context.Material.CTM?.TileStartIndex ??
+                                         Context.Profile?.TileStartIndex ?? 1;
 
+                    for (var i = 0; i < tileCount; i++) {
+                        var name = usePlaceholder && i == 0
+                            ? Context.Material.Name
+                            : (firstTileIndex + i).ToString();
+
+                        var sourceName = NamingStructure.Get(tag, name, ext, true);
                         if (!Context.Material.UseGlobalMatching && !usePlaceholder)
                             sourceName = PathEx.Join(Context.Material.Name, sourceName);
 

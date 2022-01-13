@@ -10,6 +10,7 @@ ps_input main(const vs_input input)
 	output.tex = input.tex;
 	output.wp = mul(input.pos, mWorld);
     output.pos = mul(output.wp, mViewProjection);
+	output.nor = mul(input.nor, (float3x3) mWorld);
 	output.eye = vEyePos - output.wp.xyz;
 	
 	return output;

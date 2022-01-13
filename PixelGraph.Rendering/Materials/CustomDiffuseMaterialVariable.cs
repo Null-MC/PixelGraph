@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.SharpDX.Core.ShaderManager;
@@ -7,6 +6,7 @@ using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.SharpDX.Core.Utilities;
 using PixelGraph.Rendering.Shaders;
 using SharpDX.Direct3D11;
+using System.Runtime.CompilerServices;
 using PixelShader = HelixToolkit.SharpDX.Core.Shaders.PixelShader;
 
 namespace PixelGraph.Rendering.Materials
@@ -145,37 +145,6 @@ namespace PixelGraph.Rendering.Materials
             DrawIndexed(deviceContext, bufferModel.IndexBuffer.ElementCount, instanceCount);
         }
 
-        private void CreateTextureViews()
-        {
-            if (material != null) {
-                CreateTextureView(material.DiffuseAlphaMap, DiffuseAlphaMapIdx);
-                CreateTextureView(material.EmissiveMap, EmissiveMapIdx);
-            }
-            else {
-                for (var i = 0; i < NUMTEXTURES; ++i)
-                    RemoveAndDispose(ref textureResources[i]);
-
-                textureIndex = 0;
-            }
-        }
-
-        private void CreateSamplers()
-        {
-            var newSurfaceSampler = statePoolManager.Register(material.SurfaceMapSampler);
-            var newShadowSampler = statePoolManager.Register(DefaultSamplers.ShadowSampler);
-            var newCubeSampler = statePoolManager.Register(material.IrradianceMapSampler);
-
-            RemoveAndDispose(ref samplerResources[SurfaceSamplerIdx]);
-            RemoveAndDispose(ref samplerResources[ShadowSamplerIdx]);
-            RemoveAndDispose(ref samplerResources[IrradianceSamplerIdx]);
-
-            if (material != null) {
-                samplerResources[SurfaceSamplerIdx] = Collect(newSurfaceSampler);
-                samplerResources[ShadowSamplerIdx] = Collect(newShadowSampler);
-                samplerResources[IrradianceSamplerIdx] = Collect(newCubeSampler);
-            }
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CreateTextureView(TextureModel texture, int index)
         {
@@ -191,13 +160,6 @@ namespace PixelGraph.Rendering.Materials
             else {
                 textureIndex &= ~(1u << index);
             }
-        }
-
-        private void CreateSampler(SamplerStateDescription desc, int index)
-        {
-            var newRes = statePoolManager.Register(desc);
-            RemoveAndDispose(ref samplerResources[index]);
-            samplerResources[index] = Collect(newRes);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -223,6 +185,44 @@ namespace PixelGraph.Rendering.Materials
 
             shader.BindSampler(deviceContext, samplerSurfaceSlot, samplerResources[SurfaceSamplerIdx]);
             shader.BindSampler(deviceContext, samplerIrradianceSlot, samplerResources[IrradianceSamplerIdx]);
+        }
+
+        private void CreateTextureViews()
+        {
+            if (material != null) {
+                CreateTextureView(material.DiffuseAlphaMap, DiffuseAlphaMapIdx);
+                CreateTextureView(material.EmissiveMap, EmissiveMapIdx);
+            }
+            else {
+                for (var i = 0; i < NUMTEXTURES; ++i)
+                    RemoveAndDispose(ref textureResources[i]);
+
+                textureIndex = 0;
+            }
+        }
+
+        private void CreateSamplers()
+        {
+            var newSurfaceSampler = statePoolManager.Register(material.SurfaceMapSampler);
+            var newShadowSampler = statePoolManager.Register(DefaultSamplers.ShadowSampler);
+            var newIrradianceSampler = statePoolManager.Register(material.IrradianceMapSampler);
+
+            RemoveAndDispose(ref samplerResources[SurfaceSamplerIdx]);
+            RemoveAndDispose(ref samplerResources[ShadowSamplerIdx]);
+            RemoveAndDispose(ref samplerResources[IrradianceSamplerIdx]);
+
+            if (material != null) {
+                samplerResources[SurfaceSamplerIdx] = Collect(newSurfaceSampler);
+                samplerResources[ShadowSamplerIdx] = Collect(newShadowSampler);
+                samplerResources[IrradianceSamplerIdx] = Collect(newIrradianceSampler);
+            }
+        }
+
+        private void CreateSampler(SamplerStateDescription desc, int index)
+        {
+            var newRes = statePoolManager.Register(desc);
+            RemoveAndDispose(ref samplerResources[index]);
+            samplerResources[index] = Collect(newRes);
         }
     }
 }

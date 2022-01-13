@@ -11,7 +11,7 @@
 #pragma pack_matrix(row_major)
 
 static const float InvGamma = 1.0f / GAMMA;
-static const float3 lum_factor = float3(0.299f, 0.587f, 0.114f);
+//static const float3 lum_factor = float3(0.299f, 0.587f, 0.114f);
 
 
 float pow2(const in float x) {return x*x;}
@@ -24,26 +24,33 @@ float4 clip_to_screen(const in float4 pos)
 	o.xy = float2(o.x, -o.y) + o.w;
 	o.zw = pos.zw;
 	return o;
-	
-    //return float2(1.0f + pos.x / pos.z, 1.0f - pos.y / pos.z);
-
-	//return 0.5f * float2(pos.x, -pos.y) + 0.5f;
 }
 
-float srgb_to_linear(const float srgb) {
-	return pow(abs(srgb), GAMMA);
+float srgb_to_linear(const float rgb) {
+	//return pow(abs(srgb), GAMMA);
+    if (step(rgb, 0.04045f) == 1.0f) return rgb / 12.92f;
+    return pow((abs(rgb) + 0.055f) / 1.055f, 2.4f);
 }
 
-float2 srgb_to_linear(const float2 srg) {
-	return pow(abs(srg), GAMMA);
+float2 srgb_to_linear(const float2 rgb) {
+	//return pow(abs(srg), GAMMA);
+    const float2 shit = step(rgb, 0.04045f);
+    if (all(shit == 1.0f)) return rgb / 12.92f;
+    return pow((rgb + 0.055f) / 1.055f, 2.4f);
 }
 
-float3 srgb_to_linear(const float3 srgb) {
-	return pow(abs(srgb), GAMMA);
+float3 srgb_to_linear(const float3 rgb) {
+	//return pow(abs(srgb), GAMMA);
+	const float3 shit = step(rgb, 0.04045f);
+    if (all(shit == 1.0f)) return rgb / 12.92f;
+    return pow((abs(rgb) + 0.055f) / 1.055f, 2.4f);
 }
 
-float3 linear_to_srgb(const float3 rgb) {
-	return pow(abs(rgb), InvGamma);
+float3 linear_to_srgb(const float3 v) {
+	//return pow(abs(rgb), InvGamma);
+	const float3 shit = step(v, 0.0031308f);
+    if (all(shit == 1.0f)) return v * 12.92f;
+    return pow(abs(v), 1.0f / 2.4f) * 1.055f - 0.055f;
 }
 
 float f0_to_ior(const in float f0) {
@@ -79,10 +86,10 @@ float lengthSq(const in float3 vec)
 	return vec.x*vec.x + vec.y*vec.y + vec.z*vec.z;
 }
 
-float lum(const in float3 color)
-{
-    return dot(color, lum_factor);
-}
+//float lum(const in float3 color)
+//{
+//    return dot(color, lum_factor);
+//}
 
 void tangent_to_world(inout float3 tex_normal, const in float3 normal, const in float3 tangent, const in float3 bitangent)
 {

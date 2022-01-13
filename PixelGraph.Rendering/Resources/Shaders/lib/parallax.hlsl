@@ -2,6 +2,7 @@
 
 #pragma pack_matrix(row_major)
 
+static const float slope_strength = 40.0f;
 static const float soft_shadow_strength = 60.0;
 
 
@@ -142,9 +143,12 @@ float get_parallax_shadow(const in float3 tex, const in float2 offsetT, const in
     return 1.0 - result;
 }
 
-float3 get_slope_normal(const in float2 tex, const in float3 view, const in float3 tangent, const in float3 bitangent)
+void apply_slope_normal_fast(inout float3 tex_normal, const in float2 tex, const in float3 view, const in float3 tangent, const in float3 bitangent, const in float slope_depth)
 {
-	float3 tex_size, tex_normal;
+	//if (slope_depth < EPSILON) return;
+	if (slope_depth < 0.001f) return;
+
+	float3 tex_size;
     tex_normal_height.GetDimensions(0, tex_size.x, tex_size.y, tex_size.z);
 	const float2 tex_snapped = round(tex * tex_size.xy) / tex_size.xy;
     float2 tex_offset = tex - tex_snapped;
@@ -158,9 +162,93 @@ float3 get_slope_normal(const in float2 tex, const in float3 view, const in floa
     else {
         tex_normal = tangent * sign(-tex_offset.x);
 
-		float VoN = dot(view, tex_normal);
+        const float VoN = dot(view, tex_normal);
 		if (VoN < 0) tex_normal = bitangent * sign(-tex_offset.y);
     }
+}
 
-	return tex_normal;
+void apply_slope_normal(inout float3 tex_normal, const in float2 tex, const in float3 tangent, const in float3 bitangent, const in float tex_depth, const in float shadow_depth)
+{
+	const float slope_depth = tex_depth - shadow_depth;
+	if (slope_depth < 0.001f) return;
+	
+	float3 tex_size;
+    tex_normal_height.GetDimensions(0, tex_size.x, tex_size.y, tex_size.z);
+	const float2 pixel_size = rcp(tex_size.xy);
+
+	const float2 tex_snapped = floor(tex * tex_size.xy) * pixel_size;
+	//const float height = tex_normal_height.SampleLevel(sampler_height, tex_snapped, 0).a;
+    const float2 tex_offset = tex - tex_snapped - 0.5f * pixel_size;
+
+	// lookup neighbor heights
+	const float2 tex_up = tex_snapped + float2(0, -1) * pixel_size;
+	const float height_up = tex_normal_height.SampleLevel(sampler_height, tex_up, 0).a;
+
+	const float2 tex_down = tex_snapped + float2(0, 1) * pixel_size;
+	const float height_down = tex_normal_height.SampleLevel(sampler_height, tex_down, 0).a;
+
+	const float2 tex_left = tex_snapped + float2(-1, 0) * pixel_size;
+	const float height_left = tex_normal_height.SampleLevel(sampler_height, tex_left, 0).a;
+
+	const float2 tex_right = tex_snapped + float2(1, 0) * pixel_size;
+	const float height_right = tex_normal_height.SampleLevel(sampler_height, tex_right, 0).a;
+
+    if (abs(tex_offset.x) < abs(tex_offset.y)) {
+		if (tex_offset.y < 0.0f) { // up
+			if (tex_depth - slope_depth > height_up) {
+				tex_normal = -bitangent;
+				return;
+			}
+		}
+
+		if (tex_offset.y > 0.0f) { // down
+			if (tex_depth - slope_depth > height_down) {
+				tex_normal = bitangent;
+				return;
+			}
+		}
+
+		if (tex_offset.x < 0.0f) { // left
+			if (tex_depth - slope_depth > height_left) {
+				tex_normal = -tangent;
+				return;
+			}
+		}
+
+		if (tex_offset.x > 0.0f) { // right
+			if (tex_depth - slope_depth > height_right) {
+				tex_normal = tangent;
+				return;
+			}
+		}
+    }
+	else {
+		if (tex_offset.x < 0.0f) { // left
+			if (tex_depth - slope_depth > height_left) {
+				tex_normal = -tangent;
+				return;
+			}
+		}
+
+		if (tex_offset.x > 0.0f) { // right
+			if (tex_depth - slope_depth > height_right) {
+				tex_normal = tangent;
+				return;
+			}
+		}
+
+		if (tex_offset.y < 0.0f) { // up
+			if (tex_depth - slope_depth > height_up) {
+				tex_normal = -bitangent;
+				return;
+			}
+		}
+
+		if (tex_offset.y > 0.0f) { // down
+			if (tex_depth - slope_depth > height_down) {
+				tex_normal = bitangent;
+				return;
+			}
+		}
+	}
 }

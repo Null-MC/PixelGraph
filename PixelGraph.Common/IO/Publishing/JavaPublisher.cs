@@ -90,15 +90,16 @@ namespace PixelGraph.Common.IO.Publishing
                     properties["matchTiles"] = context.Material.CTM.MatchTiles;
 
                 if (!properties.ContainsKey("tiles")) {
-                    var minTile = context.Profile?.TileStartIndex ??
-                                  context.Material?.CTM?.TileStartIndex ?? 1;
+                    var minTile = context.Material?.CTM?.TileStartIndex ??
+                                  context.Profile?.TileStartIndex ?? 1;
 
                     var hasPlaceholder = context.Material.CTM?.Placeholder ?? false;
                     var tileCount = CtmTypes.GetBounds(context.Material.CTM)?.Total ?? 1;
                     var maxTile = minTile + tileCount - 1;
                     if (hasPlaceholder) minTile++;
 
-                    var result = $"{minTile:N0}{maxTile:N0}";
+                    var result = $"{minTile:N0}";
+                    if (maxTile > minTile) result += $"-{maxTile:N0}";
                     if (hasPlaceholder) result = $"<default> {result}";
                     properties["tiles"] = result;
                 }

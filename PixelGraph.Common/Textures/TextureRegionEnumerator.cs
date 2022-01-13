@@ -129,8 +129,12 @@ namespace PixelGraph.Common.Textures
             if (context.IsMaterialMultiPart)
                 return context.Material.Parts[index].Name;
 
-            if (context.IsMaterialCtm)
-                return (index + 1).ToString();
+            if (context.IsMaterialCtm) {
+                var start = context.Material?.CTM?.TileStartIndex ??
+                            context.Profile?.TileStartIndex ?? 1;
+
+                return (start + index).ToString();
+            }
 
             return context.Material.Name;
         }

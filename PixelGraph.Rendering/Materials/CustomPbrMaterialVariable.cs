@@ -75,7 +75,6 @@ namespace PixelGraph.Rendering.Materials
             DepthPass = technique[DefaultPassNames.DepthPrepass];
 
             UpdateMappings();
-
             CreateTextureViews();
             CreateSamplers();
         }

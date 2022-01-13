@@ -12,9 +12,12 @@ float4 main(const in ps_input_cube input) : SV_TARGET
 	//const float3 min = srgb_to_linear(vLightAmbient.rgb);
     
 	//float3 col_final = tonemap_AcesFilm(col * 2.0);
-    const float3 col_final = tonemap_HejlBurgess(min_light + col);
+    float3 final_color = min_light + col;
+	final_color = tonemap_ACESFit2(final_color);
+	//final_color = linear_to_srgb(final_color);
+
     //col = linear_to_srgb(col); // gamma
     //col += noise(uv * iTime) / 255.0; // dither
     
-	return float4(col_final, 1);
+	return float4(final_color, 1);
 }

@@ -21,7 +21,7 @@ namespace PixelGraph.UI.Helix.Materials
                 IrradianceCubeMapSource = EnvironmentCubeMapSource,
                 RenderEnvironmentMap = RenderEnvironmentMap,
                 SurfaceMapSampler = ColorSampler,
-                RenderShadowMap = false,
+                RenderShadowMap = true,
             };
 
             if (Material.TintColor != null) {

@@ -32,11 +32,10 @@ float4 main(const ps_input input) : SV_TARGET
 
     //-- Slope Normals --
     float3 tex_normal = src_normal;
-    const float slope_depth = tex_depth - shadow_tex.z;
-    if (EnableSlopeNormals && !EnableLinearSampling && slope_depth > EPSILON)
-        tex_normal = get_slope_normal(tex, view, tangent, bitangent);
+    if (EnableSlopeNormals && !EnableLinearSampling)
+        apply_slope_normal(tex_normal, tex, tangent, bitangent, tex_depth, shadow_tex.z);
 
-	const float reflectance = 0.5; // 4%
+	const float reflectance = 0.5f; // 4%
 	const float metal = mat.f0;
 	const float roughP = max(mat.rough, MIN_ROUGH);
 	const float roughL = roughP * roughP;
@@ -48,47 +47,50 @@ float4 main(const ps_input input) : SV_TARGET
 	
     const float NoV = saturate(dot(tex_normal, view));
     const float3x3 mTBN = float3x3(tangent, bitangent, normal);
-	const float4x4 mShadowViewProj = vLightView * vLightProjection;
+	//const float4x4 mShadowViewProj = vLightView * vLightProjection;
 
-    const float pom_depth = 1.0f - tex_depth;// abs((tex - input.tex) / input.poT);
-    const float3 pom_wp = input.wp.xyz + pom_depth * -view * CUBE_SIZE * ParallaxDepth;
+	const float pom_depth = (1.0f - tex_depth) / max(SNoV, EPSILON) * CUBE_SIZE * ParallaxDepth;
+    const float3 pom_wp = input.wp.xyz - pom_depth * view;
 
     float3 acc_light = 0.0;
     float spec_strength = 0.0f;
 
-    float light_att, light_shadow, NoL;
+    float light_att, NoL; //light_shadow
     float3 light_dir, light_color, light_diffuse, light_specular, H;
     float LoH, NoH; // VoH;
 
+	const float4x4 mShadowViewProj = mul(vLightView, vLightProjection);
+	const float4 sp = mul(float4(pom_wp, 1), mShadowViewProj);
+
+    [loop]
     for (int i = 0; i < NumLights; i++) {
-        light_color = srgb_to_linear(Lights[i].vLightColor.rgb) * 1.6f;
-        light_shadow = 1.0f;
+        light_color = srgb_to_linear(Lights[i].vLightColor.rgb);
+        //light_shadow = 1.0f;
+        light_att = 1.0f;
     	
         if (Lights[i].iLightType == 1) {
+            light_color *= 2.0f;
             light_dir = normalize(Lights[i].vLightDir.xyz);
-            light_att = 1.0f;
+            //light_att = 1.0f;
 
             if (bHasShadowMap && bRenderShadowMap) {
-	            float d = dot(light_dir, normal);
-
-	            if (d > 0) {
-					const float4 sp = mul(float4(pom_wp, input.wp.w), mShadowViewProj);
-	                light_shadow = shadow_strength(sp.xyz / sp.w);
+	            if (dot(light_dir, normal) > 0) {
+	                light_att = shadow_strength(sp.xyz / sp.w);
 	            }
                 else {
-	                light_shadow = 0.0f;
+	                light_att = 0.0f;
                 }
 			}
         }
         else if (Lights[i].iLightType == 2) {
-            light_dir = Lights[i].vLightPos.xyz - input.wp.xyz;
+            light_dir = Lights[i].vLightPos.xyz - pom_wp;
             const float light_dist = length(light_dir);
             light_dir = light_dir / light_dist;
 
         	light_att = rcp(Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
         }
         else if (Lights[i].iLightType == 3) {
-            light_dir = Lights[i].vLightPos.xyz - input.wp.xyz;
+            light_dir = Lights[i].vLightPos.xyz - pom_wp;
         	
             const float light_dist = length(light_dir);
 
@@ -104,7 +106,7 @@ float4 main(const ps_input input) : SV_TARGET
         const float SNoL = dot(normal, light_dir);
         const float3 lightT = mul(mTBN, light_dir);
         const float2 polT = get_parallax_offset(lightT, input.tex_max - input.tex_min);
-        light_shadow *= get_parallax_shadow(shadow_tex, polT, SNoL);
+        light_att *= get_parallax_shadow(shadow_tex, polT, SNoL);
         //if (light_shadow < EPSILON) continue;
 
         NoL = saturate(dot(tex_normal, light_dir));
@@ -117,15 +119,15 @@ float4 main(const ps_input input) : SV_TARGET
         light_diffuse = Diffuse_Burley(NoL, NoV) * c_diff; // TODO: missing LoH, roughL
 		light_specular = Specular_BRDF(roughL, c_spec, NoV, NoL, LoH, NoH, tex_normal, H);
 
-        const float3 light_factor = light_shadow * NoL * light_color * light_att;
+        const float3 light_factor = NoL * light_color * light_att;
 		acc_light += light_factor * (light_diffuse + light_specular);
-        spec_strength += lum(light_factor * light_specular);
+        spec_strength += luminance(light_factor * light_specular);
     }
 
 	float3 ibl_ambient, ibl_specular;
 	IBL(tex_normal, view, c_diff, c_spec, mat.occlusion, roughP, ibl_ambient, ibl_specular);
 
-    spec_strength += lum(ibl_specular);
+    spec_strength += luminance(ibl_specular);
 
 	const float3 emissive = mat.emissive * mat.albedo * PI;
 	
@@ -134,9 +136,9 @@ float4 main(const ps_input input) : SV_TARGET
 	float alpha = mat.alpha + spec_strength;
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
-	//final_color = tonemap_AcesFilm(final_color);
- //   final_color = linear_to_srgb(final_color);
-	final_color = tonemap_HejlBurgess(final_color);
+	final_color = tonemap_ACESFit2(final_color);
+	//final_color = linear_to_srgb(final_color);
+	//final_color = tonemap_Reinhard(final_color);
 	
     return float4(final_color, alpha);
 }

@@ -16,7 +16,6 @@
 #pragma pack_matrix(row_major)
 
 static const float3 up = float3(0.0f, 1.0f, 0.0f);
-//static const int blendMode = BLEND_CUTOUT;
 
 
 float4 main(const ps_input input) : SV_TARGET
@@ -60,7 +59,6 @@ float4 main(const ps_input input) : SV_TARGET
 
     float pom_depth = (1.0f - tex_depth) / max(SNoV, EPSILON) * CUBE_SIZE * ParallaxDepth;
     const float3 pom_wp = input.wp.xyz - pom_depth * view;
-    //return float4(pom_wp / CUBE_SIZE, 1);
 
     const float water_pom_depth = 1.0f - max(water_level_min, tex_depth);// abs((tex - input.tex) / input.poT);
     const float3 water_pom_wp = input.wp.xyz + water_pom_depth * -view * CUBE_SIZE * ParallaxDepth;
@@ -85,7 +83,6 @@ float4 main(const ps_input input) : SV_TARGET
 	
     // Blend base colors
 	const float metal = mat.f0 > 0.9f ? 1.0f : 0.0f;
-	//const float3 tint = srgb_to_linear(vMaterialDiffuse.rgb);
 	const float3 tint = srgb_to_linear(TintColor);
     float3 diffuse = mat.albedo * tint * (1.0f - metal);
 
@@ -107,11 +104,9 @@ float4 main(const ps_input input) : SV_TARGET
     //-- Slope Normals --
     float3 tex_normal = src_normal;
 
-    const float slope_depth = tex_depth - shadow_tex.z;
-    if (EnableSlopeNormals && !EnableLinearSampling && slope_depth > EPSILON) {
-        tex_normal = get_slope_normal(tex, view, tangent, bitangent);
-
-        wet_normal = tex_normal;
+    if (EnableSlopeNormals && !EnableLinearSampling) {
+	    apply_slope_normal(tex_normal, tex, tangent, bitangent, tex_depth, shadow_tex.z);
+	    wet_normal = tex_normal;
     }
 
     //float tex_water = saturate(0.5f + 0.5f * dot(tex_normal, up)) * surface_water;
@@ -122,8 +117,6 @@ float4 main(const ps_input input) : SV_TARGET
 	//if (EnablePuddles) wet_depth = max(Wetness - (1.0f - rcp(WATER_DEPTH_SCALE)) * shadow_depth, 0.0f) * WATER_DEPTH_SCALE;
 
     wet_normal = lerp(wet_normal, up, saturate(surface_up * wet_depth));
-
-    //return float4(wet_normal, 1);
 
     float water = max(surface_wetness, wet_depth);
 	float wet_roughL = lerp(roughL, WATER_ROUGH, water);
@@ -141,54 +134,40 @@ float4 main(const ps_input input) : SV_TARGET
     float3 acc_sss = 0.0;
     float spec_strength = 0.0f;
 
-    float light_att, light_shadow, NoL;
+    float light_att, NoL;
     float3 light_dir, light_color, light_diffuse, light_specular, H;
     float LoH, NoH, VoH;
 
 	const float4x4 mShadowViewProj = mul(vLightView, vLightProjection);
 	const float4 sp = mul(float4(pom_wp, 1), mShadowViewProj);
-	//const float4 sp = mul(input.wp, mShadowViewProj);
-
-    //return float4(abs(pom_wp - input.wp.xyz), 1);
-
-
-    // WARN: TESTING
-    //light_shadow = shadow_strength(sp.xyz / sp.w);
-    //return float4(light_shadow, light_shadow, light_shadow, 1);
-	//const float shadow_depth = tex_shadow.SampleLevel(sampler_light, sp.xy / sp.w, 0);
-	//const float shadow_depth = sp.z / sp.w;
-	//return float4(shadow_depth, shadow_depth, shadow_depth, 1);
-
 
 	[loop]
     for (int i = 0; i < NumLights; i++) {
-        light_color = srgb_to_linear(Lights[i].vLightColor.rgb) * 6.0f;
-        light_shadow = 1.0f;
+        light_color = srgb_to_linear(Lights[i].vLightColor.rgb);
+        light_att = 1.0f;
     	
-        if (Lights[i].iLightType == 1) {
+        if (Lights[i].iLightType == 1) { // directional
+            light_color *= 6.0f;
             light_dir = normalize(Lights[i].vLightDir.xyz);
-            light_att = 1.0f;
 
             if (bHasShadowMap && bRenderShadowMap) {
-	            float d = dot(light_dir, normal);
-
-	            if (d > 0) {
-	                light_shadow = shadow_strength(sp.xyz / sp.w);
+	            if (dot(light_dir, normal) > 0) {
+	                light_att = shadow_strength(sp.xyz / sp.w);
 	            }
                 else {
-	                light_shadow = 0.0f;
+	                light_att = 0.0f;
                 }
 			}
         }
-        else if (Lights[i].iLightType == 2) {
-            light_dir = Lights[i].vLightPos.xyz - input.wp.xyz;
+        else if (Lights[i].iLightType == 2) { // point
+            light_dir = Lights[i].vLightPos.xyz - pom_wp;
             const float light_dist = length(light_dir);
             light_dir = light_dir / light_dist;
 
         	light_att = rcp(Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
         }
-        else if (Lights[i].iLightType == 3) {
-            light_dir = Lights[i].vLightPos.xyz - input.wp.xyz;
+        else if (Lights[i].iLightType == 3) { // spot
+            light_dir = Lights[i].vLightPos.xyz - pom_wp;
         	
             const float light_dist = length(light_dir);
 
@@ -204,7 +183,7 @@ float4 main(const ps_input input) : SV_TARGET
         const float SNoL = dot(normal, light_dir);
         const float3 lightT = mul(mTBN, light_dir);
         const float2 polT = get_parallax_offset(lightT, input.tex_max - input.tex_min);
-        light_shadow *= get_parallax_shadow(shadow_tex, polT, SNoL);
+        light_att *= get_parallax_shadow(shadow_tex, polT, SNoL);
         //if (light_shadow < EPSILON) continue;
 
         NoL = saturate(dot(tex_normal, light_dir));
@@ -275,19 +254,19 @@ float4 main(const ps_input input) : SV_TARGET
             //light_specular = Fr_1 + T_1 * Fr_2 * Absorption * T_2;
             light_specular = T_1 * Fr_2 * absorption * T_2;
 
-            const float3 Fr_1 = specular_brdf_clearcoat(ETA_AIR_TO_WATER, light_diffuse, light_specular, LoH, NoH_1, VoH, wet_roughL, water, light_shadow, water_shadow);
+            const float3 Fr_1 = specular_brdf_clearcoat(ETA_AIR_TO_WATER, light_diffuse, light_specular, LoH, NoH_1, VoH, wet_roughL, water, light_att, water_shadow);
             //return float4(Fr_1, 1);
 
-			acc_light += NoL * light_color * light_att * Fr_1;
+			acc_light += NoL * light_color * Fr_1;
         }
         else {
 			light_specular = mat.f0 > 0.9f
         		? specular_brdf_conductor(IOR_N_AIR, ior_n, ior_k, LoH, NoH, VoH, roughL) * metal_albedo
         		: specular_brdf(ior_n.r, LoH, NoH, VoH, roughL);
 
-            const float3 light_factor = light_shadow * NoL * light_color * light_att;
+            const float3 light_factor = NoL * light_color * light_att;
 			acc_light += light_factor * (light_diffuse + light_specular);
-            spec_strength += lum(light_factor * light_specular);
+            spec_strength += luminance(light_factor * light_specular);
         }
     }
 
@@ -319,21 +298,14 @@ float4 main(const ps_input input) : SV_TARGET
 		ibl_specular += IBL_specular(ibl_F_water, NoV_wet, r, mat.occlusion, wet_roughL) * water; // * metal_albedo
     }
 
-    spec_strength += lum(ibl_specular);
+    spec_strength += luminance(ibl_specular);
 
 	float sss_strength = 0.0f;
 	float3 ibl_sss = 0.0f;
 
 	if (bHasCubeMap && bRenderShadowMap) {
-  //      float4 wp = input.wp;
-
-		//float depth_offset = (1.0f - shadow_tex.z) / SNoV;
-  //      wp.xyz -= view * depth_offset * ParallaxDepth * CUBE_SIZE;
-		//
-		//float4 sp = mul(wp, mShadowViewProj);
 		float thickness = SSS_Thickness(sp.xyz / sp.w);
-
-		float sss_dist = lerp(160.0f, 60.0f, sqrt(mat.sss));
+        float sss_dist = lerp(160.0f, 60.0f, sqrt(mat.sss));
 		sss_strength = rcp(1.0f + thickness * sss_dist) * mat.sss * SunStrength;
 		
 		acc_sss += SSS_Light(tex_normal, view, SunDirection) * SunStrength;
@@ -354,9 +326,9 @@ float4 main(const ps_input input) : SV_TARGET
 	float alpha = mat.alpha + spec_strength;
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
-	//final_color = tonemap_AcesFilm(final_color);
+	final_color = tonemap_ACESFit2(final_color);
 	//final_color = linear_to_srgb(final_color);
-	final_color = tonemap_HejlBurgess(final_color);
+	//final_color = tonemap_Reinhard(final_color);
 
     return float4(final_color, alpha);
 }

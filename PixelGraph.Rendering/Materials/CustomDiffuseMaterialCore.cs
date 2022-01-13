@@ -2,6 +2,7 @@
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using PixelGraph.Rendering.CubeMaps;
+using PixelGraph.Rendering.Shaders;
 using SharpDX;
 using SharpDX.Direct3D11;
 
@@ -13,6 +14,7 @@ namespace PixelGraph.Rendering.Materials
         private TextureModel _emissiveMap;
         private ICubeMapSource _irradianceCubeMapSource;
         private SamplerStateDescription _surfaceMapSampler;
+        private SamplerStateDescription _shadowMapSampler;
         private SamplerStateDescription _irradianceMapSampler;
         private Color4 _colorTint;
         private bool _renderShadowMap;
@@ -36,6 +38,11 @@ namespace PixelGraph.Rendering.Materials
         public SamplerStateDescription SurfaceMapSampler {
             get => _surfaceMapSampler; 
             set => Set(ref _surfaceMapSampler, value); 
+        }
+
+        public SamplerStateDescription ShadowMapSampler {
+            get => _shadowMapSampler;
+            set => Set(ref _shadowMapSampler, value);
         }
 
         public SamplerStateDescription IrradianceMapSampler {
@@ -62,6 +69,7 @@ namespace PixelGraph.Rendering.Materials
         public CustomDiffuseMaterialCore()
         {
             _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
+            _shadowMapSampler = CustomSamplerStates.Shadow;
             _irradianceMapSampler = DefaultSamplers.IBLSampler;
         }
 
