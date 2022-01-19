@@ -1,4 +1,5 @@
-#define EPSILON 1e-6f
+//#include "common_funcs.hlsl"
+//#define EPSILON 1e-6f
 
 #pragma pack_matrix(row_major)
 
@@ -29,7 +30,7 @@ float2 get_parallax_offset(const in float3 lightT, const in float2 uv_size)
 	return parallax_dir * parallax_length * ParallaxDepth;
 }
 
-float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, const in float NoV, out float3 shadow_tex, out float tex_depth)
+float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, const in float NoV, out float3 shadow_tex, out float tex_depth) //, out float3 hit_normal)
 {
 	const int step_count = (int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoV);
 	const float step_size = 1.0 / step_count;
@@ -63,11 +64,11 @@ float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, const
 	return EnableLinearSampling ? shadow_tex.xy : trace_offset;
 }
 
-float2 get_parallax_texcoord_wet(const in float2 tex, const in float2 offsetT, const in float NoV, const in float water_level, out float3 water_tex, out float3 shadow_tex, out float tex_depth)
+float2 get_parallax_texcoord_wet(const in float2 tex, const in float2 vTS, const in float2 rTS, const in float NoV, const in float water_level, out float2 water_tex, out float3 shadow_tex, out float tex_depth)
 {
 	const int step_count = (int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoV);
-	const float step_size = 1.0 / step_count;
-	const float2 step_offset = step_size * offsetT;
+	const float step_size = rcp(step_count);
+	float2 step_offset = step_size * vTS;
 	
 	float trace_depth = 1.0;
 	float2 trace_offset = tex;
@@ -85,8 +86,11 @@ float2 get_parallax_texcoord_wet(const in float2 tex, const in float2 offsetT, c
 
 		if (!hit_water && trace_depth <= water_level) {
 			water_tex.xy = trace_offset;
-			water_tex.z = max(water_level - tex_depth, 0.0f);
+			//water_tex.z = water_level;
+			//water_tex.w = saturate(water_level - tex_depth);
 			hit_water = true;
+
+			step_offset = step_size * rTS;
 		}
 
 		if (trace_depth <= tex_depth) break;
@@ -105,7 +109,7 @@ float2 get_parallax_texcoord_wet(const in float2 tex, const in float2 offsetT, c
 
 	if (!hit_water) {
 		water_tex.xy = shadow_tex.xy;
-		water_tex.z = 0.0f;
+		//water_tex.z = 0.0f;
 	}
 
 	return EnableLinearSampling ? shadow_tex.xy : trace_offset;
@@ -116,7 +120,7 @@ float get_parallax_shadow(const in float3 tex, const in float2 offsetT, const in
 	if (NoL <= 0.0) return 0.0;
 	
 	const int step_count = (int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoL);
-	const float step_size = 1.0 / step_count;
+	const float step_size = rcp(step_count);
 	const float2 step_offset = step_size * offsetT;
 	
 	float trace_depth = tex.z;
@@ -143,112 +147,33 @@ float get_parallax_shadow(const in float3 tex, const in float2 offsetT, const in
     return 1.0 - result;
 }
 
-void apply_slope_normal_fast(inout float3 tex_normal, const in float2 tex, const in float3 view, const in float3 tangent, const in float3 bitangent, const in float slope_depth)
+float3 apply_slope_normal(const in float2 tex, const in float2 step_dir, const in float trace_depth)
 {
-	//if (slope_depth < EPSILON) return;
-	if (slope_depth < 0.001f) return;
-
-	float3 tex_size;
-    tex_normal_height.GetDimensions(0, tex_size.x, tex_size.y, tex_size.z);
-	const float2 tex_snapped = round(tex * tex_size.xy) / tex_size.xy;
-    float2 tex_offset = tex - tex_snapped;
-
-    if (abs(tex_offset.y) < abs(tex_offset.x)) {
-        tex_normal = bitangent * sign(-tex_offset.y);
-
-        const float VoN = dot(view, tex_normal);
-		if (VoN < 0) tex_normal = tangent * sign(-tex_offset.x);
-    }
-    else {
-        tex_normal = tangent * sign(-tex_offset.x);
-
-        const float VoN = dot(view, tex_normal);
-		if (VoN < 0) tex_normal = bitangent * sign(-tex_offset.y);
-    }
-}
-
-void apply_slope_normal(inout float3 tex_normal, const in float2 tex, const in float3 tangent, const in float3 bitangent, const in float tex_depth, const in float shadow_depth)
-{
-	const float slope_depth = tex_depth - shadow_depth;
-	if (slope_depth < 0.001f) return;
-	
 	float3 tex_size;
     tex_normal_height.GetDimensions(0, tex_size.x, tex_size.y, tex_size.z);
 	const float2 pixel_size = rcp(tex_size.xy);
 
 	const float2 tex_snapped = floor(tex * tex_size.xy) * pixel_size;
-	//const float height = tex_normal_height.SampleLevel(sampler_height, tex_snapped, 0).a;
     const float2 tex_offset = tex - tex_snapped - 0.5f * pixel_size;
+	const float2 step_sign = sign(step_dir);
 
-	// lookup neighbor heights
-	const float2 tex_up = tex_snapped + float2(0, -1) * pixel_size;
-	const float height_up = tex_normal_height.SampleLevel(sampler_height, tex_up, 0).a;
+	const float2 tex_x = tex_snapped + float2(pixel_size.x * step_sign.x, 0.0f);
+	const float height_x = tex_normal_height.SampleLevel(sampler_height, tex_x, 0).a;
+	const bool has_x = trace_depth > height_x && sign(tex_offset.x) == step_sign.x;
 
-	const float2 tex_down = tex_snapped + float2(0, 1) * pixel_size;
-	const float height_down = tex_normal_height.SampleLevel(sampler_height, tex_down, 0).a;
-
-	const float2 tex_left = tex_snapped + float2(-1, 0) * pixel_size;
-	const float height_left = tex_normal_height.SampleLevel(sampler_height, tex_left, 0).a;
-
-	const float2 tex_right = tex_snapped + float2(1, 0) * pixel_size;
-	const float height_right = tex_normal_height.SampleLevel(sampler_height, tex_right, 0).a;
+	const float2 tex_y = tex_snapped + float2(0.0f, pixel_size.y * step_sign.y);
+	const float height_y = tex_normal_height.SampleLevel(sampler_height, tex_y, 0).a;
+	const bool has_y = trace_depth > height_y && sign(tex_offset.y) == step_sign.y;
 
     if (abs(tex_offset.x) < abs(tex_offset.y)) {
-		if (tex_offset.y < 0.0f) { // up
-			if (tex_depth - slope_depth > height_up) {
-				tex_normal = -bitangent;
-				return;
-			}
-		}
-
-		if (tex_offset.y > 0.0f) { // down
-			if (tex_depth - slope_depth > height_down) {
-				tex_normal = bitangent;
-				return;
-			}
-		}
-
-		if (tex_offset.x < 0.0f) { // left
-			if (tex_depth - slope_depth > height_left) {
-				tex_normal = -tangent;
-				return;
-			}
-		}
-
-		if (tex_offset.x > 0.0f) { // right
-			if (tex_depth - slope_depth > height_right) {
-				tex_normal = tangent;
-				return;
-			}
-		}
+		if (has_y) return float3(0.0f, step_sign.y, 0.0f);
+		if (has_x) return float3(step_sign.x, 0.0f, 0.0f);
     }
 	else {
-		if (tex_offset.x < 0.0f) { // left
-			if (tex_depth - slope_depth > height_left) {
-				tex_normal = -tangent;
-				return;
-			}
-		}
-
-		if (tex_offset.x > 0.0f) { // right
-			if (tex_depth - slope_depth > height_right) {
-				tex_normal = tangent;
-				return;
-			}
-		}
-
-		if (tex_offset.y < 0.0f) { // up
-			if (tex_depth - slope_depth > height_up) {
-				tex_normal = -bitangent;
-				return;
-			}
-		}
-
-		if (tex_offset.y > 0.0f) { // down
-			if (tex_depth - slope_depth > height_down) {
-				tex_normal = bitangent;
-				return;
-			}
-		}
+		if (has_x) return float3(step_sign.x, 0.0f, 0.0f);
+		if (has_y) return float3(0.0f, step_sign.y, 0.0f);
 	}
+
+    float s = step(abs(step_dir.y), abs(step_dir.x));
+    return float3(float2(1.0f - s, s) * step_sign, 0.0f);
 }

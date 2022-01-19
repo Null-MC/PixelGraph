@@ -3,8 +3,7 @@
 
 #pragma pack_matrix(row_major)
 
-static const float3 up = float3(0.0, 1.0, 0.0);
-static const float sample_delta = 0.025;
+static const float sample_delta = 0.025f;
 
 
 float4 main(const in ps_input_cube input) : SV_TARGET
@@ -16,8 +15,8 @@ float4 main(const in ps_input_cube input) : SV_TARGET
 	float3 irradiance = 0.0;
 	float sample_count = 0.0;
 	
-	for (float phi = 0.0; phi < 2.0 * PI; phi += sample_delta) {
-		for (float theta = 0.0; theta < 0.5 * PI; theta += sample_delta) {
+	for (float phi = 0.0f; phi < 2.0f * PI; phi += sample_delta) {
+		for (float theta = 0.0f; theta < 0.5f * PI; theta += sample_delta) {
 			const float cos_theta = cos(theta);
 			const float sin_theta = sin(theta);
 			
@@ -32,6 +31,6 @@ float4 main(const in ps_input_cube input) : SV_TARGET
 		}
 	}
 	
-	irradiance = PI * irradiance * (1.0 / float(sample_count));
-	return float4(irradiance, 1.0);
+	irradiance = PI * irradiance * rcp(float(sample_count));
+	return float4(irradiance, 1.0f);
 }

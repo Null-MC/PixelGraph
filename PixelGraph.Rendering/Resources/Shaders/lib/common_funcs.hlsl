@@ -8,7 +8,16 @@
 #define BLEND_TRANSPARENT 2
 #define CUTOUT_THRESHOLD 0.1f
 
+#define IOR_N_AIR 1.0f
+#define IOR_N_WATER 1.333f
+
 #pragma pack_matrix(row_major)
+
+static const float3 up = float3(0.0f, 1.0f, 0.0f);
+static const float3 tan_up = float3(0.0f, 0.0f, 1.0f);
+
+static const float ETA_AIR_TO_WATER = IOR_N_WATER / IOR_N_AIR;
+static const float ETA_WATER_TO_AIR = IOR_N_AIR / IOR_N_WATER;
 
 static const float InvGamma = 1.0f / GAMMA;
 //static const float3 lum_factor = float3(0.299f, 0.587f, 0.114f);

@@ -1,6 +1,4 @@
 #define PI 3.14159265f
-#define IOR_N_AIR 1.0f
-#define IOR_N_WATER 1.333f
 #define F0_WATER 0.02f
 #define WATER_ROUGH 0.008f
 #define WATER_BLUR 1.2f
@@ -141,7 +139,7 @@ float3 specular_brdf_clearcoat(const in float eta, const in float3 Fd, const in 
 	const float Frc = D * G * F;
 
 	const float invFc = 1.0f - F;
-	return (Fd + Fr * invFc) * invFc * surface_shadow + Frc * water_shadow;
+	return (Fd + Fr) * invFc * surface_shadow + Frc * water_shadow;
 }
 
 float Diffuse_Burley(const in float NoL, const in float NoV, const in float LoH, const in float rough)

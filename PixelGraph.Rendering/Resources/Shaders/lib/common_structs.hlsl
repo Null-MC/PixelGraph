@@ -38,7 +38,9 @@ struct ps_input
 	float4 pos  : SV_POSITION;
 	float4 wp   : POSITION0;
 	float3 eye  : POSITION1;
-	float2 poT  : POSITION2;
+	float3 vT   : POSITION2;
+	float2 vTS  : POSITION3;
+	//float2 rTS  : POSITION4;
     float3 nor  : NORMAL;
 	float3 tan  : TANGENT;
 	float3 bin  : BINORMAL;

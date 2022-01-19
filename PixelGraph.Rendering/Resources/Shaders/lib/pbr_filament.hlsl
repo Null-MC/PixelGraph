@@ -1,3 +1,5 @@
+//#include "common_funcs.hlsl"
+
 #define MEDIUMP_FLT_MAX    65504.0
 #define saturateMediump(x) min(x, MEDIUMP_FLT_MAX)
 

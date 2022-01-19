@@ -17,11 +17,13 @@ float4 main(const ps_input input) : SV_TARGET
     const float3 bitangent = normalize(input.bin);
 	const float3 view = normalize(input.eye.xyz);
 
+    const float3x3 mTBN = float3x3(tangent, bitangent, normal);
+
 	float3 shadow_tex = 0;
     float tex_depth = 0;
 
     const float SNoV = saturate(dot(normal, view));
-	const float2 tex = get_parallax_texcoord(input.tex, input.poT, SNoV, shadow_tex, tex_depth);
+	const float2 tex = get_parallax_texcoord(input.tex, input.vTS, SNoV, shadow_tex, tex_depth);
 	const float3 src_normal = calc_tex_normal(tex, normal, tangent, bitangent);
 	const pbr_material mat = get_pbr_material(tex);
 	
@@ -32,8 +34,12 @@ float4 main(const ps_input input) : SV_TARGET
 
     //-- Slope Normals --
     float3 tex_normal = src_normal;
-    if (EnableSlopeNormals && !EnableLinearSampling)
-        apply_slope_normal(tex_normal, tex, tangent, bitangent, tex_depth, shadow_tex.z);
+    if (EnableSlopeNormals && !EnableLinearSampling) {
+		if (tex_depth - shadow_tex.z > 0.002f) {
+			const float3 slope = apply_slope_normal(tex, input.vTS, shadow_tex.z);
+			tex_normal = mul(slope, mTBN);
+        }
+    }
 
 	const float reflectance = 0.5f; // 4%
 	const float metal = mat.f0;
@@ -46,7 +52,6 @@ float4 main(const ps_input input) : SV_TARGET
     const float3 c_spec = 0.16 * reflectance * reflectance * (1.0 - metal) + mat.albedo * metal;
 	
     const float NoV = saturate(dot(tex_normal, view));
-    const float3x3 mTBN = float3x3(tangent, bitangent, normal);
 	//const float4x4 mShadowViewProj = vLightView * vLightProjection;
 
 	const float pom_depth = (1.0f - tex_depth) / max(SNoV, EPSILON) * CUBE_SIZE * ParallaxDepth;
