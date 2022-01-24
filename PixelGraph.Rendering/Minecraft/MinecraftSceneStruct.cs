@@ -13,7 +13,7 @@ namespace PixelGraph.Rendering.Minecraft
         public float SunStrength;
         public float TimeOfDay;
         public float Wetness;
-        public bool EnablePuddles;
+        public int WaterMode;
         public float ParallaxDepth;
         public int ParallaxSamplesMin;
         public int ParallaxSamplesMax;

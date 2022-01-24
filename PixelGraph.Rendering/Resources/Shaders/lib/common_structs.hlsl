@@ -1,5 +1,9 @@
 #define LIGHTS 8
 
+#define WATER_SURFACE 0
+#define WATER_PUDDLES 1
+#define WATER_FULL 2
+
 #pragma pack_matrix(row_major)
 
 
@@ -57,9 +61,8 @@ struct ps_input_cube
 
 struct ps_shadow
 {
-    float4 pos : SV_POSITION;
+    //float4 pos : SV_POSITION;
 	float2 tex : TEXCOORD0;
-	float4 wp  : POSITION0;
 	float2 poT : POSITION1;
     float3 nor : NORMAL;
 };
@@ -149,7 +152,7 @@ cbuffer cbMinecraftScene : register(b2)
 	float SunStrength;
     float TimeOfDay;
     float Wetness;
-    bool EnablePuddles = false;
+    int WaterMode = WATER_SURFACE;
     float ParallaxDepth;
     int ParallaxSamplesMin;
     int ParallaxSamplesMax;

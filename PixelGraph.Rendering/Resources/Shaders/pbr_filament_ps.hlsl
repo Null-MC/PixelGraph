@@ -54,7 +54,7 @@ float4 main(const ps_input input) : SV_TARGET
     const float NoV = saturate(dot(tex_normal, view));
 	//const float4x4 mShadowViewProj = vLightView * vLightProjection;
 
-	const float pom_depth = (1.0f - tex_depth) / max(SNoV, EPSILON) * CUBE_SIZE * ParallaxDepth;
+	const float pom_depth = (1.0f - tex_depth) / max(SNoV, EPSILON) * BLOCK_SIZE * ParallaxDepth;
     const float3 pom_wp = input.wp.xyz - pom_depth * view;
 
     float3 acc_light = 0.0;

@@ -103,46 +103,43 @@ namespace PixelGraph.Rendering.Models
                         Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Bottom));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Top));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Top));
+
+                        Builder.AddTextureCoordinateMax4x(uv.BottomRight);
+                        Builder.AddTextureCoordinateMin4x(uv.TopLeft);
                         break;
                     case 90:
                         Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Top));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Bottom));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Bottom));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Top));
+
+                        Builder.AddTextureCoordinateMax4x(uv.TopRight);
+                        Builder.AddTextureCoordinateMin4x(uv.BottomLeft);
                         break;
                     case 180:
                         Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Top));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Top));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Bottom));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Bottom));
+
+                        Builder.AddTextureCoordinateMax4x(uv.TopLeft);
+                        Builder.AddTextureCoordinateMin4x(uv.BottomRight);
                         break;
                     case 270:
                         Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Bottom));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Top));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Top));
                         Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Bottom));
+
+                        Builder.AddTextureCoordinateMax4x(uv.BottomLeft);
+                        Builder.AddTextureCoordinateMin4x(uv.TopRight);
                         break;
                     default:
                         throw new ApplicationException($"Found invalid model element face UV rotation value '{uvRotation}'!");
                 }
 
-                Builder.AddTextureCoordinateMin4x(uv.TopLeft);
-                Builder.AddTextureCoordinateMax4x(uv.BottomRight);
-                //builder.AddTextureCoordinateMin4x(new Vector2(uv.Right, uv.Bottom));
-                //builder.AddTextureCoordinateMax4x(new Vector2(uv.Left, uv.Top));
-
-                //switch (uvRotation) {
-                //    case 0:
-                //    case 180:
-                //        builder.AddTextureCoordinateMin4x(uv.TopLeft);
-                //        builder.AddTextureCoordinateMax4x(uv.BottomRight);
-                //        break;
-                //    case 90:
-                //    case 270:
-                //        builder.AddTextureCoordinateMin4x(new Vector2(uv.Top, uv.Left));
-                //        builder.AddTextureCoordinateMax4x(new Vector2(uv.Bottom, uv.Right));
-                //        break;
-                //}
+                //Builder.AddTextureCoordinateMin4x(uv.TopLeft);
+                //Builder.AddTextureCoordinateMax4x(uv.BottomRight);
             }
 
             Builder.TriangleIndices.Add(i0 + 2);

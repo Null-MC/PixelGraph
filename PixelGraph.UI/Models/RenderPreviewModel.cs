@@ -1,5 +1,8 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
+using MinecraftMappings.Internal;
+using MinecraftMappings.Internal.Textures.Block;
+using MinecraftMappings.Minecraft;
 using PixelGraph.Common.Material;
 using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.UI.Internal;
@@ -8,9 +11,6 @@ using SharpDX;
 using System;
 using System.IO;
 using System.Linq;
-using MinecraftMappings.Internal;
-using MinecraftMappings.Internal.Textures.Block;
-using MinecraftMappings.Minecraft;
 using Media = System.Windows.Media;
 
 namespace PixelGraph.UI.Models
@@ -31,7 +31,7 @@ namespace PixelGraph.UI.Models
         private int _parallaxSamplesMax;
         private bool _enableLinearSampling;
         private bool _enableSlopeNormals;
-        private bool _enablePuddles;
+        private int _waterMode;
         private Camera _sunCamera;
         private Vector3 _sunDirection;
         private float _sunStrength;
@@ -94,10 +94,10 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public bool EnablePuddles {
-            get => _enablePuddles;
+        public int WaterMode {
+            get => _waterMode;
             set {
-                _enablePuddles = value;
+                _waterMode = value;
                 OnPropertyChanged();
             }
         }

@@ -1,6 +1,3 @@
-//#include "common_funcs.hlsl"
-//#define EPSILON 1e-6f
-
 #pragma pack_matrix(row_major)
 
 static const float slope_strength = 40.0f;
@@ -9,24 +6,14 @@ static const float soft_shadow_strength = 60.0;
 
 float2 get_parallax_offset(const in float3 lightT, const in float2 uv_size)
 {
-	//const float3 lightT = mul(mTBN, view);
 	const float length_sq = dot(lightT, lightT);
 	const float parallax_length = sqrt(length_sq - lightT.z * lightT.z) / lightT.z;
 	float2 parallax_dir = normalize(lightT.xy);
 
-	//if (uv_size.x < 0.0f) parallax_dir.x *= -1;
-	//if (uv_size.y < 0.0f) parallax_dir.y *= -1;
-	if (uv_size.x < 0.0f && uv_size.y < 0.0f) {
-		//parallax_dir.xy *= -1;
-	}
-	else {
-		if (uv_size.x < 0.0f) parallax_dir.y *= -1;
-		if (uv_size.y < 0.0f) parallax_dir.x *= -1;
-	}
+	if (uv_size.x < 0.0f) parallax_dir.y *= -1;
+	else if (uv_size.y < 0.0f) parallax_dir.y *= -1;
 
-    //if (uv_size.x < 0.0f) parallax_dir.y *= -1;
-    //if (uv_size.y < 0.0f) parallax_dir.x *= -1;
-
+	parallax_dir.y *= -1;
 	return parallax_dir * parallax_length * ParallaxDepth;
 }
 
@@ -166,12 +153,12 @@ float3 apply_slope_normal(const in float2 tex, const in float2 step_dir, const i
 	const bool has_y = trace_depth > height_y && sign(tex_offset.y) == step_sign.y;
 
     if (abs(tex_offset.x) < abs(tex_offset.y)) {
-		if (has_y) return float3(0.0f, step_sign.y, 0.0f);
+		if (has_y) return float3(0.0f, -step_sign.y, 0.0f);
 		if (has_x) return float3(step_sign.x, 0.0f, 0.0f);
     }
 	else {
 		if (has_x) return float3(step_sign.x, 0.0f, 0.0f);
-		if (has_y) return float3(0.0f, step_sign.y, 0.0f);
+		if (has_y) return float3(0.0f, -step_sign.y, 0.0f);
 	}
 
     float s = step(abs(step_dir.y), abs(step_dir.x));

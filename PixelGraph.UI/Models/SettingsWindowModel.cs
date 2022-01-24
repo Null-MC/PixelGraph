@@ -11,7 +11,7 @@ namespace PixelGraph.UI.Models
         private bool _renderPreview_enabled;
         private bool _renderPreview_enableLinearSampling;
         private bool _renderPreview_enableSlopeNormals;
-        private bool _renderPreview_enablePuddles;
+        private int _renderPreview_waterMode;
         //private bool _renderPreview_parallaxEnabled;
         private decimal? _renderPreview_parallaxDepth;
         private int? _renderPreview_parallaxSamplesMin;
@@ -86,10 +86,10 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public bool RenderPreview_EnablePuddles {
-            get => _renderPreview_enablePuddles;
+        public int RenderPreview_WaterMode {
+            get => _renderPreview_waterMode;
             set {
-                _renderPreview_enablePuddles = value;
+                _renderPreview_waterMode = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }

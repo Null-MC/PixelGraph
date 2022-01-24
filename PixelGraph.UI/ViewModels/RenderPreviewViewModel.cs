@@ -1,5 +1,6 @@
 ﻿using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Material;
 using PixelGraph.Rendering;
 using PixelGraph.Rendering.Shaders;
 using PixelGraph.Rendering.Utilities;
@@ -14,7 +15,6 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Material;
 using Media3D = System.Windows.Media.Media3D;
 
 namespace PixelGraph.UI.ViewModels
@@ -108,7 +108,7 @@ namespace PixelGraph.UI.ViewModels
             RenderModel.ParallaxSamplesMax = appSettings.Data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
             RenderModel.EnableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling ?? RenderPreviewSettings.Default_EnableLinearSampling;
             RenderModel.EnableSlopeNormals = appSettings.Data.RenderPreview.EnableSlopeNormals ?? RenderPreviewSettings.Default_EnableSlopeNormals;
-            RenderModel.EnablePuddles = appSettings.Data.RenderPreview.EnablePuddles ?? RenderPreviewSettings.Default_EnablePuddles;
+            RenderModel.WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
 
             if (appSettings.Data.RenderPreview.SelectedMode != null)
                 if (RenderPreviewMode.TryParse(appSettings.Data.RenderPreview.SelectedMode, out var renderMode))

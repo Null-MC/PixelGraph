@@ -57,9 +57,9 @@ namespace PixelGraph.Rendering.Minecraft
             set => SceneCore.EnableSlopeNormals = value;
         }
 
-        public bool EnablePuddles {
-            get => SceneCore.EnablePuddles;
-            set => SceneCore.EnablePuddles = value;
+        public int WaterMode {
+            get => SceneCore.WaterMode;
+            set => SceneCore.WaterMode = value;
         }
 
 
@@ -91,7 +91,7 @@ namespace PixelGraph.Rendering.Minecraft
             sceneCore.ParallaxSamplesMax = ParallaxSamplesMax;
             sceneCore.EnableLinearSampling = EnableLinearSampling;
             sceneCore.EnableSlopeNormals = EnableSlopeNormals;
-            sceneCore.EnablePuddles = EnablePuddles;
+            sceneCore.WaterMode = WaterMode;
         }
 
         protected override bool CanHitTest(HitTestContext context) => false;

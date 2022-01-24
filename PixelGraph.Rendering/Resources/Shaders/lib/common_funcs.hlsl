@@ -1,4 +1,4 @@
-#define CUBE_SIZE 4.0f
+#define BLOCK_SIZE 4.0f
 #define PI 3.14159265f
 #define EPSILON 1e-6f
 #define GAMMA 2.4

@@ -30,7 +30,7 @@ namespace PixelGraph.UI.Internal.Models
         public JavaEntityModelVersion GetEntityModel(MaterialProperties material)
         {
             if (material.Model == null && IsEntityPath(material.LocalPath)) {
-                var entityVersion = Minecraft.Java.GetEntityModelForTexture<JavaEntityTextureVersion>(material.Name)?.GetLatestVersion();
+                var entityVersion = Minecraft.Java.GetEntityModelForTexture<JavaEntityTextureVersion>(material.Name, material.LocalPath)?.GetLatestVersion();
 
                 if (entityVersion != null) return entityVersion;
             }

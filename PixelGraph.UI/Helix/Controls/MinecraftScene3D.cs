@@ -58,9 +58,9 @@ namespace PixelGraph.UI.Helix.Controls
             set => SetValue(EnableSlopeNormalsProperty, value);
         }
 
-        public bool EnablePuddles {
-            get => (bool)GetValue(EnablePuddlesProperty);
-            set => SetValue(EnablePuddlesProperty, value);
+        public int WaterMode {
+            get => (int)GetValue(WaterModeProperty);
+            set => SetValue(WaterModeProperty, value);
         }
 
 
@@ -93,7 +93,7 @@ namespace PixelGraph.UI.Helix.Controls
             n.ParallaxSamplesMax = ParallaxSamplesMax;
             n.EnableLinearSampling = EnableLinearSampling;
             n.EnableSlopeNormals = EnableSlopeNormals;
-            n.EnablePuddles = EnablePuddles;
+            n.WaterMode = WaterMode;
         }
 
         public static readonly DependencyProperty TimeOfDayProperty =
@@ -150,10 +150,10 @@ namespace PixelGraph.UI.Helix.Controls
                     sceneNode.EnableSlopeNormals = (bool)e.NewValue;
             }));
 
-        public static readonly DependencyProperty EnablePuddlesProperty =
-            DependencyProperty.Register(nameof(EnablePuddles), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
+        public static readonly DependencyProperty WaterModeProperty =
+            DependencyProperty.Register(nameof(WaterMode), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
-                    sceneNode.EnablePuddles = (bool)e.NewValue;
+                    sceneNode.WaterMode = (int)e.NewValue;
             }));
     }
 }

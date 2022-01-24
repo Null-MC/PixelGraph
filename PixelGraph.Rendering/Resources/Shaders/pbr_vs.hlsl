@@ -14,30 +14,16 @@ ps_input main(const vs_input_ex input)
     output.pos = mul(output.wp, mViewProjection);
     output.eye = vEyePos - output.wp.xyz;
 	
-	const float3 binormal = cross(input.tan, input.nor);
 	output.nor = mul(input.nor, (float3x3) mWorld);
 	output.tan = mul(input.tan, (float3x3) mWorld);
-	output.bin = mul(binormal, (float3x3) mWorld);
+	output.bin = mul(input.bin, (float3x3) mWorld);
 
 	output.tex_min = input.tex_min;
 	output.tex_max = input.tex_max;
 
-	//const float2 aspect = get_parallax_aspect(input.tex_max - input.tex_min);
-
 	const float3x3 mTBN = float3x3(output.tan, output.bin, output.nor);
     output.vT = mul(mTBN, normalize(output.eye.xyz));
-	output.vTS = get_parallax_offset(output.vT, input.tex_max - input.tex_min);// * aspect;
-
-	//const float3 refT = normalize(refract(viewT, tan_up, ETA_AIR_TO_WATER));
-	//output.rTS = get_parallax_offset(refT, input.tex_max - input.tex_min);// * aspect;
-
-	//float4 result = float4(0, 0, 0, 1);
-    //if (input.tex_max.x < input.tex_min.x) output.poT.y *= -1;
-    //if (input.tex_max.y < input.tex_min.y) output.poT.y *= -1;
-    //return result;
-
-
-	//output.p2 = clip_to_screen(output.pos);
+	output.vTS = get_parallax_offset(output.vT, input.tex_max - input.tex_min);
 
 	return output;
 }

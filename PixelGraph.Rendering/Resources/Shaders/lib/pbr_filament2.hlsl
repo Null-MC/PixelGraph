@@ -1,6 +1,6 @@
 #define PI 3.14159265f
 #define F0_WATER 0.02f
-#define WATER_ROUGH 0.008f
+#define WATER_ROUGH 0.014f
 #define WATER_BLUR 1.2f
 
 #pragma pack_matrix(row_major)
@@ -106,40 +106,6 @@ float3 specular_brdf_conductor(const in float ior_n1, const in float3 ior_n2, co
     const float G = G_Shlick_Smith_Hable(LoH, rough);
 
 	return D * F * G;
-}
-
-//float3 specular_brdf_wet(const in float3 f0, const in float LoH, const in float NoH, const in float VoH, const in float rough)
-//{
-//    // Fresnel
-//    //const float3 F = F_complex(ior_n, ior_k, VoH);
-//	const float3 F = F_schlick(f0, 1.0, VoH);
-//
-//    // Distribution
-//    const float D = D_ggx(NoH, rough);
-//
-//    // Geometric Visibility
-//    const float G = G_Shlick_Smith_Hable(LoH, rough);
-//
-//	return D * F * G;
-//}
-
-float3 specular_brdf_clearcoat(const in float eta, const in float3 Fd, const in float3 Fr, const in float LoH, const in float NoH, const in float VoH, const in float rough, const in float wetness, const in float surface_shadow, const in float water_shadow)
-{
-	//return Fd + Fr;
-
-	//const float water_roughL = max(pow2(WATER_ROUGH), 0.089f);
-	const float D = D_ggx(NoH, rough);
-
-	const float G = V_kelemen(LoH);
-
-	//const float f90 = 0.5f + 2.0f * rough * LoH * LoH;
-	//const float F = F_schlick(F0_WATER, 1.0f, LoH) * wetness;
-	const float F = F_full(eta, VoH) * wetness;
-
-	const float Frc = D * G * F;
-
-	const float invFc = 1.0f - F;
-	return (Fd + Fr) * invFc * surface_shadow + Frc * water_shadow;
 }
 
 float Diffuse_Burley(const in float NoL, const in float NoV, const in float LoH, const in float rough)

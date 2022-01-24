@@ -80,9 +80,9 @@ namespace PixelGraph.Rendering.Minecraft
             set => SetAffectsRender(ref data.EnableSlopeNormals, value);
         }
 
-        public bool EnablePuddles {
-            get => data.EnablePuddles;
-            set => SetAffectsRender(ref data.EnablePuddles, value);
+        public int WaterMode {
+            get => data.WaterMode;
+            set => SetAffectsRender(ref data.WaterMode, value);
         }
 
 
