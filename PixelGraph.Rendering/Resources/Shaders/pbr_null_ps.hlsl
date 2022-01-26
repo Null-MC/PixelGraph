@@ -47,24 +47,24 @@ float4 main(const ps_input input) : SV_TARGET
 		const float3 refractDir = refract(-view, normal, ETA_WATER_TO_AIR);
 
         const float3 refractDirT = mul(matTBN, refractDir);
-		const float2 refractParallaxOffset = get_parallax_offset(refractDirT, input.tex_max - input.tex_min);// * aspect;
+		const float2 refractParallaxOffset = get_parallax_offset(refractDirT) * input.pDepth;// * aspect;
 
 		tex = get_parallax_texcoord_wet(input.tex, input.vTS, refractParallaxOffset, surface_NoV, water_levelMin, water_tex, shadow_tex, tex_depth);
 
 	    const float h1 = min(max(shadow_tex.z, water_levelMin), 1.0f);
-	    const float pom_depth = (1.0f - h1) / max(surface_NoV, EPSILON) * BLOCK_SIZE * ParallaxDepth;
+	    const float pom_depth = (1.0f - h1) / max(surface_NoV, EPSILON) * BLOCK_SIZE * input.pDepth;
 	    water_pom_wp = input.wp.xyz - pom_depth * view;
 
         const float wd = max(dot(-refractDir, normal), EPSILON);
 	    const float h2 = saturate(water_levelMin - shadow_tex.z);
-	    const float water_trace_dist = h2 / wd * BLOCK_SIZE * ParallaxDepth;
+	    const float water_trace_dist = h2 / wd * BLOCK_SIZE * input.pDepth;
 	    pom_wp = water_pom_wp + water_trace_dist * refractDir;
     }
     else {
 		tex = get_parallax_texcoord(input.tex, input.vTS, surface_NoV, shadow_tex, tex_depth);
         water_tex = tex;
 
-	    const float pom_depth = (1.0f - shadow_tex.z) / max(surface_NoV, EPSILON) * BLOCK_SIZE * ParallaxDepth;
+	    const float pom_depth = (1.0f - shadow_tex.z) / max(surface_NoV, EPSILON) * BLOCK_SIZE * input.pDepth;
 	    water_pom_wp = pom_wp = input.wp.xyz - pom_depth * view;
     }
 
@@ -117,6 +117,7 @@ float4 main(const ps_input input) : SV_TARGET
 	float wet_roughL = lerp(roughL, WATER_ROUGH, water);
 
     wet_normal = lerp(wet_normal, normal, saturate(water_fillFactor * wet_depth));
+    wet_normal = normalize(wet_normal);
 
     const float NoV = saturate(dot(tex_normal, view));
     const float NoV_wet = saturate(dot(wet_normal, view));
@@ -174,14 +175,14 @@ float4 main(const ps_input input) : SV_TARGET
         // light parallax shadows
         const float SNoL = saturate(dot(normal, light_dir));
         const float3 lightT = mul(matTBN, light_dir);
-        const float2 polT = get_parallax_offset(lightT, input.tex_max - input.tex_min);
+        const float2 polT = get_parallax_offset(lightT) * input.pDepth;
         light_att *= get_parallax_shadow(shadow_tex, polT, SNoL);
 
         if (Lights[i].iLightType == 1 && bHasShadowMap && bRenderShadowMap) {
             if (dot(light_dir, normal) > 0.0f) {
 		        float wd = max(dot(light_dir, normal), EPSILON);
 			    float h2 = 1.0f - shadow_tex.z;
-			    float light_trace_dist = h2 / wd * BLOCK_SIZE * ParallaxDepth;
+			    float light_trace_dist = h2 / wd * BLOCK_SIZE * input.pDepth;
 			    const float3 shadow_wp = pom_wp + light_trace_dist * light_dir;
 				const float4 shadow_sp = mul(float4(shadow_wp, 1), mShadowViewProj);
                 
@@ -230,7 +231,7 @@ float4 main(const ps_input input) : SV_TARGET
 			const float3 light_refractDir = refract(-light_dir, normal, ETA_WATER_TO_AIR);
 	        const float wd = max(dot(-light_refractDir, normal), EPSILON);
 		    const float h2 = min(max(water_levelMin - shadow_tex.z, 0.0f) + 0.2f * surface_water, 1.0f);
-		    const float light_waterTraceDist = max(h2 / wd, 1.0f - light_att) * BLOCK_SIZE * ParallaxDepth;
+		    const float light_waterTraceDist = max(h2 / wd, 1.0f - light_att) * BLOCK_SIZE * input.pDepth;
 
 			const float3 absorption = exp(-absorption_factor * max(light_waterTraceDist, 0.0f) * WATER_ABS_SCALE);
 
@@ -262,12 +263,11 @@ float4 main(const ps_input input) : SV_TARGET
         }
     }
 
-	const float3 r = reflect(-view, wet_normal);
-
     const float3 ibl_f0_ambient = ior_to_f0_complex(ior_in, ior_n, ior_k);
 	const float3 ibl_F_ambient = F_schlick_roughness(ibl_f0_ambient, NoV, roughL);
-	const float3 ibl_ambient = IBL_ambient(ibl_F_ambient, r) * diffuse * mat.occlusion;
+	const float3 ibl_ambient = IBL_ambient(ibl_F_ambient, tex_normal) * diffuse * mat.occlusion;
 
+	const float3 r = reflect(-view, wet_normal);
 	float3 ibl_specular = IBL_specular(ibl_F_ambient, NoV, r, mat.occlusion, mat.rough) * metal_albedo;
 
     if (Wetness > EPSILON) {
@@ -285,7 +285,8 @@ float4 main(const ps_input input) : SV_TARGET
 	    float h2 = saturate(water_levelMin - shadow_tex.z);
 		float3 absorption = exp(-absorption_factor * max(h2, 0.0f) * WATER_ABS_SCALE);
 
-        ibl_specular *= lerp(1.0f, T12 * T21 * absorption, water);
+        //ibl_specular *= lerp(1.0f, T12 * T21 * absorption, water);
+        ibl_specular *= 1.0f + water * (T12 * T21 * absorption - 1.0f);
 
 		ibl_specular += IBL_specular(ibl_F_water, NoV_wet, r, mat.occlusion, wet_roughL) * water; // * metal_albedo
     }

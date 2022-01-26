@@ -7,6 +7,9 @@
         
         public const string Diffuse = "Diffuse";
         public const string DiffuseOIT = "DiffuseOIT";
+        
+        public const string Normals = "Normals";
+        public const string NormalsOIT = "NormalsOIT";
 
         public const string PbrFilament = "PhysicsBasedRenderingFilament";
         public const string PbrFilamentOIT = "MeshPhysicsBasedFilamentOIT";

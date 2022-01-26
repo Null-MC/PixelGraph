@@ -233,6 +233,9 @@ namespace PixelGraph.UI.Helix.Models
                 case RenderPreviewModes.Diffuse:
                     return new DiffuseMaterialBuilder(provider);
 
+                case RenderPreviewModes.Normals:
+                    return new NormalsMaterialBuilder(provider);
+
                 case RenderPreviewModes.PbrFilament:
                 case RenderPreviewModes.PbrJessie:
                 case RenderPreviewModes.PbrNull:

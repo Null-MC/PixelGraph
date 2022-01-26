@@ -21,9 +21,23 @@ ps_input main(const vs_input_ex input)
 	output.tex_min = input.tex_min;
 	output.tex_max = input.tex_max;
 
+
+	output.bin = -output.bin;
+
+	float2 uv_size = input.tex_max - input.tex_min;
+	if (uv_size.x < 0.0f && uv_size.y < 0.0f) {}
+	else if (uv_size.x < 0.0f) output.bin = -output.bin;
+	else if (uv_size.y < 0.0f) output.bin = -output.bin;
+
+	//if (uv_size.x < 0.0f) output.bin = -output.bin;
+	//if (uv_size.y < 0.0f) output.bin = -output.bin;
+
+
+	output.pDepth = get_parallax_length(uv_size);
+
 	const float3x3 mTBN = float3x3(output.tan, output.bin, output.nor);
     output.vT = mul(mTBN, normalize(output.eye.xyz));
-	output.vTS = get_parallax_offset(output.vT, input.tex_max - input.tex_min);
+	output.vTS = get_parallax_offset(output.vT) * output.pDepth;
 
 	return output;
 }

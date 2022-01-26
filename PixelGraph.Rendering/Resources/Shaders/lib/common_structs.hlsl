@@ -45,6 +45,7 @@ struct ps_input
 	float3 vT   : POSITION2;
 	float2 vTS  : POSITION3;
 	//float2 rTS  : POSITION4;
+	float  pDepth : POSITION4;
     float3 nor  : NORMAL;
 	float3 tan  : TANGENT;
 	float3 bin  : BINORMAL;

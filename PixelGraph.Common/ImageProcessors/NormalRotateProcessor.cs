@@ -125,49 +125,59 @@ namespace PixelGraph.Common.ImageProcessors
         {
             if (hasRotation || hasNoise) {
                 float fx, fy, rx, ry;
-                var q = Quaternion.Identity;
+                var qX = Quaternion.Identity;
+                var qY = Quaternion.Identity;
 
                 if (hasCurveTop) {
                     fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
-                    ry = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
-                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, options.CurveTop * -ry * MathEx.Deg2RadF);
+                    ry = MathF.Min(fy + offsetTop, 0f) * invRadiusTop * 2f;
+                    qY *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, options.CurveTop * -ry * MathEx.Deg2RadF);
                 }
 
                 if (hasCurveBottom) {
                     fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
-                    ry = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
-                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, options.CurveBottom * -ry * MathEx.Deg2RadF);
+                    ry = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom * 2f;
+                    qY *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, options.CurveBottom * -ry * MathEx.Deg2RadF);
                 }
 
                 if (hasCurveLeft) {
                     fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
-                    rx = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft;
-                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, options.CurveLeft * rx * MathEx.Deg2RadF);
+                    rx = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft * 2f;
+                    qX *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, options.CurveLeft * rx * MathEx.Deg2RadF);
                 }
 
                 if (hasCurveRight) {
                     fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
-                    rx = MathF.Max(fx - offsetRight, 0f) * invRadiusRight;
-                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, options.CurveRight * rx * MathEx.Deg2RadF);
+                    rx = MathF.Max(fx - offsetRight, 0f) * invRadiusRight * 2f;
+                    qX *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, options.CurveRight * rx * MathEx.Deg2RadF);
                 }
 
                 if (hasNoise) {
                     var z = x - context.Bounds.Left;
-                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[z] / 127.5f - 1f) * options.Noise * MathEx.Deg2RadF);
-                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[z] / 127.5f - 1f) * -options.Noise * MathEx.Deg2RadF);
+                    qX *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[z] / 127.5f - 1f) * options.Noise * MathEx.Deg2RadF);
+                    qY *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[z] / 127.5f - 1f) * -options.Noise * MathEx.Deg2RadF);
                 }
 
-                q = Quaternion.Normalize(q);
-                v = Vector3.Transform(v, q);
-                MathEx.Normalize(ref v);
+                qX = Quaternion.Normalize(qX);
+                var vX = Vector3.Transform(v, qX);
+                MathEx.Normalize(ref vX);
+
+                qY = Quaternion.Normalize(qY);
+                var vY = Vector3.Transform(v, qY);
+                MathEx.Normalize(ref vY);
+
+                v.X = vX.X;
+                v.Y = vY.Y;
+                v.Z = (vX.Z + vY.Z) * 0.5f;
             }
             else if (options.RestoreNormalZ) {
                 var v2 = new Vector2(v.X, v.Y);
                 var d = Vector2.Dot(v2, v2);
                 MathEx.Clamp(ref d, 0f, 1f);
                 v.Z = MathF.Sqrt(1f - d);
-                MathEx.Normalize(ref v);
             }
+
+            MathEx.Normalize(ref v);
         }
 
         private static void GenerateNoise(in int size, out byte[] buffer)

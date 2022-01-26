@@ -50,6 +50,7 @@ namespace PixelGraph.UI
 #if !NORENDER
             builder.Services.AddSingleton<IShaderByteCodeManager, CustomShaderManager>();
             builder.Services.AddTransient<IRenderDiffusePreviewBuilder, RenderDiffusePreviewBuilder>();
+            builder.Services.AddTransient<IRenderNormalsPreviewBuilder, RenderNormalsPreviewBuilder>();
             builder.Services.AddTransient<IRenderPbrPreviewBuilder, RenderPbrPreviewBuilder>();
             //builder.Services.AddTransient<IModelBuilder, ModelBuilder>();
             builder.Services.AddTransient<IBlockModelBuilder, BlockModelBuilder>();

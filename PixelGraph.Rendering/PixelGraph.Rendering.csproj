@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.7.13</Version>
+    <Version>1.8.0</Version>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -63,6 +63,10 @@
     <HLSLShader Include="Resources\Shaders\pbr_jessie_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
       <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\pbr_jessie_ps.cso</ObjectFileOutput>
+    </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\normals_ps.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\normals_ps.cso</ObjectFileOutput>
     </HLSLShader>
     <HLSLShader Include="Resources\Shaders\pbr_null_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>

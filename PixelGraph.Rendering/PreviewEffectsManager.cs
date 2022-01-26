@@ -60,7 +60,7 @@ namespace PixelGraph.Rendering
                 PassDescriptions = new List<ShaderPassDescription> {
                     new ShaderPassDescription(CustomPassNames.Diffuse) {
                         ShaderList = new[] {
-                            shaderMgr.BuildDescription(CustomShaderManager.Name_DiffuseVertex, ShaderStage.Vertex),
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                             shaderMgr.BuildDescription(CustomShaderManager.Name_DiffusePixel, ShaderStage.Pixel),
                         },
                         BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
@@ -68,6 +68,17 @@ namespace PixelGraph.Rendering
                     },
 
                     // TODO: Diffuse OIT
+
+                    new ShaderPassDescription(CustomPassNames.Normals) {
+                        ShaderList = new[] {
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_NormalsPixel, ShaderStage.Pixel),
+                        },
+                        BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+                    },
+
+                    // TODO: Normals OIT
 
                     new ShaderPassDescription(CustomPassNames.PbrFilament) {
                         ShaderList = new[] {

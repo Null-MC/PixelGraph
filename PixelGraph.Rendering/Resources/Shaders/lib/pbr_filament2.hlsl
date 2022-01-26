@@ -113,7 +113,7 @@ float Diffuse_Burley(const in float NoL, const in float NoV, const in float LoH,
 	const float f90 = 0.5f + 2.0f * rough * LoH * LoH;
 	const float light_scatter = F_schlick(1.0f, f90, NoL);
 	const float view_scatter = F_schlick(1.0f, f90, NoV);
-	return light_scatter * view_scatter * rcp(PI);
+	return light_scatter * view_scatter * InvPI;
 }
 
 
@@ -132,7 +132,7 @@ float3 IBL_ambient(const in float3 F, const in float3 reflect)
 		? tex_irradiance.SampleLevel(sampler_irradiance, reflect, 0)
 		: srgb_to_linear(vLightAmbient.rgb);
 
-    return irradiance * (1.0f - F); // * rcp(PI);
+    return irradiance * (1.0f - F);// * InvPI;
 }
 
 float3 IBL_specular(const in float3 F, const in float NoV, const in float3 r, const in float occlusion, const in float roughP)

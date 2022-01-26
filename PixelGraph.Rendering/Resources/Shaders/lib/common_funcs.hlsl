@@ -19,6 +19,7 @@ static const float3 tan_up = float3(0.0f, 0.0f, 1.0f);
 static const float ETA_AIR_TO_WATER = IOR_N_WATER / IOR_N_AIR;
 static const float ETA_WATER_TO_AIR = IOR_N_AIR / IOR_N_WATER;
 
+static const float InvPI = 1.0f / PI;
 static const float InvGamma = 1.0f / GAMMA;
 //static const float3 lum_factor = float3(0.299f, 0.587f, 0.114f);
 
@@ -88,6 +89,11 @@ float3 ior_to_f0_complex(const in float3 ior_n, const in float3 ior_k) {
 float3 ior_to_f0_complex(const in float3 ior_n_out, const in float3 ior_n_in, const in float3 ior_k) {
 	const float3 k2 = ior_k * ior_k;
 	return (pow2(ior_n_in - ior_n_out) + k2) / (pow2(ior_n_in + ior_n_out) + k2);
+}
+
+float lengthSq(const in float2 vec)
+{
+	return vec.x*vec.x + vec.y*vec.y;
 }
 
 float lengthSq(const in float3 vec)

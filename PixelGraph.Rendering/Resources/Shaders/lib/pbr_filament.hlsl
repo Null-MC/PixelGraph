@@ -6,6 +6,11 @@
 #pragma pack_matrix(row_major)
 
 
+float Fresnel_Shlick(const in float f0, const in float f90, const in float x)
+{
+    return f0 + (f90 - f0) * pow(1.0 - x, 5.0);
+}
+
 float3 Fresnel_Shlick(const in float3 f0, const in float3 f90, const in float x)
 {
     return f0 + (f90 - f0) * pow(1.0 - x, 5.0);
@@ -21,17 +26,12 @@ float3 Filament_F_Schlick(const float3 f0, const float VoH) {
     return f + f0 * (1.0 - f);
 }
 
-float Diffuse_Burley(const in float NdotL, const in float NdotV)
+float Diffuse_Burley(const in float NoL, const in float NoV, const in float LoH, const in float rough)
 {
-    return Filament_F_Schlick(1.0, NdotL).x * Filament_F_Schlick(1, NdotV).x;
-}
-
-float Diffuse_Burley(const in float3 f0, const in float NdotL, const in float NdotV, in float LdotH, in float roughness)
-{
-	return Diffuse_Burley(NdotL, NdotV);
-	
-    //float fd90 = 0.5 + 2 * roughness * LdotH * LdotH;
-    //return Fresnel_Shlick(f0, fd90, NdotL).x * Fresnel_Shlick(1, fd90, NdotV).x;
+	const float f90 = 0.5f + 2.0f * rough * LoH * LoH;
+	const float light_scatter = Fresnel_Shlick(1.0f, f90, NoL);
+	const float view_scatter = Fresnel_Shlick(1.0f, f90, NoV);
+	return light_scatter * view_scatter * InvPI;
 }
 
 float Filament_D_GGX(const in float linearRoughness, const in float NoH, const in float3 n, const in float3 h) {

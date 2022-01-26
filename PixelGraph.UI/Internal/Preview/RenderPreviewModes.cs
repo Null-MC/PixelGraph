@@ -6,6 +6,7 @@ namespace PixelGraph.UI.Internal.Preview
     public enum RenderPreviewModes
     {
         Diffuse,
+        Normals,
         PbrFilament,
         PbrJessie,
         PbrNull,
@@ -13,21 +14,30 @@ namespace PixelGraph.UI.Internal.Preview
 
     internal static class RenderPreviewMode
     {
+        public static readonly string Diffuse = "diffuse";
+        public static readonly string Normals = "normals";
+        public static readonly string PbrFilament = "pbr-filament";
+        public static readonly string PbrJessie = "pbr-jessie";
+        public static readonly string PbrNull = "pbr-null";
+
+
         private static readonly Dictionary<string, RenderPreviewModes> parseMap = new(StringComparer.InvariantCultureIgnoreCase) {
-            ["diffuse"] = RenderPreviewModes.Diffuse,
-            ["pbr-filament"] = RenderPreviewModes.PbrFilament,
-            ["pbr-jessie"] = RenderPreviewModes.PbrJessie,
-            ["pbr-null"] = RenderPreviewModes.PbrNull,
+            [Diffuse] = RenderPreviewModes.Diffuse,
+            [Normals] = RenderPreviewModes.Normals,
+            [PbrFilament] = RenderPreviewModes.PbrFilament,
+            [PbrJessie] = RenderPreviewModes.PbrJessie,
+            [PbrNull] = RenderPreviewModes.PbrNull,
         };
 
 
         public static string GetString(RenderPreviewModes mode)
         {
             return mode switch {
-                RenderPreviewModes.Diffuse => "diffuse",
-                RenderPreviewModes.PbrFilament => "pbr-filament",
-                RenderPreviewModes.PbrJessie => "pbr-jessie",
-                RenderPreviewModes.PbrNull => "pbr-null",
+                RenderPreviewModes.Diffuse => Diffuse,
+                RenderPreviewModes.Normals => Normals,
+                RenderPreviewModes.PbrFilament => PbrFilament,
+                RenderPreviewModes.PbrJessie => PbrJessie,
+                RenderPreviewModes.PbrNull => PbrNull,
                 _ => null,
             };
         }

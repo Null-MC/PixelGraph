@@ -40,6 +40,15 @@ namespace PixelGraph.Rendering.Shaders
             map[name] = shader;
         }
 
+        public void Add(string profile, string entryName, string fileName)
+        {
+            map[entryName] = new ShaderSourceDescription {
+                RawFileName = $"{fileName}.hlsl",
+                CompiledResourceName = $"{fileName}.cso",
+                Profile = profile,
+            };
+        }
+
         public bool LoadAll(out ShaderCompileError[] compileErrors)
         {
             var shaderPath = Path.GetFullPath("shaders");

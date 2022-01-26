@@ -8,6 +8,7 @@ namespace PixelGraph.UI.ViewData
         public RenderModeValues()
         {
             Add(new Item {Text = "Diffuse", Value = RenderPreviewModes.Diffuse});
+            Add(new Item {Text = "Normals", Value = RenderPreviewModes.Normals});
 
 #if DEBUG
             Add(new Item {Text = "PBR Filament (OldPbr)", Value = RenderPreviewModes.PbrFilament});

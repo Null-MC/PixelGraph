@@ -54,7 +54,7 @@ float4 main(const ps_input input) : SV_TARGET
     const float NoV = saturate(dot(tex_normal, view));
 	//const float4x4 mShadowViewProj = vLightView * vLightProjection;
 
-	const float pom_depth = (1.0f - tex_depth) / max(SNoV, EPSILON) * BLOCK_SIZE * ParallaxDepth;
+	const float pom_depth = (1.0f - tex_depth) / max(SNoV, EPSILON) * BLOCK_SIZE * input.pDepth;
     const float3 pom_wp = input.wp.xyz - pom_depth * view;
 
     float3 acc_light = 0.0;
@@ -110,7 +110,7 @@ float4 main(const ps_input input) : SV_TARGET
         // light parallax shadows
         const float SNoL = dot(normal, light_dir);
         const float3 lightT = mul(mTBN, light_dir);
-        const float2 polT = get_parallax_offset(lightT, input.tex_max - input.tex_min);
+        const float2 polT = get_parallax_offset(lightT) * input.pDepth;
         light_att *= get_parallax_shadow(shadow_tex, polT, SNoL);
         //if (light_shadow < EPSILON) continue;
 
@@ -121,7 +121,7 @@ float4 main(const ps_input input) : SV_TARGET
 		NoH = saturate(dot(tex_normal, H));
 
         // Diffuse & specular factors
-        light_diffuse = Diffuse_Burley(NoL, NoV) * c_diff; // TODO: missing LoH, roughL
+        light_diffuse = Diffuse_Burley(NoL, NoV, LoH, roughL) * c_diff;
 		light_specular = Specular_BRDF(roughL, c_spec, NoV, NoL, LoH, NoH, tex_normal, H);
 
         const float3 light_factor = NoL * light_color * light_att;
