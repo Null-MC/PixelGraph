@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Effects;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
@@ -42,6 +43,7 @@ namespace PixelGraph.Common
             Services.AddSingleton<IDefaultPublishMapping, DefaultPublishMapping>();
             Services.AddSingleton<IJavaToBedrockPublishMapping, JavaToBedrockPublishMapping>();
             Services.AddSingleton<IMinecraftResourceLocator, MinecraftResourceLocator>();
+            Services.AddSingleton<ICtmPublisher, CtmPublisher>();
 
             Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
             Services.AddScoped<ITextureGraph, TextureGraph>();

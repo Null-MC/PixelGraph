@@ -29,7 +29,7 @@ namespace PixelGraph.Rendering
                             shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
                             shaderMgr.BuildDescription(CustomShaderManager.Name_SkyPixel, ShaderStage.Pixel),
                         },
-                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSNoDepthNoStencil,
                         BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
                         RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                     },
@@ -47,7 +47,7 @@ namespace PixelGraph.Rendering
                             shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
                             shaderMgr.BuildDescription(CustomShaderManager.Name_SkyIrradiancePixel, ShaderStage.Pixel),
                         },
-                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSNoDepthNoStencil,
                         BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
                         RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                     },
@@ -64,7 +64,7 @@ namespace PixelGraph.Rendering
                             shaderMgr.BuildDescription(CustomShaderManager.Name_DiffusePixel, ShaderStage.Pixel),
                         },
                         BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
-                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                     },
 
                     // TODO: Diffuse OIT
@@ -75,7 +75,7 @@ namespace PixelGraph.Rendering
                             shaderMgr.BuildDescription(CustomShaderManager.Name_NormalsPixel, ShaderStage.Pixel),
                         },
                         BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
-                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                     },
 
                     // TODO: Normals OIT
@@ -86,7 +86,7 @@ namespace PixelGraph.Rendering
                             shaderMgr.BuildDescription(CustomShaderManager.Name_PbrFilamentPixel, ShaderStage.Pixel),
                         },
                         BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
-                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                     },
 
                     // TODO: PBR-Metal OIT
@@ -97,7 +97,7 @@ namespace PixelGraph.Rendering
                             shaderMgr.BuildDescription(CustomShaderManager.Name_PbrJessiePixel, ShaderStage.Pixel),
                         },
                         BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
-                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                     },
 
                     new ShaderPassDescription(CustomPassNames.PbrNull) {
@@ -106,7 +106,7 @@ namespace PixelGraph.Rendering
                             shaderMgr.BuildDescription(CustomShaderManager.Name_PbrNullPixel, ShaderStage.Pixel),
                         },
                         BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
-                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                     },
 
                     //meshTechnique.AddPass(new ShaderPassDescription(CustomPassNames.PBRSpecularOIT) {
@@ -124,7 +124,7 @@ namespace PixelGraph.Rendering
                             shaderMgr.BuildDescription(CustomShaderManager.Name_ShadowPixel, ShaderStage.Pixel),
                         },
                         BlendStateDescription = DefaultBlendStateDescriptions.NoBlend,
-                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                     },
                 }
             };
