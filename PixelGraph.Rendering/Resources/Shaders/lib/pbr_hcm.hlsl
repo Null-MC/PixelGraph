@@ -50,17 +50,17 @@ static const float3 ior_k[8] = {
 	ior_k_silver,
 };
 
-float3 get_hcm_f0(const in float f0) {
-	if (f0 > 0.900 && f0 < 0.902) return float3(0.56f, 0.57f, 0.58f); // 230: Iron
-	if (f0 > 0.902 && f0 <= 0.906) return float3(1.0f, 0.71f, 0.29f); // 231: Gold
-	if (f0 > 0.906 && f0 <= 0.910) return float3(0.91f, 0.92f, 0.92f); // 232: Aluminum
-	if (f0 > 0.910 && f0 <= 0.914) return float3(0.550, 0.556, 0.554); // 233: Chrome
-	if (f0 > 0.914 && f0 <= 0.918) return float3(0.955, 0.637, 0.538); // 234: Copper
-	if (f0 > 0.918 && f0 <= 0.922) return float3(0.0, 0.0, 0.0); // 235: Lead - WARN: MISSING
-	if (f0 > 0.922 && f0 <= 0.926) return float3(0.83, 0.81, 0.78); // 236: Platinum
-	if (f0 > 0.926 && f0 <= 0.930) return float3(0.97, 0.96, 0.91); // 237: Silver
-	return 1.0f;
-}
+//float3 get_hcm_f0(const in float f0) {
+//	if (f0 > 0.900 && f0 < 0.902) return float3(0.56f, 0.57f, 0.58f); // 230: Iron
+//	if (f0 > 0.902 && f0 <= 0.906) return float3(1.0f, 0.71f, 0.29f); // 231: Gold
+//	if (f0 > 0.906 && f0 <= 0.910) return float3(0.91f, 0.92f, 0.92f); // 232: Aluminum
+//	if (f0 > 0.910 && f0 <= 0.914) return float3(0.550, 0.556, 0.554); // 233: Chrome
+//	if (f0 > 0.914 && f0 <= 0.918) return float3(0.955, 0.637, 0.538); // 234: Copper
+//	if (f0 > 0.918 && f0 <= 0.922) return float3(0.0, 0.0, 0.0); // 235: Lead - WARN: MISSING
+//	if (f0 > 0.922 && f0 <= 0.926) return float3(0.83, 0.81, 0.78); // 236: Platinum
+//	if (f0 > 0.926 && f0 <= 0.930) return float3(0.97, 0.96, 0.91); // 237: Silver
+//	return 1.0f;
+//}
 
 void get_hcm_ior(const in float f0, out float3 n, out float3 k) {
 	int i = int(f0 * 255.0f - 229.5f);

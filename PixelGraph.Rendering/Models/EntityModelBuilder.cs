@@ -26,13 +26,13 @@ namespace PixelGraph.Rendering.Models
             //}
             
             foreach (var element in entityVersion.Elements) {
-                AppendEntityElement(element, in Matrix.Identity, in cubeSize, in entityVersion.TextureSize);
+                AppendEntityElement(element, in Matrix.Identity, in cubeSize, in entityVersion.TextureSize, true);
             }
 
             Builder.ComputeTangents(MeshFaces.Default);
         }
 
-        private void AppendEntityElement(EntityElement element, in Matrix mWorldParent, in float cubeSize, in Vector2 textureSize)
+        private void AppendEntityElement(EntityElement element, in Matrix mWorldParent, in float cubeSize, in Vector2 textureSize, bool isRoot)
         {
             //var halfBlock = element.Size * 0.5f;
             //var mWorld = Matrix.Translation(element.Position + halfBlock);
@@ -61,17 +61,18 @@ namespace PixelGraph.Rendering.Models
                 }
 
                 //mWorld *= Matrix.Translation(element.Translate);
-                m2 *= Matrix.Translation(element.Translate);
+                //m2 *= Matrix.Translation(element.Translate);
             }
 
             //m2 *= Matrix.Translation(-element.Position);
+            if (!isRoot) m2 *= Matrix.Translation(element.Translate);
 
             //mWorld = mWorld * mWorldParent;
             m2 = m2 * mWorldParent;
 
             if (element.Submodels != null) {
                 foreach (var childElement in element.Submodels) {
-                    AppendEntityElement(childElement, in m2, in cubeSize, in textureSize);
+                    AppendEntityElement(childElement, in m2, in cubeSize, in textureSize, false);
                 }
             }
 
