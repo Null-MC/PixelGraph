@@ -15,7 +15,7 @@ RUN dotnet publish -c Release -o /publish \
 	/p:PublishTrimmed=true
 
 FROM mcr.microsoft.com/dotnet/runtime:3.1-alpine
-WORKDIR /app
-COPY --from=build /publish ./
+# WORKDIR /app
+COPY --from=build /publish /app/
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
-ENTRYPOINT ["./PixelGraph"]
+ENTRYPOINT ["/app/PixelGraph"]
