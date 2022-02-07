@@ -786,11 +786,6 @@ namespace PixelGraph.Common.IO.Publishing
             ["assets/minecraft/textures/block/spore_blossom_base"] = "textures/blocks/spore_blossom_base",
             ["assets/minecraft/textures/block/tinted_glass"] = "textures/blocks/tinted_glass",
             ["assets/minecraft/textures/block/tuff"] = "textures/blocks/tuff",
-            ["assets/minecraft/textures/block/"] = "textures/blocks/",
-            ["assets/minecraft/textures/block/"] = "textures/blocks/",
-            ["assets/minecraft/textures/block/"] = "textures/blocks/",
-            ["assets/minecraft/textures/block/"] = "textures/blocks/",
-            ["assets/minecraft/textures/block/"] = "textures/blocks/",
             // TODO: candles
 
 
