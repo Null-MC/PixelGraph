@@ -501,7 +501,7 @@ namespace PixelGraph.Common.IO.Publishing
             ["assets/minecraft/textures/block/red_sandstone_bottom"] = "textures/blocks/red_sandstone_bottom",
             ["assets/minecraft/textures/block/chiseled_red_sandstone"] = "textures/blocks/red_sandstone_carved",
             ["assets/minecraft/textures/block/red_sandstone"] = "textures/blocks/red_sandstone_normal",
-            ["assets/minecraft/textures/block/smooth_red_sandstone"] = "textures/blocks/red_sandstone_smooth",
+            ["assets/minecraft/textures/block/cut_red_sandstone"] = "textures/blocks/red_sandstone_smooth",
             ["assets/minecraft/textures/block/red_sandstone_top"] = "textures/blocks/red_sandstone_top",
             ["assets/minecraft/textures/block/redstone_block"] = "textures/blocks/redstone_block",
             ["assets/minecraft/textures/block/redstone_dust_dot"] = "textures/blocks/redstone_dust_dot",
@@ -702,7 +702,7 @@ namespace PixelGraph.Common.IO.Publishing
             ["assets/minecraft/textures/block/cracked_deepslate_tiles"] = "textures/blocks/deepslate/cracked_deepslate_tiles",
             ["assets/minecraft/textures/block/deepslate"] = "textures/blocks/deepslate/deepslate",
             ["assets/minecraft/textures/block/deepslate_bricks"] = "textures/blocks/deepslate/deepslate_bricks",
-            ["assets/minecraft/textures/block/cdeepslate_coal_ore"] = "textures/blocks/deepslate/deepslate_coal_ore",
+            ["assets/minecraft/textures/block/deepslate_coal_ore"] = "textures/blocks/deepslate/deepslate_coal_ore",
             ["assets/minecraft/textures/block/deepslate_copper_ore"] = "textures/blocks/deepslate/deepslate_copper_ore",
             ["assets/minecraft/textures/block/deepslate_diamond_ore"] = "textures/blocks/deepslate/deepslate_diamond_ore",
             ["assets/minecraft/textures/block/deepslate_emerald_ore"] = "textures/blocks/deepslate/deepslate_emerald_ore",
@@ -786,6 +786,9 @@ namespace PixelGraph.Common.IO.Publishing
             ["assets/minecraft/textures/block/spore_blossom_base"] = "textures/blocks/spore_blossom_base",
             ["assets/minecraft/textures/block/tinted_glass"] = "textures/blocks/tinted_glass",
             ["assets/minecraft/textures/block/tuff"] = "textures/blocks/tuff",
+            ["assets/minecraft/textures/block/weathered_copper"] = "textures/blocks/weathered_copper",
+            ["assets/minecraft/textures/block/weathered_cut_copper"] = "textures/blocks/weathered_cut_copper",
+
             // TODO: candles
 
 
