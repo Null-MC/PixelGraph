@@ -71,4 +71,4 @@ emissive:
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## Support
-Ask about PixelGraph in the [ShaderLabs Discord](https://discord.gg/PG9RmWTBU9) under `#null-pbr-and-pixelgraph`.
+Ask about PixelGraph in the [ShaderLabs Discord](https://discord.gg/PG9RmWTBU9) under `#pixelgraph`.
