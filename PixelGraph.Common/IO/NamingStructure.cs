@@ -70,7 +70,7 @@ namespace PixelGraph.Common.IO
                 ["Substance_graph_metal"] = TextureTags.Metal,
                 ["Substance_graph_metallic"] = TextureTags.Metal,
                 ["Substance_graph_normal"] = TextureTags.Normal,
-                ["Substance_graph_porosity"] = TextureTags.porosity,
+                ["Substance_graph_porosity"] = TextureTags.Porosity,
                 ["Substance_graph_roughness"] = TextureTags.Rough,
                 ["Substance_graph_SSS"] = TextureTags.SubSurfaceScattering,
                 ["Substance_graph_emissive"] = TextureTags.Emissive,
