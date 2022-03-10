@@ -64,6 +64,16 @@ namespace PixelGraph.Common.IO
                 ["alpha"] = TextureTags.Opacity,
                 ["albedo"] = TextureTags.Color,
                 ["diffuse"] = TextureTags.Color,
+                ["Substance_graph_basecolor"] = TextureTags.Color,
+                ["Substance_graph_ambientocclusion"] = TextureTags.Occlusion,
+                ["Substance_graph_height"] = TextureTags.Height,
+                ["Substance_graph_metal"] = TextureTags.Metal,
+                ["Substance_graph_metallic"] = TextureTags.Metal,
+                ["Substance_graph_normal"] = TextureTags.Normal,
+                ["Substance_graph_porosity"] = TextureTags.Porosity,
+                ["Substance_graph_roughness"] = TextureTags.Rough,
+                ["Substance_graph_SSS"] = TextureTags.SubSurfaceScattering,
+                ["Substance_graph_emissive"] = TextureTags.Emissive,
                 ["inventory"] = TextureTags.Item,
             };
 
