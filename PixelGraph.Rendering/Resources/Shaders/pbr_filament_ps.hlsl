@@ -65,7 +65,7 @@ float4 main(const ps_input input) : SV_TARGET
     float LoH, NoH; // VoH;
 
 	const float4x4 mShadowViewProj = mul(vLightView, vLightProjection);
-	const float4 sp = mul(float4(pom_wp, 1), mShadowViewProj);
+	//const float4 sp = mul(float4(pom_wp, 1), mShadowViewProj);
 
     [loop]
     for (int i = 0; i < NumLights; i++) {
@@ -74,18 +74,8 @@ float4 main(const ps_input input) : SV_TARGET
         light_att = 1.0f;
     	
         if (Lights[i].iLightType == 1) {
-            light_color *= 2.0f;
+            light_color *= 4.0f;
             light_dir = normalize(Lights[i].vLightDir.xyz);
-            //light_att = 1.0f;
-
-            if (bHasShadowMap && bRenderShadowMap) {
-	            if (dot(light_dir, normal) > 0) {
-	                light_att = shadow_strength(sp.xyz / sp.w);
-	            }
-                else {
-	                light_att = 0.0f;
-                }
-			}
         }
         else if (Lights[i].iLightType == 2) {
             light_dir = Lights[i].vLightPos.xyz - pom_wp;
@@ -108,11 +98,27 @@ float4 main(const ps_input input) : SV_TARGET
         }
 
         // light parallax shadows
-        const float SNoL = dot(normal, light_dir);
+        const float surface_NoL = dot(normal, light_dir);
         const float3 lightT = mul(mTBN, light_dir);
         const float2 polT = get_parallax_offset(lightT) * input.pDepth;
-        light_att *= get_parallax_shadow(shadow_tex, polT, SNoL);
+        light_att *= get_parallax_shadow(shadow_tex, polT, surface_NoL);
         //if (light_shadow < EPSILON) continue;
+
+
+        if (Lights[i].iLightType == 1 && bHasShadowMap && bRenderShadowMap) {
+            if (surface_NoL > 0) {
+			    float h2 = 1.0f - shadow_tex.z;
+			    float light_trace_dist = h2 / surface_NoL * BLOCK_SIZE * input.pDepth;
+			    const float3 shadow_wp = pom_wp + light_trace_dist * light_dir;
+				const float4 shadow_sp = mul(float4(shadow_wp, 1), mShadowViewProj);
+
+                light_att *= shadow_strength(shadow_sp.xyz / shadow_sp.w);
+            }
+            else {
+                light_att = 0.0f;
+            }
+        }
+
 
         NoL = saturate(dot(tex_normal, light_dir));
         H = normalize(view + light_dir);

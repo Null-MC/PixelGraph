@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MinecraftMappings.NET\MinecraftMappings.NET\MinecraftMappings.NET.csproj" />
     <ProjectReference Include="..\PixelGraph.Common\PixelGraph.Common.csproj" />
   </ItemGroup>
 

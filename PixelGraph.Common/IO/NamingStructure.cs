@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace PixelGraph.Common.IO
 {
@@ -15,6 +16,8 @@ namespace PixelGraph.Common.IO
         private static readonly Dictionary<string, string> LocalLookup;
         private static readonly Dictionary<string, Func<string, string>> GlobalMap;
         private static readonly Dictionary<string, string> GlobalLookup;
+
+        //private static readonly Regex ignorePattern = new Regex(@"[^.]ignore[$]", RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 
         static NamingStructure()
@@ -41,40 +44,24 @@ namespace PixelGraph.Common.IO
             };
 
             LocalLookup = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
-                ["opacity"] = TextureTags.Opacity,
-                ["color"] = TextureTags.Color,
-                ["height"] = TextureTags.Height,
-                ["bump"] = TextureTags.Bump,
-                ["normal"] = TextureTags.Normal,
-                ["occlusion"] = TextureTags.Occlusion,
-                ["specular"] = TextureTags.Specular,
-                ["smooth"] = TextureTags.Smooth,
-                ["rough"] = TextureTags.Rough,
-                ["metal"] = TextureTags.Metal,
-                ["f0"] = TextureTags.F0,
-                ["porosity"] = TextureTags.Porosity,
-                ["sss"] = TextureTags.SubSurfaceScattering,
-                ["emissive"] = TextureTags.Emissive,
-                ["mer"] = TextureTags.MER,
+                [TextureTags.Opacity] = @"(^|[\s-_.])(opacity|alpha)($|[\s-_.])",
+                [TextureTags.Color] = @"(^|[\s-_.])((base)?color|albedo|diffuse)($|[\s-_.])",
+                [TextureTags.Height] = @"(^|[\s-_.])height($|[\s-_.])",
+                [TextureTags.Bump] = @"(^|[\s-_.])bump($|[\s-_.])",
+                [TextureTags.Normal] = @"(^|[\s-_.])normal($|[\s-_.])",
+                [TextureTags.Occlusion] = @"(^|[\s-_.])((ambient)?occlusion|ao)($|[\s-_.])",
+                [TextureTags.Specular] = @"^specular$",
+                [TextureTags.Smooth] = @"(^|[\s-_.])smooth(ness)?($|[\s-_.])",
+                [TextureTags.Rough] = @"(^|[\s-_.])rough(ness)?($|[\s-_.])",
+                [TextureTags.Metal] = @"(^|[\s-_.])metal(lic|ness)?($|[\s-_.])",
+                [TextureTags.F0] = @"(^|[\s-_.])f0($|[\s-_.])",
+                [TextureTags.Porosity] = @"(^|[\s-_.])porosity($|[\s-_.])",
+                [TextureTags.SubSurfaceScattering] = @"(^|[\s-_.])(sss|scattering)($|[\s-_.])",
+                [TextureTags.Emissive] = @"(^|[\s-_.])emissi(ve|on)($|[\s-_.])",
+                [TextureTags.MER] = @"^mer$",
                 
-                // Internal
-                ["item"] = TextureTags.Item,
-
-                // Deprecated
-                ["alpha"] = TextureTags.Opacity,
-                ["albedo"] = TextureTags.Color,
-                ["diffuse"] = TextureTags.Color,
-                ["Substance_graph_basecolor"] = TextureTags.Color,
-                ["Substance_graph_ambientocclusion"] = TextureTags.Occlusion,
-                ["Substance_graph_height"] = TextureTags.Height,
-                ["Substance_graph_metal"] = TextureTags.Metal,
-                ["Substance_graph_metallic"] = TextureTags.Metal,
-                ["Substance_graph_normal"] = TextureTags.Normal,
-                ["Substance_graph_porosity"] = TextureTags.Porosity,
-                ["Substance_graph_roughness"] = TextureTags.Rough,
-                ["Substance_graph_SSS"] = TextureTags.SubSurfaceScattering,
-                ["Substance_graph_emissive"] = TextureTags.Emissive,
-                ["inventory"] = TextureTags.Item,
+                // Deprecated/Internal
+                [TextureTags.Item] = @"^(inventory|item)$",
             };
 
             GlobalMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase) {
@@ -128,7 +115,17 @@ namespace PixelGraph.Common.IO
                 // Internal
                 ["item"] = TextureTags.Item,
 
-                // New
+                // Substance
+                //["basecolor"] = TextureTags.Color,
+                //["ambientocclusion"] = TextureTags.Occlusion,
+                //["height"] = TextureTags.Height,
+                //["metal"] = TextureTags.Metal,
+                //["metallic"] = TextureTags.Metal,
+                //["normal"] = TextureTags.Normal,
+                //["porosity"] = TextureTags.Porosity,
+                //["roughness"] = TextureTags.Rough,
+                //["SSS"] = TextureTags.SubSurfaceScattering,
+                //["emissive"] = TextureTags.Emissive,
 
                 // Deprecated
                 ["a"] = TextureTags.Opacity,
@@ -137,10 +134,25 @@ namespace PixelGraph.Common.IO
             };
         }
 
-        public static bool IsLocalFileTag(string localFile, string tag)
+        public static bool IsLocalFileTag(string localFile, string tag = null)
         {
             var name = Path.GetFileNameWithoutExtension(localFile);
-            return LocalLookup.TryGetValue(name, out var lookupTag) && TextureTags.Is(lookupTag, tag);
+            if (name.EndsWith(".ignore") || name.EndsWith("-x")) return false;
+            //return LocalLookup.TryGetValue(name, out var lookupTag) && TextureTags.Is(lookupTag, tag);
+
+            if (tag != null) {
+                if (!LocalLookup.TryGetValue(tag, out var pattern)) return false;
+
+                return Regex.IsMatch(name, pattern, RegexOptions.IgnoreCase);
+            }
+
+            foreach (var pattern in LocalLookup.Values) {
+                if (!Regex.IsMatch(name, pattern, RegexOptions.IgnoreCase)) continue;
+                
+                return true;
+            }
+
+            return false;
         }
 
         public static bool IsGlobalFileTag(string localFile, string name, string tag)

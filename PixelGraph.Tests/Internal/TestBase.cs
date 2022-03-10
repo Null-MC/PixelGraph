@@ -2,10 +2,10 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common;
 using PixelGraph.Common.IO;
+using PixelGraph.Tests.Internal.Mocks;
 using System;
 using System.IO;
 using System.Reflection;
-using PixelGraph.Tests.Internal.Mocks;
 using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.Internal
@@ -15,6 +15,7 @@ namespace PixelGraph.Tests.Internal
         private static readonly Lazy<string> assemblyPathFunc;
 
         protected IServiceBuilder Builder {get;}
+        protected ITestOutputHelper Output {get;}
         protected string AssemblyPath => assemblyPathFunc.Value;
 
 
@@ -25,6 +26,8 @@ namespace PixelGraph.Tests.Internal
 
         protected TestBase(ITestOutputHelper output)
         {
+            Output = output;
+
             Builder = new ServiceBuilder();
 
             Builder.Services.AddSingleton(output);

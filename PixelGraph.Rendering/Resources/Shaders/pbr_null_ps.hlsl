@@ -138,7 +138,7 @@ float4 main(const ps_input input) : SV_TARGET
     float water_shadow;
 
 	const float4x4 mShadowViewProj = mul(vLightView, vLightProjection);
-	const float4 sp = mul(float4(pom_wp, 1), mShadowViewProj);
+	//const float4 sp = mul(float4(pom_wp, 1), mShadowViewProj);
     const float4 wet_sp = mul(float4(water_pom_wp, 1), mShadowViewProj);
 
 	[loop]
@@ -173,16 +173,15 @@ float4 main(const ps_input input) : SV_TARGET
         }
 
         // light parallax shadows
-        const float SNoL = saturate(dot(normal, light_dir));
+        const float surface_NoL = saturate(dot(normal, light_dir));
         const float3 lightT = mul(matTBN, light_dir);
         const float2 polT = get_parallax_offset(lightT) * input.pDepth;
-        light_att *= get_parallax_shadow(shadow_tex, polT, SNoL);
+        light_att *= get_parallax_shadow(shadow_tex, polT, surface_NoL);
 
         if (Lights[i].iLightType == 1 && bHasShadowMap && bRenderShadowMap) {
-            if (dot(light_dir, normal) > 0.0f) {
-		        float wd = max(dot(light_dir, normal), EPSILON);
+            if (surface_NoL > 0.0f) {
 			    float h2 = 1.0f - shadow_tex.z;
-			    float light_trace_dist = h2 / wd * BLOCK_SIZE * input.pDepth;
+			    float light_trace_dist = h2 / surface_NoL * BLOCK_SIZE * input.pDepth;
 			    const float3 shadow_wp = pom_wp + light_trace_dist * light_dir;
 				const float4 shadow_sp = mul(float4(shadow_wp, 1), mShadowViewProj);
                 
@@ -190,7 +189,7 @@ float4 main(const ps_input input) : SV_TARGET
 
 				if (Wetness > EPSILON) {
 		            float d = max(water_levelMin, shadow_tex.z);
-		            water_shadow = get_parallax_shadow(float3(water_tex.xy, d), polT, SNoL);
+		            water_shadow = get_parallax_shadow(float3(water_tex.xy, d), polT, surface_NoL);
 	                water_shadow *= shadow_strength(wet_sp.xyz / wet_sp.w);
 		        }
             }
@@ -247,7 +246,7 @@ float4 main(const ps_input input) : SV_TARGET
 
             const float3 surface_diffuse = light_diffuse * light_att * NoL * invFc * light_color;
             const float3 surface_specular = light_specular * light_att * NoL * invFc * light_color;
-            const float3 water_spec = Frc * water_shadow * SNoL * light_color;
+            const float3 water_spec = Frc * water_shadow * surface_NoL * light_color;
 
             acc_light += surface_diffuse + surface_specular + water_spec;
             spec_strength += luminance(surface_specular + water_spec);
@@ -297,6 +296,13 @@ float4 main(const ps_input input) : SV_TARGET
 	float3 ibl_sss = 0.0f;
 
 	if (bHasCubeMap && bRenderShadowMap) {
+		//float h2 = 1.0f - shadow_tex.z;
+		//float light_trace_dist = h2 / surface_NoL * BLOCK_SIZE * input.pDepth;
+		//const float3 shadow_wp = pom_wp + light_trace_dist * light_dir;
+		//const float4 shadow_sp = mul(float4(shadow_wp, 1), mShadowViewProj);
+
+        // TODO: replace the part below with correct world-pos above
+        const float4 sp = mul(float4(pom_wp, 1), mShadowViewProj);
 		float thickness = SSS_Thickness(sp.xyz / sp.w);
         float sss_dist = lerp(160.0f, 60.0f, sqrt(mat.sss));
 		sss_strength = rcp(1.0f + thickness * sss_dist) * mat.sss * SunStrength;

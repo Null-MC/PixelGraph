@@ -121,7 +121,7 @@ float get_parallax_shadow(const in float3 tex, const in float2 offsetT, const in
 
 	[loop]
 	float result = 0.0;
-	for (int step = int(tex.z); step < step_count; ++step) {
+	for (int step = int(tex.z * step_count); step < step_count; ++step) {
         trace_tex += step_offset;
         trace_depth += step_size;
 

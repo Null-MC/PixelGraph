@@ -62,8 +62,14 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             if (Context.Material.Publish ?? true) {
                 if (!IsOutputUpToDate(packWriteTime, sourceTime)) {
                     logger.LogDebug("Publishing material '{DisplayName}'.", Context.Material.DisplayName);
-                    await ProcessAllTexturesAsync(true, token);
-                    //await CopyPropertiesAsync(token);
+
+                    try {
+                        await ProcessAllTexturesAsync(true, token);
+                        //await CopyPropertiesAsync(token);
+                    }
+                    catch (Exception error) {
+                        throw new ApplicationException($"Failed to publish material '{Context.Material.DisplayName}'!", error);
+                    }
                 }
                 else {
                     logger.LogDebug("Skipping up-to-date material '{DisplayName}'.", Context.Material.DisplayName);
