@@ -4,7 +4,6 @@ using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.Models.Scene;
 using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
@@ -12,6 +11,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+
+#if NORENDER
+using PixelGraph.UI.Models.MockScene;
+#else
+using PixelGraph.UI.Models.Scene;
+#endif
 
 namespace PixelGraph.UI.Models
 {
@@ -43,8 +48,14 @@ namespace PixelGraph.UI.Models
         public event EventHandler<TabClosedEventArgs> TabClosed;
         public event EventHandler ViewModeChanged;
 
+#if NORENDER
+        public MockScenePropertiesModel SceneProperties {get;}
+        public MockRenderPropertiesModel RenderProperties {get;}
+#else
         public ScenePropertiesModel SceneProperties {get;}
         public RenderPropertiesModel RenderProperties {get;}
+#endif
+
         //public MaterialConnectionsModel ConnectionsModel {get; set;}
 
         public ProfileContextModel Profile {get;}

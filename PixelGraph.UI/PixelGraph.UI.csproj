@@ -68,13 +68,21 @@
   <ItemGroup Condition="'$(Configuration)'=='ReleaseNoRender'">
     <Page Remove="Controls\RenderPreviewControl.xaml" />
     <Compile Remove="Controls\RenderPreviewControl.xaml.cs" />
-    <Compile Remove="Helix\**" />
+    <Page Remove="Controls\ScenePropertiesControl.xaml" />
+    <Compile Remove="Controls\ScenePropertiesControl.xaml.cs" />
+    <Compile Remove="Controls\ScenePropertiesControl.xaml.cs" />
     <Compile Remove="Models\RenderPreviewModel.cs" />
+    <Compile Remove="Models\Scene\**" />
+    <Compile Remove="ViewData\RenderModeValues.cs" />
     <Compile Remove="ViewModels\RenderPreviewViewModel.cs" />
+    <Compile Remove="Helix\**" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'!='ReleaseNoRender'">
-    <Page Remove="Controls\NoRenderPreviewControl.xaml" />
-    <Compile Remove="Controls\NoRenderPreviewControl.xaml.cs" />
+    <Page Remove="Controls\MockRenderPreviewControl.xaml" />
+    <Compile Remove="Controls\MockRenderPreviewControl.xaml.cs" />
+    <Page Remove="Controls\MockScenePropertiesControl.xaml" />
+    <Compile Remove="Controls\MockScenePropertiesControl.xaml.cs" />
+    <Compile Remove="Models\MockScene\**" />
   </ItemGroup>
 
   <ItemGroup>

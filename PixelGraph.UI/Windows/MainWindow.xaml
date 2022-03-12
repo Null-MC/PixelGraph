@@ -360,7 +360,7 @@
                                                                  Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                  SelectedTag="{Binding SelectedTag, Mode=OneWay}"
                                                                  Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                <controls:MaterialConnectionsControl x:Name="ConnectionsEditor" DataChanged="OnMaterialConnectionsChanged"
+                                <controls:MaterialConnectionsControl DataChanged="OnMaterialConnectionsChanged"
                                                                      DataContext="{Binding ., Mode=OneWay}"
                                                                      Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                      Visibility="{Binding IsEditModeConnections, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
