@@ -1,4 +1,4 @@
-﻿using PixelGraph.UI.Internal.Preview;
+﻿using PixelGraph.Rendering;
 using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData

@@ -12,6 +12,11 @@ namespace PixelGraph.Rendering.Minecraft
         private MinecraftSceneCore SceneCore => RenderCore as MinecraftSceneCore;
         public bool IsRenderValid => SceneCore.IsRenderValid;
 
+        public bool EnableAtmosphere {
+            get => SceneCore.EnableAtmosphere;
+            set => SceneCore.EnableAtmosphere = value;
+        }
+
         public float TimeOfDay {
             get => SceneCore.TimeOfDay;
             set => SceneCore.TimeOfDay = value;
@@ -83,6 +88,7 @@ namespace PixelGraph.Rendering.Minecraft
             base.AssignDefaultValuesToCore(core);
             if (core is not MinecraftSceneCore sceneCore) return;
 
+            sceneCore.EnableAtmosphere = EnableAtmosphere;
             sceneCore.TimeOfDay = TimeOfDay;
             sceneCore.SunDirection = SunDirection;
             sceneCore.Wetness = Wetness;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PixelGraph.UI.Internal.Preview
+namespace PixelGraph.Rendering
 {
     public enum RenderPreviewModes
     {
@@ -12,7 +12,7 @@ namespace PixelGraph.UI.Internal.Preview
         PbrNull,
     }
 
-    internal static class RenderPreviewMode
+    public static class RenderPreviewMode
     {
         public static readonly string Diffuse = "diffuse";
         public static readonly string Normals = "normals";

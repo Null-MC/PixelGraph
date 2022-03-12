@@ -77,24 +77,20 @@ float4 main(const ps_input input) : SV_TARGET
             light_color *= 4.0f;
             light_dir = normalize(Lights[i].vLightDir.xyz);
         }
-        else if (Lights[i].iLightType == 2) {
+        else {
             light_dir = Lights[i].vLightPos.xyz - pom_wp;
             const float light_dist = length(light_dir);
-            light_dir = light_dir / light_dist;
+            light_dir /= light_dist;
 
-        	light_att = rcp(Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
-        }
-        else if (Lights[i].iLightType == 3) {
-            light_dir = Lights[i].vLightPos.xyz - pom_wp;
-        	
-            const float light_dist = length(light_dir);
-
-            light_dir = light_dir / light_dist;
-
-            const float3 sd = normalize(Lights[i].vLightDir.xyz);
-            const float rho = dot(-light_dir, sd);
-            const float spot = pow(saturate((rho - Lights[i].vLightSpot.x) / (Lights[i].vLightSpot.y - Lights[i].vLightSpot.x)), Lights[i].vLightSpot.z);
-            light_att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
+			if (Lights[i].iLightType == 2) {
+        		light_att = rcp(Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
+	        }
+	        else if (Lights[i].iLightType == 3) {
+	            const float3 sd = normalize(Lights[i].vLightDir.xyz);
+	            const float rho = dot(-light_dir, sd);
+	            const float spot = pow(saturate((rho - Lights[i].vLightSpot.x) / (Lights[i].vLightSpot.y - Lights[i].vLightSpot.x)), Lights[i].vLightSpot.z);
+	            light_att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
+	        }
         }
 
         // light parallax shadows
@@ -103,9 +99,8 @@ float4 main(const ps_input input) : SV_TARGET
         const float2 polT = get_parallax_offset(lightT) * input.pDepth;
         light_att *= get_parallax_shadow(shadow_tex, polT, surface_NoL);
         //if (light_shadow < EPSILON) continue;
-
-
-        if (Lights[i].iLightType == 1 && bHasShadowMap && bRenderShadowMap) {
+        
+        if ((Lights[i].iLightType == 1 && EnableAtmosphere) || (Lights[i].iLightType == 3 && !EnableAtmosphere)) {
             if (surface_NoL > 0) {
 			    float h2 = 1.0f - shadow_tex.z;
 			    float light_trace_dist = h2 / surface_NoL * BLOCK_SIZE * input.pDepth;
@@ -118,8 +113,7 @@ float4 main(const ps_input input) : SV_TARGET
                 light_att = 0.0f;
             }
         }
-
-
+        
         NoL = saturate(dot(tex_normal, light_dir));
         H = normalize(view + light_dir);
         LoH = saturate(dot(light_dir, H));
@@ -147,8 +141,8 @@ float4 main(const ps_input input) : SV_TARGET
 	float alpha = mat.alpha + spec_strength;
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
-	final_color = tonemap_ACESFit2(final_color);
-	//final_color = linear_to_srgb(final_color);
+	//final_color = tonemap_ACESFit2(final_color);
+	final_color = linear_to_srgb(final_color);
 	//final_color = tonemap_Reinhard(final_color);
 	
     return float4(final_color, alpha);

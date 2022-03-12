@@ -148,16 +148,18 @@ cbuffer cbMesh : register(b1)
 
 cbuffer cbMinecraftScene : register(b2)
 {
-	bool EnableLinearSampling = false;
+	bool EnableAtmosphere = true;
 	float3 SunDirection;
 	float SunStrength;
     float TimeOfDay;
+	bool EnableLinearSampling = false;
     float Wetness;
     int WaterMode = WATER_SURFACE;
+	bool EnableSlopeNormals = false;
+    //bool padding9;
     float ParallaxDepth;
     int ParallaxSamplesMin;
     int ParallaxSamplesMax;
-	bool EnableSlopeNormals = false;
     //int OpacityMode;
 	//float Padding2;
 };

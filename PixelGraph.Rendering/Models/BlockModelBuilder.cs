@@ -9,7 +9,7 @@ namespace PixelGraph.Rendering.Models
 {
     public interface IBlockModelBuilder : IModelBuilder
     {
-        void BuildModel(in float cubeSize, BlockModelVersion model, string textureId = null);
+        void AppendModelTextureParts(in float cubeSize, Vector3 offset, BlockModelVersion model, string textureId = null);
     }
 
     public class BlockModelBuilder : ModelBuilder, IBlockModelBuilder
@@ -17,12 +17,12 @@ namespace PixelGraph.Rendering.Models
         private static readonly Vector3 blockCenter = new(8f, 8f, 8f);
 
 
-        public void BuildModel(in float cubeSize, BlockModelVersion modelVersion, string textureId = null)
-        {
-            Builder.Clear();
+        public void Clear() => Builder.Clear();
 
-            Vector3 normal, up;
-            float offset, width, height;
+        public void AppendModelTextureParts(in float cubeSize, Vector3 offset, BlockModelVersion modelVersion, string textureId = null)
+        {
+            Vector3 faceNormal, faceUp;
+            float faceOffset, faceWidth, faceHeight;
             Matrix mWorld;
 
             foreach (var element in modelVersion.Elements) {
@@ -38,7 +38,7 @@ namespace PixelGraph.Rendering.Models
                     mWorld *= Matrix.Translation(element.Rotation.Origin);
                 }
 
-                mWorld *= Matrix.Translation(-blockCenter);
+                mWorld *= Matrix.Translation(-blockCenter + offset);
                 mWorld *= Matrix.Scaling(BlockToWorld * cubeSize);
 
                 foreach (var face in ModelElement.AllFaces) {
@@ -49,15 +49,15 @@ namespace PixelGraph.Rendering.Models
                     // Skip if building a specific texture that doesn't match this ID
                     if (textureId != null && !string.Equals($"#{textureId}", faceData.Texture, StringComparison.InvariantCultureIgnoreCase)) continue;
 
-                    up = GetUpVector(face);
-                    normal = GetFaceNormal(face);
-                    (width, height, offset) = element.GetWidthHeightOffset(in face);
+                    faceUp = GetUpVector(face);
+                    faceNormal = GetFaceNormal(face);
+                    (faceWidth, faceHeight, faceOffset) = element.GetWidthHeightOffset(in face);
                     var rotation = faceData.Rotation ?? 0;
 
                     var uv = faceData.UV ?? GetDefaultUv(element, in face);
                     Multiply(in uv, BlockToWorld, out uv);
 
-                    AddCubeFace(in mWorld, in normal, in up, in offset, in width, in height, in uv, in rotation);
+                    AddCubeFace(in mWorld, in faceNormal, in faceUp, in faceOffset, in faceWidth, in faceHeight, in uv, in rotation);
                 }
             }
 

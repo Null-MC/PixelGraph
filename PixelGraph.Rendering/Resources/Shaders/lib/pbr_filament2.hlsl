@@ -128,7 +128,7 @@ float IBL_SpecularOcclusion(float NoV, float ao, float rough)
 
 float3 IBL_ambient(const in float3 F, const in float3 reflect)
 {
-    float3 irradiance = bHasCubeMap
+    float3 irradiance = EnableAtmosphere
 		? tex_irradiance.SampleLevel(sampler_irradiance, reflect, 0)
 		: srgb_to_linear(vLightAmbient.rgb);
 
@@ -143,7 +143,7 @@ float3 IBL_specular(const in float3 F, const in float NoV, const in float3 r, co
 	const float3 specular_occlusion = IBL_SpecularOcclusion(NoV, occlusion, roughL);
 
     float3 indirect_specular;
-    if (bHasCubeMap) {
+    if (EnableAtmosphere) {
 		//const float roughP = sqrt(roughL);
 		const float mip = roughP * NumEnvironmentMapMipLevels;
 	    indirect_specular = tex_environment.SampleLevel(sampler_environment, r, mip);
@@ -212,6 +212,9 @@ float SSS_Light(const in float3 normal, const in float3 view, const in float3 li
 
 float3 SSS_IBL(const in float3 view)
 {
-	const float3 SSS_Ambient = tex_irradiance.SampleLevel(sampler_irradiance, -view, 0);
+	const float3 SSS_Ambient = EnableAtmosphere
+		? tex_irradiance.SampleLevel(sampler_irradiance, -view, 0)
+		: srgb_to_linear(vLightAmbient.rgb);
+
 	return SSS_Ambient * SSS_Scale;
 }

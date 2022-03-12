@@ -20,19 +20,7 @@ namespace PixelGraph.UI.Internal.Tabs
 {
     public class TabPreviewContext : IDisposable
     {
-//#if !NORENDER
-//        private static readonly Dictionary<string, Func<IModelBuilder, BlockMeshGeometry3D>> map = new(StringComparer.InvariantCultureIgnoreCase) {
-//                [ModelType.Bell] = builder => builder.BuildEntity(CubeSize, new BellBody().GetLatestVersion()),
-//                [ModelType.Boat] = builder => builder.BuildEntity(CubeSize, new Boat().GetLatestVersion()),
-//                [ModelType.Cow] = builder => builder.BuildEntity(CubeSize, new Cow().GetLatestVersion()),
-//                [ModelType.Cube] = builder => builder.BuildCube(CubeSize),
-//                [ModelType.Plane] = builder => builder.BuildCube(CubeSize, 4, 1, 4),
-//                [ModelType.Zombie] = builder => builder.BuildEntity(CubeSize, new Zombie().GetLatestVersion()),
-//            };
-//#endif
-
         private readonly IServiceProvider provider;
-        //private readonly IAppSettings appSettings;
         private readonly object lockHandle;
         private CancellationTokenSource tokenSource;
         private BitmapSource _layerImageSource;
@@ -45,15 +33,8 @@ namespace PixelGraph.UI.Internal.Tabs
         public bool IsLayerValid {get; private set;}
         public bool IsLayerSourceValid {get; private set;}
 
-        //public string CurrentLayerTag {get; private set;}
-
 #if !NORENDER
         public MultiPartMeshBuilder Mesh {get;}
-        //private IMaterialBuilder materialBuilder;
-        //private IModelBuilder modelBuilder;
-        //public ObservableElement3DCollection ModelParts {get; private set;}
-
-        //public Material ModelMaterial {get; set;}
 #endif
 
 
@@ -75,15 +56,11 @@ namespace PixelGraph.UI.Internal.Tabs
         }
 
 #if !NORENDER
-        public async Task BuildModelMeshAsync(RenderPreviewModes renderMode, IRenderContext renderContext, CancellationToken token = default)
+        public async Task BuildModelMeshAsync(IRenderContext renderContext, CancellationToken token = default)
         {
             var mergedToken = StartNewToken(token);
-            //var builder = GetMaterialBuilder(mainModel, sceneModel, renderModel);
 
-            //await Task.Run(() => builder.UpdateAllTexturesAsync(mergedToken), mergedToken);
-
-            //await Task.Run(() => Mesh.Build(renderMode, renderContext), mergedToken);
-            await Mesh.BuildAsync(renderMode, renderContext, mergedToken);
+            await Mesh.BuildAsync(renderContext, mergedToken);
             //Mesh.UpdateModelParts();
 
             //IsMaterialBuilderValid = true;
@@ -91,12 +68,6 @@ namespace PixelGraph.UI.Internal.Tabs
 
         public void UpdateModelParts()
         {
-            //var mergedToken = StartNewToken(token);
-            //var builder = GetMaterialBuilder(mainModel, sceneModel, renderModel);
-
-            //await Task.Run(() => builder.UpdateAllTexturesAsync(mergedToken), mergedToken);
-
-            //await Task.Run(() => Mesh.Build(renderMode, renderContext), mergedToken);
             Mesh.UpdateModelParts();
             IsMaterialBuilderValid = true;
         }
@@ -104,12 +75,6 @@ namespace PixelGraph.UI.Internal.Tabs
 
         public async Task BuildLayerAsync(ResourcePackInputProperties packInput, ResourcePackProfileProperties packProfile, MaterialProperties material, string textureTag, CancellationToken token = default)
         {
-            //var mergedToken = StartNewToken(token);
-
-            //var material = (model.SelectedTab as MaterialTabModel)?.Material;
-            // WARN: (i think) There's a race condition between loading material and updating preview
-            //if (material == null) return;
-
             using var previewBuilder = provider.GetRequiredService<ILayerPreviewBuilder>();
 
             previewBuilder.Input = packInput;
@@ -121,7 +86,6 @@ namespace PixelGraph.UI.Internal.Tabs
                 tag = TextureTags.Color;
 
             LayerImage = await previewBuilder.BuildAsync<Rgb24>(tag, 0);
-            //CurrentLayerTag = model.Preview.SelectedTag;
             IsLayerValid = true;
         }
 
@@ -147,87 +111,6 @@ namespace PixelGraph.UI.Internal.Tabs
         }
 
         #if !NORENDER
-        //public Material UpdateMaterial(MainWindowModel mainModel, ScenePropertiesModel sceneModel, RenderPreviewModel renderModel)
-        //{
-        //    var builder = GetMaterialBuilder(mainModel, sceneModel, renderModel);
-
-        //    var enableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling
-        //        ?? RenderPreviewSettings.Default_EnableLinearSampling;
-
-        //    //builder.ColorSampler = enableLinearSampling
-        //    //    ? CustomSamplerStates.Color_Linear
-        //    //    : CustomSamplerStates.Color_Point;
-        //    builder.ColorSampler = CustomSamplerStates.Color_Point;
-
-        //    builder.HeightSampler = enableLinearSampling
-        //        ? CustomSamplerStates.Height_Linear
-        //        : CustomSamplerStates.Height_Point;
-
-        //    builder.PassName = renderModel.RenderMode switch {
-        //        RenderPreviewModes.PbrFilament => CustomPassNames.PbrFilament,
-        //        RenderPreviewModes.PbrJessie => CustomPassNames.PbrJessie,
-        //        RenderPreviewModes.PbrNull => CustomPassNames.PbrNull,
-        //        _ => null,
-        //    };
-
-        //    builder.PassNameOIT = renderModel.RenderMode switch {
-        //        RenderPreviewModes.PbrFilament => CustomPassNames.PbrFilamentOIT,
-        //        RenderPreviewModes.PbrJessie => CustomPassNames.PbrJessieOIT,
-        //        RenderPreviewModes.PbrNull => CustomPassNames.PbrNullOIT,
-        //        _ => null,
-        //    };
-
-        //    ModelMaterial = builder.BuildMaterial();
-        //    if (ModelMaterial.CanFreeze) ModelMaterial.Freeze();
-        //    IsMaterialValid = true;
-
-        //    return ModelMaterial;
-        //}
-
-        //public ObservableElement3DCollection UpdateModel(MainWindowModel mainModel)
-        //{
-        //    var material = mainModel.SelectedTabMaterial;
-        //    if (material == null) return null;
-
-        //    try {
-        //        var model = BuildModelFile(material);
-        //        if (model != null) {
-        //            // TODO: 
-                    
-                    
-        //            return model;
-        //        }
-        //    }
-        //    catch (Exception) {
-        //        // TODO: log error!
-        //    }
-
-        //    var mesh = new MultiTexturedMesh();
-        //    BlockMeshGeometry3D meshPart;
-
-        //    if (material.ModelType != null) {
-        //        if (map.TryGetValue(material.ModelType, out var meshFunc)) {
-        //            meshPart = meshFunc(modelBuilder);
-        //            mesh.Set("texture", material.LocalFilename, meshPart);
-        //            return mesh;
-        //        }
-        //        else {
-        //            //throw new ApplicationException($"Unknown model type '{Model.ModelType}'!");
-        //            // TODO: log error!
-        //        }
-        //    }
-
-        //    //mesh.Set("texture", material.LocalFilename, meshPart);
-        //    //return mesh;
-
-        //    var modelPart = new BlockMeshGeometryModel3D();
-        //    modelPart.Geometry = modelBuilder.BuildCube(CubeSize);
-
-        //    // TODO: load actual material textures
-        //    part.Material = material;
-
-        //    RenderModel.MeshParts.Add(part);
-        //}
 
         public void InvalidateMaterialBuilder(bool clear)
         {
@@ -244,12 +127,6 @@ namespace PixelGraph.UI.Internal.Tabs
             if (clear) Mesh.ClearTextureBuilders();
         }
 #endif
-
-        //public void Invalidate(bool clear)
-        //{
-        //    InvalidateMaterial(clear);
-        //    InvalidateLayer(clear);
-        //}
 
         public void InvalidateLayer(bool clear)
         {

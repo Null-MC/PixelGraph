@@ -11,14 +11,14 @@
              xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
              xmlns:controls1="clr-namespace:PixelGraph.UI.Helix.Controls"
              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" d:DataContext="{x:Null}"
-             Unloaded="OnControlUnloaded">
+             Unloaded="OnControlUnloaded" x:Name="Control">
     <UserControl.Resources>
         <viewData:RenderModeValues x:Key="RenderModes"/>
-        <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
+        <converters:BooleanInverseConverter x:Key="boolInverseConverter"/>
     </UserControl.Resources>
     <DockPanel>
         <DockPanel.DataContext>
-            <models:RenderPreviewModel x:Name="Model"/>
+            <models:RenderPreviewModel x:Name="Model" SceneChanged="OnSceneChanged"/>
         </DockPanel.DataContext>
         <Border DockPanel.Dock="Top"
                 Background="{DynamicResource MahApps.Brushes.Accent4}">
@@ -27,14 +27,10 @@
                     <ComboBox DockPanel.Dock="Left" Margin="2,0" Padding="4,0" BorderThickness="0" ToolTip="Shader"
                               DisplayMemberPath="Text" SelectedValuePath="Value" SelectionChanged="OnRenderModeSelectionChanged"
                               ItemsSource="{StaticResource RenderModes}"
-                              SelectedValue="{Binding RenderMode, Mode=TwoWay}"/>
-                    <CheckBox DockPanel.Dock="Left" Content="Lights" Margin="6,0" FontWeight="Bold"
+                              SelectedValue="{Binding RenderProperties.RenderMode, Mode=TwoWay}"/>
+                    <CheckBox DockPanel.Dock="Left" Content="Tile" Margin="6,0" FontWeight="Bold"
                               Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
-                              IsChecked="{Binding EnableLights, Mode=TwoWay}"/>
-                    <Slider DockPanel.Dock="Right" Margin="2,0" Minimum="0" Maximum="100" Width="320"
-                            Value="{Binding Wetness, Mode=TwoWay}"/>
-                    <TextBlock DockPanel.Dock="Right" Text="Wetness:" Margin="2,0" FontWeight="Bold" VerticalAlignment="Center"
-                               Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                              IsChecked="{Binding RenderProperties.EnableTiling, Mode=TwoWay}"/>
                     <Button DockPanel.Dock="Right" Margin="2,0" Padding="6,0" BorderThickness="0"
                             Click="OnPreviewRefreshClick" ToolTip="Refresh Preview"
                             Style="{StaticResource MahApps.Styles.Button}">
@@ -45,8 +41,8 @@
         </Border>
         <hx:Viewport3DX x:Name="viewport3D"
             BackgroundColor="#222"
-            Camera="{Binding Camera}"
-            EffectsManager="{Binding EffectsManager}"
+            Camera="{Binding RenderProperties.Camera}"
+            EffectsManager="{Binding RenderProperties.EffectsManager}"
             EnableD2DRendering="False"
             EnableSwapChainRendering="True"
             EnableRenderFrustum="False"
@@ -70,41 +66,72 @@
                 <MouseBinding Command="hx:ViewportCommands.Zoom" Gesture="MiddleClick" />
                 <MouseBinding Command="hx:ViewportCommands.Pan" Gesture="LeftClick" />
             </hx:Viewport3DX.InputBindings>
+
             <controls1:MinecraftScene3D x:Name="MinecraftScene"
-                TimeOfDay="{Binding TimeOfDayLinear, Mode=OneWay}"
-                SunDirection="{Binding SunDirection, Mode=OneWay}"
-                SunStrength="{Binding SunStrength, Mode=OneWay}"
-                Wetness="{Binding WetnessLinear, Mode=OneWay}"
-                ParallaxDepth="{Binding ParallaxDepth, Mode=OneWay}"
-                ParallaxSamplesMin="{Binding ParallaxSamplesMin, Mode=OneWay}"
-                ParallaxSamplesMax="{Binding ParallaxSamplesMax, Mode=OneWay}"
-                EnableLinearSampling="{Binding EnableLinearSampling, Mode=OneWay}"
-                EnableSlopeNormals="{Binding EnableSlopeNormals, Mode=OneWay}"
-                WaterMode="{Binding WaterMode, Mode=OneWay}"/>
-            <controls1:MinecraftMesh3D x:Name="MinecraftMesh"
-                                       BlendMode="{Binding MeshBlendMode, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                                       TintColor="{Binding MeshTintColor, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <hx:ShadowMap3D Resolution="1024,1024" Bias="0.001"
-                            NearFieldDistance="1" FarFieldDistance="32" OrthoWidth="64"
-                            LightCamera="{Binding SunCamera, Mode=OneWay}"/>
-            <controls1:EnvironmentCube3D x:Name="EnvironmentCubeMapSource" FaceSize="128"
-                                  IsRendering="{Binding EnableEnvironment, Mode=OneWay}"
-                                  Scene="{Binding Mode=OneWay, Source={x:Reference MinecraftScene}}"/>
-            <controls1:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="32"
-                                 IsRendering="{Binding EnableEnvironment, Mode=OneWay}"
-                                 EnvironmentCubeMapSource="{Binding Mode=OneWay, Source={x:Reference EnvironmentCubeMapSource}}"/>
-            <hx:AmbientLight3D Color="#222"
-                               Visibility="{Binding EnableEnvironment, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
-            <hx:DirectionalLight3D Color="{Binding SunLightColor, Mode=OneWay}"
-                                   Direction="{Binding SunLightDirection, Mode=OneWay}"
-                                   IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
-            <hx:PointLight3D Color="#C39667" Range="20" Position="10,14,8"
-                             IsRendering="{Binding EnableLights, Mode=OneWay}"/>
-            <hx:PointLight3D Color="#83D0F2" Range="20" Position="-12,-12,-10"
-                             IsRendering="{Binding EnableLights, Mode=OneWay}"/>
-            <controls1:SkyDome3D IsRendering="{Binding EnableEnvironment, Mode=OneWay}"/>
-            <!--<hx:DraggableGeometryModel3D Transform="{Binding PointLightTransform, Mode=TwoWay}" />-->
-            <hx:GroupModel3D ItemsSource="{Binding MeshParts, Mode=OneWay}"/>
+                EnableAtmosphere="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"
+                TimeOfDay="{Binding SceneProperties.TimeOfDayLinear, Mode=OneWay}"
+                SunDirection="{Binding SceneProperties.SunDirection, Mode=OneWay}"
+                SunStrength="{Binding SceneProperties.SunStrength, Mode=OneWay}"
+                Wetness="{Binding SceneProperties.WetnessLinear, Mode=OneWay}"
+                ParallaxDepth="{Binding RenderProperties.ParallaxDepth, Mode=OneWay}"
+                ParallaxSamplesMin="{Binding RenderProperties.ParallaxSamplesMin, Mode=OneWay}"
+                ParallaxSamplesMax="{Binding RenderProperties.ParallaxSamplesMax, Mode=OneWay}"
+                EnableLinearSampling="{Binding RenderProperties.EnableLinearSampling, Mode=OneWay}"
+                EnableSlopeNormals="{Binding RenderProperties.EnableSlopeNormals, Mode=OneWay}"
+                WaterMode="{Binding RenderProperties.WaterMode, Mode=OneWay}"/>
+
+            <controls1:MinecraftMesh3D
+                                       BlendMode="{Binding RenderProperties.MeshBlendMode, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                                       TintColor="{Binding RenderProperties.MeshTintColor, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <hx:ShadowMap3D Resolution="2048,2048" Bias="0.001" Distance="24"
+                            NearFieldDistance="1" FarFieldDistance="48" OrthoWidth="24">
+                <hx:ShadowMap3D.Style>
+                    <Style TargetType="hx:ShadowMap3D">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SceneProperties.EnableAtmosphere}" Value="True">
+                                <Setter Property="LightCamera" Value="{Binding RenderProperties.SunCamera, Mode=OneWay}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                        <Setter Property="LightCamera" Value="{Binding RenderProperties.LightCamera, Mode=OneWay}"/>
+                    </Style>
+                </hx:ShadowMap3D.Style>
+            </hx:ShadowMap3D>
+
+            <controls1:EnvironmentCube3D x:Name="EnvironmentCubeMapSource" FaceSize="256"
+                IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"
+                Scene="{Binding Mode=OneWay, Source={x:Reference MinecraftScene}}"/>
+            <controls1:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="64"
+                IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"
+                EnvironmentCubeMapSource="{Binding Mode=OneWay, Source={x:Reference EnvironmentCubeMapSource}}"/>
+            <hx:AmbientLight3D Color="{Binding SceneProperties.AmbientColor}"
+                IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay, Converter={StaticResource boolInverseConverter}}"/>
+            <hx:DirectionalLight3D Color="{Binding SceneProperties.SunLightColor, Mode=OneWay}"
+                Direction="{Binding SceneProperties.SunLightDirection, Mode=OneWay}"
+                IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"/>
+
+            <hx:CameraModel3D x:Name="lightCamera"
+                              IsRendering="{Binding SceneProperties.EnableLights}"
+                Camera="{Binding RenderProperties.LightCamera, Mode=OneWay}" />
+            <hx:SpotLight3D Color="{Binding SceneProperties.LightColor, Mode=OneWay}"
+                Direction="{Binding RenderProperties.LightCamera.LookDirection, Mode=OneWay}"
+                OuterAngle="{Binding RenderProperties.LightCamera.FieldOfView, Mode=OneWay}"
+                Position="{Binding RenderProperties.LightCamera.Position, Mode=OneWay}"
+                Range="{Binding RenderProperties.LightCamera.FarPlaneDistance, Mode=OneWay}"
+                IsRendering="{Binding SceneProperties.EnableLights, Mode=OneWay}"/>
+            <hx:UICompositeManipulator3D
+                CanRotateX="true"
+                CanRotateY="true"
+                CanRotateZ="true"
+                CanTranslateX="true"
+                CanTranslateY="true"
+                CanTranslateZ="true"
+                Diameter="1"
+                TargetTransform="{Binding Transform, ElementName=lightCamera}"
+                IsRendering="{Binding SceneProperties.EnableLights, Mode=OneWay}"/>
+
+            <controls1:SkyDome3D/>
+            <hx:GroupModel3D ItemsSource="{Binding RenderProperties.MeshParts, Mode=OneWay}"/>
             <!--<controls1:BlockMeshGeometryModel3D CullMode="Back" IsThrowingShadow="True"
                                     Geometry="{Binding BlockMesh, Mode=OneWay}"
                                     Material="{Binding ModelMaterial, Mode=OneWay}"/>-->
@@ -113,6 +140,17 @@
                 CanRotateX="False" CanRotateY="False" CanRotateZ="False"
                 CanTranslateX="True" CanTranslateY="True" CanTranslateZ="True"
                 Transform="{Binding PointLightTransform}"/>-->
+            <hx:PostEffectBloom
+                IsRendering="{Binding RenderProperties.EnableBloom}"
+                BloomExtractIntensity=".7"
+                BloomPassIntensity=".96"
+                BloomCombineIntensity="1.2"
+                BloomCombineSaturation="0.6"
+                NumberOfBlurPass="5">
+                <hx:PostEffectBloom.ThresholdColor>
+                    <Color R="200" G="190" B="180"/>
+                </hx:PostEffectBloom.ThresholdColor>
+            </hx:PostEffectBloom>
             <hx:ContinuousRender3D/>
         </hx:Viewport3DX>
     </DockPanel>

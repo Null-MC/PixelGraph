@@ -43,7 +43,9 @@ namespace PixelGraph.UI.Models
         public event EventHandler<TabClosedEventArgs> TabClosed;
         public event EventHandler ViewModeChanged;
 
-        public MaterialConnectionsModel ConnectionsModel {get; set;}
+        public ScenePropertiesModel SceneProperties {get;}
+        public RenderPropertiesModel RenderProperties {get;}
+        //public MaterialConnectionsModel ConnectionsModel {get; set;}
 
         public ProfileContextModel Profile {get;}
         public ObservableCollection<ITabModel> TabList {get;}
@@ -80,8 +82,6 @@ namespace PixelGraph.UI.Models
                 }
             }
         }
-
-        public ScenePropertiesModel SceneModel {get;}
 
         public string SelectedTag {
             get => _selectedTag;
@@ -330,7 +330,8 @@ namespace PixelGraph.UI.Models
 
 #if !NORENDER
             SupportsRender = true;
-            SceneModel = new ScenePropertiesModel();
+            SceneProperties = new ScenePropertiesModel();
+            RenderProperties = new RenderPropertiesModel();
 #endif
         }
 

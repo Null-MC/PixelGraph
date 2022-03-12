@@ -106,15 +106,12 @@ namespace PixelGraph.UI.Models
             }
 
             var blockModel = loader.GetBlockModel(Material);
-            if (blockModel != null) {
-                throw new NotImplementedException();
-                // TODO
+            if (blockModel == null) throw new ApplicationException("No model found!");
+            
+            throw new NotImplementedException("Importing filters from block models has not yet been implemented!");
+            // TODO
 
-                OnDataChanged();
-                return;
-            }
-
-            throw new ApplicationException("No model found!");
+            OnDataChanged();
         }
 
         public void UpdateFilterList()

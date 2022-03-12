@@ -50,8 +50,8 @@ namespace PixelGraph.UI.ViewModels
         public Dispatcher Dispatcher {get; set;}
 
 #if !NORENDER
-        public ScenePropertiesModel SceneModel {get; set;}
-        public RenderPreviewModel RenderModel {get; set;}
+        public ScenePropertiesModel SceneProperties {get; set;}
+        public RenderPropertiesModel RenderProperties {get; set;}
 #endif
 
 
@@ -88,7 +88,7 @@ namespace PixelGraph.UI.ViewModels
             Model.TabClosed += OnTabClosed;
 
 #if !NORENDER
-            RenderModel.RenderModeChanged += OnRenderModeChanged;
+            RenderProperties.RenderModeChanged += OnRenderModeChanged;
 #endif
         }
 
@@ -306,18 +306,20 @@ namespace PixelGraph.UI.ViewModels
                         //    await context.BuildModelMeshAsync(material, token);
 
                         var renderContext = new RenderContext {
+                            RenderMode = RenderProperties.RenderMode,
                             PackInput = Model.PackInput,
                             PackProfile = Model.Profile.Loaded,
                             DefaultMaterial = Model.SelectedTabMaterial,
-                            MissingMaterial = RenderModel.MissingMaterial,
-                            EnvironmentCubeMap = RenderModel.EnvironmentCube,
-                            IrradianceCubeMap = RenderModel.IrradianceCube,
-                            EnvironmentEnabled = SceneModel.SunEnabled,
-                            BrdfLutMap = RenderModel.BrdfLutMap,
+                            MissingMaterial = RenderProperties.MissingMaterial,
+                            EnvironmentCubeMap = RenderProperties.EnvironmentCube,
+                            IrradianceCubeMap = RenderProperties.IrradianceCube,
+                            EnvironmentEnabled = SceneProperties.EnableAtmosphere,
+                            BrdfLutMap = RenderProperties.BrdfLutMap,
+                            EnableTiling = RenderProperties.EnableTiling,
                         };
 
                         try {
-                            await context.BuildModelMeshAsync(RenderModel.RenderMode, renderContext, token);
+                            await context.BuildModelMeshAsync(renderContext, token);
                         }
                         catch (Exception error) {
                             logger.LogError(error, "Failed to build model mesh!");
@@ -343,7 +345,7 @@ namespace PixelGraph.UI.ViewModels
                             //RenderModel.BlockMesh = context.UpdateModel(Model);
                             //RenderModel.ModelMaterial = context.UpdateMaterial(Model, SceneModel, RenderModel);
                             context.UpdateModelParts();
-                            RenderModel.MeshParts = context.Mesh.ModelParts;
+                            RenderProperties.MeshParts = context.Mesh.ModelParts;
                             //RenderModel.SetModel();
                             
                             TextureModel.Texture = null;
@@ -363,7 +365,7 @@ namespace PixelGraph.UI.ViewModels
 #if !NORENDER
                             //RenderModel.ModelMaterial = null;
                             //RenderModel.BlockMesh = null;
-                            RenderModel.MeshParts.Clear();
+                            RenderProperties.MeshParts.Clear();
 #endif
 
                             TextureModel.Texture = context.GetLayerImageSource();
@@ -382,7 +384,7 @@ namespace PixelGraph.UI.ViewModels
 #if !NORENDER
                         //RenderModel.ModelMaterial = null;
                         //RenderModel.BlockMesh = null;
-                        RenderModel.MeshParts.Clear();
+                        RenderProperties.MeshParts.Clear();
 #endif
 
                         TextureModel.Texture = context.GetLayerImageSource();
@@ -686,12 +688,12 @@ namespace PixelGraph.UI.ViewModels
 #if !NORENDER
             if (tab is MaterialTabModel matTab) {
                 var mat = matTab.MaterialRegistration.Value;
-                RenderModel.ApplyMaterial(mat);
+                RenderProperties.ApplyMaterial(mat);
                 //RenderModel.MeshBlendMode = mat?.BlendMode;
                 //RenderModel.MeshTintColor = mat?.TintColor;
             }
 
-            RenderModel.MeshParts = context.Mesh.ModelParts;
+            RenderProperties.MeshParts = context.Mesh.ModelParts;
             //RenderModel.ModelMaterial = context.ModelMaterial;
 #endif
 

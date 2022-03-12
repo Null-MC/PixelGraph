@@ -6,13 +6,14 @@ using MinecraftMappings.Internal.Models.Entity;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
+using PixelGraph.Rendering;
 using PixelGraph.Rendering.Models;
 using PixelGraph.Rendering.Shaders;
 using PixelGraph.UI.Helix.Controls;
 using PixelGraph.UI.Helix.Materials;
 using PixelGraph.UI.Internal.Models;
-using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Settings;
+using SharpDX;
 using SharpDX.Direct3D11;
 using System;
 using System.Collections.Generic;
@@ -58,36 +59,33 @@ namespace PixelGraph.UI.Helix.Models
             ClearTextureBuilders();
         }
 
-        public async Task BuildAsync(RenderPreviewModes renderMode, IRenderContext renderContext, CancellationToken token = default)
+        public async Task BuildAsync(IRenderContext renderContext, CancellationToken token = default)
         {
             var entityModel = modelLoader.GetEntityModel(renderContext.DefaultMaterial);
             if (entityModel != null) {
-                await BuildEntityModelAsync(renderMode, renderContext, entityModel, token);
+                await BuildEntityModelAsync(renderContext, entityModel, token);
                 return;
             }
 
             var blockModel = modelLoader.GetBlockModel(renderContext.DefaultMaterial);
-            if (blockModel != null) {
-                FlattenBlockModelTextures(blockModel);
+            if (blockModel == null) throw new ApplicationException("Failed to load model file!");
 
-                await BuildMaterialMapAsync(renderMode, renderContext, blockModel.Textures, token);
+            FlattenBlockModelTextures(blockModel);
+
+            await BuildMaterialMapAsync(renderContext, blockModel.Textures, token);
             
-                // Apply default material if no textures are mapped
-                if (materialMap.Count == 0) {
-                    var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
-                    await materialBuilder.UpdateAllTexturesAsync(0, token);
+            // Apply default material if no textures are mapped
+            if (materialMap.Count == 0) {
+                var materialBuilder = UpdateMaterial(renderContext, renderContext.DefaultMaterial);
+                await materialBuilder.UpdateAllTexturesAsync(0, token);
 
-                    materialMap["all"] = materialBuilder;
+                materialMap["all"] = materialBuilder;
 
-                    foreach (var element in blockModel.Elements)
-                        element.SetTexture("#all");
-                }
-
-                BuildBlockModel(blockModel);
-                return;
+                foreach (var element in blockModel.Elements)
+                    element.SetTexture("#all");
             }
 
-            throw new ApplicationException("Failed to load model file!");
+            BuildBlockModel(blockModel, renderContext.EnableTiling);
         }
 
         /// <summary>
@@ -149,25 +147,43 @@ namespace PixelGraph.UI.Helix.Models
                 model.Textures.Remove(textureId);
         }
 
-        private void BuildBlockModel(BlockModelVersion model)
+        private void BuildBlockModel(BlockModelVersion model, bool tile = false)
         {
             partsList.Clear();
 
             foreach (var (textureId, matBuilder) in materialMap) {
                 var modelBuilder = new BlockModelBuilder();
-                modelBuilder.BuildModel(CubeSize, model, textureId);
+
+                if (tile) {
+                    Vector3 offset;
+                    for (var z = -1; z <= 1; z++) {
+                        for (var y = -1; y <= 1; y++) {
+                            for (var x = -1; x <= 1; x++) {
+                                offset.X = x * 16f;
+                                offset.Y = y * 16f;
+                                offset.Z = z * 16f;
+
+                                modelBuilder.AppendModelTextureParts(CubeSize, offset, model, textureId);
+                            }
+                        }
+                    }
+                }
+                else {
+                    modelBuilder.AppendModelTextureParts(CubeSize, Vector3.Zero, model, textureId);
+                }
+
                 partsList.Add((modelBuilder, matBuilder));
             }
         }
 
-        private async Task BuildEntityModelAsync(RenderPreviewModes renderMode, IRenderContext renderContext, EntityModelVersion model, CancellationToken token)
+        private async Task BuildEntityModelAsync(IRenderContext renderContext, EntityModelVersion model, CancellationToken token)
         {
             ClearTextureBuilders();
 
             var modelBuilder = new EntityModelBuilder();
             modelBuilder.BuildEntity(CubeSize, model);
 
-            var materialBuilder = UpdateMaterial(renderMode, renderContext, renderContext.DefaultMaterial);
+            var materialBuilder = UpdateMaterial(renderContext, renderContext.DefaultMaterial);
             await materialBuilder.UpdateAllTexturesAsync(0, token);
             // using default/selected material instead of lookup
 
@@ -184,7 +200,7 @@ namespace PixelGraph.UI.Helix.Models
             materialMap.Clear();
         }
 
-        private async Task BuildMaterialMapAsync(RenderPreviewModes renderMode, IRenderContext renderContext, IReadOnlyDictionary<string, string> textureMap, CancellationToken token)
+        private async Task BuildMaterialMapAsync(IRenderContext renderContext, IReadOnlyDictionary<string, string> textureMap, CancellationToken token)
         {
             ClearTextureBuilders();
 
@@ -214,7 +230,7 @@ namespace PixelGraph.UI.Helix.Models
                     material = renderContext.DefaultMaterial;
                 }
 
-                var materialBuilder = UpdateMaterial(renderMode, renderContext, material);
+                var materialBuilder = UpdateMaterial(renderContext, material);
                 await materialBuilder.UpdateAllTexturesAsync(partIndex, token);
 
                 materialMap[textureId] = materialBuilder;
@@ -227,7 +243,7 @@ namespace PixelGraph.UI.Helix.Models
                 builder.ClearAllTextures();
         }
 
-        private IMaterialBuilder CreateMaterialBuilder(RenderPreviewModes renderMode, IRenderContext renderContext)
+        private IMaterialBuilder CreateMaterialBuilder(RenderPreviewModes renderMode)
         {
             switch (renderMode) {
                 case RenderPreviewModes.Diffuse:
@@ -246,9 +262,9 @@ namespace PixelGraph.UI.Helix.Models
             }
         }
 
-        private IMaterialBuilder UpdateMaterial(RenderPreviewModes renderMode, IRenderContext renderContext, MaterialProperties material)
+        private IMaterialBuilder UpdateMaterial(IRenderContext renderContext, MaterialProperties material)
         {
-            var materialBuilder = CreateMaterialBuilder(renderMode, renderContext);
+            var materialBuilder = CreateMaterialBuilder(renderContext.RenderMode);
 
             materialBuilder.PackInput = renderContext.PackInput;
             materialBuilder.PackProfile = renderContext.PackProfile;
@@ -271,14 +287,14 @@ namespace PixelGraph.UI.Helix.Models
                 ? CustomSamplerStates.Height_Linear
                 : CustomSamplerStates.Height_Point;
 
-            materialBuilder.PassName = renderMode switch {
+            materialBuilder.PassName = renderContext.RenderMode switch {
                 RenderPreviewModes.PbrFilament => CustomPassNames.PbrFilament,
                 RenderPreviewModes.PbrJessie => CustomPassNames.PbrJessie,
                 RenderPreviewModes.PbrNull => CustomPassNames.PbrNull,
                 _ => null,
             };
 
-            materialBuilder.PassNameOIT = renderMode switch {
+            materialBuilder.PassNameOIT = renderContext.RenderMode switch {
                 RenderPreviewModes.PbrFilament => CustomPassNames.PbrFilamentOIT,
                 RenderPreviewModes.PbrJessie => CustomPassNames.PbrJessieOIT,
                 RenderPreviewModes.PbrNull => CustomPassNames.PbrNullOIT,

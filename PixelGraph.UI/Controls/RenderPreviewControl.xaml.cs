@@ -2,6 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
+using PixelGraph.Rendering.Shaders;
+using PixelGraph.UI.Models;
 using PixelGraph.UI.Models.Scene;
 using PixelGraph.UI.ViewModels;
 using System;
@@ -12,7 +14,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using PixelGraph.Rendering.Shaders;
 
 namespace PixelGraph.UI.Controls
 {
@@ -25,9 +26,14 @@ namespace PixelGraph.UI.Controls
 
         public RenderPreviewViewModel ViewModel {get; private set;}
 
-        public ScenePropertiesModel SceneModel {
-            get => (ScenePropertiesModel)GetValue(SceneModelProperty);
-            set => SetValue(SceneModelProperty, value);
+        public ScenePropertiesModel SceneProperties {
+            get => (ScenePropertiesModel)GetValue(ScenePropertiesProperty);
+            set => SetValue(ScenePropertiesProperty, value);
+        }
+
+        public RenderPropertiesModel RenderProperties {
+            get => (RenderPropertiesModel)GetValue(RenderPropertiesProperty);
+            set => SetValue(RenderPropertiesProperty, value);
         }
 
         public string FrameRateText {
@@ -44,21 +50,22 @@ namespace PixelGraph.UI.Controls
         public RenderPreviewControl()
         {
             InitializeComponent();
-
-            Model.EnvironmentCube = EnvironmentCubeMapSource;
-            Model.IrradianceCube = IrradianceCubeMapSource;
         }
 
         public async Task InitializeAsync(IServiceProvider provider, CancellationToken token = default)
         {
             logger = provider.GetRequiredService<ILogger<RenderPreviewControl>>();
 
+            RenderProperties.EnvironmentCube = EnvironmentCubeMapSource;
+            RenderProperties.IrradianceCube = IrradianceCubeMapSource;
+
             ViewModel = new RenderPreviewViewModel(provider) {
-                SceneModel = SceneModel,
-                RenderModel = Model,
+                SceneProperties = SceneProperties,
+                RenderProperties = RenderProperties,
             };
 
-            SceneModel.SunChanged += OnSceneSunChanged;
+            //SceneProperties.SceneChanged += OnSceneSunChanged;
+            ViewModel.RenderModelChanged += OnRenderModelChanged;
             ViewModel.ShaderCompileErrors += OnViewModelShaderCompileErrors;
 
             ViewModel.Initialize();
@@ -172,9 +179,16 @@ namespace PixelGraph.UI.Controls
         //    ViewModel.UpdateModel();
         //}
 
-        private void OnSceneSunChanged(object sender, EventArgs e)
+        //private void OnSceneChanged(object sender, EventArgs e)
+        //{
+        //    ViewModel.UpdateSun();
+        //}
+
+        private void OnRenderModelChanged(object sender, EventArgs e)
         {
-            ViewModel.UpdateSun();
+            OnRefreshClick();
+
+            //viewport3D.ZoomExtents();
         }
 
         private void ShowWindowError(string message)
@@ -185,13 +199,43 @@ namespace PixelGraph.UI.Controls
             MessageBox.Show(window, message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        public static readonly DependencyProperty SceneModelProperty = DependencyProperty
-            .Register(nameof(SceneModel), typeof(ScenePropertiesModel), typeof(RenderPreviewControl));
+        private void OnSceneChanged(object sender, EventArgs e)
+        {
+            ViewModel.UpdateSun();
+            
+            // ERROR: calling this causes the materials to completely reload while adjusting TOD
+            //OnRefreshClick();
+        }
+
+        private static void OnScenePropertiesChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is RenderPreviewControl control)
+                control.Model.SceneProperties = (ScenePropertiesModel)e.NewValue;
+        }
+
+        private static void OnRenderPropertiesChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is RenderPreviewControl control)
+                control.Model.RenderProperties = (RenderPropertiesModel)e.NewValue;
+        }
+
+        public static readonly DependencyProperty ScenePropertiesProperty = DependencyProperty
+            .Register(nameof(SceneProperties), typeof(ScenePropertiesModel), typeof(RenderPreviewControl),
+                new UIPropertyMetadata(null, OnScenePropertiesChangedCallback));
+
+        public static readonly DependencyProperty RenderPropertiesProperty = DependencyProperty
+            .Register(nameof(RenderProperties), typeof(RenderPropertiesModel), typeof(RenderPreviewControl),
+                new UIPropertyMetadata(null, OnRenderPropertiesChangedCallback));
 
         public static readonly DependencyProperty FrameRateTextProperty = DependencyProperty
             .Register(nameof(FrameRateText), typeof(string), typeof(RenderPreviewControl));
 
         public static readonly DependencyProperty DeviceNameTextProperty = DependencyProperty
             .Register(nameof(DeviceNameText), typeof(string), typeof(RenderPreviewControl));
+
+        //private void OnEnableTilingChecked(object sender, RoutedEventArgs e)
+        //{
+        //    OnRefreshClick();
+        //}
     }
 }

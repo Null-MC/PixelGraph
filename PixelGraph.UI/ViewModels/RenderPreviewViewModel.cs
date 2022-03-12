@@ -4,17 +4,16 @@ using PixelGraph.Common.Material;
 using PixelGraph.Rendering;
 using PixelGraph.Rendering.Shaders;
 using PixelGraph.Rendering.Utilities;
-using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Models;
-using PixelGraph.UI.Models.Scene;
 using SharpDX;
 using SharpDX.DXGI;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.UI.Models.Scene;
 using Media3D = System.Windows.Media.Media3D;
 
 namespace PixelGraph.UI.ViewModels
@@ -29,10 +28,12 @@ namespace PixelGraph.UI.ViewModels
         private Stream brdfLutStream;
 
         //public event EventHandler SceneChanged;
+        public event EventHandler RenderModelChanged;
         public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
 
-        public ScenePropertiesModel SceneModel {get; set;}
-        public RenderPreviewModel RenderModel {get; set;}
+        public ScenePropertiesModel SceneProperties {get; set;}
+        public RenderPropertiesModel RenderProperties {get; set;}
+        //public RenderPreviewModel RenderModel {get; set;}
         //public MainWindowModel MainModel {get; set;}
 
 
@@ -64,22 +65,23 @@ namespace PixelGraph.UI.ViewModels
 
         public void Initialize()
         {
-            RenderModel.Camera = new PerspectiveCamera {
-                UpDirection = new Media3D.Vector3D(0, 1, 0),
-            };
+            //RenderModel.Camera = new PerspectiveCamera {
+            //    UpDirection = Vector3.UnitY.ToVector3D(),
+            //};
 
-            RenderModel.SunCamera = new OrthographicCamera {
-                UpDirection = new Media3D.Vector3D(0f, 1f, 0f),
-                //NearPlaneDistance = 1f,
-                //FarPlaneDistance = 128f,
-                //Width = 512,
-            };
+            //RenderModel.RenderProperties.SunCamera = new OrthographicCamera {
+            //    UpDirection = Vector3.UnitY.ToVector3D(),
+            //    //NearPlaneDistance = 1f,
+            //    //FarPlaneDistance = 128f,
+            //    //Width = 512,
+            //};
 
             ResetViewport();
 
             //RenderModel.PropertyChanged += OnPreviewPropertyChanged;
-            RenderModel.RenderModeChanged += OnRenderModeChanged;
-            RenderModel.RenderSceneChanged += OnRenderSceneChanged;
+            RenderProperties.RenderModeChanged += OnRenderModeChanged;
+            //RenderModel.RenderSceneChanged += OnRenderSceneChanged;
+            RenderProperties.RenderModelChanged += OnRenderModelChanged;
         }
 
         public void Prepare()
@@ -87,9 +89,9 @@ namespace PixelGraph.UI.ViewModels
             LoadAppSettings();
             UpdateShaders();
 
-            RenderModel.BrdfLutMap = brdfLutStream;
+            RenderProperties.BrdfLutMap = brdfLutStream;
 
-            RenderModel.MissingMaterial = new MaterialProperties {
+            RenderProperties.MissingMaterial = new MaterialProperties {
                 Color = new MaterialColorProperties {
                     ValueRed = 248m,
                     ValueGreen = 0m,
@@ -103,33 +105,40 @@ namespace PixelGraph.UI.ViewModels
 
         public void LoadAppSettings()
         {
-            RenderModel.ParallaxDepth = (float)(appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth);
-            RenderModel.ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
-            RenderModel.ParallaxSamplesMax = appSettings.Data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
-            RenderModel.EnableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling ?? RenderPreviewSettings.Default_EnableLinearSampling;
-            RenderModel.EnableSlopeNormals = appSettings.Data.RenderPreview.EnableSlopeNormals ?? RenderPreviewSettings.Default_EnableSlopeNormals;
-            RenderModel.WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
+            RenderProperties.ParallaxDepth = (float)(appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth);
+            RenderProperties.ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
+            RenderProperties.ParallaxSamplesMax = appSettings.Data.RenderPreview.ParallaxSamplesMax ?? RenderPreviewSettings.Default_ParallaxSamplesMax;
+            RenderProperties.EnableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling ?? RenderPreviewSettings.Default_EnableLinearSampling;
+            RenderProperties.EnableSlopeNormals = appSettings.Data.RenderPreview.EnableSlopeNormals ?? RenderPreviewSettings.Default_EnableSlopeNormals;
+            RenderProperties.EnableBloom = appSettings.Data.RenderPreview.EnableBloom ?? RenderPreviewSettings.Default_EnableBloom;
+            RenderProperties.WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
 
             if (appSettings.Data.RenderPreview.SelectedMode != null)
                 if (RenderPreviewMode.TryParse(appSettings.Data.RenderPreview.SelectedMode, out var renderMode))
-                    RenderModel.RenderMode = renderMode;
+                    RenderProperties.RenderMode = renderMode;
         }
+
+        //public void UpdateMaterials()
+        //{
+        //    tabPreviewMgr.InvalidateAllMaterialBuilders(true);
+        //    tabPreviewMgr.InvalidateAllMaterials(true);
+        //}
 
         public void UpdateSun()
         {
-            SceneModel.GetSunAngle(out var sunDirection, out var sunStrength);
+            SceneProperties.GetSunAngle(out var sunDirection, out var sunStrength);
+            SceneProperties.SunDirection = sunDirection;
+            SceneProperties.SunStrength = sunStrength;
 
-            RenderModel.SunDirection = sunDirection;
-            RenderModel.SunStrength = sunStrength;
-            RenderModel.SunCamera.Position = (new Vector3(0f, 2f, 0f) + sunDirection * 16f).ToPoint3D();
-            RenderModel.SunCamera.LookDirection = -sunDirection.ToVector3D();
+            RenderProperties.SunCamera.Position = (new Vector3(0f, 2f, 0f) + sunDirection * 16f).ToPoint3D();
+            RenderProperties.SunCamera.LookDirection = -sunDirection.ToVector3D();
 
             //RenderModel.SunCamera.ZoomExtents(viewport3D, new Media3D.Point3D(), 32f, 0D);
         }
 
         public Task SaveRenderStateAsync(CancellationToken token = default)
         {
-            appSettings.Data.RenderPreview.SelectedMode = RenderPreviewMode.GetString(RenderModel.RenderMode);
+            appSettings.Data.RenderPreview.SelectedMode = RenderPreviewMode.GetString(RenderProperties.RenderMode);
             return appSettings.SaveAsync(token);
         }
 
@@ -143,8 +152,8 @@ namespace PixelGraph.UI.ViewModels
 
         public void UpdateShaders()
         {
-            RenderModel.EffectsManager?.Dispose();
-            RenderModel.EffectsManager = new PreviewEffectsManager(provider);
+            RenderProperties.EffectsManager?.Dispose();
+            RenderProperties.EffectsManager = new PreviewEffectsManager(provider);
         }
 
         //public void UpdateModel(MaterialProperties material)
@@ -184,17 +193,17 @@ namespace PixelGraph.UI.ViewModels
 
         public void ResetViewport()
         {
-            RenderModel.Camera.Position = new Media3D.Point3D(10, 10, 10);
-            RenderModel.Camera.LookDirection = new Media3D.Vector3D(-10, -10, -10);
+            RenderProperties.Camera.Position = new Media3D.Point3D(10, 10, 10);
+            RenderProperties.Camera.LookDirection = new Media3D.Vector3D(-10, -10, -10);
 
-            SceneModel.TimeOfDay = 4_000;
+            SceneProperties.TimeOfDay = 4_000;
         }
 
         public string GetDeviceName()
         {
-            if (RenderModel.EffectsManager == null) return null;
+            if (RenderProperties.EffectsManager == null) return null;
 
-            var adapter = deviceFactory.Value.GetAdapter(RenderModel.EffectsManager.AdapterIndex);
+            var adapter = deviceFactory.Value.GetAdapter(RenderProperties.EffectsManager.AdapterIndex);
             return adapter.Description.Description;
         }
 
@@ -220,18 +229,28 @@ namespace PixelGraph.UI.ViewModels
             //OnSceneChanged();
         }
 
-        private void OnRenderSceneChanged(object sender, EventArgs e)
-        {
-            //if (!MainModel.IsViewModeRender) return;
+        //private void OnRenderSceneChanged(object sender, EventArgs e)
+        //{
+        //    //if (!MainModel.IsViewModeRender) return;
 
-            tabPreviewMgr.InvalidateAllMaterials(true);
-            //OnSceneChanged();
+        //    tabPreviewMgr.InvalidateAllMaterials(true);
+        //    //OnSceneChanged();
+        //}
+
+        private void OnRenderModelChanged(object sender, EventArgs e)
+        {
+            OnRenderModelChanged();
         }
 
         //private void OnSceneChanged()
         //{
         //    SceneChanged?.Invoke(this, EventArgs.Empty);
         //}
+
+        protected virtual void OnRenderModelChanged()
+        {
+            RenderModelChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public class ShaderCompileErrorEventArgs : EventArgs

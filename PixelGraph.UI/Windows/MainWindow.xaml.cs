@@ -63,9 +63,11 @@ namespace PixelGraph.UI.Windows
             //ConnectionsEditor.Provider = provider;
 
 #if !NORENDER
-            viewModel.SceneModel = Model.SceneModel;
-            //renderPreview.ViewModel.SceneModel = Model.SceneModel;
-            viewModel.RenderModel = renderPreview.Model;
+            //Model.SceneProperties = renderPreview.Model.SceneProperties;
+            //Model.RenderProperties = renderPreview.Model.RenderProperties;
+
+            viewModel.SceneProperties = renderPreview.SceneProperties;
+            viewModel.RenderProperties = renderPreview.RenderProperties;
             PreviewKeyUp += OnWindowPreviewKeyUp;
 
             renderPreview.RefreshClick += OnPreviewRefreshClick;
@@ -573,7 +575,7 @@ namespace PixelGraph.UI.Windows
                         updatePreview = true;
 
                     if (updatePreview) {
-                        renderPreview.Model.ApplyMaterial(matTab.MaterialRegistration?.Value);
+                        renderPreview.RenderProperties.ApplyMaterial(matTab.MaterialRegistration?.Value);
                     }
                 }
             }

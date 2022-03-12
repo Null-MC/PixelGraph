@@ -292,7 +292,8 @@
                                                                     OutlineBounds="{Binding SelectedFilterBounds, Mode=OneWay, ElementName=FilterEditor}"
                                                                     Visibility="{Binding IsViewModeLayer, Converter={StaticResource VisibilityConverter}}"/>
                                     <controls:RenderPreviewControl x:Name="renderPreview"
-                                                                   SceneModel="{Binding SceneModel, Mode=OneTime}"
+                                                                   SceneProperties="{Binding SceneProperties, Mode=OneWay}"
+                                                                   RenderProperties="{Binding RenderProperties, Mode=OneWay}"
                                                                    Visibility="{Binding IsViewModeRender, Converter={StaticResource VisibilityConverter}}"/>
                                     <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                 Visibility="{Binding Preview.IsLoading, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
@@ -364,7 +365,7 @@
                                                                      Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                      Visibility="{Binding IsEditModeConnections, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <controls:ScenePropertiesControl
-                                    Model="{Binding SceneModel, Mode=OneWay}"
+                                    SceneProperties="{Binding SceneProperties, Mode=OneWay}"
                                     Visibility="{Binding IsEditModeScene, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             </Grid>
                         </DockPanel>

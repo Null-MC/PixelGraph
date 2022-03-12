@@ -194,7 +194,8 @@ float4 main(const ps_input input) : SV_TARGET
     //if (bRenderShadowMap)
     //    lit *= shadow_strength(input.sp);
 
-	lit = tonemap_HejlBurgess(lit);
+	//lit = tonemap_HejlBurgess(lit);
+	lit = linear_to_srgb(lit);
 	
     return float4(lit, mat.alpha);
 }

@@ -98,7 +98,7 @@ void IBL(float3 n, float3 v, float3 diffuse, float3 f0, float occlusion, float r
 	const float3 kS = fresnelSchlickRoughness(f0, NoV, sqrt(rough));
     const float3 specular_color = lerp(f0, 1.0, kS); // WARN: wrong af
 	
-    if (bHasCubeMap) {
+    if (EnableAtmosphere) {
 		const float3 ref = reflect(-v, n);
     	
     	indirect_diffuse = diffuse_IBL(n, kS);

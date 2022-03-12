@@ -1,5 +1,7 @@
 ﻿using PixelGraph.UI.Internal;
 using System;
+using System.Windows.Media.Media3D;
+using HelixToolkit.Wpf.SharpDX;
 
 #if !RELEASENORENDER
 using PixelGraph.Common.Extensions;
@@ -7,24 +9,70 @@ using PixelGraph.Rendering;
 using SharpDX;
 #endif
 
+using Media = System.Windows.Media;
+
 namespace PixelGraph.UI.Models.Scene
 {
     public class ScenePropertiesModel : ModelBase
     {
-        public event EventHandler SunChanged;
+        public event EventHandler SceneChanged;
 
-        private bool _sunEnabled;
+        private Media.Color _ambientColor;
+        private Media.Color _lightColor;
+        private int _wetness;
+        private bool _enableAtmosphere;
         private int _timeOfDay;
         private int _sunTilt;
         private int _sunAzimuth;
+        private Vector3 _sunDirection;
+        private float _sunStrength;
+        private bool _enableLights;
+        private Transform3D _lightTransform1;
+        private Transform3D _lightTransform2;
 
+        public Vector3D SunLightDirection => -_sunDirection.ToVector3D();
+        public Media.Color SunLightColor => new Color4(_sunStrength, _sunStrength, _sunStrength, _sunStrength).ToColor();
 
-        public bool SunEnabled {
-            get => _sunEnabled;
+        public Media.Color AmbientColor {
+            get => _ambientColor;
             set {
-                _sunEnabled = value;
+                _ambientColor = value;
                 OnPropertyChanged();
-                OnSunChanged();
+            }
+        }
+
+        public Media.Color LightColor {
+            get => _lightColor;
+            set {
+                _lightColor = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int Wetness {
+            get => _wetness;
+            set {
+                _wetness = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(WetnessLinear));
+            }
+        }
+
+        public float WetnessLinear {
+            get => _wetness * 0.01f;
+            set {
+                _wetness = (int)(value * 100f + 0.5f);
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(Wetness));
+            }
+        }
+
+        public bool EnableAtmosphere {
+            get => _enableAtmosphere;
+            set {
+                _enableAtmosphere = value;
+                OnPropertyChanged();
+                OnSceneChanged();
             }
         }
 
@@ -33,7 +81,16 @@ namespace PixelGraph.UI.Models.Scene
             set {
                 _timeOfDay = value;
                 OnPropertyChanged();
-                OnSunChanged();
+                OnPropertyChanged(nameof(TimeOfDayLinear));
+                OnSceneChanged();
+            }
+        }
+
+        public float TimeOfDayLinear {
+            get => GetLinearTimeOfDay();
+            set {
+                SetTimeOfDay(value);
+                OnPropertyChanged();
             }
         }
 
@@ -42,7 +99,7 @@ namespace PixelGraph.UI.Models.Scene
             set {
                 _sunTilt = value;
                 OnPropertyChanged();
-                OnSunChanged();
+                OnSceneChanged();
             }
         }
 
@@ -51,15 +108,65 @@ namespace PixelGraph.UI.Models.Scene
             set {
                 _sunAzimuth = value;
                 OnPropertyChanged();
-                OnSunChanged();
+                OnSceneChanged();
+            }
+        }
+
+        public Vector3 SunDirection {
+            get => _sunDirection;
+            set {
+                _sunDirection = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SunLightDirection));
+            }
+        }
+
+        public float SunStrength {
+            get => _sunStrength;
+            set {
+                _sunStrength = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SunLightColor));
+            }
+        }
+
+        public bool EnableLights {
+            get => _enableLights;
+            set {
+                _enableLights = value;
+                OnPropertyChanged();
+                OnSceneChanged();
+            }
+        }
+
+        public Transform3D LightTransform1 {
+            get => _lightTransform1;
+            set {
+                _lightTransform1 = value;
+                OnPropertyChanged();
+                OnSceneChanged();
+            }
+        }
+
+        public Transform3D LightTransform2 {
+            get => _lightTransform2;
+            set {
+                _lightTransform2 = value;
+                OnPropertyChanged();
+                OnSceneChanged();
             }
         }
 
 
         public ScenePropertiesModel()
         {
-            _sunEnabled = true;
+            _enableAtmosphere = true;
+            _ambientColor = Media.Color.FromRgb(60, 60, 60);
+            _lightColor = Media.Color.FromRgb(60, 255, 60);
             _timeOfDay = 6_000;
+
+            _lightTransform1 = new TranslateTransform3D(10, 14, 8);
+            _lightTransform2 = new TranslateTransform3D(-12, -12, -10);
         }
 
 #if !RELEASENORENDER
@@ -88,9 +195,9 @@ namespace PixelGraph.UI.Models.Scene
 
 #endif
 
-        protected void OnSunChanged()
+        protected virtual void OnSceneChanged()
         {
-            SunChanged?.Invoke(this, EventArgs.Empty);
+            SceneChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -23,6 +23,11 @@ namespace PixelGraph.Rendering.Minecraft
 
         public bool IsRenderValid {get; private set;}
 
+        public bool EnableAtmosphere {
+            get => data.EnableAtmosphere;
+            set => SetAffectsRender(ref data.EnableAtmosphere, value);
+        }
+
         public Vector3 SunDirection {
             get => data.SunDirection;
             set {

@@ -5,9 +5,9 @@ namespace PixelGraph.UI.Controls
 {
     public partial class ScenePropertiesControl
     {
-        public ScenePropertiesModel Model {
-            get => (ScenePropertiesModel)GetValue(ModelProperty);
-            set => SetValue(ModelProperty, value);
+        public ScenePropertiesModel SceneProperties {
+            get => (ScenePropertiesModel)GetValue(ScenePropertiesProperty);
+            set => SetValue(ScenePropertiesProperty, value);
         }
 
 
@@ -16,16 +16,7 @@ namespace PixelGraph.UI.Controls
             InitializeComponent();
         }
 
-        //public void Initialize()
-        //{
-        //    Sun.Enabled = true;
-        //    Sun.Time = ;
-        //    Sun.Tilt = ;
-        //    Sun.Azimuth = ;
-        //    SunProperties.SetData(Sun);
-        //}
-
-        public static readonly DependencyProperty ModelProperty = DependencyProperty
-            .Register(nameof(Model), typeof(ScenePropertiesModel), typeof(ScenePropertiesControl));
+        public static readonly DependencyProperty ScenePropertiesProperty = DependencyProperty
+            .Register(nameof(SceneProperties), typeof(ScenePropertiesModel), typeof(ScenePropertiesControl));
     }
 }

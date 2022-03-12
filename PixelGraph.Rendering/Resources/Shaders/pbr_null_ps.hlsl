@@ -141,6 +141,8 @@ float4 main(const ps_input input) : SV_TARGET
 	//const float4 sp = mul(float4(pom_wp, 1), mShadowViewProj);
     const float4 wet_sp = mul(float4(water_pom_wp, 1), mShadowViewProj);
 
+	float sss_strength = 0.0f;
+
 	[loop]
     for (int i = 0; i < NumLights; i++) {
         light_color = srgb_to_linear(Lights[i].vLightColor.rgb);
@@ -149,42 +151,44 @@ float4 main(const ps_input input) : SV_TARGET
 	    water_shadow = 1.0f;
     	
         if (Lights[i].iLightType == 1) { // directional
-            light_color *= 4.0f;
+            light_color *= 3.0f;
             light_dir = normalize(Lights[i].vLightDir.xyz);
         }
-        else if (Lights[i].iLightType == 2) { // point
+        else {
             light_dir = Lights[i].vLightPos.xyz - pom_wp;
             const float light_dist = length(light_dir);
-            light_dir = light_dir / light_dist;
+			//if (Lights[i].vLightAtt.w < light_dist) continue;
 
-        	light_att = rcp(Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
-        }
-        else if (Lights[i].iLightType == 3) { // spot
-            light_dir = Lights[i].vLightPos.xyz - pom_wp;
-        	
-            const float light_dist = length(light_dir);
+            light_dir /= light_dist;
 
-            light_dir = light_dir / light_dist;
-
-            const float3 sd = normalize(Lights[i].vLightDir.xyz);
-            const float rho = dot(-light_dir, sd);
-            const float spot = pow(saturate((rho - Lights[i].vLightSpot.x) / (Lights[i].vLightSpot.y - Lights[i].vLightSpot.x)), Lights[i].vLightSpot.z);
-            light_att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
+	        if (Lights[i].iLightType == 2) { // point
+        		light_att = rcp(Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
+	        }
+	        else if (Lights[i].iLightType == 3) { // spot
+	            const float3 sd = normalize(Lights[i].vLightDir.xyz);
+	            const float rho = dot(-light_dir, sd);
+	            const float spot = pow(saturate((rho - Lights[i].vLightSpot.x) / (Lights[i].vLightSpot.y - Lights[i].vLightSpot.x)), Lights[i].vLightSpot.z);
+	            light_att = spot / (Lights[i].vLightAtt.x + Lights[i].vLightAtt.y * light_dist + Lights[i].vLightAtt.z * light_dist * light_dist);
+	        }
         }
 
-        // light parallax shadows
         const float surface_NoL = saturate(dot(normal, light_dir));
         const float3 lightT = mul(matTBN, light_dir);
         const float2 polT = get_parallax_offset(lightT) * input.pDepth;
-        light_att *= get_parallax_shadow(shadow_tex, polT, surface_NoL);
 
-        if (Lights[i].iLightType == 1 && bHasShadowMap && bRenderShadowMap) {
+        if ((Lights[i].iLightType == 1 && EnableAtmosphere) || (Lights[i].iLightType == 3 && !EnableAtmosphere)) {
+		    float h2 = 1.0f - shadow_tex.z;
+		    float light_trace_dist = h2 / max(surface_NoL, EPSILON) * BLOCK_SIZE * input.pDepth;
+		    const float3 shadow_wp = pom_wp + light_trace_dist * light_dir;
+			const float4 shadow_sp = mul(float4(shadow_wp, 1), mShadowViewProj);
+
+			float thickness = SSS_Thickness(shadow_sp.xyz / shadow_sp.w);
+	        float sss_dist = lerp(160.0f, 60.0f, sqrt(mat.sss));
+			sss_strength += rcp(1.0f + thickness * sss_dist) * mat.sss * light_att; // * light_color
+			
+			acc_sss += SSS_Light(tex_normal, view, light_dir) * light_color * light_att;
+
             if (surface_NoL > 0.0f) {
-			    float h2 = 1.0f - shadow_tex.z;
-			    float light_trace_dist = h2 / surface_NoL * BLOCK_SIZE * input.pDepth;
-			    const float3 shadow_wp = pom_wp + light_trace_dist * light_dir;
-				const float4 shadow_sp = mul(float4(shadow_wp, 1), mShadowViewProj);
-                
                 light_att *= shadow_strength(shadow_sp.xyz / shadow_sp.w);
 
 				if (Wetness > EPSILON) {
@@ -198,6 +202,9 @@ float4 main(const ps_input input) : SV_TARGET
 		        water_shadow = 0.0f;
             }
         }
+
+        // light parallax shadows
+        light_att *= get_parallax_shadow(shadow_tex, polT, surface_NoL);
 
         NoL = saturate(dot(tex_normal, light_dir));
         H = normalize(view + light_dir);
@@ -257,7 +264,7 @@ float4 main(const ps_input input) : SV_TARGET
         		: specular_brdf(ior_n.r / IOR_N_AIR, LoH, NoH, VoH, roughL);
 
             const float3 light_factor = NoL * light_color * light_att;
-			acc_light += light_factor * (light_diffuse + light_specular);
+			acc_light = mad(light_factor, light_diffuse + light_specular, acc_light);
             spec_strength += luminance(light_factor * light_specular);
         }
     }
@@ -268,6 +275,7 @@ float4 main(const ps_input input) : SV_TARGET
 
 	const float3 r = reflect(-view, wet_normal);
 	float3 ibl_specular = IBL_specular(ibl_F_ambient, NoV, r, mat.occlusion, mat.rough) * metal_albedo;
+	float3 ibl_sss = SSS_IBL(view);
 
     if (Wetness > EPSILON) {
 		float3 ibl_F_water = F_full(ETA_AIR_TO_WATER, NoV_wet);
@@ -292,30 +300,11 @@ float4 main(const ps_input input) : SV_TARGET
 
     spec_strength += luminance(ibl_specular);
 
-	float sss_strength = 0.0f;
-	float3 ibl_sss = 0.0f;
-
-	if (bHasCubeMap && bRenderShadowMap) {
-		//float h2 = 1.0f - shadow_tex.z;
-		//float light_trace_dist = h2 / surface_NoL * BLOCK_SIZE * input.pDepth;
-		//const float3 shadow_wp = pom_wp + light_trace_dist * light_dir;
-		//const float4 shadow_sp = mul(float4(shadow_wp, 1), mShadowViewProj);
-
-        // TODO: replace the part below with correct world-pos above
-        const float4 sp = mul(float4(pom_wp, 1), mShadowViewProj);
-		float thickness = SSS_Thickness(sp.xyz / sp.w);
-        float sss_dist = lerp(160.0f, 60.0f, sqrt(mat.sss));
-		sss_strength = rcp(1.0f + thickness * sss_dist) * mat.sss * SunStrength;
-		
-		acc_sss += SSS_Light(tex_normal, view, SunDirection) * SunStrength;
-		ibl_sss = SSS_IBL(view);
-	}
-
-	const float3 emissive = mat.emissive * mat.albedo * 16.0f;
+	const float3 emissive = mat.emissive * mat.albedo * 24.0f;
 
 	float3 ibl_final = ibl_ambient + ibl_specular;
 
-	float3 final_sss = diffuse * (acc_sss + ibl_sss);
+	float3 final_sss = (acc_sss + ibl_sss) * diffuse;
 
     float3 final_color = ibl_final + emissive;
 
@@ -325,8 +314,8 @@ float4 main(const ps_input input) : SV_TARGET
 	float alpha = mat.alpha + spec_strength;
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
-	final_color = tonemap_ACESFit2(final_color);
-	//final_color = linear_to_srgb(final_color);
+	//final_color = tonemap_ACESFit2(final_color);
+	final_color = linear_to_srgb(final_color);
 	//final_color = tonemap_Reinhard(final_color);
 
     //return float4(tex_normal, 1);
