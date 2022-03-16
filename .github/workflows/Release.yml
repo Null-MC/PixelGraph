@@ -107,7 +107,8 @@ jobs:
         with:
           tag_name: v${{ github.event.inputs.version }}
           release_name: Release ${{ github.event.inputs.version }}
-          draft: true
+          body: ${{ github.event.inputs.release_notes }}
+          #draft: true
       - name: Release Windows-CLI-x64 Binary
         uses: actions/upload-release-asset@v1
         env:
