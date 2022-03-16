@@ -96,7 +96,7 @@ namespace PixelGraph.UI.Models
         public void ImportFiltersFromModel(IModelLoader loader)
         {
             //var loader = provider.GetRequiredService<IModelLoader>();
-            var entityModel = loader.GetEntityModel(Material);
+            var entityModel = loader.GetJavaEntityModel(Material);
             
             if (entityModel != null) {
                 var filters = ImportFiltersFromEntityModel(entityModel);
@@ -133,10 +133,10 @@ namespace PixelGraph.UI.Models
 
             IEnumerable<MaterialFilter> ProcessElements(IEnumerable<EntityElement> elements) {
                 foreach (var element in elements) {
-                    if (element.Cubes != null) {
+                    if (element.Boxes != null) {
                         var cubeIndex = 1;
 
-                        foreach (var cube in element.Cubes) {
+                        foreach (var cube in element.Boxes) {
                             foreach (var face in ModelElement.AllFaces) {
                                 var region = cube.GetFaceRectangle(face, element.MirrorTexU);
 
@@ -155,8 +155,8 @@ namespace PixelGraph.UI.Models
 
                                 nameBuilder.Clear();
 
-                                if (!string.IsNullOrWhiteSpace(element.Name))
-                                    nameBuilder.Append(element.Name);
+                                if (!string.IsNullOrWhiteSpace(element.Id))
+                                    nameBuilder.Append(element.Id);
 
                                 if (cubeIndex > 1)
                                     nameBuilder.Append(cubeIndex);

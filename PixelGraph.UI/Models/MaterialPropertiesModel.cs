@@ -10,6 +10,8 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using MinecraftMappings.Internal;
+using MinecraftMappings.Internal.Textures.Entity;
+using PixelGraph.UI.Internal.Models;
 
 namespace PixelGraph.UI.Models
 {
@@ -304,22 +306,30 @@ namespace PixelGraph.UI.Models
             AddTextColor<string>("Tint", nameof(MaterialProperties.TintColor));
         }
 
-        public override void SetData(MaterialProperties data)
+        public override void SetData(MaterialProperties material)
         {
-            base.SetData(data);
+            base.SetData(material);
 
-            if (data != null) {
-                // TODO: add automatic entity support?
-
-                var modelData = Minecraft.Java.GetBlockModelForTexture<JavaBlockTextureVersion>(data.Name);
-                modelRow.DefaultValue = modelData?.GetLatestVersion()?.Id;
-
+            if (material != null) {
 #if !NORENDER
-                // TODO: get default blendMode
-                var textureData = Minecraft.Java.FindBlockTexturesById<JavaBlockTexture, JavaBlockTextureVersion>(data.Name).FirstOrDefault();
-                blendRow.DefaultValue = textureData != null
-                    ? BlendModes.ToString(textureData.BlendMode)
-                    : BlendModes.OpaqueText;
+                if (ModelLoader.IsEntityPath(material.LocalPath)) {
+                    var textureData = Minecraft.Java.FindEntityTexturesById<JavaEntityTexture, JavaEntityTextureVersion>(material.Name).FirstOrDefault();
+                    blendRow.DefaultValue = textureData != null
+                        ? BlendModes.ToString(textureData.BlendMode)
+                        : BlendModes.CutoutText;
+
+                    var modelData = Minecraft.Java.GetEntityModelForTexture<JavaEntityTextureVersion>(material.Name, material.LocalPath)?.GetLatestVersion();
+                    modelRow.DefaultValue = modelData != null ? $"entity/{modelData.Id}" : null;
+                }
+                else {
+                    var textureData = Minecraft.Java.FindBlockTexturesById<JavaBlockTexture, JavaBlockTextureVersion>(material.Name, material.LocalPath).FirstOrDefault();
+                    blendRow.DefaultValue = textureData != null
+                        ? BlendModes.ToString(textureData.BlendMode)
+                        : BlendModes.OpaqueText;
+
+                    var modelData = Minecraft.Java.GetBlockModelForTexture<JavaBlockTextureVersion>(material.Name)?.GetLatestVersion();
+                    modelRow.DefaultValue = modelData != null ? $"block/{modelData.Id}" : null;
+                }
 #endif
             }
             else {

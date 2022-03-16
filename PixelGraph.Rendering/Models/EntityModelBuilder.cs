@@ -17,68 +17,92 @@ namespace PixelGraph.Rendering.Models
         //private static readonly Vector3 entityCenter = new(0f, 8f, 0f);
 
 
+        public void Clear() => Builder.Clear();
+
         public void BuildEntity(in float cubeSize, EntityModelVersion entityVersion)
         {
-            Builder.Clear();
-            
-            //foreach (var rotation in entityVersion.Rotations) {
-            //    AppendEntityRotation(rotation, in Matrix.Identity, in cubeSize, in entityVersion.TextureSize);
-            //}
-            
-            foreach (var element in entityVersion.Elements) {
+            foreach (var element in entityVersion.Elements)
                 AppendEntityElement(element, in Matrix.Identity, in cubeSize, in entityVersion.TextureSize, true);
-            }
 
             Builder.ComputeTangents(MeshFaces.Default);
         }
 
-        private void AppendEntityElement(EntityElement element, in Matrix mWorldParent, in float cubeSize, in Vector2 textureSize, bool isRoot)
+        //private static void ApplyRotationTranslation(ref Matrix position, EntityElement element)
+        //{
+        //    if (element.HasRotation) {
+        //        if (element.RotationAngleX != 0) {
+        //            var angleR = element.RotationAngleX * MathEx.Deg2RadF;
+        //            position *= Matrix.RotationAxis(Vector3.UnitX, angleR);
+        //        }
+
+        //        if (element.RotationAngleY != 0) {
+        //            var angleR = element.RotationAngleY * MathEx.Deg2RadF;
+        //            position *= Matrix.RotationAxis(Vector3.UnitY, angleR);
+        //        }
+
+        //        if (element.RotationAngleZ != 0) {
+        //            var angleR = element.RotationAngleZ * MathEx.Deg2RadF;
+        //            position *= Matrix.RotationAxis(Vector3.UnitZ, angleR);
+        //        }
+        //    }
+
+        //    //if (!isRoot) m2 *= Matrix.Translation(element.Translate);
+        //    position *= Matrix.Translation(element.Translate);
+        //}
+
+        private void AppendEntityElement(EntityElement element, in Matrix matParent, in float cubeSize, in Vector2 textureSize, bool isRoot)
         {
-            //var halfBlock = element.Size * 0.5f;
-            //var mWorld = Matrix.Translation(element.Position + halfBlock);
-            var m2 = Matrix.Identity; //Matrix.Translation(element.Translate);
+            var matLocal = Matrix.Identity;
+            //var m2 = Matrix.Translation(element.Translate);
+            if (isRoot) matLocal *= Matrix.Translation(element.Translate);
 
             if (element.HasRotation) {
-                //mWorld *= Matrix.Translation(-element.Translate);
-                //m2 *= Matrix.Translation(-element.Translate);
-
                 if (element.RotationAngleX != 0) {
                     var angleR = element.RotationAngleX * MathEx.Deg2RadF;
-                    //mWorld *= Matrix.RotationAxis(Vector3.UnitX, angleR);
-                    m2 *= Matrix.RotationAxis(Vector3.UnitX, angleR);
+                    matLocal *= Matrix.RotationAxis(Vector3.UnitX, angleR);
                 }
 
                 if (element.RotationAngleY != 0) {
                     var angleR = element.RotationAngleY * MathEx.Deg2RadF;
-                    //mWorld *= Matrix.RotationAxis(Vector3.UnitY, angleR);
-                    m2 *= Matrix.RotationAxis(Vector3.UnitY, angleR);
+                    matLocal *= Matrix.RotationAxis(Vector3.UnitY, angleR);
                 }
 
                 if (element.RotationAngleZ != 0) {
                     var angleR = element.RotationAngleZ * MathEx.Deg2RadF;
-                    //mWorld *= Matrix.RotationAxis(Vector3.UnitZ, angleR);
-                    m2 *= Matrix.RotationAxis(Vector3.UnitZ, angleR);
+                    matLocal *= Matrix.RotationAxis(Vector3.UnitZ, angleR);
                 }
-
-                //mWorld *= Matrix.Translation(element.Translate);
-                //m2 *= Matrix.Translation(element.Translate);
             }
 
-            //m2 *= Matrix.Translation(-element.Position);
-            if (!isRoot) m2 *= Matrix.Translation(element.Translate);
+            if (!isRoot) matLocal *= Matrix.Translation(element.Translate);
+            else matLocal *= Matrix.Translation(-element.Translate);
+            //m2 *= Matrix.Translation(element.Translate);
 
-            //mWorld = mWorld * mWorldParent;
-            m2 = m2 * mWorldParent;
+            if (!element.InvertAxisX || !element.InvertAxisY || !element.InvertAxisZ) {
+                var scaleX = element.InvertAxisX ? 1f : -1f;
+                var scaleY = element.InvertAxisY ? 1f : -1f;
+                var scaleZ = element.InvertAxisZ ? -1f : 1f;
+                matLocal *= Matrix.Scaling(scaleX, scaleY, scaleZ);
+            }
+
+            var matFinal = matLocal * matParent;
+
+            if (element.Model != null) {
+                foreach (var childModel in element.Model.Submodels) {
+                    AppendEntityElement(childModel, in matFinal, in cubeSize, in element.Model.TextureSize, false);
+                }
+
+                //return;
+            }
 
             if (element.Submodels != null) {
                 foreach (var childElement in element.Submodels) {
-                    AppendEntityElement(childElement, in m2, in cubeSize, in textureSize, false);
+                    AppendEntityElement(childElement, in matFinal, in cubeSize, in textureSize, false);
                 }
             }
 
-            if (element.Cubes != null) {
-                foreach (var cube in element.Cubes) {
-                    AppendEntityCube(element, cube, in m2, in cubeSize, in textureSize);
+            if (element.Boxes != null) {
+                foreach (var cube in element.Boxes) {
+                    AppendEntityCube(element, cube, in matFinal, in cubeSize, in textureSize);
                 }
             }
         }

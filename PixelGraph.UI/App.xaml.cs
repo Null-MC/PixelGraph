@@ -15,7 +15,6 @@ using PixelGraph.UI.Internal.Models;
 #if !NORENDER
 using PixelGraph.Rendering.Models;
 using PixelGraph.Rendering.Shaders;
-using PixelGraph.UI.Helix.Models;
 #endif
 
 namespace PixelGraph.UI
@@ -49,6 +48,7 @@ namespace PixelGraph.UI
 
 #if !NORENDER
             builder.Services.AddSingleton<IShaderByteCodeManager, CustomShaderManager>();
+
             builder.Services.AddTransient<IRenderDiffusePreviewBuilder, RenderDiffusePreviewBuilder>();
             builder.Services.AddTransient<IRenderNormalsPreviewBuilder, RenderNormalsPreviewBuilder>();
             builder.Services.AddTransient<IRenderPbrPreviewBuilder, RenderPbrPreviewBuilder>();
@@ -56,6 +56,7 @@ namespace PixelGraph.UI
             builder.Services.AddTransient<IBlockModelBuilder, BlockModelBuilder>();
             builder.Services.AddTransient<IEntityModelBuilder, EntityModelBuilder>();
             builder.Services.AddTransient<IBlockModelParser, BlockModelParser>();
+            builder.Services.AddTransient<IEntityModelParser, EntityModelParser>();
 #endif
         }
 

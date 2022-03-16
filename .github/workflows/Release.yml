@@ -5,6 +5,9 @@ on:
       version:
         description: 'Release version number.'
         required: true
+      release_notes:
+        description: 'Release notes. (optional)'
+        required: false
 
 jobs:
   publish-cli:

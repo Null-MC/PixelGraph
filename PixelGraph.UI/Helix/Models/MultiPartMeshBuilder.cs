@@ -61,31 +61,37 @@ namespace PixelGraph.UI.Helix.Models
 
         public async Task BuildAsync(IRenderContext renderContext, CancellationToken token = default)
         {
-            var entityModel = modelLoader.GetEntityModel(renderContext.DefaultMaterial);
+            ClearTextureBuilders();
+            partsList.Clear();
+
+            var entityModel = modelLoader.GetJavaEntityModel(renderContext.DefaultMaterial);
             if (entityModel != null) {
                 await BuildEntityModelAsync(renderContext, entityModel, token);
                 return;
             }
 
             var blockModel = modelLoader.GetBlockModel(renderContext.DefaultMaterial);
-            if (blockModel == null) throw new ApplicationException("Failed to load model file!");
+            if (blockModel != null) {
+                FlattenBlockModelTextures(blockModel);
 
-            FlattenBlockModelTextures(blockModel);
-
-            await BuildMaterialMapAsync(renderContext, blockModel.Textures, token);
+                await BuildMaterialMapAsync(renderContext, blockModel.Textures, token);
             
-            // Apply default material if no textures are mapped
-            if (materialMap.Count == 0) {
-                var materialBuilder = UpdateMaterial(renderContext, renderContext.DefaultMaterial);
-                await materialBuilder.UpdateAllTexturesAsync(0, token);
+                // Apply default material if no textures are mapped
+                if (materialMap.Count == 0) {
+                    var materialBuilder = UpdateMaterial(renderContext, renderContext.DefaultMaterial);
+                    await materialBuilder.UpdateAllTexturesAsync(0, token);
 
-                materialMap["all"] = materialBuilder;
+                    materialMap["all"] = materialBuilder;
 
-                foreach (var element in blockModel.Elements)
-                    element.SetTexture("#all");
+                    foreach (var element in blockModel.Elements)
+                        element.SetTexture("#all");
+                }
+
+                BuildBlockModel(blockModel, renderContext.EnableTiling);
+                return;
             }
 
-            BuildBlockModel(blockModel, renderContext.EnableTiling);
+            //throw new ApplicationException("Failed to load model file!");
         }
 
         /// <summary>
@@ -149,7 +155,7 @@ namespace PixelGraph.UI.Helix.Models
 
         private void BuildBlockModel(BlockModelVersion model, bool tile = false)
         {
-            partsList.Clear();
+            isEntity = false;
 
             foreach (var (textureId, matBuilder) in materialMap) {
                 var modelBuilder = new BlockModelBuilder();
@@ -178,18 +184,15 @@ namespace PixelGraph.UI.Helix.Models
 
         private async Task BuildEntityModelAsync(IRenderContext renderContext, EntityModelVersion model, CancellationToken token)
         {
-            ClearTextureBuilders();
+            isEntity = true;
 
             var modelBuilder = new EntityModelBuilder();
             modelBuilder.BuildEntity(CubeSize, model);
 
             var materialBuilder = UpdateMaterial(renderContext, renderContext.DefaultMaterial);
             await materialBuilder.UpdateAllTexturesAsync(0, token);
-            // using default/selected material instead of lookup
 
-            partsList.Clear();
             partsList.Add((modelBuilder, materialBuilder));
-            isEntity = true;
         }
 
         public void ClearTextureBuilders()

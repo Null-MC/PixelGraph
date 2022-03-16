@@ -53,7 +53,7 @@ namespace PixelGraph.UI.Internal.Models
             if (!modelFile.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
                 modelFile = $"{modelFile}.json";
 
-            if (locator.FindModel(modelFile, out var localFile)) {
+            if (locator.FindBlockModel(modelFile, out var localFile)) {
                 var json = ParseModelJson(localFile);
                 return ParseModelFile(json);
             }

@@ -7,8 +7,10 @@ namespace PixelGraph.Common.IO
         bool FindLocalMaterial(string searchFile, out string localPath);
         //bool FindLocalTexture(string searchFile, out string localPath);
 
-        bool FindModel(string searchFile, out string localPath);
-        bool FindLocalModel(string searchFile, out string localPath);
+        bool FindBlockModel(string searchFile, out string localPath);
+        bool FindEntityModel(string searchFile, out string localPath);
+        //bool FindLocalBlockModel(string searchFile, out string localPath);
+        //bool FindLocalEntityModel(string searchFile, out string localPath);
     }
 
     public class MinecraftResourceLocator : IMinecraftResourceLocator
@@ -53,14 +55,21 @@ namespace PixelGraph.Common.IO
         //    //
         //}
 
-        public bool FindModel(string searchFile, out string localPath)
+        public bool FindBlockModel(string searchFile, out string localPath)
         {
-            if (!FindLocalModel(searchFile, out localPath)) return false;
+            if (!FindLocalBlockModel(searchFile, out localPath)) return false;
             localPath = reader.GetFullPath(localPath);
             return true;
         }
 
-        public bool FindLocalModel(string searchFile, out string localPath)
+        public bool FindEntityModel(string searchFile, out string localPath)
+        {
+            if (!FindLocalEntityModel(searchFile, out localPath)) return false;
+            localPath = reader.GetFullPath(localPath);
+            return true;
+        }
+
+        private bool FindLocalBlockModel(string searchFile, out string localPath)
         {
             if (reader.FileExists(searchFile)) {
                 localPath = searchFile;
@@ -80,6 +89,25 @@ namespace PixelGraph.Common.IO
 
             if (reader.FileExists(modelsBlockPath)) {
                 localPath = modelsBlockPath;
+                return true;
+            }
+
+            localPath = null;
+            return false;
+        }
+
+        private bool FindLocalEntityModel(string searchFile, out string localPath)
+        {
+            if (reader.FileExists(searchFile)) {
+                localPath = searchFile;
+                return true;
+            }
+
+            var modelsPath = PathEx.Join("assets/minecraft/optifine/jem", searchFile);
+            modelsPath = PathEx.Localize(modelsPath);
+
+            if (reader.FileExists(modelsPath)) {
+                localPath = modelsPath;
                 return true;
             }
 
