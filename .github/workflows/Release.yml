@@ -13,6 +13,9 @@ jobs:
   create-release:
     name: Create-Release
     runs-on: ubuntu-latest
+    outputs:
+      release_id: steps.create_release.outputs.id
+      upload_url: steps.create_release.outputs.upload_url
     steps:
       - name: Create Release
         id: create_release
@@ -44,7 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: publish/win-cli-x64/PixelGraph.exe
           asset_name: PixelGraph-CLI-Windows-x64.exe
           asset_content_type: application/exe
@@ -53,7 +56,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: publish/linux-cli-x64/PixelGraph
           asset_name: PixelGraph-CLI-Linux-x64
           asset_content_type: application/exe
@@ -62,7 +65,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: publish/osx-cli-x64/PixelGraph
           asset_name: PixelGraph-CLI-OSX-x64
           asset_content_type: application/exe
@@ -90,7 +93,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: publish/win-ui-x64/PixelGraph.exe
           asset_name: PixelGraph-UI-Windows-x64.exe
           asset_content_type: application/exe
@@ -99,7 +102,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: publish/WineHQ-UI-x64.zip
           asset_name: PixelGraph-UI-WineHQ-x64.zip
           asset_content_type: application/zip
@@ -107,7 +110,8 @@ jobs:
   publish-release:
     name: Publish-Release
     runs-on: ubuntu-latest
-    needs: [publish-cli, publish-ui]
+    needs: [create-release, publish-cli, publish-ui]
+    if: github.event.inputs.release_notes != 0
     steps:
       - uses: actions/checkout@v2
         with:
@@ -121,11 +125,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           tags: latest,${{ github.event.inputs.version }}
       - name: Publish Release
-        if: ${{ github.event.inputs.release_notes != 0 }}
         uses: eregon/publish-release@v1.0.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          release_id: ${{ steps.create_release.outputs.id }}
-      - run: echo Publishing skipped, no release notes
-        if: ${{ github.event.inputs.release_notes == 0 }}
+          release_id: ${{ needs.create-release.outputs.release_id }}
