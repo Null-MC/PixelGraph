@@ -113,6 +113,7 @@ jobs:
         with:
           submodules: recursive
       - name: Publish Dockerfile
+        if: ${{ github.event.inputs.release_notes != 0 }}
         uses: docker/build-push-action@v1
         with:
           repository: null511/pixelgraph
@@ -120,8 +121,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           tags: latest,${{ github.event.inputs.version }}
       - name: Publish Release
+        if: ${{ github.event.inputs.release_notes != 0 }}
         uses: eregon/publish-release@v1.0.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           release_id: ${{ steps.create_release.outputs.id }}
+      - run: echo Publishing skipped, no release notes
+        if: ${{ github.event.inputs.release_notes == 0 }}
