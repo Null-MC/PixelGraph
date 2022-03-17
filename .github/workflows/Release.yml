@@ -8,10 +8,14 @@ on:
       release_notes:
         description: 'Release notes. (optional)'
         required: false
+      publish_docker:
+        description: 'Publish Dockerfile? true | false'
+        default: 'true'
+        required: false
 
 jobs:
   prepare_release:
-    name: Create-Release
+    name: Prepare Release
     runs-on: ubuntu-latest
     outputs:
       release_id: ${{ steps.create_release.outputs.id }}
@@ -28,8 +32,8 @@ jobs:
           body: ${{ github.event.inputs.release_notes }}
           draft: true
 
-  publish-cli:
-    name: Publish-CLI
+  publish_cli:
+    name: Publish CLI
     runs-on: ubuntu-latest
     needs: [prepare_release]
     steps:
@@ -70,8 +74,8 @@ jobs:
           asset_name: PixelGraph-CLI-OSX-x64
           asset_content_type: application/exe
 
-  publish-ui:
-    name: Publish-UI
+  publish_ui:
+    name: Publish UI
     runs-on: windows-latest
     needs: [prepare_release]
     steps:
@@ -107,17 +111,16 @@ jobs:
           asset_name: PixelGraph-UI-WineHQ-x64.zip
           asset_content_type: application/zip
 
-  publish-release:
-    name: Publish-Release
+  publish_release:
+    name: Publish Release
     runs-on: ubuntu-latest
-    needs: [prepare_release, publish-cli, publish-ui]
-    if: github.event.inputs.release_notes != 0
+    needs: [prepare_release, publish_cli, publish_ui]
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
       - name: Publish Dockerfile
-        if: ${{ github.event.inputs.release_notes != 0 }}
+        if: ${{ github.event.inputs.publish_docker == 'true' }}
         uses: docker/build-push-action@v1
         with:
           repository: null511/pixelgraph
@@ -126,6 +129,7 @@ jobs:
           tags: latest,${{ github.event.inputs.version }}
       - name: Publish Release
         uses: eregon/publish-release@v1.0.3
+        if: github.event.inputs.release_notes != 0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
