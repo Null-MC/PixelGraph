@@ -10,6 +10,8 @@ namespace PixelGraph.UI.ViewModels
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
+        protected TSource Data {get; set;}
+
 
         protected IEditTextPropertyRow<TSource> AddText<TValue>(string displayName, string propertyName, TValue defaultValue = default)
         {
@@ -92,13 +94,15 @@ namespace PixelGraph.UI.ViewModels
         //    Add(row);
         //}
 
-        private void OnRowValueChanged(object sender, PropertyValueChangedEventArgs e)
+        protected virtual void OnRowValueChanged(string propertyName)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(e.PropertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public virtual void SetData(TSource data)
         {
+            Data = data;
+
             foreach (var row in GetRows())
                 row.SetData(data);
         }
@@ -112,6 +116,11 @@ namespace PixelGraph.UI.ViewModels
         private IEnumerable<IEditPropertyRow<TSource>> GetRows()
         {
             return this.OfType<IEditPropertyRow<TSource>>();
+        }
+
+        private void OnRowValueChanged(object sender, PropertyValueChangedEventArgs e)
+        {
+            OnRowValueChanged(e.PropertyName);
         }
     }
 

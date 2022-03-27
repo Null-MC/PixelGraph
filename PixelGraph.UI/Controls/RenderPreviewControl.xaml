@@ -39,7 +39,7 @@
                 </DockPanel>
             </StackPanel>
         </Border>
-        <hx:Viewport3DX x:Name="viewport3D"
+        <hx:Viewport3DX x:Name="viewport3D" EnableDeferredRendering="True"
             BackgroundColor="#222"
             Camera="{Binding RenderProperties.Camera}"
             EffectsManager="{Binding RenderProperties.EffectsManager}"

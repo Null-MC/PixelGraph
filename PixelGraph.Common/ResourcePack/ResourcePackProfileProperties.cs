@@ -1,4 +1,6 @@
-﻿using System;
+﻿using PixelGraph.Common.IO;
+using System;
+using System.IO;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
@@ -24,7 +26,7 @@ namespace PixelGraph.Common.ResourcePack
         /// Gets or sets the edition of Minecraft the RP will target.
         /// </summary>
         /// <remarks>
-        /// Supports Java and Bedrock.
+        /// See <see cref="GameEdition"/>.
         /// </remarks>
         [YamlMember(Order = -99)]
         public string Edition {get; set;}
@@ -110,11 +112,23 @@ namespace PixelGraph.Common.ResourcePack
             Encoding = new ResourcePackOutputProperties();
         }
 
-        //public virtual object Clone()
-        //{
-        //    var clone = (ResourcePackProfileProperties)MemberwiseClone();
-        //    clone.Encoding = (ResourcePackOutputProperties)Encoding.Clone();
-        //    return clone;
-        //}
+        public string GetDefaultPackName()
+        {
+            var name = LocalFile;
+            if (string.IsNullOrWhiteSpace(name)) return null;
+
+            name = Path.GetFileName(name);
+            if (string.IsNullOrWhiteSpace(name)) return null;
+
+            if (name.EndsWith(".pack.yml")) name = name[..^9];
+            return string.IsNullOrWhiteSpace(name) ? null : name;
+        }
+
+        public virtual object Clone()
+        {
+            var clone = (ResourcePackProfileProperties)MemberwiseClone();
+            clone.Encoding = (ResourcePackOutputProperties)Encoding.Clone();
+            return clone;
+        }
     }
 }

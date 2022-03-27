@@ -2,6 +2,7 @@
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
@@ -35,6 +36,7 @@ namespace PixelGraph.Common.Textures
     {
         private readonly IServiceProvider provider;
         private readonly IInputReader reader;
+        private readonly ITextureReader matReader;
         private readonly ITextureGraphContext context;
         private readonly ITextureSourceGraph sourceGraph;
         private readonly ITextureNormalGraph normalGraph;
@@ -56,6 +58,7 @@ namespace PixelGraph.Common.Textures
         public TextureBuilder(
             IServiceProvider provider,
             IInputReader reader,
+            ITextureReader matReader,
             ITextureGraphContext context,
             ITextureSourceGraph sourceGraph,
             ITextureNormalGraph normalGraph,
@@ -63,6 +66,7 @@ namespace PixelGraph.Common.Textures
         {
             this.provider = provider;
             this.reader = reader;
+            this.matReader = matReader;
             this.context = context;
             this.sourceGraph = sourceGraph;
             this.normalGraph = normalGraph;
@@ -282,7 +286,7 @@ namespace PixelGraph.Common.Textures
                     return true;
                 }
 
-                if (TryGetSourceFilename(inputChannel.Texture, out mapping.SourceFilename)) {
+                if (matReader.TryGetSourceFilename(inputChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(inputChannel);
                     return true;
                 }
@@ -306,7 +310,7 @@ namespace PixelGraph.Common.Textures
             var hasOuputRough = context.OutputEncoding.HasChannel(EncodingChannel.Rough);
             if (isOutputSmooth && !hasOuputRough) {
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)
-                    && TryGetSourceFilename(roughChannel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetSourceFilename(roughChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(roughChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Rough);
@@ -329,7 +333,7 @@ namespace PixelGraph.Common.Textures
             var hasOuputSmooth = context.OutputEncoding.HasChannel(EncodingChannel.Smooth);
             if (isOutputRough && !hasOuputSmooth) {
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
-                    && TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(smoothChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
@@ -351,7 +355,7 @@ namespace PixelGraph.Common.Textures
             if (isOutputSpecular && !context.IsImport) {
                 // Smooth > Specular
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
-                    && TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(smoothChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
@@ -368,7 +372,7 @@ namespace PixelGraph.Common.Textures
 
                 // Metal > Specular
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel)
-                    && TryGetSourceFilename(metalChannel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetSourceFilename(metalChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(metalChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
@@ -682,7 +686,7 @@ namespace PixelGraph.Common.Textures
             ISampler<Rgba32> emissiveSampler = null;
             try {
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Emissive, out var emissiveChannel)
-                    && TryGetSourceFilename(emissiveChannel.Texture, out var emissiveFile)) {
+                    && matReader.TryGetSourceFilename(emissiveChannel.Texture, out var emissiveFile)) {
                     emissiveInfo = await sourceGraph.GetOrCreateAsync(emissiveFile, token);
 
                     if (emissiveInfo != null) {
@@ -912,23 +916,23 @@ namespace PixelGraph.Common.Textures
             return new Size(maxWidth, maxHeight);
         }
 
-        private bool TryGetSourceFilename(string tag, out string filename)
-        {
-            if (tag == null) throw new ArgumentNullException(nameof(tag));
+        //private bool TryGetSourceFilename(string tag, out string filename)
+        //{
+        //    if (tag == null) throw new ArgumentNullException(nameof(tag));
 
-            var textureList = context.IsImport
-                ? reader.EnumerateOutputTextures(context.Profile, context.Material.Name, context.Material.LocalPath, tag, true)
-                : reader.EnumerateInputTextures(context.Material, tag);
+        //    var textureList = context.IsImport
+        //        ? reader.EnumerateOutputTextures(context.Material.Name, context.Material.LocalPath, tag, true)
+        //        : reader.EnumerateInputTextures(context.Material, tag);
 
-            foreach (var file in textureList) {
-                if (!reader.FileExists(file)) continue;
+        //    foreach (var file in textureList) {
+        //        if (!reader.FileExists(file)) continue;
 
-                filename = file;
-                return true;
-            }
+        //        filename = file;
+        //        return true;
+        //    }
 
-            filename = null;
-            return false;
-        }
+        //    filename = null;
+        //    return false;
+        //}
     }
 }

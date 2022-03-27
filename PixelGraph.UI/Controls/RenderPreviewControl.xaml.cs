@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using SharpDX.DXGI;
 
 namespace PixelGraph.UI.Controls
 {
@@ -50,6 +51,9 @@ namespace PixelGraph.UI.Controls
         public RenderPreviewControl()
         {
             InitializeComponent();
+
+            // ERROR: HOW TF DO I SET THE BUFFER FORMAT!?!?!?!
+            //viewport3D.RenderHost.RenderBuffer.Format = Format.R16G16B16A16_Float;
         }
 
         public async Task InitializeAsync(IServiceProvider provider, CancellationToken token = default)

@@ -35,14 +35,9 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
         public PublishGraphBuilder(
             ILogger<PublishGraphBuilder> logger,
             IServiceProvider provider,
-            ITextureGraphContext context,
-            ITextureGraph graph,
-            IInputReader reader,
-            IOutputWriter writer,
-            IImageWriter imageWriter,
             IEdgeFadeImageEffect edgeFadeEffect,
             IItemTextureGenerator itemGenerator)
-            : base(provider, context, graph, reader, writer, imageWriter, logger)
+            : base(provider, logger)
         {
             this.edgeFadeEffect = edgeFadeEffect;
             this.itemGenerator = itemGenerator;
@@ -114,7 +109,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 if (GetMappedInventoryName(suffix, out var destFile)) {
                     var _p = Path.GetDirectoryName(destFile);
                     var _n = Path.GetFileNameWithoutExtension(destFile);
-                    _n = NamingStructure.Get(textureTag, _n, ext, true);
+                    _n = TexWriter.Get(textureTag, _n, ext, true);
                     destFile = Path.Combine(_p, _n);
 
                     var regions = Provider.GetRequiredService<ITextureRegionEnumerator>();
@@ -186,7 +181,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             }
 
             foreach (var tag in outputTags) {
-                var metaFileOut = NamingStructure.GetOutputMetaName(Context.Profile, Context.Material, tag, Context.PublishAsGlobal);
+                var metaFileOut = TexWriter.GetOutputMetaName(Context.Profile, Context.Material, tag, Context.PublishAsGlobal);
                 var metaTime = Reader.GetWriteTime(metaFileOut);
 
                 if (metaTime.HasValue && (!sourceTime.HasValue || metaTime.Value > sourceTime.Value))
@@ -198,7 +193,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
 
         private IEnumerable<string> GetMaterialInputFiles(IEnumerable<string> textureTags)
         {
-            return textureTags.SelectMany(tag => Reader.EnumerateInputTextures(Context.Material, tag));
+            return textureTags.SelectMany(tag => TexReader.EnumerateInputTextures(Context.Material, tag));
         }
 
         private IEnumerable<string> GetMaterialOutputFiles(IEnumerable<string> textureTags)
@@ -211,7 +206,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             foreach (var tag in textureTags) {
                 if (Context.IsMaterialMultiPart) {
                     foreach (var part in Context.Material.Parts) {
-                        var sourceName = NamingStructure.Get(tag, part.Name, null, true);
+                        var sourceName = TexWriter.Get(tag, part.Name, null, true);
 
                         if (Context.Mapping.TryMap(sourcePath, sourceName, out var destPath, out var destName))
                             yield return PathEx.Join(destPath, $"{destName}.{ext}");
@@ -229,7 +224,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                             ? Context.Material.Name
                             : (firstTileIndex + i).ToString();
 
-                        var sourceName = NamingStructure.Get(tag, name, ext, true);
+                        var sourceName = TexWriter.Get(tag, name, ext, true);
                         if (!Context.Material.UseGlobalMatching && !usePlaceholder)
                             sourceName = PathEx.Join(Context.Material.Name, sourceName);
 
@@ -241,7 +236,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                     }
                 }
                 else {
-                    var sourceName = NamingStructure.Get(tag, Context.Material.Name, null, true);
+                    var sourceName = TexWriter.Get(tag, Context.Material.Name, null, true);
 
                     if (Context.Mapping.TryMap(sourcePath, sourceName, out var destPath, out var destName))
                         yield return PathEx.Join(destPath, $"{destName}.{ext}");

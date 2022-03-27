@@ -1,9 +1,10 @@
-﻿using PixelGraph.Common.Material;
+﻿using PixelGraph.Common;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
-using System.Threading.Tasks;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,6 +18,9 @@ namespace PixelGraph.Tests.PublishTests
 
         public Lab13PublishTests(ITestOutputHelper output) : base(output)
         {
+            Builder.AddTextureReader(GameEditions.None);
+            Builder.AddTextureWriter(GameEditions.Java);
+
             packInput = new ResourcePackInputProperties {
                 Format = TextureFormat.Format_Raw,
             };
@@ -193,7 +197,7 @@ namespace PixelGraph.Tests.PublishTests
         [InlineData(231)]
         [InlineData(240)]
         [InlineData(255)]
-        [Theory] public async Task MetalTextureTest(byte value)
+        [Theory] public async Task HCMTextureTest(byte value)
         {
             await using var graph = Graph();
 
@@ -204,7 +208,7 @@ namespace PixelGraph.Tests.PublishTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/metal.png", value);
+            await graph.CreateImageAsync("assets/test/hcm.png", value);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_s.png");
@@ -297,7 +301,7 @@ namespace PixelGraph.Tests.PublishTests
                 image[2, 0] = new L8(10);
             });
 
-            await graph.CreateImageAsync<L8>("assets/test/metal.png", 7, 1, image => {
+            await graph.CreateImageAsync<L8>("assets/test/hcm.png", 7, 1, image => {
                 image[3, 0] = new L8(231);
             });
 

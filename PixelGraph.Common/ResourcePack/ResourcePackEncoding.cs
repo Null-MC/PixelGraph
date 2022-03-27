@@ -31,6 +31,9 @@ namespace PixelGraph.Common.ResourcePack
         public ResourcePackMetalChannelProperties Metal {get; set;}
         public ResourcePackF0ChannelProperties F0 {get; set;}
 
+        [YamlMember(Alias = "hcm")]
+        public ResourcePackHcmChannelProperties HCM {get; set;}
+
         public ResourcePackPorosityChannelProperties Porosity {get; set;}
 
         [YamlMember(Alias = "sss")]
@@ -61,6 +64,7 @@ namespace PixelGraph.Common.ResourcePack
             Rough = new ResourcePackRoughChannelProperties();
 
             Metal = new ResourcePackMetalChannelProperties();
+            HCM = new ResourcePackHcmChannelProperties();
             F0 = new ResourcePackF0ChannelProperties();
 
             Porosity = new ResourcePackPorosityChannelProperties();
@@ -101,6 +105,7 @@ namespace PixelGraph.Common.ResourcePack
             if (encoding.Rough != null) Rough.Merge(encoding.Rough);
 
             if (encoding.Metal != null) Metal.Merge(encoding.Metal);
+            if (encoding.HCM != null) HCM.Merge(encoding.HCM);
             if (encoding.F0 != null) F0.Merge(encoding.F0);
 
             if (encoding.Porosity != null) Porosity.Merge(encoding.Porosity);
@@ -131,6 +136,7 @@ namespace PixelGraph.Common.ResourcePack
             if (material.Rough?.Input != null) Rough.Merge(material.Rough.Input);
 
             if (material.Metal?.Input != null) Metal.Merge(material.Metal.Input);
+            if (material.HCM?.Input != null) HCM.Merge(material.HCM.Input);
             if (material.F0?.Input != null) F0.Merge(material.F0.Input);
 
             if (material.Porosity?.Input != null) Porosity.Merge(material.Porosity.Input);
@@ -161,6 +167,7 @@ namespace PixelGraph.Common.ResourcePack
             yield return Rough;
 
             yield return Metal;
+            yield return HCM;
             yield return F0;
 
             yield return Porosity;
@@ -193,6 +200,7 @@ namespace PixelGraph.Common.ResourcePack
             clone.Rough = (ResourcePackRoughChannelProperties)Rough.Clone();
 
             clone.Metal = (ResourcePackMetalChannelProperties)Metal.Clone();
+            clone.HCM = (ResourcePackHcmChannelProperties)HCM.Clone();
             clone.F0 = (ResourcePackF0ChannelProperties)F0.Clone();
 
             clone.Porosity = (ResourcePackPorosityChannelProperties)Porosity.Clone();
@@ -352,6 +360,13 @@ namespace PixelGraph.Common.ResourcePack
         public ResourcePackMetalChannelProperties() : base(EncodingChannel.Metal) {}
 
         public ResourcePackMetalChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Metal, texture, color) {}
+    }
+
+    public class ResourcePackHcmChannelProperties : ResourcePackChannelProperties
+    {
+        public ResourcePackHcmChannelProperties() : base(EncodingChannel.HCM) {}
+
+        public ResourcePackHcmChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.HCM, texture, color) {}
     }
 
     public class ResourcePackF0ChannelProperties : ResourcePackChannelProperties

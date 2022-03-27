@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
@@ -10,19 +12,25 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImportTests
 {
-    public class OldPbrImportTests : ImageTestBase
+    public class JavaOldPbrImportTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public OldPbrImportTests(ITestOutputHelper output) : base(output)
+        public JavaOldPbrImportTests(ITestOutputHelper output) : base(output)
         {
+            Builder.AddImporter(GameEditions.Java);
+            Builder.AddTextureReader(GameEditions.Java);
+            Builder.AddTextureWriter(GameEditions.None);
+
             packInput = new ResourcePackInputProperties {
+                Edition = GameEdition.Java,
                 Format = TextureFormat.Format_Raw,
             };
 
             packProfile = new ResourcePackProfileProperties {
+                Edition = GameEdition.Java,
                 Encoding = {
                     Format = TextureFormat.Format_OldPbr,
                 },

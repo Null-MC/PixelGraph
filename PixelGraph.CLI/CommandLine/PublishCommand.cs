@@ -61,9 +61,9 @@ namespace PixelGraph.CLI.CommandLine
 
         private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, FileInfo zip, bool clean, int concurrency)
         {
-            factory.AddFileInput();
-            if (zip != null) factory.AddArchiveOutput();
-            else factory.AddFileOutput();
+            factory.AddContentReader(ContentTypes.File);
+            factory.AddContentWriter(zip != null ? ContentTypes.Archive : ContentTypes.File);
+            factory.AddTextureReader(GameEditions.None);
 
             factory.Services.AddTransient<Executor>();
             await using var provider = factory.Build();
@@ -161,10 +161,10 @@ namespace PixelGraph.CLI.CommandLine
 
             private IPublisher GetPublisher(ResourcePackProfileProperties profile)
             {
-                if (GameEditions.Is(profile.Edition, GameEditions.Java))
+                if (GameEdition.Is(profile.Edition, GameEdition.Java))
                     return provider.GetRequiredService<IJavaPublisher>();
 
-                if (GameEditions.Is(profile.Edition, GameEditions.Bedrock))
+                if (GameEdition.Is(profile.Edition, GameEdition.Bedrock))
                     return provider.GetRequiredService<IBedrockPublisher>();
 
                 throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");

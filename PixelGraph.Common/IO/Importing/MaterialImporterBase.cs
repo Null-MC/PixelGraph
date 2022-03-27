@@ -4,12 +4,11 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
+using PixelGraph.Common.Textures.Graphing.Builders;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Textures.Graphing.Builders;
 
 namespace PixelGraph.Common.IO.Importing
 {
@@ -28,10 +27,11 @@ namespace PixelGraph.Common.IO.Importing
         Task ImportAsync(MaterialProperties material, CancellationToken token = default);
     }
 
-    internal class MaterialImporter : IMaterialImporter
+    internal abstract class MaterialImporterBase : IMaterialImporter
     {
-        private readonly IServiceProvider provider;
-        private readonly IMaterialWriter writer;
+        protected IServiceProvider Provider {get; set;}
+        protected IMaterialWriter MaterialWriter {get; set;}
+        protected IInputReader Reader {get; set;}
 
         /// <inheritdoc />
         public bool AsGlobal {get; set;}
@@ -41,12 +41,12 @@ namespace PixelGraph.Common.IO.Importing
         public ResourcePackProfileProperties PackProfile {get; set;}
 
 
-        public MaterialImporter(
-            IServiceProvider provider,
-            IMaterialWriter writer)
+        protected MaterialImporterBase(IServiceProvider provider)
         {
-            this.provider = provider;
-            this.writer = writer;
+            Provider = provider;
+
+            MaterialWriter = provider.GetRequiredService<IMaterialWriter>();
+            Reader = provider.GetRequiredService<IInputReader>();
         }
 
         public async Task<MaterialProperties> CreateMaterialAsync(string localPath, string name)
@@ -62,25 +62,31 @@ namespace PixelGraph.Common.IO.Importing
                 UseGlobalMatching = AsGlobal,
             };
 
-            await writer.WriteAsync(material);
+            await MaterialWriter.WriteAsync(material);
             return material;
         }
 
         public async Task ImportAsync(MaterialProperties material, CancellationToken token = default)
         {
-            using var scope = provider.CreateScope();
+            using var scope = Provider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-            var graphBuilder = scope.ServiceProvider.GetRequiredService<IImportGraphBuilder>();
 
-            context.Input = PackInput;
-            context.Profile = PackProfile;
-            context.Material = material;
+            context.Input = (ResourcePackInputProperties)PackInput.Clone();
+            context.Profile = (ResourcePackProfileProperties)PackProfile.Clone();
             context.PublishAsGlobal = AsGlobal;
+            context.Material = material;
             context.IsImport = true;
 
             context.Mapping = new DefaultPublishMapping();
 
-            await graphBuilder.ImportAsync(token);
+            await OnImportMaterialAsync(scope.ServiceProvider, token);
+        }
+
+        protected virtual Task OnImportMaterialAsync(IServiceProvider scope, CancellationToken token = default)
+        {
+            var graphBuilder = scope.GetRequiredService<IImportGraphBuilder>();
+
+            return graphBuilder.ImportAsync(token);
         }
     }
 }

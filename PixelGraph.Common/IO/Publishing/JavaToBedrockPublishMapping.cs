@@ -7,9 +7,9 @@ namespace PixelGraph.Common.IO.Publishing
 
     internal class JavaToBedrockPublishMapping : PublisherMappingBase, IJavaToBedrockPublishMapping
     {
-        public JavaToBedrockPublishMapping() : base(materialMap) {}
+        protected override IDictionary<string, string> OnBuildMappings() => materialMap;
 
-        private static readonly Dictionary<string, string> materialMap = new(StringComparer.InvariantCultureIgnoreCase) {
+        internal static readonly Dictionary<string, string> materialMap = new(StringComparer.InvariantCultureIgnoreCase) {
             ["assets/minecraft/textures/block/acacia_trapdoor"] = "textures/blocks/acacia_trapdoor",
             ["assets/minecraft/textures/block/ancient_debris_side"] = "textures/blocks/ancient_debris_side",
             ["assets/minecraft/textures/block/ancient_debris_top"] = "textures/blocks/ancient_debris_top",

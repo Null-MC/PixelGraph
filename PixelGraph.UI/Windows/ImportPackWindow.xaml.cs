@@ -7,6 +7,7 @@ using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Extensions;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
@@ -15,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using GameEditions = PixelGraph.Common.GameEditions;
 
 namespace PixelGraph.UI.Windows
 {
@@ -58,13 +60,15 @@ namespace PixelGraph.UI.Windows
         private async Task RunAsync(CancellationToken token)
         {
             var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
-            scopeBuilder.AddFileOutput();
-
-            if (Model.IsArchive) scopeBuilder.AddArchiveInput();
-            else scopeBuilder.AddFileInput();
+            
+            scopeBuilder.AddContentWriter(ContentTypes.File);
+            scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
 
             var logReceiver = scopeBuilder.AddLoggingRedirect();
             logReceiver.LogMessage += OnLogMessage;
+
+            scopeBuilder.AddImporter(Model.IsBedrock ? GameEditions.Bedrock : GameEditions.Java);
+            scopeBuilder.AddTextureReader(GameEditions.Java);
 
             await using var scope = scopeBuilder.Build();
 
@@ -92,10 +96,10 @@ namespace PixelGraph.UI.Windows
         private ServiceProvider BuildScope()
         {
             var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
-            scopeBuilder.AddFileOutput();
 
-            if (Model.IsArchive) scopeBuilder.AddArchiveInput();
-            else scopeBuilder.AddFileInput();
+            scopeBuilder.AddContentWriter(ContentTypes.File);
+            scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
+            scopeBuilder.AddTextureReader(GameEditions.Java);
 
             return scopeBuilder.Build();
         }

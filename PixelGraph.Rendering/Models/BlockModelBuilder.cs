@@ -72,7 +72,7 @@ namespace PixelGraph.Rendering.Models
             scaledRegion.Bottom = region.Bottom * scale;
         }
 
-        private RectangleF GetDefaultUv(ModelElement element, in ElementFaces face)
+        public static RectangleF GetDefaultUv(ModelElement element, in ElementFaces face)
         {
             return face switch {
                 ElementFaces.Up => UVMap(element.From.X, element.From.Z, element.To.X, element.To.Z),
@@ -85,7 +85,7 @@ namespace PixelGraph.Rendering.Models
             };
         }
 
-        private static Vector3 GetFaceNormal(ElementFaces face)
+        public static Vector3 GetFaceNormal(ElementFaces face)
         {
             return face switch {
                 ElementFaces.Up => new Vector3(0, 1, 0),
@@ -98,7 +98,7 @@ namespace PixelGraph.Rendering.Models
             };
         }
 
-        private static Vector3 GetUpVector(ElementFaces face)
+        public static Vector3 GetUpVector(ElementFaces face)
         {
             return face switch {
                 ElementFaces.Up => -Vector3.UnitZ,

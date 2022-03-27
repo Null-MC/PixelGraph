@@ -65,7 +65,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         MaxValue = 0.9m,
                         RangeMax = 229,
                     },
-                    new ResourcePackMetalChannelProperties(TextureTags.Rough, ColorChannel.Green) {
+                    new ResourcePackHcmChannelProperties(TextureTags.Rough, ColorChannel.Green) {
                         //Sampler = mat?.Metal?.Input?.Sampler ?? profile?.Encoding?.Metal?.Sampler,
                         MinValue = 230m,
                         MaxValue = 255m,

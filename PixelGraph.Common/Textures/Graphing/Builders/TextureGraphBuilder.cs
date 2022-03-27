@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Texture;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -19,29 +20,26 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
 
         protected IServiceProvider Provider {get;}
         protected IInputReader Reader {get;}
+        protected ITextureReader TexReader {get;}
+        protected ITextureWriter TexWriter {get;}
         protected IOutputWriter Writer {get;}
         protected IImageWriter ImageWriter {get;}
         protected ITextureGraphContext Context {get;}
         protected ITextureGraph Graph {get;}
 
 
-        protected TextureGraphBuilder(
-            IServiceProvider provider,
-            ITextureGraphContext context,
-            ITextureGraph graph,
-            IInputReader reader,
-            IOutputWriter writer,
-            IImageWriter imageWriter,
-            ILogger logger)
+        protected TextureGraphBuilder(IServiceProvider provider, ILogger logger)
         {
+            Provider = provider;
             this.logger = logger;
 
-            Provider = provider;
-            Reader = reader;
-            Writer = writer;
-            ImageWriter = imageWriter;
-            Context = context;
-            Graph = graph;
+            Reader = provider.GetRequiredService<IInputReader>();
+            TexReader = provider.GetRequiredService<ITextureReader>();
+            TexWriter = provider.GetRequiredService<ITextureWriter>();
+            Writer = provider.GetRequiredService<IOutputWriter>();
+            ImageWriter = provider.GetRequiredService<IImageWriter>();
+            Context = provider.GetRequiredService<ITextureGraphContext>();
+            Graph = provider.GetRequiredService<ITextureGraph>();
         }
 
         /// <summary>
@@ -99,8 +97,11 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             }
 
             var sourcePath = Context.Material.LocalPath;
-            if (!Context.PublishAsGlobal || (Context.IsMaterialCtm && !Context.Material.UseGlobalMatching))
-                sourcePath = PathEx.Join(sourcePath, Context.Material.Name);
+
+            if (!Context.IsImport) {
+                if (!Context.PublishAsGlobal || (Context.IsMaterialCtm && !Context.Material.UseGlobalMatching))
+                    sourcePath = PathEx.Join(sourcePath, Context.Material.Name);
+            }
 
             var maxFrameCount = Graph.GetMaxFrameCount();
             var usePlaceholder = Context.Material.CTM?.Placeholder ?? false;
@@ -116,13 +117,14 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                     var placeholderPath = PathEx.Join("assets", "minecraft", "textures", "block");
                     if (!Context.Mapping.TryMap(placeholderPath, Context.Material.Name, out var destPath, out var destName)) continue;
 
-                    var destTagName = NamingStructure.Get(textureTag, destName, ext, Context.PublishAsGlobal);
+                    var destTagName = TexWriter.Get(textureTag, destName, ext, Context.PublishAsGlobal);
                     destFile = PathEx.Join(destPath, destTagName);
                 }
                 else {
                     if (!Context.Mapping.TryMap(sourcePath, part.Name, out var destPath, out var destName)) continue;
 
-                    var destTagName = NamingStructure.Get(textureTag, destName, ext, Context.PublishAsGlobal);
+                    var destTagName = TexWriter.Get(textureTag, destName, ext, Context.PublishAsGlobal);
+                    if (!Context.PublishAsGlobal) destPath = PathEx.Join(destPath, destName);
                     destFile = PathEx.Join(destPath, destTagName);
                 }
 
@@ -171,7 +173,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
 
         protected async Task CopyMetaAsync(string tag, CancellationToken token)
         {
-            var metaFileIn = NamingStructure.GetInputMetaName(Context.Material, tag);
+            var metaFileIn = TexWriter.GetInputMetaName(Context.Material, tag);
 
             if (!Reader.FileExists(metaFileIn)) {
                 metaFileIn = NamingStructure.GetInputMetaName(Context.Material);
@@ -183,7 +185,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 : Enumerable.Repeat(Context.Material.Name, 1);
 
             foreach (var partName in partNames) {
-                var metaFileOut = NamingStructure.GetOutputMetaName(Context.Profile, Context.Material, partName, tag, Context.PublishAsGlobal);
+                var metaFileOut = TexWriter.GetOutputMetaName(Context.Profile, Context.Material, partName, tag, Context.PublishAsGlobal);
                 await CopyMetaFileAsync(metaFileIn, metaFileOut, token);
             }
         }

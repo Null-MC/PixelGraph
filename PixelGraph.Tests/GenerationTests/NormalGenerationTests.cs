@@ -1,15 +1,16 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using PixelGraph.Common;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.IO;
 using System.Threading.Tasks;
-using PixelGraph.Common.Textures.Graphing;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,6 +24,9 @@ namespace PixelGraph.Tests.GenerationTests
 
         public NormalGenerationTests(ITestOutputHelper output) : base(output)
         {
+            Builder.AddTextureReader(GameEditions.None);
+            Builder.AddTextureWriter(GameEditions.None);
+
             packInput = new ResourcePackInputProperties {
                 Height = {
                     Texture = TextureTags.Height,

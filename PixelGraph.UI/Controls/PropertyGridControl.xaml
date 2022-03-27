@@ -14,7 +14,7 @@
              BeginningEdit="OnBeginningEdit" CellEditEnding="OnCellEditEnding" CurrentCellChanged="OnCurrentCellChanged">
     <DataGrid.Resources>
         <convert:NullableConverter x:Key="NullableConverter"/>
-        <convert:BooleanInverseConverter x:Key="InverseBooleanToVisibilityConverter"/>
+        <convert:VisibilityInverseConverter x:Key="InverseVisibilityConverter"/>
         <controls:PropertyGridCellTemplateSelector x:Key="DisplayCellTemplateSelector">
             <controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:IEditTextPropertyRow}">
@@ -55,7 +55,7 @@
             <controls:PropertyGridEditCellTemplateSelector.TextBoxTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:IEditTextPropertyRow}">
                     <DockPanel IsEnabled="{Binding Enabled, Mode=OneWay}">
-                        <mah:ColorPicker DockPanel.Dock="Right"
+                        <mah:ColorPicker DockPanel.Dock="Top" TabIndex="1"
                                          SelectedColor="{Binding EditValue, Mode=TwoWay}"
                                          Visibility="{Binding IsColorSelect, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <Button DockPanel.Dock="Right" Margin="6,0" Click="OnSelectFileClick"
@@ -66,7 +66,7 @@
                         <TextBox HorizontalContentAlignment="Center" Margin="0" Padding="6,0" VerticalContentAlignment="Center" IsTabStop="False"
                                  BorderThickness="0" BorderBrush="{x:Null}" Background="Transparent"
                                  Text="{Binding EditValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}"
-                                 Visibility="{Binding IsColorSelect, Mode=OneWay, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+                                 Visibility="{Binding IsColorSelect, Mode=OneWay, Converter={StaticResource InverseVisibilityConverter}}"/>
                     </DockPanel>
                 </DataTemplate>
             </controls:PropertyGridEditCellTemplateSelector.TextBoxTemplate>

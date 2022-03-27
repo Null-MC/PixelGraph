@@ -70,7 +70,9 @@ namespace PixelGraph.UI.Helix.Models
                 return;
             }
 
-            var blockModel = modelLoader.GetBlockModel(renderContext.DefaultMaterial);
+            // TODO: add an item model builder
+
+            var blockModel = modelLoader.GetBlockModel(renderContext.DefaultMaterial, true);
             if (blockModel != null) {
                 FlattenBlockModelTextures(blockModel);
 
@@ -88,10 +90,7 @@ namespace PixelGraph.UI.Helix.Models
                 }
 
                 BuildBlockModel(blockModel, renderContext.EnableTiling);
-                return;
             }
-
-            //throw new ApplicationException("Failed to load model file!");
         }
 
         /// <summary>

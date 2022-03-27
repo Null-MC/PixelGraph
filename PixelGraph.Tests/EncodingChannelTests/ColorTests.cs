@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.Material;
+﻿using PixelGraph.Common;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
@@ -16,6 +17,9 @@ namespace PixelGraph.Tests.EncodingChannelTests
 
         public ColorTests(ITestOutputHelper output) : base(output)
         {
+            Builder.AddTextureReader(GameEditions.None);
+            Builder.AddTextureWriter(GameEditions.None);
+
             packInput = new ResourcePackInputProperties {
                 ColorRed = {
                     Texture = TextureTags.Color,

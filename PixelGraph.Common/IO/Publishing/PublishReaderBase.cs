@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Material;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace PixelGraph.Common.IO.Publishing
         private readonly ILogger<PublishReader> logger;
         private readonly IInputReader reader;
         private readonly IMaterialReader materialReader;
+        private readonly ITextureReader texReader;
         private readonly Stack<string> untracked;
         private readonly HashSet<string> ignored;
 
@@ -33,10 +35,12 @@ namespace PixelGraph.Common.IO.Publishing
         public PublishReader(
             ILogger<PublishReader> logger,
             IInputReader reader,
-            IMaterialReader materialReader)
+            IMaterialReader materialReader,
+            ITextureReader texReader)
         {
             this.reader = reader;
             this.materialReader = materialReader;
+            this.texReader = texReader;
             this.logger = logger;
 
             untracked = new Stack<string>();
@@ -83,7 +87,7 @@ namespace PixelGraph.Common.IO.Publishing
                     ignored.Add(fullMapFile);
 
                     // add all input textures to ignored
-                    foreach (var localTexture in reader.EnumerateAllTextures(material)) {
+                    foreach (var localTexture in texReader.EnumerateAllTextures(material)) {
                         var fullTextureFile = reader.GetFullPath(localTexture);
                         ignored.Add(fullTextureFile);
                     }
@@ -146,7 +150,7 @@ namespace PixelGraph.Common.IO.Publishing
                     //else {
                         materialList.Add(material);
 
-                        foreach (var texture in reader.EnumerateAllTextures(material)) {
+                        foreach (var texture in texReader.EnumerateAllTextures(material)) {
                             var fullTextureFile = reader.GetFullPath(texture);
                             ignored.Add(fullTextureFile);
                         }

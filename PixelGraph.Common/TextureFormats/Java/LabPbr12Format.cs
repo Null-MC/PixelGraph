@@ -132,7 +132,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                 },
 
-                Metal = new ResourcePackMetalChannelProperties {
+                HCM = new ResourcePackHcmChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
                     Sampler = Samplers.Samplers.Nearest,

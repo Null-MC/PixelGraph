@@ -32,7 +32,7 @@ namespace PixelGraph.Common.IO.Publishing
             var packMeta = new BedrockPackMetadata {
                 FormatVersion = pack.Format ?? ResourcePackProfileProperties.DefaultBedrockFormat,
                 Header = {
-                    Name = pack.Name,
+                    Name = pack.Name ?? pack.GetDefaultPackName(),
                     Description = pack.Description,
                     UniqueId = pack.HeaderUuid,
                     Version = new [] {1, 0, 0},
@@ -99,7 +99,7 @@ namespace PixelGraph.Common.IO.Publishing
                 sourceFile = PathEx.Normalize(sourceFile);
 
                 // TODO: replace with contains
-                return Mapping.TryMap(sourceFile, out _);
+                return Mapping.Contains(sourceFile);
             }) ?? false) return true;
 
             if (material.CTM?.Method != null) {
@@ -110,7 +110,7 @@ namespace PixelGraph.Common.IO.Publishing
             sourceFile = PathEx.Join(sourcePath, material.Name);
             sourceFile = PathEx.Normalize(sourceFile);
 
-            return Mapping.TryMap(sourceFile, out _);
+            return Mapping.Contains(sourceFile);
         }
 
         private async Task CreateMaterialMetadataAsync(string matPath, string matName, CancellationToken token)

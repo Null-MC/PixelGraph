@@ -146,7 +146,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                     ClipValue = 0m,
                 },
 
-                Metal = new ResourcePackMetalChannelProperties {
+                // WARN: WHY was the min range 229 instead of 230?!
+                HCM = new ResourcePackHcmChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
                     Sampler = Samplers.Samplers.Nearest,

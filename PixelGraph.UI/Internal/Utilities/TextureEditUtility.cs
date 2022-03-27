@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
+using PixelGraph.UI.Internal.Extensions;
 using PixelGraph.UI.Internal.Settings;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -12,7 +14,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.UI.Internal.Extensions;
 
 namespace PixelGraph.UI.Internal.Utilities
 {
@@ -26,6 +27,8 @@ namespace PixelGraph.UI.Internal.Utilities
     {
         private readonly ILogger<TextureEditUtility> logger;
         private readonly IAppSettings appSettings;
+        private readonly ITextureReader texReader;
+        private readonly ITextureWriter texWriter;
         private readonly IInputReader reader;
 
         private CancellationTokenSource mergedTokenSource;
@@ -34,9 +37,13 @@ namespace PixelGraph.UI.Internal.Utilities
         public TextureEditUtility(
             ILogger<TextureEditUtility> logger,
             IAppSettings appSettings,
+            ITextureReader texReader,
+            ITextureWriter texWriter,
             IInputReader reader)
         {
             this.appSettings = appSettings;
+            this.texReader = texReader;
+            this.texWriter = texWriter;
             this.reader = reader;
             this.logger = logger;
         }
@@ -122,11 +129,11 @@ namespace PixelGraph.UI.Internal.Utilities
             var inputFile = TextureTags.Get(material, textureTag);
 
             if (string.IsNullOrWhiteSpace(inputFile))
-                inputFile = reader.EnumerateInputTextures(material, textureTag).FirstOrDefault();
+                inputFile = texReader.EnumerateInputTextures(material, textureTag).FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(inputFile)) {
                 // TODO: determine filename from naming convention
-                var matchName = NamingStructure.GetInputTextureName(material, textureTag);
+                var matchName = texWriter.GetInputTextureName(material, textureTag);
                 var srcPath = material.UseGlobalMatching
                     ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
 
@@ -153,24 +160,24 @@ namespace PixelGraph.UI.Internal.Utilities
             return new Image<L8>(Configuration.Default, width, height);
         }
 
-        private static (string exe, string args) ParseCommand(string command)
-        {
-            if (command.StartsWith('"')) {
-                var commandSplitIndex = command.IndexOf('"', 1);
-                if (commandSplitIndex < 0) return (null, null);
+        //private static (string exe, string args) ParseCommand(string command)
+        //{
+        //    if (command.StartsWith('"')) {
+        //        var commandSplitIndex = command.IndexOf('"', 1);
+        //        if (commandSplitIndex < 0) return (null, null);
                 
-                var exe = command[1..commandSplitIndex];
-                var args = command[(commandSplitIndex + 1)..].TrimStart();
-                return (exe, args);
-            }
-            else {
-                var commandSplitIndex = command.IndexOf(' ');
-                if (commandSplitIndex < 0) return (null, null);
+        //        var exe = command[1..commandSplitIndex];
+        //        var args = command[(commandSplitIndex + 1)..].TrimStart();
+        //        return (exe, args);
+        //    }
+        //    else {
+        //        var commandSplitIndex = command.IndexOf(' ');
+        //        if (commandSplitIndex < 0) return (null, null);
 
-                var exe = command[..commandSplitIndex];
-                var args = command[(commandSplitIndex + 1)..];
-                return (exe, args);
-            }
-        }
+        //        var exe = command[..commandSplitIndex];
+        //        var args = command[(commandSplitIndex + 1)..];
+        //        return (exe, args);
+        //    }
+        //}
     }
 }

@@ -85,6 +85,9 @@ namespace PixelGraph.Common.Material
 
         public MaterialMetalProperties Metal {get; set;}
 
+        [YamlMember(Alias = "hcm", ApplyNamingConventions = false)]
+        public MaterialHcmProperties HCM {get; set;}
+
         public MaterialF0Properties F0 {get; set;}
 
         public MaterialPorosityProperties Porosity {get; set;}
@@ -122,6 +125,7 @@ namespace PixelGraph.Common.Material
             Smooth = new MaterialSmoothProperties();
             Rough = new MaterialRoughProperties();
             Metal = new MaterialMetalProperties();
+            HCM = new MaterialHcmProperties();
             F0 = new MaterialF0Properties();
             Porosity = new MaterialPorosityProperties();
             SSS = new MaterialSssProperties();
@@ -281,9 +285,9 @@ namespace PixelGraph.Common.Material
 
         private static readonly Dictionary<string, Func<MaterialProperties, decimal?>> valueMap = new(StringComparer.OrdinalIgnoreCase) {
             [EncodingChannel.Opacity] = mat => mat.Opacity?.Value,
-            [EncodingChannel.ColorRed] = mat => mat.Color?.ValueRed,
-            [EncodingChannel.ColorGreen] = mat => mat.Color?.ValueGreen,
-            [EncodingChannel.ColorBlue] = mat => mat.Color?.ValueBlue,
+            [EncodingChannel.ColorRed] = mat => mat.Color?.GetValueRed(),
+            [EncodingChannel.ColorGreen] = mat => mat.Color?.GetValueGreen(),
+            [EncodingChannel.ColorBlue] = mat => mat.Color?.GetValueBlue(),
             [EncodingChannel.Height] = mat => mat.Height?.Value,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Value,
             [EncodingChannel.NormalX] = mat => mat.Normal?.ValueX,
@@ -293,6 +297,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Value,
             [EncodingChannel.Rough] = mat => mat.Rough?.Value,
             [EncodingChannel.Metal] = mat => mat.Metal?.Value,
+            [EncodingChannel.HCM] = mat => mat.HCM?.Value,
             [EncodingChannel.F0] = mat => mat.F0?.Value,
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Value,
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Value,
@@ -310,6 +315,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Specular] = mat => mat.Specular?.Shift ?? 0m,
             [EncodingChannel.Rough] = mat => mat.Rough?.Shift ?? 0m,
             [EncodingChannel.Metal] = mat => 0m,
+            [EncodingChannel.HCM] = mat => 0m,
             [EncodingChannel.F0] = mat => mat.F0?.Shift ?? 0m,
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Shift ?? 0m,
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Shift ?? 0m,
@@ -327,6 +333,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Scale ?? 1m,
             [EncodingChannel.Rough] = mat => mat.Rough?.Scale ?? 1m,
             [EncodingChannel.Metal] = mat => mat.Metal?.Scale ?? 1m,
+            [EncodingChannel.HCM] = mat => 1m,
             [EncodingChannel.F0] = mat => mat.F0?.Scale ?? 1m,
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Scale ?? 1m,
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Scale ?? 1m,

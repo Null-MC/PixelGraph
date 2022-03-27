@@ -1,6 +1,4 @@
-﻿using PixelGraph.Common.Material;
-using PixelGraph.Common.ResourcePack;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -11,9 +9,6 @@ namespace PixelGraph.Common.IO
         void SetRoot(string absolutePath);
         IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null);
         IEnumerable<string> EnumerateFiles(string localPath, string pattern = null);
-        IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag);
-        IEnumerable<string> EnumerateOutputTextures(ResourcePackProfileProperties pack, string destName, string destPath, string tag, bool global);
-        IEnumerable<string> EnumerateAllTextures(MaterialProperties material);
         bool FileExists(string localFile);
         string GetFullPath(string localFile);
         string GetRelativePath(string fullPath);

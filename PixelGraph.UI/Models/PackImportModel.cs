@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using System;
-using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.UI.Models
 {
@@ -94,6 +94,8 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged();
             }
         }
+
+        public bool IsBedrock => false;
 
 
         public PackImportModel()

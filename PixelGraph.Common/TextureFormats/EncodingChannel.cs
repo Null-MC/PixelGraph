@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace PixelGraph.Common.TextureFormats
 {
@@ -20,6 +19,7 @@ namespace PixelGraph.Common.TextureFormats
         public const string Smooth = "smooth";
         public const string Rough = "rough";
         public const string Metal = "metal";
+        public const string HCM = "hcm";
         public const string F0 = "f0";
         public const string Porosity = "porosity";
         public const string SubSurfaceScattering = "sss";
@@ -41,14 +41,14 @@ namespace PixelGraph.Common.TextureFormats
             return Is(channel, ColorRed) || Is(channel, ColorGreen) || Is(channel, ColorBlue);
         }
 
-        public static byte? GetDefaultValue(string encodingChannel)
-        {
-            return defaultValueMap.TryGetValue(encodingChannel, out var value) ? value : null;
-        }
+        //public static byte? GetDefaultValue(string encodingChannel)
+        //{
+        //    return defaultValueMap.TryGetValue(encodingChannel, out var value) ? value : null;
+        //}
 
-        private static readonly Dictionary<string, byte?> defaultValueMap = new(StringComparer.OrdinalIgnoreCase) {
-            [Opacity] = 255,
-            [Rough] = 255,
-        };
+        //private static readonly Dictionary<string, byte?> defaultValueMap = new(StringComparer.OrdinalIgnoreCase) {
+        //    [Opacity] = 255,
+        //    [Rough] = 255,
+        //};
     }
 }

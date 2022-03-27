@@ -29,8 +29,10 @@ namespace PixelGraph.UI
         public App()
         {
             builder = new ServiceBuilder();
-            builder.AddFileInput();
-            builder.AddFileOutput();
+            builder.AddContentReader(ContentTypes.File);
+            builder.AddContentWriter(ContentTypes.File);
+            builder.AddTextureReader(GameEditions.None);
+            builder.AddTextureWriter(GameEditions.None);
 
             builder.Services.AddSingleton<IAppSettings, AppSettings>();
             builder.Services.AddSingleton<IRecentPathManager, RecentPathManager>();

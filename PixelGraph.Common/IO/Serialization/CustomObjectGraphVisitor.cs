@@ -5,7 +5,7 @@ using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.ObjectGraphVisitors;
 
-namespace PixelGraph.Common.IO
+namespace PixelGraph.Common.IO.Serialization
 {
     public class CustomObjectGraphVisitor : ChainedObjectGraphVisitor
     {
@@ -34,6 +34,7 @@ namespace PixelGraph.Common.IO
             if (value.Value is MaterialSmoothProperties matSmooth) return matSmooth.HasAnyData();
             if (value.Value is MaterialRoughProperties matRough) return matRough.HasAnyData();
             if (value.Value is MaterialMetalProperties matMetal) return matMetal.HasAnyData();
+            if (value.Value is MaterialHcmProperties matHcm) return matHcm.HasAnyData();
             if (value.Value is MaterialF0Properties matF0) return matF0.HasAnyData();
             if (value.Value is MaterialPorosityProperties matPorosity) return matPorosity.HasAnyData();
             if (value.Value is MaterialSssProperties matSss) return matSss.HasAnyData();

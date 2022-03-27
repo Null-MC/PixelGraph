@@ -93,9 +93,7 @@ namespace PixelGraph.UI.ViewModels
 
             RenderProperties.MissingMaterial = new MaterialProperties {
                 Color = new MaterialColorProperties {
-                    ValueRed = 248m,
-                    ValueGreen = 0m,
-                    ValueBlue = 248m,
+                    Value = "#f800f8",
                     Texture = "<missing>",
                 }
             };

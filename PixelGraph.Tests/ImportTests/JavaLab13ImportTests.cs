@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
@@ -10,19 +12,25 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.ImportTests
 {
-    public class Lab13ImportTests : ImageTestBase
+    public class JavaLab13ImportTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public Lab13ImportTests(ITestOutputHelper output) : base(output)
+        public JavaLab13ImportTests(ITestOutputHelper output) : base(output)
         {
+            Builder.AddImporter(GameEditions.Java);
+            Builder.AddTextureReader(GameEditions.Java);
+            Builder.AddTextureWriter(GameEditions.None);
+
             packInput = new ResourcePackInputProperties {
+                Edition = GameEdition.Java,
                 Format = TextureFormat.Format_Raw,
             };
 
             packProfile = new ResourcePackProfileProperties {
+                Edition = GameEdition.Java,
                 Encoding = {
                     Format = TextureFormat.Format_Lab13,
                 },
@@ -68,8 +76,8 @@ namespace PixelGraph.Tests.ImportTests
             using var f0Image = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/f0.png");
             PixelAssert.Equals(8, f0Image);
 
-            using var metalImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/metal.png");
-            PixelAssert.Equals(0, metalImage);
+            using var hcmImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/hcm.png");
+            PixelAssert.Equals(0, hcmImage);
 
             using var porosityImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/porosity.png");
             PixelAssert.Equals(179, porosityImage);

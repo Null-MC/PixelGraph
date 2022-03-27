@@ -11,6 +11,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using MinecraftMappings.Internal.Models.Block;
+using PixelGraph.Rendering.Models;
 
 namespace PixelGraph.UI.Models
 {
@@ -96,8 +98,8 @@ namespace PixelGraph.UI.Models
         public void ImportFiltersFromModel(IModelLoader loader)
         {
             //var loader = provider.GetRequiredService<IModelLoader>();
+
             var entityModel = loader.GetJavaEntityModel(Material);
-            
             if (entityModel != null) {
                 var filters = ImportFiltersFromEntityModel(entityModel);
                 Material.Filters.AddRange(filters);
@@ -106,12 +108,14 @@ namespace PixelGraph.UI.Models
             }
 
             var blockModel = loader.GetBlockModel(Material);
-            if (blockModel == null) throw new ApplicationException("No model found!");
+            if (blockModel != null) {
+                var filters = ImportFiltersFromBlockModel(blockModel);
+                Material.Filters.AddRange(filters);
+                OnDataChanged();
+                return;
+            }
             
-            throw new NotImplementedException("Importing filters from block models has not yet been implemented!");
-            // TODO
-
-            OnDataChanged();
+            throw new ApplicationException("No model found!");
         }
 
         public void UpdateFilterList()
@@ -196,6 +200,65 @@ namespace PixelGraph.UI.Models
                     if (element.Submodels == null) continue;
                     foreach (var filter in ProcessElements(element.Submodels))
                         yield return filter;
+                }
+            }
+
+            return ProcessElements(model.Elements);
+        }
+
+        private static IEnumerable<MaterialFilter> ImportFiltersFromBlockModel(BlockModelVersion model)
+        {
+            var existingRegions = new List<SharpDX.RectangleF>();
+            //var nameBuilder = new StringBuilder();
+
+            IEnumerable<MaterialFilter> ProcessElements(IEnumerable<ModelElement> elements) {
+                foreach (var element in elements) {
+                    foreach (var face in ModelElement.AllFaces) {
+                        // Skip if no face data
+                        var faceData = element.GetFace(face);
+                        if (faceData == null) continue;
+                    
+                        // Skip if building a specific texture that doesn't match this ID
+                        //if (textureId != null && !string.Equals($"#{textureId}", faceData.Texture, StringComparison.InvariantCultureIgnoreCase)) continue;
+
+                        //var faceUp = BlockModelBuilder.GetUpVector(face);
+                        //var faceNormal = BlockModelBuilder.GetFaceNormal(face);
+                        //var (faceWidth, faceHeight, faceOffset) = element.GetWidthHeightOffset(in face);
+                        var rotation = faceData.Rotation ?? 0;
+
+                        var uv = faceData.UV ?? BlockModelBuilder.GetDefaultUv(element, in face);
+                        //BlockModelBuilder.Multiply(in uv, BlockToWorld, out uv);
+
+                        //AddCubeFace(in mWorld, in faceNormal, in faceUp, in faceOffset, in faceWidth, in faceHeight, in uv, in rotation);
+                        var region = ModelBuilder.GetRotatedRegion(in uv, in rotation);
+
+                        if (existingRegions.Contains(region)) continue;
+                        existingRegions.Add(region);
+
+                        var left = region.Left / 16f;
+                        var width = region.Width / 16f;
+
+                        if (width < 0f) {
+                            width = -width;
+                            left -= width;
+                        }
+
+                        var top = region.Top / 16f;
+                        var height = region.Height / 16f;
+
+                        if (height < 0f) {
+                            height = -height;
+                            top -= height;
+                        }
+
+                        yield return new MaterialFilter {
+                            Name = ModelBuilder.GetFaceName(in element.Name, in face),
+                            Top = new decimal(top),
+                            Left = new decimal(left),
+                            Width = new decimal(width),
+                            Height = new decimal(height),
+                        };
+                    }
                 }
             }
 

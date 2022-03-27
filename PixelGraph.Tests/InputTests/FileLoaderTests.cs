@@ -5,6 +5,7 @@ using PixelGraph.Tests.Internal.Mocks;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using PixelGraph.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,7 +13,10 @@ namespace PixelGraph.Tests.InputTests
 {
     public class FileLoaderTests : TestBase
     {
-        public FileLoaderTests(ITestOutputHelper output) : base(output) {}
+        public FileLoaderTests(ITestOutputHelper output) : base(output)
+        {
+            Builder.AddTextureReader(GameEditions.None);
+        }
 
         [InlineData("assets/junk.zip")]
         [Theory] public async Task IgnoresFiles(string filename)

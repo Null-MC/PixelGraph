@@ -171,6 +171,19 @@ namespace PixelGraph.Common.TextureFormats
                 Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Metal,
                     Color = ColorChannel.Red,
+                    MinValue = 0m,
+                    MaxValue = 1m,
+                    RangeMin = 0,
+                    RangeMax = 255,
+                    Shift = 0,
+                    Power = 1m,
+                    Invert = false,
+                    Perceptual = false,
+                },
+
+                HCM = new ResourcePackHcmChannelProperties {
+                    Texture = TextureTags.HCM,
+                    Color = ColorChannel.Red,
                     Sampler = Samplers.Samplers.Nearest,
                     MinValue = 230m,
                     MaxValue = 255m,

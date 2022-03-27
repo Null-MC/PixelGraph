@@ -115,6 +115,14 @@ namespace PixelGraph.Common.IO.Serialization
         {
             if (material.Color?.__PreviewTint != null && material.TintColor == null)
                 material.TintColor = material.Color?.__PreviewTint;
+
+            if (material.Color?.Value == null && ((material.Color?.__ValueRed.HasValue ?? false) || (material.Color?.__ValueRed.HasValue ?? false) || (material.Color?.__ValueRed.HasValue ?? false))) {
+                var red = (byte?)material.Color?.__ValueRed ?? 0;
+                var green = (byte?)material.Color?.__ValueGreen ?? 0;
+                var blue = (byte?)material.Color?.__ValueBlue ?? 0;
+
+                material.Color.Value = $"#{red:X2}{green:X2}{blue:X2}";
+            }
         }
 
         private async Task<MaterialProperties> ParseDocumentAsync(string localFile)

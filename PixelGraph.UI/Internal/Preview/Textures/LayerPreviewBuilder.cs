@@ -137,6 +137,17 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         //Sampler = mat?.Metal?.Input?.Sampler ?? profile?.Encoding?.Metal?.Sampler,
                     },
                 },
+                [TextureTags.HCM] = (profile, mat) => new ResourcePackChannelProperties[] {
+                    new ResourcePackHcmChannelProperties(TextureTags.HCM, ColorChannel.Red) {
+                        //Sampler = mat?.Metal?.Input?.Sampler ?? profile?.Encoding?.Metal?.Sampler,
+                    },
+                    new ResourcePackHcmChannelProperties(TextureTags.HCM, ColorChannel.Green) {
+                        //Sampler = mat?.Metal?.Input?.Sampler ?? profile?.Encoding?.Metal?.Sampler,
+                    },
+                    new ResourcePackHcmChannelProperties(TextureTags.HCM, ColorChannel.Blue) {
+                        //Sampler = mat?.Metal?.Input?.Sampler ?? profile?.Encoding?.Metal?.Sampler,
+                    },
+                },
                 [TextureTags.F0] = (profile, mat) => new ResourcePackChannelProperties[] {
                     new ResourcePackF0ChannelProperties(TextureTags.F0, ColorChannel.Red) {
                         //Sampler = mat?.F0?.Input?.Sampler ?? profile?.Encoding?.F0?.Sampler,

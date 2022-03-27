@@ -5,6 +5,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
 using SixLabors.ImageSharp;
@@ -62,8 +63,9 @@ namespace PixelGraph.CLI.CommandLine
 
         private async Task<int> RunAsync(FileInfo pbr, FileInfo height, string normal, string[] property)
         {
-            factory.AddFileInput();
-            factory.AddFileOutput();
+            factory.AddContentReader(ContentTypes.File);
+            factory.AddContentWriter(ContentTypes.File);
+            factory.AddTextureReader(GameEditions.None);
 
             factory.Services.AddTransient<Executor>();
             await using var provider = factory.Build();
@@ -88,6 +90,7 @@ namespace PixelGraph.CLI.CommandLine
         {
             private readonly IServiceProvider provider;
             private readonly IInputReader reader;
+            private readonly ITextureWriter texWriter;
             private readonly IResourcePackReader packReader;
             private readonly IMaterialReader materialReader;
             private readonly ILogger logger;
@@ -96,12 +99,14 @@ namespace PixelGraph.CLI.CommandLine
             public Executor(
                 IServiceProvider provider,
                 IInputReader reader,
+                ITextureWriter texWriter,
                 IResourcePackReader packReader,
                 IMaterialReader materialReader,
                 ILogger<Executor> logger)
             {
                 this.provider = provider;
                 this.reader = reader;
+                this.texWriter = texWriter;
                 this.packReader = packReader;
                 this.materialReader = materialReader;
                 this.logger = logger;
@@ -135,7 +140,7 @@ namespace PixelGraph.CLI.CommandLine
 
                 if (normalFilename == null) {
                     var ext = NamingStructure.GetExtension(packProfile);
-                    normalFilename = NamingStructure.Get(TextureTags.Normal, material.Name, ext, material.UseGlobalMatching);
+                    normalFilename = texWriter.Get(TextureTags.Normal, material.Name, ext, material.UseGlobalMatching);
                 }
 
                 logger.LogDebug("Generating normals for texture {DisplayName}.", material.DisplayName);

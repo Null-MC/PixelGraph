@@ -16,6 +16,7 @@ namespace PixelGraph.UI.ViewData
             Add(new Item {Text = "Rough", Value = TextureTags.Rough});
             Add(new Item {Text = "Smooth", Value = TextureTags.Smooth});
             Add(new Item {Text = "Metal", Value = TextureTags.Metal});
+            Add(new Item {Text = "HCM", Value = TextureTags.HCM});
             Add(new Item {Text = "F0", Value = TextureTags.F0});
             Add(new Item {Text = "Porosity", Value = TextureTags.Porosity});
             Add(new Item {Text = "SSS", Value = TextureTags.SubSurfaceScattering});

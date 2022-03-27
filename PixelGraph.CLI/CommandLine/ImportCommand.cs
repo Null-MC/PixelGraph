@@ -63,8 +63,9 @@ namespace PixelGraph.CLI.CommandLine
 
         private async Task<int> RunAsync(string texture, DirectoryInfo destination, string inputFormat, string outputFormat, string[] property)
         {
-            factory.AddFileInput();
-            factory.AddFileOutput();
+            factory.AddContentReader(ContentTypes.File);
+            factory.AddContentWriter(ContentTypes.File);
+            factory.AddTextureReader(GameEditions.Java);
 
             factory.Services.AddTransient<Executor>();
             await using var provider = factory.Build();

@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.Material;
+﻿using PixelGraph.Common;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
@@ -17,6 +18,9 @@ namespace PixelGraph.Tests.PublishTests
 
         public VanillaPbrPublishTests(ITestOutputHelper output) : base(output)
         {
+            Builder.AddTextureReader(GameEditions.None);
+            Builder.AddTextureWriter(GameEditions.Java);
+
             packInput = new ResourcePackInputProperties {
                 Format = TextureFormat.Format_Raw,
             };

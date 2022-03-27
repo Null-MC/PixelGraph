@@ -9,6 +9,12 @@ namespace PixelGraph.Common.ResourcePack
 
         public string Image {get; set;}
 
+        /// <summary>
+        /// Gets or sets the named texture encoding format for compiling image data.
+        /// </summary>
+        /// <remarks>
+        /// See <see cref="PixelGraph.Common.TextureFormats.TextureFormat"/>.
+        /// </remarks>
         public string Format {get; set;}
 
         public string Sampler {get; set;}

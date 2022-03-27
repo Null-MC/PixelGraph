@@ -123,9 +123,9 @@ namespace PixelGraph.Common.TextureFormats.Java
                 Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
-                    MinValue = 255,
-                    MaxValue = 255,
-                    RangeMin = 255,
+                    MinValue = 0m,
+                    MaxValue = 1m,
+                    RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,

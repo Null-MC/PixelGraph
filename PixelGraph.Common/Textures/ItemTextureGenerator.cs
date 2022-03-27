@@ -2,6 +2,7 @@
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
@@ -30,6 +31,7 @@ namespace PixelGraph.Common.Textures
         private readonly ITextureSourceGraph sourceGraph;
         private readonly ITextureNormalGraph normalGraph;
         private readonly ITextureOcclusionGraph occlusionGraph;
+        private readonly ITextureReader texReader;
         private readonly IInputReader reader;
 
         private Image<Rgba32> emissiveImage;
@@ -41,6 +43,7 @@ namespace PixelGraph.Common.Textures
             ITextureSourceGraph sourceGraph,
             ITextureNormalGraph normalGraph,
             ITextureOcclusionGraph occlusionGraph,
+            ITextureReader texReader,
             IInputReader reader)
         {
             this.provider = provider;
@@ -48,6 +51,7 @@ namespace PixelGraph.Common.Textures
             this.sourceGraph = sourceGraph;
             this.normalGraph = normalGraph;
             this.occlusionGraph = occlusionGraph;
+            this.texReader = texReader;
             this.reader = reader;
         }
 
@@ -210,7 +214,7 @@ namespace PixelGraph.Common.Textures
 
         private Task<TextureSource> GetEmissiveInfoAsync(CancellationToken token)
         {
-            var emissiveFile = reader.EnumerateInputTextures(context.Material, TextureTags.Emissive).FirstOrDefault();
+            var emissiveFile = texReader.EnumerateInputTextures(context.Material, TextureTags.Emissive).FirstOrDefault();
             if (emissiveFile == null) return Task.FromResult<TextureSource>(null);
 
             return sourceGraph.GetOrCreateAsync(emissiveFile, token);

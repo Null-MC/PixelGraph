@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common;
 
-namespace PixelGraph.UI.Internal
+namespace PixelGraph.UI.Internal.Extensions
 {
     internal static class ServiceBuilderExtensions
     {

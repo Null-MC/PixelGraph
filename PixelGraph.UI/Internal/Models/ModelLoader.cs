@@ -4,7 +4,6 @@ using MinecraftMappings.Internal.Models.Entity;
 using MinecraftMappings.Internal.Textures.Block;
 using MinecraftMappings.Internal.Textures.Entity;
 using MinecraftMappings.Minecraft;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using System;
 using System.IO;
@@ -15,7 +14,7 @@ namespace PixelGraph.UI.Internal.Models
     public interface IModelLoader
     {
         JavaEntityModelVersion GetJavaEntityModel(MaterialProperties material);
-        BlockModelVersion GetBlockModel(MaterialProperties material);
+        BlockModelVersion GetBlockModel(MaterialProperties material, bool defaultCube = false);
     }
 
     internal class ModelLoader : IModelLoader
@@ -31,7 +30,7 @@ namespace PixelGraph.UI.Internal.Models
         public JavaEntityModelVersion GetJavaEntityModel(MaterialProperties material)
         {
             var modelFile = material.Model;
-            if (modelFile == null && !IsEntityPath(material.LocalPath)) return null;
+            if (modelFile == null && !MCPath.IsEntityPath(material.LocalPath)) return null;
             if (modelFile?.StartsWith("block/", StringComparison.InvariantCultureIgnoreCase) ?? false) return null;
 
             JavaEntityModelVersion baseModel;
@@ -54,11 +53,11 @@ namespace PixelGraph.UI.Internal.Models
             return baseModel;
         }
 
-        public BlockModelVersion GetBlockModel(MaterialProperties material)
+        public BlockModelVersion GetBlockModel(MaterialProperties material, bool defaultCube = false)
         {
             var modelFile = material.Model;
-            if (modelFile == null && IsEntityPath(material.LocalPath)) return null;
-            if (modelFile?.StartsWith("entity/", StringComparison.InvariantCultureIgnoreCase) ?? false) return null;
+            if (modelFile == null && !MCPath.IsBlockPath(material.LocalPath) && !defaultCube) return null;
+            //if (modelFile?.StartsWith("entity/", StringComparison.InvariantCultureIgnoreCase) ?? false) return null;
 
             if (modelFile == null) {
                 var modelData = Minecraft.Java.GetBlockModelForTexture<JavaBlockTextureVersion>(material.Name);
@@ -67,7 +66,7 @@ namespace PixelGraph.UI.Internal.Models
 
             var blockParser = provider.GetRequiredService<IBlockModelParser>();
 
-            if (modelFile == null) {
+            if (modelFile == null && defaultCube) {
                 var model = blockParser.LoadRecursive("block/cube_all");
 
                 if (model != null) {
@@ -77,14 +76,6 @@ namespace PixelGraph.UI.Internal.Models
             }
 
             return blockParser.LoadRecursive(modelFile);
-        }
-
-        public static bool IsEntityPath(string materialPath)
-        {
-            return PathEx.Normalize(materialPath).Contains("minecraft/textures/entity");
-
-            // TODO
-            return false;
         }
     }
 }

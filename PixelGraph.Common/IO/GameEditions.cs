@@ -2,7 +2,7 @@
 
 namespace PixelGraph.Common.IO
 {
-    public static class GameEditions
+    public static class GameEdition
     {
         public const string Java = "java";
         public const string Bedrock = "bedrock";

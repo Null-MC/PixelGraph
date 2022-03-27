@@ -1,14 +1,39 @@
-﻿using PixelGraph.Common.IO;
+﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common;
+using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.InputTests
 {
-    public class InputMappingTests : TestBase
+    public class RawMaterialReaderTests : TestBase, IDisposable, IAsyncDisposable
     {
-        public InputMappingTests(ITestOutputHelper output) : base(output) {}
+        private readonly ServiceProvider provider;
+
+
+        public RawMaterialReaderTests(ITestOutputHelper output) : base(output)
+        {
+            Builder.AddContentReader(ContentTypes.File);
+            Builder.AddTextureReader(GameEditions.None);
+
+            provider = Builder.Build();
+        }
+
+        public void Dispose()
+        {
+            provider?.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (provider != null)
+                await provider.DisposeAsync();
+        }
 
         // Substance
         [InlineData("~/Substance_graph_basecolor.png", TextureTags.Color)]
@@ -34,6 +59,7 @@ namespace PixelGraph.Tests.InputTests
         [InlineData("~/occlusion.png", TextureTags.Occlusion)]
         [InlineData("~/ambientOcclusion.png", TextureTags.Occlusion)]
         [InlineData("~/AO.png", TextureTags.Occlusion)]
+        [InlineData("~/specular.png", TextureTags.Specular)]
         [InlineData("~/smooth.png", TextureTags.Smooth)]
         [InlineData("~/smoothness.png", TextureTags.Smooth)]
         [InlineData("~/rough.png", TextureTags.Rough)]
@@ -42,28 +68,37 @@ namespace PixelGraph.Tests.InputTests
         [InlineData("~/metal.png", TextureTags.Metal)]
         [InlineData("~/metallic.png", TextureTags.Metal)]
         [InlineData("~/metalness.png", TextureTags.Metal)]
+        [InlineData("~/hcm.png", TextureTags.HCM)]
         [InlineData("~/emissive.png", TextureTags.Emissive)]
         [InlineData("~/emission.png", TextureTags.Emissive)]
         [InlineData("~/porosity.png", TextureTags.Porosity)]
         [InlineData("~/sss.png", TextureTags.SubSurfaceScattering)]
         [InlineData("~/scattering.png", TextureTags.SubSurfaceScattering)]
-        [Theory] public void DetectsFileAsType(string filename, string type)
+        [Theory] public void ReadsLocalFile(string filename, string type)
         {
-            Assert.True(NamingStructure.IsLocalFileTag(filename, type));
+            var reader = provider.GetRequiredService<ITextureReader>();
+            Assert.True(reader.IsLocalFile(filename, type));
         }
 
-        [InlineData("~/rebasecolor.png")]
-        [InlineData("~/poopacity.png")]
-        [InlineData("~/ralpha.png")]
-        [InlineData("~/alphas.png")]
-        [InlineData("~/occlusioned.png")]
-        [InlineData("~/AOL.png")]
-        [InlineData("~/opacity.ignore.png")]
-        [InlineData("~/opacity-x.png")]
-        [InlineData("~/asss.png")]
-        [Theory] public void IgnoresFiles(string filename)
+        [InlineData("~/test_opacity.png", TextureTags.Opacity)]
+        [InlineData("~/test_color.png", TextureTags.Color)]
+        [InlineData("~/test_height.png", TextureTags.Height)]
+        [InlineData("~/test_bump.png", TextureTags.Bump)]
+        [InlineData("~/test_normal.png", TextureTags.Normal)]
+        [InlineData("~/test_occlusion.png", TextureTags.Occlusion)]
+        [InlineData("~/test_specular.png", TextureTags.Specular)]
+        [InlineData("~/test_smooth.png", TextureTags.Smooth)]
+        [InlineData("~/test_rough.png", TextureTags.Rough)]
+        [InlineData("~/test_f0.png", TextureTags.F0)]
+        [InlineData("~/test_metal.png", TextureTags.Metal)]
+        [InlineData("~/test_hcm.png", TextureTags.HCM)]
+        [InlineData("~/test_emissive.png", TextureTags.Emissive)]
+        [InlineData("~/test_porosity.png", TextureTags.Porosity)]
+        [InlineData("~/test_sss.png", TextureTags.SubSurfaceScattering)]
+        [Theory] public void ReadsGlobalType(string filename, string type)
         {
-            Assert.False(NamingStructure.IsLocalFileTag(filename));
+            var reader = provider.GetRequiredService<ITextureReader>();
+            Assert.True(reader.IsGlobalFile(filename, "test", type));
         }
     }
 }

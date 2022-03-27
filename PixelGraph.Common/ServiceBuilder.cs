@@ -5,6 +5,7 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
@@ -15,12 +16,30 @@ namespace PixelGraph.Common
     public interface IServiceBuilder
     {
         ServiceCollection Services {get;}
+        //ContentTypes InputContentType {get; set;}
+        //ContentTypes OutputContentType {get; set;}
 
-        void AddFileInput();
-        void AddFileOutput();
-        void AddArchiveInput();
-        void AddArchiveOutput();
+        void AddContentReader(ContentTypes contentType);
+        void AddContentWriter(ContentTypes contentType);
+        void AddTextureReader(GameEditions gameEdition);
+        void AddTextureWriter(GameEditions gameEdition);
+        void AddImporter(GameEditions gameEdition);
+
         ServiceProvider Build();
+    }
+
+    public enum ContentTypes
+    {
+        //None,
+        File,
+        Archive,
+    }
+
+    public enum GameEditions
+    {
+        None,
+        Java,
+        Bedrock,
     }
 
     public class ServiceBuilder : IServiceBuilder
@@ -56,38 +75,90 @@ namespace PixelGraph.Common
             Services.AddScoped<IEdgeFadeImageEffect, EdgeFadeImageEffect>();
             Services.AddScoped<IImageWriter, ImageWriter>();
 
+            //Services.AddScoped<IMaterialInputReader, RawMaterialInputReader>();
+
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
-            Services.AddTransient<IMaterialImporter, MaterialImporter>();
             Services.AddTransient<IItemTextureGenerator, ItemTextureGenerator>();
             Services.AddTransient<ITextureBuilder, TextureBuilder>();
             Services.AddTransient<ITextureRegionEnumerator, TextureRegionEnumerator>();
+
+            //Services.AddTransient<IMaterialImporter, MaterialImporterBase>();
         }
 
-        public void AddFileInput()
+        public void AddContentReader(ContentTypes contentType)
         {
-            Services.AddSingleton<IInputReader, FileInputReader>();
+            switch (contentType) {
+                case ContentTypes.File:
+                    Services.AddSingleton<IInputReader, FileInputReader>();
+                    break;
+                case ContentTypes.Archive:
+                    Services.AddSingleton<IInputReader, ArchiveInputReader>();
+                    break;
+                //case ContentTypes.None:
+                //default:
+                //    throw new ApplicationException("Content input type is undefined!");
+            }
         }
 
-        public void AddFileOutput()
+        public void AddContentWriter(ContentTypes contentType)
         {
-            Services.AddSingleton<IOutputWriter, FileOutputWriter>();
+            switch (contentType) {
+                case ContentTypes.File:
+                    Services.AddSingleton<IOutputWriter, FileOutputWriter>();
+                    break;
+                case ContentTypes.Archive:
+                    Services.AddSingleton<IOutputWriter, ArchiveOutputWriter>();
+                    break;
+                //case ContentTypes.None:
+                //default:
+                //    throw new ApplicationException("Content output type is undefined!");
+            }
         }
 
-        public void AddArchiveInput()
+        public void AddTextureReader(GameEditions gameEdition)
         {
-            Services.AddSingleton<IInputReader, ArchiveInputReader>();
+            switch (gameEdition) {
+                case GameEditions.Java:
+                    Services.AddTransient<ITextureReader, JavaTextureReader>();
+                    break;
+                case GameEditions.Bedrock:
+                    Services.AddTransient<ITextureReader, BedrockTextureReader>();
+                    break;
+                case GameEditions.None:
+                    Services.AddTransient<ITextureReader, RawTextureReader>();
+                    break;
+            }
         }
 
-        public void AddArchiveOutput()
+        public void AddTextureWriter(GameEditions gameEdition)
         {
-            Services.AddSingleton<IOutputWriter, ArchiveOutputWriter>();
+            switch (gameEdition) {
+                case GameEditions.Java:
+                    Services.AddTransient<ITextureWriter, JavaTextureWriter>();
+                    break;
+                case GameEditions.Bedrock:
+                    Services.AddTransient<ITextureWriter, BedrockTextureWriter>();
+                    break;
+                case GameEditions.None:
+                    Services.AddTransient<ITextureWriter, RawTextureWriter>();
+                    break;
+            }
         }
 
-        //public void AddLogging<T, TT>() where T : class, ILogger
-        //{
-        //    Services.AddSingleton(typeof(ILogger<>), typeof(TT));
-        //    Services.AddSingleton<ILogger, T>();
-        //}
+        public void AddImporter(GameEditions gameEdition)
+        {
+            switch (gameEdition) {
+                case GameEditions.Java:
+                    Services.AddTransient<IMaterialImporter, JavaMaterialImporter>();
+                    break;
+                case GameEditions.Bedrock:
+                    Services.AddTransient<IMaterialImporter, BedrockMaterialImporter>();
+                    break;
+                //case GameEditions.None:
+                //default:
+                //    throw new ApplicationException("Game edition is undefined!");
+            }
+        }
 
         public ServiceProvider Build() => Services.BuildServiceProvider();
     }

@@ -93,12 +93,12 @@ float3 ior_to_f0_complex(const in float3 ior_n_out, const in float3 ior_n_in, co
 
 float lengthSq(const in float2 vec)
 {
-	return vec.x*vec.x + vec.y*vec.y;
+	return dot(vec, vec); //vec.x*vec.x + vec.y*vec.y;
 }
 
 float lengthSq(const in float3 vec)
 {
-	return vec.x*vec.x + vec.y*vec.y + vec.z*vec.z;
+	return dot(vec, vec); // vec.x*vec.x + vec.y*vec.y + vec.z*vec.z;
 }
 
 //float lum(const in float3 color)

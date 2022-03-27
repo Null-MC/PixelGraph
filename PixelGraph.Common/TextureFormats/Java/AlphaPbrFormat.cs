@@ -108,8 +108,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                 Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Color,
                     Color = ColorChannel.Alpha,
-                    MinValue = 230m,
-                    MaxValue = 255m,
+                    MinValue = 0m,
+                    MaxValue = 1m,
                     RangeMin = 251,
                     RangeMax = 251,
                     Shift = 0,
@@ -117,7 +117,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                     Priority = 2,
                     //DefaultValue = 0m,
-                    //ClipValue = 0m,
+                    ClipValue = 0m,
                 },
             };
         }

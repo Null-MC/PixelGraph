@@ -28,6 +28,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using PixelGraph.Common.IO.Texture;
 
 #if !NORENDER
 using System.Windows.Media.Imaging;
@@ -534,7 +535,7 @@ namespace PixelGraph.UI.Windows
                 window.Model.Archive = Model.SelectedLocation.Archive;
             }
             else {
-                var isBedrock = GameEditions.Is(Model.Profile.Loaded?.Edition, GameEditions.Bedrock);
+                var isBedrock = GameEdition.Is(Model.Profile.Loaded?.Edition, GameEdition.Bedrock);
 
                 window.Model.Destination = GetArchiveFilename(isBedrock);
                 window.Model.Archive = true;
@@ -566,13 +567,8 @@ namespace PixelGraph.UI.Windows
 #if !NORENDER
             if (Model.SelectedTab is MaterialTabModel matTab) {
                 if (string.Equals(e.ClassName, nameof(MaterialProperties), StringComparison.InvariantCultureIgnoreCase)) {
-                    var updatePreview = false;
-
-                    if (string.Equals(e.PropertyName, nameof(MaterialProperties.BlendMode), StringComparison.InvariantCultureIgnoreCase))
-                        updatePreview = true;
-
-                    if (string.Equals(e.PropertyName, nameof(MaterialProperties.TintColor), StringComparison.InvariantCultureIgnoreCase))
-                        updatePreview = true;
+                    var updatePreview = string.Equals(e.PropertyName, nameof(MaterialProperties.BlendMode), StringComparison.InvariantCultureIgnoreCase) 
+                                     || string.Equals(e.PropertyName, nameof(MaterialProperties.TintColor), StringComparison.InvariantCultureIgnoreCase);
 
                     if (updatePreview) {
                         renderPreview.RenderProperties.ApplyMaterial(matTab.MaterialRegistration?.Value);
@@ -673,7 +669,8 @@ namespace PixelGraph.UI.Windows
             var outputName = TextureTags.Get(material, TextureTags.Normal);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
-                outputName = NamingStructure.Get(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
+                var texWriter = provider.GetRequiredService<ITextureWriter>();
+                outputName = texWriter.Get(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
             }
 
             var path = PathEx.Join(Model.RootDirectory, material.LocalPath);
@@ -712,7 +709,8 @@ namespace PixelGraph.UI.Windows
             var outputName = TextureTags.Get(material, TextureTags.Occlusion);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
-                outputName = NamingStructure.Get(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
+                var texWriter = provider.GetRequiredService<ITextureWriter>();
+                outputName = texWriter.Get(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
             }
 
             var path = PathEx.Join(Model.RootDirectory, material.LocalPath);

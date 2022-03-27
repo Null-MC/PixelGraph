@@ -1,6 +1,8 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using SharpDX;
 using System;
+using System.Text;
+using MinecraftMappings.Internal.Models;
 
 namespace PixelGraph.Rendering.Models
 {
@@ -97,46 +99,12 @@ namespace PixelGraph.Rendering.Models
                 Builder.AddNormal4x(wNormal);
 
             if (Builder.HasTexCoords) {
-                switch (uvRotation) {
-                    case 0:
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Bottom));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Bottom));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Top));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Top));
+                var texcoords = GetRotatedTexcoords(in uv, in uvRotation);
+                Builder.TextureCoordinates.AddRange(texcoords);
 
-                        Builder.AddTextureCoordinateMax4x(uv.BottomRight);
-                        Builder.AddTextureCoordinateMin4x(uv.TopLeft);
-                        break;
-                    case 90:
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Top));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Bottom));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Bottom));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Top));
-
-                        Builder.AddTextureCoordinateMax4x(uv.TopRight);
-                        Builder.AddTextureCoordinateMin4x(uv.BottomLeft);
-                        break;
-                    case 180:
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Top));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Top));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Bottom));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Bottom));
-
-                        Builder.AddTextureCoordinateMax4x(uv.TopLeft);
-                        Builder.AddTextureCoordinateMin4x(uv.BottomRight);
-                        break;
-                    case 270:
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Bottom));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Left, uv.Top));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Top));
-                        Builder.TextureCoordinates.Add(new Vector2(uv.Right, uv.Bottom));
-
-                        Builder.AddTextureCoordinateMax4x(uv.BottomLeft);
-                        Builder.AddTextureCoordinateMin4x(uv.TopRight);
-                        break;
-                    default:
-                        throw new ApplicationException($"Found invalid model element face UV rotation value '{uvRotation}'!");
-                }
+                var (texMin, texMax) = GetTexMinMax(in uv, in uvRotation);
+                Builder.AddTextureCoordinateMin4x(texMin);
+                Builder.AddTextureCoordinateMax4x(texMax);
 
                 //Builder.AddTextureCoordinateMin4x(uv.TopLeft);
                 //Builder.AddTextureCoordinateMax4x(uv.BottomRight);
@@ -148,6 +116,98 @@ namespace PixelGraph.Rendering.Models
             Builder.TriangleIndices.Add(i0 + 0);
             Builder.TriangleIndices.Add(i0 + 3);
             Builder.TriangleIndices.Add(i0 + 2);
+        }
+
+        public static RectangleF GetRotatedRegion(in RectangleF uv, in int uvRotation)
+        {
+            return uvRotation switch {
+                0 => new RectangleF {
+                    Left = uv.Left,
+                    Top = uv.Top,
+                    Right = uv.Right,
+                    Bottom = uv.Bottom,
+                },
+                90 => new RectangleF {
+                    Left = uv.Bottom,
+                    Top = uv.Left,
+                    Right = uv.Top,
+                    Bottom = uv.Right,
+                },
+                180 => new RectangleF {
+                    Left = uv.Right,
+                    Top = uv.Bottom,
+                    Right = uv.Left,
+                    Bottom = uv.Top,
+                },
+                270 => new RectangleF {
+                    Left = uv.Top,
+                    Top = uv.Right,
+                    Right = uv.Bottom,
+                    Bottom = uv.Left,
+                },
+                _ => throw new ApplicationException($"Invalid block model texture rotation value '{uvRotation}'!")
+            };
+        }
+
+        private static Vector2[] GetRotatedTexcoords(in RectangleF uv, in int uvRotation)
+        {
+            return uvRotation switch {
+                0 => new[] {
+                    new Vector2(uv.Right, uv.Bottom),
+                    new Vector2(uv.Left, uv.Bottom),
+                    new Vector2(uv.Left, uv.Top),
+                    new Vector2(uv.Right, uv.Top),
+                },
+                90 => new[] {
+                    new Vector2(uv.Right, uv.Top),
+                    new Vector2(uv.Right, uv.Bottom),
+                    new Vector2(uv.Left, uv.Bottom),
+                    new Vector2(uv.Left, uv.Top),
+                },
+                180 => new[] {
+                    new Vector2(uv.Left, uv.Top),
+                    new Vector2(uv.Right, uv.Top),
+                    new Vector2(uv.Right, uv.Bottom),
+                    new Vector2(uv.Left, uv.Bottom),
+                },
+                270 => new[] {
+                    new Vector2(uv.Left, uv.Bottom),
+                    new Vector2(uv.Left, uv.Top),
+                    new Vector2(uv.Right, uv.Top),
+                    new Vector2(uv.Right, uv.Bottom),
+                },
+                _ => throw new ApplicationException($"Invalid block model texture rotation value '{uvRotation}'!")
+            };
+        }
+
+        public static string GetFaceName(in ElementFaces face)
+        {
+            return face switch {
+                ElementFaces.Up => "up",
+                ElementFaces.Down => "down",
+                ElementFaces.North => "north",
+                ElementFaces.South => "south",
+                ElementFaces.West => "west",
+                ElementFaces.East => "east",
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+        }
+
+        public static string GetFaceName(in string elementName, in ElementFaces face)
+        {
+            var faceName = GetFaceName(face);
+            return $"{elementName}-{faceName}";
+        }
+
+        private static (Vector2 min, Vector2 max) GetTexMinMax(in RectangleF uv, in int uvRotation)
+        {
+            return uvRotation switch {
+                0 => (uv.TopLeft, uv.BottomRight),
+                90 => (uv.BottomLeft, uv.TopRight),
+                180 => (uv.BottomRight, uv.TopLeft),
+                270 => (uv.TopRight, uv.BottomLeft),
+                _ => throw new ApplicationException($"Invalid block model texture rotation value '{uvRotation}'!")
+            };
         }
 
         private static void CrossProduct(in Vector3 vector1, in Vector3 vector2, out Vector3 result)

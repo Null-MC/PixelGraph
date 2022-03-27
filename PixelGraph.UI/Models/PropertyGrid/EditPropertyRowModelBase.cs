@@ -1,11 +1,11 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows.Media;
-using PixelGraph.UI.Internal.Utilities;
 
 namespace PixelGraph.UI.Models.PropertyGrid
 {

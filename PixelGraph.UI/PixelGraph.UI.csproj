@@ -28,6 +28,7 @@
     <Compile Remove="Controls\PropertyGridItem.xaml.cs" />
     <Compile Remove="Converters\BoolToEnumConverter.cs" />
     <Compile Remove="Converters\InverseBooleanConverter.cs" />
+    <Compile Remove="Converters\TextureLabelConverter.cs" />
     <Compile Remove="Helix\MeshMaterialBuilderCache.cs" />
     <Compile Remove="Internal\AppConfiguration.cs" />
     <Compile Remove="Internal\ImagePreviewCache.cs" />

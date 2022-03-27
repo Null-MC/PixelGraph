@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.Extensions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -8,24 +9,31 @@ namespace PixelGraph.Common.IO.Publishing
     {
         IDictionary<string, string> Mappings {get;}
 
-        bool TryMap(string sourceFile, out string destFile);
+        bool Contains(string sourceFile);
         bool TryMap(string sourcePath, string sourceName, out string destPath, out string destName);
     }
 
-    internal class PublisherMappingBase : IPublisherMapping
+    internal abstract class PublisherMappingBase : IPublisherMapping
     {
-        public IDictionary<string, string> Mappings {get;}
+        private readonly Lazy<IDictionary<string, string>> mappingsLazy;
         //public IDictionary<string, string> Mappings {get; set;}
 
+        public IDictionary<string, string> Mappings => mappingsLazy.Value;
 
-        public PublisherMappingBase(IDictionary<string, string> map)
+
+        protected PublisherMappingBase()
         {
-            Mappings = map;
+            mappingsLazy = new Lazy<IDictionary<string, string>>(OnBuildMappings);
         }
 
-        public virtual bool TryMap(string sourceFile, out string destFile)
+        protected virtual IDictionary<string, string> OnBuildMappings()
         {
-            return Mappings.TryGetValue(sourceFile, out destFile);
+            return null; //new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+        }
+
+        public virtual bool Contains(string sourceFile)
+        {
+            return Mappings.ContainsKey(sourceFile);
         }
 
         public virtual bool TryMap(string sourcePath, string sourceName, out string destPath, out string destName)

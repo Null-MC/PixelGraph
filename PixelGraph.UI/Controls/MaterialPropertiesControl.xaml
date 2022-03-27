@@ -51,6 +51,9 @@
                             <DataTrigger Binding="{Binding IsMetalSelected, Mode=OneWay}" Value="True">
                                 <Setter Property="ItemsSource" Value="{Binding MetalProperties}"/>
                             </DataTrigger>
+                            <DataTrigger Binding="{Binding IsHcmSelected, Mode=OneWay}" Value="True">
+                                <Setter Property="ItemsSource" Value="{Binding HcmProperties}"/>
+                            </DataTrigger>
                             <DataTrigger Binding="{Binding IsF0Selected, Mode=OneWay}" Value="True">
                                 <Setter Property="ItemsSource" Value="{Binding F0Properties}"/>
                             </DataTrigger>

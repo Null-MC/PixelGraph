@@ -60,6 +60,19 @@ namespace PixelGraph.Common.TextureFormats.Bedrock
                     DefaultValue = 255,
                 },
 
+                //Height = new ResourcePackHeightChannelProperties {
+                //    Texture = TextureTags.Height,
+                //    Color = ColorChannel.Red,
+                //    MinValue = 0,
+                //    MaxValue = 255,
+                //    RangeMin = 0,
+                //    RangeMax = 255,
+                //    Shift = 0,
+                //    Power = 1m,
+                //    Invert = true,
+                //    DefaultValue = 0,
+                //},
+
                 NormalX = new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Red,
@@ -99,8 +112,8 @@ namespace PixelGraph.Common.TextureFormats.Bedrock
                 Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.MER,
                     Color = ColorChannel.Red,
-                    MinValue = 0,
-                    MaxValue = 1,
+                    MinValue = 0m,
+                    MaxValue = 1m,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,

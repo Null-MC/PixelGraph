@@ -7,6 +7,7 @@ using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Extensions;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
@@ -62,10 +63,10 @@ namespace PixelGraph.UI.Windows
         private async Task RunAsync(CancellationToken token)
         {
             var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
-            scopeBuilder.AddFileOutput();
 
-            if (Model.IsArchive) scopeBuilder.AddArchiveInput();
-            else scopeBuilder.AddFileInput();
+            scopeBuilder.AddContentWriter(ContentTypes.File);
+            scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
+            scopeBuilder.AddTextureReader(GameEditions.Java);
 
             var logReceiver = scopeBuilder.AddLoggingRedirect();
             logReceiver.LogMessage += OnLogMessage;
@@ -95,10 +96,10 @@ namespace PixelGraph.UI.Windows
         private ServiceProvider BuildScope()
         {
             var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
-            scopeBuilder.AddFileOutput();
 
-            if (Model.IsArchive) scopeBuilder.AddArchiveInput();
-            else scopeBuilder.AddFileInput();
+            scopeBuilder.AddContentWriter(ContentTypes.File);
+            scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
+            scopeBuilder.AddTextureReader(GameEditions.Java);
 
             return scopeBuilder.Build();
         }

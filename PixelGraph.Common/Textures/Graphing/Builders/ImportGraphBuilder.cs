@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
-using PixelGraph.Common.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System;
@@ -21,16 +20,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
         private readonly ILogger<ImportGraphBuilder> logger;
 
 
-        public ImportGraphBuilder(
-            ILogger<ImportGraphBuilder> logger,
-            IServiceProvider provider,
-            ITextureGraphContext context,
-            ITextureGraph graph,
-            IInputReader reader,
-            IOutputWriter writer,
-            IImageWriter imageWriter)
-            //ITextureRegionEnumerator regions)
-            : base(provider, context, graph, reader, writer, imageWriter, logger)
+        public ImportGraphBuilder(IServiceProvider provider, ILogger<ImportGraphBuilder> logger) : base(provider, logger)
         {
             this.logger = logger;
         }

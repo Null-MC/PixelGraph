@@ -5,7 +5,6 @@ using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewData;
 using System;
 using System.Collections.ObjectModel;
-using System.IO;
 
 namespace PixelGraph.UI.Models
 {
@@ -48,8 +47,8 @@ namespace PixelGraph.UI.Models
 
         public bool HasSelectedProfile => _selectedProfileItem != null;
         public bool HasLoadedProfile => _loadedProfile != null;
-        public bool IsJavaProfile => GameEditions.Is(_loadedProfile?.Edition, GameEditions.Java);
-        public bool IsBedrockProfile => GameEditions.Is(_loadedProfile?.Edition, GameEditions.Bedrock);
+        public bool IsJavaProfile => Common.IO.GameEdition.Is(_loadedProfile?.Edition, Common.IO.GameEdition.Java);
+        public bool IsBedrockProfile => Common.IO.GameEdition.Is(_loadedProfile?.Edition, Common.IO.GameEdition.Bedrock);
         public decimal OcclusionQualityDefault => ResourcePackProfileProperties.DefaultOcclusionQuality;
         public decimal OcclusionPowerDefault => ResourcePackProfileProperties.DefaultOcclusionPower;
         public string PackName => _loadedProfile?.Name;
@@ -94,7 +93,7 @@ namespace PixelGraph.UI.Models
         }
 
         public string EditPackName {
-            get => _loadedProfile?.Name ?? GetDefaultPackName();
+            get => _loadedProfile?.Name ?? _loadedProfile?.GetDefaultPackName();
             set {
                 if (_loadedProfile == null) return;
                 _loadedProfile.Name = value;
@@ -502,17 +501,17 @@ namespace PixelGraph.UI.Models
             Emissive.ApplyDefaultValues(encodingDefaults?.Emissive, sampler);
         }
 
-        private string GetDefaultPackName()
-        {
-            var name = _loadedProfile?.LocalFile;
-            if (string.IsNullOrWhiteSpace(name)) return null;
+        //private string GetDefaultPackName()
+        //{
+        //    var name = _loadedProfile?.LocalFile;
+        //    if (string.IsNullOrWhiteSpace(name)) return null;
 
-            name = Path.GetFileName(name);
-            if (string.IsNullOrWhiteSpace(name)) return null;
+        //    name = Path.GetFileName(name);
+        //    if (string.IsNullOrWhiteSpace(name)) return null;
 
-            if (name.EndsWith(".pack.yml")) name = name[..^9];
-            return string.IsNullOrWhiteSpace(name) ? null : name;
-        }
+        //    if (name.EndsWith(".pack.yml")) name = name[..^9];
+        //    return string.IsNullOrWhiteSpace(name) ? null : name;
+        //}
 
         private void OnPropertyDataChanged(object sender, EventArgs e)
         {
@@ -536,7 +535,7 @@ namespace PixelGraph.UI.Models
             SelectedProfileItem = _profiles[0];
 
             LoadedProfile = new ResourcePackProfileProperties {
-                Edition = GameEditions.Bedrock,
+                Edition = Common.IO.GameEdition.Bedrock,
                 Name = "Sample RP",
                 Description = "A description of the resource pack.",
                 Format = 7,

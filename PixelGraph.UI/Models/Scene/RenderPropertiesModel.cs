@@ -2,18 +2,18 @@
 using HelixToolkit.Wpf.SharpDX;
 using MinecraftMappings.Internal;
 using MinecraftMappings.Internal.Textures.Block;
+using MinecraftMappings.Internal.Textures.Entity;
 using MinecraftMappings.Minecraft;
 using PixelGraph.Common.Material;
 using PixelGraph.Rendering;
 using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Models;
 using SharpDX;
 using System;
 using System.IO;
 using System.Linq;
 using System.Windows.Media.Media3D;
-using MinecraftMappings.Internal.Textures.Entity;
-using PixelGraph.UI.Internal.Models;
 using OrthographicCamera = HelixToolkit.Wpf.SharpDX.OrthographicCamera;
 using PerspectiveCamera = HelixToolkit.Wpf.SharpDX.PerspectiveCamera;
 
@@ -237,14 +237,14 @@ namespace PixelGraph.UI.Models.Scene
         {
             var blend = material?.BlendMode;
             if (material != null && blend == null) {
-                //var textureData = Minecraft.Java.FindBlockTexturesById<JavaBlockTexture, JavaBlockTextureVersion>(material.Name).FirstOrDefault();
-                //if (textureData != null) blend = BlendModes.ToString(textureData.BlendMode);
-
-                if (ModelLoader.IsEntityPath(material.LocalPath)) {
+                if (MCPath.IsEntityPath(material.LocalPath)) {
                     var textureData = Minecraft.Java.FindEntityTexturesById<JavaEntityTexture, JavaEntityTextureVersion>(material.Name).FirstOrDefault();
                     blend = textureData != null
                         ? BlendModes.ToString(textureData.BlendMode)
                         : BlendModes.CutoutText;
+                }
+                else if (MCPath.IsItemPath(material.LocalPath)) {
+                    blend = BlendModes.CutoutText;
                 }
                 else {
                     var textureData = Minecraft.Java.FindBlockTexturesById<JavaBlockTexture, JavaBlockTextureVersion>(material.Name).FirstOrDefault();

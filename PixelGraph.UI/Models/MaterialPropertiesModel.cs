@@ -1,17 +1,17 @@
-﻿using MinecraftMappings.Internal.Textures.Block;
+﻿using MinecraftMappings.Internal;
+using MinecraftMappings.Internal.Textures.Block;
+using MinecraftMappings.Internal.Textures.Entity;
 using MinecraftMappings.Minecraft;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Models;
 using PixelGraph.UI.Models.PropertyGrid;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.ComponentModel;
 using System.Linq;
-using MinecraftMappings.Internal;
-using MinecraftMappings.Internal.Textures.Entity;
-using PixelGraph.UI.Internal.Models;
 
 namespace PixelGraph.UI.Models
 {
@@ -41,6 +41,7 @@ namespace PixelGraph.UI.Models
         public SmoothPropertyCollection SmoothProperties {get;}
         public RoughPropertyCollection RoughProperties {get;}
         public MetalPropertyCollection MetalProperties {get;}
+        public HcmPropertyCollection HcmProperties {get;}
         public F0PropertyCollection F0Properties {get;}
         public PorosityPropertyCollection PorosityProperties {get;}
         public SssPropertyCollection SssProperties {get; set;}
@@ -57,6 +58,7 @@ namespace PixelGraph.UI.Models
         public bool IsSmoothSelected => TextureTags.Is(_selectedTag, TextureTags.Smooth);
         public bool IsRoughSelected => TextureTags.Is(_selectedTag, TextureTags.Rough);
         public bool IsMetalSelected => TextureTags.Is(_selectedTag, TextureTags.Metal);
+        public bool IsHcmSelected => TextureTags.Is(_selectedTag, TextureTags.HCM);
         public bool IsF0Selected => TextureTags.Is(_selectedTag, TextureTags.F0);
         public bool IsPorositySelected => TextureTags.Is(_selectedTag, TextureTags.Porosity);
         public bool IsSssSelected => TextureTags.Is(_selectedTag, TextureTags.SubSurfaceScattering);
@@ -87,6 +89,7 @@ namespace PixelGraph.UI.Models
                 SmoothProperties.SetData(value?.Smooth);
                 RoughProperties.SetData(value?.Rough);
                 MetalProperties.SetData(value?.Metal);
+                HcmProperties.SetData(value?.HCM);
                 F0Properties.SetData(value?.F0);
                 PorosityProperties.SetData(value?.Porosity);
                 SssProperties.SetData(value?.SSS);
@@ -115,6 +118,7 @@ namespace PixelGraph.UI.Models
                 OnPropertyChanged(nameof(IsSmoothSelected));
                 OnPropertyChanged(nameof(IsRoughSelected));
                 OnPropertyChanged(nameof(IsMetalSelected));
+                OnPropertyChanged(nameof(IsHcmSelected));
                 OnPropertyChanged(nameof(IsF0Selected));
                 OnPropertyChanged(nameof(IsPorositySelected));
                 OnPropertyChanged(nameof(IsSssSelected));
@@ -181,6 +185,9 @@ namespace PixelGraph.UI.Models
 
             MetalProperties = new MetalPropertyCollection();
             MetalProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialMetalProperties), e.PropertyName);
+
+            HcmProperties = new HcmPropertyCollection();
+            HcmProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialHcmProperties), e.PropertyName);
 
             F0Properties = new F0PropertyCollection();
             F0Properties.PropertyChanged += OnF0PropertyValueChanged;
@@ -312,7 +319,7 @@ namespace PixelGraph.UI.Models
 
             if (material != null) {
 #if !NORENDER
-                if (ModelLoader.IsEntityPath(material.LocalPath)) {
+                if (MCPath.IsEntityPath(material.LocalPath)) {
                     var textureData = Minecraft.Java.FindEntityTexturesById<JavaEntityTexture, JavaEntityTextureVersion>(material.Name).FirstOrDefault();
                     blendRow.DefaultValue = textureData != null
                         ? BlendModes.ToString(textureData.BlendMode)
@@ -320,6 +327,10 @@ namespace PixelGraph.UI.Models
 
                     var modelData = Minecraft.Java.GetEntityModelForTexture<JavaEntityTextureVersion>(material.Name, material.LocalPath)?.GetLatestVersion();
                     modelRow.DefaultValue = modelData != null ? $"entity/{modelData.Id}" : null;
+                }
+                else if (MCPath.IsItemPath(material.LocalPath)) {
+                    blendRow.DefaultValue = BlendModes.CutoutText;
+                    modelRow.DefaultValue = null;
                 }
                 else {
                     var textureData = Minecraft.Java.FindBlockTexturesById<JavaBlockTexture, JavaBlockTextureVersion>(material.Name, material.LocalPath).FirstOrDefault();
@@ -357,9 +368,8 @@ namespace PixelGraph.UI.Models
         public ColorPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialColorProperties.Texture));
-            AddText<decimal?>("Red Value", nameof(MaterialColorProperties.ValueRed), 0);
-            AddText<decimal?>("Green Value", nameof(MaterialColorProperties.ValueGreen), 0);
-            AddText<decimal?>("Blue Value", nameof(MaterialColorProperties.ValueBlue), 0);
+            AddTextColor<string>("Value", nameof(MaterialColorProperties.Value));
+
             AddText<decimal?>("Red Scale", nameof(MaterialColorProperties.ScaleRed), 1.0m);
             AddText<decimal?>("Green Scale", nameof(MaterialColorProperties.ScaleGreen), 1.0m);
             AddText<decimal?>("Blue Scale", nameof(MaterialColorProperties.ScaleBlue), 1.0m);
@@ -489,6 +499,15 @@ namespace PixelGraph.UI.Models
             AddTextFile<string>("Texture", nameof(MaterialMetalProperties.Texture));
             AddText<decimal?>("Value", nameof(MaterialMetalProperties.Value), 0m);
             AddText<decimal?>("Scale", nameof(MaterialMetalProperties.Scale), 1m);
+        }
+    }
+
+    public class HcmPropertyCollection : PropertyCollectionBase<MaterialHcmProperties>
+    {
+        public HcmPropertyCollection()
+        {
+            AddTextFile<string>("Texture", nameof(MaterialHcmProperties.Texture));
+            AddText<decimal?>("Value", nameof(MaterialHcmProperties.Value), 0m);
         }
     }
 

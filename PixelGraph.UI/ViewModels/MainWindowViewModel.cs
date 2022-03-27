@@ -501,8 +501,8 @@ namespace PixelGraph.UI.ViewModels
         public async Task<MaterialProperties> ImportTextureAsync(string filename, CancellationToken token = default)
         {
             var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
-            scopeBuilder.AddFileInput();
-            scopeBuilder.AddFileOutput();
+            scopeBuilder.AddContentReader(ContentTypes.File);
+            scopeBuilder.AddContentWriter(ContentTypes.File);
             //...
 
             await using var scope = scopeBuilder.Build();

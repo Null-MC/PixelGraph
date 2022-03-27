@@ -105,7 +105,7 @@ namespace PixelGraph.UI.Windows
         private async Task SaveAsync(ResourcePackProfileProperties packProfile)
         {
             var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
-            scopeBuilder.AddFileOutput();
+            scopeBuilder.AddContentWriter(ContentTypes.File);
 
             try {
                 await using var scope = scopeBuilder.Build();

@@ -4,11 +4,8 @@
 
     internal class DefaultPublishMapping : PublisherMappingBase, IDefaultPublishMapping
     {
-        public DefaultPublishMapping() : base(null) {}
-
-        public override bool TryMap(string sourceFile, out string destFile)
+        public override bool Contains(string sourceFile)
         {
-            destFile = sourceFile;
             return true;
         }
 

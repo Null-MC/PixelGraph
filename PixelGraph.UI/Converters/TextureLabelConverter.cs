@@ -18,6 +18,7 @@ namespace PixelGraph.UI.Converters
             [TextureTags.Smooth] = "Smooth",
             [TextureTags.Rough] = "Rough",
             [TextureTags.Metal] = "Metal",
+            [TextureTags.HCM] = "HCM",
             [TextureTags.Porosity] = "Porosity",
             [TextureTags.SubSurfaceScattering] = "SubSurfaceScattering",
             [TextureTags.Emissive] = "Emissive",
