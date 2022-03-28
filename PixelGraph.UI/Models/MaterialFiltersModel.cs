@@ -1,4 +1,5 @@
 ﻿using MinecraftMappings.Internal.Models;
+using MinecraftMappings.Internal.Models.Block;
 using MinecraftMappings.Internal.Models.Entity;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
@@ -11,8 +12,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using MinecraftMappings.Internal.Models.Block;
+
+#if !NORENDER
 using PixelGraph.Rendering.Models;
+#endif
 
 namespace PixelGraph.UI.Models
 {
@@ -226,11 +229,11 @@ namespace PixelGraph.UI.Models
                         //var (faceWidth, faceHeight, faceOffset) = element.GetWidthHeightOffset(in face);
                         var rotation = faceData.Rotation ?? 0;
 
-                        var uv = faceData.UV ?? BlockModelBuilder.GetDefaultUv(element, in face);
+                        var uv = faceData.UV ?? UVHelper.GetDefaultUv(element, in face);
                         //BlockModelBuilder.Multiply(in uv, BlockToWorld, out uv);
 
                         //AddCubeFace(in mWorld, in faceNormal, in faceUp, in faceOffset, in faceWidth, in faceHeight, in uv, in rotation);
-                        var region = ModelBuilder.GetRotatedRegion(in uv, in rotation);
+                        var region = UVHelper.GetRotatedRegion(in uv, in rotation);
 
                         if (existingRegions.Contains(region)) continue;
                         existingRegions.Add(region);
@@ -252,7 +255,7 @@ namespace PixelGraph.UI.Models
                         }
 
                         yield return new MaterialFilter {
-                            Name = ModelBuilder.GetFaceName(in element.Name, in face),
+                            Name = UVHelper.GetFaceName(in element.Name, in face),
                             Top = new decimal(top),
                             Left = new decimal(left),
                             Width = new decimal(width),

@@ -1,8 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using SharpDX;
 using System;
-using System.Text;
-using MinecraftMappings.Internal.Models;
 
 namespace PixelGraph.Rendering.Models
 {
@@ -118,37 +116,6 @@ namespace PixelGraph.Rendering.Models
             Builder.TriangleIndices.Add(i0 + 2);
         }
 
-        public static RectangleF GetRotatedRegion(in RectangleF uv, in int uvRotation)
-        {
-            return uvRotation switch {
-                0 => new RectangleF {
-                    Left = uv.Left,
-                    Top = uv.Top,
-                    Right = uv.Right,
-                    Bottom = uv.Bottom,
-                },
-                90 => new RectangleF {
-                    Left = uv.Bottom,
-                    Top = uv.Left,
-                    Right = uv.Top,
-                    Bottom = uv.Right,
-                },
-                180 => new RectangleF {
-                    Left = uv.Right,
-                    Top = uv.Bottom,
-                    Right = uv.Left,
-                    Bottom = uv.Top,
-                },
-                270 => new RectangleF {
-                    Left = uv.Top,
-                    Top = uv.Right,
-                    Right = uv.Bottom,
-                    Bottom = uv.Left,
-                },
-                _ => throw new ApplicationException($"Invalid block model texture rotation value '{uvRotation}'!")
-            };
-        }
-
         private static Vector2[] GetRotatedTexcoords(in RectangleF uv, in int uvRotation)
         {
             return uvRotation switch {
@@ -178,25 +145,6 @@ namespace PixelGraph.Rendering.Models
                 },
                 _ => throw new ApplicationException($"Invalid block model texture rotation value '{uvRotation}'!")
             };
-        }
-
-        public static string GetFaceName(in ElementFaces face)
-        {
-            return face switch {
-                ElementFaces.Up => "up",
-                ElementFaces.Down => "down",
-                ElementFaces.North => "north",
-                ElementFaces.South => "south",
-                ElementFaces.West => "west",
-                ElementFaces.East => "east",
-                _ => throw new ArgumentOutOfRangeException(),
-            };
-        }
-
-        public static string GetFaceName(in string elementName, in ElementFaces face)
-        {
-            var faceName = GetFaceName(face);
-            return $"{elementName}-{faceName}";
         }
 
         private static (Vector2 min, Vector2 max) GetTexMinMax(in RectangleF uv, in int uvRotation)
