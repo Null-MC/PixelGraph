@@ -9,17 +9,8 @@ namespace PixelGraph.UI.Controls
         public event EventHandler DataChanged;
 
         public MaterialProperties Material {
-            //get => (MaterialProperties)GetValue(MaterialProperty);
             set => SetValue(MaterialProperty, value);
         }
-
-        //public ObservableCollection<MaterialPart> PartsList {
-        //    get => (ObservableCollection<MaterialPart>)GetValue(PartsListProperty);
-        //    set {
-        //        SetValue(PartsListProperty, value);
-        //        UpdatePartsList();
-        //    }
-        //}
 
 
         public MaterialConnectionsControl()
@@ -49,11 +40,6 @@ namespace PixelGraph.UI.Controls
             //        break;
             //}
         }
-
-        //private void OnPartPropertyChanged(object sender, PropertyGridChangedEventArgs e)
-        //{
-        //    //
-        //}
 
         private static void OnMaterialPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {

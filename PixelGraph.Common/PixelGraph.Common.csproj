@@ -54,6 +54,10 @@
     <PackageReference Include="YamlDotNet" Version="11.2.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MinecraftMappings.NET\MinecraftMappings.NET\MinecraftMappings.NET.csproj" />
+  </ItemGroup>
+
   <!--<ItemGroup Condition="'$(Configuration)'=='Release-UI'">
     <PackageReference Include="ComputeSharp" Version="2.0.0-alpha.6" />
   </ItemGroup>

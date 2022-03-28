@@ -83,15 +83,15 @@ namespace PixelGraph.UI.Models
     {
         private readonly IEditTextPropertyRow<MaterialConnectionProperties> widthRow;
         private readonly IEditTextPropertyRow<MaterialConnectionProperties> heightRow;
-        private readonly IEditTextPropertyRow<MaterialConnectionProperties> matchBlocksRow;
+        private readonly IEditTextPropertyRow<MaterialConnectionProperties> matchTilesRow;
 
 
         public CTMPropertyCollection()
         {
             widthRow = AddText<int?>("Width", nameof(MaterialConnectionProperties.Width), 1);
             heightRow = AddText<int?>("Height", nameof(MaterialConnectionProperties.Height), 1);
-            matchBlocksRow = AddText<string>("Match Blocks", nameof(MaterialConnectionProperties.MatchBlocks));
-            AddText<string>("Match Tiles", nameof(MaterialConnectionProperties.MatchTiles));
+            AddText<string>("Match Blocks", nameof(MaterialConnectionProperties.MatchBlocks));
+            matchTilesRow = AddText<string>("Match Tiles", nameof(MaterialConnectionProperties.MatchTiles));
             
             AddBool("Placeholder", nameof(MaterialConnectionProperties.Placeholder), false);
         }
@@ -100,8 +100,8 @@ namespace PixelGraph.UI.Models
         {
             base.SetData(material?.CTM);
 
-            var hasMatchTiles = !string.IsNullOrWhiteSpace(material?.CTM?.MatchTiles);
-            matchBlocksRow.DefaultValue = !hasMatchTiles ? material?.Name : null;
+            var hasMatchBlocks = !string.IsNullOrWhiteSpace(material?.CTM?.MatchBlocks);
+            matchTilesRow.DefaultValue = !hasMatchBlocks ? material?.Name : null;
 
             var bounds = material?.CTM != null ? CtmTypes.GetBounds(material.CTM) : null;
             widthRow.DefaultValue = bounds?.Width ?? 1;

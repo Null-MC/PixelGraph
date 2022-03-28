@@ -63,7 +63,8 @@ namespace PixelGraph.Common.IO.Publishing
 
             var context = scopeProvider.GetRequiredService<ITextureGraphContext>();
 
-            if (context.OutputEncoding == null || context.IsMaterialCtm) return;
+            if (context.OutputEncoding == null) return;
+            if (context.IsMaterialCtm && !(context.Material.CTM.Placeholder ?? false)) return;
 
             var hasNormalMer = context.OutputEncoding.Any(e => TextureTags.Is(e.Texture, TextureTags.Normal) || TextureTags.Is(e.Texture, TextureTags.MER));
             if (!hasNormalMer) return;
@@ -75,6 +76,11 @@ namespace PixelGraph.Common.IO.Publishing
                     if (Mapping.TryMap(sourcePath, part.Name, out var destPath, out var destName))
                         await CreateMaterialMetadataAsync(destPath, destName, token);
                 }
+            }
+            else if (context.IsMaterialCtm) {
+                var localBlockPath = PathEx.Localize("assets/minecraft/textures/block");
+                if (Mapping.TryMap(localBlockPath, context.Material.Name, out var destPath, out var destName))
+                    await CreateMaterialMetadataAsync(destPath, destName, token);
             }
             else {
                 if (Mapping.TryMap(sourcePath, context.Material.Name, out var destPath, out var destName))
@@ -98,13 +104,16 @@ namespace PixelGraph.Common.IO.Publishing
                 sourceFile = PathEx.Join(sourcePath, part.Name);
                 sourceFile = PathEx.Normalize(sourceFile);
 
-                // TODO: replace with contains
                 return Mapping.Contains(sourceFile);
             }) ?? false) return true;
 
             if (material.CTM?.Method != null) {
-                // TODO
-                return false;
+                if (!(material.CTM.Placeholder ?? false)) return false;
+
+                sourceFile = PathEx.Join("assets/minecraft/textures/block", material.Name);
+                sourceFile = PathEx.Normalize(sourceFile);
+
+                return Mapping.Contains(sourceFile);
             }
 
             sourceFile = PathEx.Join(sourcePath, material.Name);

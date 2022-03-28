@@ -10,13 +10,13 @@ using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.PublishTests
 {
-    public class Lab13PublishTests : ImageTestBase
+    public class JavaLab13PublishTests : ImageTestBase
     {
         private readonly ResourcePackInputProperties packInput;
         private readonly ResourcePackProfileProperties packProfile;
 
 
-        public Lab13PublishTests(ITestOutputHelper output) : base(output)
+        public JavaLab13PublishTests(ITestOutputHelper output) : base(output)
         {
             Builder.AddTextureReader(GameEditions.None);
             Builder.AddTextureWriter(GameEditions.Java);

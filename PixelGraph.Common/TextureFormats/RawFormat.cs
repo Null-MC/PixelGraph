@@ -207,7 +207,7 @@ namespace PixelGraph.Common.TextureFormats
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
-                    EnableClipping = true,
+                    //EnableClipping = true,
                 },
 
                 Porosity = new ResourcePackPorosityChannelProperties {

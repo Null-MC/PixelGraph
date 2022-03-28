@@ -99,10 +99,10 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
         {
             await base.ProcessTextureAsync(image, textureTag, type, token);
             
-            if (Context.Material.PublishItem ?? false) {
-                // WARN: half-ass filtering - fix asap
-                if (TextureTags.Is(textureTag, TextureTags.Color)) return;
+            var packPublishInventory = Context.Profile.PublishInventory ?? ResourcePackProfileProperties.PublishInventoryDefault;
 
+            // WARN: hack for only publishing inventory color
+            if (TextureTags.Is(textureTag, TextureTags.Color) && packPublishInventory && (Context.Material.PublishItem ?? false)) {
                 var ext = NamingStructure.GetExtension(Context.Profile);
                 var suffix = $"_inventory.{ext}";
 

@@ -1,3 +1,4 @@
+using MinecraftMappings.Minecraft.LegacyJavaToBedrockMappings;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Publishing;
 using System;
@@ -11,12 +12,12 @@ namespace PixelGraph.Common.IO.Importing
     {
         protected override IDictionary<string, string> OnBuildMappings()
         {
-            var materialMap = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
-
-            foreach (var (key, value) in JavaToBedrockPublishMapping.materialMap)
-                materialMap[value] = key;
-
-            return materialMap;
+            var data = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var (key, value) in LegacyBlockMappings.Instance) data[value] = key;
+            foreach (var (key, value) in LegacyEntityMappings.Instance) data[value] = key;
+            foreach (var (key, value) in LegacyItemMappings.Instance) data[value] = key;
+            foreach (var (key, value) in LegacyOtherMappings.Instance) data[value] = key;
+            return data;
         }
 
         public override bool Contains(string sourceFile)

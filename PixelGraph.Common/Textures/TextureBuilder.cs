@@ -314,7 +314,8 @@ namespace PixelGraph.Common.Textures
                     mapping.ApplyInputChannel(roughChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Rough);
-                    mapping.Invert = true;
+                    mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                    mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
                     return true;
                 }
 
@@ -323,7 +324,8 @@ namespace PixelGraph.Common.Textures
                     mapping.InputValue = (float)value;
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Rough);
-                    mapping.Invert = true;
+                    mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                    mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
                     return true;
                 }
             }
@@ -337,7 +339,9 @@ namespace PixelGraph.Common.Textures
                     mapping.ApplyInputChannel(smoothChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
-                    mapping.Invert = true;
+                    mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                    mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+
                     return true;
                 }
 
@@ -346,7 +350,9 @@ namespace PixelGraph.Common.Textures
                     mapping.InputValue = (float)value;
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
-                    mapping.Invert = true;
+                    mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                    mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+
                     return true;
                 }
             }
@@ -467,32 +473,6 @@ namespace PixelGraph.Common.Textures
                     return true;
                 }
             }
-
-            //var isOutputF0 = EncodingChannel.Is(outputChannel.ID, EncodingChannel.F0);
-            //var isOutputMetal = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Metal);
-
-            //// Metal > F0
-            //if (isOutputF0 && TryGetInputChannel(EncodingChannel.Metal, out var metalChannel)) {
-            //    if (TryGetSourceFilename(metalChannel.Texture, out mapping.SourceFilename)) {
-            //        mapping.ApplyInputChannel(metalChannel);
-            //        //mapping.Threshold = 0.5f;
-            //        mapping.IsMetalToF0 = true;
-            //        return true;
-            //    }
-            //}
-
-            //// F0 > Metal
-            //if (isOutputMetal && TryGetInputChannel(EncodingChannel.F0, out var f0Channel)) {
-            //    if (TryGetSourceFilename(f0Channel.Texture, out mapping.SourceFilename)) {
-            //        mapping.ApplyInputChannel(f0Channel);
-            //        //mapping.Threshold = 0.5f;
-            //        mapping.IsF0ToMetal = true;
-            //        return true;
-            //    }
-            //}
-
-            //mapping.InputValueDefault = EncodingChannel.GetDefaultValue(outputChannel.ID);
-            //if (defaultValue.HasValue) mapping.InputValue = defaultValue.Value;
 
             return false;
         }

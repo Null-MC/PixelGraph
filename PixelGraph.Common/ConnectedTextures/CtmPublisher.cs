@@ -62,6 +62,9 @@ namespace PixelGraph.Common.ConnectedTextures
             if (context.Material.CTM.MatchTiles != null)
                 properties["matchTiles"] = context.Material.CTM.MatchTiles;
 
+            if (!properties.ContainsKey("matchBlocks") && !properties.ContainsKey("matchTiles"))
+                properties["matchTiles"] = context.Material.Name;
+
             if (!properties.ContainsKey("tiles")) {
                 var minTile = context.Material?.CTM?.TileStartIndex ??
                               context.Profile?.TileStartIndex ?? 1;

@@ -11,6 +11,12 @@ namespace PixelGraph.Common.Extensions
 {
     internal static class CollectionExtensions
     {
+        public static void Merge<TKey, TValue>(this IDictionary<TKey, TValue> updateCollection, IDictionary<TKey, TValue> addCollection)
+        {
+            foreach (var (k, v) in addCollection)
+                updateCollection[k] = v;
+        }
+
         public static void Update<T>(this IEnumerable<T> collection, Action<T> action)
         {
             foreach (var e in collection) action(e);

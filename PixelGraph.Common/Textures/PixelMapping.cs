@@ -10,7 +10,7 @@ namespace PixelGraph.Common.Textures
         private readonly float valueInputRange;
         private readonly bool hasInputChannelPower;
         private readonly float inputPowerInv;
-        private readonly float inputValueScaleInv;
+        //private readonly float inputValueScaleInv;
 
         private readonly bool hasOutputShift;
         private readonly int pixelOutputRange;
@@ -97,7 +97,7 @@ namespace PixelGraph.Common.Textures
             valueInputRange = InputMaxValue - InputMinValue;
             hasInputChannelPower = !InputChannelPower.NearEqual(1f);
             inputPowerInv = 1f / InputChannelPower;
-            inputValueScaleInv = 1f / InputValueScale;
+            //inputValueScaleInv = 1f / InputValueScale;
 
             hasOutputShift = mapping.OutputChannelShift != 0;
             pixelOutputRange = OutputRangeMax - OutputRangeMin;
@@ -139,8 +139,8 @@ namespace PixelGraph.Common.Textures
 
             if (hasInputChannelPower) value = MathF.Pow(value, inputPowerInv);
 
-            value -= InputValueShift;
-            value *= inputValueScaleInv;
+            value += InputValueShift;
+            value *= InputValueScale;
             MathEx.Clamp(ref value, in InputMinValue, in InputMaxValue);
 
             return true;
@@ -183,8 +183,8 @@ namespace PixelGraph.Common.Textures
 
             if (hasInputChannelPower) value = MathF.Pow(value, inputPowerInv);
 
-            value -= InputValueShift;
-            value *= inputValueScaleInv;
+            value += InputValueShift;
+            value *= InputValueScale;
 
             return true;
         }
