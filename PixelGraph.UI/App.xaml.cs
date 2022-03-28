@@ -53,7 +53,8 @@ namespace PixelGraph.UI
 
             builder.Services.AddTransient<IRenderDiffusePreviewBuilder, RenderDiffusePreviewBuilder>();
             builder.Services.AddTransient<IRenderNormalsPreviewBuilder, RenderNormalsPreviewBuilder>();
-            builder.Services.AddTransient<IRenderPbrPreviewBuilder, RenderPbrPreviewBuilder>();
+            builder.Services.AddTransient<IRenderOldPbrPreviewBuilder, RenderOldPbrPreviewBuilder>();
+            builder.Services.AddTransient<IRenderLabPbrPreviewBuilder, RenderLabPbrPreviewBuilder>();
             //builder.Services.AddTransient<IModelBuilder, ModelBuilder>();
             builder.Services.AddTransient<IBlockModelBuilder, BlockModelBuilder>();
             builder.Services.AddTransient<IEntityModelBuilder, EntityModelBuilder>();

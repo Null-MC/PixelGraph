@@ -140,7 +140,11 @@ namespace PixelGraph.CLI.CommandLine
 
                 if (normalFilename == null) {
                     var ext = NamingStructure.GetExtension(packProfile);
-                    normalFilename = texWriter.Get(TextureTags.Normal, material.Name, ext, material.UseGlobalMatching);
+                    normalFilename = texWriter.TryGet(TextureTags.Normal, material.Name, ext, material.UseGlobalMatching);
+                    if (normalFilename == null) {
+                        // WARN: WHAT DO WE DO?!
+                        throw new NotImplementedException();
+                    }
                 }
 
                 logger.LogDebug("Generating normals for texture {DisplayName}.", material.DisplayName);

@@ -174,7 +174,8 @@ namespace PixelGraph.Tests.PublishTests
         [InlineData(100, 100)]
         [InlineData(155, 155)]
         [InlineData(229, 229)]
-        [InlineData(255, 229)]
+        [InlineData(230,  10)]
+        [InlineData(255,  10)]
         [Theory] public async Task F0TextureTest(byte actualValue, byte expectedValue)
         {
             await using var graph = Graph();
@@ -193,11 +194,13 @@ namespace PixelGraph.Tests.PublishTests
             PixelAssert.GreenEquals(expectedValue, image);
         }
 
-        [InlineData(230)]
-        [InlineData(231)]
-        [InlineData(240)]
-        [InlineData(255)]
-        [Theory] public async Task HCMTextureTest(byte value)
+        [InlineData(  0,  10)]
+        [InlineData(229,  10)]
+        [InlineData(230, 230)]
+        [InlineData(231, 231)]
+        [InlineData(240, 240)]
+        [InlineData(255, 255)]
+        [Theory] public async Task HCMTextureTest(byte inputValue, byte outputValue)
         {
             await using var graph = Graph();
 
@@ -208,11 +211,37 @@ namespace PixelGraph.Tests.PublishTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/hcm.png", value);
+            await graph.CreateImageAsync("assets/test/hcm.png", inputValue);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_s.png");
-            PixelAssert.GreenEquals(value, image);
+            PixelAssert.GreenEquals(outputValue, image);
+        }
+
+        [InlineData(  0,  10)]
+        [InlineData(229,  10)]
+        [InlineData(230, 230)]
+        [InlineData(231, 231)]
+        [InlineData(240, 240)]
+        [InlineData(255, 255)]
+        [Theory] public async Task HCMValueTest(byte inputValue, byte outputValue)
+        {
+            await using var graph = Graph();
+
+            graph.PackInput = packInput;
+            graph.PackProfile = packProfile;
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+                HCM = {
+                    Value = inputValue,
+                }
+            };
+
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_s.png");
+            PixelAssert.GreenEquals(outputValue, image);
         }
 
         [InlineData(  0,  0)]

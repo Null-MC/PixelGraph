@@ -73,9 +73,10 @@ namespace PixelGraph.UI.ViewModels
             var builder = provider.GetRequiredService<IServiceBuilder>();
 
             builder.AddContentReader(ContentTypes.File);
-            builder.AddContentWriter(Model.Archive ? ContentTypes.Archive : ContentTypes.File);
-            
             builder.AddTextureReader(GameEditions.None);
+
+            builder.AddContentWriter(Model.Archive ? ContentTypes.Archive : ContentTypes.File);
+            builder.AddTextureWriter(GameEdition.Parse(Model.Profile.Edition));
 
             //if (GameEditions.Is(profile.Edition, GameEditions.Java)) {
             //    //return provider.GetRequiredService<IJavaPublisher>();

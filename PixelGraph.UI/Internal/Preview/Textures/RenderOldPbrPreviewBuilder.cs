@@ -6,11 +6,11 @@ using System.Collections.Generic;
 
 namespace PixelGraph.UI.Internal.Preview.Textures
 {
-    public interface IRenderPbrPreviewBuilder : ITexturePreviewBuilder {}
+    public interface IRenderOldPbrPreviewBuilder : ITexturePreviewBuilder {}
 
-    internal class RenderPbrPreviewBuilder : TexturePreviewBuilderBase, IRenderPbrPreviewBuilder
+    internal class RenderOldPbrPreviewBuilder : TexturePreviewBuilderBase, IRenderOldPbrPreviewBuilder
     {
-        public RenderPbrPreviewBuilder(IServiceProvider provider) : base(provider)
+        public RenderOldPbrPreviewBuilder(IServiceProvider provider) : base(provider)
         {
             TagMap = tagMap;
         }
@@ -56,39 +56,31 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                     },
                 },
                 [TextureTags.Rough] = (profile, mat) => new ResourcePackChannelProperties[] {
-                    new ResourcePackRoughChannelProperties(TextureTags.Rough, ColorChannel.Red) {
+                    new ResourcePackSmoothChannelProperties(TextureTags.Rough, ColorChannel.Red) {
                         //Sampler = mat?.Rough?.Input?.Sampler ?? profile?.Encoding?.Rough?.Sampler,
-                        DefaultValue = 1m,
+                        DefaultValue = 0m,
                     },
-                    new ResourcePackF0ChannelProperties(TextureTags.Rough, ColorChannel.Green) {
-                        //Sampler = mat?.F0?.Input?.Sampler ?? profile?.Encoding?.F0?.Sampler,
-                        MaxValue = 0.9m,
-                        RangeMax = 229,
-                    },
-                    new ResourcePackHcmChannelProperties(TextureTags.Rough, ColorChannel.Green) {
+                    new ResourcePackMetalChannelProperties(TextureTags.Rough, ColorChannel.Green) {
                         //Sampler = mat?.Metal?.Input?.Sampler ?? profile?.Encoding?.Metal?.Sampler,
-                        MinValue = 230m,
-                        MaxValue = 255m,
-                        RangeMin = 230,
-                        RangeMax = 255,
+                        DefaultValue = 0m,
                     },
-                    new ResourcePackOcclusionChannelProperties(TextureTags.Rough, ColorChannel.Blue) {
-                        //Sampler = mat?.Occlusion?.Input?.Sampler ?? profile?.Encoding?.Occlusion?.Sampler,
-                        Invert = true,
-                        DefaultValue = 0,
-                    },
-                },
-                [TextureTags.Porosity] = (profile, mat) => new ResourcePackChannelProperties[] {
-                    new ResourcePackPorosityChannelProperties(TextureTags.Porosity, ColorChannel.Red) {
-                        //Sampler = mat?.Porosity?.Input?.Sampler ?? profile?.Encoding?.Porosity?.Sampler,
-                    },
-                    new ResourcePackSssChannelProperties(TextureTags.Porosity, ColorChannel.Green) {
-                        //Sampler = mat?.SSS?.Input?.Sampler ?? profile?.Encoding?.SSS?.Sampler,
-                    },
-                    new ResourcePackEmissiveChannelProperties(TextureTags.Porosity, ColorChannel.Blue) {
+                    //new ResourcePackOcclusionChannelProperties(TextureTags.Rough, ColorChannel.Blue) {
+                    //    //Sampler = mat?.Occlusion?.Input?.Sampler ?? profile?.Encoding?.Occlusion?.Sampler,
+                    //    Invert = true,
+                    //    DefaultValue = 0,
+                    //},
+                    new ResourcePackEmissiveChannelProperties(TextureTags.Rough, ColorChannel.Blue) {
                         //Sampler = mat?.Emissive?.Input?.Sampler ?? profile?.Encoding?.Emissive?.Sampler,
                     },
                 },
+                //[TextureTags.Porosity] = (profile, mat) => new ResourcePackChannelProperties[] {
+                    //new ResourcePackPorosityChannelProperties(TextureTags.Porosity, ColorChannel.Red) {
+                    //    //Sampler = mat?.Porosity?.Input?.Sampler ?? profile?.Encoding?.Porosity?.Sampler,
+                    //},
+                    //new ResourcePackSssChannelProperties(TextureTags.Porosity, ColorChannel.Green) {
+                    //    //Sampler = mat?.SSS?.Input?.Sampler ?? profile?.Encoding?.SSS?.Sampler,
+                    //},
+                //},
             };
     }
 }

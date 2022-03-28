@@ -119,7 +119,7 @@ namespace PixelGraph.Common.IO.Publishing
                 FormatVersion = "1.16.100",
                 TextureSet = {
                     Color = $"{matName}",
-                    Normal = $"{matName}_n",
+                    Normal = $"{matName}_normal",
                     MER = $"{matName}_mer",
                 },
             };

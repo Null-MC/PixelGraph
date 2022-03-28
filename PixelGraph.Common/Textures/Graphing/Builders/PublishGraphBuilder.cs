@@ -109,7 +109,12 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 if (GetMappedInventoryName(suffix, out var destFile)) {
                     var _p = Path.GetDirectoryName(destFile);
                     var _n = Path.GetFileNameWithoutExtension(destFile);
-                    _n = TexWriter.Get(textureTag, _n, ext, true);
+                    _n = TexWriter.TryGet(textureTag, _n, ext, true);
+                    if (_p == null || _n == null) {
+                        // WARN: WHAT DO WE DO?!
+                        throw new NotImplementedException();
+                    }
+
                     destFile = Path.Combine(_p, _n);
 
                     var regions = Provider.GetRequiredService<ITextureRegionEnumerator>();
@@ -206,7 +211,11 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             foreach (var tag in textureTags) {
                 if (Context.IsMaterialMultiPart) {
                     foreach (var part in Context.Material.Parts) {
-                        var sourceName = TexWriter.Get(tag, part.Name, null, true);
+                        var sourceName = TexWriter.TryGet(tag, part.Name, null, true);
+                        if (sourceName == null) {
+                            // WARN: WHAT DO WE DO?!
+                            throw new NotImplementedException();
+                        }
 
                         if (Context.Mapping.TryMap(sourcePath, sourceName, out var destPath, out var destName))
                             yield return PathEx.Join(destPath, $"{destName}.{ext}");
@@ -224,7 +233,12 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                             ? Context.Material.Name
                             : (firstTileIndex + i).ToString();
 
-                        var sourceName = TexWriter.Get(tag, name, ext, true);
+                        var sourceName = TexWriter.TryGet(tag, name, ext, true);
+                        if (sourceName == null) {
+                            // WARN: WHAT DO WE DO?!
+                            throw new NotImplementedException();
+                        }
+
                         if (!Context.Material.UseGlobalMatching && !usePlaceholder)
                             sourceName = PathEx.Join(Context.Material.Name, sourceName);
 
@@ -236,7 +250,11 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                     }
                 }
                 else {
-                    var sourceName = TexWriter.Get(tag, Context.Material.Name, null, true);
+                    var sourceName = TexWriter.TryGet(tag, Context.Material.Name, null, true);
+                    if (sourceName == null) {
+                        // WARN: WHAT DO WE DO?!
+                        throw new NotImplementedException();
+                    }
 
                     if (Context.Mapping.TryMap(sourcePath, sourceName, out var destPath, out var destName))
                         yield return PathEx.Join(destPath, $"{destName}.{ext}");

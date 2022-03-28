@@ -7,14 +7,14 @@ using System;
 
 namespace PixelGraph.UI.Helix.Materials
 {
-    internal class PbrMaterialBuilder : MaterialBuilderBase<IRenderPbrPreviewBuilder>
+    internal class OldPbrMaterialBuilder : MaterialBuilderBase<IRenderOldPbrPreviewBuilder>
     {
-        public PbrMaterialBuilder(IServiceProvider provider) : base(provider)
+        public OldPbrMaterialBuilder(IServiceProvider provider) : base(provider)
         {
             TextureMap[TextureTags.Color] = null;
             TextureMap[TextureTags.Normal] = null;
             TextureMap[TextureTags.Rough] = null;
-            TextureMap[TextureTags.Porosity] = null;
+            //TextureMap[TextureTags.Porosity] = null;
         }
 
         public override Material BuildMaterial()
@@ -45,8 +45,8 @@ namespace PixelGraph.UI.Helix.Materials
             if (TextureMap.TryGetValue(TextureTags.Rough, out var roughStream) && roughStream != null)
                 mat.RoughF0OcclusionMap = TextureModel.Create(roughStream);
 
-            if (TextureMap.TryGetValue(TextureTags.Porosity, out var porosityStream) && porosityStream != null)
-                mat.PorositySssEmissiveMap = TextureModel.Create(porosityStream);
+            //if (TextureMap.TryGetValue(TextureTags.Porosity, out var porosityStream) && porosityStream != null)
+            //    mat.PorositySssEmissiveMap = TextureModel.Create(porosityStream);
 
             return mat;
         }

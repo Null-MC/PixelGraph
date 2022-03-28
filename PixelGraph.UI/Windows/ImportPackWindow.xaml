@@ -17,6 +17,7 @@
                     Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                     Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
+        <vd:GameEditionValues x:Key="AllGameEditions"/>
         <vd:OptionalAllTextureFormatValues x:Key="AllTextureFormats"/>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
@@ -67,7 +68,14 @@
                     </Grid.ColumnDefinitions>
                     <Grid>
                         <StackPanel Orientation="Vertical" Margin="6">
-                            <TextBlock Text="Source Format" FontSize="14" FontWeight="Bold"
+                            <TextBlock Text="Game Edition" FontSize="14" FontWeight="Bold"
+                                       Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
+                                      ItemsSource="{StaticResource AllGameEditions}"
+                                      SelectedValue="{Binding SourceGameEdition, Mode=TwoWay}"/>
+                            <TextBlock TextWrapping="Wrap"
+                                Text="The edition of Minecraft for the imported resource pack."/>
+                            <TextBlock Text="Source Format" FontSize="14" FontWeight="Bold" Margin="0,12,0,0"
                                        Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Padding="4,0" ToolTip="Edit Encoding" Click="OnEditEncodingClick"
@@ -75,10 +83,10 @@
                                         Style="{StaticResource MahApps.Styles.Button.MetroSquare}"/>
                                 <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
                                           ItemsSource="{StaticResource AllTextureFormats}"
-                                          SelectedValue="{Binding SourceFormat, Mode=TwoWay}"/>
+                                          SelectedValue="{Binding SourceTextureFormat, Mode=TwoWay}"/>
                             </DockPanel>
                             <TextBlock TextWrapping="Wrap"
-                                Text="The texture format of the resource pack being imported."/>
+                                       Text="The texture format of the resource pack being imported."/>
                             <CheckBox Margin="0,16,0,0"
                                       IsChecked="{Binding IncludeUnknown, Mode=TwoWay}">
                                 <TextBlock Text="Unknown Files" FontSize="14" FontWeight="Bold"

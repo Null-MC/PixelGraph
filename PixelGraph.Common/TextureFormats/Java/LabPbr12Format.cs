@@ -130,6 +130,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 0.5m,
                     Invert = false,
+                    EnableClipping = true,
                 },
 
                 HCM = new ResourcePackHcmChannelProperties {
@@ -143,6 +144,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    EnableClipping = true,
                 },
 
                 Porosity = new ResourcePackPorosityChannelProperties {
@@ -155,6 +157,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    EnableClipping = true,
                 },
 
                 SSS = new ResourcePackSssChannelProperties {
@@ -167,6 +170,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
+                    EnableClipping = true,
                 },
 
                 Emissive = new ResourcePackEmissiveChannelProperties {

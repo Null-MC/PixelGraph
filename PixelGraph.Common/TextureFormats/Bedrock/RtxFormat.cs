@@ -52,7 +52,7 @@ namespace PixelGraph.Common.TextureFormats.Bedrock
                     Color = ColorChannel.Alpha,
                     MinValue = 0,
                     MaxValue = 255,
-                    RangeMin = 0,
+                    RangeMin = 128,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,

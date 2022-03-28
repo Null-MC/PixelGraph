@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using PixelGraph.Common;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
@@ -23,7 +24,8 @@ namespace PixelGraph.UI.Models
 
         public bool IsArchive {get; set;}
         public bool AsGlobal {get; set;}
-        public string SourceFormat {get; set;}
+        public GameEditions SourceGameEdition {get; set;}
+        public string SourceTextureFormat {get; set;}
         public ResourcePackOutputProperties Encoding {get; set;}
         public ResourcePackInputProperties PackInput {get; set;}
 
@@ -95,20 +97,21 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public bool IsBedrock => false;
+        //public bool IsBedrock => false;
 
 
         public PackImportModel()
         {
             Encoding = new ResourcePackOutputProperties();
 
-            SourceFormat = TextureFormat.Format_Color;
+            SourceGameEdition = GameEditions.Java;
+            SourceTextureFormat = TextureFormat.Format_Color;
             CopyUntracked = true;
             IncludeUnknown = false;
             AsGlobal = false;
         }
 
-        public void AppendLog(LogLevel level, string text)
+        protected void AppendLog(LogLevel level, string text)
         {
             var e = new LogEventArgs(level, text);
             LogEvent?.Invoke(this, e);

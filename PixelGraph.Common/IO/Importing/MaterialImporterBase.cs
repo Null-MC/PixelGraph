@@ -23,15 +23,18 @@ namespace PixelGraph.Common.IO.Importing
 
         ResourcePackProfileProperties PackProfile {get; set;}
 
+        bool IsMaterialFile(string filename, out string name);
+
         Task<MaterialProperties> CreateMaterialAsync(string localPath, string name);
         Task ImportAsync(MaterialProperties material, CancellationToken token = default);
     }
 
     internal abstract class MaterialImporterBase : IMaterialImporter
     {
-        protected IServiceProvider Provider {get; set;}
-        protected IMaterialWriter MaterialWriter {get; set;}
-        protected IInputReader Reader {get; set;}
+        private readonly IServiceProvider provider;
+        private readonly IMaterialWriter materialWriter;
+
+        protected IInputReader Reader {get;}
 
         /// <inheritdoc />
         public bool AsGlobal {get; set;}
@@ -43,11 +46,13 @@ namespace PixelGraph.Common.IO.Importing
 
         protected MaterialImporterBase(IServiceProvider provider)
         {
-            Provider = provider;
+            this.provider = provider;
 
-            MaterialWriter = provider.GetRequiredService<IMaterialWriter>();
+            materialWriter = provider.GetRequiredService<IMaterialWriter>();
             Reader = provider.GetRequiredService<IInputReader>();
         }
+
+        public abstract bool IsMaterialFile(string filename, out string name);
 
         public async Task<MaterialProperties> CreateMaterialAsync(string localPath, string name)
         {
@@ -62,13 +67,13 @@ namespace PixelGraph.Common.IO.Importing
                 UseGlobalMatching = AsGlobal,
             };
 
-            await MaterialWriter.WriteAsync(material);
+            await materialWriter.WriteAsync(material);
             return material;
         }
 
         public async Task ImportAsync(MaterialProperties material, CancellationToken token = default)
         {
-            using var scope = Provider.CreateScope();
+            using var scope = provider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
 
             context.Input = (ResourcePackInputProperties)PackInput.Clone();
@@ -80,6 +85,14 @@ namespace PixelGraph.Common.IO.Importing
             context.Mapping = new DefaultPublishMapping();
 
             await OnImportMaterialAsync(scope.ServiceProvider, token);
+
+            if (!context.Mapping.TryMap(material.LocalPath, material.Name, out var destPath, out var destName)) return;
+
+            material.LocalFilename = AsGlobal
+                ? PathEx.Join(destPath, $"{destName}.mat.yml")
+                : PathEx.Join(destPath, destName, "mat.yml");
+
+            await materialWriter.WriteAsync(material, token);
         }
 
         protected virtual Task OnImportMaterialAsync(IServiceProvider scope, CancellationToken token = default)

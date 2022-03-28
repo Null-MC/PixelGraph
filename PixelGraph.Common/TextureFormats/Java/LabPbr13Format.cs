@@ -144,23 +144,24 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Perceptual = false,
                     DefaultValue = 0.04m,
                     ClipValue = 0m,
+                    EnableClipping = true,
                 },
 
-                // WARN: WHY was the min range 229 instead of 230?!
                 HCM = new ResourcePackHcmChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
                     Sampler = Samplers.Samplers.Nearest,
-                    MinValue = 229m,
+                    MinValue = 230m,
                     MaxValue = 255m,
-                    RangeMin = 229,
+                    RangeMin = 230,
                     RangeMax = 255,
                     Shift = 0,
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
-                    ClipValue = 229m,
+                    //ClipValue = 229m,
                     Priority = 1,
+                    EnableClipping = true,
                 },
 
                 Porosity = new ResourcePackPorosityChannelProperties {
@@ -174,6 +175,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    EnableClipping = true,
                 },
 
                 SSS = new ResourcePackSssChannelProperties {
@@ -188,6 +190,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                     Perceptual = false,
                     ClipValue = 0m,
+                    EnableClipping = true,
                 },
 
                 Emissive = new ResourcePackEmissiveChannelProperties {

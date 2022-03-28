@@ -68,28 +68,28 @@ namespace PixelGraph.Common.Material
 
         #region Deprecated
 
-        public decimal? __ValueRed;
+        internal decimal? __ValueRed;
         [Obsolete("Replace usages of ValueRed with Value")]
         public decimal? ValueRed {
             get => null;
             set => __ValueRed = value;
         }
 
-        public decimal? __ValueGreen;
+        internal decimal? __ValueGreen;
         [Obsolete("Replace usages of ValueGreen with Value")]
         public decimal? ValueGreen {
             get => null;
             set => __ValueGreen = value;
         }
 
-        public decimal? __ValueBlue;
+        internal decimal? __ValueBlue;
         [Obsolete("Replace usages of ValueBlue with Value")]
         public decimal? ValueBlue {
             get => null;
             set => __ValueBlue = value;
         }
 
-        public string __PreviewTint;
+        internal string __PreviewTint;
         [Obsolete("Replace usages of mat.Color.PreviewTint with mat.ColorTint")]
         public string PreviewTint {
             get => null;

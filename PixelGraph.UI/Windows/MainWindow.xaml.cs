@@ -670,7 +670,11 @@ namespace PixelGraph.UI.Windows
 
             if (string.IsNullOrWhiteSpace(outputName)) {
                 var texWriter = provider.GetRequiredService<ITextureWriter>();
-                outputName = texWriter.Get(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
+                outputName = texWriter.TryGet(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
+                if (outputName == null) {
+                    // WARN: WHAT DO WE DO?!
+                    throw new NotImplementedException();
+                }
             }
 
             var path = PathEx.Join(Model.RootDirectory, material.LocalPath);
@@ -710,7 +714,11 @@ namespace PixelGraph.UI.Windows
 
             if (string.IsNullOrWhiteSpace(outputName)) {
                 var texWriter = provider.GetRequiredService<ITextureWriter>();
-                outputName = texWriter.Get(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
+                outputName = texWriter.TryGet(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
+                if (outputName == null) {
+                    // WARN: WHAT DO WE DO?!
+                    throw new NotImplementedException();
+                }
             }
 
             var path = PathEx.Join(Model.RootDirectory, material.LocalPath);

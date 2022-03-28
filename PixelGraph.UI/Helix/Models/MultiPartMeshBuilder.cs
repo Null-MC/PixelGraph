@@ -255,9 +255,11 @@ namespace PixelGraph.UI.Helix.Models
                     return new NormalsMaterialBuilder(provider);
 
                 case RenderPreviewModes.PbrFilament:
+                    return new OldPbrMaterialBuilder(provider);
+
                 case RenderPreviewModes.PbrJessie:
                 case RenderPreviewModes.PbrNull:
-                    return new PbrMaterialBuilder(provider);
+                    return new LabPbrMaterialBuilder(provider);
 
                 default:
                     throw new ApplicationException($"Unknown render mode '{renderMode}'!");
@@ -275,9 +277,13 @@ namespace PixelGraph.UI.Helix.Models
             materialBuilder.EnvironmentCubeMapSource = renderContext.EnvironmentCubeMap;
             materialBuilder.RenderEnvironmentMap = renderContext.EnvironmentEnabled;
 
-            if (materialBuilder is PbrMaterialBuilder pbrBuilder) {
-                pbrBuilder.IrradianceCubeMapSource = renderContext.IrradianceCubeMap;
-                pbrBuilder.BrdfLutMap = renderContext.BrdfLutMap;
+            if (materialBuilder is LabPbrMaterialBuilder labPbrBuilder) {
+                labPbrBuilder.IrradianceCubeMapSource = renderContext.IrradianceCubeMap;
+                labPbrBuilder.BrdfLutMap = renderContext.BrdfLutMap;
+            }
+            else if (materialBuilder is OldPbrMaterialBuilder oldPbrBuilder) {
+                oldPbrBuilder.IrradianceCubeMapSource = renderContext.IrradianceCubeMap;
+                oldPbrBuilder.BrdfLutMap = renderContext.BrdfLutMap;
             }
 
             var enableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling

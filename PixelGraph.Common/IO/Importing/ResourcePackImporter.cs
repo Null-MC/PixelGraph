@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.ConnectedTextures;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ResourcePack;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Extensions;
+using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.Material;
 
 namespace PixelGraph.Common.IO.Importing
 {
@@ -25,14 +25,10 @@ namespace PixelGraph.Common.IO.Importing
 
     public class ResourcePackImporter : IResourcePackImporter
     {
-        private static readonly Regex isPathMaterialExp = new(@"^assets/[\w-]+/textures/(?:block|item|entity|models|painting)/?", RegexOptions.IgnoreCase);
-        //private static readonly Regex ctmExp = new(@"^assets/[\w-]+/optifine/ctm/?", RegexOptions.IgnoreCase);
-
-        //private static readonly ObjectPropertyFileSerializer<CtmProperties> ctmPropertySerializer;
-
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
         private readonly IMaterialImporter importer;
+        private readonly IMaterialWriter matWriter;
 
         public bool AsGlobal {get; set;}
         public bool CopyUntracked {get; set;}
@@ -51,6 +47,7 @@ namespace PixelGraph.Common.IO.Importing
             reader = provider.GetRequiredService<IInputReader>();
             writer = provider.GetRequiredService<IOutputWriter>();
             importer = provider.GetRequiredService<IMaterialImporter>();
+            matWriter = provider.GetRequiredService<IMaterialWriter>();
         }
 
         public async Task ImportAsync(CancellationToken token = default)
@@ -141,36 +138,36 @@ namespace PixelGraph.Common.IO.Importing
             }
         }
 
-        private IEnumerable<string> ParseCtmTiles(CtmProperties properties, string localPath)
-        {
-            var parts = properties.Tiles?.Trim().Split(new [] {' ', '\t'});
-            if (parts == null || parts.Length == 0) yield break;
+        //private IEnumerable<string> ParseCtmTiles(CtmProperties properties, string localPath)
+        //{
+        //    var parts = properties.Tiles?.Trim().Split(new [] {' ', '\t'});
+        //    if (parts == null || parts.Length == 0) yield break;
 
-            foreach (var part in parts) {
-                if (TryParseRange(part, out var rangeMin, out var rangeMax)) {
-                    foreach (var i in Enumerable.Range(rangeMin, rangeMax - rangeMin + 1))
-                        yield return GetTileFilename(localPath, i.ToString());
-                }
-                else {
-                    yield return GetTileFilename(localPath, part);
-                }
-            }
-        }
+        //    foreach (var part in parts) {
+        //        if (TryParseRange(part, out var rangeMin, out var rangeMax)) {
+        //            foreach (var i in Enumerable.Range(rangeMin, rangeMax - rangeMin + 1))
+        //                yield return GetTileFilename(localPath, i.ToString());
+        //        }
+        //        else {
+        //            yield return GetTileFilename(localPath, part);
+        //        }
+        //    }
+        //}
 
-        private string GetTileFilename(string localPath, string part)
-        {
-            var partPath = Path.GetDirectoryName(part);
+        //private string GetTileFilename(string localPath, string part)
+        //{
+        //    var partPath = Path.GetDirectoryName(part);
 
-            if (partPath == null) {
-                // TODO: scan local folder
+        //    if (partPath == null) {
+        //        // TODO: scan local folder
 
-            }
-            else {
-                // TODO: scan relative folder
-            }
+        //    }
+        //    else {
+        //        // TODO: scan relative folder
+        //    }
 
-            throw new ApplicationException("Unable to locate tile");
-        }
+        //    throw new ApplicationException("Unable to locate tile");
+        //}
 
         private async Task ImportMaterialAsync(string localPath, string name, CancellationToken token)
         {
@@ -178,8 +175,19 @@ namespace PixelGraph.Common.IO.Importing
             importer.PackInput = PackInput;
             importer.PackProfile = PackProfile;
 
-            var material = await importer.CreateMaterialAsync(localPath, name);
+            //var material = await importer.CreateMaterialAsync(localPath, name);
+
+            var material = new MaterialProperties {
+                Name = name,
+                LocalPath = localPath,
+                //LocalFilename = matFile,
+                UseGlobalMatching = AsGlobal,
+            };
+            //return material;
+
             await importer.ImportAsync(material, token);
+            
+            //await importer.CreateMaterialAsync(material);
         }
 
         private async Task CopyFileAsync(string file, CancellationToken token)
@@ -203,38 +211,14 @@ namespace PixelGraph.Common.IO.Importing
             return file;
         }
 
-        private static IEnumerable<string> GetMaterialNames(IEnumerable<string> files)
+        private IEnumerable<string> GetMaterialNames(IEnumerable<string> files)
         {
             foreach (var file in files) {
                 var ext = Path.GetExtension(file);
                 if (!ImageExtensions.Supports(ext)) continue;
 
-                var name = Path.GetFileNameWithoutExtension(file);
-
-                var isNormal = name.EndsWith("_n", StringComparison.InvariantCultureIgnoreCase);
-                var isSpecular = name.EndsWith("_s", StringComparison.InvariantCultureIgnoreCase);
-                var isEmissive = name.EndsWith("_e", StringComparison.InvariantCultureIgnoreCase);
-
-                if (isNormal || isSpecular || isEmissive) {
-                    yield return name[..^2];
-                    continue;
-                }
-
-                var path = Path.GetDirectoryName(file);
-                path = PathEx.Normalize(path);
-                if (path == null) continue;
-
-                if (isPathMaterialExp.IsMatch(path)) {
-                    //var javaBlock = Minecraft.Java.FindBlockById(name).FirstOrDefault();
-
-                    //if (javaBlock != null || javaEntity != null) {
-                    //    yield return name;
-                    //    continue;
-                    //}
-
+                if (importer.IsMaterialFile(file, out var name))
                     yield return name;
-                    //continue;
-                }
             }
         }
 
@@ -246,7 +230,7 @@ namespace PixelGraph.Common.IO.Importing
         public static bool IsUnknownPath(string path)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
-            var name = Path.GetFileName(path) ?? path;
+            var name = Path.GetFileName(path);
 
             if (name.Equals(".git", StringComparison.InvariantCultureIgnoreCase)) return true;
             if (name.Equals("META-INF", StringComparison.InvariantCultureIgnoreCase)) return true;
@@ -267,24 +251,24 @@ namespace PixelGraph.Common.IO.Importing
             return true;
         }
 
-        private static bool TryParseRange(string part, out int min, out int max)
-        {
-            var separator = part.IndexOf('-');
+        //private static bool TryParseRange(string part, out int min, out int max)
+        //{
+        //    var separator = part.IndexOf('-');
 
-            if (separator < 0) {
-                min = max = 0;
-                return false;
-            }
+        //    if (separator < 0) {
+        //        min = max = 0;
+        //        return false;
+        //    }
 
-            try {
-                min = int.Parse(part[..separator]);
-                max = int.Parse(part[(separator + 1)..]);
-                return true;
-            }
-            catch {
-                min = max = 0;
-                return false;
-            }
-        }
+        //    try {
+        //        min = int.Parse(part[..separator]);
+        //        max = int.Parse(part[(separator + 1)..]);
+        //        return true;
+        //    }
+        //    catch {
+        //        min = max = 0;
+        //        return false;
+        //    }
+        //}
     }
 }

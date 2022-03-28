@@ -117,13 +117,23 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                     var placeholderPath = PathEx.Join("assets", "minecraft", "textures", "block");
                     if (!Context.Mapping.TryMap(placeholderPath, Context.Material.Name, out var destPath, out var destName)) continue;
 
-                    var destTagName = TexWriter.Get(textureTag, destName, ext, Context.PublishAsGlobal);
+                    var destTagName = TexWriter.TryGet(textureTag, destName, ext, Context.PublishAsGlobal);
+                    if (destTagName == null) {
+                        // WARN: WHAT DO WE DO?!
+                        throw new NotImplementedException();
+                    }
+
                     destFile = PathEx.Join(destPath, destTagName);
                 }
                 else {
                     if (!Context.Mapping.TryMap(sourcePath, part.Name, out var destPath, out var destName)) continue;
 
-                    var destTagName = TexWriter.Get(textureTag, destName, ext, Context.PublishAsGlobal);
+                    var destTagName = TexWriter.TryGet(textureTag, destName, ext, Context.PublishAsGlobal);
+                    if (destTagName == null) {
+                        // WARN: WHAT DO WE DO?!
+                        throw new NotImplementedException();
+                    }
+
                     if (!Context.PublishAsGlobal) destPath = PathEx.Join(destPath, destName);
                     destFile = PathEx.Join(destPath, destTagName);
                 }

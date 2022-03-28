@@ -74,6 +74,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                     Priority = 3,
                     ClipValue = 0m,
+                    EnableClipping = true,
                 },
 
                 Emissive = new ResourcePackEmissiveChannelProperties {
@@ -88,6 +89,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Invert = false,
                     Priority = 4,
                     ClipValue = 0m,
+                    EnableClipping = true,
                 },
 
                 Smooth = new ResourcePackSmoothChannelProperties {
@@ -103,6 +105,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Priority = 1,
                     DefaultValue = 0m,
                     //ClipValue = 0m,
+                    EnableClipping = true,
                 },
 
                 Metal = new ResourcePackMetalChannelProperties {
@@ -118,6 +121,7 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Priority = 2,
                     //DefaultValue = 0m,
                     ClipValue = 0m,
+                    EnableClipping = true,
                 },
             };
         }

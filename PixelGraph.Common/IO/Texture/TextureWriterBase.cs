@@ -8,7 +8,7 @@ namespace PixelGraph.Common.IO.Texture
 {
     public interface ITextureWriter
     {
-        string Get(string tag, string textureName, string extension, bool global);
+        string TryGet(string tag, string textureName, string extension, bool global);
         string GetInputTextureName(MaterialProperties material, string tag);
         string GetInputMetaName(MaterialProperties material, string tag);
         string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global);
@@ -27,7 +27,7 @@ namespace PixelGraph.Common.IO.Texture
             GlobalMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase);
         }
 
-        public string Get(string tag, string textureName, string extension, bool global)
+        public string TryGet(string tag, string textureName, string extension, bool global)
         {
             if (global) {
                 if (GlobalMap.TryGetValue(tag, out var func)) {
@@ -40,18 +40,21 @@ namespace PixelGraph.Common.IO.Texture
                     return BuildName(name, extension);
             }
 
-            throw new ApplicationException($"Unknown texture tag '{tag}'!");
+            //throw new ApplicationException($"Unknown texture tag '{tag}'!");
+            return null;
         }
 
         public string GetInputTextureName(MaterialProperties material, string tag)
         {
-            return Get(tag, material.Name, "*", material.UseGlobalMatching);
+            return TryGet(tag, material.Name, "*", material.UseGlobalMatching);
         }
 
         public string GetInputMetaName(MaterialProperties material, string tag)
         {
             var path = NamingStructure.GetPath(material, material.UseGlobalMatching);
-            var name = Get(tag, material.Name, "mcmeta", material.UseGlobalMatching);
+            var name = TryGet(tag, material.Name, "mcmeta", material.UseGlobalMatching);
+            if (name == null) return null;
+
             var filename = PathEx.Join(path, name);
             return PathEx.Localize(filename);
         }
@@ -65,7 +68,9 @@ namespace PixelGraph.Common.IO.Texture
         {
             var path = NamingStructure.GetPath(material, global && material.CTM?.Method == null);
             var ext = NamingStructure.GetExtension(pack);
-            var name = Get(tag, mat_name, $"{ext}.mcmeta", global);
+            var name = TryGet(tag, mat_name, $"{ext}.mcmeta", global);
+            if (name == null) return null;
+
             var filename = PathEx.Join(path, name);
             return PathEx.Localize(filename);
         }

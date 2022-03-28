@@ -1,7 +1,7 @@
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/parallax.hlsl"
-#include "lib/pbr_material.hlsl"
+#include "lib/oldPbr_material.hlsl"
 #include "lib/pbr_filament.hlsl"
 #include "lib/tonemap.hlsl"
 
@@ -28,9 +28,9 @@ float4 main(const ps_input input) : SV_TARGET
 	const pbr_material mat = get_pbr_material(tex);
 	
     if (BlendMode == BLEND_CUTOUT)
-		clip(mat.alpha - CUTOUT_THRESHOLD);
+		clip(mat.opacity - CUTOUT_THRESHOLD);
     else if (BlendMode == BLEND_TRANSPARENT)
-		clip(mat.alpha - EPSILON);
+		clip(mat.opacity - EPSILON);
 
     //-- Slope Normals --
     float3 tex_normal = src_normal;
@@ -42,14 +42,17 @@ float4 main(const ps_input input) : SV_TARGET
     }
 
 	const float reflectance = 0.5f; // 4%
-	const float metal = mat.f0;
-	const float roughP = max(mat.rough, MIN_ROUGH);
-	const float roughL = roughP * roughP;
+	//const float metal = mat.metal;
+    const float roughP = clamp(1.0 - mat.smooth, MIN_ROUGH, 1.0f);
+    const float roughL = roughP * roughP;
+
+	//const float roughP = max(mat.rough, MIN_ROUGH);
+	//const float roughL = roughP * roughP;
 
     // Blend base colors
 	const float3 tint = srgb_to_linear(vMaterialDiffuse.rgb);
-    const float3 c_diff = lerp(mat.albedo * tint, 0.0f, metal);
-    const float3 c_spec = 0.16 * reflectance * reflectance * (1.0 - metal) + mat.albedo * metal;
+    const float3 c_diff = lerp(mat.diffuse * tint, 0.0f, mat.metal);
+    const float3 c_spec = 0.16 * reflectance * reflectance * (1.0 - mat.metal) + mat.diffuse * mat.metal;
 	
     const float NoV = saturate(dot(tex_normal, view));
 	//const float4x4 mShadowViewProj = vLightView * vLightProjection;
@@ -130,15 +133,15 @@ float4 main(const ps_input input) : SV_TARGET
     }
 
 	float3 ibl_ambient, ibl_specular;
-	IBL(tex_normal, view, c_diff, c_spec, mat.occlusion, roughP, ibl_ambient, ibl_specular);
+	IBL(tex_normal, view, c_diff, c_spec, 1.0f, roughP, ibl_ambient, ibl_specular);
 
     spec_strength += luminance(ibl_specular);
 
-	const float3 emissive = mat.emissive * mat.albedo * PI;
+	const float3 emissive = mat.emissive * mat.diffuse * PI;
 	
     float3 final_color = ibl_ambient + acc_light + ibl_specular + emissive;
 
-	float alpha = mat.alpha + spec_strength;
+	float alpha = mat.opacity + spec_strength;
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
 	//final_color = tonemap_ACESFit2(final_color);

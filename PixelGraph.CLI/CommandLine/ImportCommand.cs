@@ -157,7 +157,7 @@ namespace PixelGraph.CLI.CommandLine
                     await graphBuilder.ImportAsync(token);
 
                     const string localFile = "mat.yml";
-                    await packWriter.WriteAsync(localFile, packProfile);
+                    await packWriter.WriteAsync(localFile, packProfile, token);
                 }
                 finally {
                     timer.Stop();

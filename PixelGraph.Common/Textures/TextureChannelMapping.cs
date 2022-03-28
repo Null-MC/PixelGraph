@@ -18,6 +18,8 @@ namespace PixelGraph.Common.Textures
         public float InputValueShift;
         //public byte? InputValueDefault;
 
+        public bool InputEnableClipping;
+
         public string OutputChannelID;
         public ColorChannel OutputColor;
         //public string OutputSampler;
@@ -33,6 +35,7 @@ namespace PixelGraph.Common.Textures
         public float? OutputValueDefault;
         public float? OutputClipValue;
 
+        public bool OutputEnableClipping;
         public bool OutputApplyOcclusion;
 
         public string SourceTag;
@@ -58,6 +61,7 @@ namespace PixelGraph.Common.Textures
             InputChannelShift = channel.Shift ?? 0;
             InputChannelPower = (float?)channel.Power ?? 1f;
             InputChannelInverted = channel.Invert ?? false;
+            InputEnableClipping = channel.EnableClipping ?? false;
 
             Sampler = channel.Sampler;
         }
@@ -74,6 +78,7 @@ namespace PixelGraph.Common.Textures
             OutputChannelPower = (float?)channel.Power ?? 1f;
             OutputChannelInverted = channel.Invert ?? false;
             //OutputApplyOcclusion = channel.ApplyOcclusion ?? false;
+            OutputEnableClipping = channel.EnableClipping ?? false;
 
             OutputValueDefault = (float?)channel.DefaultValue;
             OutputClipValue = (float?)channel.ClipValue;

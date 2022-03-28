@@ -24,6 +24,8 @@ namespace PixelGraph.Common.ResourcePack
         public decimal? ClipValue {get; set;}
         public int? Priority {get; set;}
 
+        public bool? EnableClipping {get; set;}
+
         [YamlIgnore]
         public bool HasTexture => Texture != null && !TextureTags.Is(Texture, TextureTags.None);
 

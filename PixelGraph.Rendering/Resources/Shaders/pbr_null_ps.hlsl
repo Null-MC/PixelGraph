@@ -1,7 +1,7 @@
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/parallax.hlsl"
-#include "lib/pbr_material.hlsl"
+#include "lib/labPbr_material.hlsl"
 #include "lib/pbr_filament2.hlsl"
 #include "lib/pbr_hcm.hlsl"
 #include "lib/tonemap.hlsl"
@@ -71,17 +71,20 @@ float4 main(const ps_input input) : SV_TARGET
 	mat = get_pbr_material(tex);
 
     if (BlendMode == BLEND_CUTOUT)
-		clip(mat.alpha - CUTOUT_THRESHOLD);
+		clip(mat.opacity - CUTOUT_THRESHOLD);
     else if (BlendMode == BLEND_TRANSPARENT)
-		clip(mat.alpha - EPSILON);
+		clip(mat.opacity - EPSILON);
 
     const float wet_depth = saturate((water_levelMax - shadow_tex.z) * WATER_DEPTH_SCALE);
 
-	float roughL = max(mat.rough * mat.rough, MIN_ROUGH);
+	//float roughL = max(mat.rough * mat.rough, MIN_ROUGH);
+    const float roughP = clamp(1.0 - mat.smooth, MIN_ROUGH, 1.0f);
+    const float roughL = roughP * roughP;
+
     const float porosityL = srgb_to_linear(mat.porosity);
 	
     // Blend base colors
-	const float metal = mat.f0 > 0.9f ? 1.0f : 0.0f;
+	const float metal = mat.f0_hcm > 0.9f ? 1.0f : 0.0f;
 	const float3 tint = srgb_to_linear(TintColor);
     float3 diffuse = mat.albedo * tint * (1.0f - metal);
 
@@ -125,7 +128,7 @@ float4 main(const ps_input input) : SV_TARGET
 
     //-- HCM --
 	float3 ior_n, ior_k;
-	get_hcm_ior(mat.f0, ior_n, ior_k);
+	get_hcm_ior(mat.f0_hcm, ior_n, ior_k);
 	float3 metal_albedo = lerp(1.0f, mat.albedo * tint, metal);
 
     float3 acc_light = 0.0;
@@ -229,7 +232,7 @@ float4 main(const ps_input input) : SV_TARGET
 			const float  NoH_2 = lerp(NoH, saturate(dot(tex_normal, H_2)), water);
 			const float  LoH_2 = lerp(LoH, saturate(dot(L_2, H_2)), water);
 
-			const float3 Fr_2 = mat.f0 > 0.9f
+			const float3 Fr_2 = mat.f0_hcm > 0.9f
         		? specular_brdf_conductor(ior_in, ior_n, ior_k, LoH_2, NoH_2, VoH_2, roughL) * metal_albedo
         		: specular_brdf(ior_n.r / ior_in, LoH_2, NoH_2, VoH_2, roughL);
             
@@ -259,7 +262,7 @@ float4 main(const ps_input input) : SV_TARGET
             spec_strength += luminance(surface_specular + water_spec);
         }
         else {
-			light_specular = mat.f0 > 0.9f
+			light_specular = mat.f0_hcm > 0.9f
         		? specular_brdf_conductor(IOR_N_AIR, ior_n, ior_k, LoH, NoH, VoH, roughL) * metal_albedo
         		: specular_brdf(ior_n.r / IOR_N_AIR, LoH, NoH, VoH, roughL);
 
@@ -274,7 +277,7 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 ibl_ambient = IBL_ambient(ibl_F_ambient, tex_normal) * diffuse * mat.occlusion;
 
 	const float3 r = reflect(-view, wet_normal);
-	float3 ibl_specular = IBL_specular(ibl_F_ambient, NoV, r, mat.occlusion, mat.rough) * metal_albedo;
+	float3 ibl_specular = IBL_specular(ibl_F_ambient, NoV, r, mat.occlusion, roughP) * metal_albedo;
 	float3 ibl_sss = SSS_IBL(view);
 
     if (Wetness > EPSILON) {
@@ -311,7 +314,7 @@ float4 main(const ps_input input) : SV_TARGET
     final_color += acc_light * (1 - sss_strength);
 	final_color += final_sss * sss_strength;
 
-	float alpha = mat.alpha + spec_strength;
+	float alpha = mat.opacity + spec_strength;
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
 	//final_color = tonemap_ACESFit2(final_color);

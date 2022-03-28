@@ -193,6 +193,7 @@ namespace PixelGraph.Common.TextureFormats
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    EnableClipping = true,
                 },
 
                 F0 = new ResourcePackF0ChannelProperties {
@@ -206,6 +207,7 @@ namespace PixelGraph.Common.TextureFormats
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    EnableClipping = true,
                 },
 
                 Porosity = new ResourcePackPorosityChannelProperties {

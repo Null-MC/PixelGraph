@@ -40,6 +40,8 @@ namespace PixelGraph.Common.IO.Serialization
             if (value.Value is MaterialSssProperties matSss) return matSss.HasAnyData();
             if (value.Value is MaterialEmissiveProperties matEmissive) return matEmissive.HasAnyData();
 
+            if (value.Value is MaterialConnectionProperties matCTM) return matCTM.HasAnyData();
+
             var defaultValueAttribute = key.GetCustomAttribute<DefaultValueAttribute>();
             var defaultValue = defaultValueAttribute?.Value;
 

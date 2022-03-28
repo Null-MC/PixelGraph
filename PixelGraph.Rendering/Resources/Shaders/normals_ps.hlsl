@@ -1,7 +1,7 @@
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/parallax.hlsl"
-#include "lib/pbr_material.hlsl"
+#include "lib/labPbr_material.hlsl"
 
 #pragma pack_matrix(row_major)
 
@@ -22,9 +22,9 @@ float4 main(const ps_input input) : SV_TARGET
 	const pbr_material mat = get_pbr_material(tex);
 
     if (BlendMode == BLEND_CUTOUT)
-		clip(mat.alpha - CUTOUT_THRESHOLD);
+		clip(mat.opacity - CUTOUT_THRESHOLD);
     else if (BlendMode == BLEND_TRANSPARENT)
-		clip(mat.alpha - EPSILON);
+		clip(mat.opacity - EPSILON);
 
     float3 tex_normal = calc_tex_normal(tex, normal, tangent, bitangent);
 

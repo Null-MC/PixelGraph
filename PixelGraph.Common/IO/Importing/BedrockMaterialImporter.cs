@@ -8,6 +8,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +16,46 @@ namespace PixelGraph.Common.IO.Importing
 {
     internal class BedrockMaterialImporter : MaterialImporterBase
     {
+        private static readonly Regex isPathMaterialExp = new(@"^textures/blocks(?:$|/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+
         public BedrockMaterialImporter(IServiceProvider provider) : base(provider) {}
+
+        public override bool IsMaterialFile(string filename, out string name)
+        {
+            name = Path.GetFileNameWithoutExtension(filename);
+
+            // TODO: get all input names
+            //foreach (var tag in context.OutputEncoding.Select()) {
+            //    var tagName = texWriter.Get(name, tag);
+            //}
+
+            if (filename.EndsWith(".texture_set.json", StringComparison.InvariantCultureIgnoreCase)) {
+                name = name[..^12];
+                return true;
+            }
+
+            if (name.EndsWith("_heightmap", StringComparison.InvariantCultureIgnoreCase)) {
+                name = name[..^10];
+                return true;
+            }
+
+            if (name.EndsWith("_normal", StringComparison.InvariantCultureIgnoreCase)) {
+                name = name[..^7];
+                return true;
+            }
+
+            if (name.EndsWith("_mer", StringComparison.InvariantCultureIgnoreCase)) {
+                name = name[..^4];
+                return true;
+            }
+
+            var path = Path.GetDirectoryName(filename);
+            path = PathEx.Normalize(path);
+            if (path == null) return false;
+
+            return isPathMaterialExp.IsMatch(path);
+        }
 
         protected override async Task OnImportMaterialAsync(IServiceProvider scope, CancellationToken token = default)
         {
@@ -34,8 +74,10 @@ namespace PixelGraph.Common.IO.Importing
 
             if (Reader.FileExists(textureSetFilename)) {
                 var data = await ParseJsonAsync(textureSetFilename, token);
+                var textureSet = data.SelectToken("['minecraft:texture_set']");
+                if (textureSet == null) throw new ApplicationException("Invalid texture_set json file!");
 
-                var colorData = data.SelectToken("minecraft:texture_set/color");
+                var colorData = textureSet.SelectToken("color");
                 if (colorData?.HasValues ?? false) {
                     var opacityChannel = context.OutputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Opacity));
                     var opacityRange = ((float?)opacityChannel?.MaxValue ?? 0f) - ((float?)opacityChannel?.MinValue ?? 0f);
@@ -64,7 +106,7 @@ namespace PixelGraph.Common.IO.Importing
                             // TODO: Add way to set filename for color import
                         }
                     }
-                    else if (colorData.Type == JTokenType.Bytes) { 
+                    else if (colorData.Type == JTokenType.Array) { 
                         var colorValues = colorData.Values<byte>().ToArray();
 
                         if (colorValues.Length is not (3 or 4))
@@ -86,7 +128,7 @@ namespace PixelGraph.Common.IO.Importing
                     }
                 }
 
-                var merData = data.SelectToken("minecraft:texture_set/metalness_emissive_roughness");
+                var merData = textureSet.SelectToken("metalness_emissive_roughness");
                 if (merData?.HasValues ?? false) {
                     if (merData.Type == JTokenType.String) {
                         var merValue = merData.Value<string>();
@@ -124,7 +166,7 @@ namespace PixelGraph.Common.IO.Importing
                             // TODO: Add way to set filename for metal import
                         }
                     }
-                    else if (merData.Type == JTokenType.Bytes) {
+                    else if (merData.Type == JTokenType.Array) {
                         var merValues = merData.Values<byte>().ToArray();
                         if (merValues.Length != 3) throw new ApplicationException("Expected 3 MER values!");
 
@@ -154,7 +196,7 @@ namespace PixelGraph.Common.IO.Importing
                     }
                 }
 
-                var normalData = data.SelectToken("minecraft:texture_set/normal");
+                var normalData = textureSet.SelectToken("normal");
                 if (normalData?.HasValues ?? false) {
                     if (normalData.Type == JTokenType.String) {
                         var normalValue = normalData.Value<string>();
@@ -166,7 +208,7 @@ namespace PixelGraph.Common.IO.Importing
                     }
                 }
 
-                var heightData = data.SelectToken("minecraft:texture_set/heightmap");
+                var heightData = textureSet.SelectToken("heightmap");
                 if (heightData?.HasValues ?? false) {
                     if (heightData.Type == JTokenType.String) {
                         var heightValue = heightData.Value<string>();

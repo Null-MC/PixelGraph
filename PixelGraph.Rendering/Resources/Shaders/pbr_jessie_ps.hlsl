@@ -2,7 +2,7 @@
 #include "lib/common_funcs.hlsl"
 #include "lib/complex_numbers.hlsl"
 #include "lib/parallax.hlsl"
-#include "lib/pbr_material.hlsl"
+#include "lib/labPbr_material.hlsl"
 #include "lib/pbr_jessie.hlsl"
 #include "lib/tonemap.hlsl"
 
@@ -163,9 +163,11 @@ float4 main(const ps_input input) : SV_TARGET
 	const float2 tex = get_parallax_texcoord(input.tex, input.vTS, saturate(dot(in_normal, view)), shadow_tex, tex_depth);
 	
 	pbr_material mat = get_pbr_material(tex);
-	mat.rough = mat.rough * mat.rough;
+	//mat.rough = mat.rough * mat.rough;
+    const float roughP = clamp(1.0 - mat.smooth, 0.0, 1.0f);
+    const float roughL = roughP * roughP;
 
-	clip(mat.alpha - EPSILON);
+	clip(mat.opacity - EPSILON);
 
 	float3 normal = calc_tex_normal(tex, in_normal, tangent, bitangent);
 	
@@ -178,18 +180,18 @@ float4 main(const ps_input input) : SV_TARGET
 	const float vDotH = dot(view, normalize(lightDir + view));
 
 	// Burley roughness bias
-	const float alpha = mat.rough * mat.rough;
+	const float alpha = roughL * roughL;
 
 	//float attenuation = 1.0 / pow(length(Lights[0].vLightPos.xyz), 2.0f);
 
 	float3 lightColor = float3(2.0f, 2.0f, 2.0f);
 
-	float3 BRDF = specularBRDF(nDotL, nDotV, nDotH, vDotH, mat.f0, alpha);
+	float3 BRDF = specularBRDF(nDotL, nDotV, nDotH, vDotH, mat.f0_hcm, alpha);
 
-	float3 lit  = lightColor * hammonDiffuse(mat.albedo, mat.f0, nDotV, nDotL, nDotH, lDotV, alpha);
-		   lit += pi * diffuseIBL(mat.albedo, normal, view, mat.f0, alpha);
+	float3 lit  = lightColor * hammonDiffuse(mat.albedo, mat.f0_hcm, nDotV, nDotL, nDotH, lDotV, alpha);
+		   lit += pi * diffuseIBL(mat.albedo, normal, view, mat.f0_hcm, alpha);
 		   lit += lightColor * BRDF;
-		   lit += specularReflection(bayer32(input.tex * 1920.0), normal, view, mat.f0, alpha);
+		   lit += specularReflection(bayer32(input.tex * 1920.0), normal, view, mat.f0_hcm, alpha);
 
     //if (bRenderShadowMap)
     //    lit *= shadow_strength(input.sp);
@@ -197,5 +199,5 @@ float4 main(const ps_input input) : SV_TARGET
 	//lit = tonemap_HejlBurgess(lit);
 	lit = linear_to_srgb(lit);
 	
-    return float4(lit, mat.alpha);
+    return float4(lit, mat.opacity);
 }

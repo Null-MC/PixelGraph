@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using PixelGraph.Common;
+using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData
 {
@@ -6,14 +7,14 @@ namespace PixelGraph.UI.ViewData
     {
         public GameEditionValues()
         {
-            Add(new Item {Text = "Java", Value = "java"});
-            Add(new Item {Text = "Bedrock", Value = "bedrock"});
+            Add(new Item {Text = "Java", Value = GameEditions.Java});
+            Add(new Item {Text = "Bedrock", Value = GameEditions.Bedrock});
         }
 
         public class Item
         {
             public string Text {get; set;}
-            public string Value {get; set;}
+            public GameEditions Value {get; set;}
         }
     }
 }

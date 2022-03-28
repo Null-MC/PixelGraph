@@ -139,7 +139,11 @@ namespace PixelGraph.CLI.CommandLine
 
                 if (occlusionFilename == null) {
                     var ext = NamingStructure.GetExtension(packProfile);
-                    occlusionFilename = texWriter.Get(TextureTags.Occlusion, material.Name, ext, material.UseGlobalMatching);
+                    occlusionFilename = texWriter.TryGet(TextureTags.Occlusion, material.Name, ext, material.UseGlobalMatching);
+                    if (occlusionFilename == null) {
+                        // WARN: WHAT DO WE DO?!
+                        throw new NotImplementedException();
+                    }
                 }
 
                 logger.LogDebug("Generating ambient occlusion for texture {DisplayName}.", material.DisplayName);

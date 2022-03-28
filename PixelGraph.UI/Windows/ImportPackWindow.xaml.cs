@@ -16,7 +16,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using GameEditions = PixelGraph.Common.GameEditions;
 
 namespace PixelGraph.UI.Windows
 {
@@ -44,7 +43,9 @@ namespace PixelGraph.UI.Windows
 
         private async Task LoadSourceAsync(CancellationToken token)
         {
-            await using var scope = BuildScope();
+            var scopeBuilder = BuildScope();
+            await using var scope = scopeBuilder.Build();
+
             var reader = scope.GetRequiredService<IInputReader>();
 
             reader.SetRoot(Model.ImportSource);
@@ -59,17 +60,15 @@ namespace PixelGraph.UI.Windows
 
         private async Task RunAsync(CancellationToken token)
         {
-            var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
+            var scopeBuilder = BuildScope();
+            //var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
             
-            scopeBuilder.AddContentWriter(ContentTypes.File);
-            scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
+            //scopeBuilder.AddContentWriter(ContentTypes.File);
+            //scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
 
             var logReceiver = scopeBuilder.AddLoggingRedirect();
             logReceiver.LogMessage += OnLogMessage;
-
-            scopeBuilder.AddImporter(Model.IsBedrock ? GameEditions.Bedrock : GameEditions.Java);
-            scopeBuilder.AddTextureReader(GameEditions.Java);
-
+            
             await using var scope = scopeBuilder.Build();
 
             var reader = scope.GetRequiredService<IInputReader>();
@@ -84,7 +83,7 @@ namespace PixelGraph.UI.Windows
             importer.IncludeUnknown = Model.IncludeUnknown;
             importer.PackInput = Model.PackInput;
 
-            Model.Encoding.Format = Model.SourceFormat;
+            Model.Encoding.Format = Model.SourceTextureFormat;
 
             importer.PackProfile = new ResourcePackProfileProperties {
                 Encoding = Model.Encoding,
@@ -93,15 +92,18 @@ namespace PixelGraph.UI.Windows
             await importer.ImportAsync(token);
         }
 
-        private ServiceProvider BuildScope()
+        private IServiceBuilder BuildScope()
         {
             var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-            scopeBuilder.AddContentWriter(ContentTypes.File);
             scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
-            scopeBuilder.AddTextureReader(GameEditions.Java);
+            scopeBuilder.AddTextureReader(Model.SourceGameEdition);
+            scopeBuilder.AddImporter(Model.SourceGameEdition);
 
-            return scopeBuilder.Build();
+            scopeBuilder.AddContentWriter(ContentTypes.File);
+            scopeBuilder.AddTextureWriter(GameEditions.None);
+
+            return scopeBuilder; //.Build();
         }
 
         private ImportTreeNode GetPathNode(IInputReader reader, string localPath, CancellationToken token)
@@ -190,7 +192,7 @@ namespace PixelGraph.UI.Windows
 
         private void OnEditEncodingClick(object sender, RoutedEventArgs e)
         {
-            var formatFactory = TextureFormat.GetFactory(Model.SourceFormat);
+            var formatFactory = TextureFormat.GetFactory(Model.SourceTextureFormat);
 
             var window = new TextureFormatWindow {
                 Owner = this,
