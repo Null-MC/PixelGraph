@@ -50,7 +50,7 @@ namespace PixelGraph.Common.IO.Publishing
     internal abstract class PublisherBase<TMapping> : PublisherBase
         where TMapping : IPublisherMapping
     {
-        private readonly IServiceProvider provider;
+        protected IServiceProvider Provider {get;}
         private readonly IPublishReader loader;
 
         protected ILogger<IPublisher> Logger {get;}
@@ -69,7 +69,7 @@ namespace PixelGraph.Common.IO.Publishing
             IOutputWriter writer,
             TMapping mapping)
         {
-            this.provider = provider;
+            Provider = provider;
             this.loader = loader;
 
             Reader = reader;
@@ -102,7 +102,11 @@ namespace PixelGraph.Common.IO.Publishing
             await PublishPackMetaAsync(context.Profile, token);
 
             await PublishContentAsync(context, token);
+
+            await OnPackPublished(context, token);
         }
+
+        protected virtual Task OnPackPublished(ResourcePackContext context, CancellationToken token) => Task.CompletedTask;
 
         private async Task PublishContentAsync(ResourcePackContext packContext, CancellationToken token = default)
         {
@@ -122,7 +126,7 @@ namespace PixelGraph.Common.IO.Publishing
                         }
 
                         if (TryMapMaterial(material)) {
-                            using var scope = provider.CreateScope();
+                            using var scope = Provider.CreateScope();
                             var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
                             var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
 
@@ -159,32 +163,7 @@ namespace PixelGraph.Common.IO.Publishing
             return true;
         }
 
-        protected virtual bool TryMapMaterial(in MaterialProperties material)
-        {
-            return true;
-            //if (Mapping == null) return true;
-
-            //var sourcePath = material.LocalPath;
-            //string sourceFile;
-
-            //if (material.Parts?.Any(part => {
-            //    sourceFile = PathEx.Join(sourcePath, part.Name);
-            //    sourceFile = PathEx.Normalize(sourceFile);
-
-            //    // TODO: replace with contains
-            //    return Mapping.TryMap(sourceFile, out _);
-            //}) ?? false) return true;
-
-            //if (material.CTM?.Type != null) {
-            //    // TODO
-            //    return false;
-            //}
-
-            //sourceFile = PathEx.Join(sourcePath, material.Name);
-            //sourceFile = PathEx.Normalize(sourceFile);
-
-            //return Mapping.TryMap(sourceFile, out _);
-        }
+        protected virtual bool TryMapMaterial(in MaterialProperties material) => true;
 
         protected virtual async Task PublishFileAsync(GenericTexturePublisher genericPublisher, DateTime packWriteTime, string sourceFile, string destFile, CancellationToken token)
         {
@@ -207,7 +186,7 @@ namespace PixelGraph.Common.IO.Publishing
             }
             else {
                 await using var srcStream = Reader.Open(sourceFile);
-                await Writer.OpenAsync(destFile, async destStream => {
+                await Writer.OpenWriteAsync(destFile, async destStream => {
                     await srcStream.CopyToAsync(destStream, token);
                 }, token);
             }
@@ -220,7 +199,9 @@ namespace PixelGraph.Common.IO.Publishing
         protected static async Task WriteJsonAsync(Stream stream, object content, Formatting formatting, CancellationToken token)
         {
             await using var writer = new StreamWriter(stream);
-            using var jsonWriter = new JsonTextWriter(writer) {Formatting = formatting};
+            using var jsonWriter = new JsonTextWriter(writer) {
+                Formatting = formatting,
+            };
 
             await JToken.FromObject(content).WriteToAsync(jsonWriter, token);
         }

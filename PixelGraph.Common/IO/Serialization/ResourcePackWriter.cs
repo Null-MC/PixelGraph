@@ -33,7 +33,7 @@ namespace PixelGraph.Common.IO.Serialization
         
         public Task WriteAsync(string localFile, ResourcePackInputProperties packInput, CancellationToken token = default)
         {
-            return writer.OpenAsync(localFile, async stream => {
+            return writer.OpenWriteAsync(localFile, async stream => {
                 await using var streamWriter = new StreamWriter(stream);
                 serializer.Serialize(streamWriter, packInput);
             }, token);
@@ -41,7 +41,7 @@ namespace PixelGraph.Common.IO.Serialization
 
         public Task WriteAsync(string localFile, ResourcePackProfileProperties packProfile, CancellationToken token = default)
         {
-            return writer.OpenAsync(localFile, async stream => {
+            return writer.OpenWriteAsync(localFile, async stream => {
                 await using var streamWriter = new StreamWriter(stream);
                 serializer.Serialize(streamWriter, packProfile);
             }, token);

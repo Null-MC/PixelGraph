@@ -81,7 +81,7 @@ namespace PixelGraph.Common.ConnectedTextures
             }
 
             var propsFileOut = NamingStructure.GetOutputPropertiesName(context.Material, true);
-            await writer.OpenAsync(propsFileOut, async stream => {
+            await writer.OpenWriteAsync(propsFileOut, async stream => {
                 await using var streamWriter = new StreamWriter(stream);
                 await propertySerializer.WriteAsync(streamWriter, properties, token);
             }, token);

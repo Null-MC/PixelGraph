@@ -7,13 +7,14 @@ namespace PixelGraph.Common.IO
 {
     public interface IOutputWriter : IAsyncDisposable, IDisposable
     {
-        bool AllowConcurrency {get;}
+        //bool AllowConcurrency {get;}
 
         void SetRoot(string absolutePath);
         void Prepare();
-        Task OpenAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default);
+        Task OpenReadAsync(string localFilename, Func<Stream, Task> readFunc, CancellationToken token = default);
+        Task OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default);
         Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> readWriteFunc, CancellationToken token = default);
-        //bool FileExists(string localFile);
+        bool FileExists(string localFile);
         DateTime? GetWriteTime(string localFile);
         void Delete(string localFile);
         void Clean();

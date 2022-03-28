@@ -27,17 +27,6 @@ namespace PixelGraph.Common.IO.Publishing
             Writer = writer;
         }
 
-        //public async Task PublishAsync(string filename, CancellationToken token)
-        //{
-        //    var path = Path.GetDirectoryName(filename);
-        //    var name = Path.GetFileNameWithoutExtension(filename);
-        //    var newName = $"{name}.png";
-
-        //    var destinationFile = path == null ? newName : PathEx.Join(path, newName);
-
-        //    await PublishAsync(filename, null, destinationFile, token);
-        //}
-
         public async Task PublishAsync(string sourceFile, Rgba32? sourceColor, string destinationFile, CancellationToken token = default)
         {
             if (string.IsNullOrEmpty(destinationFile))
@@ -46,7 +35,7 @@ namespace PixelGraph.Common.IO.Publishing
             using var sourceImage = await LoadSourceImageAsync(sourceFile, sourceColor, token);
             using var resizedImage = Resize(sourceImage);
 
-            await Writer.OpenAsync(destinationFile, async stream => {
+            await Writer.OpenWriteAsync(destinationFile, async stream => {
                 await (resizedImage ?? sourceImage).SaveAsPngAsync(stream, token);
             }, token);
         }
@@ -61,7 +50,6 @@ namespace PixelGraph.Common.IO.Publishing
             packSampler.Image = source;
             packSampler.WrapX = false;
             packSampler.WrapY = false;
-            packSampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
 
             var (width, height) = source.Size();
 

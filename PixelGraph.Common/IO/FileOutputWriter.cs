@@ -11,8 +11,6 @@ namespace PixelGraph.Common.IO
         private string destinationPath;
 
 
-        public bool AllowConcurrency => true;
-
         public void SetRoot(string absolutePath)
         {
             destinationPath = absolutePath;
@@ -24,7 +22,14 @@ namespace PixelGraph.Common.IO
                 Directory.CreateDirectory(destinationPath);
         }
 
-        public async Task OpenAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
+        public async Task OpenReadAsync(string localFilename, Func<Stream, Task> readFunc, CancellationToken token = default)
+        {
+            var filename = PathEx.Join(destinationPath, localFilename);
+            await using var stream = File.Open(filename, FileMode.Open, FileAccess.Read);
+            await readFunc(stream);
+        }
+
+        public async Task OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
             var filename = PathEx.Join(destinationPath, localFilename);
             CreateMissingDirectory(filename);

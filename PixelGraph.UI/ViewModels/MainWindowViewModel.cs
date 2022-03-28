@@ -529,7 +529,7 @@ namespace PixelGraph.UI.ViewModels
             var ext = Path.GetExtension(filename);
             var destFile = PathEx.Join(localPath, itemName, $"albedo{ext}");
             await using (var sourceStream = reader.Open(filename)) {
-                await writer.OpenAsync(destFile, async destStream => {
+                await writer.OpenWriteAsync(destFile, async destStream => {
                     await sourceStream.CopyToAsync(destStream, token);
                 }, token);
             }

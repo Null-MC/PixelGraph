@@ -8,7 +8,7 @@ namespace PixelGraph.Common.PixelOperations
 {
     internal abstract class PixelRowProcessor : IImageProcessor
     {
-        protected const float HalfPixel = 0.5f - float.Epsilon;
+        //protected const float HalfPixel = 0.5f - float.Epsilon;
 
 
         public IImageProcessor<TPixel> CreatePixelSpecificProcessor<TPixel>(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle)
@@ -17,41 +17,23 @@ namespace PixelGraph.Common.PixelOperations
             return new Processor<TPixel>(configuration, source, in sourceRectangle, ProcessRow);
         }
 
-        //public IImageProcessor<Rgba32> CreatePixelSpecificProcessor(Configuration configuration, Image<Rgba32> source, Rectangle sourceRectangle)
-        //{
-        //    return new Processor<Rgba32>(configuration, source, in sourceRectangle, ProcessRow);
-        //}
-
         protected virtual void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> row)
             where TPixel : unmanaged, IPixel<TPixel> {}
 
-        protected virtual void ProcessRow(in PixelRowContext context, Span<Rgba32> row)
-        {
-            ProcessRow<Rgba32>(in context, row);
-        }
+        //protected virtual void ProcessRow(in PixelRowContext context, Span<Rgba32> row)
+        //{
+        //    ProcessRow<Rgba32>(in context, row);
+        //}
 
-        protected void GetTexCoord(in PixelRowContext context, in int x, out double fx, out double fy)
+        protected static void GetTexCoord(in PixelRowContext context, in int x, out double fx, out double fy)
         {
-            //fx = (x - context.Bounds.X + HalfPixel) / (context.Bounds.Width - 1);
-            //fy = (context.Y - context.Bounds.Y + HalfPixel) / (context.Bounds.Height);
-
             GetTexCoord(in context, x, context.Y, out fx, out fy);
         }
 
-        protected void GetTexCoord(in PixelRowContext context, in float x, in float y, out double fx, out double fy)
+        protected static void GetTexCoord(in PixelRowContext context, in float x, in float y, out double fx, out double fy)
         {
             fx = (x - context.Bounds.X) / context.Bounds.Width;
             fy = (y - context.Bounds.Y) / context.Bounds.Height;
-            //var innerWidth = context.Bounds.Width - 1;
-            //var innerHeight = context.Bounds.Height - 1;
-
-            //if (innerWidth <= 0 || innerHeight <= 0) {
-            //    fx = fy = 0;
-            //    return;
-            //}
-
-            //fx = (x - context.Bounds.X) / innerWidth;
-            //fy = (y - context.Bounds.Y) / innerHeight;
         }
 
         private class Processor<TPixel> : ImageProcessor<TPixel>

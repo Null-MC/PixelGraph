@@ -42,7 +42,7 @@ namespace PixelGraph.Common.IO.Publishing
             }
 
             var data = new {pack = packMeta};
-            await Writer.OpenAsync("pack.mcmeta", async stream => {
+            await Writer.OpenWriteAsync("pack.mcmeta", async stream => {
                 await WriteJsonAsync(stream, data, Formatting.Indented, token);
             }, token);
         }

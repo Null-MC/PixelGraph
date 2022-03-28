@@ -140,11 +140,6 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
 
                 await SaveImagePartAsync(image, part, type, destFile, textureTag, token);
             }
-
-            //if (Context.Material.PublishInventory ?? false) {
-            //    var partFrame = Regions.GetPublishPartFrame(0, maxFrameCount, 0);
-            //    // TODO: create inventory texture?
-            //}
         }
 
         protected abstract Task SaveImagePartAsync<TPixel>(Image<TPixel> image, TexturePublishPart part, ImageChannels type, string destFile, string textureTag, CancellationToken token)
@@ -158,7 +153,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             var propsFileOut = NamingStructure.GetOutputPropertiesName(Context.Material, Context.PublishAsGlobal);
 
             await using var sourceStream = Reader.Open(propsFileIn);
-            await Writer.OpenAsync(propsFileOut, async destStream => {
+            await Writer.OpenWriteAsync(propsFileOut, async destStream => {
                 await sourceStream.CopyToAsync(destStream, token);
             }, token);
         }
@@ -195,7 +190,9 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 : Enumerable.Repeat(Context.Material.Name, 1);
 
             foreach (var partName in partNames) {
-                var metaFileOut = TexWriter.GetOutputMetaName(Context.Profile, Context.Material, partName, tag, Context.PublishAsGlobal);
+                if (!Context.Mapping.TryMap(Context.Material.LocalPath, partName, out var destPath, out var destName)) continue;
+
+                var metaFileOut = TexWriter.GetOutputMetaName(Context.Profile, destPath, destName, tag, Context.PublishAsGlobal);
                 await CopyMetaFileAsync(metaFileIn, metaFileOut, token);
             }
         }
@@ -203,7 +200,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
         private async Task CopyMetaFileAsync(string metaFileIn, string metaFileOut, CancellationToken token)
         {
             await using var sourceStream = Reader.Open(metaFileIn);
-            await Writer.OpenAsync(metaFileOut, async destStream => {
+            await Writer.OpenWriteAsync(metaFileOut, async destStream => {
                 await sourceStream.CopyToAsync(destStream, token);
             }, token);
         }

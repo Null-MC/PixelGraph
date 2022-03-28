@@ -18,7 +18,7 @@ namespace PixelGraph.Tests.Internal.Mocks
             Content = content;
         }
 
-        public bool AllowConcurrency => true;
+        //public bool AllowConcurrency => true;
 
         public void SetRoot(string absolutePath)
         {
@@ -27,14 +27,20 @@ namespace PixelGraph.Tests.Internal.Mocks
 
         public void Prepare() {}
 
-        public async Task OpenAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
+        public async Task OpenReadAsync(string localFilename, Func<Stream, Task> readFunc, CancellationToken token = default)
+        {
+            await using var stream = Content.OpenRead(localFilename);
+            await readFunc(stream);
+        }
+
+        public async Task OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
             await using var mockStream = new MockStream();
             Content.Add(localFilename, mockStream);
             await writeFunc(mockStream);
         }
 
-        public Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default) => OpenAsync(localFilename, writeFunc, token);
+        public Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default) => OpenWriteAsync(localFilename, writeFunc, token);
 
         public bool FileExists(string localFile)
         {

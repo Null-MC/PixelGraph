@@ -83,6 +83,8 @@ namespace PixelGraph.Common
             Services.AddTransient<ITextureRegionEnumerator, TextureRegionEnumerator>();
 
             //Services.AddTransient<IMaterialImporter, MaterialImporterBase>();
+
+            Services.AddTransient<BedrockRtxGrassFixer>();
         }
 
         public void AddContentReader(ContentTypes contentType)

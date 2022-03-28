@@ -32,6 +32,13 @@ namespace PixelGraph.Common.Extensions
             return collection.Any(c => EncodingChannel.Is(c.ID, encodingChannel));
         }
 
+        public static bool HasNormalChannels(this IEnumerable<ResourcePackChannelProperties> collection)
+        {
+            return collection.Any(c => EncodingChannel.Is(c.ID, EncodingChannel.NormalX)
+                                    || EncodingChannel.Is(c.ID, EncodingChannel.NormalY)
+                                    || EncodingChannel.Is(c.ID, EncodingChannel.NormalZ));
+        }
+
         public static bool TryGetChannel<T>(this IEnumerable<ResourcePackChannelProperties> collection, out T channelProperties)
             where T : ResourcePackChannelProperties
         {

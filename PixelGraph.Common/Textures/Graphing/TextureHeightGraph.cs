@@ -113,7 +113,6 @@ namespace PixelGraph.Common.Textures.Graphing
                               ?? context.DefaultSampler;
 
             var sampler = context.CreateSampler(heightTexture, samplerName);
-            sampler.Bounds = new RectangleF(0f, 0f, 1f, 1f);
             sampler.RangeX = sampler.RangeY = 1f / HeightScaleFactor;
 
             var options = new ResizeProcessor<L16>.Options {

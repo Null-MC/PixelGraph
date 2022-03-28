@@ -90,36 +90,36 @@ namespace PixelGraph.Common.ImageProcessors
             }
         }
 
-        protected override void ProcessRow(in PixelRowContext context, Span<Rgba32> row)
-        {
-            byte[] noiseX = null, noiseY = null;
+        //protected override void ProcessRow(in PixelRowContext context, Span<Rgba32> row)
+        //{
+        //    byte[] noiseX = null, noiseY = null;
 
-            if (hasNoise) {
-                GenerateNoise(context.Bounds.Width, out noiseX);
-                GenerateNoise(context.Bounds.Width, out noiseY);
-            }
+        //    if (hasNoise) {
+        //        GenerateNoise(context.Bounds.Width, out noiseX);
+        //        GenerateNoise(context.Bounds.Width, out noiseY);
+        //    }
 
-            var v = new Vector3();
-            for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                row[x].GetChannelValue(ColorChannel.Red, out var normalX);
-                row[x].GetChannelValue(ColorChannel.Green, out var normalY);
+        //    var v = new Vector3();
+        //    for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
+        //        row[x].GetChannelValue(ColorChannel.Red, out var normalX);
+        //        row[x].GetChannelValue(ColorChannel.Green, out var normalY);
 
-                v.X = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
-                v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
+        //        v.X = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
+        //        v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
 
-                if (!options.RestoreNormalZ) {
-                    row[x].GetChannelValueScaled(ColorChannel.Blue, out var normalZ);
-                    v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
-                    MathEx.Normalize(ref v);
-                }
+        //        if (!options.RestoreNormalZ) {
+        //            row[x].GetChannelValueScaled(ColorChannel.Blue, out var normalZ);
+        //            v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
+        //            MathEx.Normalize(ref v);
+        //        }
 
-                ProcessPixel(in context, ref v, in noiseX, in noiseY, in x);
+        //        ProcessPixel(in context, ref v, in noiseX, in noiseY, in x);
 
-                row[x].SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
-                row[x].SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
-                row[x].SetChannelValueScaledF(ColorChannel.Blue, v.Z * 0.5f + 0.5f);
-            }
-        }
+        //        row[x].SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
+        //        row[x].SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
+        //        row[x].SetChannelValueScaledF(ColorChannel.Blue, v.Z * 0.5f + 0.5f);
+        //    }
+        //}
 
         private void ProcessPixel(in PixelRowContext context, ref Vector3 v, in byte[] noiseX, in byte[] noiseY, in int x)
         {

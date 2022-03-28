@@ -33,7 +33,7 @@ namespace PixelGraph.Common.IO.Serialization
         
         public Task WriteAsync(MaterialProperties material, CancellationToken token = default)
         {
-            return writer.OpenAsync(material.LocalFilename, async stream => {
+            return writer.OpenWriteAsync(material.LocalFilename, async stream => {
                 await using var streamWriter = new StreamWriter(stream);
                 serializer.Serialize(streamWriter, material);
             }, token);

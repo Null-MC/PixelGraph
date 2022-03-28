@@ -51,16 +51,24 @@ namespace PixelGraph.Common.IO.Publishing
             var isRtx = TextureFormat.Is(pack.Encoding.Format, TextureFormat.Format_Rtx);
             if (isRtx) packMeta.Capabilities.Add("raytraced");
 
-            await Writer.OpenAsync("manifest.json", async stream => {
+            await Writer.OpenWriteAsync("manifest.json", async stream => {
                 await WriteJsonAsync(stream, packMeta, Formatting.Indented, token);
             }, token);
         }
 
+        protected override async Task OnPackPublished(ResourcePackContext context, CancellationToken token)
+        {
+            try {
+                var grassFixer = Provider.GetRequiredService<BedrockRtxGrassFixer>();
+                await grassFixer.FixAsync(context, token);
+            }
+            catch (Exception error) {
+                Logger.LogError(error, "Failed to generate grass_side texture!");
+            }
+        }
+
         protected override async Task OnMaterialPublishedAsync(IServiceProvider scopeProvider, CancellationToken token)
         {
-            //var graphBuilder = scopeProvider.GetRequiredService<ITextureGraphBuilder>();
-            //await graphBuilder.PublishInventoryAsync("_carried.png", token);
-
             var context = scopeProvider.GetRequiredService<ITextureGraphContext>();
 
             if (context.OutputEncoding == null) return;
@@ -71,20 +79,21 @@ namespace PixelGraph.Common.IO.Publishing
 
             var sourcePath = context.Material.LocalPath;
 
+            // Create *.texture_set.json file
             if (context.IsMaterialMultiPart) {
                 foreach (var part in context.Material.Parts) {
                     if (Mapping.TryMap(sourcePath, part.Name, out var destPath, out var destName))
-                        await CreateMaterialMetadataAsync(destPath, destName, token);
+                        await CreateMaterialMetadataAsync(context, destPath, destName, token);
                 }
             }
             else if (context.IsMaterialCtm) {
                 var localBlockPath = PathEx.Localize("assets/minecraft/textures/block");
                 if (Mapping.TryMap(localBlockPath, context.Material.Name, out var destPath, out var destName))
-                    await CreateMaterialMetadataAsync(destPath, destName, token);
+                    await CreateMaterialMetadataAsync(context, destPath, destName, token);
             }
             else {
                 if (Mapping.TryMap(sourcePath, context.Material.Name, out var destPath, out var destName))
-                    await CreateMaterialMetadataAsync(destPath, destName, token);
+                    await CreateMaterialMetadataAsync(context, destPath, destName, token);
             }
         }
 
@@ -122,20 +131,24 @@ namespace PixelGraph.Common.IO.Publishing
             return Mapping.Contains(sourceFile);
         }
 
-        private async Task CreateMaterialMetadataAsync(string matPath, string matName, CancellationToken token)
+        private async Task CreateMaterialMetadataAsync(ITextureGraphContext context, string matPath, string matName, CancellationToken token)
         {
             var meta = new BedrockMaterialMetadata {
                 FormatVersion = "1.16.100",
                 TextureSet = {
                     Color = $"{matName}",
-                    Normal = $"{matName}_normal",
                     MER = $"{matName}_mer",
                 },
             };
 
+            if (context.OutputEncoding.HasNormalChannels())
+                meta.TextureSet.Normal = $"{matName}_normal";
+            else if (context.OutputEncoding.HasChannel(EncodingChannel.Height))
+                meta.TextureSet.Height = $"{matName}_heightmap";
+
             var name = $"{matName}.texture_set.json";
             var localFile = PathEx.Join(matPath, name);
-            await Writer.OpenAsync(localFile, async stream => {
+            await Writer.OpenWriteAsync(localFile, async stream => {
                 await WriteJsonAsync(stream, meta, Formatting.Indented, token);
             }, token);
         }

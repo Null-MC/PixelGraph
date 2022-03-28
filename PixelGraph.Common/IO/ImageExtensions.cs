@@ -12,7 +12,14 @@ namespace PixelGraph.Common.IO
 
         public const string Default = Png;
 
-        public static readonly string[] Supported = {
+
+        public static bool Supports(string extension)
+        {
+            var e = extension.TrimStart('.');
+            return Supported.Contains(e, StringComparer.InvariantCultureIgnoreCase);
+        }
+
+        private static readonly string[] Supported = {
             "bmp",
             "png",
             "tga",
@@ -20,12 +27,5 @@ namespace PixelGraph.Common.IO
             "jpg",
             "jpeg",
         };
-
-
-        public static bool Supports(string extension)
-        {
-            var e = extension.TrimStart('.');
-            return Supported.Contains(e, StringComparer.InvariantCultureIgnoreCase);
-        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using System;
 using System.Collections.Generic;
@@ -6,9 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO.Serialization;
-using PixelGraph.Common.Material;
 
 namespace PixelGraph.Common.IO.Importing
 {
@@ -28,7 +26,7 @@ namespace PixelGraph.Common.IO.Importing
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
         private readonly IMaterialImporter importer;
-        private readonly IMaterialWriter matWriter;
+        //private readonly IMaterialWriter matWriter;
 
         public bool AsGlobal {get; set;}
         public bool CopyUntracked {get; set;}
@@ -47,7 +45,7 @@ namespace PixelGraph.Common.IO.Importing
             reader = provider.GetRequiredService<IInputReader>();
             writer = provider.GetRequiredService<IOutputWriter>();
             importer = provider.GetRequiredService<IMaterialImporter>();
-            matWriter = provider.GetRequiredService<IMaterialWriter>();
+            //matWriter = provider.GetRequiredService<IMaterialWriter>();
         }
 
         public async Task ImportAsync(CancellationToken token = default)
@@ -193,7 +191,7 @@ namespace PixelGraph.Common.IO.Importing
         private async Task CopyFileAsync(string file, CancellationToken token)
         {
             await using var sourceStream = reader.Open(file);
-            await writer.OpenAsync(file, async destStream => {
+            await writer.OpenWriteAsync(file, async destStream => {
                 await sourceStream.CopyToAsync(destStream, token);
             }, token);
         }

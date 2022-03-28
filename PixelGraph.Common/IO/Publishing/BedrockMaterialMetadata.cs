@@ -22,8 +22,11 @@ namespace PixelGraph.Common.IO.Publishing
         [JsonProperty("color")]
         public string Color {get; set;}
 
-        [JsonProperty("normal")]
+        [JsonProperty("normal", NullValueHandling=NullValueHandling.Ignore)]
         public string Normal {get; set;}
+
+        [JsonProperty("heightmap", NullValueHandling=NullValueHandling.Ignore)]
+        public string Height {get; set;}
 
         [JsonProperty("metalness_emissive_roughness")]
         public string MER {get; set;}

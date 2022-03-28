@@ -21,6 +21,11 @@ namespace PixelGraph.Common.Samplers
         public RectangleF Bounds {get; set;}
 
 
+        protected SamplerBase()
+        {
+            Bounds = new RectangleF(0f, 0f, 1f, 1f);
+        }
+
         public abstract void Sample(in double x, in double y, ref Rgba32 pixel);
 
         public virtual void SampleScaled(in double x, in double y, out Vector4 vector)
