@@ -16,6 +16,7 @@ float4 main(const in ps_input_cube input) : SV_TARGET
 	//float3 col_final = tonemap_AcesFilm(col * 2.0);
     float3 final_color = min_light + col;
 	//final_color = tonemap_ACESFit2(final_color);
+	final_color = tonemap_Uncharted2(final_color);
 	final_color = linear_to_srgb(final_color);
 
     //col = linear_to_srgb(col); // gamma

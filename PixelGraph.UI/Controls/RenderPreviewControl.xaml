@@ -24,6 +24,11 @@
                 Background="{DynamicResource MahApps.Brushes.Accent4}">
             <StackPanel Orientation="Vertical">
                 <DockPanel LastChildFill="False" Margin="2,4">
+                    <Button DockPanel.Dock="Left" Margin="2,0" Padding="6,0" BorderThickness="0"
+                            Click="OnPreviewRefreshClick" ToolTip="Refresh Preview"
+                            Style="{StaticResource MahApps.Styles.Button}">
+                        <iconPacks:FontAwesome Kind="SyncSolid" Width="14" Height="14"/>
+                    </Button>
                     <ComboBox DockPanel.Dock="Left" Margin="2,0" Padding="4,0" BorderThickness="0" ToolTip="Shader"
                               DisplayMemberPath="Text" SelectedValuePath="Value" SelectionChanged="OnRenderModeSelectionChanged"
                               ItemsSource="{StaticResource RenderModes}"
@@ -31,11 +36,6 @@
                     <CheckBox DockPanel.Dock="Left" Content="Tile" Margin="6,0" FontWeight="Bold"
                               Foreground="{DynamicResource MahApps.Brushes.ThemeBackground}"
                               IsChecked="{Binding RenderProperties.EnableTiling, Mode=TwoWay}"/>
-                    <Button DockPanel.Dock="Right" Margin="2,0" Padding="6,0" BorderThickness="0"
-                            Click="OnPreviewRefreshClick" ToolTip="Refresh Preview"
-                            Style="{StaticResource MahApps.Styles.Button}">
-                        <iconPacks:FontAwesome Kind="SyncSolid" Width="14" Height="14"/>
-                    </Button>
                 </DockPanel>
             </StackPanel>
         </Border>
@@ -142,13 +142,13 @@
                 Transform="{Binding PointLightTransform}"/>-->
             <hx:PostEffectBloom
                 IsRendering="{Binding RenderProperties.EnableBloom}"
-                BloomExtractIntensity=".7"
-                BloomPassIntensity=".96"
-                BloomCombineIntensity="1.2"
-                BloomCombineSaturation="0.6"
-                NumberOfBlurPass="5">
+                BloomExtractIntensity="0.14"
+                BloomPassIntensity="1.02"
+                BloomCombineIntensity="2"
+                BloomCombineSaturation="0.2"
+                NumberOfBlurPass="12">
                 <hx:PostEffectBloom.ThresholdColor>
-                    <Color R="200" G="190" B="180"/>
+                    <Color R="80" G="80" B="80"/>
                 </hx:PostEffectBloom.ThresholdColor>
             </hx:PostEffectBloom>
             <hx:ContinuousRender3D/>

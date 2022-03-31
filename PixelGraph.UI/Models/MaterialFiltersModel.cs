@@ -13,15 +13,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
-#if !NORENDER
-using PixelGraph.Rendering.Models;
-#endif
-
 namespace PixelGraph.UI.Models
 {
     internal class MaterialFiltersViewModel : ModelBase
     {
-        //private readonly IServiceProvider provider;
         private MaterialProperties _material;
         private ObservableMaterialFilter _selectedFilter;
         private ObservableCollection<ObservableMaterialFilter> _filterList;
@@ -87,10 +82,8 @@ namespace PixelGraph.UI.Models
         }
 
 
-        public MaterialFiltersViewModel() //(IServiceProvider provider)
+        public MaterialFiltersViewModel()
         {
-            //this.provider = provider;
-
             GeneralProperties = new FilterGeneralPropertyCollection();
             GeneralProperties.PropertyChanged += OnPropertyValueChanged;
 
@@ -100,8 +93,6 @@ namespace PixelGraph.UI.Models
 
         public void ImportFiltersFromModel(IModelLoader loader)
         {
-            //var loader = provider.GetRequiredService<IModelLoader>();
-
             var entityModel = loader.GetJavaEntityModel(Material);
             if (entityModel != null) {
                 var filters = ImportFiltersFromEntityModel(entityModel);
@@ -150,15 +141,7 @@ namespace PixelGraph.UI.Models
                                 if (existingRegions.Contains(region)) continue;
                                 existingRegions.Add(region);
 
-                                var faceName = face switch {
-                                    ElementFaces.Up => "up",
-                                    ElementFaces.Down => "down",
-                                    ElementFaces.North => "north",
-                                    ElementFaces.South => "south",
-                                    ElementFaces.West => "west",
-                                    ElementFaces.East => "east",
-                                    _ => throw new ArgumentOutOfRangeException(),
-                                };
+                                var faceName = UVHelper.GetFaceName(face);
 
                                 nameBuilder.Clear();
 
@@ -212,7 +195,6 @@ namespace PixelGraph.UI.Models
         private static IEnumerable<MaterialFilter> ImportFiltersFromBlockModel(BlockModelVersion model)
         {
             var existingRegions = new List<SharpDX.RectangleF>();
-            //var nameBuilder = new StringBuilder();
 
             IEnumerable<MaterialFilter> ProcessElements(IEnumerable<ModelElement> elements) {
                 foreach (var element in elements) {
@@ -220,19 +202,11 @@ namespace PixelGraph.UI.Models
                         // Skip if no face data
                         var faceData = element.GetFace(face);
                         if (faceData == null) continue;
-                    
-                        // Skip if building a specific texture that doesn't match this ID
-                        //if (textureId != null && !string.Equals($"#{textureId}", faceData.Texture, StringComparison.InvariantCultureIgnoreCase)) continue;
-
-                        //var faceUp = BlockModelBuilder.GetUpVector(face);
-                        //var faceNormal = BlockModelBuilder.GetFaceNormal(face);
-                        //var (faceWidth, faceHeight, faceOffset) = element.GetWidthHeightOffset(in face);
+                        
                         var rotation = faceData.Rotation ?? 0;
 
                         var uv = faceData.UV ?? UVHelper.GetDefaultUv(element, in face);
-                        //BlockModelBuilder.Multiply(in uv, BlockToWorld, out uv);
 
-                        //AddCubeFace(in mWorld, in faceNormal, in faceUp, in faceOffset, in faceWidth, in faceHeight, in uv, in rotation);
                         var region = UVHelper.GetRotatedRegion(in uv, in rotation);
 
                         if (existingRegions.Contains(region)) continue;

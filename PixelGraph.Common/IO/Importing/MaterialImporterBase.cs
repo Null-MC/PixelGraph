@@ -88,9 +88,9 @@ namespace PixelGraph.Common.IO.Importing
 
             if (!context.Mapping.TryMap(material.LocalPath, material.Name, out var destPath, out var destName)) return;
 
-            material.LocalFilename = AsGlobal
-                ? PathEx.Join(destPath, $"{destName}.mat.yml")
-                : PathEx.Join(destPath, destName, "mat.yml");
+            var fileName = AsGlobal ? $"{destName}.mat.yml" : "mat.yml";
+            material.LocalPath = AsGlobal ? destPath : PathEx.Join(destPath, destName);
+            material.LocalFilename = PathEx.Join(material.LocalPath, fileName);
 
             await materialWriter.WriteAsync(material, token);
         }

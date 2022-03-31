@@ -16,7 +16,7 @@ namespace PixelGraph.Common.IO.Importing
 {
     internal class BedrockMaterialImporter : MaterialImporterBase
     {
-        private static readonly Regex isPathMaterialExp = new(@"^textures/blocks(?:$|/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex isPathMaterialExp = new(@"(?:^|\/)textures\/(?:blocks|entity)(?:$|\/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 
         public BedrockMaterialImporter(IServiceProvider provider) : base(provider) {}
@@ -24,6 +24,11 @@ namespace PixelGraph.Common.IO.Importing
         public override bool IsMaterialFile(string filename, out string name)
         {
             name = Path.GetFileNameWithoutExtension(filename);
+            var path = Path.GetDirectoryName(filename);
+            path = PathEx.Normalize(path);
+
+            if (path != null && isPathMaterialExp.IsMatch(path)) return true;
+            
 
             // TODO: get all input names
             //foreach (var tag in context.OutputEncoding.Select()) {
@@ -50,11 +55,7 @@ namespace PixelGraph.Common.IO.Importing
                 return true;
             }
 
-            var path = Path.GetDirectoryName(filename);
-            path = PathEx.Normalize(path);
-            if (path == null) return false;
-
-            return isPathMaterialExp.IsMatch(path);
+            return false;
         }
 
         protected override async Task OnImportMaterialAsync(IServiceProvider scope, CancellationToken token = default)
@@ -224,10 +225,15 @@ namespace PixelGraph.Common.IO.Importing
 
         private async Task<JObject> ParseJsonAsync(string localFile, CancellationToken token)
         {
-            await using var stream = Reader.Open(localFile);
-            using var reader = new StreamReader(stream);
-            using var jsonReader = new JsonTextReader(reader);
-            return await JObject.LoadAsync(jsonReader, token);
+            try {
+                await using var stream = Reader.Open(localFile);
+                using var reader = new StreamReader(stream);
+                using var jsonReader = new JsonTextReader(reader);
+                return await JObject.LoadAsync(jsonReader, token);
+            }
+            catch (Exception error) {
+                throw new ApplicationException($"Failed to parse JSON file '{localFile}'!", error);
+            }
         }
     }
 }

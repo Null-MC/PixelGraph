@@ -48,6 +48,7 @@ pbr_material get_pbr_material(const in float2 tex)
     mat.f0_hcm = f0_hcm;
 	mat.occlusion = smooth_occlusion.g;
 	mat.porosity = porosity_sss_emissive.r;
+	//mat.sss = srgb_to_linear(porosity_sss_emissive.g);
 	mat.sss = porosity_sss_emissive.g;
 	mat.emissive = srgb_to_linear(porosity_sss_emissive.b);
 		

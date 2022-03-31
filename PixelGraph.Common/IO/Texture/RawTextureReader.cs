@@ -30,26 +30,26 @@ namespace PixelGraph.Common.IO.Texture
             [TextureTags.Item] = @"^(inventory|item)$",
         };
 
-        private static readonly Dictionary<string, Func<string, string>> globalMap = new(StringComparer.InvariantCultureIgnoreCase) {
-            [TextureTags.Color] = name => $"{name}_color",
-            [TextureTags.Opacity] = name => $"{name}_opacity",
-            [TextureTags.Height] = name => $"{name}_height",
-            [TextureTags.Bump] = name => $"{name}_bump",
-            [TextureTags.Normal] = name => $"{name}_normal",
-            [TextureTags.Occlusion] = name => $"{name}_occlusion",
-            [TextureTags.Specular] = name => $"{name}_specular",
-            [TextureTags.Smooth] = name => $"{name}_smooth",
-            [TextureTags.Rough] = name => $"{name}_rough",
-            [TextureTags.Metal] = name => $"{name}_metal",
-            [TextureTags.HCM] = name => $"{name}_hcm",
-            [TextureTags.F0] = name => $"{name}_f0",
-            [TextureTags.Porosity] = name => $"{name}_porosity",
-            [TextureTags.SubSurfaceScattering] = name => $"{name}_sss",
-            [TextureTags.Emissive] = name => $"{name}_emissive",
+        private static readonly Dictionary<string, string> globalMap = new(StringComparer.InvariantCultureIgnoreCase) {
+            [TextureTags.Color] = "color",
+            [TextureTags.Opacity] = "opacity",
+            [TextureTags.Height] = "height",
+            [TextureTags.Bump] = "bump",
+            [TextureTags.Normal] = "normal",
+            [TextureTags.Occlusion] = "occlusion",
+            [TextureTags.Specular] = "specular",
+            [TextureTags.Smooth] = "smooth",
+            [TextureTags.Rough] = "rough",
+            [TextureTags.Metal] = "metal",
+            [TextureTags.HCM] = "hcm",
+            [TextureTags.F0] = "f0",
+            [TextureTags.Porosity] = "porosity",
+            [TextureTags.SubSurfaceScattering] = "sss",
+            [TextureTags.Emissive] = "emissive",
             //[TextureTags.MER] = name => $"{name}_mer",
 
             // Internal
-            [TextureTags.Item] = name => $"{name}_item",
+            [TextureTags.Item] = "item",
         };
 
 
@@ -68,14 +68,13 @@ namespace PixelGraph.Common.IO.Texture
 
         public override bool IsGlobalFile(string localFile, string name, string tag)
         {
-            if (!globalMap.TryGetValue(tag, out var globalNameFunc)) return false;
+            if (!globalMap.TryGetValue(tag, out var globalName)) return false;
 
             var fileName = Path.GetFileNameWithoutExtension(localFile);
-
             if (fileName.EndsWith(".ignore") || fileName.EndsWith("-x")) return false;
 
-            var globalName = globalNameFunc(name);
-            return string.Equals(fileName, globalName, StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(fileName, $"{name}_{globalName}", StringComparison.InvariantCultureIgnoreCase)
+                || string.Equals(fileName, globalName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

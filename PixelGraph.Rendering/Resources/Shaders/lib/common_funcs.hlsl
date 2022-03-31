@@ -138,7 +138,6 @@ float shadow_lookup(const in float3 loc, const in float2 offset)
 float shadow_strength(in float3 sp)
 {
     float2 xy = abs(sp).xy - 1.0f;
-    
     if (xy.x > 0 || xy.y > 0 || sp.z < 0 || sp.z > 1) return 1.0f;
 
     sp.x = mad(0.5f, sp.x, 0.5f);
@@ -169,7 +168,7 @@ float shadow_strength(in float3 sp)
 	    }
     }
 
-	return sum * 0.0625f;
+	return saturate(sum * 0.0625f);
 
     // now, put the shadow-strength into the 0-nonTeil range
     //return vShadowMapInfo.x + shadow_factor * (1.0f - vShadowMapInfo.x);

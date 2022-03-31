@@ -4,7 +4,7 @@ namespace PixelGraph.Common.ResourcePack
 {
     public class ResourcePackInputProperties : ResourcePackEncoding
     {
-        public const bool AutoMaterialDefault = true;
+        public const bool AutoMaterialDefault = false;
 
         /// <summary>
         /// Gets or sets the named texture encoding format for reading image data.
@@ -30,7 +30,7 @@ namespace PixelGraph.Common.ResourcePack
         {
             var clone = (ResourcePackInputProperties)base.Clone();
 
-            clone.Format = Format;
+            //clone.Format = Format;
 
             return clone;
         }

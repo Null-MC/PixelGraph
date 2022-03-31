@@ -58,9 +58,15 @@ float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, const
 	}
 
 	const float t = (prev_trace_depth - prev_tex_depth) / max(tex_depth - prev_tex_depth + prev_trace_depth - trace_depth, EPSILON);
-	shadow_tex.xy = prev_trace_offset - t * step_offset;
-	shadow_tex.z = prev_trace_depth - t * step_size;
-	
+	shadow_tex.xy = lerp(prev_trace_offset, trace_offset, t);
+	shadow_tex.z = lerp(prev_trace_depth, trace_depth, t);
+
+	//float afterDepth  = prev_tex_depth - tex_depth;
+	//float beforeDepth = prev_tex_depth - tex_depth + trace_depth;
+	//float weight = afterDepth / (afterDepth - beforeDepth);
+	//shadow_tex.xy = prev_trace_offset * weight + trace_offset * (1.0 - weight);
+	//shadow_tex.z = prev_trace_depth - weight * step_size;
+
 	return EnableLinearSampling ? shadow_tex.xy : trace_offset;
 }
 
@@ -103,6 +109,13 @@ float2 get_parallax_texcoord_wet(const in float2 tex, const in float2 vTS, const
 		trace_depth -= step_size;
 	}
 
+
+	//float afterDepth  = prev_tex_depth - tex_depth;
+	//float beforeDepth = prev_tex_depth - tex_depth + trace_depth;
+	//float weight = afterDepth / (afterDepth - beforeDepth);
+	//shadow_tex.xy = prev_trace_offset * weight + trace_offset * (1.0 - weight);
+	//shadow_tex.z = prev_trace_depth - weight * step_size;
+	
 	const float t = (prev_trace_depth - prev_tex_depth) / max(tex_depth - prev_tex_depth + prev_trace_depth - trace_depth, EPSILON);
 	shadow_tex.xy = prev_trace_offset - t * step_offset;
 	shadow_tex.z = prev_trace_depth - t * step_size;
@@ -118,27 +131,26 @@ float2 get_parallax_texcoord_wet(const in float2 tex, const in float2 vTS, const
 float get_parallax_shadow(const in float3 tex, const in float2 offsetT, const in float NoL)
 {
 	if (NoL <= 0.0) return 0.0;
-	
+
 	const int step_count = (1.0f - tex.z) * ParallaxSamplesMax; //(int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoL);
-	const float step_size = rcp(step_count);
+	const float step_size = rcp(ParallaxSamplesMax);
 	const float2 step_offset = step_size * offsetT;
 	
 	float trace_depth = tex.z;
-    float2 trace_tex = tex.xy + step_offset;
+    float2 trace_tex = tex.xy;// + step_offset;
 
 	[loop]
 	float result = 0.0;
-	for (int step = int(tex.z * step_count); step < step_count; ++step) {
+	for (int step = 0; step < step_count; ++step) {
         trace_tex += step_offset;
         trace_depth += step_size;
 
         const float tex_depth = tex_normal_height.SampleLevel(sampler_height, trace_tex, 0).a;
-		const float h = tex_depth - trace_depth;
+		const float h = (tex_depth - trace_depth) * 80.0f;
 		
-    	if (h > 0.0) {
-	        const float dist = 1.0 + lengthSq(float3(trace_tex, trace_depth) - float3(tex.xy, 1.0)) * 20.0;
-
-            const float sample_result = saturate(h * soft_shadow_strength * (1.0 / dist));
+	    const float dist = 0.0f; //(trace_depth - tex.z) * rcp(NoL) * 60.0f;
+    	if (h > 0.0 + dist) {
+            const float sample_result = saturate(h - dist);
     		result = max(result, sample_result);
     		if (1.0 - result < EPSILON) break;
     	}

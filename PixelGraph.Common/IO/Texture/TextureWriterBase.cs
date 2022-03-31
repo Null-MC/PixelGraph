@@ -12,7 +12,6 @@ namespace PixelGraph.Common.IO.Texture
         string GetInputTextureName(MaterialProperties material, string tag);
         string GetInputMetaName(MaterialProperties material, string tag);
         string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string tag, bool global);
-        //string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string mat_name, string tag, bool global);
         string GetOutputMetaName(ResourcePackProfileProperties pack, string path, string name, string tag, bool global);
     }
 
@@ -41,7 +40,6 @@ namespace PixelGraph.Common.IO.Texture
                     return BuildName(name, extension);
             }
 
-            //throw new ApplicationException($"Unknown texture tag '{tag}'!");
             return null;
         }
 
@@ -71,20 +69,8 @@ namespace PixelGraph.Common.IO.Texture
             return PathEx.Localize(filename);
         }
 
-        //public string GetOutputMetaName(ResourcePackProfileProperties pack, MaterialProperties material, string mat_name, string tag, bool global)
-        //{
-        //    var path = NamingStructure.GetPath(material, global && material.CTM?.Method == null);
-        //    var ext = NamingStructure.GetExtension(pack);
-        //    var name = TryGet(tag, mat_name, $"{ext}.mcmeta", global);
-        //    if (name == null) return null;
-
-        //    var filename = PathEx.Join(path, name);
-        //    return PathEx.Localize(filename);
-        //}
-
         public string GetOutputMetaName(ResourcePackProfileProperties pack, string path, string name, string tag, bool global)
         {
-            //var path = NamingStructure.GetPath(material, global && material.CTM?.Method == null);
             var ext = NamingStructure.GetExtension(pack);
             var fileName = TryGet(tag, name, $"{ext}.mcmeta", global);
             if (fileName == null) return null;

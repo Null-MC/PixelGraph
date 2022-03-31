@@ -204,9 +204,9 @@ float noise(const in float2 uv)
 float3 get_sky_color(const in float3 view, const in float3 light)
 {
 	ScatteringParams setting;
-	setting.sunRadius = 800.0f;
-	setting.sunRadiance = 20.0f;
-	setting.mieG = 0.76f;
+	setting.sunRadius = 3000.0f;
+	setting.sunRadiance = 80.0f;
+	setting.mieG = 0.96f;
 	setting.mieHeight = 1200.0f;
 	setting.rayleighHeight = 8000.0f;
 	setting.earthRadius = 6360000.0f;
@@ -220,6 +220,6 @@ float3 get_sky_color(const in float3 view, const in float3 light)
     // see https://www.shadertoy.com/view/MllBR2
 	setting.waveLambdaOzone = float3(1.36820899679147f, 3.31405330400124f, 0.13601728252538f) * 0.6e-6f * 2.504f;
 
-	const float3 eye = float3(0.0f, 1000.0f, 0.0f);
+	const float3 eye = float3(0.0f, 200.0f, 0.0f);
    	return ComputeSkyInscattering(setting, eye, view, light).rgb;
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using System;
@@ -120,11 +121,20 @@ namespace PixelGraph.Common.IO.Importing
 
                 await ImportMaterialAsync(localPath, name, token);
 
+                RemoveNamedFile(files, name);
+
                 // Remove from untracked files
-                _ = ExtractTextureFile(files, name);
-                _ = ExtractTextureFile(files, $"{name}_n");
-                _ = ExtractTextureFile(files, $"{name}_s");
-                _ = ExtractTextureFile(files, $"{name}_e");
+                //if (IsBedrock) {
+                    RemoveNamedFile(files, $"{name}_n");
+                    RemoveNamedFile(files, $"{name}_s");
+                    //RemoveFile(files, $"{name}_e");
+                //}
+                //else {
+                    files.Remove($"{name}.texture_set.json");
+                    RemoveNamedFile(files, $"{name}_heightmap");
+                    RemoveNamedFile(files, $"{name}_normal");
+                    RemoveNamedFile(files, $"{name}_mer");
+                //}
             }
 
             if (!CopyUntracked) return;
@@ -167,25 +177,20 @@ namespace PixelGraph.Common.IO.Importing
         //    throw new ApplicationException("Unable to locate tile");
         //}
 
-        private async Task ImportMaterialAsync(string localPath, string name, CancellationToken token)
+        private async Task<MaterialProperties> ImportMaterialAsync(string localPath, string name, CancellationToken token)
         {
             importer.AsGlobal = AsGlobal;
             importer.PackInput = PackInput;
             importer.PackProfile = PackProfile;
 
-            //var material = await importer.CreateMaterialAsync(localPath, name);
-
             var material = new MaterialProperties {
                 Name = name,
                 LocalPath = localPath,
-                //LocalFilename = matFile,
                 UseGlobalMatching = AsGlobal,
             };
-            //return material;
 
             await importer.ImportAsync(material, token);
-            
-            //await importer.CreateMaterialAsync(material);
+            return material;
         }
 
         private async Task CopyFileAsync(string file, CancellationToken token)
@@ -196,17 +201,12 @@ namespace PixelGraph.Common.IO.Importing
             }, token);
         }
 
-        private static string ExtractTextureFile(ICollection<string> files, string name)
+        private static void RemoveNamedFile(HashSet<string> files, string name)
         {
-            var file = files.FirstOrDefault(f => {
+            files.RemoveWhere(f => {
                 var fName = Path.GetFileNameWithoutExtension(f);
                 return string.Equals(fName, name, StringComparison.InvariantCultureIgnoreCase);
             });
-
-            if (file != null)
-                files.Remove(file);
-
-            return file;
         }
 
         private IEnumerable<string> GetMaterialNames(IEnumerable<string> files)
@@ -220,11 +220,6 @@ namespace PixelGraph.Common.IO.Importing
             }
         }
 
-        //private static readonly string[] IgnoredFilesPaths = {
-        //    ".git",
-        //    ".ignore",
-        //};
-
         public static bool IsUnknownPath(string path)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
@@ -234,17 +229,23 @@ namespace PixelGraph.Common.IO.Importing
             if (name.Equals("META-INF", StringComparison.InvariantCultureIgnoreCase)) return true;
             if (name.EndsWith(".ignore", StringComparison.InvariantCultureIgnoreCase)) return true;
 
+            // Ignore root minecraft.jar directories
+            var subPath = PathEx.Normalize(Path.GetDirectoryName(path));
+            if (subPath?.StartsWith("com/mojang") ?? false) return true;
+            if (subPath?.StartsWith("net/minecraft") ?? false) return true;
+            if (subPath?.StartsWith("data/minecraft") ?? false) return true;
+
             return false;
         }
 
         public static bool IsUnknownFile(string filename)
         {
             var ext = Path.GetExtension(filename);
-
             if (ImageExtensions.Supports(ext)) return false;
-            if (ext.Equals(".json", StringComparison.InvariantCultureIgnoreCase)) return true;
-            if (ext.Equals(".mcmeta", StringComparison.InvariantCultureIgnoreCase)) return true;
-            if (ext.Equals(".properties", StringComparison.InvariantCultureIgnoreCase)) return true;
+
+            if (ext.Equals(".json", StringComparison.InvariantCultureIgnoreCase)) return false;
+            if (ext.Equals(".mcmeta", StringComparison.InvariantCultureIgnoreCase)) return false;
+            if (ext.Equals(".properties", StringComparison.InvariantCultureIgnoreCase)) return false;
 
             return true;
         }

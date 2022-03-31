@@ -137,14 +137,11 @@ float3 IBL_ambient(const in float3 F, const in float3 reflect)
 
 float3 IBL_specular(const in float3 F, const in float NoV, const in float3 r, const in float occlusion, const in float roughP)
 {
-	//return 0.0;
-
 	const float roughL = roughP * roughP;
 	const float3 specular_occlusion = IBL_SpecularOcclusion(NoV, occlusion, roughL);
 
     float3 indirect_specular;
     if (EnableAtmosphere) {
-		//const float roughP = sqrt(roughL);
 		const float mip = roughP * NumEnvironmentMapMipLevels;
 	    indirect_specular = tex_environment.SampleLevel(sampler_environment, r, mip);
     }
@@ -165,56 +162,51 @@ static const float SSS_Power = 1.0f;
 static const float SSS_Scale = 4.0f;
 static const float SSS_MinThickness = 0.0f;
 
-float SSS_Thickness(float3 sp)
+float SSS_Thickness(float3 sp, const in float blur = 1.0f)
 {
-	const float2 xy = abs(sp.xy) - 1.0f;
-
-	if (xy.x > 0.0f || xy.y > 0.0f || sp.z < 0.0f || sp.z > 1.0f) return 0.0f;
+	//const float2 xy = abs(sp.xy) - 1.0f;
+	//if (xy.x > 0.0f || xy.y > 0.0f || sp.z < 0.0f || sp.z > 1.0f) return 0.0f;
 
 	sp.x = mad(0.5f, sp.x, 0.5f);
 	sp.y = mad(-0.5f, sp.y, 0.5f);
 	sp.z -= vShadowMapInfo.z;
 
-	//const float d = tex_shadow.SampleLevel(sampler_light, sp.xy, 0);
-	float sum = 0;
-    const float range = 1.5;
-    const float2 scale = rcp(vShadowMapSize);
-    float x, y;
+	float sum = 0.0f;
+    const float2 scale = rcp(vShadowMapSize) * blur;
+    int x, y;
 	float2 tex;
 
 	[unroll]
-    for (y = -range; y <= range; y += 1.0f) {
+    for (y = -1; y <= 1; y += 1) {
 		[unroll]
-	    for (x = -range; x <= range; x += 1.0f) {
+	    for (x = -1; x <= 1; x += 1) {
 			tex = sp.xy + float2(x, y) * scale;
-		    sum += tex_shadow.SampleLevel(sampler_light, tex, 0);
+		    sum += max(sp.z - tex_shadow.SampleLevel(sampler_light, tex, 0), 0);
 	    }
     }
 
-	return saturate(sp.z - sum * 0.0625f + SSS_MinThickness);
+	return sum * (1.0/9.0);
 }
 
-float SSS_Attenuation(const in float3 light_dir)
-{
-	const float d = length(light_dir);
-    return 1.0f / (1.0f + d + d * d);
-}
+//float SSS_Attenuation(const in float3 light_dir)
+//{
+//	const float d = length(light_dir);
+//    return 1.0f / (1.0f + d + d * d);
+//}
 
-float SSS_Light(const in float3 normal, const in float3 view, const in float3 light_dir)
+float SSS_Light(const in float3 normal, const in float3 view, const in float3 light_dir, const in float sss, const in float thickness)
 {
-	//const float attenuation = SSS_Attenuation(light_dir);
-	
 	const float3 sss_light = light_dir + normal * SSS_Distortion;
-	const float sss_dot = saturate(dot(view, -sss_light));
-
-	return pow(sss_dot, SSS_Power) * SSS_Scale;// * attenuation;
+	const float sss_dot = saturate(dot(-view, sss_light));
+	//return sss * pow(sss_dot, 10) * saturate(1.0f - thickness * (24.0f - 23.0f * sss));
+	return sss * pow(sss_dot, 10) * saturate(1.0 - 24.0f * thickness * (1.0f-sss));
 }
 
-float3 SSS_IBL(const in float3 view)
+float3 SSS_IBL(const in float3 view, const in float sss)
 {
 	const float3 SSS_Ambient = EnableAtmosphere
 		? tex_irradiance.SampleLevel(sampler_irradiance, -view, 0)
 		: srgb_to_linear(vLightAmbient.rgb);
 
-	return SSS_Ambient * SSS_Scale;
+	return SSS_Ambient * sss;
 }
