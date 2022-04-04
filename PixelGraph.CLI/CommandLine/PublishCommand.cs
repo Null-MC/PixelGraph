@@ -133,7 +133,7 @@ namespace PixelGraph.CLI.CommandLine
 
             public async Task ExecuteAsync(string sourcePath, string destFilename, CancellationToken token = default)
             {
-                //if (context == null) throw new ArgumentNullException(nameof(context));
+                if (sourcePath == null) throw new ApplicationException("Source path must be defined!");
                 if (destFilename == null) throw new ApplicationException("Either Destination or Zip must be defined!");
 
                 var contentType = AsArchive ? ContentTypes.Archive : ContentTypes.File;
