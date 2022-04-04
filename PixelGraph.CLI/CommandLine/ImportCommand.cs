@@ -20,19 +20,19 @@ namespace PixelGraph.CLI.CommandLine
 {
     internal class ImportCommand
     {
-        private readonly IServiceBuilder factory;
+        private readonly IServiceProvider provider;
         private readonly IAppLifetime lifetime;
-        private readonly ILogger logger;
+        private readonly ILogger<ImportCommand> logger;
 
         public Command Command {get;}
 
 
         public ImportCommand(
             ILogger<ImportCommand> logger,
-            IServiceBuilder factory,
+            IServiceProvider provider,
             IAppLifetime lifetime)
         {
-            this.factory = factory;
+            this.provider = provider;
             this.lifetime = lifetime;
             this.logger = logger;
 
@@ -63,18 +63,44 @@ namespace PixelGraph.CLI.CommandLine
 
         private async Task<int> RunAsync(string texture, DirectoryInfo destination, string inputFormat, string outputFormat, string[] property)
         {
-            factory.AddContentReader(ContentTypes.File);
-            factory.AddContentWriter(ContentTypes.File);
-            factory.AddTextureReader(GameEditions.Java);
+            //factory.AddContentReader(ContentTypes.File);
+            //factory.AddContentWriter(ContentTypes.File);
+            //factory.AddTextureReader(GameEditions.Java);
 
-            factory.Services.AddTransient<Executor>();
-            await using var provider = factory.Build();
+            //factory.Services.AddTransient<Executor>();
+            //await using var provider = factory.Build();
+            var fullFilename = Path.GetFullPath(texture);
+
+            ConsoleEx.WriteLine("\nImporting...", ConsoleColor.White);
+            ConsoleEx.Write("  Texture     : ", ConsoleColor.Gray);
+            ConsoleEx.WriteLine(fullFilename, ConsoleColor.Cyan);
+            ConsoleEx.Write("  Destination : ", ConsoleColor.Gray);
+            ConsoleEx.WriteLine(destination?.FullName, ConsoleColor.Cyan);
+            ConsoleEx.Write("  Format-In   : ", ConsoleColor.Gray);
+            ConsoleEx.WriteLine(inputFormat, ConsoleColor.Cyan);
+            ConsoleEx.Write("  Format-Out  : ", ConsoleColor.Gray);
+            ConsoleEx.WriteLine(outputFormat, ConsoleColor.Cyan);
+            ConsoleEx.WriteLine();
+
+            var timer = Stopwatch.StartNew();
 
             try {
-                var fullFilename = Path.GetFullPath(texture);
+
+                var context = new ResourcePackContext {
+                    Input = {
+                        Format = inputFormat,
+                    },
+                    Profile = {
+                        Encoding = {
+                            Format = outputFormat,
+                        }
+                    },
+                };
 
                 var executor = provider.GetRequiredService<Executor>();
-                await executor.ExecuteAsync(fullFilename, destination?.FullName, inputFormat, outputFormat, property, lifetime.Token);
+                executor.AsArchive = ;
+
+                await executor.ExecuteAsync(context, root, fullFilename, destination?.FullName, inputFormat, outputFormat, property, lifetime.Token);
 
                 return 0;
             }
@@ -87,84 +113,65 @@ namespace PixelGraph.CLI.CommandLine
                 logger.LogError(error, "An unhandled exception occurred while converting!");
                 return -1;
             }
+            finally {
+                timer.Stop();
+
+                ConsoleEx.Write("\nImport Duration: ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
+            }
         }
 
         private class Executor
         {
-            private readonly IServiceProvider provider;
-            private readonly IInputReader reader;
-            private readonly IOutputWriter writer;
-            private readonly IResourcePackWriter packWriter;
+            private readonly IServiceBuilder builder;
+            public bool AsArchive {get; set;}
 
 
-            public Executor(
-                IServiceProvider provider,
-                IInputReader reader,
-                IOutputWriter writer,
-                IResourcePackWriter packWriter)
+            public Executor(IServiceBuilder builder)
             {
-                this.provider = provider;
-                this.reader = reader;
-                this.writer = writer;
-                this.packWriter = packWriter;
+                this.builder = builder;
             }
 
-            public async Task ExecuteAsync(string textureFilename, string destinationPath, string inputFormat, string outputFormat, string[] properties, CancellationToken token)
+            public async Task ExecuteAsync(ResourcePackContext context, string sourcePath, string textureFilename, string destinationPath, string inputFormat, string outputFormat, string[] properties, CancellationToken token)
             {
                 if (textureFilename == null) throw new ApplicationException("Source texture is undefined!");
                 if (destinationPath == null) throw new ApplicationException("Destination path is undefined!");
 
-                ConsoleEx.WriteLine("\nImporting...", ConsoleColor.White);
-                ConsoleEx.Write("  Texture     : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(textureFilename, ConsoleColor.Cyan);
-                ConsoleEx.Write("  Destination : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(destinationPath, ConsoleColor.Cyan);
-                ConsoleEx.Write("  Format-In   : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(inputFormat, ConsoleColor.Cyan);
-                ConsoleEx.Write("  Format-Out  : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(outputFormat, ConsoleColor.Cyan);
-                ConsoleEx.WriteLine();
+                var edition = GameEdition.Parse(context.Profile.Edition);
+                builder.AddContentReader(AsArchive ? ContentTypes.Archive : ContentTypes.File);
+                builder.AddTextureReader(edition);
 
-                var timer = Stopwatch.StartNew();
+                builder.AddContentWriter(ContentTypes.File);
+                builder.AddTextureWriter(GameEditions.None);
 
-                try {
-                    var root = Path.GetDirectoryName(textureFilename);
-                    reader.SetRoot(root);
-                    writer.SetRoot(destinationPath);
+                builder.Services.AddTransient<Executor>();
 
-                    var packInput = new ResourcePackInputProperties {
-                        Format = inputFormat,
-                    };
+                builder.Services.Configure<InputOptions>(options => {
+                    options.Root = sourcePath;
+                });
 
-                    var packProfile = new ResourcePackProfileProperties {
-                        Encoding = {
-                            Format = outputFormat,
-                        }
-                    };
+                await using var scope = builder.Build();
 
-                    using var scope = provider.CreateScope();
-                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                    var graphBuilder = scope.ServiceProvider.GetRequiredService<IImportGraphBuilder>();
+                var writer = scope.GetRequiredService<IOutputWriter>();
+                var packWriter = scope.GetRequiredService<IResourcePackWriter>();
 
-                    context.Input = packInput;
-                    context.Profile = packProfile;
-                    context.Material = new MaterialProperties {
-                        Name = Path.GetFileName(textureFilename),
-                        UseGlobalMatching = true,
-                        LocalPath = ".",
-                    };
+                writer.SetRoot(destinationPath);
 
-                    await graphBuilder.ImportAsync(token);
+                var graphContext = scope.GetRequiredService<ITextureGraphContext>();
+                var graphBuilder = scope.GetRequiredService<IImportGraphBuilder>();
 
-                    const string localFile = "mat.yml";
-                    await packWriter.WriteAsync(localFile, packProfile, token);
-                }
-                finally {
-                    timer.Stop();
+                graphContext.Input = context.Input;
+                graphContext.Profile = context.Profile;
+                graphContext.Material = new MaterialProperties {
+                    Name = Path.GetFileName(textureFilename),
+                    UseGlobalMatching = true,
+                    LocalPath = ".",
+                };
 
-                    ConsoleEx.Write("\nImport Duration: ", ConsoleColor.Gray);
-                    ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
-                }
+                await graphBuilder.ImportAsync(token);
+
+                const string localFile = "mat.yml";
+                await packWriter.WriteAsync(localFile, context.Profile, token);
             }
         }
     }

@@ -70,44 +70,32 @@ namespace PixelGraph.UI.ViewModels
         private async Task PublishInternalAsync(CancellationToken token)
         {
             var appSettings = provider.GetRequiredService<IAppSettings>();
-            var builder = provider.GetRequiredService<IServiceBuilder>();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-            builder.AddContentReader(ContentTypes.File);
-            builder.AddTextureReader(GameEditions.None);
+            var edition = GameEdition.Parse(Model.Profile.Edition);
+            var contentType = Model.Archive ? ContentTypes.Archive : ContentTypes.File;
 
-            builder.AddContentWriter(Model.Archive ? ContentTypes.Archive : ContentTypes.File);
-            builder.AddTextureWriter(GameEdition.Parse(Model.Profile.Edition));
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+            serviceBuilder.ConfigureWriter(contentType, edition, Model.Destination);
 
-            //if (GameEditions.Is(profile.Edition, GameEditions.Java)) {
-            //    //return provider.GetRequiredService<IJavaPublisher>();
-            //}
-            //else if (GameEditions.Is(profile.Edition, GameEditions.Bedrock)) {
-            //    //return provider.GetRequiredService<IBedrockPublisher>();
-            //}
-            //else throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");
-            
-            var logReceiver = builder.AddLoggingRedirect();
+            var logReceiver = serviceBuilder.AddLoggingRedirect();
             logReceiver.LogMessage += OnInternalLog;
 
-            await using var scope = builder.Build();
-            var reader = scope.GetRequiredService<IInputReader>();
-            var writer = scope.GetRequiredService<IOutputWriter>();
-
-            reader.SetRoot(Model.RootDirectory);
-            writer.SetRoot(Model.Destination);
+            await using var scope = serviceBuilder.Build();
 
             OnLogAppended(LogLevel.None, "Preparing output directory...");
+            var writer = scope.GetRequiredService<IOutputWriter>();
             writer.Prepare();
 
             var context = new ResourcePackContext {
+                //RootPath = Model.RootDirectory,
                 Input = Model.Input,
                 Profile = Model.Profile,
             };
 
             OnLogAppended(LogLevel.None, "Publishing content...");
             var publisher = GetPublisher(scope, context.Profile);
-
-            //if (writer.AllowConcurrency)
             publisher.Concurrency = appSettings.Data.Concurrency ?? Environment.ProcessorCount;
 
             await publisher.PublishAsync(context, Model.Clean, token);
@@ -150,10 +138,10 @@ namespace PixelGraph.UI.ViewModels
         private static IPublisher GetPublisher(IServiceProvider provider, ResourcePackProfileProperties profile)
         {
             if (GameEdition.Is(profile.Edition, GameEdition.Java))
-                return provider.GetRequiredService<IJavaPublisher>();
+                return provider.GetRequiredService<JavaPublisher>();
 
             if (GameEdition.Is(profile.Edition, GameEdition.Bedrock))
-                return provider.GetRequiredService<IBedrockPublisher>();
+                return provider.GetRequiredService<BedrockPublisher>();
 
             throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");
         }

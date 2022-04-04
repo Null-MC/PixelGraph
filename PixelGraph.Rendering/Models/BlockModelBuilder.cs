@@ -7,12 +7,12 @@ using System;
 
 namespace PixelGraph.Rendering.Models
 {
-    public interface IBlockModelBuilder : IModelBuilder
-    {
-        void AppendModelTextureParts(in float cubeSize, Vector3 offset, BlockModelVersion model, string textureId = null);
-    }
+    //public interface IBlockModelBuilder : IModelBuilder
+    //{
+    //    void AppendModelTextureParts(in float cubeSize, Vector3 offset, BlockModelVersion model, string textureId = null);
+    //}
 
-    public class BlockModelBuilder : ModelBuilder, IBlockModelBuilder
+    public class BlockModelBuilder : ModelBuilder //, IBlockModelBuilder
     {
         private static readonly Vector3 blockCenter = new(8f, 8f, 8f);
 

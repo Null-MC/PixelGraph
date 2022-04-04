@@ -37,12 +37,19 @@ namespace PixelGraph.Common.Samplers
         float RangeY {get; set;}
         bool WrapX {get; set;}
         bool WrapY {get; set;}
-        RectangleF Bounds {get; set;}
+        Rectangle Bounds {get; set;}
 
         void Sample(in double x, in double y, ref Rgba32 pixel);
         void SampleScaled(in double x, in double y, out Vector4 pixel);
 
         void Sample(in double x, in double y, in ColorChannel color, out byte pixelValue);
         void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue);
+
+        public void SetBounds(in UVRegion region)
+        {
+            if (Image == null) throw new ApplicationException("Unable to set bounds when image is undefined!");
+
+            Bounds = region.ScaleTo(Image.Width, Image.Height);
+        }
     }
 }

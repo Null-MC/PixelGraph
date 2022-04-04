@@ -5,6 +5,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -28,7 +29,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using PixelGraph.Common.IO.Texture;
 
 #if !NORENDER
 using System.Windows.Media.Imaging;
@@ -284,7 +284,8 @@ namespace PixelGraph.UI.Windows
             if (RecentList.SelectedItem is not string item) return;
 
             if (!Directory.Exists(item)) {
-                Model.RootDirectory = null;
+                //Model.RootDirectory = null;
+                viewModel.Clear();
                 MessageBox.Show(this, "The selected resource pack directory could not be found!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
 
                 await viewModel.RemoveRecentItemAsync(item);
@@ -298,7 +299,7 @@ namespace PixelGraph.UI.Windows
                 logger.LogError(error, $"Failed to load resource pack directory '{item}'!");
 
                 Dispatcher.Invoke(() => {
-                    Model.RootDirectory = null;
+                    viewModel.Clear();
                     MessageBox.Show(this, $"Failed to load resource pack directory! {error.UnfoldMessageString()}", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                 });
 
@@ -355,7 +356,7 @@ namespace PixelGraph.UI.Windows
             var window = new PackInputWindow(provider) {
                 Owner = this,
                 Model = {
-                    RootDirectory = Model.RootDirectory,
+                    //RootDirectory = Model.RootDirectory,
                     PackInput = (ResourcePackInputProperties)Model.PackInput.Clone(),
                 },
             };
@@ -369,7 +370,7 @@ namespace PixelGraph.UI.Windows
             var window = new PackProfilesWindow(provider) {
                 Owner = this,
                 Model = {
-                    RootDirectory = Model.RootDirectory,
+                    //RootDirectory = Model.RootDirectory,
                     Profiles = Model.Profile.List,
                     SelectedProfileItem = Model.Profile.Selected,
                 },
@@ -443,10 +444,14 @@ namespace PixelGraph.UI.Windows
                     UseGlobalMatching = false,
                 };
 
-                var writer = provider.GetRequiredService<IOutputWriter>();
-                var materialWriter = provider.GetRequiredService<IMaterialWriter>();
+                var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-                writer.SetRoot(Model.RootDirectory);
+                serviceBuilder.Initialize();
+                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+
+                await using var scope = serviceBuilder.Build();
+
+                var materialWriter = scope.GetRequiredService<IMaterialWriter>();
                 await materialWriter.WriteAsync(material);
             }
             catch (Exception error) {
@@ -669,7 +674,14 @@ namespace PixelGraph.UI.Windows
             var outputName = TextureTags.Get(material, TextureTags.Normal);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
-                var texWriter = provider.GetRequiredService<ITextureWriter>();
+                var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+                serviceBuilder.Initialize();
+                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+
+                await using var scope = serviceBuilder.Build();
+
+                var texWriter = scope.GetRequiredService<ITextureWriter>();
                 outputName = texWriter.TryGet(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
                 if (outputName == null) {
                     // WARN: WHAT DO WE DO?!
@@ -713,8 +725,16 @@ namespace PixelGraph.UI.Windows
             var outputName = TextureTags.Get(material, TextureTags.Occlusion);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
-                var texWriter = provider.GetRequiredService<ITextureWriter>();
+                var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+                serviceBuilder.Initialize();
+                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+
+                await using var scope = serviceBuilder.Build();
+
+                var texWriter = scope.GetRequiredService<ITextureWriter>();
                 outputName = texWriter.TryGet(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
+
                 if (outputName == null) {
                     // WARN: WHAT DO WE DO?!
                     throw new NotImplementedException();

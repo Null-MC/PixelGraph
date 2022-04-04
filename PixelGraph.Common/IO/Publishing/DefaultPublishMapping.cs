@@ -1,8 +1,8 @@
 ﻿namespace PixelGraph.Common.IO.Publishing
 {
-    public interface IDefaultPublishMapping : IPublisherMapping {}
+    //public interface IDefaultPublishMapping : IPublisherMapping {}
 
-    internal class DefaultPublishMapping : PublisherMappingBase, IDefaultPublishMapping
+    internal class DefaultPublishMapping : PublisherMappingBase //, IDefaultPublishMapping
     {
         public override bool Contains(string sourceFile)
         {

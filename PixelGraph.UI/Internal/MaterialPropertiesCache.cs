@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.IO;
+using PixelGraph.Common;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.UI.Internal.Caching;
@@ -11,8 +11,6 @@ namespace PixelGraph.UI.Internal
 {
     internal interface IMaterialPropertiesCache
     {
-        string RootDirectory {get; set;}
-
         Task<CacheRegistration<string, MaterialProperties>> RegisterAsync(string localFile, CancellationToken token = default);
         void Release(CacheRegistration<string, MaterialProperties> registration);
         void Clear();
@@ -21,13 +19,15 @@ namespace PixelGraph.UI.Internal
     internal class MaterialPropertiesCache : AsyncRegistrationCounterCache<string, MaterialProperties>, IMaterialPropertiesCache
     {
         private readonly IServiceProvider provider;
+        private readonly IProjectContext projectContext;
 
-        public string RootDirectory {get; set;}
 
-
-        public MaterialPropertiesCache(IServiceProvider provider) : base(StringComparer.InvariantCultureIgnoreCase)
+        public MaterialPropertiesCache(
+            IServiceProvider provider,
+            IProjectContext projectContext) : base(StringComparer.InvariantCultureIgnoreCase)
         {
             this.provider = provider;
+            this.projectContext = projectContext;
         }
 
         public Task<CacheRegistration<string, MaterialProperties>> RegisterAsync(string localFile, CancellationToken token = default)
@@ -40,14 +40,17 @@ namespace PixelGraph.UI.Internal
             base.Release(registration);
         }
 
-        private Task<MaterialProperties> LoadMaterial(string localFile, CancellationToken token)
+        private async Task<MaterialProperties> LoadMaterial(string localFile, CancellationToken token)
         {
-            using var scope = provider.CreateScope();
-            var reader = scope.ServiceProvider.GetRequiredService<IInputReader>();
-            var materialReader = scope.ServiceProvider.GetRequiredService<IMaterialReader>();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-            reader.SetRoot(RootDirectory);
-            return materialReader.LoadAsync(localFile, token);
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+            await using var scope = serviceBuilder.Build();
+
+            var materialReader = scope.GetRequiredService<IMaterialReader>();
+            return await materialReader.LoadAsync(localFile, token);
         }
     }
 }

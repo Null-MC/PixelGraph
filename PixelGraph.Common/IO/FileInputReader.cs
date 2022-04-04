@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using Microsoft.Extensions.Options;
+using PixelGraph.Common.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,14 +8,12 @@ namespace PixelGraph.Common.IO
 {
     internal class FileInputReader : BaseInputReader
     {
-        private string root;
+        private readonly IOptions<InputOptions> options;
 
 
-        //public FileInputReader() : base() {}
-
-        public override void SetRoot(string absolutePath)
+        public FileInputReader(IOptions<InputOptions> options)
         {
-            root = absolutePath;
+            this.options = options;
         }
 
         public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null)
@@ -51,19 +50,19 @@ namespace PixelGraph.Common.IO
 
         public override string GetFullPath(string localFile)
         {
-            var fullFile = PathEx.Join(root, localFile);
+            var fullFile = PathEx.Join(options.Value.Root, localFile);
             fullFile = PathEx.Localize(fullFile);
             return Path.GetFullPath(fullFile);
         }
 
         public override string GetRelativePath(string fullPath)
         {
-            return PathEx.TryGetRelative(root, fullPath, out var localPath) ? localPath : fullPath;
+            return PathEx.TryGetRelative(options.Value.Root, fullPath, out var localPath) ? localPath : fullPath;
         }
 
         public override DateTime? GetWriteTime(string localFile)
         {
-            var fullFile = PathEx.Join(root, localFile);
+            var fullFile = PathEx.Join(options.Value.Root, localFile);
             if (!File.Exists(fullFile)) return null;
             return File.GetLastWriteTime(fullFile);
         }

@@ -48,9 +48,8 @@ namespace PixelGraph.Common.ConnectedTextures
             [Optifine_Expanded] = new(12, 4, 47),
         };
 
-        private static string[] _connectedTypes = {
-            Optifine_Random, Optifine_Repeat,
-            Optifine_OverlayRandom, Optifine_OverlayRepeat,
+        private static readonly string[] _repeatTypes = {
+            Optifine_Repeat, Optifine_OverlayRepeat,
         };
 
 
@@ -59,9 +58,9 @@ namespace PixelGraph.Common.ConnectedTextures
             return string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase);
         }
 
-        public static bool IsConnectedType(string method)
+        public static bool IsRepeatType(string method)
         {
-            return _connectedTypes.Contains(method, StringComparer.InvariantCultureIgnoreCase);
+            return _repeatTypes.Contains(method, StringComparer.InvariantCultureIgnoreCase);
         }
 
         private static readonly string[] fixedTypes = {Optifine_Fixed, Optifine_Top, Optifine_Compact, Optifine_Horizontal, Optifine_Vertical, Optifine_Compact, Optifine_Expanded, Optifine_Full};

@@ -20,7 +20,7 @@ namespace PixelGraph.Tests
         public void ReplaceLegacyJavaToBedrockMappings()
         {
             using var provider = Builder.Build();
-            var javaToBedrock = provider.GetRequiredService<IJavaToBedrockPublishMapping>();
+            var javaToBedrock = provider.GetRequiredService<JavaToBedrockPublishMapping>();
 
             var total = javaToBedrock.Mappings.Count;
 
@@ -67,7 +67,7 @@ namespace PixelGraph.Tests
         public void AllJavaBlocksConvertToBedrock()
         {
             using var provider = Builder.Build();
-            var javaToBedrock = provider.GetRequiredService<IJavaToBedrockPublishMapping>();
+            var javaToBedrock = provider.GetRequiredService<JavaToBedrockPublishMapping>();
 
             var javaMatchList = javaToBedrock.Mappings.Keys;
             var javaTextureList = Minecraft.Java.AllBlockTextures;
@@ -79,7 +79,7 @@ namespace PixelGraph.Tests
         public void AllBedrockBlocksConvertToJava()
         {
             using var provider = Builder.Build();
-            var javaToBedrock = provider.GetRequiredService<IJavaToBedrockPublishMapping>();
+            var javaToBedrock = provider.GetRequiredService<JavaToBedrockPublishMapping>();
 
             var javaMatchList = javaToBedrock.Mappings.Keys;
             var javaTextureList = Minecraft.Java.AllBlockTextures;

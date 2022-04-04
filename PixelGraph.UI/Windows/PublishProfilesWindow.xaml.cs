@@ -6,6 +6,7 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewData;
 using System;
@@ -21,6 +22,7 @@ namespace PixelGraph.UI.Windows
     public partial class PackProfilesWindow
     {
         private readonly IServiceProvider provider;
+        private readonly IProjectContext projectContext;
         private readonly ILogger logger;
 
 
@@ -28,6 +30,7 @@ namespace PixelGraph.UI.Windows
         {
             this.provider = provider;
 
+            projectContext = provider.GetRequiredService<IProjectContext>();
             logger = provider.GetRequiredService<ILogger<PackProfilesWindow>>();
 
             InitializeComponent();
@@ -38,11 +41,11 @@ namespace PixelGraph.UI.Windows
 
         private async Task CreateNewProfile()
         {
-            var filename = GetSaveName(Model.RootDirectory, "default");
+            var filename = GetSaveName(projectContext.RootDirectory, "default");
             if (filename == null) return;
 
             var profile = new ResourcePackProfileProperties {
-                LocalFile = filename[Model.RootDirectory.Length..].TrimStart('\\', '/'),
+                LocalFile = filename[projectContext.RootDirectory.Length..].TrimStart('\\', '/'),
                 Encoding = {
                     Format = TextureFormat.Format_Lab13,
                 },
@@ -66,10 +69,10 @@ namespace PixelGraph.UI.Windows
             var filename = GetSaveName(path, profileItem.Name);
             if (filename == null) return;
 
-            var srcFullFile = Path.Join(Model.RootDirectory, profileItem.LocalFile);
+            var srcFullFile = Path.Join(projectContext.RootDirectory, profileItem.LocalFile);
             File.Copy(srcFullFile, filename);
 
-            var cloneLocalFile = filename[Model.RootDirectory.Length..].TrimStart('\\', '/');
+            var cloneLocalFile = filename[projectContext.RootDirectory.Length..].TrimStart('\\', '/');
 
             var cloneProfileItem = CreateProfileItem(cloneLocalFile);
             Dispatcher.Invoke(() => {
@@ -83,8 +86,14 @@ namespace PixelGraph.UI.Windows
             var profile = Model.SelectedProfileItem;
             if (profile?.LocalFile == null) return;
 
-            var writer = provider.GetRequiredService<IOutputWriter>();
-            writer.SetRoot(Model.RootDirectory);
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+            using var scope = serviceBuilder.Build();
+
+            var writer = scope.GetRequiredService<IOutputWriter>();
             writer.Delete(profile.LocalFile);
 
             Model.Profiles.Remove(profile);
@@ -104,15 +113,15 @@ namespace PixelGraph.UI.Windows
 
         private async Task SaveAsync(ResourcePackProfileProperties packProfile)
         {
-            var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
-            scopeBuilder.AddContentWriter(ContentTypes.File);
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
 
             try {
-                await using var scope = scopeBuilder.Build();
-                var writer = scope.GetRequiredService<IOutputWriter>();
-                var packWriter = scope.GetRequiredService<IResourcePackWriter>();
+                await using var scope = serviceBuilder.Build();
 
-                writer.SetRoot(Model.RootDirectory);
+                var packWriter = scope.GetRequiredService<IResourcePackWriter>();
                 await packWriter.WriteAsync(packProfile.LocalFile, packProfile);
             }
             catch (Exception error) {
@@ -134,7 +143,7 @@ namespace PixelGraph.UI.Windows
             var result = dialog.ShowDialog(this);
             if (result != true) return null;
 
-            if (!dialog.FileName.StartsWith(Model.RootDirectory)) {
+            if (!dialog.FileName.StartsWith(projectContext.RootDirectory)) {
                 ShowError("Pack profile should be saved in project root directory!");
                 return null;
             }

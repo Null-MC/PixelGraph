@@ -16,7 +16,7 @@ namespace PixelGraph.Common.IO.Serialization
         Task<MaterialProperties> LoadAsync(string localFile, CancellationToken token = default);
         Task<MaterialProperties> LoadGlobalAsync(string localFile, CancellationToken token = default);
         Task<MaterialProperties> LoadLocalAsync(string localFile, CancellationToken token = default);
-        bool TryExpandRange(MaterialProperties texture, out MaterialProperties[] results);
+        //bool TryExpandRange(MaterialProperties texture, out MaterialProperties[] results);
     }
 
     internal class MaterialReader : IMaterialReader
@@ -85,28 +85,28 @@ namespace PixelGraph.Common.IO.Serialization
             return material;
         }
 
-        public bool TryExpandRange(MaterialProperties material, out MaterialProperties[] results)
-        {
-            if (!material.RangeMin.HasValue || !material.RangeMax.HasValue) {
-                results = null;
-                return false;
-            }
+        //public bool TryExpandRange(MaterialProperties material, out MaterialProperties[] results)
+        //{
+        //    if (!material.RangeMin.HasValue || !material.RangeMax.HasValue) {
+        //        results = null;
+        //        return false;
+        //    }
 
-            // clone texture for each index in range
-            var min = material.RangeMin.Value;
-            var max = material.RangeMax.Value;
+        //    // clone texture for each index in range
+        //    var min = material.RangeMin.Value;
+        //    var max = material.RangeMax.Value;
 
-            var resultList = new List<MaterialProperties>();
-            for (var i = min; i <= max; i++) {
-                var expandedMaterial = material.Clone();
-                expandedMaterial.Name = i.ToString();
-                expandedMaterial.Alias = material.Name;
-                resultList.Add(expandedMaterial);
-            }
+        //    var resultList = new List<MaterialProperties>();
+        //    for (var i = min; i <= max; i++) {
+        //        var expandedMaterial = material.Clone();
+        //        expandedMaterial.Name = i.ToString();
+        //        expandedMaterial.Alias = material.Name;
+        //        resultList.Add(expandedMaterial);
+        //    }
 
-            results = resultList.ToArray();
-            return true;
-        }
+        //    results = resultList.ToArray();
+        //    return true;
+        //}
 
         /// <summary>
         /// Migrates material properties from deprecated fields to their new locations.

@@ -13,7 +13,7 @@ namespace PixelGraph.UI.Models
         protected ObservableCollection<ProfileItem> _profiles;
         private ResourcePackProfileProperties _loadedProfile;
         private ProfileItem _selectedProfileItem;
-        private string _rootDirectory;
+        //private string _rootDirectory;
 
         public event EventHandler DataChanged;
 
@@ -56,13 +56,13 @@ namespace PixelGraph.UI.Models
         public string EncodingSampler => _loadedProfile?.Encoding?.Sampler;
         public string ImageEncoding => _loadedProfile?.Encoding?.Image;
 
-        public string RootDirectory {
-            get => _rootDirectory;
-            set {
-                _rootDirectory = value;
-                OnPropertyChanged();
-            }
-        }
+        //public string RootDirectory {
+        //    get => _rootDirectory;
+        //    set {
+        //        _rootDirectory = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
         public ObservableCollection<ProfileItem> Profiles {
             get => _profiles;

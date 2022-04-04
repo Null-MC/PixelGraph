@@ -23,32 +23,7 @@ namespace PixelGraph.Common.IO.Publishing
         Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default);
     }
 
-    internal abstract class PublisherBase : IPublisher
-    {
-        public abstract int Concurrency {get; set;}
-
-
-        public abstract Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default);
-
-        protected static readonly string[] ResizeIgnoreList = {
-            Path.Combine("assets", "minecraft", "textures", "font"),
-            Path.Combine("assets", "minecraft", "textures", "gui"),
-            Path.Combine("assets", "minecraft", "textures", "colormap"),
-            Path.Combine("assets", "minecraft", "textures", "misc"),
-            Path.Combine("assets", "minecraft", "optifine", "colormap"),
-            Path.Combine("pack", "minecraft", "optifine", "colormap"),
-        };
-
-        protected static readonly HashSet<string> FileIgnoreList = new(StringComparer.InvariantCultureIgnoreCase) {
-            "input.yml",
-            "source.txt",
-            "readme.txt",
-            "readme.md",
-        };
-    }
-
-    internal abstract class PublisherBase<TMapping> : PublisherBase
-        where TMapping : IPublisherMapping
+    public abstract class PublisherBase : IPublisher
     {
         protected IServiceProvider Provider {get;}
         private readonly IPublishReader loader;
@@ -56,9 +31,9 @@ namespace PixelGraph.Common.IO.Publishing
         protected ILogger<IPublisher> Logger {get;}
         protected IInputReader Reader {get;}
         protected IOutputWriter Writer {get;}
-        protected TMapping Mapping {get;}
 
-        public override int Concurrency {get; set;} = 1;
+        protected IPublisherMapping Mapping {get; set;}
+        public int Concurrency {get; set;} = 1;
 
 
         protected PublisherBase(
@@ -66,24 +41,23 @@ namespace PixelGraph.Common.IO.Publishing
             IServiceProvider provider,
             IPublishReader loader,
             IInputReader reader,
-            IOutputWriter writer,
-            TMapping mapping)
+            IOutputWriter writer)
         {
-            Provider = provider;
             this.loader = loader;
 
+            Provider = provider;
             Reader = reader;
-            Mapping = mapping;
+            Writer = writer;
             Logger = logger;
 
-            Writer = writer;
+            Mapping = new DefaultPublishMapping();
         }
 
-        public override async Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default)
+        public virtual async Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            loader.EnableAutoMaterial = context.AutoMaterial;
+            loader.EnableAutoMaterial = context.Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
 
             if (clean) {
                 Logger.LogDebug("Cleaning destination...");
@@ -225,5 +199,21 @@ namespace PixelGraph.Common.IO.Publishing
 
             return !ResizeIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
         }
+
+        protected static readonly string[] ResizeIgnoreList = {
+            Path.Combine("assets", "minecraft", "textures", "font"),
+            Path.Combine("assets", "minecraft", "textures", "gui"),
+            Path.Combine("assets", "minecraft", "textures", "colormap"),
+            Path.Combine("assets", "minecraft", "textures", "misc"),
+            Path.Combine("assets", "minecraft", "optifine", "colormap"),
+            Path.Combine("pack", "minecraft", "optifine", "colormap"),
+        };
+
+        protected static readonly HashSet<string> FileIgnoreList = new(StringComparer.InvariantCultureIgnoreCase) {
+            "input.yml",
+            "source.txt",
+            "readme.txt",
+            "readme.md",
+        };
     }
 }

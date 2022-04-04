@@ -25,8 +25,7 @@ namespace PixelGraph.UI.Helix.Materials
         SamplerStateDescription ColorSampler {get; set;}
         SamplerStateDescription HeightSampler {get; set;}
 
-        ResourcePackInputProperties PackInput {get; set;}
-        ResourcePackProfileProperties PackProfile {get; set;}
+        ResourcePackContext PackContext {get; set;}
         MaterialProperties Material {get; set;}
         ICubeMapSource EnvironmentCubeMapSource {get; set;}
         ICubeMapSource IrradianceCubeMapSource {get; set;}
@@ -53,8 +52,7 @@ namespace PixelGraph.UI.Helix.Materials
         public SamplerStateDescription ColorSampler {get; set;}
         public SamplerStateDescription HeightSampler {get; set;}
 
-        public ResourcePackInputProperties PackInput {get; set;}
-        public ResourcePackProfileProperties PackProfile {get; set;}
+        public ResourcePackContext PackContext {get; set;}
         public MaterialProperties Material {get; set;}
         public ICubeMapSource EnvironmentCubeMapSource {get; set;}
         public ICubeMapSource IrradianceCubeMapSource {get; set;}
@@ -125,8 +123,8 @@ namespace PixelGraph.UI.Helix.Materials
         {
             var previewBuilder = provider.GetRequiredService<T>();
 
-            previewBuilder.Input = PackInput;
-            previewBuilder.Profile = PackProfile;
+            previewBuilder.Input = PackContext.Input;
+            previewBuilder.Profile = PackContext.Profile;
             previewBuilder.Material = Material;
             
             return previewBuilder;

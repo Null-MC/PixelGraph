@@ -2,9 +2,8 @@
 {
     public class ResourcePackContext
     {
+        //public string RootPath {get; set;}
         public ResourcePackInputProperties Input {get; set;}
         public ResourcePackProfileProperties Profile {get; set;}
-
-        public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
     }
 }

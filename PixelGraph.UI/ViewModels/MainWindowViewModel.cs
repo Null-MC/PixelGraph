@@ -40,6 +40,7 @@ namespace PixelGraph.UI.ViewModels
         private readonly IRecentPathManager recentMgr;
         private readonly ITextureEditUtility editUtility;
         private readonly ITabPreviewManager tabPreviewMgr;
+        private readonly IProjectContext projectContext;
         private readonly IMaterialPropertiesCache materialCache;
         private LocationDataModel[] publishLocationList;
 
@@ -63,6 +64,7 @@ namespace PixelGraph.UI.ViewModels
             recentMgr = provider.GetRequiredService<IRecentPathManager>();
             editUtility = provider.GetRequiredService<ITextureEditUtility>();
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
+            projectContext = provider.GetRequiredService<IProjectContext>();
             materialCache = provider.GetRequiredService<IMaterialPropertiesCache>();
         }
 
@@ -94,10 +96,12 @@ namespace PixelGraph.UI.ViewModels
 
         public void Clear()
         {
+            projectContext.RootDirectory = null;
+            Model.RootDirectory = null;
+
             Model.SelectedNode = null;
             Model.PackInput = null;
             Model.TreeRoot = null;
-            Model.RootDirectory = null;
 
             Model.Profile.List.Clear();
             materialCache.Clear();
@@ -115,8 +119,9 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task SetRootDirectoryAsync(string path, CancellationToken token = default)
         {
+            projectContext.RootDirectory = path;
             Model.RootDirectory = path;
-            materialCache.RootDirectory = path;
+            //materialCache.RootDirectory = path;
 
             await LoadRootDirectoryAsync();
 
@@ -132,13 +137,19 @@ namespace PixelGraph.UI.ViewModels
         {
             if (!Model.TryStartBusy()) return;
 
-            var reader = provider.GetRequiredService<IInputReader>();
-            var loader = provider.GetRequiredService<IPublishReader>();
-            var treeReader = provider.GetRequiredService<IContentTreeReader>();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+            serviceBuilder.Services.AddSingleton<IContentTreeReader, ContentTreeReader>();
+            
+            await using var scope = serviceBuilder.Build();
+
+            var reader = scope.GetRequiredService<IInputReader>();
+            var loader = scope.GetRequiredService<IPublishReader>();
+            var treeReader = scope.GetRequiredService<IContentTreeReader>();
 
             try {
-                reader.SetRoot(Model.RootDirectory);
-
                 try {
                     await LoadPackInputAsync();
                 }
@@ -146,12 +157,23 @@ namespace PixelGraph.UI.ViewModels
                     throw new ApplicationException("Failed to load pack input definitions!", error);
                 }
 
-                loader.EnableAutoMaterial = Model.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
+                loader.EnableAutoMaterial = Model.PackInput?.AutoMaterial
+                    ?? ResourcePackInputProperties.AutoMaterialDefault;
                 
                 await Dispatcher.BeginInvoke(() => {
                     try {
                         Model.Profile.List.Clear();
-                        UpdateProfileList();
+
+                        foreach (var file in reader.EnumerateFiles(".", "*.pack.yml")) {
+                            var localFile = Path.GetFileName(file);
+
+                            var profileItem = new ProfileItem {
+                                Name = localFile[..^9],
+                                LocalFile = localFile,
+                            };
+
+                            Model.Profile.List.Add(profileItem);
+                        }
                     }
                     catch (Exception error) {
                         throw new ApplicationException("Failed to load pack profile definitions!", error);
@@ -187,12 +209,17 @@ namespace PixelGraph.UI.ViewModels
         {
             if (!Model.TryStartBusy()) return;
 
-            var reader = provider.GetRequiredService<IInputReader>();
-            var loader = provider.GetRequiredService<IPublishReader>();
-            var treeReader = provider.GetRequiredService<IContentTreeReader>();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+            using var scope = serviceBuilder.Build();
+
+            var loader = scope.GetRequiredService<IPublishReader>();
+            var treeReader = scope.GetRequiredService<IContentTreeReader>();
 
             try {
-                reader.SetRoot(Model.RootDirectory);
                 loader.EnableAutoMaterial = Model.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
 
                 treeReader.Update(Model.TreeRoot);
@@ -248,7 +275,14 @@ namespace PixelGraph.UI.ViewModels
                 return;
             }
 
-            var packReader = provider.GetRequiredService<IResourcePackReader>();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+            await using var scope = serviceBuilder.Build();
+
+            var packReader = scope.GetRequiredService<IResourcePackReader>();
             var profile = await packReader.ReadProfileAsync(Model.Profile.Selected.LocalFile);
 
             await Dispatcher.BeginInvoke(() => Model.Profile.Loaded = profile);
@@ -257,6 +291,7 @@ namespace PixelGraph.UI.ViewModels
         public async Task LoadPublishLocationsAsync(CancellationToken token = default)
         {
             var locationMgr = provider.GetRequiredService<IPublishLocationManager>();
+
             publishLocationList = await locationMgr.LoadAsync(token);
         }
 
@@ -355,9 +390,13 @@ namespace PixelGraph.UI.ViewModels
                     if (!Model.IsViewModeRender) {
                         if (context.IsLayerValid) return;
 
-                        await Task.Run(() => context.BuildLayerAsync(
-                            Model.PackInput, Model.Profile.Loaded,
-                            material, Model.SelectedTag, token), token);
+                        var packContext = new ResourcePackContext {
+                            //RootPath = projectContext.RootDirectory,
+                            Input = Model.PackInput,
+                            Profile = Model.Profile.Loaded,
+                        };
+
+                        await Task.Run(() => context.BuildLayerAsync(packContext, material, Model.SelectedTag, token), token);
 
                         await Dispatcher.BeginInvoke(() => {
                             if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
@@ -376,7 +415,7 @@ namespace PixelGraph.UI.ViewModels
                 if (Model.SelectedTab is TextureTabModel textureTab) {
                     if (context.LayerImage != null) return;
 
-                    context.SourceFile = PathEx.Join(Model.RootDirectory, textureTab.ImageFilename);
+                    context.SourceFile = PathEx.Join(projectContext.RootDirectory, textureTab.ImageFilename);
 
                     await Dispatcher.BeginInvoke(() => {
                         if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
@@ -405,10 +444,17 @@ namespace PixelGraph.UI.ViewModels
                 inputEncoding.Merge(material);
 
                 await Task.Factory.StartNew(async () => {
-                    using var scope = provider.CreateScope();
-                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                    var graph = scope.ServiceProvider.GetRequiredService<ITextureNormalGraph>();
-                    var reader = scope.ServiceProvider.GetRequiredService<IInputReader>();
+                    //using var scope = provider.CreateScope();
+                    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+                    serviceBuilder.Initialize();
+                    serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+                    await using var scope = serviceBuilder.Build();
+
+                    var context = scope.GetRequiredService<ITextureGraphContext>();
+                    var graph = scope.GetRequiredService<ITextureNormalGraph>();
+                    var reader = scope.GetRequiredService<IInputReader>();
 
                     context.Input = Model.PackInput;
                     context.Material = material;
@@ -439,10 +485,16 @@ namespace PixelGraph.UI.ViewModels
                 inputEncoding.Merge(material);
 
                 await Task.Factory.StartNew(async () => {
-                    using var scope = provider.CreateScope();
-                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                    var graph = scope.ServiceProvider.GetRequiredService<ITextureOcclusionGraph>();
-                    var reader = scope.ServiceProvider.GetRequiredService<IInputReader>();
+                    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+                    serviceBuilder.Initialize();
+                    serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+                    
+                    await using var scope = serviceBuilder.Build();
+
+                    var context = scope.GetRequiredService<ITextureGraphContext>();
+                    var graph = scope.GetRequiredService<ITextureOcclusionGraph>();
+                    var reader = scope.GetRequiredService<IInputReader>();
 
                     context.Input = Model.PackInput;
                     context.Material = material;
@@ -486,11 +538,16 @@ namespace PixelGraph.UI.ViewModels
         {
             if (material == null) throw new ArgumentNullException(nameof(material));
 
-            var writer = provider.GetRequiredService<IOutputWriter>();
-            var matWriter = provider.GetRequiredService<IMaterialWriter>();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+            
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+            await using var scope = serviceBuilder.Build();
+
+            var matWriter = scope.GetRequiredService<IMaterialWriter>();
 
             try {
-                writer.SetRoot(Model.RootDirectory);
                 await matWriter.WriteAsync(material);
             }
             catch (Exception error) {
@@ -500,19 +557,17 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task<MaterialProperties> ImportTextureAsync(string filename, CancellationToken token = default)
         {
-            var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
-            scopeBuilder.AddContentReader(ContentTypes.File);
-            scopeBuilder.AddContentWriter(ContentTypes.File);
-            //...
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+            
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
 
-            await using var scope = scopeBuilder.Build();
+            await using var scope = serviceBuilder.Build();
 
             var reader = scope.GetRequiredService<IInputReader>();
             var writer = scope.GetRequiredService<IOutputWriter>();
             var matWriter = scope.GetRequiredService<IMaterialWriter>();
-
-            reader.SetRoot(Model.RootDirectory);
-            writer.SetRoot(Model.RootDirectory);
 
             var itemName = Path.GetFileNameWithoutExtension(filename);
             var localPath = Path.GetDirectoryName(filename);
@@ -638,7 +693,14 @@ namespace PixelGraph.UI.ViewModels
 
         private async Task LoadPackInputAsync()
         {
-            var packReader = provider.GetRequiredService<IResourcePackReader>();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+            await using var scope = serviceBuilder.Build();
+
+            var packReader = scope.GetRequiredService<IResourcePackReader>();
 
             var packInput = await packReader.ReadInputAsync("input.yml")
                             ?? new ResourcePackInputProperties {
@@ -646,24 +708,6 @@ namespace PixelGraph.UI.ViewModels
                             };
 
             Application.Current.Dispatcher.Invoke(() => Model.PackInput = packInput);
-        }
-
-        private void UpdateProfileList()
-        {
-            var reader = provider.GetRequiredService<IInputReader>();
-
-            Model.Profile.List.Clear();
-
-            foreach (var file in reader.EnumerateFiles(".", "*.pack.yml")) {
-                var localFile = Path.GetFileName(file);
-
-                var profileItem = new ProfileItem {
-                    Name = localFile[..^9],
-                    LocalFile = localFile,
-                };
-
-                Model.Profile.List.Add(profileItem);
-            }
         }
 
         private void OnTreeError(Exception error)

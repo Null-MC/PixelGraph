@@ -17,8 +17,8 @@ namespace PixelGraph.Tests.EncodingChannelTests
 
         public EmissiveTests(ITestOutputHelper output) : base(output)
         {
-            Builder.AddTextureReader(GameEditions.None);
-            Builder.AddTextureWriter(GameEditions.None);
+            Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
+            Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
 
             packInput = new ResourcePackInputProperties {
                 Emissive = {

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
@@ -120,7 +119,7 @@ namespace PixelGraph.Common.Textures.Graphing
             };
 
             var processor = new ResizeProcessor<L16>(options);
-            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = HeightFrameCount;
             regions.DestFrameCount = HeightFrameCount;
 
@@ -131,7 +130,7 @@ namespace PixelGraph.Common.Textures.Graphing
 
                 foreach (var frame in regions.GetAllRenderRegions()) {
                     foreach (var tile in frame.Tiles) {
-                        sampler.Bounds = tile.SourceBounds;
+                        sampler.SetBounds(tile.SourceBounds);
                         var outBounds = tile.DestBounds.ScaleTo(scaledWidth, scaledHeight);
                         heightTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
                     }

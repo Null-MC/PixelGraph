@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
@@ -197,7 +196,7 @@ namespace PixelGraph.Common.Textures.Graphing
             if (!NormalMapMethod.TryParse(context.Material.Normal?.Method, out var normalMethod))
                 normalMethod = NormalMapMethods.Sobel3;
 
-            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = NormalFrameCount;
             regions.DestFrameCount = NormalFrameCount;
 
@@ -236,7 +235,7 @@ namespace PixelGraph.Common.Textures.Graphing
 
         private void ApplyFiltering()
         {
-            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = NormalFrameCount;
             regions.DestFrameCount = NormalFrameCount;
 
@@ -248,8 +247,8 @@ namespace PixelGraph.Common.Textures.Graphing
                         var frame = part.Frames.FirstOrDefault();
                         if (frame == null) continue;
 
-                        var x = frame.SourceBounds.X + filterRegion.X * frame.SourceBounds.Width;
-                        var y = frame.SourceBounds.Y + filterRegion.Y * frame.SourceBounds.Height;
+                        var x = frame.SourceBounds.Left + filterRegion.X * frame.SourceBounds.Width;
+                        var y = frame.SourceBounds.Top + filterRegion.Y * frame.SourceBounds.Height;
                         var w = frame.SourceBounds.Width * filterRegion.Width;
                         var h = frame.SourceBounds.Height * filterRegion.Height;
 
@@ -359,13 +358,13 @@ namespace PixelGraph.Common.Textures.Graphing
             }
 
             var processor = new NormalMagnitudeWriteProcessor<L8>(options);
-            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = srcFrameCount;
             regions.DestFrameCount = NormalFrameCount;
 
             foreach (var frame in regions.GetAllRenderRegions()) {
                 foreach (var part in frame.Tiles) {
-                    options.MagSampler.Bounds = part.SourceBounds;
+                    options.MagSampler.SetBounds(part.SourceBounds);
                     var outBounds = part.DestBounds.ScaleTo(NormalTexture.Width, NormalTexture.Height);
                     NormalTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }

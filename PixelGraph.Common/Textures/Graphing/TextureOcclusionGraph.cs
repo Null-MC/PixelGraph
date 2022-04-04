@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
@@ -12,6 +9,9 @@ using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures.Graphing
 {
@@ -199,13 +199,16 @@ namespace PixelGraph.Common.Textures.Graphing
                 Invert = true,
             };
 
-            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = FrameCount;
             regions.DestFrameCount = FrameCount;
             //regions.TargetFrame = 0;
             //regions.TargetPart = TargetPart;
 
             try {
+                var size = GetTileSize(in occlusionWidth);
+                options.StepCount = (int) MathF.Max(size * stepDistance, 1f);
+
                 foreach (var frame in regions.GetAllRenderRegions()) {
                     foreach (var tile in frame.Tiles) {
                         var outBounds = tile.DestBounds.ScaleTo(occlusionWidth, occlusionHeight);
@@ -218,10 +221,7 @@ namespace PixelGraph.Common.Textures.Graphing
                             //gpuProcessor.Process(occlusionTexture, outBounds);
                         }
                         else {
-                            var size = GetTileSize(in occlusionWidth);
-                            options.StepCount = (int) MathF.Max(size * stepDistance, 1f);
-                            heightSampler.Bounds = tile.SourceBounds;
-
+                            heightSampler.SetBounds(tile.SourceBounds);
                             occlusionTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
                         }
                     }

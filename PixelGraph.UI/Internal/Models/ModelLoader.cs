@@ -4,6 +4,7 @@ using MinecraftMappings.Internal.Models.Entity;
 using MinecraftMappings.Internal.Textures.Block;
 using MinecraftMappings.Internal.Textures.Entity;
 using MinecraftMappings.Minecraft;
+using PixelGraph.Common;
 using PixelGraph.Common.Material;
 using System;
 using System.IO;
@@ -11,20 +12,24 @@ using System.Linq;
 
 namespace PixelGraph.UI.Internal.Models
 {
-    public interface IModelLoader
-    {
-        JavaEntityModelVersion GetJavaEntityModel(MaterialProperties material);
-        BlockModelVersion GetBlockModel(MaterialProperties material, bool defaultCube = false);
-    }
+    //public interface IModelLoader
+    //{
+    //    JavaEntityModelVersion GetJavaEntityModel(MaterialProperties material);
+    //    BlockModelVersion GetBlockModel(MaterialProperties material, bool defaultCube = false);
+    //}
 
-    internal class ModelLoader : IModelLoader
+    public class ModelLoader //: IModelLoader
     {
         private readonly IServiceProvider provider;
+        private readonly IProjectContext projectContext;
 
 
-        public ModelLoader(IServiceProvider provider)
+        public ModelLoader(
+            IServiceProvider provider,
+            IProjectContext projectContext)
         {
             this.provider = provider;
+            this.projectContext = projectContext;
         }
 
         public JavaEntityModelVersion GetJavaEntityModel(MaterialProperties material)
@@ -46,7 +51,13 @@ namespace PixelGraph.UI.Internal.Models
             if (baseModel == null) return null;
 
             if (modelFile != null) {
-                var entityParser = provider.GetRequiredService<IEntityModelParser>();
+                var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+                serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+                serviceBuilder.Services.AddTransient<EntityModelParser>();
+
+                using var scope = serviceBuilder.Build();
+
+                var entityParser = provider.GetRequiredService<EntityModelParser>();
                 entityParser.Build(baseModel, modelFile);
             }
 
@@ -64,7 +75,13 @@ namespace PixelGraph.UI.Internal.Models
                 modelFile = modelData?.GetLatestVersion()?.Id;
             }
 
-            var blockParser = provider.GetRequiredService<IBlockModelParser>();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+            serviceBuilder.Services.AddTransient<BlockModelParser>();
+
+            using var scope = serviceBuilder.Build();
+
+            var blockParser = scope.GetRequiredService<BlockModelParser>();
 
             if (modelFile == null && defaultCube) {
                 var model = blockParser.LoadRecursive("block/cube_all");

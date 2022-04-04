@@ -6,7 +6,6 @@ namespace PixelGraph.Common.IO
 {
     public abstract class BaseInputReader : IInputReader
     {
-        public abstract void SetRoot(string absolutePath);
         public abstract IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null);
         public abstract IEnumerable<string> EnumerateFiles(string localPath, string pattern = null);
         public abstract bool FileExists(string localFile);

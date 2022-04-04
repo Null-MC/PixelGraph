@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Texture;
@@ -26,25 +28,31 @@ namespace PixelGraph.UI.Internal.Utilities
     internal class TextureEditUtility : ITextureEditUtility
     {
         private readonly ILogger<TextureEditUtility> logger;
+        private readonly IServiceProvider provider;
         private readonly IAppSettings appSettings;
-        private readonly ITextureReader texReader;
-        private readonly ITextureWriter texWriter;
-        private readonly IInputReader reader;
+        private readonly IProjectContext projectContext;
+        //private readonly ITextureReader texReader;
+        //private readonly ITextureWriter texWriter;
+        //private readonly IInputReader reader;
 
         private CancellationTokenSource mergedTokenSource;
 
 
         public TextureEditUtility(
             ILogger<TextureEditUtility> logger,
+            IServiceProvider provider,
             IAppSettings appSettings,
-            ITextureReader texReader,
-            ITextureWriter texWriter,
-            IInputReader reader)
+            IProjectContext projectContext)
+            //ITextureReader texReader,
+            //ITextureWriter texWriter,
+            //IInputReader reader)
         {
             this.appSettings = appSettings;
-            this.texReader = texReader;
-            this.texWriter = texWriter;
-            this.reader = reader;
+            this.provider = provider;
+            this.projectContext = projectContext;
+            //this.texReader = texReader;
+            //this.texWriter = texWriter;
+            //this.reader = reader;
             this.logger = logger;
         }
 
@@ -61,7 +69,7 @@ namespace PixelGraph.UI.Internal.Utilities
             }
         }
 
-        public async Task<bool> EditLayerInternalAsync(MaterialProperties material, string textureTag, CancellationToken token = default)
+        private async Task<bool> EditLayerInternalAsync(MaterialProperties material, string textureTag, CancellationToken token = default)
         {
             var inputFileFull = GetInputFilename(material, textureTag);
 
@@ -128,6 +136,18 @@ namespace PixelGraph.UI.Internal.Utilities
         {
             var inputFile = TextureTags.Get(material, textureTag);
 
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+            using var scope = serviceBuilder.Build();
+
+            var reader = scope.GetRequiredService<IInputReader>();
+            var texReader = scope.GetRequiredService<ITextureReader>();
+            var texWriter = scope.GetRequiredService<ITextureWriter>();
+
             if (string.IsNullOrWhiteSpace(inputFile))
                 inputFile = texReader.EnumerateInputTextures(material, textureTag).FirstOrDefault();
 
@@ -159,25 +179,5 @@ namespace PixelGraph.UI.Internal.Utilities
 
             return new Image<L8>(Configuration.Default, width, height);
         }
-
-        //private static (string exe, string args) ParseCommand(string command)
-        //{
-        //    if (command.StartsWith('"')) {
-        //        var commandSplitIndex = command.IndexOf('"', 1);
-        //        if (commandSplitIndex < 0) return (null, null);
-                
-        //        var exe = command[1..commandSplitIndex];
-        //        var args = command[(commandSplitIndex + 1)..].TrimStart();
-        //        return (exe, args);
-        //    }
-        //    else {
-        //        var commandSplitIndex = command.IndexOf(' ');
-        //        if (commandSplitIndex < 0) return (null, null);
-
-        //        var exe = command[..commandSplitIndex];
-        //        var args = command[(commandSplitIndex + 1)..];
-        //        return (exe, args);
-        //    }
-        //}
     }
 }

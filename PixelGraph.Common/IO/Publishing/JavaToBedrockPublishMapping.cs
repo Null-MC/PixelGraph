@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace PixelGraph.Common.IO.Publishing
 {
-    public interface IJavaToBedrockPublishMapping : IPublisherMapping {}
+    //public interface IJavaToBedrockPublishMapping : IPublisherMapping {}
 
-    internal class JavaToBedrockPublishMapping : PublisherMappingBase, IJavaToBedrockPublishMapping
+    internal class JavaToBedrockPublishMapping : PublisherMappingBase //, IJavaToBedrockPublishMapping
     {
         protected override IDictionary<string, string> OnBuildMappings()
         {

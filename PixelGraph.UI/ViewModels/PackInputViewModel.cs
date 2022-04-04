@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.IO;
+using PixelGraph.Common;
 using PixelGraph.Common.IO.Serialization;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models;
 using System;
 using System.Threading.Tasks;
@@ -9,22 +10,28 @@ namespace PixelGraph.UI.ViewModels
 {
     internal class PackInputViewModel
     {
-        private readonly IOutputWriter writer;
-        private readonly IResourcePackWriter packWriter;
+        private readonly IServiceProvider provider;
 
         public PackInputModel Model {get; set;}
 
 
         public PackInputViewModel(IServiceProvider provider)
         {
-            writer = provider.GetRequiredService<IOutputWriter>();
-            packWriter = provider.GetRequiredService<IResourcePackWriter>();
+            this.provider = provider;
         }
 
         public async Task SavePackInputAsync()
         {
+            var projectContext = provider.GetRequiredService<IProjectContext>();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+            await using var scope = serviceBuilder.Build();
+
             try {
-                writer.SetRoot(Model.RootDirectory);
+                var packWriter = scope.GetRequiredService<IResourcePackWriter>();
                 await packWriter.WriteAsync("input.yml", Model.PackInput);
             }
             catch (Exception error) {

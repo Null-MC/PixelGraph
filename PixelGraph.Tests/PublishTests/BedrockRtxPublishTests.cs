@@ -18,8 +18,8 @@ namespace PixelGraph.Tests.PublishTests
 
         public BedrockRtxPublishTests(ITestOutputHelper output) : base(output)
         {
-            Builder.AddTextureReader(GameEditions.None);
-            Builder.AddTextureWriter(GameEditions.Bedrock);
+            Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
+            Builder.ConfigureWriter(ContentTypes.File, GameEditions.Bedrock, null);
 
             packInput = new ResourcePackInputProperties {
                 Format = TextureFormat.Format_Raw,

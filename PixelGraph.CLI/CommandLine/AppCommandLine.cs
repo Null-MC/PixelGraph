@@ -14,15 +14,15 @@ namespace PixelGraph.CLI.CommandLine
 
 
         public AppCommandLine(
-            ImportCommand importCommand,
-            GenerateCommand generateCommand,
+            //ImportCommand importCommand,
+            //GenerateCommand generateCommand,
             PublishCommand publishCommand)
         {
             root = new RootCommand();
 
             //root.AddCommand(new ConvertCommand(provider).Command);
-            root.AddCommand(importCommand.Command);
-            root.AddCommand(generateCommand.Command);
+            //root.AddCommand(importCommand.Command);
+            //root.AddCommand(generateCommand.Command);
             root.AddCommand(publishCommand.Command);
         }
 

@@ -174,14 +174,14 @@ namespace PixelGraph.Common.Textures
             }
 
             if (context.IsMaterialMultiPart && TargetPart.HasValue) {
-                var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+                var regions = provider.GetRequiredService<TextureRegionEnumerator>();
                 regions.SourceFrameCount = FrameCount;
                 regions.DestFrameCount = context.MaxFrameCount;
 
                 var f = TargetFrame ?? 0;
                 var part = regions.GetPublishPartFrame(f, TargetPart.Value);
-                width = (int) MathF.Ceiling(part.SourceBounds.Width * width);
-                height = (int) MathF.Ceiling(part.SourceBounds.Height * height);
+                width = (int) Math.Ceiling(part.SourceBounds.Width * width);
+                height = (int) Math.Ceiling(part.SourceBounds.Height * height);
             }
 
             // WARN: throw exception instead?
@@ -499,7 +499,7 @@ namespace PixelGraph.Common.Textures
 
             var processor = new OverlayProcessor<Rgb24>(options);
 
-            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = normalGraph.NormalFrameCount;
             regions.DestFrameCount = context.MaxFrameCount;
             regions.TargetFrame = TargetFrame;
@@ -507,7 +507,7 @@ namespace PixelGraph.Common.Textures
 
             foreach (var frame in regions.GetAllRenderRegions()) {
                 foreach (var tile in frame.Tiles) {
-                    sampler.Bounds = tile.SourceBounds;
+                    sampler.SetBounds(tile.SourceBounds);
 
                     var outBounds = tile.DestBounds.ScaleTo(image.Width, image.Height);
 
@@ -538,7 +538,7 @@ namespace PixelGraph.Common.Textures
 
             var processor = new OverlayProcessor<L8>(options);
 
-            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = normalGraph.MagnitudeFrameCount;
             regions.DestFrameCount = context.MaxFrameCount;
             regions.TargetFrame = TargetFrame;
@@ -546,7 +546,7 @@ namespace PixelGraph.Common.Textures
 
             foreach (var frame in regions.GetAllRenderRegions()) {
                 foreach (var tile in frame.Tiles) {
-                    sampler.Bounds = tile.SourceBounds;
+                    sampler.SetBounds(tile.SourceBounds);
 
                     var outBounds = tile.DestBounds.ScaleTo(image.Width, image.Height);
 
@@ -576,7 +576,7 @@ namespace PixelGraph.Common.Textures
             
             var processor = new OverlayProcessor<L8>(options);
 
-            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = occlusionGraph.FrameCount;
             regions.DestFrameCount = context.MaxFrameCount;
             regions.TargetFrame = TargetFrame;
@@ -584,7 +584,7 @@ namespace PixelGraph.Common.Textures
 
             foreach (var frame in regions.GetAllRenderRegions()) {
                 foreach (var tile in frame.Tiles) {
-                    occlusionSampler.Bounds = tile.SourceBounds;
+                    occlusionSampler.SetBounds(tile.SourceBounds);
 
                     var outBounds = tile.DestBounds.ScaleTo(image.Width, image.Height);
 
@@ -701,7 +701,7 @@ namespace PixelGraph.Common.Textures
             };
 
             var processor = new OverlayProcessor<Rgba32>(options);
-            var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+            var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = info.FrameCount;
             regions.DestFrameCount = info.FrameCount;
             regions.TargetFrame = TargetFrame;
@@ -710,7 +710,7 @@ namespace PixelGraph.Common.Textures
             foreach (var frame in regions.GetAllRenderRegions()) {
                 foreach (var tile in frame.Tiles) {
                     foreach (var samplerOptions in options.Samplers)
-                        samplerOptions.Sampler.Bounds = tile.SourceBounds;
+                        samplerOptions.Sampler.SetBounds(tile.SourceBounds);
 
                     var outBounds = tile.DestBounds.ScaleTo(image.Width, image.Height);
 
@@ -771,7 +771,7 @@ namespace PixelGraph.Common.Textures
 
                 var processor = new PostOcclusionProcessor<L8, Rgba32>(options);
 
-                var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+                var regions = provider.GetRequiredService<TextureRegionEnumerator>();
                 regions.SourceFrameCount = occlusionGraph.FrameCount;
                 regions.DestFrameCount = context.MaxFrameCount;
                 regions.TargetFrame = TargetFrame;
@@ -779,10 +779,9 @@ namespace PixelGraph.Common.Textures
 
                 foreach (var frame in regions.GetAllRenderRegions()) {
                     foreach (var tile in frame.Tiles) {
-                        if (emissiveSampler != null)
-                            emissiveSampler.Bounds = tile.SourceBounds;
+                        emissiveSampler?.SetBounds(tile.SourceBounds);
 
-                        occlusionSampler.Bounds = tile.SourceBounds;
+                        occlusionSampler.SetBounds(tile.SourceBounds);
 
                         var outBounds = tile.DestBounds.ScaleTo(image.Width, image.Height);
 

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using PixelGraph.CLI.Extensions;
 using PixelGraph.Common;
 using PixelGraph.Common.IO;
-using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
@@ -58,7 +57,11 @@ namespace PixelGraph.CLI.CommandLine
                 "The target format of the converted texture."));
         }
 
-        private async Task<int> RunAsync(string texture, DirectoryInfo destination, string inputFormat, string outputFormat)
+        private async Task<int> RunAsync(
+            string texture,
+            DirectoryInfo destination,
+            string inputFormat,
+            string outputFormat)
         {
             factory.AddContentReader(ContentTypes.File);
             factory.AddContentWriter(ContentTypes.File);
@@ -67,7 +70,20 @@ namespace PixelGraph.CLI.CommandLine
             factory.Services.AddTransient<Executor>();
             await using var provider = factory.Build();
             
+            var timer = Stopwatch.StartNew();
+
             try {
+                ConsoleEx.WriteLine("\nConverting...", ConsoleColor.White);
+                ConsoleEx.Write("  Texture     : ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine(texture, ConsoleColor.Cyan);
+                ConsoleEx.Write("  Destination : ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine(destination?.FullName, ConsoleColor.Cyan);
+                ConsoleEx.Write("  Format-In   : ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine(inputFormat, ConsoleColor.Cyan);
+                ConsoleEx.Write("  Format-Out  : ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine(outputFormat, ConsoleColor.Cyan);
+                ConsoleEx.WriteLine();
+
                 var executor = provider.GetRequiredService<Executor>();
                 await executor.ExecuteAsync(texture, destination?.FullName, inputFormat, outputFormat, lifetime.Token);
                 return 0;
@@ -81,51 +97,49 @@ namespace PixelGraph.CLI.CommandLine
                 logger.LogError(error, "An unhandled exception occurred while converting!");
                 return -1;
             }
+            finally {
+                timer.Stop();
+
+                ConsoleEx.Write("\nConversion Duration: ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
+            }
         }
 
         private class Executor
         {
-            private readonly IServiceProvider provider;
-            private readonly IResourcePackReader packReader;
-            private readonly IInputReader reader;
-            private readonly IOutputWriter writer;
+            private readonly IServiceBuilder serviceBuilder;
 
 
-            public Executor(
-                IServiceProvider provider,
-                IResourcePackReader packReader,
-                IInputReader reader,
-                IOutputWriter writer)
+            public Executor(IServiceBuilder serviceBuilder)
             {
-                this.provider = provider;
-                this.packReader = packReader;
-                this.reader = reader;
-                this.writer = writer;
+                this.serviceBuilder = serviceBuilder;
             }
 
-            public async Task ExecuteAsync(string textureFilename, string destinationPath, string inputFormat, string outputFormat, CancellationToken token = default)
+            public async Task ExecuteAsync(
+                ResourcePackContext context,
+                string textureFilename,
+                string destinationPath,
+                string inputFormat,
+                string outputFormat,
+                CancellationToken token = default)
             {
                 if (textureFilename == null) throw new ApplicationException("Source texture is undefined!");
                 if (destinationPath == null) throw new ApplicationException("Destination path is undefined!");
 
-                ConsoleEx.WriteLine("\nConverting...", ConsoleColor.White);
-                ConsoleEx.Write("  Texture     : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(textureFilename, ConsoleColor.Cyan);
-                ConsoleEx.Write("  Destination : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(destinationPath, ConsoleColor.Cyan);
-                ConsoleEx.Write("  Format-In   : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(inputFormat, ConsoleColor.Cyan);
-                ConsoleEx.Write("  Format-Out  : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(outputFormat, ConsoleColor.Cyan);
-                ConsoleEx.WriteLine();
 
                 var root = Path.GetDirectoryName(textureFilename);
-                reader.SetRoot(root);
-                writer.SetRoot(destinationPath);
 
-                var fullFile = Path.GetFullPath(textureFilename);
-                var packProfile = await packReader.ReadProfileAsync(fullFile);
-                packProfile.Encoding.Format = outputFormat;
+                serviceBuilder.Services.Configure<InputOptions>(options => {
+                    options.Root = root;
+                });
+
+                serviceBuilder.Services.Configure<OutputOptions>(options => {
+                    options.Root = destinationPath;
+                });
+
+                //var fullFile = Path.GetFullPath(textureFilename);
+                //var packProfile = await packReader.ReadProfileAsync(fullFile);
+                //packProfile.Encoding.Format = outputFormat;
 
                 var packInput = new ResourcePackInputProperties {
                     Format = TextureFormat.Format_Raw,
@@ -137,25 +151,16 @@ namespace PixelGraph.CLI.CommandLine
                     LocalPath = ".",
                 };
 
-                var timer = Stopwatch.StartNew();
+                await using var scope = serviceBuilder.Build();
 
-                try {
-                    using var scope = provider.CreateScope();
-                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                    var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
+                var graphContext = scope.GetRequiredService<ITextureGraphContext>();
+                var graphBuilder = scope.GetRequiredService<IPublishGraphBuilder>();
 
-                    context.Input = packInput;
-                    context.Profile = packProfile;
-                    context.Material = material;
+                graphContext.Input = packInput;
+                graphContext.Profile = packProfile;
+                graphContext.Material = material;
 
-                    await graphBuilder.PublishAsync(token);
-                }
-                finally {
-                    timer.Stop();
-
-                    ConsoleEx.Write("\nConversion Duration: ", ConsoleColor.Gray);
-                    ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
-                }
+                await graphBuilder.PublishAsync(token);
             }
         }
     }

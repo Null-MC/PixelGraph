@@ -62,23 +62,20 @@ namespace PixelGraph.UI.Windows
 
         private async Task RunAsync(CancellationToken token)
         {
-            var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
+            var contentType = Model.IsArchive ? ContentTypes.Archive : ContentTypes.File;
 
-            scopeBuilder.AddContentWriter(ContentTypes.File);
-            scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
-            scopeBuilder.AddTextureReader(GameEditions.Java);
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-            var logReceiver = scopeBuilder.AddLoggingRedirect();
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(contentType, GameEditions.Java, Model.ImportSource);
+            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+
+            var logReceiver = serviceBuilder.AddLoggingRedirect();
             logReceiver.LogMessage += OnLogMessage;
 
-            await using var scope = scopeBuilder.Build();
+            await using var scope = serviceBuilder.Build();
 
-            var reader = scope.GetRequiredService<IInputReader>();
-            var writer = scope.GetRequiredService<IOutputWriter>();
             var importer = scope.GetRequiredService<IResourcePackImporter>();
-
-            reader.SetRoot(Model.ImportSource);
-            writer.SetRoot(Model.RootDirectory);
 
             Model.PackOutput.Format = Model.SourceFormat;
 
@@ -93,16 +90,18 @@ namespace PixelGraph.UI.Windows
             await importer.ImportAsync(token);
         }
 
-        private ServiceProvider BuildScope()
-        {
-            var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
+        //private ServiceProvider BuildScope()
+        //{
+        //    var contentType = Model.IsArchive ? ContentTypes.Archive : ContentTypes.File;
 
-            scopeBuilder.AddContentWriter(ContentTypes.File);
-            scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
-            scopeBuilder.AddTextureReader(GameEditions.Java);
+        //    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-            return scopeBuilder.Build();
-        }
+        //    serviceBuilder.Initialize();
+        //    serviceBuilder.ConfigureReader(contentType, GameEditions.Java, ?);
+        //    serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, ?);
+
+        //    return serviceBuilder.Build();
+        //}
 
         private ImportTreeNode GetPathNode(IInputReader reader, string localPath, CancellationToken token)
         {

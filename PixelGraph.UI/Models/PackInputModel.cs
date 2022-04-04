@@ -6,7 +6,7 @@ namespace PixelGraph.UI.Models
 {
     internal class PackInputModel : ModelBase
     {
-        public string RootDirectory {get; set;}
+        //public string RootDirectory {get; set;}
         public TextureChannelMapping[] Channels {get;}
 
         public TextureChannelMapping Opacity {get;}

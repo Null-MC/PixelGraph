@@ -139,8 +139,10 @@ namespace PixelGraph.Common.Textures
 
             if (hasInputChannelPower) value = MathF.Pow(value, inputPowerInv);
 
-            value += InputValueShift;
+            // WARN: Which should come first?!
             value *= InputValueScale;
+            value += InputValueShift;
+
             MathEx.Clamp(ref value, in InputMinValue, in InputMaxValue);
 
             return true;
@@ -183,8 +185,9 @@ namespace PixelGraph.Common.Textures
 
             if (hasInputChannelPower) value = MathF.Pow(value, inputPowerInv);
 
-            value += InputValueShift;
+            // WARN: Which should come first?!
             value *= InputValueScale;
+            value += InputValueShift;
 
             return true;
         }
@@ -219,8 +222,9 @@ namespace PixelGraph.Common.Textures
 
         public readonly bool TryMap(ref float value, out byte finalValue)
         {
-            value *= OutputValueScale;
+            // WARN: Which should come first?!
             value += OutputValueShift;
+            value *= OutputValueScale;
 
             if (hasOutputPower) value = MathF.Pow(value, OutputChannelPower);
 
@@ -269,8 +273,9 @@ namespace PixelGraph.Common.Textures
 
         public readonly void Map(ref float value, out float finalValue)
         {
-            value *= OutputValueScale;
+            // WARN: Which should come first?!
             value += OutputValueShift;
+            value *= OutputValueScale;
 
             if (hasOutputPower) value = MathF.Pow(value, OutputChannelPower);
 

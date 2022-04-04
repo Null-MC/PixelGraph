@@ -62,12 +62,13 @@ namespace PixelGraph.CLI
             services.AddSingleton<IAppCommandLine, AppCommandLine>();
             services.AddTransient<IServiceBuilder, ServiceBuilder>();
 
-            services.AddSingleton<ImportCommand>();
-            services.AddSingleton<ConvertCommand>();
-            services.AddSingleton<GenerateCommand>();
-            services.AddSingleton<GenerateNormalCommand>();
-            services.AddSingleton<GenerateOcclusionCommand>();
+            //services.AddSingleton<ImportCommand>();
+            //services.AddSingleton<ConvertCommand>();
+            //services.AddSingleton<GenerateCommand>();
+            //services.AddSingleton<GenerateNormalCommand>();
+            //services.AddSingleton<GenerateOcclusionCommand>();
             services.AddSingleton<PublishCommand>();
+            services.AddTransient<PublishCommand.Executor>();
         }
 
         private static void Console_OnCancelKeyPress(object sender, ConsoleCancelEventArgs e)

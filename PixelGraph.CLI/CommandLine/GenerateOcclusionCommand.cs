@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.CLI.CommandLine
 {
@@ -43,9 +44,12 @@ namespace PixelGraph.CLI.CommandLine
             };
 
             Command.AddOption(new Option<FileInfo>(
-                new [] {"--pbr"},
-                () => new FileInfo("pbr.properties"),
-                "The optional name of a PBR properties file containing settings for occlusion texture generation. Defaults to 'pbr.properties'."));
+                new [] {"--profile"},
+                "The file name of the profile to publish."));
+
+            Command.AddOption(new Option<FileInfo>(
+                new [] {"-mat"},
+                "The file name of the material to generate AO for."));
 
             Command.AddOption(new Option<FileInfo>(
                 new [] {"-h", "--height"},
@@ -60,18 +64,36 @@ namespace PixelGraph.CLI.CommandLine
                 "Override a pack property."));
         }
 
-        private async Task<int> RunAsync(FileInfo pbr, FileInfo height, string occlusion, string[] property)
+        private async Task<int> RunAsync(FileInfo profile, FileInfo height, string occlusion, string[] property)
         {
-            factory.AddContentReader(ContentTypes.File);
-            factory.AddContentWriter(ContentTypes.File);
-            factory.AddTextureReader(GameEditions.None);
+            //factory.AddContentReader(ContentTypes.File);
+            //factory.AddContentWriter(ContentTypes.File);
+            //factory.AddTextureReader(GameEditions.None);
+            var root = Path.GetDirectoryName(profile.FullName) ?? ".";
+            //var profileFile = Path.GetFileName(profile.FullName);
+            //var inputName = PathEx.Join(root, "input.yml");
 
-            factory.Services.AddTransient<Executor>();
-            await using var provider = factory.Build();
+            //factory.Services.AddTransient<Executor>();
+            //await using var provider = factory.Build();
+
+            var timer = Stopwatch.StartNew();
 
             try {
+                await using (var stream = profile.OpenRead()) {
+                    context.Profile = ResourcePackReader.ParseProfile(stream);
+                }
+
+                var inputFile = PathEx.Join(root, "input.yml");
+                await using (var stream = File.OpenRead(inputFile)) {
+                    context.Input = ResourcePackReader.ParseInput(stream);
+                }
+
                 var executor = provider.GetRequiredService<Executor>();
-                await executor.ExecuteAsync(pbr.FullName, height.FullName, occlusion, property, lifetime.Token);
+
+                logger.LogDebug("Generating ambient occlusion for texture {DisplayName}.", material.DisplayName);
+
+                await executor.ExecuteAsync(profile.FullName, height.FullName, occlusion, property, lifetime.Token);
+                logger.LogInformation("Ambient Occlusion texture {outputName} generated successfully.", occlusionFilename);
                 return 0;
             }
             catch (ApplicationException error) {
@@ -79,54 +101,68 @@ namespace PixelGraph.CLI.CommandLine
                 ConsoleEx.WriteLine(error.Message, ConsoleColor.DarkRed);
                 return -1;
             }
+            catch (SourceEmptyException) {
+                logger.LogError("Unable to locate valid height source for ambient occlusion generation!");
+                return -1;
+            }
             catch (Exception error) {
                 logger.LogError(error, "An unhandled exception occurred while generating occlusion texture!");
                 return -1;
+            }
+            finally {
+                timer.Stop();
+                var duration = timer.Elapsed.ToString("g");
+                logger.LogDebug("Duration: {duration}", duration);
             }
         }
 
         private class Executor
         {
-            private readonly IServiceProvider provider;
-            private readonly IInputReader reader;
-            private readonly ITextureWriter texWriter;
-            private readonly IResourcePackReader packReader;
-            private readonly IMaterialReader materialReader;
+            private readonly IServiceBuilder builder;
+            //private readonly IInputReader reader;
+            //private readonly ITextureWriter texWriter;
+            //private readonly IResourcePackReader packReader;
+            //private readonly IMaterialReader materialReader;
             private readonly ILogger logger;
 
 
             public Executor(
                 ILogger<Executor> logger,
-                IServiceProvider provider,
-                IInputReader reader,
-                ITextureWriter texWriter,
-                IResourcePackReader packReader,
-                IMaterialReader materialReader)
+                IServiceBuilder builder)
+                //IInputReader reader,
+                //ITextureWriter texWriter,
+                //IResourcePackReader packReader,
+                //IMaterialReader materialReader)
             {
-                this.provider = provider;
-                this.reader = reader;
-                this.texWriter = texWriter;
-                this.packReader = packReader;
-                this.materialReader = materialReader;
+                this.builder = builder;
+                //this.reader = reader;
+                //this.texWriter = texWriter;
+                //this.packReader = packReader;
+                //this.materialReader = materialReader;
                 this.logger = logger;
             }
 
-            public async Task ExecuteAsync(string pbrFilename, string heightFilename, string occlusionFilename, string[] properties, CancellationToken token = default)
+            public async Task ExecuteAsync(ResourcePackContext context, string sourcePath, string heightFilename, string occlusionFilename, string[] properties, CancellationToken token = default)
             {
-                var root = Path.GetDirectoryName(pbrFilename) ?? ".";
-                var packName = Path.GetFileName(pbrFilename);
-                var inputName = PathEx.Join(root, "input.yml");
+                //var root = Path.GetDirectoryName(pbrFilename) ?? ".";
+                //var packName = Path.GetFileName(pbrFilename);
+                //var inputName = PathEx.Join(root, "input.yml");
 
-                reader.SetRoot(root);
+                builder.Services.Configure<InputOptions>(options => {
+                    options.Root = sourcePath;
+                });
 
-                var packInput = await packReader.ReadInputAsync(inputName);
-                var packProfile = await packReader.ReadProfileAsync(pbrFilename);
+                await using var scope = builder.Build();
+
+                //var packInput = await packReader.ReadInputAsync(inputName);
+                //var packProfile = await packReader.ReadProfileAsync(pbrFilename);
 
                 if (properties != null) {
                     // TODO: apply properties?
                 }
 
-                var material = await materialReader.LoadAsync(packName, token);
+                var matReader = scope.GetRequiredService<IMaterialReader>();
+                var material = await matReader.LoadAsync(packName, token);
 
                 if (heightFilename != null && File.Exists(heightFilename)) {
                     var heightName = Path.GetFileName(heightFilename);
@@ -134,8 +170,6 @@ namespace PixelGraph.CLI.CommandLine
                     material.Name = heightName;
                     material.Height.Texture = heightFilename;
                 }
-
-                var timer = Stopwatch.StartNew();
 
                 if (occlusionFilename == null) {
                     var ext = NamingStructure.GetExtension(packProfile);
@@ -148,32 +182,19 @@ namespace PixelGraph.CLI.CommandLine
 
                 logger.LogDebug("Generating ambient occlusion for texture {DisplayName}.", material.DisplayName);
 
-                try {
-                    using var scope = provider.CreateScope();
-                    var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                    var occlusionGraph = provider.GetRequiredService<ITextureOcclusionGraph>();
+                var graphContext = scope.GetRequiredService<ITextureGraphContext>();
+                var occlusionGraph = scope.GetRequiredService<ITextureOcclusionGraph>();
 
-                    context.Input = packInput;
-                    context.Profile = packProfile;
-                    context.Material = material;
-                    context.InputEncoding = packInput.GetMapped().ToList();
-                    context.OutputEncoding = packInput.GetMapped().ToList();
+                graphContext.Input = packInput;
+                graphContext.Profile = packProfile;
+                graphContext.Material = material;
+                graphContext.InputEncoding = packInput.GetMapped().ToList();
+                graphContext.OutputEncoding = packInput.GetMapped().ToList();
 
-                    using var occlusionImage = await occlusionGraph.GenerateAsync(token);
+                using var occlusionImage = await occlusionGraph.GenerateAsync(token);
 
-                    await occlusionImage.SaveAsync(occlusionFilename, token);
-                    logger.LogInformation("Ambient Occlusion texture {outputName} generated successfully.", occlusionFilename);
-                }
-                catch (SourceEmptyException) {
-                    logger.LogError("Unable to locate valid height source for ambient occlusion generation!");
-                }
-                catch (Exception error) {
-                    logger.LogError(error, "Failed to generate Ambient Occlusion texture {outputName}!", occlusionFilename);
-                }
-
-                timer.Stop();
-                var duration = timer.Elapsed.ToString("g");
-                logger.LogDebug("Duration: {duration}", duration);
+                await occlusionImage.SaveAsync(occlusionFilename, token);
+                logger.LogInformation("Ambient Occlusion texture {outputName} generated successfully.", occlusionFilename);
             }
         }
     }

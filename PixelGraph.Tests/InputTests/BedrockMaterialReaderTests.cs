@@ -17,8 +17,7 @@ namespace PixelGraph.Tests.InputTests
 
         public BedrockMaterialReaderTests(ITestOutputHelper output) : base(output)
         {
-            Builder.AddContentReader(ContentTypes.File);
-            Builder.AddTextureReader(GameEditions.Bedrock);
+            Builder.ConfigureReader(ContentTypes.File, GameEditions.Bedrock, null);
 
             provider = Builder.Build();
         }

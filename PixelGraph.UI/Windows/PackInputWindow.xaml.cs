@@ -2,11 +2,11 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Windows;
-using PixelGraph.Common.TextureFormats;
 
 namespace PixelGraph.UI.Windows
 {

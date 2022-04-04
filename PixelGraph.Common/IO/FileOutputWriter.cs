@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using Microsoft.Extensions.Options;
+using PixelGraph.Common.Extensions;
 using System;
 using System.IO;
 using System.Threading;
@@ -8,30 +9,30 @@ namespace PixelGraph.Common.IO
 {
     internal class FileOutputWriter : IOutputWriter
     {
-        private string destinationPath;
+        private readonly IOptions<OutputOptions> options;
 
 
-        public void SetRoot(string absolutePath)
+        public FileOutputWriter(IOptions<OutputOptions> options)
         {
-            destinationPath = absolutePath;
+            this.options = options;
         }
 
         public void Prepare()
         {
-            if (!Directory.Exists(destinationPath))
-                Directory.CreateDirectory(destinationPath);
+            if (!Directory.Exists(options.Value.Root))
+                Directory.CreateDirectory(options.Value.Root);
         }
 
         public async Task OpenReadAsync(string localFilename, Func<Stream, Task> readFunc, CancellationToken token = default)
         {
-            var filename = PathEx.Join(destinationPath, localFilename);
+            var filename = PathEx.Join(options.Value.Root, localFilename);
             await using var stream = File.Open(filename, FileMode.Open, FileAccess.Read);
             await readFunc(stream);
         }
 
         public async Task OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
-            var filename = PathEx.Join(destinationPath, localFilename);
+            var filename = PathEx.Join(options.Value.Root, localFilename);
             CreateMissingDirectory(filename);
 
             await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
@@ -40,7 +41,7 @@ namespace PixelGraph.Common.IO
 
         public async Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
-            var filename = PathEx.Join(destinationPath, localFilename);
+            var filename = PathEx.Join(options.Value.Root, localFilename);
             CreateMissingDirectory(filename);
 
             await using var stream = File.Open(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
@@ -49,24 +50,24 @@ namespace PixelGraph.Common.IO
 
         public bool FileExists(string localFile)
         {
-            var fullFile = PathEx.Join(destinationPath, localFile);
+            var fullFile = PathEx.Join(options.Value.Root, localFile);
             return File.Exists(fullFile);
         }
 
         public void Delete(string localFile)
         {
-            var fullFile = PathEx.Join(destinationPath, localFile);
+            var fullFile = PathEx.Join(options.Value.Root, localFile);
             File.Delete(fullFile);
         }
 
         public void Clean()
         {
-            Directory.Delete(destinationPath, true);
+            Directory.Delete(options.Value.Root, true);
         }
 
         public DateTime? GetWriteTime(string localFile)
         {
-            var fullFile = PathEx.Join(destinationPath, localFile);
+            var fullFile = PathEx.Join(options.Value.Root, localFile);
             if (!File.Exists(fullFile)) return null;
             return File.GetLastWriteTime(fullFile);
         }

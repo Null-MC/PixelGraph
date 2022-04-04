@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using PixelGraph.Common;
-using PixelGraph.Common.IO;
+﻿using PixelGraph.Common;
 using PixelGraph.Tests.Internal.Mocks;
 using System;
 using System.IO;
@@ -16,7 +13,8 @@ namespace PixelGraph.Tests.Internal
 
         protected IServiceBuilder Builder {get;}
         protected ITestOutputHelper Output {get;}
-        protected string AssemblyPath => assemblyPathFunc.Value;
+
+        protected static string AssemblyPath => assemblyPathFunc.Value;
 
 
         static TestBase()
@@ -28,14 +26,8 @@ namespace PixelGraph.Tests.Internal
         {
             Output = output;
 
-            Builder = new ServiceBuilder();
-
-            Builder.Services.AddSingleton(output);
-            Builder.Services.AddSingleton(typeof(ILogger<>), typeof(TestLogger<>));
-            Builder.Services.AddSingleton<ILogger, TestLogger>();
-            Builder.Services.AddSingleton<IInputReader, MockInputReader>();
-            Builder.Services.AddSingleton<IOutputWriter, MockOutputWriter>();
-            Builder.Services.AddSingleton<MockFileContent>();
+            Builder = new MockServiceBuilder(output);
+            Builder.Initialize();
         }
 
         private static string GetAssemblyPath()

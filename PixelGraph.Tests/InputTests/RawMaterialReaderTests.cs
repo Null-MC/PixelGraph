@@ -17,8 +17,7 @@ namespace PixelGraph.Tests.InputTests
 
         public RawMaterialReaderTests(ITestOutputHelper output) : base(output)
         {
-            Builder.AddContentReader(ContentTypes.File);
-            Builder.AddTextureReader(GameEditions.None);
+            Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
 
             provider = Builder.Build();
         }

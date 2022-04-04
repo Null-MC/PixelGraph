@@ -189,8 +189,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Power = 1m,
                     Invert = false,
                     Perceptual = false,
+                    //EnableClipping = true,
                     ClipValue = 0m,
-                    EnableClipping = true,
                 },
 
                 Emissive = new ResourcePackEmissiveChannelProperties {

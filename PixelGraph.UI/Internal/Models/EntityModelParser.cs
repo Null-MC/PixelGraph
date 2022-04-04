@@ -9,17 +9,17 @@ using System.IO;
 
 namespace PixelGraph.UI.Internal.Models
 {
-    internal interface IEntityModelParser
+    //internal interface IEntityModelParser
+    //{
+    //    void Build<T>(T baseModel, string localFile) where T : EntityModelVersion, new();
+    //}
+
+    internal class EntityModelParser //: IEntityModelParser
     {
-        void Build<T>(T baseModel, string localFile) where T : EntityModelVersion, new();
-    }
-
-    internal class EntityModelParser : IEntityModelParser
-    {
-        private readonly IMinecraftResourceLocator locator;
+        private readonly MinecraftResourceLocator locator;
 
 
-        public EntityModelParser(IMinecraftResourceLocator locator)
+        public EntityModelParser(MinecraftResourceLocator locator)
         {
             this.locator = locator;
         }

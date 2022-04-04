@@ -17,8 +17,8 @@ namespace PixelGraph.Tests.PublishTests
 
         public JavaOldPbrPublishTests(ITestOutputHelper output) : base(output)
         {
-            Builder.AddTextureReader(GameEditions.None);
-            Builder.AddTextureWriter(GameEditions.Java);
+            Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
+            Builder.ConfigureWriter(ContentTypes.File, GameEditions.Java, null);
 
             packInput = new ResourcePackInputProperties {
                 Format = TextureFormat.Format_Raw,

@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO.Publishing
 {
-    public interface IJavaPublisher : IPublisher {}
+    //public interface IJavaPublisher : IPublisher {}
 
-    internal class JavaPublisher : PublisherBase<IDefaultPublishMapping>, IJavaPublisher
+    public class JavaPublisher : PublisherBase //, IJavaPublisher
     {
-        private readonly ICtmPublisher ctmPublish;
+        private readonly CtmPublisher ctmPublish;
 
 
         public JavaPublisher(
@@ -24,8 +24,7 @@ namespace PixelGraph.Common.IO.Publishing
             IPublishReader loader,
             IInputReader reader,
             IOutputWriter writer,
-            IDefaultPublishMapping mapping,
-            ICtmPublisher ctmPublish) : base(logger, provider, loader, reader, writer, mapping)
+            CtmPublisher ctmPublish) : base(logger, provider, loader, reader, writer)
         {
             this.ctmPublish = ctmPublish;
         }

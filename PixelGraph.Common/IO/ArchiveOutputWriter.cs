@@ -1,4 +1,5 @@
-﻿using Nito.AsyncEx;
+﻿using Microsoft.Extensions.Options;
+using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -10,24 +11,30 @@ namespace PixelGraph.Common.IO
     internal class ArchiveOutputWriter : IOutputWriter
     {
         private readonly AsyncLock writeLock;
-        private Stream fileStream;
-        private ZipArchive archive;
-
-        //public bool AllowConcurrency => false;
+        private readonly Stream fileStream;
+        private readonly ZipArchive archive;
 
 
-        public ArchiveOutputWriter()
+        public ArchiveOutputWriter(IOptions<OutputOptions> options)
         {
             writeLock = new AsyncLock();
+
+            fileStream = File.Open(options.Value.Root, FileMode.Create, FileAccess.Write);
+            archive = new ZipArchive(fileStream, ZipArchiveMode.Create);
         }
 
-        public void SetRoot(string absolutePath)
+        public void Dispose()
         {
             archive?.Dispose();
             fileStream?.Dispose();
+        }
 
-            fileStream = File.Open(absolutePath, FileMode.Create, FileAccess.Write);
-            archive = new ZipArchive(fileStream, ZipArchiveMode.Create);
+        public async ValueTask DisposeAsync()
+        {
+            archive?.Dispose();
+
+            if (fileStream != null)
+                await fileStream.DisposeAsync();
         }
 
         public void Prepare() {}
@@ -80,19 +87,5 @@ namespace PixelGraph.Common.IO
         }
 
         public void Clean() {}
-
-        public void Dispose()
-        {
-            archive?.Dispose();
-            fileStream?.Dispose();
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            archive?.Dispose();
-
-            if (fileStream != null)
-                await fileStream.DisposeAsync();
-        }
     }
 }

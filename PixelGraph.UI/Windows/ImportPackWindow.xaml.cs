@@ -47,9 +47,6 @@ namespace PixelGraph.UI.Windows
             await using var scope = scopeBuilder.Build();
 
             var reader = scope.GetRequiredService<IInputReader>();
-
-            reader.SetRoot(Model.ImportSource);
-
             var root = await Task.Run(() => GetPathNode(reader, ".", token), token);
 
             await Dispatcher.BeginInvoke(() => {
@@ -60,23 +57,14 @@ namespace PixelGraph.UI.Windows
 
         private async Task RunAsync(CancellationToken token)
         {
-            var scopeBuilder = BuildScope();
-            //var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
+            var serviceBuilder = BuildScope();
             
-            //scopeBuilder.AddContentWriter(ContentTypes.File);
-            //scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
-
-            var logReceiver = scopeBuilder.AddLoggingRedirect();
+            var logReceiver = serviceBuilder.AddLoggingRedirect();
             logReceiver.LogMessage += OnLogMessage;
-            
-            await using var scope = scopeBuilder.Build();
 
-            var reader = scope.GetRequiredService<IInputReader>();
-            var writer = scope.GetRequiredService<IOutputWriter>();
+            await using var scope = serviceBuilder.Build();
+
             var importer = scope.GetRequiredService<IResourcePackImporter>();
-
-            reader.SetRoot(Model.ImportSource);
-            writer.SetRoot(Model.RootDirectory);
 
             importer.AsGlobal = Model.AsGlobal;
             importer.CopyUntracked = Model.CopyUntracked;
@@ -94,16 +82,16 @@ namespace PixelGraph.UI.Windows
 
         private IServiceBuilder BuildScope()
         {
-            var scopeBuilder = provider.GetRequiredService<IServiceBuilder>();
+            var contentType = Model.IsArchive ? ContentTypes.Archive : ContentTypes.File;
 
-            scopeBuilder.AddContentReader(Model.IsArchive ? ContentTypes.Archive : ContentTypes.File);
-            scopeBuilder.AddTextureReader(Model.SourceGameEdition);
-            scopeBuilder.AddImporter(Model.SourceGameEdition);
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-            scopeBuilder.AddContentWriter(ContentTypes.File);
-            scopeBuilder.AddTextureWriter(GameEditions.None);
-
-            return scopeBuilder; //.Build();
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(contentType, Model.SourceGameEdition, Model.ImportSource);
+            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+            serviceBuilder.AddImporter(Model.SourceGameEdition);
+            
+            return serviceBuilder;
         }
 
         private ImportTreeNode GetPathNode(IInputReader reader, string localPath, CancellationToken token)
@@ -137,13 +125,6 @@ namespace PixelGraph.UI.Windows
 
             return node;
         }
-
-        //private static void BeginMessageBox(string message, string title)
-        //{
-        //    Application.Current.Dispatcher.Invoke(() => {
-        //        MessageBox.Show(message, title);
-        //    });
-        //}
 
         public void Dispose()
         {
@@ -199,25 +180,19 @@ namespace PixelGraph.UI.Windows
                 Model = {
                     Encoding = (ResourcePackEncoding)Model.Encoding.Clone(),
                     DefaultEncoding = formatFactory.Create(),
-                    //TextureFormat = Model.SourceFormat,
                     EnableSampler = false,
-                    //DefaultSampler = Samplers.Nearest,
                 },
             };
 
             if (window.ShowDialog() != true) return;
 
             Model.Encoding = (ResourcePackOutputProperties)window.Model.Encoding;
-            //Model.SourceFormat = window.Model.TextureFormat;
         }
 
         private void OnCancelClick(object sender, RoutedEventArgs e)
         {
             tokenSource.Cancel();
             LogList.Append(LogLevel.Warning, "Cancelling...");
-
-            //DialogResult = false;
-            //Close();
         }
 
         private void OnLogMessage(object sender, LogEventArgs e)

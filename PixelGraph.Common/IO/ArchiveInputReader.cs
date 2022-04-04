@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using Microsoft.Extensions.Options;
+using PixelGraph.Common.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,16 +10,20 @@ namespace PixelGraph.Common.IO
 {
     internal class ArchiveInputReader : BaseInputReader, IDisposable
     {
-        private Stream fileStream;
-        private ZipArchive archive;
+        private readonly Stream fileStream;
+        private readonly ZipArchive archive;
 
 
-        //public ArchiveInputReader(INamingStructure naming) : base(naming) {}
-
-        public override void SetRoot(string absolutePath)
+        public ArchiveInputReader(IOptions<InputOptions> options)
         {
-            fileStream = File.Open(absolutePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            fileStream = File.Open(options.Value.Root, FileMode.Open, FileAccess.Read, FileShare.Read);
             archive = new ZipArchive(fileStream, ZipArchiveMode.Read);
+        }
+
+        public void Dispose()
+        {
+            fileStream?.Dispose();
+            archive?.Dispose();
         }
 
         public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null)
@@ -71,12 +76,6 @@ namespace PixelGraph.Common.IO
         {
             return archive.GetEntry(localFile)?
                 .LastWriteTime.LocalDateTime;
-        }
-
-        public void Dispose()
-        {
-            fileStream?.Dispose();
-            archive?.Dispose();
         }
 
         private IEnumerable<ZipArchiveEntry> GetPathEntries(string localPath)

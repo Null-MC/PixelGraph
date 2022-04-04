@@ -91,7 +91,7 @@ namespace PixelGraph.UI.Models
             NormalProperties.PropertyChanged += OnPropertyValueChanged;
         }
 
-        public void ImportFiltersFromModel(IModelLoader loader)
+        public void ImportFiltersFromModel(ModelLoader loader)
         {
             var entityModel = loader.GetJavaEntityModel(Material);
             if (entityModel != null) {

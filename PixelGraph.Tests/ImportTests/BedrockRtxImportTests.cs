@@ -20,9 +20,9 @@ namespace PixelGraph.Tests.ImportTests
 
         public BedrockRtxImportTests(ITestOutputHelper output) : base(output)
         {
+            Builder.ConfigureReader(ContentTypes.File, GameEditions.Bedrock, null);
+            Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
             Builder.AddImporter(GameEditions.Bedrock);
-            Builder.AddTextureReader(GameEditions.Bedrock);
-            Builder.AddTextureWriter(GameEditions.None);
 
             packInput = new ResourcePackInputProperties {
                 //Edition = GameEditions.Java,

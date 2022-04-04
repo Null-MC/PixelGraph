@@ -13,20 +13,23 @@ namespace PixelGraph.Common.IO.Serialization
         Task<ResourcePackProfileProperties> ReadProfileAsync(string filename);
     }
 
-    internal class ResourcePackReader : IResourcePackReader
+    public class ResourcePackReader : IResourcePackReader
     {
+        private static readonly IDeserializer deserializer;
         private readonly IInputReader reader;
-        private readonly IDeserializer deserializer;
 
 
-        public ResourcePackReader(IInputReader reader)
+        static ResourcePackReader()
         {
-            this.reader = reader;
-
             deserializer = new DeserializerBuilder()
                 .WithTypeConverter(new YamlStringEnumConverter())
                 .WithNamingConvention(HyphenatedNamingConvention.Instance)
                 .Build();
+        }
+
+        public ResourcePackReader(IInputReader reader)
+        {
+            this.reader = reader;
         }
 
         public async Task<ResourcePackInputProperties> ReadInputAsync(string localFile)
@@ -34,8 +37,7 @@ namespace PixelGraph.Common.IO.Serialization
             ResourcePackInputProperties packInput = null;
             if (reader.FileExists(localFile)) {
                 await using var stream = reader.Open(localFile);
-                using var streamReader = new StreamReader(stream);
-                packInput = deserializer.Deserialize<ResourcePackInputProperties>(streamReader);
+                packInput = ParseInput(stream);
             }
 
             return packInput ?? new ResourcePackInputProperties();
@@ -44,12 +46,21 @@ namespace PixelGraph.Common.IO.Serialization
         public async Task<ResourcePackProfileProperties> ReadProfileAsync(string localFile)
         {
             await using var stream = reader.Open(localFile);
-            using var streamReader = new StreamReader(stream);
-            var pack = deserializer.Deserialize<ResourcePackProfileProperties>(streamReader)
-                   ?? new ResourcePackProfileProperties();
-
+            var pack = ParseProfile(stream) ?? new ResourcePackProfileProperties();
             pack.LocalFile = localFile;
             return pack;
+        }
+
+        public static ResourcePackInputProperties ParseInput(Stream stream)
+        {
+            using var streamReader = new StreamReader(stream);
+            return deserializer.Deserialize<ResourcePackInputProperties>(streamReader);
+        }
+
+        public static ResourcePackProfileProperties ParseProfile(Stream stream)
+        {
+            using var streamReader = new StreamReader(stream);
+            return deserializer.Deserialize<ResourcePackProfileProperties>(streamReader);
         }
     }
 }

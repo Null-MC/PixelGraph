@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Extensions\RectangleExtensions.cs" />
     <Compile Remove="ImageProcessors\ChannelActionProcessor.cs" />
     <Compile Remove="ImageProcessors\ChannelResizeProcessor.cs" />
     <Compile Remove="ImageProcessors\NormalRestoreProcessor.cs" />

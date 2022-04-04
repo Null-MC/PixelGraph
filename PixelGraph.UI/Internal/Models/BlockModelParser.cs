@@ -11,17 +11,17 @@ using System.Linq;
 
 namespace PixelGraph.UI.Internal.Models
 {
-    internal interface IBlockModelParser
+    //internal interface IBlockModelParser
+    //{
+    //    BlockModelVersion LoadRecursive(string localFile);
+    //}
+
+    internal class BlockModelParser //: IBlockModelParser
     {
-        BlockModelVersion LoadRecursive(string localFile);
-    }
-
-    internal class BlockModelParser : IBlockModelParser
-    {
-        private readonly IMinecraftResourceLocator locator;
+        private readonly MinecraftResourceLocator locator;
 
 
-        public BlockModelParser(IMinecraftResourceLocator locator)
+        public BlockModelParser(MinecraftResourceLocator locator)
         {
             this.locator = locator;
         }

@@ -16,7 +16,7 @@ namespace PixelGraph.UI.Controls
     {
         public event EventHandler DataChanged;
 
-        private IServiceProvider _provider {get; set;}
+        private IServiceProvider provider;
         private ILogger<MaterialFiltersControl> logger;
 
         //private MaterialFiltersViewModel Model => DataContext as MaterialFiltersViewModel;
@@ -37,9 +37,9 @@ namespace PixelGraph.UI.Controls
             InitializeComponent();
         }
 
-        public void Initialize(IServiceProvider provider)
+        public void Initialize(IServiceProvider _provider)
         {
-            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            provider = _provider ?? throw new ArgumentNullException(nameof(_provider));
 
             logger = provider.GetRequiredService<ILogger<MaterialFiltersControl>>();
         }
@@ -99,7 +99,7 @@ namespace PixelGraph.UI.Controls
             }
 
             try {
-                var loader = _provider.GetRequiredService<IModelLoader>();
+                var loader = provider.GetRequiredService<ModelLoader>();
                 Model.ImportFiltersFromModel(loader);
                 Model.UpdateFilterList();
             }

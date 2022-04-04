@@ -2,7 +2,6 @@
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
@@ -18,12 +17,12 @@ namespace PixelGraph.Common.Samplers
         public float RangeY {get; set;}
         public bool WrapX {get; set;}
         public bool WrapY {get; set;}
-        public RectangleF Bounds {get; set;}
+        public Rectangle Bounds {get; set;}
 
 
         protected SamplerBase()
         {
-            Bounds = new RectangleF(0f, 0f, 1f, 1f);
+            Bounds = Rectangle.Empty;
         }
 
         public abstract void Sample(in double x, in double y, ref Rgba32 pixel);
@@ -50,52 +49,52 @@ namespace PixelGraph.Common.Samplers
 
         protected void GetTexCoord(in double x, in double y, out float fx, out float fy)
         {
-            fx = (float)((Bounds.X + x * Bounds.Width) * Image.Width);
-            fy = (float)((Bounds.Y + y * Bounds.Height) * Image.Height);
-            //fx = (float)((Bounds.X + x * Bounds.Width) * (Image.Width - 1));
-            //fy = (float)((Bounds.Y + y * Bounds.Height) * (Image.Height - 1));
+            //Bounds.GetTexCoord(in x, in y, out var dx, out var dy);
+
+            //fx = (float)(Bounds.Left + x * Bounds.Width) * Image.Width;
+            //fy = (float)(Bounds.Top + y * Bounds.Height) * Image.Height;
+            fx = (float)(Bounds.Left + x * Bounds.Width);
+            fy = (float)(Bounds.Top + y * Bounds.Height);
         }
 
         protected void WrapCoordX(ref int x)
         {
-            if (Bounds.Width == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
+            //var innerImageWidth = Image.Width - 1;
+            //var outerBoundsWidth = (int)(Bounds.Width * Image.Width);
+            //var left = (int)(Bounds.Left * innerImageWidth);
+            //var right = (int)(Bounds.Right * innerImageWidth);
 
-            //var width = (int)(Bounds.Width * Image.Width + 0.5f);
-            var innerImageWidth = Image.Width - 1;
-            var outerBoundsWidth = (int)(Bounds.Width * Image.Width);
-            var left = (int)(Bounds.Left * innerImageWidth);
-            var right = (int)(Bounds.Right * innerImageWidth);
+            //while (x < left) x += outerBoundsWidth;
+            //while (x > right) x -= outerBoundsWidth;
 
-            while (x < left) x += outerBoundsWidth;
-            while (x > right) x -= outerBoundsWidth;
+            while (x < Bounds.Left) x += Bounds.Width;
+            while (x >= Bounds.Right) x -= Bounds.Width;
         }
 
         protected void WrapCoordY(ref int y)
         {
-            if (Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
+            //var innerImageHeight = Image.Height - 1;
+            //var outerBoundsHeight = (int)(Bounds.Height * Image.Height);
+            //var top = (int)(Bounds.Top * innerImageHeight);
+            //var bottom = (int)(Bounds.Bottom * innerImageHeight);
 
-            //var height = (int)(Bounds.Height * Image.Height + 0.5f);
-            var innerImageHeight = Image.Height - 1;
-            var outerBoundsHeight = (int)(Bounds.Height * Image.Height);
-            var top = (int)(Bounds.Top * innerImageHeight);
-            var bottom = (int)(Bounds.Bottom * innerImageHeight);
+            //while (y < top) y += outerBoundsHeight;
+            //while (y > bottom) y -= outerBoundsHeight;
 
-            while (y < top) y += outerBoundsHeight;
-            while (y > bottom) y -= outerBoundsHeight;
+            while (y < Bounds.Top) y += Bounds.Height;
+            while (y >= Bounds.Bottom) y -= Bounds.Height;
         }
 
         protected void ClampCoordX(ref int x)
         {
-            if (Bounds.Width == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
-            if (x < Bounds.Left * Image.Width) x = (int)(Bounds.Left * Image.Width);
-            if (x >= Bounds.Right * Image.Width) x = (int)(Bounds.Right * Image.Width) - 1;
+            if (x < Bounds.Left) x = Bounds.Left;
+            if (x >= Bounds.Right) x = Bounds.Right-1;
         }
 
         protected void ClampCoordY(ref int y)
         {
-            if (Bounds.Height == 0) throw new ArgumentOutOfRangeException(nameof(Bounds));
-            if (y < Bounds.Top * Image.Height) y = (int)(Bounds.Top * Image.Height);
-            if (y >= Bounds.Bottom * Image.Height) y = (int)(Bounds.Bottom * Image.Height) - 1;
+            if (y < Bounds.Top) y = Bounds.Top;
+            if (y >= Bounds.Bottom) y = Bounds.Bottom-1;
         }
     }
 }

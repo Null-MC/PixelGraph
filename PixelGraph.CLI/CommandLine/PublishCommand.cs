@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.CLI.Extensions;
 using PixelGraph.Common;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
@@ -18,19 +19,19 @@ namespace PixelGraph.CLI.CommandLine
 {
     internal class PublishCommand
     {
-        private readonly IServiceBuilder factory;
+        private readonly ILogger<PublishCommand> logger;
+        private readonly IServiceProvider provider;
         private readonly IAppLifetime lifetime;
-        private readonly ILogger logger;
 
         public Command Command {get;}
 
 
         public PublishCommand(
             ILogger<PublishCommand> logger,
-            IServiceBuilder factory,
+            IServiceProvider provider,
             IAppLifetime lifetime)
         {
-            this.factory = factory;
+            this.provider = provider;
             this.lifetime = lifetime;
             this.logger = logger;
 
@@ -61,21 +62,38 @@ namespace PixelGraph.CLI.CommandLine
 
         private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, FileInfo zip, bool clean, int concurrency)
         {
-            factory.AddContentReader(ContentTypes.File);
-            factory.AddContentWriter(zip != null ? ContentTypes.Archive : ContentTypes.File);
-            factory.AddTextureReader(GameEditions.None);
+            var root = Path.GetDirectoryName(profile.FullName);
+            var profileLocalFile = Path.GetFileName(profile.FullName);
+            var destPath = zip?.FullName ?? destination.FullName;
 
-            factory.Services.AddTransient<Executor>();
-            await using var provider = factory.Build();
+            var timer = Stopwatch.StartNew();
 
             try {
-                var destPath = zip?.FullName ?? destination.FullName;
+                var context = new ResourcePackContext();
+
+                await using (var stream = profile.OpenRead()) {
+                    context.Profile = ResourcePackReader.ParseProfile(stream);
+                }
+
+                var inputFile = PathEx.Join(root, "input.yml");
+                await using (var stream = File.OpenRead(inputFile)) {
+                    context.Input = ResourcePackReader.ParseInput(stream);
+                }
+
+                ConsoleEx.WriteLine("\nPublishing...", ConsoleColor.White);
+                ConsoleEx.Write("  Profile     : ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine(profileLocalFile, ConsoleColor.Cyan);
+                ConsoleEx.Write("  Destination : ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine(destPath, ConsoleColor.Cyan);
+                ConsoleEx.WriteLine();
 
                 var executor = provider.GetRequiredService<Executor>();
+                executor.Context = context;
                 executor.Concurrency = concurrency;
                 executor.CleanDestination = clean;
+                executor.AsArchive = zip != null;
 
-                await executor.ExecuteAsync(profile.FullName, destPath, lifetime.Token);
+                await executor.ExecuteAsync(root, destPath, lifetime.Token);
 
                 return 0;
             }
@@ -88,84 +106,61 @@ namespace PixelGraph.CLI.CommandLine
                 logger.LogError(error, "An unhandled exception occurred while publishing!");
                 return -1;
             }
+            finally {
+                timer.Stop();
+
+                ConsoleEx.Write("\nPublish Duration: ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
+            }
         }
 
-        private class Executor
+        internal class Executor
         {
-            private readonly IServiceProvider provider;
-            private readonly IInputReader reader;
-            private readonly IOutputWriter writer;
-            private readonly IResourcePackReader packReader;
+            private readonly IServiceBuilder serviceBuilder;
 
+            public ResourcePackContext Context {get; set;}
             public bool CleanDestination {get; set;}
-            public int Concurrency {get; set;}
+            public int Concurrency {get; set;} = 1;
+            public bool AsArchive {get; set;}
 
 
-            public Executor(
-                IServiceProvider provider,
-                IResourcePackReader packReader,
-                IInputReader reader,
-                IOutputWriter writer)
+            public Executor(IServiceBuilder serviceBuilder)
             {
-                this.provider = provider;
-                this.packReader = packReader;
-                this.reader = reader;
-                this.writer = writer;
+                this.serviceBuilder = serviceBuilder;
+
+                serviceBuilder.Initialize();
             }
 
-            public async Task ExecuteAsync(string packFilename, string destFilename, CancellationToken token = default)
+            public async Task ExecuteAsync(string sourcePath, string destFilename, CancellationToken token = default)
             {
-                if (packFilename == null) throw new ApplicationException("Pack profile is undefined!");
+                //if (context == null) throw new ArgumentNullException(nameof(context));
                 if (destFilename == null) throw new ApplicationException("Either Destination or Zip must be defined!");
 
-                ConsoleEx.WriteLine("\nPublishing...", ConsoleColor.White);
-                ConsoleEx.Write("  Profile     : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(packFilename, ConsoleColor.Cyan);
-                ConsoleEx.Write("  Destination : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(destFilename, ConsoleColor.Cyan);
-                ConsoleEx.WriteLine();
+                var contentType = AsArchive ? ContentTypes.Archive : ContentTypes.File;
+                var edition = GameEdition.Parse(Context.Profile.Edition);
+                
+                serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, sourcePath);
+                serviceBuilder.ConfigureWriter(contentType, edition, destFilename);
+                serviceBuilder.Services.AddTransient<Executor>();
 
-                var root = Path.GetDirectoryName(packFilename);
-                var localFile = Path.GetFileName(packFilename);
+                await using var scope = serviceBuilder.Build();
 
-                reader.SetRoot(root);
-                writer.SetRoot(destFilename);
+                var writer = scope.GetRequiredService<IOutputWriter>();
+                writer.Prepare();
 
-                var timer = Stopwatch.StartNew();
+                var publisher = GetPublisher(scope, Context.Profile);
+                publisher.Concurrency = Concurrency;
 
-                try {
-                    writer.Prepare();
-
-                    var packProfile = await packReader.ReadProfileAsync(localFile);
-                    var packInput = await packReader.ReadInputAsync("input.yml");
-
-                    var context = new ResourcePackContext {
-                        Input = packInput,
-                        Profile = packProfile,
-                    };
-
-                    var publisher = GetPublisher(packProfile);
-
-                    //if (writer.AllowConcurrency)
-                    publisher.Concurrency = Concurrency;
-
-                    await publisher.PublishAsync(context, CleanDestination, token);
-                }
-                finally {
-                    timer.Stop();
-
-                    ConsoleEx.Write("\nPublish Duration: ", ConsoleColor.Gray);
-                    ConsoleEx.WriteLine($"{timer.Elapsed:g}", ConsoleColor.Cyan);
-                }
+                await publisher.PublishAsync(Context, CleanDestination, token);
             }
 
-            private IPublisher GetPublisher(ResourcePackProfileProperties profile)
+            private static IPublisher GetPublisher(IServiceProvider provider, ResourcePackProfileProperties profile)
             {
                 if (GameEdition.Is(profile.Edition, GameEdition.Java))
-                    return provider.GetRequiredService<IJavaPublisher>();
+                    return provider.GetRequiredService<JavaPublisher>();
 
                 if (GameEdition.Is(profile.Edition, GameEdition.Bedrock))
-                    return provider.GetRequiredService<IBedrockPublisher>();
+                    return provider.GetRequiredService<BedrockPublisher>();
 
                 throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");
             }

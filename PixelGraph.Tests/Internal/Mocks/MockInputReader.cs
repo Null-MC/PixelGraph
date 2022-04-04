@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using Microsoft.Extensions.Options;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using System;
 using System.Collections.Generic;
@@ -8,25 +9,24 @@ namespace PixelGraph.Tests.Internal.Mocks
 {
     internal class MockInputReader : BaseInputReader
     {
-        public MockFileContent Content {get;}
-        public string Root {get; set;} = ".";
+        private readonly IOptions<InputOptions> options;
+        private readonly MockFileContent _content;
+        //public string Root {get; set;} = ".";
 
 
-        public MockInputReader(MockFileContent content)
+        public MockInputReader(
+            IOptions<InputOptions> options,
+            MockFileContent content)
         {
-            Content = content;
-        }
-
-        public override void SetRoot(string absolutePath)
-        {
-            Root = absolutePath;
+            this.options = options;
+            _content = content;
         }
 
         public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = default)
         {
             var fullPath = GetFullPath(localPath);
 
-            foreach (var directory in Content.EnumerateDirectories(fullPath, pattern)) {
+            foreach (var directory in _content.EnumerateDirectories(fullPath, pattern)) {
                 var directoryName = Path.GetFileName(directory);
                 yield return PathEx.Join(localPath, directoryName);
             }
@@ -36,7 +36,7 @@ namespace PixelGraph.Tests.Internal.Mocks
         {
             var fullPath = GetFullPath(localPath);
 
-            foreach (var file in Content.EnumerateFiles(fullPath, pattern)) {
+            foreach (var file in _content.EnumerateFiles(fullPath, pattern)) {
                 var fileName = Path.GetFileName(file.Filename) ?? string.Empty;
                 yield return PathEx.Join(localPath, fileName);
             }
@@ -45,25 +45,25 @@ namespace PixelGraph.Tests.Internal.Mocks
         public override bool FileExists(string localFile)
         {
             var fullFile = GetFullPath(localFile);
-            return Content.FileExists(fullFile);
+            return _content.FileExists(fullFile);
         }
 
         public override Stream Open(string localFile)
         {
             var fullFile = GetFullPath(localFile);
-            return Content.OpenRead(fullFile);
+            return _content.OpenRead(fullFile);
         }
 
         public override DateTime? GetWriteTime(string localFile) => null;
 
         public override string GetFullPath(string localPath)
         {
-            return PathEx.Join(Root, localPath);
+            return PathEx.Join(options.Value.Root, localPath);
         }
 
         public override string GetRelativePath(string fullPath)
         {
-            return PathEx.TryGetRelative(Root, fullPath, out var localPath) ? localPath : fullPath;
+            return PathEx.TryGetRelative(options.Value.Root, fullPath, out var localPath) ? localPath : fullPath;
         }
     }
 }

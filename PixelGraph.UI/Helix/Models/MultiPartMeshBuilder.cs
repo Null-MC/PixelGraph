@@ -3,14 +3,17 @@ using Microsoft.Extensions.DependencyInjection;
 using MinecraftMappings.Internal.Models;
 using MinecraftMappings.Internal.Models.Block;
 using MinecraftMappings.Internal.Models.Entity;
+using PixelGraph.Common;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Rendering;
 using PixelGraph.Rendering.Models;
 using PixelGraph.Rendering.Shaders;
 using PixelGraph.UI.Helix.Controls;
 using PixelGraph.UI.Helix.Materials;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Models;
 using PixelGraph.UI.Internal.Settings;
 using SharpDX;
@@ -30,9 +33,8 @@ namespace PixelGraph.UI.Helix.Models
 
         private readonly IServiceProvider provider;
         private readonly IAppSettings appSettings;
-        private readonly IModelLoader modelLoader;
-        private readonly IMaterialReader materialReader;
-        private readonly IMinecraftResourceLocator locator;
+        private readonly IProjectContext projectContext;
+        private readonly ModelLoader modelLoader;
         private readonly Dictionary<string, IMaterialBuilder> materialMap;
         private readonly List<(IModelBuilder, IMaterialBuilder)> partsList;
         private bool isEntity;
@@ -40,14 +42,16 @@ namespace PixelGraph.UI.Helix.Models
         public ObservableElement3DCollection ModelParts {get;}
 
 
-        public MultiPartMeshBuilder(IServiceProvider provider)
+        public MultiPartMeshBuilder(
+            IServiceProvider provider,
+            IAppSettings appSettings,
+            IProjectContext projectContext,
+            ModelLoader modelLoader)
         {
             this.provider = provider;
-
-            appSettings = provider.GetRequiredService<IAppSettings>();
-            modelLoader = provider.GetRequiredService<IModelLoader>();
-            materialReader = provider.GetRequiredService<IMaterialReader>();
-            locator = provider.GetRequiredService<IMinecraftResourceLocator>();
+            this.appSettings = appSettings;
+            this.projectContext = projectContext;
+            this.modelLoader = modelLoader;
 
             materialMap = new Dictionary<string, IMaterialBuilder>();
             ModelParts = new ObservableElement3DCollection();
@@ -118,7 +122,7 @@ namespace PixelGraph.UI.Helix.Models
             }
         }
 
-        private void FlattenBlockModelTextures(BlockModelVersion model)
+        private static void FlattenBlockModelTextures(BlockModelVersion model)
         {
             var remappedKeys = model.Textures
                 .Where(p => p.Value.StartsWith('#'))
@@ -206,6 +210,16 @@ namespace PixelGraph.UI.Helix.Models
         {
             ClearTextureBuilders();
 
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+            await using var scope = serviceBuilder.Build();
+
+            var matReader = scope.GetRequiredService<IMaterialReader>();
+            var locator = scope.GetRequiredService<MinecraftResourceLocator>();
+
             foreach (var (textureId, textureFile) in textureMap) {
                 if (string.Equals(textureId, "particle", StringComparison.InvariantCultureIgnoreCase)) continue;
 
@@ -222,7 +236,7 @@ namespace PixelGraph.UI.Helix.Models
                 }
                 //else if (renderContext.DefaultMaterial.CTM.Method)
                 else if (locator.FindLocalMaterial(textureFile, out var materialFile)) {
-                    material = await materialReader.LoadAsync(materialFile, token);
+                    material = await matReader.LoadAsync(materialFile, token);
                 }
                 else {
                     //throw new ApplicationException($"Unable to locate material '{textureFile}'!");
@@ -270,10 +284,13 @@ namespace PixelGraph.UI.Helix.Models
         {
             var materialBuilder = CreateMaterialBuilder(renderContext.RenderMode);
 
-            materialBuilder.PackInput = renderContext.PackInput;
-            materialBuilder.PackProfile = renderContext.PackProfile;
-            materialBuilder.Material = material;
+            materialBuilder.PackContext = new ResourcePackContext {
+                //RootPath = projectContext.RootDirectory,
+                Input = renderContext.PackInput,
+                Profile = renderContext.PackProfile,
+            };
 
+            materialBuilder.Material = material;
             materialBuilder.EnvironmentCubeMapSource = renderContext.EnvironmentCubeMap;
             materialBuilder.RenderEnvironmentMap = renderContext.EnvironmentEnabled;
 

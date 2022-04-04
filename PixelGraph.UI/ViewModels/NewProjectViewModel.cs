@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
@@ -13,24 +14,27 @@ namespace PixelGraph.UI.ViewModels
 {
     internal class NewProjectViewModel
     {
-        //private readonly IServiceProvider provider;
-        private readonly IOutputWriter writer;
-        private readonly IResourcePackWriter packWriter;
+        private readonly IServiceProvider provider;
 
         public NewProjectModel Model {get; set;}
 
 
         public NewProjectViewModel(IServiceProvider provider)
         {
-            //this.provider = provider;
-
-            writer = provider.GetRequiredService<IOutputWriter>();
-            packWriter = provider.GetRequiredService<IResourcePackWriter>();
+            this.provider = provider;
         }
 
         public async Task CreatePackFilesAsync()
         {
-            writer.SetRoot(Model.Location);
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.AddContentWriter(ContentTypes.File);
+            serviceBuilder.Services.Configure<OutputOptions>(options => options.Root = Model.Location);
+
+            await using var scope = serviceBuilder.Build();
+
+            var packWriter = provider.GetRequiredService<IResourcePackWriter>();
 
             var packInput = new ResourcePackInputProperties {
                 Format = TextureFormat.Format_Raw,
@@ -118,12 +122,6 @@ namespace PixelGraph.UI.ViewModels
             TryCreateDirectory(mcPath, "textures", "models");
             TryCreateDirectory(mcPath, "textures", "painting");
             TryCreateDirectory(mcPath, "textures", "particle");
-
-            TryCreateDirectory(mcPath, "optifine", "cit");
-            TryCreateDirectory(mcPath, "optifine", "colormap");
-            TryCreateDirectory(mcPath, "optifine", "ctm");
-            TryCreateDirectory(mcPath, "optifine", "mob");
-            TryCreateDirectory(mcPath, "optifine", "sky");
 
             var realmsPath = PathEx.Join(Model.Location, "assets", "realms");
 

@@ -17,8 +17,7 @@ namespace PixelGraph.Tests.InputTests
 
         public JavaMaterialReaderTests(ITestOutputHelper output) : base(output)
         {
-            Builder.AddContentReader(ContentTypes.File);
-            Builder.AddTextureReader(GameEditions.Java);
+            Builder.ConfigureReader(ContentTypes.File, GameEditions.Java, null);
 
             provider = Builder.Build();
         }

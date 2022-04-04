@@ -92,7 +92,7 @@ namespace PixelGraph.Common.Textures
 
                 if (inventoryOptions.NormalSampler != null || inventoryOptions.OcclusionSampler != null) {
                     var processor = new ItemProcessor<L8, Rgba32>(inventoryOptions);
-                    var regions = provider.GetRequiredService<ITextureRegionEnumerator>();
+                    var regions = provider.GetRequiredService<TextureRegionEnumerator>();
                     regions.SourceFrameCount = 1; //FrameCount;
                     regions.DestFrameCount = 1;
                     regions.TargetFrame = 0;
@@ -106,14 +106,20 @@ namespace PixelGraph.Common.Textures
                         var frame = part.Frames.FirstOrDefault();
                         if (frame == null) continue;
 
-                        if (inventoryOptions.NormalSampler != null)
-                            inventoryOptions.NormalSampler.Bounds = regions.GetFrameTileBounds(TargetFrame, normalGraph.NormalFrameCount, part.TileIndex);
+                        if (inventoryOptions.NormalSampler != null) {
+                            regions.GetFrameTileBounds(TargetFrame, normalGraph.NormalFrameCount, part.TileIndex, out var region);
+                            inventoryOptions.NormalSampler.SetBounds(in region);
+                        }
 
-                        if (inventoryOptions.OcclusionSampler != null)
-                            inventoryOptions.OcclusionSampler.Bounds = regions.GetFrameTileBounds(TargetFrame, occlusionGraph.FrameCount, part.TileIndex);
+                        if (inventoryOptions.OcclusionSampler != null) {
+                            regions.GetFrameTileBounds(TargetFrame, occlusionGraph.FrameCount, part.TileIndex, out var region);
+                            inventoryOptions.OcclusionSampler.SetBounds(in region);
+                        }
 
-                        if (emissiveChannel != null && emissiveInfo != null)
-                            inventoryOptions.EmissiveSampler.Bounds = regions.GetFrameTileBounds(TargetFrame, emissiveInfo.FrameCount, part.TileIndex);
+                        if (emissiveChannel != null && emissiveInfo != null) {
+                            regions.GetFrameTileBounds(TargetFrame, emissiveInfo.FrameCount, part.TileIndex, out var region);
+                            inventoryOptions.EmissiveSampler.SetBounds(in region);
+                        }
 
                         var outBounds = frame.DestBounds.ScaleTo(image.Width, image.Height);
                         image.Mutate(c => c.ApplyProcessor(processor, outBounds));

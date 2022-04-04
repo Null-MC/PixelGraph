@@ -7,12 +7,12 @@ using System;
 
 namespace PixelGraph.Rendering.Models
 {
-    public interface IEntityModelBuilder : IModelBuilder
-    {
-        void BuildEntity(in float cubeSize, EntityModelVersion entity);
-    }
+    //public interface IEntityModelBuilder : IModelBuilder
+    //{
+    //    void BuildEntity(in float cubeSize, EntityModelVersion entity);
+    //}
 
-    public class EntityModelBuilder : ModelBuilder, IEntityModelBuilder
+    public class EntityModelBuilder : ModelBuilder //, IEntityModelBuilder
     {
         //private static readonly Vector3 entityCenter = new(0f, 8f, 0f);
 

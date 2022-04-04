@@ -107,7 +107,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             var usePlaceholder = Context.Material.CTM?.Placeholder ?? false;
             var ext = NamingStructure.GetExtension(Context.Profile);
 
-            var regions = Provider.GetRequiredService<ITextureRegionEnumerator>();
+            var regions = Provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = maxFrameCount;
             regions.DestFrameCount = maxFrameCount;
 

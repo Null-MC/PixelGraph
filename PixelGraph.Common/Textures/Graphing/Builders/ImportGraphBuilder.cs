@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
@@ -49,8 +48,8 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
 
                 var firstFrame = part.Frames.First();
                 var frameCount = part.Frames.Length;
-                var partWidth = (int)(firstFrame.SourceBounds.Width * srcWidth);
-                var partHeight = (int)(firstFrame.SourceBounds.Height * srcHeight * frameCount);
+                var partWidth = (int)((firstFrame.SourceBounds.Right - firstFrame.SourceBounds.Left) * srcWidth);
+                var partHeight = (int)((firstFrame.SourceBounds.Bottom - firstFrame.SourceBounds.Top) * srcHeight * frameCount);
                 using var regionImage = new Image<TPixel>(partWidth, partHeight);
 
                 var options = new CopyRegionProcessor<TPixel>.Options {
@@ -60,8 +59,8 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 var processor = new CopyRegionProcessor<TPixel>(options);
 
                 foreach (var frame in part.Frames) {
-                    options.SourceX = (int) (frame.SourceBounds.X * srcWidth);
-                    options.SourceY = (int) (frame.SourceBounds.Y * srcHeight);
+                    options.SourceX = (int) (frame.SourceBounds.Left * srcWidth);
+                    options.SourceY = (int) (frame.SourceBounds.Top * srcHeight);
 
                     var outBounds = frame.DestBounds.ScaleTo(partWidth, partHeight);
                     regionImage.Mutate(c => c.ApplyProcessor(processor, outBounds));

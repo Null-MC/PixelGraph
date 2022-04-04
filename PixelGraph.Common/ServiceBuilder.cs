@@ -19,6 +19,10 @@ namespace PixelGraph.Common
         //ContentTypes InputContentType {get; set;}
         //ContentTypes OutputContentType {get; set;}
 
+        void Initialize();
+        void ConfigureReader(ContentTypes contentType, GameEditions gameEdition, string rootPath);
+        void ConfigureWriter(ContentTypes contentType, GameEditions gameEdition, string rootPath);
+
         void AddContentReader(ContentTypes contentType);
         void AddContentWriter(ContentTypes contentType);
         void AddTextureReader(GameEditions gameEdition);
@@ -50,19 +54,28 @@ namespace PixelGraph.Common
         public ServiceBuilder()
         {
             Services = new ServiceCollection();
+            Services.AddOptions();
+
+            Services.AddSingleton<CtmPublisher>();
+            Services.AddSingleton<JavaPublisher>();
+            Services.AddSingleton<BedrockPublisher>();
+            Services.AddSingleton<DefaultPublishMapping>();
+            Services.AddSingleton<JavaToBedrockPublishMapping>();
+
+            Services.AddTransient<MinecraftResourceLocator>();
+            Services.AddTransient<TextureRegionEnumerator>();
+            Services.AddTransient<BedrockRtxGrassFixer>();
+        }
+
+        public virtual void Initialize()
+        {
             Services.AddLogging(builder => builder.AddSerilog(LocalLogFile.FileLogger));
 
             Services.AddSingleton<IResourcePackReader, ResourcePackReader>();
             Services.AddSingleton<IResourcePackWriter, ResourcePackWriter>();
             Services.AddSingleton<IMaterialReader, MaterialReader>();
             Services.AddSingleton<IMaterialWriter, MaterialWriter>();
-            Services.AddSingleton<IJavaPublisher, JavaPublisher>();
-            Services.AddSingleton<IBedrockPublisher, BedrockPublisher>();
             Services.AddSingleton<IPublishReader, PublishReader>();
-            Services.AddSingleton<IDefaultPublishMapping, DefaultPublishMapping>();
-            Services.AddSingleton<IJavaToBedrockPublishMapping, JavaToBedrockPublishMapping>();
-            Services.AddSingleton<IMinecraftResourceLocator, MinecraftResourceLocator>();
-            Services.AddSingleton<ICtmPublisher, CtmPublisher>();
 
             Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
             Services.AddScoped<ITextureGraph, TextureGraph>();
@@ -80,14 +93,25 @@ namespace PixelGraph.Common
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
             Services.AddTransient<IItemTextureGenerator, ItemTextureGenerator>();
             Services.AddTransient<ITextureBuilder, TextureBuilder>();
-            Services.AddTransient<ITextureRegionEnumerator, TextureRegionEnumerator>();
 
             //Services.AddTransient<IMaterialImporter, MaterialImporterBase>();
-
-            Services.AddTransient<BedrockRtxGrassFixer>();
         }
 
-        public void AddContentReader(ContentTypes contentType)
+        public void ConfigureReader(ContentTypes contentType, GameEditions gameEdition, string rootPath)
+        {
+            AddContentReader(contentType);
+            AddTextureReader(gameEdition);
+            Services.Configure<InputOptions>(options => options.Root = rootPath);
+        }
+
+        public void ConfigureWriter(ContentTypes contentType, GameEditions gameEdition, string rootPath)
+        {
+            AddContentWriter(contentType);
+            AddTextureWriter(gameEdition);
+            Services.Configure<OutputOptions>(options => options.Root = rootPath);
+        }
+
+        public virtual void AddContentReader(ContentTypes contentType)
         {
             switch (contentType) {
                 case ContentTypes.File:
@@ -102,7 +126,7 @@ namespace PixelGraph.Common
             }
         }
 
-        public void AddContentWriter(ContentTypes contentType)
+        public virtual void AddContentWriter(ContentTypes contentType)
         {
             switch (contentType) {
                 case ContentTypes.File:
@@ -117,7 +141,7 @@ namespace PixelGraph.Common
             }
         }
 
-        public void AddTextureReader(GameEditions gameEdition)
+        public virtual void AddTextureReader(GameEditions gameEdition)
         {
             switch (gameEdition) {
                 case GameEditions.Java:
@@ -132,7 +156,7 @@ namespace PixelGraph.Common
             }
         }
 
-        public void AddTextureWriter(GameEditions gameEdition)
+        public virtual void AddTextureWriter(GameEditions gameEdition)
         {
             switch (gameEdition) {
                 case GameEditions.Java:
@@ -147,7 +171,7 @@ namespace PixelGraph.Common
             }
         }
 
-        public void AddImporter(GameEditions gameEdition)
+        public virtual void AddImporter(GameEditions gameEdition)
         {
             switch (gameEdition) {
                 case GameEditions.Java:

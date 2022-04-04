@@ -9,12 +9,7 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.ConnectedTextures
 {
-    public interface ICtmPublisher
-    {
-        Task TryBuildPropertiesAsync(ITextureGraphContext context, CancellationToken token = default);
-    }
-
-    internal class CtmPublisher : ICtmPublisher
+    public class CtmPublisher
     {
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
@@ -50,12 +45,6 @@ namespace PixelGraph.Common.ConnectedTextures
 
             properties["method"] = ctmWriteMethod;
 
-            if (context.Material.CTM.Width.HasValue || !properties.ContainsKey("width"))
-                properties["width"] = (context.Material.CTM.Width ?? 1).ToString("N0");
-
-            if (context.Material.CTM.Height.HasValue || !properties.ContainsKey("height"))
-                properties["height"] = (context.Material.CTM.Height ?? 1).ToString("N0");
-
             if (context.Material.CTM.MatchBlocks != null)
                 properties["matchBlocks"] = context.Material.CTM.MatchBlocks;
 
@@ -64,6 +53,14 @@ namespace PixelGraph.Common.ConnectedTextures
 
             if (!properties.ContainsKey("matchBlocks") && !properties.ContainsKey("matchTiles"))
                 properties["matchTiles"] = context.Material.Name;
+
+            if (CtmTypes.IsRepeatType(method)) {
+                if (context.Material.CTM.Width.HasValue || !properties.ContainsKey("width"))
+                    properties["width"] = (context.Material.CTM.Width ?? 1).ToString("N0");
+
+                if (context.Material.CTM.Height.HasValue || !properties.ContainsKey("height"))
+                    properties["height"] = (context.Material.CTM.Height ?? 1).ToString("N0");
+            }
 
             if (!properties.ContainsKey("tiles")) {
                 var minTile = context.Material?.CTM?.TileStartIndex ??

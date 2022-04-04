@@ -1,5 +1,4 @@
-﻿using PixelGraph.Common.Extensions;
-using PixelGraph.Common.ImageProcessors;
+﻿using PixelGraph.Common.ImageProcessors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -10,7 +9,7 @@ namespace PixelGraph.Common.Textures
     internal class NormalMapBuilder<THeight> : IDisposable
         where THeight : unmanaged, IPixel<THeight>
     {
-        private readonly ITextureRegionEnumerator regions;
+        private readonly TextureRegionEnumerator regions;
 
         public NormalMapMethods Method {get; set;}
         public Image<THeight> HeightImage {get; set;}
@@ -27,7 +26,7 @@ namespace PixelGraph.Common.Textures
         public Image<L8> VarianceMap {get; private set;}
 
 
-        public NormalMapBuilder(ITextureRegionEnumerator regions)
+        public NormalMapBuilder(TextureRegionEnumerator regions)
         {
             this.regions = regions;
         }

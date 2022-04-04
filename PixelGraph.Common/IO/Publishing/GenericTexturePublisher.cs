@@ -7,10 +7,11 @@ using SixLabors.ImageSharp.Processing;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.IO.Publishing
 {
-    internal class GenericTexturePublisher
+    public class GenericTexturePublisher
     {
         protected ResourcePackProfileProperties Pack {get;}
         protected IInputReader Reader {get;}
@@ -50,6 +51,7 @@ namespace PixelGraph.Common.IO.Publishing
             packSampler.Image = source;
             packSampler.WrapX = false;
             packSampler.WrapY = false;
+            packSampler.SetBounds(UVRegion.Full);
 
             var (width, height) = source.Size();
 

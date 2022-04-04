@@ -2,18 +2,7 @@
 
 namespace PixelGraph.Common.IO
 {
-    public interface IMinecraftResourceLocator
-    {
-        bool FindLocalMaterial(string searchFile, out string localPath);
-        //bool FindLocalTexture(string searchFile, out string localPath);
-
-        bool FindBlockModel(string searchFile, out string localPath);
-        bool FindEntityModel(string searchFile, out string localPath);
-        //bool FindLocalBlockModel(string searchFile, out string localPath);
-        //bool FindLocalEntityModel(string searchFile, out string localPath);
-    }
-
-    public class MinecraftResourceLocator : IMinecraftResourceLocator
+    public class MinecraftResourceLocator
     {
         private readonly IInputReader reader;
 
@@ -49,11 +38,6 @@ namespace PixelGraph.Common.IO
             localPath = null;
             return false;
         }
-
-        //public bool FindLocalTexture(string searchFile, out string localPath)
-        //{
-        //    //
-        //}
 
         public bool FindBlockModel(string searchFile, out string localPath)
         {

@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Tests.Internal;
 using PixelGraph.Tests.Internal.Mocks;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using PixelGraph.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +15,7 @@ namespace PixelGraph.Tests.InputTests
     {
         public FileLoaderTests(ITestOutputHelper output) : base(output)
         {
-            Builder.AddTextureReader(GameEditions.None);
+            Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
         }
 
         [InlineData("assets/junk.zip")]

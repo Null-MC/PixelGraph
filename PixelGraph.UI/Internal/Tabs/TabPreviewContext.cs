@@ -45,7 +45,7 @@ namespace PixelGraph.UI.Internal.Tabs
             lockHandle = new object();
 
 #if !RELEASENORENDER
-            Mesh = new MultiPartMeshBuilder(provider);
+            Mesh = provider.GetRequiredService<MultiPartMeshBuilder>();
 #endif
         }
         
@@ -73,12 +73,13 @@ namespace PixelGraph.UI.Internal.Tabs
         }
 #endif
 
-        public async Task BuildLayerAsync(ResourcePackInputProperties packInput, ResourcePackProfileProperties packProfile, MaterialProperties material, string textureTag, CancellationToken token = default)
+        public async Task BuildLayerAsync(ResourcePackContext context, MaterialProperties material, string textureTag, CancellationToken token = default)
         {
             using var previewBuilder = provider.GetRequiredService<ILayerPreviewBuilder>();
 
-            previewBuilder.Input = packInput;
-            previewBuilder.Profile = packProfile;
+            //previewBuilder.RootDirectory = context.RootPath;
+            previewBuilder.Input = context.Input;
+            previewBuilder.Profile = context.Profile;
             previewBuilder.Material = material; 
 
             var tag = textureTag;

@@ -20,9 +20,9 @@ namespace PixelGraph.Tests.ImportTests
 
         public JavaOldPbrImportTests(ITestOutputHelper output) : base(output)
         {
+            Builder.ConfigureReader(ContentTypes.File, GameEditions.Java, null);
+            Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
             Builder.AddImporter(GameEditions.Java);
-            Builder.AddTextureReader(GameEditions.Java);
-            Builder.AddTextureWriter(GameEditions.None);
 
             packInput = new ResourcePackInputProperties {
                 Edition = GameEdition.Java,

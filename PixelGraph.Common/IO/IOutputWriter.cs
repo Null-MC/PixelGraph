@@ -5,11 +5,15 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO
 {
+    public class OutputOptions
+    {
+        //public string RootPath {get; set;}
+        //public string RootFile {get; set;}
+        public string Root {get; set;}
+    }
+
     public interface IOutputWriter : IAsyncDisposable, IDisposable
     {
-        //bool AllowConcurrency {get;}
-
-        void SetRoot(string absolutePath);
         void Prepare();
         Task OpenReadAsync(string localFilename, Func<Stream, Task> readFunc, CancellationToken token = default);
         Task OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default);

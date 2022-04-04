@@ -39,12 +39,12 @@ namespace PixelGraph.Common.Extensions
                                     || EncodingChannel.Is(c.ID, EncodingChannel.NormalZ));
         }
 
-        public static bool TryGetChannel<T>(this IEnumerable<ResourcePackChannelProperties> collection, out T channelProperties)
-            where T : ResourcePackChannelProperties
-        {
-            channelProperties = collection.OfType<T>().FirstOrDefault();
-            return channelProperties != null;
-        }
+        //public static bool TryGetChannel<T>(this IEnumerable<ResourcePackChannelProperties> collection, out T channelProperties)
+        //    where T : ResourcePackChannelProperties
+        //{
+        //    channelProperties = collection.OfType<T>().FirstOrDefault();
+        //    return channelProperties != null;
+        //}
 
         public static bool TryGetChannel(this IEnumerable<ResourcePackChannelProperties> collection, string encodingChannel, out ResourcePackChannelProperties channelProperties)
         {
