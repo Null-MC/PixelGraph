@@ -78,6 +78,7 @@ namespace PixelGraph.UI.ViewModels
             serviceBuilder.Initialize();
             serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, Model.RootDirectory);
             serviceBuilder.ConfigureWriter(contentType, edition, Model.Destination);
+            serviceBuilder.AddPublisher(edition);
 
             var logReceiver = serviceBuilder.AddLoggingRedirect();
             logReceiver.LogMessage += OnInternalLog;
@@ -95,7 +96,7 @@ namespace PixelGraph.UI.ViewModels
             };
 
             OnLogAppended(LogLevel.None, "Publishing content...");
-            var publisher = GetPublisher(scope, context.Profile);
+            var publisher = scope.GetRequiredService<IPublisher>();
             publisher.Concurrency = appSettings.Data.Concurrency ?? Environment.ProcessorCount;
 
             await publisher.PublishAsync(context, Model.Clean, token);
@@ -135,15 +136,15 @@ namespace PixelGraph.UI.ViewModels
             LogAppended?.Invoke(this, e);
         }
 
-        private static IPublisher GetPublisher(IServiceProvider provider, ResourcePackProfileProperties profile)
-        {
-            if (GameEdition.Is(profile.Edition, GameEdition.Java))
-                return provider.GetRequiredService<JavaPublisher>();
+        //private static IPublisher GetPublisher(IServiceProvider provider, ResourcePackProfileProperties profile)
+        //{
+        //    if (GameEdition.Is(profile.Edition, GameEdition.Java))
+        //        return provider.GetRequiredService<JavaPublisher>();
 
-            if (GameEdition.Is(profile.Edition, GameEdition.Bedrock))
-                return provider.GetRequiredService<BedrockPublisher>();
+        //    if (GameEdition.Is(profile.Edition, GameEdition.Bedrock))
+        //        return provider.GetRequiredService<BedrockPublisher>();
 
-            throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");
-        }
+        //    throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");
+        //}
     }
 }

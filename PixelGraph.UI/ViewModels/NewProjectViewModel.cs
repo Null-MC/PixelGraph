@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
@@ -29,8 +28,7 @@ namespace PixelGraph.UI.ViewModels
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();
-            serviceBuilder.AddContentWriter(ContentTypes.File);
-            serviceBuilder.Services.Configure<OutputOptions>(options => options.Root = Model.Location);
+            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.Location);
 
             await using var scope = serviceBuilder.Build();
 

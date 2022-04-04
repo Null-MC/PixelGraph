@@ -16,18 +16,12 @@ namespace PixelGraph.Common
     public interface IServiceBuilder
     {
         ServiceCollection Services {get;}
-        //ContentTypes InputContentType {get; set;}
-        //ContentTypes OutputContentType {get; set;}
 
         void Initialize();
         void ConfigureReader(ContentTypes contentType, GameEditions gameEdition, string rootPath);
         void ConfigureWriter(ContentTypes contentType, GameEditions gameEdition, string rootPath);
-
-        void AddContentReader(ContentTypes contentType);
-        void AddContentWriter(ContentTypes contentType);
-        void AddTextureReader(GameEditions gameEdition);
-        void AddTextureWriter(GameEditions gameEdition);
         void AddImporter(GameEditions gameEdition);
+        void AddPublisher(GameEditions gameEdition);
 
         ServiceProvider Build();
     }
@@ -57,8 +51,8 @@ namespace PixelGraph.Common
             Services.AddOptions();
 
             Services.AddSingleton<CtmPublisher>();
-            Services.AddSingleton<JavaPublisher>();
-            Services.AddSingleton<BedrockPublisher>();
+            //Services.AddSingleton<JavaPublisher>();
+            //Services.AddSingleton<BedrockPublisher>();
             Services.AddSingleton<DefaultPublishMapping>();
             Services.AddSingleton<JavaToBedrockPublishMapping>();
 
@@ -111,7 +105,7 @@ namespace PixelGraph.Common
             Services.Configure<OutputOptions>(options => options.Root = rootPath);
         }
 
-        public virtual void AddContentReader(ContentTypes contentType)
+        protected virtual void AddContentReader(ContentTypes contentType)
         {
             switch (contentType) {
                 case ContentTypes.File:
@@ -126,7 +120,7 @@ namespace PixelGraph.Common
             }
         }
 
-        public virtual void AddContentWriter(ContentTypes contentType)
+        protected virtual void AddContentWriter(ContentTypes contentType)
         {
             switch (contentType) {
                 case ContentTypes.File:
@@ -141,7 +135,7 @@ namespace PixelGraph.Common
             }
         }
 
-        public virtual void AddTextureReader(GameEditions gameEdition)
+        protected virtual void AddTextureReader(GameEditions gameEdition)
         {
             switch (gameEdition) {
                 case GameEditions.Java:
@@ -156,7 +150,7 @@ namespace PixelGraph.Common
             }
         }
 
-        public virtual void AddTextureWriter(GameEditions gameEdition)
+        protected virtual void AddTextureWriter(GameEditions gameEdition)
         {
             switch (gameEdition) {
                 case GameEditions.Java:
@@ -179,6 +173,21 @@ namespace PixelGraph.Common
                     break;
                 case GameEditions.Bedrock:
                     Services.AddTransient<IMaterialImporter, BedrockMaterialImporter>();
+                    break;
+                //case GameEditions.None:
+                //default:
+                //    throw new ApplicationException("Game edition is undefined!");
+            }
+        }
+
+        public virtual void AddPublisher(GameEditions gameEdition)
+        {
+            switch (gameEdition) {
+                case GameEditions.Java:
+                    Services.AddTransient<IPublisher, JavaPublisher>();
+                    break;
+                case GameEditions.Bedrock:
+                    Services.AddTransient<IPublisher, BedrockPublisher>();
                     break;
                 //case GameEditions.None:
                 //default:

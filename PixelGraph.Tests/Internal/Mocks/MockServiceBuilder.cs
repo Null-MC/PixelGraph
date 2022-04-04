@@ -54,12 +54,12 @@ namespace PixelGraph.Tests.Internal.Mocks
             Services.AddTransient<ITextureBuilder, TextureBuilder>();
         }
 
-        public override void AddContentReader(ContentTypes contentType)
+        protected override void AddContentReader(ContentTypes contentType)
         {
             Services.AddSingleton<IInputReader, MockInputReader>();
         }
 
-        public override void AddContentWriter(ContentTypes contentType)
+        protected override void AddContentWriter(ContentTypes contentType)
         {
             Services.AddSingleton<IOutputWriter, MockOutputWriter>();
         }

@@ -142,27 +142,17 @@ namespace PixelGraph.CLI.CommandLine
                 serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, sourcePath);
                 serviceBuilder.ConfigureWriter(contentType, edition, destFilename);
                 serviceBuilder.Services.AddTransient<Executor>();
+                serviceBuilder.AddPublisher(edition);
 
                 await using var scope = serviceBuilder.Build();
 
                 var writer = scope.GetRequiredService<IOutputWriter>();
                 writer.Prepare();
 
-                var publisher = GetPublisher(scope, Context.Profile);
+                var publisher = scope.GetRequiredService<IPublisher>();
                 publisher.Concurrency = Concurrency;
 
                 await publisher.PublishAsync(Context, CleanDestination, token);
-            }
-
-            private static IPublisher GetPublisher(IServiceProvider provider, ResourcePackProfileProperties profile)
-            {
-                if (GameEdition.Is(profile.Edition, GameEdition.Java))
-                    return provider.GetRequiredService<JavaPublisher>();
-
-                if (GameEdition.Is(profile.Edition, GameEdition.Bedrock))
-                    return provider.GetRequiredService<BedrockPublisher>();
-
-                throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");
             }
         }
     }
