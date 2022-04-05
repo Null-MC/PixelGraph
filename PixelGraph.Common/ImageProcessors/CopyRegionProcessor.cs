@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.PixelOperations;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 
@@ -20,7 +21,7 @@ namespace PixelGraph.Common.ImageProcessors
         {
             var offsetY = context.Y - context.Bounds.Y;
             var srcY = options.SourceY + offsetY;
-            var srcRow = options.SourceImage.GetPixelRowSpan(srcY);
+            var srcRow = options.SourceImage.DangerousGetPixelRowMemory(srcY).Span;
 
             for (var x = 0; x < context.Bounds.Width; x++) {
                 var destX = context.Bounds.X + x;

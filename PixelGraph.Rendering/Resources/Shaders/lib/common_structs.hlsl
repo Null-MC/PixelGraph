@@ -86,13 +86,14 @@ cbuffer cbTransforms : register(b0)
     float4x4 mView;
     float4x4 mProjection;
     float4x4 mViewProjection;
-    float4 vFrustum;
-    float4 vViewport;
+    float4 vFrustum; // [fov,asepct-ratio,near,far]
+    float4 vViewport; // [w,h,1/w,1/h]
+    float4 vResolution; // [x, y, w, h]
     float3 vEyePos;
     bool SSAOEnabled;
     float SSAOBias;
     float SSAOIntensity;
-    float TimeStamp;
+    float TimeStamp; // by seconds
     bool IsPerspective;
     float OITPower;
     float OITSlope;

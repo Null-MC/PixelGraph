@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp.PixelFormats;
+﻿using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Numerics;
 
@@ -30,7 +31,7 @@ namespace PixelGraph.Common.Samplers
                 if (WrapY) WrapCoordY(ref _py);
                 else ClampCoordY(ref _py);
 
-                var row = Image.GetPixelRowSpan(_py);
+                var row = Image.DangerousGetPixelRowMemory(_py).Span;
 
                 for (var px = pxMin; px < pxMax; px++) {
                     var _px = px;

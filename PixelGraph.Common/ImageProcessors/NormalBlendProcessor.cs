@@ -1,6 +1,7 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.PixelOperations;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Numerics;
@@ -22,9 +23,9 @@ namespace PixelGraph.Common.ImageProcessors
             var pixelOut = new Rgb24();
             var vectorFinal = new Vector3();
 
-            var rowHigh = options.HighFreqNormalImage.GetPixelRowSpan(context.Y);
-            var rowLow = options.LowFreqNormalImage.GetPixelRowSpan(context.Y);
-            var rowVariance = options.VarianceImage.GetPixelRowSpan(context.Y);
+            var rowHigh = options.HighFreqNormalImage.DangerousGetPixelRowMemory(context.Y).Span;
+            var rowLow = options.LowFreqNormalImage.DangerousGetPixelRowMemory(context.Y).Span;
+            var rowVariance = options.VarianceImage.DangerousGetPixelRowMemory(context.Y).Span;
 
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 rowVariance[x].GetChannelValueScaledF(out var variance);

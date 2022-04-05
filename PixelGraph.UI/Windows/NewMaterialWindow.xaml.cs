@@ -29,10 +29,9 @@ namespace PixelGraph.UI.Windows
         private void OnGameObjectTypeChanged(object sender, EventArgs e)
         {
             viewModel.UpdateBlockList();
-            viewModel.UpdateLocation();
         }
 
-        private void OnGameObjectNameChanged(object sender, EventArgs e)
+        private void OnGameObjectLocationChanged(object sender, EventArgs e)
         {
             viewModel.UpdateLocation();
         }
@@ -44,6 +43,18 @@ namespace PixelGraph.UI.Windows
 
         private void OnCreateButtonClick(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(Model.GameNamespace)) {
+                MessageBox.Show(this, "Namespace cannot be empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                NamespaceComboBox.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(Model.GameObjectName)) {
+                MessageBox.Show(this, "Name cannot be empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                NameComboBox.Focus();
+                return;
+            }
+
             DialogResult = true;
         }
     }

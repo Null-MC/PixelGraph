@@ -2,6 +2,7 @@
 using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 
@@ -24,8 +25,8 @@ namespace PixelGraph.Common.ImageProcessors
             var pixelLow = new Rgba32();
             var pixelOut = new Rgba32(0, 0, 0, 255);
 
-            var highFreqRow = options.HighFreqHeightImage.GetPixelRowSpan(context.Y);
-            var lowFreqRow = options.LowFreqHeightImage.GetPixelRowSpan(context.Y);
+            var highFreqRow = options.HighFreqHeightImage.DangerousGetPixelRowMemory(context.Y).Span;
+            var lowFreqRow = options.LowFreqHeightImage.DangerousGetPixelRowMemory(context.Y).Span;
 
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 highFreqRow[x].ToRgba32(ref pixelHigh);

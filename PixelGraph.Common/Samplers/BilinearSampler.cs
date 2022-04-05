@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Numerics;
 
@@ -44,8 +45,8 @@ namespace PixelGraph.Common.Samplers
                 ClampCoordY(ref pyMax);
             }
 
-            var rowMin = Image.GetPixelRowSpan(pyMin);
-            var rowMax = Image.GetPixelRowSpan(pyMax);
+            var rowMin = Image.DangerousGetPixelRowMemory(pyMin).Span;
+            var rowMax = Image.DangerousGetPixelRowMemory(pyMax).Span;
 
             var pixelMatrix = new Vector4[4];
             pixelMatrix[0] = rowMin[pxMin].ToScaledVector4();

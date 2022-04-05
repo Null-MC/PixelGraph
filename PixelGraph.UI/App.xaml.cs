@@ -38,10 +38,9 @@ namespace PixelGraph.UI
             services.AddSingleton<IProjectContext, ProjectContext>();
             services.AddSingleton<IRecentPathManager, RecentPathManager>();
             services.AddSingleton<IPublishLocationManager, PublishLocationManager>();
-            services.AddSingleton<IContentTreeReader, ContentTreeReader>();
-            services.AddSingleton<ITextureEditUtility, TextureEditUtility>();
             services.AddSingleton<ITabPreviewManager, TabPreviewManager>();
-            services.AddSingleton<IMaterialPropertiesCache, MaterialPropertiesCache>();
+            services.AddSingleton<MaterialPropertiesCache>();
+            services.AddSingleton<TextureEditUtility>();
 
             services.AddTransient<IServiceBuilder, ServiceBuilder>();
             services.AddTransient<ILayerPreviewBuilder, LayerPreviewBuilder>();
@@ -59,8 +58,6 @@ namespace PixelGraph.UI
 
             services.AddTransient<BlockModelBuilder>();
             services.AddTransient<EntityModelBuilder>();
-            //services.AddTransient<IBlockModelParser, BlockModelParser>();
-            //services.AddTransient<IEntityModelParser, EntityModelParser>();
             services.AddTransient<MultiPartMeshBuilder>();
 #endif
         }

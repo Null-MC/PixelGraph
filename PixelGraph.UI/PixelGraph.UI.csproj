@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.9.2</Version>
+    <Version>1.9.3</Version>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>PixelGraph</AssemblyName>
@@ -34,6 +34,7 @@
     <Compile Remove="Internal\ImagePreviewCache.cs" />
     <Compile Remove="Internal\Preview\PbrSpecularMeshModel3D.cs" />
     <Compile Remove="Internal\Preview\Textures\RenderPbrMetalPreviewBuilder.cs" />
+    <Compile Remove="Internal\Utilities\ConcurrentMaterialWriter.cs" />
     <Compile Remove="Internal\Utilities\ResourceLoader.cs" />
     <Compile Remove="Models\MaterialContextModel.cs" />
     <Compile Remove="Models\PreviewContextModel.cs" />
@@ -93,13 +94,13 @@
 
   <ItemGroup>
     <PackageReference Include="MahApps.Metro" Version="2.4.9" />
-    <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.10.0" />
-    <PackageReference Include="Ookii.Dialogs.Wpf" Version="4.0.0" />
+    <PackageReference Include="MahApps.Metro.IconPacks.FontAwesome" Version="4.11.0" />
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'!='ReleaseNoRender'">
-    <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.19.0" />
+    <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.20.2" />
   </ItemGroup>
 
   <ItemGroup>

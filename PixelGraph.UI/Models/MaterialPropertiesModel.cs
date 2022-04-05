@@ -358,8 +358,8 @@ namespace PixelGraph.UI.Models
         public OpacityPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialOpacityProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialOpacityProperties.Value), 255m);
-            AddText<decimal?>("Scale", nameof(MaterialOpacityProperties.Scale), 1m);
+            AddValue<decimal?>("Value", nameof(MaterialOpacityProperties.Value), 0m, 255m, 255m);
+            AddValue<decimal?>("Scale", nameof(MaterialOpacityProperties.Scale), 1m);
         }
     }
 
@@ -370,9 +370,9 @@ namespace PixelGraph.UI.Models
             AddTextFile<string>("Texture", nameof(MaterialColorProperties.Texture));
             AddTextColor<string>("Value", nameof(MaterialColorProperties.Value));
 
-            AddText<decimal?>("Red Scale", nameof(MaterialColorProperties.ScaleRed), 1.0m);
-            AddText<decimal?>("Green Scale", nameof(MaterialColorProperties.ScaleGreen), 1.0m);
-            AddText<decimal?>("Blue Scale", nameof(MaterialColorProperties.ScaleBlue), 1.0m);
+            AddValue<decimal?>("Red Scale", nameof(MaterialColorProperties.ScaleRed), 1.0m);
+            AddValue<decimal?>("Green Scale", nameof(MaterialColorProperties.ScaleGreen), 1.0m);
+            AddValue<decimal?>("Blue Scale", nameof(MaterialColorProperties.ScaleBlue), 1.0m);
         }
     }
 
@@ -390,9 +390,9 @@ namespace PixelGraph.UI.Models
         public HeightPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialHeightProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialHeightProperties.Value), 0m);
-            AddText<decimal?>("Shift", nameof(MaterialHeightProperties.Shift), 0m);
-            AddText<decimal?>("Scale", nameof(MaterialHeightProperties.Scale), 1m);
+            //AddValue<decimal?>("Value", nameof(MaterialHeightProperties.Value), 0m);
+            AddValue<decimal?>("Shift", nameof(MaterialHeightProperties.Shift), -1m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialHeightProperties.Scale), 0m, 2m, 1m);
             AddBool<bool?>("Auto-Level", nameof(MaterialHeightProperties.AutoLevel));
         }
     }
@@ -401,9 +401,9 @@ namespace PixelGraph.UI.Models
     {
         public HeightEdgeFadingPropertyCollection()
         {
-            AddText<decimal?>("Horizontal", nameof(MaterialHeightProperties.EdgeFadeX));
-            AddText<decimal?>("Vertical", nameof(MaterialHeightProperties.EdgeFadeY));
-            AddText<decimal?>("Strength", nameof(MaterialHeightProperties.EdgeFadeStrength), MaterialHeightProperties.DefaultEdgeFadeStrength);
+            AddValue<decimal?>("Horizontal", nameof(MaterialHeightProperties.EdgeFadeX));
+            AddValue<decimal?>("Vertical", nameof(MaterialHeightProperties.EdgeFadeY));
+            AddValue<decimal?>("Strength", nameof(MaterialHeightProperties.EdgeFadeStrength), 0m, 1m, MaterialHeightProperties.DefaultEdgeFadeStrength);
         }
     }
 
@@ -419,11 +419,11 @@ namespace PixelGraph.UI.Models
     {
         public NormalFilterPropertyCollection()
         {
-            AddText<decimal?>("Noise Angle", nameof(MaterialNormalProperties.Noise));
-            AddText<decimal?>("Curve Angle X", nameof(MaterialNormalProperties.CurveX));
-            AddText<decimal?>("Curve Angle Y", nameof(MaterialNormalProperties.CurveY));
-            AddText<decimal?>("Radius Size X", nameof(MaterialNormalProperties.RadiusX));
-            AddText<decimal?>("Radius Size Y", nameof(MaterialNormalProperties.RadiusY));
+            AddValue<decimal?>("Noise Angle", nameof(MaterialNormalProperties.Noise), 0m, 90m);
+            AddValue<decimal?>("Curve Angle X", nameof(MaterialNormalProperties.CurveX), 0m, 90m);
+            AddValue<decimal?>("Curve Angle Y", nameof(MaterialNormalProperties.CurveY), 0m, 90m);
+            AddValue<decimal?>("Radius Size X", nameof(MaterialNormalProperties.RadiusX), 0m, 1m);
+            AddValue<decimal?>("Radius Size Y", nameof(MaterialNormalProperties.RadiusY), 0m, 1m);
         }
     }
 
@@ -434,7 +434,7 @@ namespace PixelGraph.UI.Models
             var methodOptions = new SelectPropertyRowOptions(new NormalMethodValues(), "Text", "Value");
 
             AddSelect("Method", nameof(MaterialNormalProperties.Method), methodOptions, "sobel3");
-            AddText<decimal?>("Strength", nameof(MaterialNormalProperties.Strength), MaterialNormalProperties.DefaultStrength);
+            AddValue<decimal?>("Strength", nameof(MaterialNormalProperties.Strength), 0m, 10m, MaterialNormalProperties.DefaultStrength);
         }
     }
 
@@ -443,9 +443,9 @@ namespace PixelGraph.UI.Models
         public OcclusionPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialOcclusionProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialOcclusionProperties.Value), 0m);
-            AddText<decimal?>("Shift", nameof(MaterialOcclusionProperties.Shift), 0m);
-            AddText<decimal?>("Scale", nameof(MaterialOcclusionProperties.Scale), 1m);
+            AddValue<decimal?>("Value", nameof(MaterialOcclusionProperties.Value), 0m, 1m, 0m);
+            AddValue<decimal?>("Shift", nameof(MaterialOcclusionProperties.Shift), -1m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialOcclusionProperties.Scale), 0m, 2m, 1m);
         }
     }
 
@@ -453,9 +453,9 @@ namespace PixelGraph.UI.Models
     {
         public OcclusionGeneratorPropertyCollection()
         {
-            AddText<decimal?>("Step Length", nameof(MaterialOcclusionProperties.StepDistance), MaterialOcclusionProperties.DefaultStepDistance);
-            AddText<decimal?>("Z Bias", nameof(MaterialOcclusionProperties.ZBias), MaterialOcclusionProperties.DefaultZBias);
-            AddText<decimal?>("Z Scale", nameof(MaterialOcclusionProperties.ZScale), MaterialOcclusionProperties.DefaultZScale);
+            AddValue<decimal?>("Step Length", nameof(MaterialOcclusionProperties.StepDistance), MaterialOcclusionProperties.DefaultStepDistance);
+            AddValue<decimal?>("Z Bias", nameof(MaterialOcclusionProperties.ZBias), MaterialOcclusionProperties.DefaultZBias);
+            AddValue<decimal?>("Z Scale", nameof(MaterialOcclusionProperties.ZScale), MaterialOcclusionProperties.DefaultZScale);
         }
     }
 
@@ -464,9 +464,9 @@ namespace PixelGraph.UI.Models
         public SpecularPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialSpecularProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialSpecularProperties.Value), 0m);
-            AddText<decimal?>("Shift", nameof(MaterialSpecularProperties.Shift), 0m);
-            AddText<decimal?>("Scale", nameof(MaterialSpecularProperties.Scale), 1m);
+            AddValue<decimal?>("Value", nameof(MaterialSpecularProperties.Value), 0m, 1m, 0m);
+            AddValue<decimal?>("Shift", nameof(MaterialSpecularProperties.Shift), -1m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialSpecularProperties.Scale), 0m, 2m, 1m);
         }
     }
 
@@ -475,9 +475,9 @@ namespace PixelGraph.UI.Models
         public SmoothPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialSmoothProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialSmoothProperties.Value), 0m);
-            AddText<decimal?>("Shift", nameof(MaterialSmoothProperties.Shift), 0m);
-            AddText<decimal?>("Scale", nameof(MaterialSmoothProperties.Scale), 1m);
+            AddValue<decimal?>("Value", nameof(MaterialSmoothProperties.Value), 0m, 1m, 0m);
+            AddValue<decimal?>("Shift", nameof(MaterialSmoothProperties.Shift), -1m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialSmoothProperties.Scale), 0m, 2m, 1m);
         }
     }
 
@@ -486,9 +486,9 @@ namespace PixelGraph.UI.Models
         public RoughPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialRoughProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialRoughProperties.Value), 0m);
-            AddText<decimal?>("Shift", nameof(MaterialRoughProperties.Shift), 0m);
-            AddText<decimal?>("Scale", nameof(MaterialRoughProperties.Scale), 1m);
+            AddValue<decimal?>("Value", nameof(MaterialRoughProperties.Value), 0m, 1m, 0m);
+            AddValue<decimal?>("Shift", nameof(MaterialRoughProperties.Shift), -1m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialRoughProperties.Scale), 0m, 2m, 1m);
         }
     }
 
@@ -497,8 +497,8 @@ namespace PixelGraph.UI.Models
         public MetalPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialMetalProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialMetalProperties.Value), 0m);
-            AddText<decimal?>("Scale", nameof(MaterialMetalProperties.Scale), 1m);
+            AddValue<decimal?>("Value", nameof(MaterialMetalProperties.Value), 0m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialMetalProperties.Scale), 0m, 2m, 1m);
         }
     }
 
@@ -507,7 +507,7 @@ namespace PixelGraph.UI.Models
         public HcmPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialHcmProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialHcmProperties.Value), 0m);
+            AddValue<decimal?>("Value", nameof(MaterialHcmProperties.Value), 0m);
         }
     }
 
@@ -516,8 +516,8 @@ namespace PixelGraph.UI.Models
         public F0PropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialF0Properties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialF0Properties.Value), 0m);
-            AddText<decimal?>("Scale", nameof(MaterialF0Properties.Scale), 1m);
+            AddValue<decimal?>("Value", nameof(MaterialF0Properties.Value), 0m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialF0Properties.Scale), 0m, 2m, 1m);
         }
     }
 
@@ -526,9 +526,9 @@ namespace PixelGraph.UI.Models
         public PorosityPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialPorosityProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialPorosityProperties.Value), 0m);
-            AddText<decimal?>("Shift", nameof(MaterialPorosityProperties.Shift), 0m);
-            AddText<decimal?>("Scale", nameof(MaterialPorosityProperties.Scale), 1m);
+            AddValue<decimal?>("Value", nameof(MaterialPorosityProperties.Value), 0m, 1m, 0m);
+            AddValue<decimal?>("Shift", nameof(MaterialPorosityProperties.Shift), -1m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialPorosityProperties.Scale), 0m, 2m, 1m);
         }
     }
 
@@ -537,9 +537,9 @@ namespace PixelGraph.UI.Models
         public SssPropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialSssProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialSssProperties.Value), 0m);
-            AddText<decimal?>("Shift", nameof(MaterialSssProperties.Shift), 0m);
-            AddText<decimal?>("Scale", nameof(MaterialSssProperties.Scale), 1m);
+            AddValue<decimal?>("Value", nameof(MaterialSssProperties.Value), 0m, 1m, 0m);
+            AddValue<decimal?>("Shift", nameof(MaterialSssProperties.Shift), -1m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialSssProperties.Scale), 0m, 2m, 1m);
         }
     }
 
@@ -548,9 +548,9 @@ namespace PixelGraph.UI.Models
         public EmissivePropertyCollection()
         {
             AddTextFile<string>("Texture", nameof(MaterialEmissiveProperties.Texture));
-            AddText<decimal?>("Value", nameof(MaterialEmissiveProperties.Value), 0m);
-            AddText<decimal?>("Shift", nameof(MaterialEmissiveProperties.Shift), 0m);
-            AddText<decimal?>("Scale", nameof(MaterialEmissiveProperties.Scale), 1m);
+            AddValue<decimal?>("Value", nameof(MaterialEmissiveProperties.Value), 0m, 1m, 0m);
+            AddValue<decimal?>("Shift", nameof(MaterialEmissiveProperties.Shift), -1m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialEmissiveProperties.Scale), 0m, 2m, 1m);
         }
     }
 }

@@ -7,17 +7,18 @@
         xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
         xmlns:models="clr-namespace:PixelGraph.UI.Models"
         d:DataContext="{d:DesignInstance models:NewMaterialDesignVM, IsDesignTimeCreatable=True}"
-        Title="New Material" Width="420" Height="360" mc:Ignorable="d"
+        Title="New Material" Width="600" Height="230" mc:Ignorable="d"
         WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal" WindowStyle="ToolWindow"
         Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
         Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.DataContext>
         <models:NewMaterialModel x:Name="Model"
                                  GameObjectTypeChanged="OnGameObjectTypeChanged"
-                                 GameObjectNameChanged="OnGameObjectNameChanged"/>
+                                 GameObjectLocationChanged="OnGameObjectLocationChanged"/>
     </Window.DataContext>
     <Window.Resources>
         <vd:GameObjectTypeValues x:Key="GameObjectTypes"/>
+        <vd:GameNamespaceValues x:Key="GameNamespaces"/>
     </Window.Resources>
     <DockPanel>
         <Grid DockPanel.Dock="Bottom">
@@ -27,33 +28,54 @@
             <Button HorizontalAlignment="Right" Margin="6" Width="80"
                     Content="Create" Click="OnCreateButtonClick"/>
         </Grid>
-        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <StackPanel Orientation="Vertical" Margin="6">
-                <TextBlock Text="Type" FontSize="12" FontWeight="Bold"/>
-                <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
+        <StackPanel Orientation="Vertical">
+            <Grid Margin="12" VerticalAlignment="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Column="0" Grid.Row="0" Margin="12,0,0,2"
+                           Text="Type" FontSize="12" FontWeight="Bold"
+                           Foreground="{StaticResource MahApps.Brushes.Accent}"/>
+                <ComboBox Grid.Column="0" Grid.Row="1" Margin="8,0,8,0"
+                          DisplayMemberPath="Text" SelectedValuePath="Value"
+                          ToolTip="The type of object in the game the material will be used for."
                           ItemsSource="{StaticResource GameObjectTypes}"
                           SelectedValue="{Binding GameObjectType, Mode=TwoWay}"/>
-                <TextBlock TextWrapping="Wrap" FontSize="12"
-                           Text="The type of object in the game the material will be used for."
-                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
-                <TextBlock Text="Name" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"/>
-                <ComboBox DisplayMemberPath="Path" SelectedValuePath="Id" IsEditable="True"
+                <TextBlock Grid.Column="1" Grid.Row="0" Margin="12,0,0,2"
+                           Text="Namespace" FontSize="12" FontWeight="Bold"
+                           Foreground="{StaticResource MahApps.Brushes.Accent}"/>
+                <ComboBox Grid.Column="1" Grid.Row="1" x:Name="NamespaceComboBox" Margin="8,0,8,0"
+                          DisplayMemberPath="Value" SelectedValuePath="Value" IsEditable="True"
+                          ToolTip="The namespace of the object in the game the material will be used for."
+                          ItemsSource="{StaticResource GameNamespaces}"
+                          Text="{Binding GameNamespace, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Grid.Column="2" Grid.Row="0" Margin="12,0,0,2"
+                           Text="Name" FontSize="12" FontWeight="Bold"
+                           Foreground="{StaticResource MahApps.Brushes.Accent}"/>
+                <ComboBox Grid.Column="2" Grid.Row="1" x:Name="NameComboBox" Margin="8,0,8,0"
+                          DisplayMemberPath="Path" SelectedValuePath="Id" IsEditable="True"
+                          ToolTip="The name of the object in the game the material will be used for."
                           ItemsSource="{Binding GameObjectNames, Mode=OneWay}"
                           Text="{Binding GameObjectName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <TextBlock TextWrapping="Wrap" FontSize="12"
-                           Text="The name of the object in the game the material will be used for."
-                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
-                <TextBlock Text="Location" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"/>
-                <TextBox IsReadOnly="True"
+            </Grid>
+            <Grid Margin="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Margin="12,0,0,2"
+                           Text="Location" FontSize="12" FontWeight="Bold"
+                           Foreground="{StaticResource MahApps.Brushes.Accent}"/>
+                <TextBox Grid.Row="1" Margin="8,0,8,0" IsReadOnly="True"
+                         ToolTip="The location in the resource pack for the new material."
                          Text="{Binding Location, Mode=OneWay}"/>
-                <TextBlock TextWrapping="Wrap" FontSize="12"
-                           Text="The location in the resource pack for the new material."
-                           Foreground="{DynamicResource MahApps.Brushes.Gray}"/>
-                <Border Margin="0,20,0,0" Background="#FA0" CornerRadius="5" BorderThickness="1" BorderBrush="#333">
-                    <TextBlock Padding="8,4" TextWrapping="Wrap" Foreground="#111" FontSize="12" FontStyle="Italic"
-                               Text="Not all block names have been added; you may need to manually enter the name until the listing is completed."/>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
+            </Grid>
+        </StackPanel>
     </DockPanel>
 </mah:MetroWindow>

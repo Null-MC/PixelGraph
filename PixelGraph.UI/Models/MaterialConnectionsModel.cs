@@ -88,8 +88,8 @@ namespace PixelGraph.UI.Models
 
         public CTMPropertyCollection()
         {
-            widthRow = AddText<int?>("Width", nameof(MaterialConnectionProperties.Width), 1);
-            heightRow = AddText<int?>("Height", nameof(MaterialConnectionProperties.Height), 1);
+            widthRow = AddValue<int?>("Width", nameof(MaterialConnectionProperties.Width), 1);
+            heightRow = AddValue<int?>("Height", nameof(MaterialConnectionProperties.Height), 1);
             AddText<string>("Match Blocks", nameof(MaterialConnectionProperties.MatchBlocks));
             matchTilesRow = AddText<string>("Match Tiles", nameof(MaterialConnectionProperties.MatchTiles));
             

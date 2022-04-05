@@ -9,10 +9,11 @@ namespace PixelGraph.UI.Models
     {
         protected GameObjectTypes _gameObjectType;
         protected string _gameObjectName;
+        protected string _gameNamespace;
         protected string _location;
 
         public event EventHandler GameObjectTypeChanged;
-        public event EventHandler GameObjectNameChanged;
+        public event EventHandler GameObjectLocationChanged;
 
         public ObservableCollection<GameObjectOption> GameObjectNames {get;}
 
@@ -22,9 +23,16 @@ namespace PixelGraph.UI.Models
                 _gameObjectType = value;
                 OnPropertyChanged();
                 OnGameObjectTypeChanged();
+                OnGameObjectLocationChanged();
+            }
+        }
 
-                //UpdateBlockList();
-                //UpdateLocation();
+        public string GameNamespace {
+            get => _gameNamespace;
+            set {
+                _gameNamespace = value;
+                OnPropertyChanged();
+                OnGameObjectLocationChanged();
             }
         }
 
@@ -33,9 +41,7 @@ namespace PixelGraph.UI.Models
             set {
                 _gameObjectName = value;
                 OnPropertyChanged();
-                OnGameObjectNameChanged();
-
-                //UpdateLocation();
+                OnGameObjectLocationChanged();
             }
         }
 
@@ -52,7 +58,8 @@ namespace PixelGraph.UI.Models
         {
             GameObjectNames = new ObservableCollection<GameObjectOption>();
 
-            GameObjectType = GameObjectTypes.Block;
+            _gameObjectType = GameObjectTypes.Block;
+            _gameNamespace = "minecraft";
         }
 
         private void OnGameObjectTypeChanged()
@@ -60,9 +67,9 @@ namespace PixelGraph.UI.Models
             GameObjectTypeChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void OnGameObjectNameChanged()
+        private void OnGameObjectLocationChanged()
         {
-            GameObjectNameChanged?.Invoke(this, EventArgs.Empty);
+            GameObjectLocationChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -70,9 +77,7 @@ namespace PixelGraph.UI.Models
     {
         public NewMaterialDesignVM()
         {
-            _gameObjectType = GameObjectTypes.Block;
             _gameObjectName = "bricks";
-            //UpdateLocation();
         }
     }
 

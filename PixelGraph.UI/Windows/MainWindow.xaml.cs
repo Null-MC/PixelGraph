@@ -774,7 +774,13 @@ namespace PixelGraph.UI.Windows
 
             var material = await Task.Run(() => viewModel.ImportTextureAsync(fileNode.Filename));
 
-            var contentReader = provider.GetRequiredService<IContentTreeReader>();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+            serviceBuilder.Services.AddSingleton<ContentTreeReader>();
+
+            
             var parent = fileNode.Parent;
 
             if (parent == null) {
@@ -782,6 +788,8 @@ namespace PixelGraph.UI.Windows
             }
             else {
                 await Dispatcher.BeginInvoke(() => {
+                    using var scope = serviceBuilder.Build();
+                    var contentReader = scope.GetRequiredService<ContentTreeReader>();
                     contentReader.Update(parent);
 
                     var selected = parent.Nodes.FirstOrDefault(n => {

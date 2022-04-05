@@ -12,13 +12,7 @@ using System.Linq;
 
 namespace PixelGraph.UI.Internal.Models
 {
-    //public interface IModelLoader
-    //{
-    //    JavaEntityModelVersion GetJavaEntityModel(MaterialProperties material);
-    //    BlockModelVersion GetBlockModel(MaterialProperties material, bool defaultCube = false);
-    //}
-
-    public class ModelLoader //: IModelLoader
+    public class ModelLoader
     {
         private readonly IServiceProvider provider;
         private readonly IProjectContext projectContext;
@@ -57,7 +51,7 @@ namespace PixelGraph.UI.Internal.Models
 
                 using var scope = serviceBuilder.Build();
 
-                var entityParser = provider.GetRequiredService<EntityModelParser>();
+                var entityParser = scope.GetRequiredService<EntityModelParser>();
                 entityParser.Build(baseModel, modelFile);
             }
 
@@ -68,7 +62,6 @@ namespace PixelGraph.UI.Internal.Models
         {
             var modelFile = material.Model;
             if (modelFile == null && !MCPath.IsBlockPath(material.LocalPath) && !defaultCube) return null;
-            //if (modelFile?.StartsWith("entity/", StringComparison.InvariantCultureIgnoreCase) ?? false) return null;
 
             if (modelFile == null) {
                 var modelData = Minecraft.Java.GetBlockModelForTexture<JavaBlockTextureVersion>(material.Name);

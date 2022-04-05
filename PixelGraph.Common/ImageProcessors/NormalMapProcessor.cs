@@ -5,6 +5,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Numerics;
+using SixLabors.ImageSharp.Advanced;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -107,7 +108,7 @@ namespace PixelGraph.Common.ImageProcessors
                 if (options.WrapY) context.WrapY(ref pY);
                 else context.ClampY(ref pY);
 
-                var row = options.Source.GetPixelRowSpan(pY);
+                var row = options.Source.DangerousGetPixelRowMemory(pY).Span;
 
                 for (byte kX = 0; kX < kernelSize; kX++) {
                     var pX = context.X + kX - ox;

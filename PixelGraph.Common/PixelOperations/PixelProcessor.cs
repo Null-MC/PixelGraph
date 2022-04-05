@@ -59,7 +59,7 @@ namespace PixelGraph.Common.PixelOperations
                 public void Invoke(int y)
                 {
                     var context = new PixelContext(region, y);
-                    var row = frame.GetPixelRowSpan(y);
+                    var row = frame.DangerousGetPixelRowMemory(y).Span;
                     //var pixel = new Rgba32();
 
                     for (var x = region.Left; x < region.Right; x++) {

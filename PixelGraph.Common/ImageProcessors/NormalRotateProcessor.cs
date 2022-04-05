@@ -11,7 +11,7 @@ namespace PixelGraph.Common.ImageProcessors
     {
         private readonly Options options;
         private readonly bool hasRotation, hasNoise;
-        private readonly bool hasCurveTop, hasCurveBottom, hasCurveLeft, hasCurveRight;
+        //private readonly bool hasCurveTop, hasCurveBottom, hasCurveLeft, hasCurveRight;
         private readonly float offsetTop, offsetBottom, offsetLeft, offsetRight;
         private readonly float invRadiusTop, invRadiusBottom, invRadiusLeft, invRadiusRight;
 
@@ -20,10 +20,10 @@ namespace PixelGraph.Common.ImageProcessors
         {
             this.options = options;
 
-            hasCurveTop = MathF.Abs(options.CurveTop) > float.Epsilon && options.RadiusTop > float.Epsilon;
-            hasCurveBottom = MathF.Abs(options.CurveBottom) > float.Epsilon && options.RadiusBottom > float.Epsilon;
-            hasCurveLeft = MathF.Abs(options.CurveLeft) > float.Epsilon && options.RadiusLeft > float.Epsilon;
-            hasCurveRight = MathF.Abs(options.CurveRight) > float.Epsilon && options.RadiusRight > float.Epsilon;
+            var hasCurveTop = MathF.Abs(options.CurveTop) > float.Epsilon && options.RadiusTop > float.Epsilon;
+            var hasCurveBottom = MathF.Abs(options.CurveBottom) > float.Epsilon && options.RadiusBottom > float.Epsilon;
+            var hasCurveLeft = MathF.Abs(options.CurveLeft) > float.Epsilon && options.RadiusLeft > float.Epsilon;
+            var hasCurveRight = MathF.Abs(options.CurveRight) > float.Epsilon && options.RadiusRight > float.Epsilon;
 
             hasRotation = hasCurveTop || hasCurveBottom || hasCurveLeft || hasCurveRight;
             hasNoise = options.Noise > float.Epsilon;
@@ -90,85 +90,59 @@ namespace PixelGraph.Common.ImageProcessors
             }
         }
 
-        //protected override void ProcessRow(in PixelRowContext context, Span<Rgba32> row)
-        //{
-        //    byte[] noiseX = null, noiseY = null;
-
-        //    if (hasNoise) {
-        //        GenerateNoise(context.Bounds.Width, out noiseX);
-        //        GenerateNoise(context.Bounds.Width, out noiseY);
-        //    }
-
-        //    var v = new Vector3();
-        //    for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-        //        row[x].GetChannelValue(ColorChannel.Red, out var normalX);
-        //        row[x].GetChannelValue(ColorChannel.Green, out var normalY);
-
-        //        v.X = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
-        //        v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
-
-        //        if (!options.RestoreNormalZ) {
-        //            row[x].GetChannelValueScaled(ColorChannel.Blue, out var normalZ);
-        //            v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
-        //            MathEx.Normalize(ref v);
-        //        }
-
-        //        ProcessPixel(in context, ref v, in noiseX, in noiseY, in x);
-
-        //        row[x].SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
-        //        row[x].SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
-        //        row[x].SetChannelValueScaledF(ColorChannel.Blue, v.Z * 0.5f + 0.5f);
-        //    }
-        //}
-
         private void ProcessPixel(in PixelRowContext context, ref Vector3 v, in byte[] noiseX, in byte[] noiseY, in int x)
         {
             if (hasRotation || hasNoise) {
-                float fx, fy, rx, ry;
-                var qX = Quaternion.Identity;
-                var qY = Quaternion.Identity;
+                var fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
+                var fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
 
-                if (hasCurveTop) {
-                    fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
-                    ry = MathF.Min(fy + offsetTop, 0f) * invRadiusTop * 2f;
-                    qY *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, options.CurveTop * -ry * MathEx.Deg2RadF);
+                var rotation_top = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
+                var rotation_bottom = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
+                var rotation_left = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft;
+                var rotation_right = MathF.Max(fx - offsetRight, 0f) * invRadiusRight;
+
+                var angle_top =  MathF.Sin(rotation_top *options.CurveTop * 2f * MathEx.Deg2RadF);
+                var angle_bottom = MathF.Sin(rotation_bottom * options.CurveBottom * 2f * MathEx.Deg2RadF);
+                var angle_left = MathF.Sin(rotation_left * options.CurveLeft * 2f * MathEx.Deg2RadF);
+                var angle_right = MathF.Sin(rotation_right * options.CurveRight * 2f * MathEx.Deg2RadF);
+
+                var direction = Vector3.Zero;
+                direction.Y = -(angle_left + angle_right);
+                direction.X = angle_top + angle_bottom;
+
+                if (!direction.X.NearEqual(0f) || !direction.Y.NearEqual(0f)) {
+                    var len_x = -(rotation_left + rotation_right);
+                    var len_y = rotation_top + rotation_bottom;
+
+                    var len = direction.X*direction.X + direction.Y*direction.Y;
+                    //var len = MathF.Abs(direction.X) + MathF.Abs(direction.Y);
+                    len = MathF.Sqrt(len);
+                    len = MathF.Min(len, 1f);
+
+                    //var max = MathF.Abs(len_x) + MathF.Abs(len_y);
+                    var max = len_x*len_x + len_y*len_y;
+                    max = MathF.Sqrt(max);
+                    max = MathF.Max(max, 1f);
+
+                    //len = MathF.Sqrt(len / max);
+                    //len = MathF.Min(len / (1f + max), 1f);
+
+                    var rotation = -MathF.Asin(len);
+
+                    MathEx.Normalize(ref direction);
+                    //var axis = Vector3.Cross(direction, Vector3.UnitZ);
+                    //var axis = Vector3.Normalize(new Vector3(direction.Y, direction.X, 0f));
+
+                    var q = Quaternion.CreateFromAxisAngle(direction, rotation);
+
+                    if (hasNoise) {
+                        var z = x - context.Bounds.Left;
+                        q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[z] / 127.5f - 1f) * options.Noise * MathEx.Deg2RadF);
+                        q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[z] / 127.5f - 1f) * -options.Noise * MathEx.Deg2RadF);
+                    }
+
+                    v = Vector3.Transform(v, q);
                 }
-
-                if (hasCurveBottom) {
-                    fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
-                    ry = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom * 2f;
-                    qY *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, options.CurveBottom * -ry * MathEx.Deg2RadF);
-                }
-
-                if (hasCurveLeft) {
-                    fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
-                    rx = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft * 2f;
-                    qX *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, options.CurveLeft * rx * MathEx.Deg2RadF);
-                }
-
-                if (hasCurveRight) {
-                    fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
-                    rx = MathF.Max(fx - offsetRight, 0f) * invRadiusRight * 2f;
-                    qX *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, options.CurveRight * rx * MathEx.Deg2RadF);
-                }
-
-                if (hasNoise) {
-                    var z = x - context.Bounds.Left;
-                    qX *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[z] / 127.5f - 1f) * options.Noise * MathEx.Deg2RadF);
-                    qY *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[z] / 127.5f - 1f) * -options.Noise * MathEx.Deg2RadF);
-                }
-
-                qX = Quaternion.Normalize(qX);
-                var vX = Vector3.Transform(v, qX);
-                MathEx.Normalize(ref vX);
-
-                qY = Quaternion.Normalize(qY);
-                var vY = Vector3.Transform(v, qY);
-                MathEx.Normalize(ref vY);
-
-                v.X = vX.X;
-                v.Y = vY.Y;
-                v.Z = (vX.Z + vY.Z) * 0.5f;
             }
             else if (options.RestoreNormalZ) {
                 var v2 = new Vector2(v.X, v.Y);

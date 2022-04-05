@@ -134,8 +134,10 @@ namespace PixelGraph.Common.IO
         private static JpegEncoder GetJpegEncoder(ImageChannels type)
         {
             return new() {
-                Subsample = JpegSubsample.Ratio444,
                 Quality = 100,
+                ColorType = type == ImageChannels.Gray
+                    ? JpegColorType.Luminance
+                    : JpegColorType.YCbCrRatio444,
             };
         }
 

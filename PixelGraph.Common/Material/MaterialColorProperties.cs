@@ -49,15 +49,10 @@ namespace PixelGraph.Common.Material
             if (Texture != null) return true;
             if (Value != null) return true;
             if (BakeOcclusion.HasValue) return true;
-            //if (!string.IsNullOrWhiteSpace(PreviewTint)) return true;
 
             if (InputRed != null && InputRed.HasAnyData()) return true;
             if (InputGreen != null && InputGreen.HasAnyData()) return true;
             if (InputBlue != null && InputBlue.HasAnyData()) return true;
-
-            //if (ValueRed.HasValue) return true;
-            //if (ValueGreen.HasValue) return true;
-            //if (ValueBlue.HasValue) return true;
 
             if (ScaleRed.HasValue) return true;
             if (ScaleGreen.HasValue) return true;

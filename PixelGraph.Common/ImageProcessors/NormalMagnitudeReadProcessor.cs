@@ -2,6 +2,7 @@
 using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Numerics;
@@ -21,7 +22,7 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
-            var normalRow = options.NormalTexture.GetPixelRowSpan(context.Y);
+            var normalRow = options.NormalTexture.DangerousGetPixelRowMemory(context.Y).Span;
 
             float value;
             Vector3 normal;

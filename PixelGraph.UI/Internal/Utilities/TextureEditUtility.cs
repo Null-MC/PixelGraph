@@ -19,21 +19,12 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal.Utilities
 {
-    public interface ITextureEditUtility
-    {
-        Task<bool> EditLayerAsync(MaterialProperties material, string textureTag, CancellationToken token = default);
-        void Cancel();
-    }
-
-    internal class TextureEditUtility : ITextureEditUtility
+    internal class TextureEditUtility
     {
         private readonly ILogger<TextureEditUtility> logger;
         private readonly IServiceProvider provider;
         private readonly IAppSettings appSettings;
         private readonly IProjectContext projectContext;
-        //private readonly ITextureReader texReader;
-        //private readonly ITextureWriter texWriter;
-        //private readonly IInputReader reader;
 
         private CancellationTokenSource mergedTokenSource;
 
@@ -43,16 +34,10 @@ namespace PixelGraph.UI.Internal.Utilities
             IServiceProvider provider,
             IAppSettings appSettings,
             IProjectContext projectContext)
-            //ITextureReader texReader,
-            //ITextureWriter texWriter,
-            //IInputReader reader)
         {
             this.appSettings = appSettings;
             this.provider = provider;
             this.projectContext = projectContext;
-            //this.texReader = texReader;
-            //this.texWriter = texWriter;
-            //this.reader = reader;
             this.logger = logger;
         }
 

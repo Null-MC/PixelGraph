@@ -32,7 +32,7 @@ namespace PixelGraph.UI.ViewModels
 
             await using var scope = serviceBuilder.Build();
 
-            var packWriter = provider.GetRequiredService<IResourcePackWriter>();
+            var packWriter = scope.GetRequiredService<IResourcePackWriter>();
 
             var packInput = new ResourcePackInputProperties {
                 Format = TextureFormat.Format_Raw,

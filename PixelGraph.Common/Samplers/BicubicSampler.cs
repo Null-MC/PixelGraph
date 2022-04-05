@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Numerics;
 
@@ -33,7 +34,7 @@ namespace PixelGraph.Common.Samplers
                 if (WrapY) WrapCoordY(ref ly);
                 else ClampCoordY(ref ly);
 
-                var row = Image.GetPixelRowSpan(ly);
+                var row = Image.DangerousGetPixelRowMemory(ly).Span;
 
                 for (var kx = 0; kx < 4; kx++) {
                     var lx = pxMin + kx - 1;

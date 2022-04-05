@@ -55,9 +55,39 @@
             <controls:PropertyGridEditCellTemplateSelector.TextBoxTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:IEditTextPropertyRow}">
                     <DockPanel IsEnabled="{Binding Enabled, Mode=OneWay}">
-                        <mah:ColorPicker DockPanel.Dock="Top" TabIndex="1"
-                                         SelectedColor="{Binding EditValue, Mode=TwoWay}"
-                                         Visibility="{Binding IsColorSelect, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <Slider DockPanel.Dock="Bottom" Orientation="Horizontal" Delay="200" Interval="200" SmallChange="0.01" LargeChange="0.1"
+                                TickPlacement="None" IsMoveToPointEnabled="True">
+                            <Slider.Style>
+                                <Style TargetType="Slider" BasedOn="{StaticResource MahApps.Styles.Slider.Flat}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsNumericRange}" Value="True">
+                                            <DataTrigger.Setters>
+                                                <Setter Property="Value" Value="{Binding EditValue, Mode=TwoWay, Delay=200, UpdateSourceTrigger=PropertyChanged}"/>
+                                                <Setter Property="Minimum" Value="{Binding RangeMin, Mode=OneWay}"/>
+                                                <Setter Property="Maximum" Value="{Binding RangeMax, Mode=OneWay}"/>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger.Setters>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Slider.Style>
+                        </Slider>
+                        <mah:ColorPicker DockPanel.Dock="Top" TabIndex="1">
+                            <mah:ColorPicker.Style>
+                                <Style TargetType="mah:ColorPicker" BasedOn="{StaticResource MahApps.Styles.ColorPicker}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsColorSelect}" Value="True">
+                                            <DataTrigger.Setters>
+                                                <Setter Property="SelectedColor" Value="{Binding EditValue, Mode=TwoWay, Delay=200, UpdateSourceTrigger=PropertyChanged}"/>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger.Setters>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </mah:ColorPicker.Style>
+                        </mah:ColorPicker>
                         <Button DockPanel.Dock="Right" Margin="6,0" Click="OnSelectFileClick"
                                 Style="{StaticResource MahApps.Styles.Button.Chromeless}"
                                 Visibility="{Binding IsFileSelect, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">

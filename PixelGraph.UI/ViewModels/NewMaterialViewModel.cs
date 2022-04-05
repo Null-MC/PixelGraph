@@ -58,21 +58,23 @@ namespace PixelGraph.UI.ViewModels
 
         private string GetLocation()
         {
-            var path = GetPathForType();
-            if (path == null) return null;
-
+            var pathExt = GetPathForType(Model.GameObjectType);
+            if (pathExt == null) return null;
+            
+            var path = $"assets/{Model.GameNamespace}/{pathExt}";
             if (Model.GameObjectName == null) return path;
+
             return $"{path}/{Model.GameObjectName}";
         }
 
-        private string GetPathForType()
+        private static string GetPathForType(GameObjectTypes objType)
         {
-            return Model.GameObjectType switch {
-                GameObjectTypes.Block => "assets/minecraft/textures/block",
-                GameObjectTypes.Item => "assets/minecraft/textures/item",
-                GameObjectTypes.Entity => "assets/minecraft/textures/entity",
-                GameObjectTypes.Optifine_CTM => "assets/minecraft/optifine/ctm",
-                GameObjectTypes.Optifine_CIT => "assets/minecraft/optifine/cit",
+            return objType switch {
+                GameObjectTypes.Block => "textures/block",
+                GameObjectTypes.Item => "textures/item",
+                GameObjectTypes.Entity => "textures",
+                GameObjectTypes.Optifine_CTM => "optifine/ctm",
+                GameObjectTypes.Optifine_CIT => "optifine/cit",
                 _ => null,
             };
         }

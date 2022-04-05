@@ -13,6 +13,28 @@ namespace PixelGraph.UI.ViewModels
         protected TSource Data {get; set;}
 
 
+        protected IEditTextPropertyRow<TSource> AddValue<TValue>(string displayName, string propertyName, TValue defaultValue = default)
+        {
+            var row = new EditTextPropertyRowModel<TSource, TValue>(displayName, propertyName, defaultValue);
+            row.IsNumeric = true;
+            row.ValueChanged += OnRowValueChanged;
+            Add(row);
+
+            return row;
+        }
+
+        protected IEditTextPropertyRow<TSource> AddValue<TValue>(string displayName, string propertyName, decimal min, decimal max, TValue defaultValue = default)
+        {
+            var row = new EditTextPropertyRowModel<TSource, TValue>(displayName, propertyName, defaultValue);
+            row.IsNumericRange = true;
+            row.RangeMin = min;
+            row.RangeMax = max;
+            row.ValueChanged += OnRowValueChanged;
+            Add(row);
+
+            return row;
+        }
+
         protected IEditTextPropertyRow<TSource> AddText<TValue>(string displayName, string propertyName, TValue defaultValue = default)
         {
             var row = new EditTextPropertyRowModel<TSource, TValue>(displayName, propertyName, defaultValue);

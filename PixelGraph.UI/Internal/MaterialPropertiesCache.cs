@@ -9,14 +9,7 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal
 {
-    internal interface IMaterialPropertiesCache
-    {
-        Task<CacheRegistration<string, MaterialProperties>> RegisterAsync(string localFile, CancellationToken token = default);
-        void Release(CacheRegistration<string, MaterialProperties> registration);
-        void Clear();
-    }
-
-    internal class MaterialPropertiesCache : AsyncRegistrationCounterCache<string, MaterialProperties>, IMaterialPropertiesCache
+    internal class MaterialPropertiesCache : AsyncRegistrationCounterCache<string, MaterialProperties>
     {
         private readonly IServiceProvider provider;
         private readonly IProjectContext projectContext;

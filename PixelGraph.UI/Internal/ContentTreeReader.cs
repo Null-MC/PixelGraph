@@ -10,12 +10,7 @@ using System.Linq;
 
 namespace PixelGraph.UI.Internal
 {
-    internal interface IContentTreeReader
-    {
-        void Update(ContentTreeNode parentNode);
-    }
-
-    internal class ContentTreeReader : IContentTreeReader
+    internal class ContentTreeReader
     {
         private readonly IInputReader reader;
         private readonly IPublishReader loader;
