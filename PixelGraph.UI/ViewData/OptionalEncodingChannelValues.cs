@@ -21,6 +21,7 @@ namespace PixelGraph.UI.ViewData
             Add(new Channel {Text = "Smoothness", Value = EncodingChannel.Smooth});
             Add(new Channel {Text = "Roughness", Value = EncodingChannel.Rough});
             Add(new Channel {Text = "Metalness", Value = EncodingChannel.Metal});
+            Add(new Channel {Text = "HCM", Value = EncodingChannel.HCM});
             Add(new Channel {Text = "F0", Value = EncodingChannel.F0});
             Add(new Channel {Text = "Porosity", Value = EncodingChannel.Porosity});
             Add(new Channel {Text = "SSS", Value = EncodingChannel.SubSurfaceScattering});

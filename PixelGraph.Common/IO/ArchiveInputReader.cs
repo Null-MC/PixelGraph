@@ -64,12 +64,14 @@ namespace PixelGraph.Common.IO
 
         public override Stream Open(string localFile)
         {
-            return archive.GetEntry(localFile)?.Open();
+            var file = PathEx.Normalize(localFile);
+            return archive.GetEntry(file)?.Open();
         }
 
         public override bool FileExists(string localFile)
         {
-            return archive.GetEntry(localFile) != null;
+            var file = PathEx.Normalize(localFile);
+            return archive.GetEntry(file) != null;
         }
 
         public override DateTime? GetWriteTime(string localFile)
@@ -80,12 +82,14 @@ namespace PixelGraph.Common.IO
 
         private IEnumerable<ZipArchiveEntry> GetPathEntries(string localPath)
         {
+            var path = PathEx.Normalize(localPath);
+
             foreach (var entry in archive.Entries) {
                 if (string.IsNullOrEmpty(entry.Name)) continue;
 
-                var path = GetDirectoryName(entry.FullName) ?? string.Empty;
+                var entryPath = GetDirectoryName(entry.FullName) ?? string.Empty;
 
-                if (path.StartsWith(localPath, StringComparison.InvariantCultureIgnoreCase))
+                if (entryPath.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
                     yield return entry;
             }
         }

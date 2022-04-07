@@ -190,12 +190,19 @@ namespace PixelGraph.UI.Windows
 
             if (Model.SelectedProfileItem != null) {
                 try {
-                    var packReader = provider.GetRequiredService<IResourcePackReader>();
+                    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+                    serviceBuilder.Initialize();
+                    serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+                    await using var scope = serviceBuilder.Build();
+
+                    var packReader = scope.GetRequiredService<IResourcePackReader>();
                     Model.LoadedProfile = await packReader.ReadProfileAsync(Model.SelectedProfileItem.LocalFile);
                     //vm.LoadedFilename = vm.SelectedProfileItem.Filename;
                 }
                 catch (Exception error) {
-                    logger.LogError(error, "Failed to delete pack profile!");
+                    logger.LogError(error, "Failed to load pack profile!");
                     ShowError($"Failed to load pack profile '{Model.SelectedProfileItem.LocalFile}'! {error.Message}");
                 }
             }

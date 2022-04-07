@@ -27,6 +27,9 @@ namespace PixelGraph.Common.ResourcePack
         public bool? EnableClipping {get; set;}
 
         [YamlIgnore]
+        internal string __Filename {get; set;}
+
+        [YamlIgnore]
         public bool HasTexture => Texture != null && !TextureTags.Is(Texture, TextureTags.None);
 
         [YamlIgnore]
@@ -66,6 +69,7 @@ namespace PixelGraph.Common.ResourcePack
             if (channel.DefaultValue.HasValue) DefaultValue = channel.DefaultValue.Value;
             if (channel.ClipValue.HasValue) ClipValue = channel.ClipValue.Value;
             if (channel.Priority.HasValue) Priority = channel.Priority.Value;
+            if (channel.EnableClipping.HasValue) EnableClipping = channel.EnableClipping.Value;
         }
 
         public void Reset()
@@ -85,6 +89,7 @@ namespace PixelGraph.Common.ResourcePack
             DefaultValue = null;
             ClipValue = null;
             Priority = null;
+            EnableClipping = null;
         }
 
         public virtual bool HasAnyData()
@@ -104,6 +109,7 @@ namespace PixelGraph.Common.ResourcePack
             if (DefaultValue.HasValue) return true;
             if (ClipValue.HasValue) return true;
             if (Priority.HasValue) return true;
+            if (EnableClipping.HasValue) return true;
             return false;
         }
 

@@ -26,6 +26,8 @@ namespace PixelGraph.Common.IO
         public async Task OpenReadAsync(string localFilename, Func<Stream, Task> readFunc, CancellationToken token = default)
         {
             var filename = PathEx.Join(options.Value.Root, localFilename);
+            filename = PathEx.Localize(filename);
+
             await using var stream = File.Open(filename, FileMode.Open, FileAccess.Read);
             await readFunc(stream);
         }
@@ -33,6 +35,7 @@ namespace PixelGraph.Common.IO
         public async Task OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
             var filename = PathEx.Join(options.Value.Root, localFilename);
+            filename = PathEx.Localize(filename);
             CreateMissingDirectory(filename);
 
             await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
@@ -42,6 +45,7 @@ namespace PixelGraph.Common.IO
         public async Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
             var filename = PathEx.Join(options.Value.Root, localFilename);
+            filename = PathEx.Localize(filename);
             CreateMissingDirectory(filename);
 
             await using var stream = File.Open(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);

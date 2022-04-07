@@ -12,10 +12,12 @@ namespace PixelGraph.Common.IO.Texture
 {
     public interface ITextureReader
     {
-        bool TryGetSourceFilename(string tag, out string filename);
+        bool TryGetByTag(string tag, out string localFile);
+        bool TryGetByName(in string name, out string localFile);
 
+        //IEnumerable<string> EnumerateInputTextures(string localPath, string filename);
         IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag);
-        IEnumerable<string> EnumerateOutputTextures(string destName, string destPath, string tag, bool global);
+        //IEnumerable<string> EnumerateOutputTextures(string destName, string destPath, string tag, bool global);
         IEnumerable<string> EnumerateAllTextures(MaterialProperties material);
 
         bool IsLocalFile(string localFile, string tag);
@@ -34,7 +36,7 @@ namespace PixelGraph.Common.IO.Texture
             Reader = provider.GetRequiredService<IInputReader>();
         }
 
-        public virtual bool TryGetSourceFilename(string tag, out string filename)
+        public virtual bool TryGetByTag(string tag, out string localFile)
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));
 
@@ -42,16 +44,41 @@ namespace PixelGraph.Common.IO.Texture
                 ? EnumerateOutputTextures(Context.Material.Name, Context.Material.LocalPath, tag, true)
                 : EnumerateInputTextures(Context.Material, tag);
 
-            foreach (var file in textureList) {
-                // TODO: All enum files should exist, why are we checking?
-                if (!Reader.FileExists(file)) continue;
+            // TODO: All enum files should exist, why are we checking?
+            localFile = textureList.FirstOrDefault(f => Reader.FileExists(f));
+            //localFile = textureList.FirstOrDefault();
+            return localFile != null;
+        }
 
-                filename = file;
-                return true;
+        public virtual bool TryGetByName(in string localName, out string localFile)
+        {
+            var localPath = Path.GetDirectoryName(localName);
+            var name = Path.GetFileName(localName);
+
+            var textureList = Context.IsImport
+                ? EnumerateOutputTextures(localPath, name)
+                : EnumerateInputTextures(localPath, name);
+
+            // TODO: All enum files should exist, why are we checking?
+            //filename = textureList.FirstOrDefault(f => Reader.FileExists(f));
+            localFile = textureList.FirstOrDefault();
+            return localFile != null;
+        }
+
+        public virtual IEnumerable<string> EnumerateInputTextures(string localPath, string name)
+        {
+            if (localPath == null) throw new ArgumentNullException(nameof(localPath));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+
+            foreach (var file in Reader.EnumerateFiles(localPath)) {
+                var ext = Path.GetExtension(file);
+                if (!ImageExtensions.Supports(ext)) continue;
+
+                var _name = Path.GetFileNameWithoutExtension(file);
+                if (!string.Equals(_name, name, StringComparison.InvariantCultureIgnoreCase)) continue;
+
+                yield return file;
             }
-
-            filename = null;
-            return false;
         }
 
         public virtual IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag)
@@ -86,6 +113,22 @@ namespace PixelGraph.Common.IO.Texture
                     : IsLocalFile(file, tag);
 
                 if (isMatch) yield return file;
+            }
+        }
+
+        public virtual IEnumerable<string> EnumerateOutputTextures(string localPath, string name)
+        {
+            if (localPath == null) throw new ArgumentNullException(nameof(localPath));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+
+            foreach (var file in Reader.EnumerateFiles(localPath)) {
+                var ext = Path.GetExtension(file);
+                if (!ImageExtensions.Supports(ext)) continue;
+
+                var _name = Path.GetFileNameWithoutExtension(file);
+                if (!string.Equals(_name, name, StringComparison.InvariantCultureIgnoreCase)) continue;
+
+                yield return file;
             }
         }
 

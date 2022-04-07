@@ -34,11 +34,6 @@ namespace PixelGraph.Common.ImageProcessors
                 for (var i = 0; i < samplerCount; i++) {
                     var samplerOptions = options.Samplers[i];
                     var mapping = samplerOptions.PixelMap;
-                    //pixelOut.GetChannelValue(in samplerOptions.OutputColor, out existingValue);
-
-                    //if (existingValue != 0) {
-                    //    if (existingValue < mapping.OutputRangeMin || existingValue > mapping.OutputRangeMax) continue;
-                    //}
 
                     pixelValue = 0;
                     if (samplerOptions.Sampler != null) {
@@ -48,17 +43,7 @@ namespace PixelGraph.Common.ImageProcessors
 
                     if (!mapping.TryUnmap(in pixelValue, out value)) continue;
 
-                    //value += mapping.InputValueShift;
-                    //value *= mapping.InputValueScale;
-                    //MathEx.Clamp(ref value, in mapping.InputMinValue, in mapping.InputMaxValue);
-
-                    if (samplerOptions.Invert) {
-                        MathEx.Invert(ref value, 0f, 1f);
-                    }
-
-                    //value += samplerOptions.ValueShift;
-
-                    //value *= mapping.OutputScale;
+                    if (!ProcessConversions(samplerOptions.PixelMap, ref value)) continue;
 
                     if (!mapping.TryMap(ref value, out finalValue)) continue;
 
@@ -78,6 +63,23 @@ namespace PixelGraph.Common.ImageProcessors
             }
         }
 
+        private static bool ProcessConversions(PixelMapping map, ref float value)
+        {
+            if (map.Convert_HcmToMetal) {
+                value = value >= 230f
+                    ? map.OutputMaxValue
+                    : map.OutputMinValue;
+            }
+            else if (map.Convert_MetalToHcm) {
+                var threshold = (map.InputMinValue + map.InputMaxValue) * 0.5f;
+                if (value < threshold) return false;
+
+                value = map.OutputMaxValue;
+            }
+
+            return true;
+        }
+
         public class Options
         {
             public SamplerOptions[] Samplers;
@@ -90,8 +92,6 @@ namespace PixelGraph.Common.ImageProcessors
             public ISampler<TPixel> Sampler;
             public ColorChannel InputColor;
             public ColorChannel OutputColor;
-            //public float ValueShift;
-            public bool Invert;
         }
     }
 }

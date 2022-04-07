@@ -314,7 +314,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Shift ?? 0m,
             [EncodingChannel.Specular] = mat => mat.Specular?.Shift ?? 0m,
             [EncodingChannel.Rough] = mat => mat.Rough?.Shift ?? 0m,
-            [EncodingChannel.Metal] = mat => 0m,
+            [EncodingChannel.Metal] = mat => mat.Metal?.Shift ?? 0m,
             [EncodingChannel.HCM] = mat => 0m,
             [EncodingChannel.F0] = mat => mat.F0?.Shift ?? 0m,
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Shift ?? 0m,

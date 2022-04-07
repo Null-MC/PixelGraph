@@ -7,6 +7,7 @@ namespace PixelGraph.Common.Material
         public ResourcePackMetalChannelProperties Input {get; set;}
         public string Texture {get; set;}
         public decimal? Value {get; set;}
+        public decimal? Shift {get; set;}
         public decimal? Scale {get; set;}
 
 
@@ -15,6 +16,7 @@ namespace PixelGraph.Common.Material
             if (Input != null && Input.HasAnyData()) return true;
             if (Texture != null) return true;
             if (Value.HasValue) return true;
+            if (Shift.HasValue) return true;
             if (Scale.HasValue) return true;
             return false;
         }

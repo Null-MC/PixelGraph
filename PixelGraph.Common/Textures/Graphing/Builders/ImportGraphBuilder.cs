@@ -26,8 +26,6 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
         
         public async Task ImportAsync(CancellationToken token = default)
         {
-            Context.ApplyOutputEncoding();
-
             await ProcessAllTexturesAsync(false, token);
             await CopyPropertiesAsync(token);
             await ImportMetaAsync(token);

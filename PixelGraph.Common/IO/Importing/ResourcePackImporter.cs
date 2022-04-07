@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
@@ -24,6 +25,7 @@ namespace PixelGraph.Common.IO.Importing
 
     public class ResourcePackImporter : IResourcePackImporter
     {
+        private readonly ILogger<ResourcePackImporter> logger;
         private readonly IInputReader reader;
         private readonly IOutputWriter writer;
         private readonly IMaterialImporter importer;
@@ -34,6 +36,8 @@ namespace PixelGraph.Common.IO.Importing
         public bool IncludeUnknown {get; set;}
         public ResourcePackInputProperties PackInput {get; set;}
         public ResourcePackProfileProperties PackProfile {get; set;}
+
+        public int FailureCount {get; set;}
 
 
         //static ResourcePackImporter()
@@ -47,11 +51,15 @@ namespace PixelGraph.Common.IO.Importing
             writer = provider.GetRequiredService<IOutputWriter>();
             importer = provider.GetRequiredService<IMaterialImporter>();
             //matWriter = provider.GetRequiredService<IMaterialWriter>();
+            logger = provider.GetRequiredService<ILogger<ResourcePackImporter>>();
         }
 
         public async Task ImportAsync(CancellationToken token = default)
         {
+            FailureCount = 0;
             await ImportPathAsync(".", token);
+
+            if (FailureCount > 0) logger.LogWarning("Failed to import {FailureCount:N0} materials!", FailureCount);
         }
 
         private async Task ImportPathAsync(string localPath, CancellationToken token)
@@ -66,6 +74,8 @@ namespace PixelGraph.Common.IO.Importing
             if (!IncludeUnknown) fileList = fileList.Where(f => !IsUnknownFile(f));
 
             var files = fileList.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+
+            files.Remove("manifest.json");
 
             // TODO: detect and remove CTM files first
             //if (ctmExp.IsMatch(localPath)) {
@@ -119,21 +129,32 @@ namespace PixelGraph.Common.IO.Importing
             foreach (var name in names) {
                 token.ThrowIfCancellationRequested();
 
-                await ImportMaterialAsync(localPath, name, token);
+                var file = PathEx.Join(localPath, name);
+                file = PathEx.Normalize(file);
 
-                RemoveNamedFile(files, name);
+                try {
+                    await ImportMaterialAsync(localPath, name, token);
+                }
+                catch (Exception error) {
+                    logger.LogError(error, "Failed to import material '{file}'!", file);
+                    FailureCount++;
+                }
+
+                RemoveNamedFile(files, file);
 
                 // Remove from untracked files
+                // WARN: This only works for default file names!
+                // TODO: use mapped file names
                 //if (IsBedrock) {
-                    RemoveNamedFile(files, $"{name}_n");
-                    RemoveNamedFile(files, $"{name}_s");
+                    RemoveNamedFile(files, $"{file}_n");
+                    RemoveNamedFile(files, $"{file}_s");
                     //RemoveFile(files, $"{name}_e");
                 //}
                 //else {
-                    files.Remove($"{name}.texture_set.json");
-                    RemoveNamedFile(files, $"{name}_heightmap");
-                    RemoveNamedFile(files, $"{name}_normal");
-                    RemoveNamedFile(files, $"{name}_mer");
+                    files.Remove($"{file}.texture_set.json");
+                    RemoveNamedFile(files, $"{file}_heightmap");
+                    RemoveNamedFile(files, $"{file}_normal");
+                    RemoveNamedFile(files, $"{file}_mer");
                 //}
             }
 
@@ -196,6 +217,8 @@ namespace PixelGraph.Common.IO.Importing
         private async Task CopyFileAsync(string file, CancellationToken token)
         {
             await using var sourceStream = reader.Open(file);
+            if (sourceStream == null) throw new ApplicationException($"Failed to open file '{file}'!");
+
             await writer.OpenWriteAsync(file, async destStream => {
                 await sourceStream.CopyToAsync(destStream, token);
             }, token);
@@ -203,9 +226,15 @@ namespace PixelGraph.Common.IO.Importing
 
         private static void RemoveNamedFile(HashSet<string> files, string name)
         {
+            var matchPath = Path.GetDirectoryName(name);
+            var matchName = Path.GetFileName(name);
+
             files.RemoveWhere(f => {
+                var fPath = Path.GetDirectoryName(f);
+                if (!string.Equals(fPath, matchPath, StringComparison.InvariantCultureIgnoreCase)) return false;
+
                 var fName = Path.GetFileNameWithoutExtension(f);
-                return string.Equals(fName, name, StringComparison.InvariantCultureIgnoreCase);
+                return string.Equals(fName, matchName, StringComparison.InvariantCultureIgnoreCase);
             });
         }
 

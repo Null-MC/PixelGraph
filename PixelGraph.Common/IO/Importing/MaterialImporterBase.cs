@@ -84,6 +84,8 @@ namespace PixelGraph.Common.IO.Importing
 
             context.Mapping = new DefaultPublishMapping();
 
+            context.ApplyOutputEncoding();
+
             await OnImportMaterialAsync(scope.ServiceProvider, token);
 
             if (!context.Mapping.TryMap(material.LocalPath, material.Name, out var destPath, out var destName)) return;

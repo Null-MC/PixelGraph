@@ -74,10 +74,10 @@ namespace PixelGraph.Common.ResourcePack
             Emissive = new ResourcePackEmissiveChannelProperties();
         }
 
-        public ResourcePackChannelProperties Get(string encodingChannel)
-        {
-            return GetAll().FirstOrDefault(e => EncodingChannel.Is(e.ID, encodingChannel));
-        }
+        //public ResourcePackChannelProperties Get(string encodingChannel)
+        //{
+        //    return GetAll().FirstOrDefault(e => EncodingChannel.Is(e.ID, encodingChannel));
+        //}
 
         public IEnumerable<ResourcePackChannelProperties> GetMapped()
         {

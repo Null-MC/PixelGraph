@@ -13,6 +13,12 @@ namespace PixelGraph.Common.Extensions
             return Path.Join(parts);
         }
 
+        //public static string JoinNormalized(params string[] pathParts)
+        //{
+        //    var parts = pathParts.Where(p => p != null && p != ".").ToArray();
+        //    return string.Join('/', parts);
+        //}
+
         public static string Localize(string filename)
         {
             if (Path.DirectorySeparatorChar == '/') return filename;

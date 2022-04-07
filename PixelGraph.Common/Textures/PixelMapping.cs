@@ -54,6 +54,9 @@ namespace PixelGraph.Common.Textures
         //public float ValueShift;
         //public bool Invert;
 
+        public bool Convert_MetalToHcm;
+        public bool Convert_HcmToMetal;
+
 
         public PixelMapping(TextureChannelMapping mapping)
         {
@@ -103,6 +106,9 @@ namespace PixelGraph.Common.Textures
             pixelOutputRange = OutputRangeMax - OutputRangeMin;
             valueOutputRange = OutputMaxValue - OutputMinValue;
             hasOutputPower = !OutputChannelPower.NearEqual(1f);
+
+            Convert_HcmToMetal = mapping.Convert_HcmToMetal;
+            Convert_MetalToHcm = mapping.Convert_MetalToHcm;
         }
 
         public readonly bool TryUnmap(in byte pixelValue, out float value)

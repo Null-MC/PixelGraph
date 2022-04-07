@@ -286,7 +286,13 @@ namespace PixelGraph.Common.Textures
                     return true;
                 }
 
-                if (matReader.TryGetSourceFilename(inputChannel.Texture, out mapping.SourceFilename)) {
+                var path = context.Material.LocalPath;
+                if (inputChannel.__Filename != null && matReader.TryGetByName(inputChannel.__Filename, out mapping.SourceFilename)) {
+                    mapping.ApplyInputChannel(inputChannel);
+                    return true;
+                }
+                
+                if (matReader.TryGetByTag(inputChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(inputChannel);
                     return true;
                 }
@@ -310,7 +316,7 @@ namespace PixelGraph.Common.Textures
             var hasOuputRough = context.OutputEncoding.HasChannel(EncodingChannel.Rough);
             if (isOutputSmooth && !hasOuputRough) {
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)
-                    && matReader.TryGetSourceFilename(roughChannel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetByTag(roughChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(roughChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Rough);
@@ -335,7 +341,7 @@ namespace PixelGraph.Common.Textures
             var hasOuputSmooth = context.OutputEncoding.HasChannel(EncodingChannel.Smooth);
             if (isOutputRough && !hasOuputSmooth) {
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
-                    && matReader.TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetByTag(smoothChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(smoothChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
@@ -361,7 +367,7 @@ namespace PixelGraph.Common.Textures
             if (isOutputSpecular && !context.IsImport) {
                 // Smooth > Specular
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
-                    && matReader.TryGetSourceFilename(smoothChannel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetByTag(smoothChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(smoothChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
@@ -378,7 +384,7 @@ namespace PixelGraph.Common.Textures
 
                 // Metal > Specular
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel)
-                    && matReader.TryGetSourceFilename(metalChannel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetByTag(metalChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(metalChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
@@ -400,10 +406,9 @@ namespace PixelGraph.Common.Textures
             if (isOutputMetal && !context.IsImport) {
                 // HCM > Metal
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.HCM, out var hcmChannel)
-                    && matReader.TryGetSourceFilename(hcmChannel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetByTag(hcmChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(hcmChannel);
-                    //mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.HCM);
-                    //mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.HCM);
+                    mapping.Convert_HcmToMetal = true;
                     return true;
                 }
 
@@ -414,14 +419,12 @@ namespace PixelGraph.Common.Textures
                         ? (float?)outputChannel.MaxValue ?? 1f
                         : (float?)outputChannel.MinValue ?? 0f;
                     
-                    //mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.HCM);
-                    //mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.HCM);
                     return true;
                 }
 
                 // F0 > Metal
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.F0, out var f0Channel)
-                    && matReader.TryGetSourceFilename(f0Channel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetByTag(f0Channel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(f0Channel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.F0);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.F0);
@@ -443,33 +446,23 @@ namespace PixelGraph.Common.Textures
             if (isOutputHCM && !context.IsImport) {
                 // Metal > HCM
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel)
-                    && matReader.TryGetSourceFilename(metalChannel.Texture, out mapping.SourceFilename)) {
+                    && matReader.TryGetByTag(metalChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(metalChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
-
-                    // TODO: Change the in/out ranges?!
-                    var inputRange = (metalChannel.RangeMax ?? 255) - (metalChannel.RangeMin ?? 0);
-
-                    mapping.InputRangeMin = (byte)((metalChannel.RangeMin ?? 0) + inputRange / 2);
-                    //mapping.InputRangeMax = 255;
-                    mapping.InputMinValue = 0f;
-                    mapping.InputMaxValue = 255f;
-
-                    mapping.OutputMinValue = 0f;
-                    mapping.OutputMaxValue = 1f;
-                    mapping.OutputRangeMin = 254;
-                    mapping.OutputRangeMax = 255;
-                    mapping.OutputClipValue = 0f;
+                    mapping.Convert_MetalToHcm = true;
 
                     return true;
                 }
 
                 if (context.Material.TryGetChannelValue(EncodingChannel.Metal, out value)) {
                     mapping.ApplyInputChannel(inputChannel);
-                    mapping.InputValue = (float)value > 127f ? 255f : 0f; // TODO: use 50% range threshold! (like above)
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
+
+                    var threshold = (mapping.InputMinValue + mapping.InputMaxValue) * 0.5f;
+                    if ((float)value < threshold) return false;
+                    mapping.InputValue = mapping.OutputMaxValue;
                     return true;
                 }
             }
@@ -490,7 +483,7 @@ namespace PixelGraph.Common.Textures
                         PixelMap = new PixelMapping(mapping),
                         InputColor = mapping.InputColor,
                         OutputColor = mapping.OutputColor,
-                        Invert = mapping.Invert,
+                        //Invert = mapping.Invert,
                         //ValueShift = mapping.ValueShift,
                         Sampler = sampler,
                     },
@@ -529,7 +522,7 @@ namespace PixelGraph.Common.Textures
                         PixelMap = new PixelMapping(mapping),
                         InputColor = mapping.InputColor,
                         OutputColor = mapping.OutputColor,
-                        Invert = mapping.Invert,
+                        //Invert = mapping.Invert,
                         //ValueShift = mapping.ValueShift,
                         Sampler = sampler,
                     },
@@ -567,7 +560,7 @@ namespace PixelGraph.Common.Textures
                         PixelMap = new PixelMapping(mapping),
                         InputColor = mapping.InputColor,
                         OutputColor = mapping.OutputColor,
-                        Invert = mapping.Invert,
+                        //Invert = mapping.Invert,
                         //ValueShift = mapping.ValueShift,
                         Sampler = occlusionSampler,
                     },
@@ -608,7 +601,7 @@ namespace PixelGraph.Common.Textures
             if (mapping.OutputClipValue.HasValue && value.NearEqual(mapping.OutputClipValue.Value)) return;
             //if (value < mapping.InputMinValue || value > mapping.InputMaxValue) return;
 
-            if (mapping.Invert) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
+            //if (mapping.Invert) MathEx.Invert(ref value, mapping.InputMinValue, mapping.InputMaxValue);
 
             // TODO: scale
 
@@ -693,7 +686,7 @@ namespace PixelGraph.Common.Textures
                             PixelMap = new PixelMapping(m),
                             InputColor = m.InputColor,
                             OutputColor = m.OutputColor,
-                            Invert = m.Invert,
+                            //Invert = m.Invert,
                             //ValueShift = m.ValueShift,
                             Sampler = sampler,
                         };
@@ -744,7 +737,7 @@ namespace PixelGraph.Common.Textures
             ISampler<Rgba32> emissiveSampler = null;
             try {
                 if (context.InputEncoding.TryGetChannel(EncodingChannel.Emissive, out var emissiveChannel)
-                    && matReader.TryGetSourceFilename(emissiveChannel.Texture, out var emissiveFile)) {
+                    && matReader.TryGetByTag(emissiveChannel.Texture, out var emissiveFile)) {
                     emissiveInfo = await sourceGraph.GetOrCreateAsync(emissiveFile, token);
 
                     if (emissiveInfo != null) {

@@ -64,22 +64,12 @@ namespace PixelGraph.Tests.Internal
 
         public Task CreateImageAsync(string localFile, byte r, byte g, byte b, byte alpha = 255)
         {
-            //return CreateImageAsync(localFile, 1, 1, r, g, b, alpha);
             var content = provider.GetRequiredService<MockFileContent>();
 
             var color = new Rgba32(r, g, b, alpha);
             using var image = new Image<Rgba32>(Configuration.Default, 1, 1, color);
             return content.AddAsync(localFile, image);
         }
-
-        //public Task CreateImageAsync(string localFile, int width, int height)
-        //{
-        //    var content = provider.GetRequiredService<MockFileContent>();
-
-        //    var color = new Rgba32(r, g, b, alpha);
-        //    using var image = new Image<Rgba32>(Configuration.Default, width, height, color);
-        //    return content.AddAsync(localFile, image);
-        //}
 
         public Task CreateImageAsync<TPixel>(string localFile, int width, int height, Action<Image<TPixel>> initAction)
             where TPixel : unmanaged, IPixel<TPixel>
@@ -93,6 +83,12 @@ namespace PixelGraph.Tests.Internal
             return content.AddAsync(localFile, image);
         }
 
+        public Task CreateFileAsync(string localFile, string text)
+        {
+            var content = provider.GetRequiredService<MockFileContent>();
+            return content.AddAsync(localFile, text);
+        }
+
         public async Task ProcessAsync(CancellationToken token = default)
         {
             using var scope = provider.CreateScope();
@@ -102,7 +98,6 @@ namespace PixelGraph.Tests.Internal
             graphContext.Input = PackInput;
             graphContext.Profile = PackProfile;
             graphContext.Material = Material;
-            //graphContext.UseGlobalOutput = true;
             graphContext.Mapping = new DefaultPublishMapping();
 
             await graphBuilder.PublishAsync(token);

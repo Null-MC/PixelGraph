@@ -37,6 +37,7 @@ namespace PixelGraph.UI.Models
         public TextureChannelMapping Rough {get; set;}
 
         public TextureChannelMapping Metal {get; set;}
+        public TextureChannelMapping HCM {get; set;}
         public TextureChannelMapping F0 {get; set;}
 
         public TextureChannelMapping Porosity {get; set;}
@@ -365,6 +366,7 @@ namespace PixelGraph.UI.Models
             Rough = new TextureChannelMapping("Rough");
 
             Metal = new TextureChannelMapping("Metal");
+            HCM = new TextureChannelMapping("HCM");
             F0 = new TextureChannelMapping("F0");
 
             Porosity = new TextureChannelMapping("Porosity");
@@ -393,6 +395,7 @@ namespace PixelGraph.UI.Models
             Rough.DataChanged += OnPropertyDataChanged;
 
             Metal.DataChanged += OnPropertyDataChanged;
+            HCM.DataChanged += OnPropertyDataChanged;
             F0.DataChanged += OnPropertyDataChanged;
 
             Porosity.DataChanged += OnPropertyDataChanged;
@@ -458,6 +461,7 @@ namespace PixelGraph.UI.Models
             Rough.SetChannel(_loadedProfile?.Encoding?.Rough);
 
             Metal.SetChannel(_loadedProfile?.Encoding?.Metal);
+            HCM.SetChannel(_loadedProfile?.Encoding?.HCM);
             F0.SetChannel(_loadedProfile?.Encoding?.F0);
 
             Porosity.SetChannel(_loadedProfile?.Encoding?.Porosity);
@@ -492,6 +496,7 @@ namespace PixelGraph.UI.Models
             Rough.ApplyDefaultValues(encodingDefaults?.Rough, sampler);
 
             Metal.ApplyDefaultValues(encodingDefaults?.Metal, sampler);
+            HCM.ApplyDefaultValues(encodingDefaults?.HCM, sampler);
             F0.ApplyDefaultValues(encodingDefaults?.F0, sampler);
 
             Porosity.ApplyDefaultValues(encodingDefaults?.Porosity, sampler);

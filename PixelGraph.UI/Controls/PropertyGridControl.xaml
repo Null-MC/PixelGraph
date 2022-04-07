@@ -15,6 +15,7 @@
     <DataGrid.Resources>
         <convert:NullableConverter x:Key="NullableConverter"/>
         <convert:VisibilityInverseConverter x:Key="InverseVisibilityConverter"/>
+        <convert:DecimalToDoubleConverter x:Key="DecimalToDoubleConverter"/>
         <controls:PropertyGridCellTemplateSelector x:Key="DisplayCellTemplateSelector">
             <controls:PropertyGridCellTemplateSelector.TextBoxTemplate>
                 <DataTemplate DataType="{x:Type propertyGrid:IEditTextPropertyRow}">
@@ -63,7 +64,7 @@
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsNumericRange}" Value="True">
                                             <DataTrigger.Setters>
-                                                <Setter Property="Value" Value="{Binding EditValue, Mode=TwoWay, Delay=200, UpdateSourceTrigger=PropertyChanged}"/>
+                                                <Setter Property="Value" Value="{Binding EditValue, Mode=TwoWay, Delay=200, Converter={StaticResource DecimalToDoubleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
                                                 <Setter Property="Minimum" Value="{Binding RangeMin, Mode=OneWay}"/>
                                                 <Setter Property="Maximum" Value="{Binding RangeMax, Mode=OneWay}"/>
                                                 <Setter Property="Visibility" Value="Visible"/>

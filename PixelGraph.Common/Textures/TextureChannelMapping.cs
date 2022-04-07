@@ -38,6 +38,9 @@ namespace PixelGraph.Common.Textures
         public bool OutputEnableClipping;
         public bool OutputApplyOcclusion;
 
+        public bool Convert_MetalToHcm;
+        public bool Convert_HcmToMetal;
+
         public string SourceTag;
         public string SourceFilename;
         public int Priority;
@@ -46,7 +49,6 @@ namespace PixelGraph.Common.Textures
         //public float ValueScale;
         //public bool IsMetalToF0;
         //public bool IsF0ToMetal;
-        public bool Invert;
 
 
         public void ApplyInputChannel(ResourcePackChannelProperties channel)

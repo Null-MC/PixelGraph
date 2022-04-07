@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PixelGraph.Common;
+using PixelGraph.Common.Bedrock;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.Material;
@@ -55,14 +58,10 @@ namespace PixelGraph.Tests.ImportTests
             var material = new MaterialProperties {
                 Name = "brick",
                 LocalPath = PathEx.Localize("textures/blocks"),
-                //LocalFilename = matFile,
                 UseGlobalMatching = true,
             };
 
             await importer.ImportAsync(material);
-
-            //await using var material = graph.GetFile("assets/minecraft/textures/block/bricks/mat.yml");
-            //Assert.NotNull(material);
 
             using var albedoImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/color.png");
             PixelAssert.Equals(31, 156, 248, albedoImage);
@@ -86,32 +85,62 @@ namespace PixelGraph.Tests.ImportTests
             PixelAssert.Equals(45, roughImage);
         }
 
-        //[InlineData(  0,   0)]
-        //[InlineData(127,   0)]
-        //[InlineData(128,   0)]
-        //[InlineData(129,   2)]
-        //[InlineData(200, 145)]
-        //[InlineData(254, 253)]
-        //[InlineData(255, 255)]
-        //[Theory] public async Task OpacityTest(byte inputValue, byte outputValue)
-        //{
-        //    await using var graph = Graph();
-        //    await graph.CreateImageAsync("textures/blocks/brick.png", 0, 0, 0, inputValue);
+        [Fact]
+        public async Task SupportsTextureSetRenaming()
+        {
+            await using var graph = Graph();
 
-        //    var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
-        //    importer.PackInput = packInput;
-        //    importer.PackProfile = packProfile;
-        //    importer.AsGlobal = false;
+            await graph.CreateImageAsync("textures/blocks/brick_c.png", 31, 156, 248, 254);
+            //await graph.CreateImageAsync("textures/blocks/brick_h.png", 160);
+            await graph.CreateImageAsync("textures/blocks/brick_n.png", 127, 127, 200);
+            await graph.CreateImageAsync("textures/blocks/brick_s.png", 16, 8, 45);
 
-        //    var material = new MaterialProperties {
-        //        Name = "brick",
-        //        LocalPath = PathEx.Localize("textures/blocks"),
-        //        UseGlobalMatching = true,
-        //    };
+            var data = new BedrockTextureSet {
+                FormatVersion = "1.16.100",
+                TextureSet = new JObject {
+                    ["color"] = "brick_c",
+                    ["metalness_emissive_roughness"] = "brick_s",
+                    ["normal"] = "brick_n",
+                    //["heightmap"] = "brick_h",
+                },
+            };
 
-        //    await importer.ImportAsync(material);
-        //    using var opacityImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/opacity.png");
-        //    PixelAssert.Equals(outputValue, opacityImage);
-        //}
+            var json = JsonConvert.SerializeObject(data, Formatting.None);
+            await graph.CreateFileAsync("textures/blocks/brick.texture_set.json", json);
+
+            var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
+            importer.PackInput = packInput;
+            importer.PackProfile = packProfile;
+            importer.AsGlobal = false;
+
+            var material = new MaterialProperties {
+                Name = "brick",
+                LocalPath = PathEx.Localize("textures/blocks"),
+                UseGlobalMatching = true,
+            };
+
+            await importer.ImportAsync(material);
+
+            using var albedoImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/color.png");
+            PixelAssert.Equals(31, 156, 248, albedoImage);
+
+            using var opacityImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/opacity.png");
+            PixelAssert.Equals(254, opacityImage);
+
+            using var normalImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/normal.png");
+            PixelAssert.Equals(127, 127, 255, normalImage);
+
+            //using var heightImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/height.png");
+            //PixelAssert.RedEquals(160, heightImage);
+
+            using var metalImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/metal.png");
+            PixelAssert.Equals(16, metalImage);
+
+            using var emissiveImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/emissive.png");
+            PixelAssert.Equals(8, emissiveImage);
+
+            using var roughImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/rough.png");
+            PixelAssert.Equals(45, roughImage);
+        }
     }
 }

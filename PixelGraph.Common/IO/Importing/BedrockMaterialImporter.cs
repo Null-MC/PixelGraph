@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PixelGraph.Common.Extensions;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
 using System;
@@ -24,12 +25,7 @@ namespace PixelGraph.Common.IO.Importing
         public override bool IsMaterialFile(string filename, out string name)
         {
             name = Path.GetFileNameWithoutExtension(filename);
-            var path = Path.GetDirectoryName(filename);
-            path = PathEx.Normalize(path);
-
-            if (path != null && isPathMaterialExp.IsMatch(path)) return true;
             
-
             // TODO: get all input names
             //foreach (var tag in context.OutputEncoding.Select()) {
             //    var tagName = texWriter.Get(name, tag);
@@ -55,6 +51,10 @@ namespace PixelGraph.Common.IO.Importing
                 return true;
             }
 
+            var path = Path.GetDirectoryName(filename);
+            path = PathEx.Normalize(path);
+            if (path != null && isPathMaterialExp.IsMatch(path)) return true;
+
             return false;
         }
 
@@ -71,156 +71,186 @@ namespace PixelGraph.Common.IO.Importing
 
         private async Task ParseTextureSetAsync(ITextureGraphContext context, CancellationToken token)
         {
-            var textureSetFilename = PathEx.Join(context.Material.LocalPath, $"{context.Material.Name}.texture_set.json");
+            var localPath = PathEx.Localize(context.Material.LocalPath);
+            var textureSetFilename = PathEx.Join(localPath, $"{context.Material.Name}.texture_set.json");
+            if (!Reader.FileExists(textureSetFilename)) return;
 
-            if (Reader.FileExists(textureSetFilename)) {
-                var data = await ParseJsonAsync(textureSetFilename, token);
-                var textureSet = data.SelectToken("['minecraft:texture_set']");
-                if (textureSet == null) throw new ApplicationException("Invalid texture_set json file!");
+            var data = await ParseJsonAsync(textureSetFilename, token);
+            var textureSet = data.SelectToken("['minecraft:texture_set']");
+            if (textureSet == null) throw new ApplicationException("Invalid texture_set json file!");
 
-                var colorData = textureSet.SelectToken("color");
-                if (colorData?.HasValues ?? false) {
-                    var opacityChannel = context.OutputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Opacity));
-                    var opacityRange = ((float?)opacityChannel?.MaxValue ?? 0f) - ((float?)opacityChannel?.MinValue ?? 0f);
+            var colorData = textureSet.SelectToken("color");
+            if (colorData != null) {
+                var channelColorR = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.ColorRed));
+                var channelColorG = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.ColorGreen));
+                var channelColorB = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.ColorBlue));
+                var channelOpacity = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Opacity));
+                var opacityRange = ((float?)channelOpacity?.MaxValue ?? 0f) - ((float?)channelOpacity?.MinValue ?? 0f);
 
-                    if (colorData.Type == JTokenType.String) {
-                        var colorValue = colorData.Value<string>();
+                if (colorData.Type == JTokenType.String) {
+                    var colorValue = colorData.Value<string>();
 
-                        if (colorValue?.StartsWith('#') ?? false) {
-                            if (colorValue.Length is not (7 or 9))
-                                throw new ApplicationException("Expected 6 or 8 characters in hexadecimal color value!");
+                    if (colorValue?.StartsWith('#') ?? false) {
+                        if (colorValue.Length is not (7 or 9))
+                            throw new ApplicationException("Expected 6 or 8 characters in hexadecimal color value!");
 
-                            var hasAlpha = colorValue.Length == 9;
-                            context.Material.Color.Value = hasAlpha ? $"#{colorValue[3-8]}" : colorValue;
+                        var hasAlpha = colorValue.Length == 9;
+                        context.Material.Color.Value = hasAlpha ? $"#{colorValue[3 - 8]}" : colorValue;
 
-                            context.Input.ColorRed.Reset();
-                            context.Input.ColorGreen.Reset();
-                            context.Input.ColorBlue.Reset();
+                        channelColorR?.Reset();
+                        channelColorG?.Reset();
+                        channelColorB?.Reset();
 
-                            if (opacityChannel != null && hasAlpha) {
-                                var opacity = byte.Parse(colorValue[7..8], NumberStyles.HexNumber);
-                                context.Material.Opacity.Value = (decimal)(opacity / 255f * opacityRange) + opacityChannel.MinValue;
-                                context.Input.Opacity.Reset();
-                            }
-                        }
-                        else {
-                            // TODO: Add way to set filename for color import
-                        }
-                    }
-                    else if (colorData.Type == JTokenType.Array) { 
-                        var colorValues = colorData.Values<byte>().ToArray();
-
-                        if (colorValues.Length is not (3 or 4))
-                            throw new ApplicationException("Expected 3 or 4 color values!");
-
-                        context.Material.Color.Value = $"#{colorValues[0]:X2}{colorValues[1]:X2}{colorValues[2]:X2}";
-
-                        context.Input.ColorRed.Reset();
-                        context.Input.ColorGreen.Reset();
-                        context.Input.ColorBlue.Reset();
-
-                        if (opacityChannel != null && colorValues.Length == 4) {
-                            context.Material.Opacity.Value = (decimal)(colorValues[3] / 255f * opacityRange) + opacityChannel.MinValue;
-                            context.Input.Opacity.Reset();
+                        if (channelOpacity != null && hasAlpha) {
+                            var opacity = byte.Parse(colorValue[7..8], NumberStyles.HexNumber);
+                            context.Material.Opacity.Value = (decimal)(opacity / 255f * opacityRange) + channelOpacity.MinValue;
+                            channelOpacity.Reset();
                         }
                     }
                     else {
-                        throw new ApplicationException($"Unexpected data-type '{colorData.Type}' for element 'minecraft:texture_set/color'!");
+                        var filename = PathEx.Join(context.Material.LocalPath, colorValue);
+                        if (channelColorR != null) channelColorR.__Filename = filename;
+                        if (channelColorG != null) channelColorG.__Filename = filename;
+                        if (channelColorB != null) channelColorB.__Filename = filename;
+                        if (channelOpacity != null) channelOpacity.__Filename = filename;
                     }
                 }
+                else if (colorData.Type == JTokenType.Array) {
+                    var colorValues = colorData.Values<byte>().ToArray();
 
-                var merData = textureSet.SelectToken("metalness_emissive_roughness");
-                if (merData?.HasValues ?? false) {
-                    if (merData.Type == JTokenType.String) {
-                        var merValue = merData.Value<string>();
+                    if (colorValues.Length is not (3 or 4))
+                        throw new ApplicationException("Expected 3 or 4 color values!");
 
-                        if (merValue?.StartsWith('#') ?? false) {
-                            if (merValue.Length is not 7)
-                                throw new ApplicationException("Expected 6 characters in hexadecimal MER value!");
+                    context.Material.Color.Value = $"#{colorValues[0]:X2}{colorValues[1]:X2}{colorValues[2]:X2}";
 
-                            var metal = byte.Parse(merValue[1..2], NumberStyles.HexNumber);
-                            var emissive = byte.Parse(merValue[3..4], NumberStyles.HexNumber);
-                            var rough = byte.Parse(merValue[5..6], NumberStyles.HexNumber);
+                    context.Input.ColorRed.Reset();
+                    context.Input.ColorGreen.Reset();
+                    context.Input.ColorBlue.Reset();
 
-                            var metalChannel = context.OutputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Metal));
-                            if (metalChannel != null) {
-                                var metalRange = ((float?)metalChannel.MaxValue ?? 0f) - ((float?)metalChannel.MinValue ?? 0f);
-                                context.Material.Metal.Value = (decimal)(metal / 255f * metalRange) + metalChannel.MinValue;
-                                context.Input.Metal.Reset();
-                            }
-
-                            var emissiveChannel = context.OutputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Emissive));
-                            if (emissiveChannel != null) {
-                                var emissiveRange = ((float?)emissiveChannel.MaxValue ?? 0f) - ((float?)emissiveChannel.MinValue ?? 0f);
-                                context.Material.Metal.Value = (decimal)(emissive / 255f * emissiveRange) + emissiveChannel.MinValue;
-                                context.Input.Emissive.Reset();
-                            }
-
-                            var roughChannel = context.OutputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Rough));
-                            if (roughChannel != null) {
-                                var roughRange = ((float?)roughChannel.MaxValue ?? 0f) - ((float?)roughChannel.MinValue ?? 0f);
-                                context.Material.Rough.Value = (decimal)(rough / 255f * roughRange) + roughChannel.MinValue;
-                                context.Input.Rough.Reset();
-                            }
-                        }
-                        else {
-                            // TODO: Add way to set filename for metal import
-                        }
+                    if (channelOpacity != null && colorValues.Length == 4) {
+                        context.Material.Opacity.Value = (decimal)(colorValues[3] / 255f * opacityRange) + channelOpacity.MinValue;
+                        context.Input.Opacity.Reset();
                     }
-                    else if (merData.Type == JTokenType.Array) {
-                        var merValues = merData.Values<byte>().ToArray();
-                        if (merValues.Length != 3) throw new ApplicationException("Expected 3 MER values!");
+                }
+                else { throw new ApplicationException($"Unexpected data-type '{colorData.Type}' for element 'minecraft:texture_set/color'!"); }
+            }
 
-                        var metalChannel = context.OutputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Metal));
+            var merData = textureSet.SelectToken("metalness_emissive_roughness");
+            if (merData != null) {
+                if (merData.Type == JTokenType.String) {
+                    var merValue = merData.Value<string>();
+
+                    if (merValue?.StartsWith('#') ?? false) {
+                        if (merValue.Length is not 7)
+                            throw new ApplicationException("Expected 6 characters in hexadecimal MER value!");
+
+                        var metal = byte.Parse(merValue[1..2], NumberStyles.HexNumber);
+                        var emissive = byte.Parse(merValue[3..4], NumberStyles.HexNumber);
+                        var rough = byte.Parse(merValue[5..6], NumberStyles.HexNumber);
+
+                        var metalChannel = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Metal));
                         if (metalChannel != null) {
                             var metalRange = ((float?)metalChannel.MaxValue ?? 0f) - ((float?)metalChannel.MinValue ?? 0f);
-                            context.Material.Metal.Value = (decimal)(merValues[0] / 255f * metalRange) + metalChannel.MinValue;
+                            context.Material.Metal.Value = (decimal)(metal / 255f * metalRange) + metalChannel.MinValue;
                             context.Input.Metal.Reset();
                         }
 
-                        var emissiveChannel = context.OutputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Emissive));
+                        var emissiveChannel = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Emissive));
                         if (emissiveChannel != null) {
                             var emissiveRange = ((float?)emissiveChannel.MaxValue ?? 0f) - ((float?)emissiveChannel.MinValue ?? 0f);
-                            context.Material.Metal.Value = (decimal)(merValues[1] / 255f * emissiveRange) + emissiveChannel.MinValue;
+                            context.Material.Metal.Value = (decimal)(emissive / 255f * emissiveRange) + emissiveChannel.MinValue;
                             context.Input.Emissive.Reset();
                         }
 
-                        var roughChannel = context.OutputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Rough));
+                        var roughChannel = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Rough));
                         if (roughChannel != null) {
                             var roughRange = ((float?)roughChannel.MaxValue ?? 0f) - ((float?)roughChannel.MinValue ?? 0f);
-                            context.Material.Rough.Value = (decimal)(merValues[1] / 255f * roughRange) + roughChannel.MinValue;
+                            context.Material.Rough.Value = (decimal)(rough / 255f * roughRange) + roughChannel.MinValue;
                             context.Input.Rough.Reset();
                         }
                     }
                     else {
-                        throw new ApplicationException($"Unexpected data-type '{merData.Type}' for element 'minecraft:texture_set/metalness_emissive_roughness'!");
+                        var channelMetal = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Metal));
+                        var channelEmissive = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Emissive));
+                        var channelRough = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Rough));
+
+                        var filename = PathEx.Join(context.Material.LocalPath, merValue);
+                        if (channelMetal != null) channelMetal.__Filename = filename;
+                        if (channelEmissive != null) channelEmissive.__Filename = filename;
+                        if (channelRough != null) channelRough.__Filename = filename;
                     }
                 }
+                else if (merData.Type == JTokenType.Array) {
+                    var merValues = merData.Values<byte>().ToArray();
+                    if (merValues.Length != 3) throw new ApplicationException("Expected 3 MER values!");
 
-                var normalData = textureSet.SelectToken("normal");
-                if (normalData?.HasValues ?? false) {
-                    if (normalData.Type == JTokenType.String) {
-                        var normalValue = normalData.Value<string>();
-
-                        // TODO: Add way to set filename for normal import
+                    var metalChannel = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Metal));
+                    if (metalChannel != null) {
+                        var metalRange = ((float?)metalChannel.MaxValue ?? 0f) - ((float?)metalChannel.MinValue ?? 0f);
+                        context.Material.Metal.Value = (decimal)(merValues[0] / 255f * metalRange) + metalChannel.MinValue;
+                        context.Input.Metal.Reset();
                     }
-                    else {
-                        throw new ApplicationException($"Unexpected data-type '{normalData.Type}' for element 'minecraft:texture_set/normal'!");
+
+                    var emissiveChannel = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Emissive));
+                    if (emissiveChannel != null) {
+                        var emissiveRange = ((float?)emissiveChannel.MaxValue ?? 0f) - ((float?)emissiveChannel.MinValue ?? 0f);
+                        context.Material.Metal.Value = (decimal)(merValues[1] / 255f * emissiveRange) + emissiveChannel.MinValue;
+                        context.Input.Emissive.Reset();
+                    }
+
+                    var roughChannel = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Rough));
+                    if (roughChannel != null) {
+                        var roughRange = ((float?)roughChannel.MaxValue ?? 0f) - ((float?)roughChannel.MinValue ?? 0f);
+                        context.Material.Rough.Value = (decimal)(merValues[1] / 255f * roughRange) + roughChannel.MinValue;
+                        context.Input.Rough.Reset();
                     }
                 }
-
-                var heightData = textureSet.SelectToken("heightmap");
-                if (heightData?.HasValues ?? false) {
-                    if (heightData.Type == JTokenType.String) {
-                        var heightValue = heightData.Value<string>();
-
-                        // TODO: Add way to set filename for height import
-                    }
-                    else {
-                        throw new ApplicationException($"Unexpected data-type '{heightData.Type}' for element 'minecraft:texture_set/heightmap'!");
-                    }
-                }
+                else { throw new ApplicationException($"Unexpected data-type '{merData.Type}' for element 'minecraft:texture_set/metalness_emissive_roughness'!"); }
             }
+
+            var normalData = textureSet.SelectToken("normal");
+            if (normalData != null) {
+                var channelHeight = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Height));
+                if (channelHeight != null) channelHeight.Texture = null;
+
+                if (normalData.Type == JTokenType.String) {
+                    var normalValue = normalData.Value<string>();
+
+                    var channelNormalX = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.NormalX));
+                    var channelNormalY = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.NormalY));
+                    var channelNormalZ = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.NormalZ));
+
+                    var filename = PathEx.Join(context.Material.LocalPath, normalValue);
+                    if (channelNormalX != null) channelNormalX.__Filename = filename;
+                    if (channelNormalY != null) channelNormalY.__Filename = filename;
+                    if (channelNormalZ != null) channelNormalZ.__Filename = filename;
+                }
+                else { throw new ApplicationException($"Unexpected data-type '{normalData.Type}' for element 'minecraft:texture_set/normal'!"); }
+            }
+
+            var heightData = textureSet.SelectToken("heightmap");
+            if (heightData != null) {
+                var channelNormalX = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.NormalX));
+                var channelNormalY = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.NormalY));
+                var channelNormalZ = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.NormalZ));
+
+                if (channelNormalX != null) channelNormalX.Texture = null;
+                if (channelNormalY != null) channelNormalY.Texture = null;
+                if (channelNormalZ != null) channelNormalZ.Texture = null;
+
+                if (heightData.Type == JTokenType.String) {
+                    var heightValue = heightData.Value<string>();
+
+                    var channelHeight = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Height));
+
+                    var filename = PathEx.Join(context.Material.LocalPath, heightValue);
+                    if (channelHeight != null) channelHeight.__Filename = filename;
+                }
+                else { throw new ApplicationException($"Unexpected data-type '{heightData.Type}' for element 'minecraft:texture_set/heightmap'!"); }
+            }
+
+            //if (normalData == null && heightData == null) throw new ApplicationException("Invalid texture_set, no heightmap or normal data!");
+            //if (normalData != null && heightData != null) throw new ApplicationException("Invalid texture_set, contains both heightmap & normal data!");
         }
 
         private async Task<JObject> ParseJsonAsync(string localFile, CancellationToken token)
