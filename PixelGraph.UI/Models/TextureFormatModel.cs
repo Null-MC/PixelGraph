@@ -20,6 +20,7 @@ namespace PixelGraph.UI.Models
         private readonly TextureChannelMapping _smooth;
         private readonly TextureChannelMapping _rough;
         private readonly TextureChannelMapping _metal;
+        private readonly TextureChannelMapping _hcm;
         private readonly TextureChannelMapping _f0;
         private readonly TextureChannelMapping _porosity;
         private readonly TextureChannelMapping _sss;
@@ -31,7 +32,7 @@ namespace PixelGraph.UI.Models
         private string _defaultSampler;
         private bool _enableSampler;
         
-        public event EventHandler DataChanged;
+        //public event EventHandler DataChanged;
 
         public TextureChannelMapping[] EncodingChannels {get;}
 
@@ -133,6 +134,7 @@ namespace PixelGraph.UI.Models
                 _rough = new TextureChannelMapping("Rough"),
 
                 _metal = new TextureChannelMapping("Metal"),
+                _hcm = new TextureChannelMapping("HCM"),
                 _f0 = new TextureChannelMapping("F0"),
 
                 _porosity = new TextureChannelMapping("Porosity"),
@@ -142,32 +144,33 @@ namespace PixelGraph.UI.Models
                 _emissive = new TextureChannelMapping("Emissive"),
             };
 
-            _opacity.DataChanged += OnChannelDataChanged;
+            //_opacity.DataChanged += OnChannelDataChanged;
             
-            _colorRed.DataChanged += OnChannelDataChanged;
-            _colorGreen.DataChanged += OnChannelDataChanged;
-            _colorBlue.DataChanged += OnChannelDataChanged;
+            //_colorRed.DataChanged += OnChannelDataChanged;
+            //_colorGreen.DataChanged += OnChannelDataChanged;
+            //_colorBlue.DataChanged += OnChannelDataChanged;
 
-            _height.DataChanged += OnChannelDataChanged;
-            _occlusion.DataChanged += OnChannelDataChanged;
+            //_height.DataChanged += OnChannelDataChanged;
+            //_occlusion.DataChanged += OnChannelDataChanged;
 
-            _normalX.DataChanged += OnChannelDataChanged;
-            _normalY.DataChanged += OnChannelDataChanged;
-            _normalZ.DataChanged += OnChannelDataChanged;
+            //_normalX.DataChanged += OnChannelDataChanged;
+            //_normalY.DataChanged += OnChannelDataChanged;
+            //_normalZ.DataChanged += OnChannelDataChanged;
 
-            _specular.DataChanged += OnChannelDataChanged;
+            //_specular.DataChanged += OnChannelDataChanged;
 
-            _smooth.DataChanged += OnChannelDataChanged;
-            _rough.DataChanged += OnChannelDataChanged;
+            //_smooth.DataChanged += OnChannelDataChanged;
+            //_rough.DataChanged += OnChannelDataChanged;
 
-            _metal.DataChanged += OnChannelDataChanged;
-            _f0.DataChanged += OnChannelDataChanged;
+            //_metal.DataChanged += OnChannelDataChanged;
+            //_metal.DataChanged += OnChannelDataChanged;
+            // _f0.DataChanged += OnChannelDataChanged;
 
-            _porosity.DataChanged += OnChannelDataChanged;
+            //_porosity.DataChanged += OnChannelDataChanged;
 
-            _sss.DataChanged += OnChannelDataChanged;
+            //_sss.DataChanged += OnChannelDataChanged;
 
-            _emissive.DataChanged += OnChannelDataChanged;
+            //_emissive.DataChanged += OnChannelDataChanged;
         }
 
         private void InvalidateValues()
@@ -221,6 +224,7 @@ namespace PixelGraph.UI.Models
             _rough.SetChannel(Encoding.Rough);
 
             _metal.SetChannel(Encoding.Metal);
+            _hcm.SetChannel(Encoding.HCM);
             _f0.SetChannel(Encoding.F0);
 
             _porosity.SetChannel(Encoding.Porosity);
@@ -254,6 +258,7 @@ namespace PixelGraph.UI.Models
             _rough.ApplyDefaultValues(DefaultEncoding?.Rough, DefaultSampler);
 
             _metal.ApplyDefaultValues(DefaultEncoding?.Metal, DefaultSampler);
+            _hcm.ApplyDefaultValues(DefaultEncoding?.HCM, DefaultSampler);
             _f0.ApplyDefaultValues(DefaultEncoding?.F0, DefaultSampler);
 
             _porosity.ApplyDefaultValues(DefaultEncoding?.Porosity, DefaultSampler);
@@ -263,15 +268,15 @@ namespace PixelGraph.UI.Models
             _emissive.ApplyDefaultValues(DefaultEncoding?.Emissive, DefaultSampler);
         }
 
-        private void OnChannelDataChanged(object sender, EventArgs e)
-        {
-            OnDataChanged();
-        }
+        //private void OnChannelDataChanged(object sender, EventArgs e)
+        //{
+        //    OnDataChanged();
+        //}
 
-        private void OnDataChanged()
-        {
-            DataChanged?.Invoke(this, EventArgs.Empty);
-        }
+        //private void OnDataChanged()
+        //{
+        //    DataChanged?.Invoke(this, EventArgs.Empty);
+        //}
     }
 
     internal class TextureFormatDesignModel : TextureFormatModel

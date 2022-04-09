@@ -169,7 +169,9 @@ float4 main(const ps_input input) : SV_TARGET
 
 	clip(mat.opacity - EPSILON);
 
-	float3 normal = calc_tex_normal(tex, in_normal, tangent, bitangent);
+    const float3x3 mTBN = float3x3(tangent, bitangent, in_normal);
+	float3 normal = tex_normal_height.Sample(sampler_height, tex).xyz;
+	normal = mul(normalize(normal * 2.0f - 1.0f), mTBN);
 	
 	float3 lightDir = SunDirection;
 
@@ -197,6 +199,7 @@ float4 main(const ps_input input) : SV_TARGET
     //    lit *= shadow_strength(input.sp);
 
 	//lit = tonemap_HejlBurgess(lit);
+	lit = tonemap_Uncharted2(lit);
 	lit = linear_to_srgb(lit);
 	
     return float4(lit, mat.opacity);

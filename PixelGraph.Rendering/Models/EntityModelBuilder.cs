@@ -1,9 +1,7 @@
 ﻿using HelixToolkit.SharpDX.Core;
-using MinecraftMappings.Internal.Models;
 using MinecraftMappings.Internal.Models.Entity;
 using PixelGraph.Common.Extensions;
 using SharpDX;
-using System;
 
 namespace PixelGraph.Rendering.Models
 {
@@ -105,32 +103,6 @@ namespace PixelGraph.Rendering.Models
 
                 AddCubeFace(in mWorld, in normal, in up, in offset, in width, in height, in uvScaled, 0);
             }
-        }
-
-        private static Vector3 GetFaceNormal(ElementFaces face)
-        {
-            return face switch {
-                ElementFaces.Up => new Vector3(0, 1, 0),
-                ElementFaces.Down => new Vector3(0, -1, 0),
-                ElementFaces.North => new Vector3(0, 0, -1),
-                ElementFaces.South => new Vector3(0, 0, 1),
-                ElementFaces.East => new Vector3(1, 0, 0),
-                ElementFaces.West => new Vector3(-1, 0, 0),
-                _ => throw new ApplicationException($"Unknown element face '{face}'!"),
-            };
-        }
-
-        private static Vector3 GetUpVector(ElementFaces face)
-        {
-            return face switch {
-                ElementFaces.Up => -Vector3.UnitZ,
-                ElementFaces.Down => Vector3.UnitZ,
-                ElementFaces.North => Vector3.UnitY,
-                ElementFaces.South => Vector3.UnitY,
-                ElementFaces.East => Vector3.UnitY,
-                ElementFaces.West => Vector3.UnitY,
-                _ => throw new ApplicationException($"Unknown element face '{face}'!"),
-            };
         }
     }
 }

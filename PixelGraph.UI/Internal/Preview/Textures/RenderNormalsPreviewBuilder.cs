@@ -26,12 +26,18 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 },
                 [TextureTags.Normal] = (profile, mat) => new ResourcePackChannelProperties[] {
                     new ResourcePackNormalXChannelProperties(TextureTags.Normal, ColorChannel.Red) {
-                        DefaultValue = 0.5m,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
                     },
                     new ResourcePackNormalYChannelProperties(TextureTags.Normal, ColorChannel.Green) {
-                        DefaultValue = 0.5m,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
                     },
                     new ResourcePackNormalZChannelProperties(TextureTags.Normal, ColorChannel.Blue) {
+                        MinValue = -1m,
+                        MaxValue = 1m,
                         DefaultValue = 1m,
                     },
                     new ResourcePackHeightChannelProperties(TextureTags.Normal, ColorChannel.Alpha) {

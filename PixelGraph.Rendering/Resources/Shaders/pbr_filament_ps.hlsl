@@ -24,7 +24,8 @@ float4 main(const ps_input input) : SV_TARGET
 
     const float SNoV = saturate(dot(normal, view));
 	const float2 tex = get_parallax_texcoord(input.tex, input.vTS, SNoV, shadow_tex, tex_depth);
-	const float3 src_normal = calc_tex_normal(tex, normal, tangent, bitangent);
+	float3 src_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
+	src_normal = mul(normalize(src_normal * 2.0f - 1.0f), mTBN);
 	const pbr_material mat = get_pbr_material(tex);
 	
     if (BlendMode == BLEND_CUTOUT)
@@ -145,6 +146,7 @@ float4 main(const ps_input input) : SV_TARGET
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
 	//final_color = tonemap_ACESFit2(final_color);
+	final_color = tonemap_Uncharted2(final_color);
 	final_color = linear_to_srgb(final_color);
 	//final_color = tonemap_Reinhard(final_color);
 	

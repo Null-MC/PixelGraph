@@ -62,8 +62,10 @@
         </StackPanel>
         <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="{DynamicResource MahApps.Brushes.Accent4}">
             <Rectangle Fill="{DynamicResource MaterialDesignCardBackground}"/>
-            <Button Content="Cancel" HorizontalAlignment="Left" Margin="6" Click="OnCancelButtonClick" Width="80"/>
-            <Button Content="Save" HorizontalAlignment="Right" Margin="6" Click="OnOkButtonClick" Width="80"/>
+            <Button Content="Cancel" IsCancel="True" HorizontalAlignment="Left"
+                    Width="80" Margin="6"/>
+            <Button Content="Save" HorizontalAlignment="Right"
+                    Click="OnOkButtonClick" Width="80" Margin="6"/>
         </Grid>
     </Grid>
 </mah:MetroWindow>

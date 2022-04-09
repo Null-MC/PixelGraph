@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using SharpDX;
 
 namespace PixelGraph.UI.Models
 {
@@ -205,9 +206,11 @@ namespace PixelGraph.UI.Models
                         
                         var rotation = faceData.Rotation ?? 0;
 
-                        var uv = faceData.UV ?? UVHelper.GetDefaultUv(element, in face);
+                        RectangleF uv;
+                        if (faceData.UV.HasValue) uv = faceData.UV.Value;
+                        else UVHelper.GetDefaultUv(element, in face, out uv);
 
-                        var region = UVHelper.GetRotatedRegion(in uv, in rotation);
+                        UVHelper.GetRotatedRegion(in uv, in rotation, out var region);
 
                         if (existingRegions.Contains(region)) continue;
                         existingRegions.Add(region);
@@ -229,7 +232,7 @@ namespace PixelGraph.UI.Models
                         }
 
                         yield return new MaterialFilter {
-                            Name = UVHelper.GetFaceName(in element.Name, in face),
+                            Name = UVHelper.GetElementFaceName(in element.Name, in face),
                             Top = new decimal(top),
                             Left = new decimal(left),
                             Width = new decimal(width),

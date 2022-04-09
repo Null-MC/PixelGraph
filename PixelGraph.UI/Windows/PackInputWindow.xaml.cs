@@ -67,10 +67,10 @@ namespace PixelGraph.UI.Windows
             //Model.SourceFormat = window.Model.TextureFormat;
         }
 
-        private void OnCancelButtonClick(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+        //private void OnCancelButtonClick(object sender, RoutedEventArgs e)
+        //{
+        //    DialogResult = false;
+        //}
 
         private async void OnOkButtonClick(object sender, RoutedEventArgs e)
         {

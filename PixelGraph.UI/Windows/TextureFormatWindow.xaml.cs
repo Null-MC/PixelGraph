@@ -19,10 +19,10 @@ namespace PixelGraph.UI.Windows
             channel.Clear();
         }
 
-        private void OnCancelButtonClick(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+        //private void OnCancelButtonClick(object sender, RoutedEventArgs e)
+        //{
+        //    DialogResult = false;
+        //}
 
         private void OnOkButtonClick(object sender, RoutedEventArgs e)
         {

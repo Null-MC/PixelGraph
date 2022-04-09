@@ -10,7 +10,8 @@
         Title="New Material" Width="600" Height="230" mc:Ignorable="d"
         WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal" WindowStyle="ToolWindow"
         Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
-        Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
+        Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
+        FocusManager.FocusedElement="{Binding ElementName=NameComboBox}">
     <Window.DataContext>
         <models:NewMaterialModel x:Name="Model"
                                  GameObjectTypeChanged="OnGameObjectTypeChanged"
@@ -23,9 +24,9 @@
     <DockPanel>
         <Grid DockPanel.Dock="Bottom">
             <Rectangle Fill="{DynamicResource MahApps.Brushes.Highlight}"/>
-            <Button HorizontalAlignment="Left" Margin="6" Width="80"
+            <Button HorizontalAlignment="Left" Margin="6" Width="80" IsCancel="True"
                     Content="Cancel" Click="OnCancelButtonClick"/>
-            <Button HorizontalAlignment="Right" Margin="6" Width="80"
+            <Button HorizontalAlignment="Right" Margin="6" Width="80" IsDefault="True"
                     Content="Create" Click="OnCreateButtonClick"/>
         </Grid>
         <StackPanel Orientation="Vertical">

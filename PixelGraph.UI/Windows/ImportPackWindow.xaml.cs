@@ -214,10 +214,10 @@ namespace PixelGraph.UI.Windows
             await LoadSourceAsync(tokenSource.Token);
         }
 
-        private void OnCancelButtonClick(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+        //private void OnCancelButtonClick(object sender, RoutedEventArgs e)
+        //{
+        //    DialogResult = false;
+        //}
 
         #endregion
     }

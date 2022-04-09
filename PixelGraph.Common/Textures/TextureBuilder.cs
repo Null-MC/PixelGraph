@@ -283,6 +283,8 @@ namespace PixelGraph.Common.Textures
                 if (TextureTags.Is(inputChannel.Texture, TextureTags.NormalGenerated)) {
                     mapping.SourceTag = TextureTags.NormalGenerated;
                     mapping.ApplyInputChannel(inputChannel);
+                    mapping.InputMinValue = -1f;
+                    mapping.InputMaxValue = 1f;
                     return true;
                 }
 
@@ -474,7 +476,7 @@ namespace PixelGraph.Common.Textures
         {
             var sampler = normalGraph.GetNormalSampler();
             sampler.RangeX = (float)normalGraph.NormalTexture.Width / bufferSize.Width;
-            sampler.RangeY = (float)normalGraph.NormalTexture.Height / bufferSize.Height;
+            sampler.RangeY = (float)normalGraph.NormalTexture.Height / bufferSize.Height / normalGraph.NormalFrameCount;
 
             var options = new OverlayProcessor<Rgb24>.Options {
                 IsGrayscale = isGrayscale,
@@ -696,7 +698,10 @@ namespace PixelGraph.Common.Textures
             var processor = new OverlayProcessor<Rgba32>(options);
             var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = info.FrameCount;
-            regions.DestFrameCount = info.FrameCount;
+
+            //regions.DestFrameCount = info.FrameCount;
+            regions.DestFrameCount = context.MaxFrameCount;
+
             regions.TargetFrame = TargetFrame;
             regions.TargetPart = TargetPart;
 

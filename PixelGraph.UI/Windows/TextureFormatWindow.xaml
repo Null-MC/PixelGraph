@@ -30,8 +30,10 @@
         </StackPanel>-->
         <Grid DockPanel.Dock="Bottom">
             <Rectangle Fill="{DynamicResource MahApps.Brushes.Highlight}"/>
-            <Button HorizontalAlignment="Left" Margin="6" Width="80" Content="Cancel" Click="OnCancelButtonClick"/>
-            <Button HorizontalAlignment="Right" Margin="6" Width="80" Content="OK" Click="OnOkButtonClick"/>
+            <Button HorizontalAlignment="Left" Margin="6" Width="80"
+                    Content="Cancel" IsCancel="True"/>
+            <Button HorizontalAlignment="Right" Margin="6" Width="80"
+                    Content="OK" Click="OnOkButtonClick"/>
         </Grid>
         <DataGrid x:Name="TextureEncodingDataGrid" AutoGenerateColumns="False" KeyUp="OnDataGridKeyUp"
                   CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False"

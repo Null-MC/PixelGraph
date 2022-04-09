@@ -76,7 +76,7 @@ namespace PixelGraph.Common.TextureFormats.Bedrock
                 NormalX = new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Red,
-                    MinValue = 0m,
+                    MinValue = -1m,
                     MaxValue = 1m,
                     RangeMin = 0,
                     RangeMax = 255,
@@ -88,7 +88,7 @@ namespace PixelGraph.Common.TextureFormats.Bedrock
                 NormalY = new ResourcePackNormalYChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Green,
-                    MinValue = 0m,
+                    MinValue = -1m,
                     MaxValue = 1m,
                     RangeMin = 0,
                     RangeMax = 255,
@@ -100,7 +100,7 @@ namespace PixelGraph.Common.TextureFormats.Bedrock
                 NormalZ = new ResourcePackNormalZChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Blue,
-                    MinValue = 0m,
+                    MinValue = -1m,
                     MaxValue = 1m,
                     RangeMin = 0,
                     RangeMax = 255,

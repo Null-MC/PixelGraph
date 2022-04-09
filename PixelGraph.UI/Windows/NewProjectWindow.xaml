@@ -25,9 +25,10 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Margin="8" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80"
-                        Click="OnLocationCancelClick"/>
-                <Button Grid.Column="1" Margin="8" Content="Next" HorizontalAlignment="Right" VerticalAlignment="Center" Width="80"
+                <Button Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Content="Cancel" IsCancel="True" Width="80" Margin="8"/>
+                <Button Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Content="Next" IsDefault="True" Width="80" Margin="8"
                         Click="OnLocationNextClick"/>
             </Grid>
             <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -58,9 +59,11 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Margin="8" Content="Back" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80"
+                <Button Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Content="Back" IsCancel="True" Width="80" Margin="8"
                         Click="OnReviewBackClick"/>
-                <Button Grid.Column="1" Margin="8" Content="Create" HorizontalAlignment="Right" VerticalAlignment="Center" Width="80"
+                <Button Grid.Column="1" IsDefault="True" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Content="Create" Width="80" Margin="8"
                         Click="OnReviewCreateClick"/>
             </Grid>
             <ScrollViewer VerticalScrollBarVisibility="Auto">

@@ -107,20 +107,30 @@ namespace PixelGraph.Common.Textures.Graphing
                     new ResourcePackNormalXChannelProperties {
                         Texture = TextureTags.Normal,
                         Color = ColorChannel.Red,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
                     },
                     new ResourcePackNormalYChannelProperties {
                         Texture = TextureTags.Normal,
                         Color = ColorChannel.Green,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
                     },
                     new ResourcePackNormalZChannelProperties {
                         Texture = TextureTags.Normal,
                         Color = ColorChannel.Blue,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 1m,
                     },
                 };
 
                 await builder.MapAsync(false, token);
 
                 if (builder.HasMappedSources) {
+                    normalContext.MaxFrameCount = builder.FrameCount;
                     NormalTexture = await builder.BuildAsync<Rgb24>(false, null, token);
 
                     if (NormalTexture != null) {

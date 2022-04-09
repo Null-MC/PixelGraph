@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MahApps.Metro.Controls.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
@@ -41,17 +42,19 @@ namespace PixelGraph.UI.Windows
             DialogResult = false;
         }
 
-        private void OnCreateButtonClick(object sender, RoutedEventArgs e)
+        private async void OnCreateButtonClick(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(Model.GameNamespace)) {
-                MessageBox.Show(this, "Namespace cannot be empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 NamespaceComboBox.Focus();
+                //MessageBox.Show(this, "Namespace cannot be empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                await this.ShowMessageAsync("Error", "Namespace cannot be empty!");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(Model.GameObjectName)) {
-                MessageBox.Show(this, "Name cannot be empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 NameComboBox.Focus();
+                //MessageBox.Show(this, "Name cannot be empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                await this.ShowMessageAsync("Error", "Name cannot be empty!");
                 return;
             }
 

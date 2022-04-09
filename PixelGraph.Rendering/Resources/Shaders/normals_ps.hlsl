@@ -26,12 +26,12 @@ float4 main(const ps_input input) : SV_TARGET
     else if (BlendMode == BLEND_TRANSPARENT)
 		clip(mat.opacity - EPSILON);
 
-    float3 tex_normal = calc_tex_normal(tex, normal, tangent, bitangent);
+	const float3x3 matTBN = float3x3(tangent, bitangent, normal);
+	float3 tex_normal = tex_normal_height.Sample(sampler_height, tex).xyz * 2.0f - 1.0f;
+	tex_normal = mul(normalize(tex_normal), matTBN);
 
     if (EnableSlopeNormals && !EnableLinearSampling && tex_depth - shadow_tex.z > 0.002f) {
 	    const float3 slope = apply_slope_normal(tex, input.vTS, shadow_tex.z);
-
-		const float3x3 matTBN = float3x3(tangent, bitangent, normal);
 	    tex_normal = mul(slope, matTBN);
     }
 

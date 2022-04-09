@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MahApps.Metro.Controls.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.UI.Internal.Utilities;
@@ -7,21 +8,20 @@ using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
     public partial class NewProjectWindow
     {
-        //private readonly IServiceProvider provider;
         private readonly ILogger<NewProjectWindow> logger;
         private readonly NewProjectViewModel viewModel;
 
 
         public NewProjectWindow(IServiceProvider provider)
         {
-            //this.provider = provider;
-
             logger = provider.GetRequiredService<ILogger<NewProjectWindow>>();
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
 
@@ -33,23 +33,23 @@ namespace PixelGraph.UI.Windows
             };
         }
 
-        private bool CreateDirectory()
+        private async Task<bool> CreateDirectoryAsync()
         {
             try {
                 viewModel.CreateDirectories();
             }
             catch (Exception error) {
                 logger.LogError(error, $"Failed to create new project directory \"{Model.Location}\"!");
-                MessageBox.Show(this, "Failed to create new project directory!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                 Model.SetState(NewProjectStates.Location);
+                await this.ShowMessageAsync("Error!", "Failed to create new project directory!");
                 return false;
             }
 
             var existingFiles = Directory.EnumerateFiles(Model.Location, "*", SearchOption.AllDirectories);
 
             if (existingFiles.Any()) {
-                var result = MessageBox.Show(this, "There is existing content in the chosen directory! Are you sure you want to proceed?", "Warning!", MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
-                if (result == MessageBoxResult.No) return false;
+                var result = await this.ShowMessageAsync("Warning!", "There is existing content in the chosen directory! Are you sure you want to proceed?", MessageDialogStyle.AffirmativeAndNegative);
+                if (result != MessageDialogResult.Affirmative) return false;
             }
 
             return true;
@@ -68,30 +68,20 @@ namespace PixelGraph.UI.Windows
             Model.Location = dialog.SelectedPath;
         }
 
-        private void OnLocationCancelClick(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+        //private void OnLocationCancelClick(object sender, RoutedEventArgs e)
+        //{
+        //    DialogResult = false;
+        //}
 
-        private void OnLocationNextClick(object sender, RoutedEventArgs e)
+        private async void OnLocationNextClick(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(Model.Location)) {
-                MessageBox.Show(this, "Please select a location for your project content!", "Error!", MessageBoxButton.OK);
+                await this.ShowMessageAsync("Error!", "Please select a location for your project content!");
                 return;
             }
 
             Model.SetState(NewProjectStates.Review);
         }
-
-        //private void OnFormatBackClick(object sender, RoutedEventArgs e)
-        //{
-        //    VM.SetState(NewProjectStates.Location);
-        //}
-
-        //private void OnFormatNextClick(object sender, RoutedEventArgs e)
-        //{
-        //    VM.SetState(NewProjectStates.Review);
-        //}
 
         private void OnReviewBackClick(object sender, RoutedEventArgs e)
         {
@@ -101,15 +91,15 @@ namespace PixelGraph.UI.Windows
         private async void OnReviewCreateClick(object sender, RoutedEventArgs e)
         {
             if (Model.EnablePackImport && !Model.ImportFromDirectory && !Model.ImportFromArchive) {
-                MessageBox.Show(this, "Please select the type of source you would like to import project content from!", "Error!", MessageBoxButton.OK);
+                await this.ShowMessageAsync("Error!", "Please select the type of source you would like to import project content from!");
                 return;
             }
 
-            if (!CreateDirectory()) return;
+            if (!await CreateDirectoryAsync()) return;
 
             await viewModel.CreatePackFilesAsync();
 
-            DialogResult = true;
+            await Dispatcher.BeginInvoke(() => DialogResult = true);
         }
 
         #endregion

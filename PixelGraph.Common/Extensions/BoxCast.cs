@@ -17,7 +17,7 @@ namespace PixelGraph.Common.Extensions
 
                 return Enum.Parse(t, stringValue, true);
             }
-
+            
             return Convert.ChangeType(value, t);
         }
 

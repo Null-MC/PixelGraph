@@ -11,7 +11,6 @@ namespace PixelGraph.Common.ImageProcessors
     {
         private readonly Options options;
         private readonly bool hasRotation, hasNoise;
-        //private readonly bool hasCurveTop, hasCurveBottom, hasCurveLeft, hasCurveRight;
         private readonly float offsetTop, offsetBottom, offsetLeft, offsetRight;
         private readonly float invRadiusTop, invRadiusBottom, invRadiusLeft, invRadiusRight;
 
@@ -96,53 +95,42 @@ namespace PixelGraph.Common.ImageProcessors
                 var fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
                 var fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
 
-                var rotation_top = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
-                var rotation_bottom = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
-                var rotation_left = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft;
-                var rotation_right = MathF.Max(fx - offsetRight, 0f) * invRadiusRight;
+                var f_top = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
+                var f_bottom = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
+                var f_left = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft;
+                var f_right = MathF.Max(fx - offsetRight, 0f) * invRadiusRight;
 
-                var angle_top =  MathF.Sin(rotation_top *options.CurveTop * 2f * MathEx.Deg2RadF);
-                var angle_bottom = MathF.Sin(rotation_bottom * options.CurveBottom * 2f * MathEx.Deg2RadF);
-                var angle_left = MathF.Sin(rotation_left * options.CurveLeft * 2f * MathEx.Deg2RadF);
-                var angle_right = MathF.Sin(rotation_right * options.CurveRight * 2f * MathEx.Deg2RadF);
+                var baseRotation = Vector3.One;
+                baseRotation.X = f_left + f_right;
+                baseRotation.Y = f_top + f_bottom;
 
-                var direction = Vector3.Zero;
-                direction.Y = -(angle_left + angle_right);
-                direction.X = angle_top + angle_bottom;
+                var q = Quaternion.Identity;
+                if (!baseRotation.X.NearEqual(0f) || !baseRotation.Y.NearEqual(0f)) {
+                    var rotationAxis = new Vector3 {
+                        X = -baseRotation.Y,
+                        Y = baseRotation.X,
+                        Z = 0f,
+                    };
 
-                if (!direction.X.NearEqual(0f) || !direction.Y.NearEqual(0f)) {
-                    var len_x = -(rotation_left + rotation_right);
-                    var len_y = rotation_top + rotation_bottom;
+                    MathEx.Normalize(ref rotationAxis);
+                    MathEx.Normalize(ref baseRotation);
+                    var baseAngle = MathF.Acos(baseRotation.Z);
 
-                    var len = direction.X*direction.X + direction.Y*direction.Y;
-                    //var len = MathF.Abs(direction.X) + MathF.Abs(direction.Y);
-                    len = MathF.Sqrt(len);
-                    len = MathF.Min(len, 1f);
-
-                    //var max = MathF.Abs(len_x) + MathF.Abs(len_y);
-                    var max = len_x*len_x + len_y*len_y;
-                    max = MathF.Sqrt(max);
-                    max = MathF.Max(max, 1f);
-
-                    //len = MathF.Sqrt(len / max);
-                    //len = MathF.Min(len / (1f + max), 1f);
-
-                    var rotation = -MathF.Asin(len);
-
-                    MathEx.Normalize(ref direction);
-                    //var axis = Vector3.Cross(direction, Vector3.UnitZ);
-                    //var axis = Vector3.Normalize(new Vector3(direction.Y, direction.X, 0f));
-
-                    var q = Quaternion.CreateFromAxisAngle(direction, rotation);
-
-                    if (hasNoise) {
-                        var z = x - context.Bounds.Left;
-                        q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[z] / 127.5f - 1f) * options.Noise * MathEx.Deg2RadF);
-                        q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[z] / 127.5f - 1f) * -options.Noise * MathEx.Deg2RadF);
-                    }
-
-                    v = Vector3.Transform(v, q);
+                    var mix = MathF.Abs(MathF.Asin(rotationAxis.X) / (MathF.PI / 2f));
+                    var angle_x = MathF.Sign(-f_left) * options.CurveLeft + MathF.Sign(f_right) * options.CurveRight;
+                    var angle_y = MathF.Sign(-f_top) * options.CurveTop + MathF.Sign(f_bottom) * options.CurveBottom;
+                    MathEx.Lerp(angle_x, angle_y, mix, out var angle);
+                    
+                    q = Quaternion.CreateFromAxisAngle(rotationAxis, baseAngle * (angle / 45f));
                 }
+
+                if (hasNoise) {
+                    var z = x - context.Bounds.Left;
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[z] / 127.5f - 1f) * options.Noise * MathEx.Deg2RadF);
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[z] / 127.5f - 1f) * -options.Noise * MathEx.Deg2RadF);
+                }
+
+                v = Vector3.Transform(v, q);
             }
             else if (options.RestoreNormalZ) {
                 var v2 = new Vector2(v.X, v.Y);

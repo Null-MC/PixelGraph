@@ -88,7 +88,8 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 tint = srgb_to_linear(TintColor);
     float3 diffuse = mat.albedo * tint * (1.0f - metal);
 
-    const float3 src_normal = calc_tex_normal(tex, normal, tangent, bitangent);
+	float3 src_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
+	src_normal = mul(normalize(src_normal * 2.0f - 1.0f), matTBN);
 
 	//-- Wetness --
     float surface_water = 0.0f;
@@ -99,7 +100,8 @@ float4 main(const ps_input input) : SV_TARGET
 
 	    surface_water = saturate(1.4 * Wetness - 0.7f * porosityL);
 
-		wet_normal = calc_tex_normal(tex, normal, tangent, bitangent, surface_water * WATER_BLUR);
+		wet_normal = tex_normal_height.SampleBias(sampler_height, tex, surface_water * WATER_BLUR).xyz;
+		wet_normal = mul(normalize(wet_normal * 2.0f - 1.0f), matTBN);
     }
 
     //-- Slope Normals --
@@ -145,7 +147,7 @@ float4 main(const ps_input input) : SV_TARGET
 	    water_shadow = 1.0f;
     	
         if (Lights[i].iLightType == 1) { // directional
-            light_color *= 12.0f;
+            light_color *= 2.0f;
             light_dir = normalize(Lights[i].vLightDir.xyz);
 			light_att = SunStrength;
         }
@@ -311,7 +313,7 @@ float4 main(const ps_input input) : SV_TARGET
 
     float3 final_color = ibl_final + emissive;
 
-    final_color += acc_light;
+    final_color += acc_light * 4.0f;
 	final_color += final_sss;
 
 	float alpha = mat.opacity + spec_strength;

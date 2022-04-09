@@ -25,7 +25,8 @@
     <DockPanel>
         <Grid DockPanel.Dock="Bottom">
             <Rectangle Fill="{DynamicResource MahApps.Brushes.Highlight}"/>
-            <Button Content="Cancel" HorizontalAlignment="Left" Margin="6" Click="OnCancelButtonClick" Width="80" FontSize="12"/>
+            <Button Content="Cancel" HorizontalAlignment="Left" Margin="6" IsCancel="True"
+                    Click="OnCancelButtonClick" Width="80" FontSize="12"/>
             <Button HorizontalAlignment="Right" Margin="6" Click="OnOkButtonClick"  Width="80">
                 <StackPanel Orientation="Horizontal">
                     <iconPacks:PackIconFontAwesome Kind="SaveRegular" Height="12" VerticalAlignment="Center"/>

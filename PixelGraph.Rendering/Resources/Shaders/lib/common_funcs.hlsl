@@ -106,27 +106,6 @@ float lengthSq(const in float3 vec)
 //    return dot(color, lum_factor);
 //}
 
-void tangent_to_world(inout float3 tex_normal, const in float3 normal, const in float3 tangent, const in float3 bitangent)
-{
-	tex_normal = mad(2.0f, tex_normal, -1.0f);
-	tex_normal = mad(tex_normal.x, tangent, tex_normal.y * bitangent);
-    tex_normal = normalize(normal + tex_normal);
-}
-
-float3 calc_tex_normal(const in float2 tex, const in float3 normal, const in float3 tangent, const in float3 bitangent)
-{
-    float3 tex_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
-	tangent_to_world(tex_normal, normal, tangent, bitangent);
-	return tex_normal;
-}
-
-float3 calc_tex_normal(const in float2 tex, const in float3 normal, const in float3 tangent, const in float3 bitangent, const in float bias)
-{
-    float3 tex_normal = tex_normal_height.SampleBias(sampler_height, tex, bias).xyz;
-	tangent_to_world(tex_normal, normal, tangent, bitangent);
-	return tex_normal;
-}
-
 
 // Shadows
 

@@ -39,14 +39,23 @@ namespace PixelGraph.Tests.GenerationTests
                     NormalX = {
                         Texture = TextureTags.Normal,
                         Color = ColorChannel.Red,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
                     },
                     NormalY = {
                         Texture = TextureTags.Normal,
                         Color = ColorChannel.Green,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
                     },
                     NormalZ = {
                         Texture = TextureTags.Normal,
                         Color = ColorChannel.Blue,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 1m,
                     },
                 },
             };

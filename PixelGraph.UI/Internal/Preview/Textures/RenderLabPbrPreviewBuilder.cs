@@ -39,14 +39,20 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 [TextureTags.Normal] = (profile, mat) => new ResourcePackChannelProperties[] {
                     new ResourcePackNormalXChannelProperties(TextureTags.Normal, ColorChannel.Red) {
                         //Sampler = mat?.Normal?.InputX?.Sampler ?? profile?.Encoding?.NormalX?.Sampler,
-                        DefaultValue = 0.5m,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
                     },
                     new ResourcePackNormalYChannelProperties(TextureTags.Normal, ColorChannel.Green) {
                         //Sampler = mat?.Normal?.InputY?.Sampler ?? profile?.Encoding?.NormalY?.Sampler,
-                        DefaultValue = 0.5m,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
                     },
                     new ResourcePackNormalZChannelProperties(TextureTags.Normal, ColorChannel.Blue) {
                         //Sampler = mat?.Normal?.InputZ?.Sampler ?? profile?.Encoding?.NormalZ?.Sampler,
+                        MinValue = -1m,
+                        MaxValue = 1m,
                         DefaultValue = 1m,
                     },
                     new ResourcePackHeightChannelProperties(TextureTags.Normal, ColorChannel.Alpha) {

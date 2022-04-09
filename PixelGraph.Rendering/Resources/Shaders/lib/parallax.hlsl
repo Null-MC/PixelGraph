@@ -31,10 +31,10 @@ float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, const
 	
 	float trace_depth = 1.0;
 	float2 trace_offset = tex;
-	float2 prev_trace_offset = tex + step_offset;
+	float2 prev_trace_offset = tex;// + step_offset;
 
 	float prev_tex_depth = 1.0;
-	float prev_trace_depth = 1.0 + step_size;
+	float prev_trace_depth = 1.0;// + step_size;
 
 	// WARN: this is just an attempt to fix POM seems, can be improved
 	tex_depth = tex_normal_height.SampleLevel(sampler_height, trace_offset, 0).a;

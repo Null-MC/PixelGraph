@@ -63,8 +63,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                 NormalX = new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Red,
-                    MinValue = 0,
-                    MaxValue = 1,
+                    MinValue = -1m,
+                    MaxValue = 1m,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
@@ -75,8 +75,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                 NormalY = new ResourcePackNormalYChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Green,
-                    MinValue = 0,
-                    MaxValue = 1,
+                    MinValue = -1m,
+                    MaxValue = 1m,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,
@@ -87,8 +87,8 @@ namespace PixelGraph.Common.TextureFormats.Java
                 NormalZ = new ResourcePackNormalZChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Blue,
-                    MinValue = 0,
-                    MaxValue = 1,
+                    MinValue = -1m,
+                    MaxValue = 1m,
                     RangeMin = 0,
                     RangeMax = 255,
                     Shift = 0,

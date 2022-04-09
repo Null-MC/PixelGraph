@@ -35,7 +35,7 @@
                 </Style>
             </Grid.Resources>
             <Rectangle Fill="{DynamicResource MahApps.Brushes.Highlight}"/>
-            <Button Content="Close" HorizontalAlignment="Left" Click="OnCancelButtonClick"
+            <Button Content="Close" IsCancel="True" HorizontalAlignment="Left"
                     Visibility="{Binding ShowLog, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
             <Button Content="Import" HorizontalAlignment="Right" Click="OnImportClick"
                     IsEnabled="{Binding IsReady, Mode=OneWay}"
