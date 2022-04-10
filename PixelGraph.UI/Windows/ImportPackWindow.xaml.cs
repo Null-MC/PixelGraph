@@ -59,7 +59,7 @@ namespace PixelGraph.UI.Windows
         {
             var serviceBuilder = BuildScope();
             
-            var logReceiver = serviceBuilder.AddLoggingRedirect();
+            var logReceiver = serviceBuilder.AddSerilogRedirect();
             logReceiver.LogMessage += OnLogMessage;
 
             await using var scope = serviceBuilder.Build();

@@ -51,10 +51,11 @@ namespace PixelGraph.Common
             Services.AddOptions();
 
             Services.AddSingleton<CtmPublisher>();
-            //Services.AddSingleton<JavaPublisher>();
-            //Services.AddSingleton<BedrockPublisher>();
             Services.AddSingleton<DefaultPublishMapping>();
             Services.AddSingleton<JavaToBedrockPublishMapping>();
+            Services.AddSingleton<IPublishSummary, PublishSummary>();
+
+            Services.AddScoped<GenericTexturePublisher>();
 
             Services.AddTransient<MinecraftResourceLocator>();
             Services.AddTransient<TextureRegionEnumerator>();
@@ -82,13 +83,9 @@ namespace PixelGraph.Common
             Services.AddScoped<IEdgeFadeImageEffect, EdgeFadeImageEffect>();
             Services.AddScoped<IImageWriter, ImageWriter>();
 
-            //Services.AddScoped<IMaterialInputReader, RawMaterialInputReader>();
-
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
             Services.AddTransient<IItemTextureGenerator, ItemTextureGenerator>();
             Services.AddTransient<ITextureBuilder, TextureBuilder>();
-
-            //Services.AddTransient<IMaterialImporter, MaterialImporterBase>();
         }
 
         public void ConfigureReader(ContentTypes contentType, GameEditions gameEdition, string rootPath)

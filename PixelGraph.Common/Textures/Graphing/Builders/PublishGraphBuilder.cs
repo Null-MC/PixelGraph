@@ -51,22 +51,23 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
 
             var packWriteTime = Reader.GetWriteTime(Context.Profile.LocalFile) ?? DateTime.Now;
             var sourceTime = Reader.GetWriteTime(Context.Material.LocalFilename);
-            
-            if (Context.Material.Publish ?? true) {
-                if (!IsOutputUpToDate(packWriteTime, sourceTime)) {
-                    logger.LogDebug("Publishing material '{DisplayName}'.", Context.Material.DisplayName);
 
-                    try {
-                        await ProcessAllTexturesAsync(true, token);
-                        //await CopyPropertiesAsync(token);
-                    }
-                    catch (Exception error) {
-                        throw new ApplicationException($"Failed to publish material '{Context.Material.DisplayName}'!", error);
-                    }
-                }
-                else {
-                    logger.LogDebug("Skipping up-to-date material '{DisplayName}'.", Context.Material.DisplayName);
-                }
+            if (!(Context.Material.Publish ?? true)) return;
+
+            if (IsOutputUpToDate(packWriteTime, sourceTime)) {
+                logger.LogDebug("Skipping up-to-date material '{DisplayName}'.", Context.Material.DisplayName);
+                return;
+            }
+
+            logger.LogDebug("Publishing material '{DisplayName}'.", Context.Material.DisplayName);
+
+            try {
+                await ProcessAllTexturesAsync(true, token);
+                //await CopyPropertiesAsync(token);
+                Summary.IncrementMaterialCount();
+            }
+            catch (Exception error) {
+                throw new ApplicationException($"Failed to publish material '{Context.Material.DisplayName}'!", error);
             }
         }
 
@@ -93,53 +94,16 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             }
         }
 
-        //protected override async Task ProcessTextureAsync<TPixel>(Image<TPixel> image, string textureTag, ImageChannels type, CancellationToken token = default)
-        //{
-        //    await base.ProcessTextureAsync(image, textureTag, type, token);
-            
-        //    //var packPublishInventory = Context.Profile.PublishInventory ?? ResourcePackProfileProperties.PublishInventoryDefault;
-
-        //    // WARN: hack for only publishing inventory color
-        //    //if (TextureTags.Is(textureTag, TextureTags.Color) && packPublishInventory && (Context.Material.PublishItem ?? false)) {
-        //    //    var ext = NamingStructure.GetExtension(Context.Profile);
-        //    //    var suffix = $"_inventory.{ext}";
-
-        //    //    if (GetMappedInventoryName(suffix, out var destFile)) {
-        //    //        var _p = Path.GetDirectoryName(destFile);
-        //    //        var _n = Path.GetFileNameWithoutExtension(destFile);
-        //    //        _n = TexWriter.TryGet(textureTag, _n, ext, true);
-        //    //        if (_p == null || _n == null) {
-        //    //            // WARN: WHAT DO WE DO?!
-        //    //            throw new NotImplementedException();
-        //    //        }
-
-        //    //        destFile = Path.Combine(_p, _n);
-
-        //    //        var regions = Provider.GetRequiredService<ITextureRegionEnumerator>();
-        //    //        regions.SourceFrameCount = Context.MaxFrameCount;
-        //    //        regions.DestFrameCount = Context.MaxFrameCount;
-
-        //    //        var part = regions.GetAllPublishRegions().First();
-        //    //        using var regionImage = GetImageRegion(image, part);
-
-        //    //        edgeFadeEffect.Apply(regionImage, textureTag);
-
-        //    //        await ImageWriter.WriteAsync(regionImage, type, destFile, token);
-
-        //    //        logger.LogInformation("Published inventory texture {destFile}.", destFile);
-        //    //    }
-        //    //}
-        //}
-
-        protected override async Task SaveImagePartAsync<TPixel>(Image<TPixel> image, TexturePublishPart part, ImageChannels type, string destFile, string textureTag, CancellationToken token)
+        protected override async Task<long> SaveImagePartAsync<TPixel>(Image<TPixel> image, TexturePublishPart part, ImageChannels type, string destFile, string textureTag, CancellationToken token)
         {
             using var regionImage = GetImageRegion(image, part);
 
             edgeFadeEffect.Apply(regionImage, textureTag);
 
-            await ImageWriter.WriteAsync(regionImage, type, destFile, token);
+            var diskSize = await ImageWriter.WriteAsync(regionImage, type, destFile, token);
             
             logger.LogInformation("Published material texture '{destFile}'.", destFile);
+            return diskSize;
         }
 
         private async Task GenerateInventoryTextureAsync(string destFile, CancellationToken token = default)
@@ -152,7 +116,11 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             }
 
             //imageWriter.Format = context.ImageFormat;
-            await ImageWriter.WriteAsync(itemImage, ImageChannels.ColorAlpha, destFile, token);
+            var diskSize = await ImageWriter.WriteAsync(itemImage, ImageChannels.ColorAlpha, destFile, token);
+
+            Summary.IncrementTextureCount();
+            Summary.AddRawBytes(itemImage.Width, itemImage.Height);
+            Summary.AddDiskBytes(diskSize);
 
             logger.LogInformation("Published item texture {destFile}.", destFile);
         }

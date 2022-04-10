@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
+using System;
 
 namespace PixelGraph.UI.Models
 {
@@ -7,6 +8,8 @@ namespace PixelGraph.UI.Models
     {
         private volatile bool _isLoading;
         private volatile bool _isActive;
+        private volatile bool _isAnalyzing;
+        private double _progress;
         private bool _closeOnComplete;
 
         public ResourcePackInputProperties Input {get; set;}
@@ -30,6 +33,24 @@ namespace PixelGraph.UI.Models
             set {
                 if (_isActive == value) return;
                 _isActive = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsAnalyzing {
+            get => _isAnalyzing;
+            set {
+                if (_isAnalyzing == value) return;
+                _isAnalyzing = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double Progress {
+            get => _progress;
+            set {
+                if (Math.Abs(_progress - value) < float.Epsilon) return;
+                _progress = value;
                 OnPropertyChanged();
             }
         }

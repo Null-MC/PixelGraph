@@ -11,9 +11,7 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO.Publishing
 {
-    //public interface IJavaPublisher : IPublisher {}
-
-    public class JavaPublisher : PublisherBase //, IJavaPublisher
+    public class JavaPublisher : PublisherBase
     {
         private readonly CtmPublisher ctmPublish;
 
@@ -21,10 +19,7 @@ namespace PixelGraph.Common.IO.Publishing
         public JavaPublisher(
             ILogger<JavaPublisher> logger,
             IServiceProvider provider,
-            IPublishReader loader,
-            IInputReader reader,
-            IOutputWriter writer,
-            CtmPublisher ctmPublish) : base(logger, provider, loader, reader, writer)
+            CtmPublisher ctmPublish) : base(logger, provider)
         {
             this.ctmPublish = ctmPublish;
         }

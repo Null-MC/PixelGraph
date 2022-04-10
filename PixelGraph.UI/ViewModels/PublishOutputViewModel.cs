@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.ResourcePack;
@@ -10,6 +11,7 @@ using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Models;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,12 +19,14 @@ namespace PixelGraph.UI.ViewModels
 {
     internal class PublishOutputViewModel : IDisposable
     {
+        private readonly ILogger<PublishOutputViewModel> logger;
         private readonly IServiceProvider provider;
         private readonly IAppSettings settings;
         private readonly CancellationTokenSource tokenSource;
         private PublishOutputModel _model;
         private volatile bool isRunning;
 
+        public event EventHandler<PublishStatus> StateChanged;
         public event EventHandler<LogEventArgs> LogAppended;
 
         public PublishOutputModel Model {
@@ -38,6 +42,7 @@ namespace PixelGraph.UI.ViewModels
             this.provider = provider;
 
             settings = provider.GetRequiredService<IAppSettings>();
+            logger = provider.GetRequiredService<ILogger<PublishOutputViewModel>>();
 
             tokenSource = new CancellationTokenSource();
         }
@@ -47,15 +52,53 @@ namespace PixelGraph.UI.ViewModels
             tokenSource?.Dispose();
         }
 
-        public async Task PublishAsync()
+        public async Task<bool> PublishAsync(CancellationToken token = default)
         {
             isRunning = true;
 
+            var status = new PublishStatus {
+                IsAnalyzing = true,
+                Progress = 0d,
+            };
+
+            OnStateChanged(ref status);
+
+            var timer = Stopwatch.StartNew();
+            logger.LogInformation("Publishing profile '{Name}'...", Model.Profile.Name);
+
+            var concurrency = settings.Data.Concurrency ?? ConcurrencyHelper.GetDefaultValue();
+            OnLogAppended(LogLevel.Debug, $"  Concurrency: {concurrency:N0}");
+            IPublishSummary summary = null;
+
             try {
-                await PublishInternalAsync(tokenSource.Token);
+                summary = await Task.Run(() => PublishInternalAsync(token), token);
+                timer.Stop();
+
+                logger.LogInformation("Publish successful. Duration: {Elapsed}", timer.Elapsed);
+                OnLogAppended(LogLevel.None, "Publish completed successfully.");
+                return true;
+            }
+            catch (OperationCanceledException) {
+                logger.LogWarning("Publish cancelled.");
+                OnLogAppended(LogLevel.Warning, "Publish Cancelled!");
+                throw;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to publish resource pack!");
+                OnLogAppended(LogLevel.Error, $"Publish Failed! {error.UnfoldMessageString()}");
+                return false;
             }
             finally {
                 isRunning = false;
+                timer.Stop();
+
+                OnLogAppended(LogLevel.Debug, $"Duration    : {UnitHelper.GetReadableTimespan(timer.Elapsed)}");
+                if (summary != null) {
+                    OnLogAppended(LogLevel.Debug, $"# Materials : {summary.MaterialCount:N0}");
+                    OnLogAppended(LogLevel.Debug, $"# Textures  : {summary.TextureCount:N0}");
+                    OnLogAppended(LogLevel.Debug, $"Disk Size   : {summary.DiskSize}");
+                    OnLogAppended(LogLevel.Debug, $"Tex Memory  : {summary.RawSize}");
+                }
             }
         }
 
@@ -67,7 +110,7 @@ namespace PixelGraph.UI.ViewModels
             tokenSource?.Cancel();
         }
 
-        private async Task PublishInternalAsync(CancellationToken token)
+        private async Task<IPublishSummary> PublishInternalAsync(CancellationToken token)
         {
             var appSettings = provider.GetRequiredService<IAppSettings>();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
@@ -80,9 +123,9 @@ namespace PixelGraph.UI.ViewModels
             serviceBuilder.ConfigureWriter(contentType, edition, Model.Destination);
             serviceBuilder.AddPublisher(edition);
 
-            var logReceiver = serviceBuilder.AddLoggingRedirect();
+            var logReceiver = serviceBuilder.AddSerilogRedirect();
             logReceiver.LogMessage += OnInternalLog;
-
+            
             await using var scope = serviceBuilder.Build();
 
             OnLogAppended(LogLevel.None, "Preparing output directory...");
@@ -90,16 +133,29 @@ namespace PixelGraph.UI.ViewModels
             writer.Prepare();
 
             var context = new ResourcePackContext {
-                //RootPath = Model.RootDirectory,
                 Input = Model.Input,
                 Profile = Model.Profile,
             };
 
-            OnLogAppended(LogLevel.None, "Publishing content...");
             var publisher = scope.GetRequiredService<IPublisher>();
-            publisher.Concurrency = appSettings.Data.Concurrency ?? Environment.ProcessorCount;
+            publisher.Concurrency = appSettings.Data.Concurrency ?? ConcurrencyHelper.GetDefaultValue();
+            publisher.StateChanged += (_, e) => OnStateChanged(ref e);
 
-            await publisher.PublishAsync(context, Model.Clean, token);
+            OnLogAppended(LogLevel.None, "Analyzing content...");
+            await publisher.PrepareAsync(context, Model.Clean, token);
+
+            var status = new PublishStatus {
+                IsAnalyzing = false,
+                Progress = 0d,
+            };
+
+            OnStateChanged(ref status);
+
+            OnLogAppended(LogLevel.None, "Publishing content...");
+
+            await publisher.PublishAsync(context, token);
+
+            return scope.GetRequiredService<IPublishSummary>();
         }
 
         private void SetModel(PublishOutputModel newModel)
@@ -130,21 +186,15 @@ namespace PixelGraph.UI.ViewModels
             OnLogAppended(e.Level, e.Message);
         }
 
+        private void OnStateChanged(ref PublishStatus status)
+        {
+            StateChanged?.Invoke(this, status);
+        }
+
         private void OnLogAppended(LogLevel level, string message)
         {
             var e = new LogEventArgs(level, message);
             LogAppended?.Invoke(this, e);
         }
-
-        //private static IPublisher GetPublisher(IServiceProvider provider, ResourcePackProfileProperties profile)
-        //{
-        //    if (GameEdition.Is(profile.Edition, GameEdition.Java))
-        //        return provider.GetRequiredService<JavaPublisher>();
-
-        //    if (GameEdition.Is(profile.Edition, GameEdition.Bedrock))
-        //        return provider.GetRequiredService<BedrockPublisher>();
-
-        //    throw new ApplicationException($"Unsupported game edition '{profile.Edition}'!");
-        //}
     }
 }

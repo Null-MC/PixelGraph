@@ -1,4 +1,5 @@
-﻿using PixelGraph.UI.Internal;
+﻿using PixelGraph.Common.IO;
+using PixelGraph.UI.Internal;
 using System;
 
 namespace PixelGraph.UI.Models
@@ -38,7 +39,7 @@ namespace PixelGraph.UI.Models
         }
 
         public int? App_EditConcurrency {
-            get => _app_Concurrency ?? Environment.ProcessorCount;
+            get => _app_Concurrency ?? ConcurrencyHelper.GetDefaultValue();
             set => App_Concurrency = value;
         }
 

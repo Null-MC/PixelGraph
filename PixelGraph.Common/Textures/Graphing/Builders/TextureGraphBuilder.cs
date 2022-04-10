@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Texture;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -26,6 +27,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
         protected IImageWriter ImageWriter {get;}
         protected ITextureGraphContext Context {get;}
         protected ITextureGraph Graph {get;}
+        protected IPublishSummary Summary {get;}
 
 
         protected TextureGraphBuilder(IServiceProvider provider, ILogger logger)
@@ -40,6 +42,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             ImageWriter = provider.GetRequiredService<IImageWriter>();
             Context = provider.GetRequiredService<ITextureGraphContext>();
             Graph = provider.GetRequiredService<ITextureGraph>();
+            Summary = provider.GetRequiredService<IPublishSummary>();
         }
 
         /// <summary>
@@ -60,7 +63,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 await Graph.MapAsync(tag, createEmpty, null, null, token);
 
             Context.MaxFrameCount = Graph.GetMaxFrameCount();
-            
+
             foreach (var tag in allOutputTags) {
                 var tagOutputEncoding = Context.OutputEncoding
                     .Where(e => TextureTags.Is(e.Texture, tag)).ToArray();
@@ -81,6 +84,8 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                         using var image = await Graph.CreateImageAsync<L8>(tag, createEmpty, token);
                         await ProcessTextureAsync(image, tag, ImageChannels.Gray, token);
                     }
+
+                    Summary.IncrementTextureCount();
                 }
 
                 if (Context.IsAnimated || Context.IsImport)
@@ -138,11 +143,13 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                     destFile = PathEx.Join(destPath, destTagName);
                 }
 
-                await SaveImagePartAsync(image, part, type, destFile, textureTag, token);
+                var diskSize = await SaveImagePartAsync(image, part, type, destFile, textureTag, token);
+                Summary.AddRawBytes(image.Width, image.Height);
+                Summary.AddDiskBytes(diskSize);
             }
         }
 
-        protected abstract Task SaveImagePartAsync<TPixel>(Image<TPixel> image, TexturePublishPart part, ImageChannels type, string destFile, string textureTag, CancellationToken token)
+        protected abstract Task<long> SaveImagePartAsync<TPixel>(Image<TPixel> image, TexturePublishPart part, ImageChannels type, string destFile, string textureTag, CancellationToken token)
             where TPixel : unmanaged, IPixel<TPixel>;
 
         protected async Task CopyPropertiesAsync(CancellationToken token)

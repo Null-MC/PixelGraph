@@ -70,7 +70,7 @@ namespace PixelGraph.UI.Windows
             serviceBuilder.ConfigureReader(contentType, GameEditions.Java, Model.ImportSource);
             serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.RootDirectory);
 
-            var logReceiver = serviceBuilder.AddLoggingRedirect();
+            var logReceiver = serviceBuilder.AddSerilogRedirect();
             logReceiver.LogMessage += OnLogMessage;
 
             await using var scope = serviceBuilder.Build();

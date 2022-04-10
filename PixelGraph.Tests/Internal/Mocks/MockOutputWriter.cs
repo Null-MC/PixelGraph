@@ -33,11 +33,12 @@ namespace PixelGraph.Tests.Internal.Mocks
             await readFunc(stream);
         }
 
-        public async Task OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
+        public async Task<long> OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
             await using var mockStream = new MockStream();
             Content.Add(localFilename, mockStream);
             await writeFunc(mockStream);
+            return mockStream.Length;
         }
 
         public Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default) => OpenWriteAsync(localFilename, writeFunc, token);

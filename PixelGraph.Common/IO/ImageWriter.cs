@@ -18,7 +18,7 @@ namespace PixelGraph.Common.IO
 {
     public interface IImageWriter
     {
-        Task WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token);
+        Task<long> WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token);
         IImageEncoder GetEncoder(string ext, ImageChannels type);
     }
 
@@ -46,15 +46,16 @@ namespace PixelGraph.Common.IO
             };
         }
 
-        public async Task WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token)
+        public async Task<long> WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token)
         {
             if (image == null) throw new ArgumentNullException(nameof(image));
 
             var ext = Path.GetExtension(localFile)?.TrimStart('.');
 
             var encoder = GetEncoder(ext, type);
-            await writer.OpenWriteAsync(localFile, async stream => {
+            return await writer.OpenWriteAsync(localFile, async stream => {
                 await image.SaveAsync(stream, encoder, token);
+                await stream.FlushAsync(token);
             }, token);
         }
 

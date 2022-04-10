@@ -32,14 +32,18 @@ namespace PixelGraph.Common.IO
             await readFunc(stream);
         }
 
-        public async Task OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
+        public async Task<long> OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
             var filename = PathEx.Join(options.Value.Root, localFilename);
             filename = PathEx.Localize(filename);
             CreateMissingDirectory(filename);
 
-            await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
-            await writeFunc(stream);
+            var file = new FileInfo(filename);
+            await using (var stream = file.Open(FileMode.Create, FileAccess.Write)) {
+                await writeFunc(stream);
+            }
+
+            return file.Length;
         }
 
         public async Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)

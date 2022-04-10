@@ -18,115 +18,197 @@ namespace PixelGraph.Common.IO.Publishing
 {
     public interface IPublisher
     {
+        event EventHandler<PublishStatus> StateChanged;
+
         int Concurrency {get; set;}
 
-        Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default);
+        Task PrepareAsync(ResourcePackContext context, bool clean, CancellationToken token = default);
+        Task PublishAsync(ResourcePackContext context, CancellationToken token = default);
+    }
+
+    public struct PublishStatus
+    {
+        public bool IsAnalyzing {get; set;}
+        public double Progress {get; set;}
     }
 
     public abstract class PublisherBase : IPublisher
     {
-        protected IServiceProvider Provider {get;}
         private readonly IPublishReader loader;
+        private readonly IPublishSummary summary;
+        private int totalMaterialCount, totalFileCount;
+        private int currentMaterialCount, currentFileCount;
+        private DateTime packWriteTime;
+        private object[] content;
 
+        public event EventHandler<PublishStatus> StateChanged;
+
+        protected IServiceProvider Provider {get;}
         protected ILogger<IPublisher> Logger {get;}
+        protected IPublisherMapping Mapping {get; set;}
         protected IInputReader Reader {get;}
         protected IOutputWriter Writer {get;}
 
-        protected IPublisherMapping Mapping {get; set;}
         public int Concurrency {get; set;} = 1;
 
 
         protected PublisherBase(
             ILogger<IPublisher> logger,
-            IServiceProvider provider,
-            IPublishReader loader,
-            IInputReader reader,
-            IOutputWriter writer)
+            IServiceProvider provider)
         {
-            this.loader = loader;
 
             Provider = provider;
-            Reader = reader;
-            Writer = writer;
             Logger = logger;
+
+            loader = provider.GetRequiredService<IPublishReader>();
+            Reader = provider.GetRequiredService<IInputReader>();
+            Writer = provider.GetRequiredService<IOutputWriter>();
+            summary = provider.GetRequiredService<IPublishSummary>();
 
             Mapping = new DefaultPublishMapping();
         }
 
-        public virtual async Task PublishAsync(ResourcePackContext context, bool clean, CancellationToken token = default)
+        public virtual async Task PrepareAsync(ResourcePackContext context, bool clean, CancellationToken token = default)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
 
             loader.EnableAutoMaterial = context.Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
 
-            if (clean) {
-                Logger.LogDebug("Cleaning destination...");
-
-                try {
-                    Writer.Clean();
-
-                    Logger.LogInformation("Destination directory clean.");
-                }
-                catch (Exception error) {
-                    Logger.LogError(error, "Failed to clean destination!");
-                    throw new ApplicationException("Failed to clean destination!", error);
-                }
-            }
+            summary.Reset();
+            if (clean) CleanDestination();
 
             await PublishPackMetaAsync(context.Profile, token);
 
+            packWriteTime = Reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
+            content = await loader.LoadAsync(token).ToArrayAsync(token);
+
+            totalMaterialCount = content.Count(o => o is MaterialProperties);
+            totalFileCount = content.Length - totalMaterialCount;
+        }
+
+        public virtual async Task PublishAsync(ResourcePackContext context, CancellationToken token = default)
+        {
             await PublishContentAsync(context, token);
 
             await OnPackPublished(context, token);
         }
 
-        protected virtual Task OnPackPublished(ResourcePackContext context, CancellationToken token) => Task.CompletedTask;
+        protected virtual void CleanDestination()
+        {
+            Logger.LogDebug("Cleaning destination...");
+
+            try {
+                Writer.Clean();
+                Logger.LogInformation("Destination directory cleaned.");
+            }
+            catch (Exception error) {
+                Logger.LogError(error, "Failed to clean destination!");
+                throw new ApplicationException("Failed to clean destination!", error);
+            }
+        }
+
+        protected virtual Task OnPackPublished(ResourcePackContext packContext, CancellationToken token) => Task.CompletedTask;
 
         private async Task PublishContentAsync(ResourcePackContext packContext, CancellationToken token = default)
         {
-            var genericPublisher = new GenericTexturePublisher(packContext.Profile, Reader, Writer);
-            var packWriteTime = Reader.GetWriteTime(packContext.Profile.LocalFile) ?? DateTime.Now;
+            currentMaterialCount = 0;
+            currentFileCount = 0;
 
-            await loader.LoadAsync(token).AsyncParallelForEach(async fileObj => {
+            await content.AsyncParallelForEach(async fileObj => {
                 switch (fileObj) {
                     case MaterialProperties material:
-                        if (material.CTM?.Method != null) {
-                            var publishConnected = packContext.Profile.PublishConnected ?? ResourcePackProfileProperties.PublishConnectedDefault;
-
-                            if (!publishConnected) {
-                                Logger.LogDebug("Skipping connected texture '{DisplayName}'. feature disabled.", material.DisplayName);
-                                break;
-                            }
-                        }
-
-                        if (TryMapMaterial(material)) {
-                            using var scope = Provider.CreateScope();
-                            var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                            var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
-
-                            graphContext.Input = packContext.Input;
-                            graphContext.Profile = packContext.Profile;
-                            graphContext.Material = material;
-                            graphContext.Mapping = Mapping;
-
-                            await graphBuilder.PublishAsync(token);
-                            await OnMaterialPublishedAsync(scope.ServiceProvider, token);
-                        }
-                        else {
-                            Logger.LogWarning("Skipping non-mapped material '{Name}'.", material.Name);
-                        }
+                        await PublishMaterialAsync(packContext, material, token);
+                        Interlocked.Increment(ref currentMaterialCount);
                         break;
-
                     case string localFile:
-                        if (TryMapFile(localFile, out var destFile)) {
-                            await PublishFileAsync(genericPublisher, packWriteTime, localFile, destFile, token);
-                        }
-                        else {
-                            Logger.LogWarning("Skipping non-mapped file '{localFile}'.", localFile);
-                        }
+                        await PublishFileAsync(packContext, localFile, token);
+                        Interlocked.Increment(ref currentFileCount);
                         break;
                 }
+
+                var materialProgress = currentMaterialCount / (double)totalMaterialCount;
+                var fileProgress = currentFileCount / (double)totalFileCount;
+
+                var status = new PublishStatus {
+                    Progress = 0.9d * materialProgress + 0.1d * fileProgress,
+                };
+
+                OnStateChanged(ref status);
             }, Concurrency, null, token);
+        }
+
+        private async Task PublishMaterialAsync(ResourcePackContext packContext, MaterialProperties material, CancellationToken token)
+        {
+            if (material.CTM?.Method != null) {
+                var publishConnected = packContext.Profile.PublishConnected ?? ResourcePackProfileProperties.PublishConnectedDefault;
+
+                if (!publishConnected) {
+                    Logger.LogDebug("Skipping connected texture '{DisplayName}'. feature disabled.", material.DisplayName);
+                    return;
+                }
+            }
+
+            if (TryMapMaterial(material)) {
+                using var scope = Provider.CreateScope();
+                var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+                var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
+
+                graphContext.Input = packContext.Input;
+                graphContext.Profile = packContext.Profile;
+                graphContext.Material = material;
+                graphContext.Mapping = Mapping;
+
+                await graphBuilder.PublishAsync(token);
+                await OnMaterialPublishedAsync(scope.ServiceProvider, token);
+            }
+            else {
+                Logger.LogWarning("Skipping non-mapped material '{Name}'.", material.Name);
+            }
+        }
+
+        private async Task PublishFileAsync(ResourcePackContext packContext, string localFile, CancellationToken token)
+        {
+            if (TryMapFile(localFile, out var destFile)) {
+                using var scope = Provider.CreateScope();
+                var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+                var genericPublisher = scope.ServiceProvider.GetRequiredService<GenericTexturePublisher>();
+
+                graphContext.Input = packContext.Input;
+                graphContext.Profile = packContext.Profile;
+                graphContext.Mapping = Mapping;
+                            
+                //await PublishFileAsync(genericPublisher, packWriteTime, localFile, destFile, token);
+                var file = Path.GetFileName(localFile);
+                if (fileIgnoreList.Contains(file)) {
+                    Logger.LogDebug("Skipping ignored file {sourceFile}.", localFile);
+                    return;
+                }
+
+                var sourceTime = Reader.GetWriteTime(localFile);
+                var destinationTime = Writer.GetWriteTime(destFile);
+
+                if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
+                    Logger.LogDebug("Skipping up-to-date untracked file {sourceFile}.", localFile);
+                    return;
+                }
+
+                if (IsGenericResizable(localFile)) {
+                    await genericPublisher.PublishAsync(localFile, null, destFile, token);
+                }
+                else {
+                    await using var srcStream = Reader.Open(localFile);
+                    await Writer.OpenWriteAsync(destFile, async destStream => {
+                        await srcStream.CopyToAsync(destStream, token);
+                    }, token);
+
+                    //UntrackedFileCount++;
+                }
+
+                Logger.LogInformation("Published untracked file {destFile}.", destFile);
+            }
+            else {
+                Logger.LogWarning("Skipping non-mapped file '{localFile}'.", localFile);
+            }
         }
 
         protected abstract Task PublishPackMetaAsync(ResourcePackProfileProperties pack, CancellationToken token);
@@ -139,40 +221,16 @@ namespace PixelGraph.Common.IO.Publishing
 
         protected virtual bool TryMapMaterial(in MaterialProperties material) => true;
 
-        protected virtual async Task PublishFileAsync(GenericTexturePublisher genericPublisher, DateTime packWriteTime, string sourceFile, string destFile, CancellationToken token)
-        {
-            var file = Path.GetFileName(sourceFile);
-            if (FileIgnoreList.Contains(file)) {
-                Logger.LogDebug("Skipping ignored file {sourceFile}.", sourceFile);
-                return;
-            }
-
-            var sourceTime = Reader.GetWriteTime(sourceFile);
-            var destinationTime = Writer.GetWriteTime(destFile);
-
-            if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
-                Logger.LogDebug("Skipping up-to-date untracked file {sourceFile}.", sourceFile);
-                return;
-            }
-
-            if (IsGenericResizable(sourceFile)) {
-                await genericPublisher.PublishAsync(sourceFile, null, destFile, token);
-            }
-            else {
-                await using var srcStream = Reader.Open(sourceFile);
-                await Writer.OpenWriteAsync(destFile, async destStream => {
-                    await srcStream.CopyToAsync(destStream, token);
-                }, token);
-            }
-
-            Logger.LogInformation("Published untracked file {destFile}.", destFile);
-        }
-
         protected virtual Task OnMaterialPublishedAsync(IServiceProvider scopeProvider, CancellationToken token) => Task.CompletedTask;
+
+        private void OnStateChanged(ref PublishStatus status)
+        {
+            StateChanged?.Invoke(this, status);
+        }
 
         protected static async Task WriteJsonAsync(Stream stream, object content, Formatting formatting, CancellationToken token)
         {
-            await using var writer = new StreamWriter(stream);
+            await using var writer = new StreamWriter(stream, leaveOpen: true);
             using var jsonWriter = new JsonTextWriter(writer) {
                 Formatting = formatting,
             };
@@ -197,10 +255,10 @@ namespace PixelGraph.Common.IO.Publishing
             var name = Path.GetFileNameWithoutExtension(localFile);
             if (string.IsNullOrEmpty(path) && string.Equals("pack", name, StringComparison.InvariantCultureIgnoreCase)) return false;
 
-            return !ResizeIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
+            return !resizeIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        protected static readonly string[] ResizeIgnoreList = {
+        private static readonly string[] resizeIgnoreList = {
             Path.Combine("assets", "minecraft", "textures", "font"),
             Path.Combine("assets", "minecraft", "textures", "gui"),
             Path.Combine("assets", "minecraft", "textures", "colormap"),
@@ -209,7 +267,7 @@ namespace PixelGraph.Common.IO.Publishing
             Path.Combine("pack", "minecraft", "optifine", "colormap"),
         };
 
-        protected static readonly HashSet<string> FileIgnoreList = new(StringComparer.InvariantCultureIgnoreCase) {
+        private static readonly HashSet<string> fileIgnoreList = new(StringComparer.InvariantCultureIgnoreCase) {
             "input.yml",
             "source.txt",
             "readme.txt",

@@ -6,6 +6,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace PixelGraph.CLI
@@ -33,6 +34,9 @@ namespace PixelGraph.CLI
                     theme: AnsiConsoleTheme.Code,
                     applyThemeToRedirectedOutput: true)
                 .CreateLogger();
+
+            var version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            Log.Logger.Information($"PixelGraph v{version}");
 
             try {
                 var services = new ServiceCollection();

@@ -15,16 +15,11 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO.Publishing
 {
-    //public interface IBedrockPublisher : IPublisher {}
-
-    public class BedrockPublisher : PublisherBase //, IBedrockPublisher
+    public class BedrockPublisher : PublisherBase
     {
         public BedrockPublisher(
             ILogger<BedrockPublisher> logger,
-            IServiceProvider provider,
-            IPublishReader loader,
-            IInputReader reader,
-            IOutputWriter writer) : base(logger, provider, loader, reader, writer)
+            IServiceProvider provider) : base(logger, provider)
         {
             Mapping = new JavaToBedrockPublishMapping();
         }

@@ -52,7 +52,7 @@ namespace PixelGraph.Common.IO
             await readFunc(stream);
         }
 
-        public async Task OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
+        public async Task<long> OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
         {
             if (Path.DirectorySeparatorChar != '/')
                 localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
@@ -60,8 +60,16 @@ namespace PixelGraph.Common.IO
             using var @lock = await writeLock.LockAsync(token);
             var entry = archive.CreateEntry(localFilename);
 
-            await using var stream = entry.Open();
+            await using var stream = new MemoryStream();
             await writeFunc(stream);
+            await stream.FlushAsync(token);
+            var size = stream.Length;
+
+            await using var entryStream = entry.Open();
+            await stream.CopyToAsync(entryStream, token);
+
+            // ERROR: Cannot get length of ArchiveEntry after writing!
+            return size; //entry.Length;
         }
 
         public async Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> readWriteFunc, CancellationToken token = default)

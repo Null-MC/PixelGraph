@@ -31,15 +31,16 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             await ImportMetaAsync(token);
         }
 
-        protected override async Task SaveImagePartAsync<TPixel>(Image<TPixel> image, TexturePublishPart part, ImageChannels type, string destFile, string textureTag, CancellationToken token)
+        protected override async Task<long> SaveImagePartAsync<TPixel>(Image<TPixel> image, TexturePublishPart part, ImageChannels type, string destFile, string textureTag, CancellationToken token)
         {
             var srcWidth = image.Width;
             var srcHeight = image.Height;
+            long diskSize;
 
             if (srcWidth == 1 && srcHeight == 1) {
                 // TODO: set material values instead?
 
-                await ImageWriter.WriteAsync(image, type, destFile, token);
+                diskSize = await ImageWriter.WriteAsync(image, type, destFile, token);
             }
             else {
                 // TODO: set material values instead?
@@ -64,10 +65,11 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                     regionImage.Mutate(c => c.ApplyProcessor(processor, outBounds));
                 }
 
-                await ImageWriter.WriteAsync(regionImage, type, destFile, token);
+                diskSize = await ImageWriter.WriteAsync(regionImage, type, destFile, token);
             }
 
             logger.LogInformation("Imported material texture '{destFile}'.", destFile);
+            return diskSize;
         }
     }
 }

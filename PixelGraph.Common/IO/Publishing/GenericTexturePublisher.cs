@@ -1,31 +1,34 @@
 ﻿using PixelGraph.Common.ImageProcessors;
-using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
+using PixelGraph.Common.Textures;
+using PixelGraph.Common.Textures.Graphing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.IO.Publishing
 {
     public class GenericTexturePublisher
     {
-        protected ResourcePackProfileProperties Pack {get;}
-        protected IInputReader Reader {get;}
-        protected IOutputWriter Writer {get;}
+        private readonly ITextureGraphContext context;
+        private readonly IPublishSummary summary;
+        private readonly IInputReader reader;
+        private readonly IOutputWriter writer;
 
 
         public GenericTexturePublisher(
-            ResourcePackProfileProperties pack,
+            ITextureGraphContext context,
+            IPublishSummary summary,
             IInputReader reader,
             IOutputWriter writer)
         {
-            Pack = pack;
-            Reader = reader;
-            Writer = writer;
+            this.context = context;
+            this.summary = summary;
+            this.reader = reader;
+            this.writer = writer;
         }
 
         public async Task PublishAsync(string sourceFile, Rgba32? sourceColor, string destinationFile, CancellationToken token = default)
@@ -35,18 +38,26 @@ namespace PixelGraph.Common.IO.Publishing
 
             using var sourceImage = await LoadSourceImageAsync(sourceFile, sourceColor, token);
             using var resizedImage = Resize(sourceImage);
+            var img = resizedImage ?? sourceImage;
 
-            await Writer.OpenWriteAsync(destinationFile, async stream => {
-                await (resizedImage ?? sourceImage).SaveAsPngAsync(stream, token);
+            long diskSize = 0;
+            await writer.OpenWriteAsync(destinationFile, async stream => {
+                await img.SaveAsPngAsync(stream, token);
+                await stream.FlushAsync(token);
+                diskSize = stream.Length;
             }, token);
+
+            summary.IncrementTextureCount();
+            summary.AddDiskBytes(diskSize);
+            summary.AddRawBytes(img.Width, img.Height);
         }
 
-        protected Image Resize<TPixel>(Image<TPixel> source)
+        private Image Resize<TPixel>(Image<TPixel> source)
             where TPixel : unmanaged, IPixel<TPixel>
         {
-            if (!Pack.TextureSize.HasValue && !Pack.TextureScale.HasValue) return null;
+            if (!context.Profile.TextureSize.HasValue && !context.Profile.TextureScale.HasValue) return null;
 
-            var samplerName = Pack.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
+            var samplerName = context.Profile.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
             var packSampler = Sampler<TPixel>.Create(samplerName);
             packSampler.Image = source;
             packSampler.WrapX = false;
@@ -60,19 +71,19 @@ namespace PixelGraph.Common.IO.Publishing
             };
 
             int targetWidth, targetHeight;
-            if (Pack.TextureSize.HasValue) {
+            if (context.Profile.TextureSize.HasValue) {
                 // Preserve aspect
-                if (source.Width == Pack.TextureSize.Value) return null;
+                if (source.Width == context.Profile.TextureSize.Value) return null;
 
                 var aspect = height / (float) width;
-                targetWidth = Pack.TextureSize.Value;
-                targetHeight = (int)(Pack.TextureSize.Value * aspect);
-                packSampler.RangeX = source.Width / (float)Pack.TextureSize.Value;
-                packSampler.RangeY = source.Height / (float)Pack.TextureSize.Value;
+                targetWidth = context.Profile.TextureSize.Value;
+                targetHeight = (int)(context.Profile.TextureSize.Value * aspect);
+                packSampler.RangeX = source.Width / (float)context.Profile.TextureSize.Value;
+                packSampler.RangeY = source.Height / (float)context.Profile.TextureSize.Value;
             }
             else {
                 // scale all
-                var scale = (float)Pack.TextureScale.Value;
+                var scale = (float)context.Profile.TextureScale.Value;
                 targetWidth = (int)Math.Max(width * scale, 1f);
                 targetHeight = (int)Math.Max(height * scale, 1f);
                 packSampler.RangeX = 1f / scale;
@@ -95,7 +106,7 @@ namespace PixelGraph.Common.IO.Publishing
         private async Task<Image<Rgba32>> LoadSourceImageAsync(string sourceFile, Rgba32? sourceColor, CancellationToken token)
         {
             if (!string.IsNullOrEmpty(sourceFile)) {
-                await using var stream = Reader.Open(sourceFile);
+                await using var stream = reader.Open(sourceFile);
                 return await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token);
             }
 

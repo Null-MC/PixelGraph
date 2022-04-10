@@ -52,7 +52,7 @@ namespace PixelGraph.Common.Extensions
             return channelProperties != null;
         }
 
-        public static async Task AsyncParallelForEach<T>(this IAsyncEnumerable<T> source, Func<T, Task> body, int maxDegreeOfParallelism = DataflowBlockOptions.Unbounded, TaskScheduler scheduler = null, CancellationToken token = default)
+        public static async Task AsyncParallelForEach<T>(this IEnumerable<T> source, Func<T, Task> body, int maxDegreeOfParallelism = DataflowBlockOptions.Unbounded, TaskScheduler scheduler = null, CancellationToken token = default)
         {
             var options = new ExecutionDataflowBlockOptions {
                 CancellationToken = token,
@@ -64,12 +64,33 @@ namespace PixelGraph.Common.Extensions
                 options.TaskScheduler = scheduler;
 
             var block = new ActionBlock<T>(body, options);
-            await foreach (var item in source.WithCancellation(token)) {
+            foreach (var item in source) {
+                token.ThrowIfCancellationRequested();
                 await block.SendAsync(item, token);
             }
 
             block.Complete();
             await block.Completion;
         }
+
+        //public static async Task AsyncParallelForEach<T>(this IAsyncEnumerable<T> source, Func<T, Task> body, int maxDegreeOfParallelism = DataflowBlockOptions.Unbounded, TaskScheduler scheduler = null, CancellationToken token = default)
+        //{
+        //    var options = new ExecutionDataflowBlockOptions {
+        //        CancellationToken = token,
+        //        MaxDegreeOfParallelism = maxDegreeOfParallelism,
+        //        BoundedCapacity = 32,
+        //    };
+
+        //    if (scheduler != null)
+        //        options.TaskScheduler = scheduler;
+
+        //    var block = new ActionBlock<T>(body, options);
+        //    await foreach (var item in source.WithCancellation(token)) {
+        //        await block.SendAsync(item, token);
+        //    }
+
+        //    block.Complete();
+        //    await block.Completion;
+        //}
     }
 }

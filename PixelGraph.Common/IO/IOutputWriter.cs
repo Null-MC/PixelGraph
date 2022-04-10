@@ -16,7 +16,7 @@ namespace PixelGraph.Common.IO
     {
         void Prepare();
         Task OpenReadAsync(string localFilename, Func<Stream, Task> readFunc, CancellationToken token = default);
-        Task OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default);
+        Task<long> OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default);
         Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> readWriteFunc, CancellationToken token = default);
         bool FileExists(string localFile);
         DateTime? GetWriteTime(string localFile);
