@@ -42,15 +42,18 @@ pbr_material get_pbr_material(const in float2 tex)
 	const float3 porosity_sss_emissive = tex_porosity_sss_emissive.Sample(sampler_surface, tex).rgb;
 
 	pbr_material mat;
-	mat.albedo = srgb_to_linear(albedo_opacity.rgb);
+	mat.albedo = albedo_opacity.rgb;
 	mat.opacity = albedo_opacity.a;
 	mat.smooth = smooth_occlusion.r;
     mat.f0_hcm = f0_hcm;
 	mat.occlusion = smooth_occlusion.g;
 	mat.porosity = porosity_sss_emissive.r;
-	//mat.sss = srgb_to_linear(porosity_sss_emissive.g);
 	mat.sss = porosity_sss_emissive.g;
-	mat.emissive = srgb_to_linear(porosity_sss_emissive.b);
-		
+	mat.emissive = porosity_sss_emissive.b;
+
+	mat.albedo = srgb_to_linear(mat.albedo);
+	//mat.sss = srgb_to_linear(mat.sss);
+	//mat.emissive = srgb_to_linear(mat.emissive);
+
     return mat;
 }

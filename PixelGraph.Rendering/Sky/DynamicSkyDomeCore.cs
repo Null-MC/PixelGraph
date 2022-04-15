@@ -27,7 +27,7 @@ namespace PixelGraph.Rendering.Sky
         {
             if (!base.OnAttach(technique)) return false;
 
-            DefaultShaderPass = technique[CustomPassNames.SkyFinal];
+            DefaultShaderPass = technique[CustomPassNames.SkyFinal_Cube];
             GeometryBuffer = Collect(new SkyDomeBufferModel());
             return true;
         }

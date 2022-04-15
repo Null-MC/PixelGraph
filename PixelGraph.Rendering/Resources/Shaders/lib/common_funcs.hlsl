@@ -37,24 +37,24 @@ float4 clip_to_screen(const in float4 pos)
 	return o;
 }
 
-float srgb_to_linear(const float rgb) {
+float srgb_to_linear(const float srgb) {
 	//return pow(abs(srgb), GAMMA);
-    if (step(rgb, 0.04045f) == 1.0f) return rgb / 12.92f;
-    return pow((abs(rgb) + 0.055f) / 1.055f, 2.4f);
+    if (step(srgb, 0.04045f) == 1.0f) return srgb / 12.92f;
+    return pow((abs(srgb) + 0.055f) / 1.055f, 2.4f);
 }
 
-float2 srgb_to_linear(const float2 rgb) {
-	//return pow(abs(srg), GAMMA);
-    const float2 shit = step(rgb, 0.04045f);
-    if (all(shit == 1.0f)) return rgb / 12.92f;
-    return pow((rgb + 0.055f) / 1.055f, 2.4f);
+float2 srgb_to_linear(const float2 srgb) {
+	//return pow(abs(srgb), GAMMA);
+    const float2 shit = step(srgb, 0.04045f);
+    if (all(shit == 1.0f)) return srgb / 12.92f;
+    return pow((srgb + 0.055f) / 1.055f, 2.4f);
 }
 
-float3 srgb_to_linear(const float3 rgb) {
+float3 srgb_to_linear(const float3 srgb) {
 	//return pow(abs(srgb), GAMMA);
-	const float3 shit = step(rgb, 0.04045f);
-    if (all(shit == 1.0f)) return rgb / 12.92f;
-    return pow((abs(rgb) + 0.055f) / 1.055f, 2.4f);
+	const float3 shit = step(srgb, 0.04045f);
+    if (all(shit == 1.0f)) return srgb / 12.92f;
+    return pow((abs(srgb) + 0.055f) / 1.055f, 2.4f);
 }
 
 float3 linear_to_srgb(const float3 v) {

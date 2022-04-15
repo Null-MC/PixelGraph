@@ -316,7 +316,7 @@ float4 main(const ps_input input) : SV_TARGET
 
     spec_strength += luminance(ibl_specular) * 3.f;
 
-	const float3 emissive = mat.emissive * mat.albedo * 200.0f;
+	const float3 emissive = mat.emissive * mat.albedo;
 
 	float3 ibl_final = ibl_ambient + ibl_specular;
     //return float4(ibl_final, 1.f);
@@ -326,7 +326,7 @@ float4 main(const ps_input input) : SV_TARGET
     float3 final_color = 0.f;
 
 	final_color += ibl_final;// * 4.f;
-	final_color += emissive;
+	final_color += emissive * 2.f;
 	final_color += acc_light * 2.f;
 	final_color += final_sss;
 

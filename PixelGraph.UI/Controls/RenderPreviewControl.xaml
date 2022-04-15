@@ -172,13 +172,13 @@
                 Transform="{Binding PointLightTransform}"/>-->
             <hx:PostEffectBloom
                 IsRendering="{Binding RenderProperties.EnableBloom}"
-                BloomExtractIntensity="0.14"
-                BloomPassIntensity="1.02"
-                BloomCombineIntensity="2"
-                BloomCombineSaturation="0.2"
-                NumberOfBlurPass="12">
+                BloomExtractIntensity="0.4"
+                BloomPassIntensity="1.015"
+                BloomCombineIntensity=".8"
+                BloomCombineSaturation="0.8"
+                NumberOfBlurPass="24">
                 <hx:PostEffectBloom.ThresholdColor>
-                    <Color R="80" G="80" B="80"/>
+                    <Color R="120" G="120" B="120"/>
                 </hx:PostEffectBloom.ThresholdColor>
             </hx:PostEffectBloom>
             <hx:ContinuousRender3D/>

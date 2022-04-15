@@ -43,10 +43,10 @@ namespace PixelGraph.Rendering
                         BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
                         RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                     },
-                    new(CustomPassNames.SkyFinal) {
+                    new(CustomPassNames.SkyFinal_Cube) {
                         ShaderList = new[] {
                             shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
-                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyFinalPixel, ShaderStage.Pixel),
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyFinalCubePixel, ShaderStage.Pixel),
                         },
                         DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
                         BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
