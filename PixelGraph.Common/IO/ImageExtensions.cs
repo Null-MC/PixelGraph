@@ -9,6 +9,7 @@ namespace PixelGraph.Common.IO
         public const string Jpg = "tga";
         public const string Png = "png";
         public const string Tga = "tga";
+        public const string WebP = "webp";
 
         public const string Default = Png;
 
@@ -26,6 +27,7 @@ namespace PixelGraph.Common.IO
             "gif",
             "jpg",
             "jpeg",
+            "webp",
         };
     }
 }

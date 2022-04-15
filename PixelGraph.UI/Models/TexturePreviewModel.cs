@@ -1,11 +1,17 @@
 ﻿using PixelGraph.UI.Internal;
 using SixLabors.ImageSharp;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
 namespace PixelGraph.UI.Models
 {
-    internal class TexturePreviewModel : ModelBase
+    public interface ITexturePreviewModel : INotifyPropertyChanged
+    {
+        string MousePixel {get;}
+    }
+
+    internal class TexturePreviewModel : ModelBase, ITexturePreviewModel
     {
         private const float HalfPixel = 0.5f - float.Epsilon;
 
@@ -17,6 +23,7 @@ namespace PixelGraph.UI.Models
         private int _outlineWidth;
         private int _outlineHeight;
         private double _zoom;
+        private string _mousePixel;
 
         public bool HasOutlineBounds => _outlineBounds != null;
 
@@ -69,6 +76,15 @@ namespace PixelGraph.UI.Models
             get => _showOutline;
             set {
                 _showOutline = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string MousePixel {
+            get => _mousePixel;
+            set {
+                if (_mousePixel == value) return;
+                _mousePixel = value;
                 OnPropertyChanged();
             }
         }

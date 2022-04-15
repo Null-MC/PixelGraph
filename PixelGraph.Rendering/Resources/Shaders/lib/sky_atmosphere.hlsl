@@ -1,6 +1,3 @@
-#include "common_funcs.hlsl"
-
-#define PI_2 (3.1415926535f * 2.0)
 #define SAMPLES_NUMS 16
 
 #pragma pack_matrix(row_major)
@@ -205,7 +202,7 @@ float3 get_sky_color(const in float3 view, const in float3 light)
 {
 	ScatteringParams setting;
 	setting.sunRadius = 3000.0f;
-	setting.sunRadiance = 80.0f;
+	setting.sunRadiance = 40.0f;
 	setting.mieG = 0.96f;
 	setting.mieHeight = 1200.0f;
 	setting.rayleighHeight = 8000.0f;

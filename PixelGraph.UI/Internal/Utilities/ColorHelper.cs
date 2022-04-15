@@ -14,7 +14,12 @@ namespace PixelGraph.UI.Internal.Utilities
 
         public static string ToHexRGB(Color color)
         {
-            return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+            return ToHexRGB(color.R, color.G, color.B);
+        }
+
+        public static string ToHexRGB(in byte red, in byte green, in byte blue)
+        {
+            return $"#{red:X2}{green:X2}{blue:X2}";
         }
     }
 }

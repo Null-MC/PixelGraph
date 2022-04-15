@@ -2,7 +2,9 @@
 {
     public static class CustomPassNames
     {
+        public const string Sky_ERP = "Sky_ERP";
         public const string SkyFinal = "SkyFinal";
+        public const string SkyFinal_ERP = "SkyFinal_ERP";
         public const string SkyIrradiance = "SkyIrradiance";
         
         public const string Diffuse = "Diffuse";

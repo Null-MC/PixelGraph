@@ -161,6 +161,9 @@
                             <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
                             <Setter Property="FontStyle" Value="Normal"/>
                         </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
                     </Style.Triggers>
                 </Style>
             </DataGridTemplateColumn.CellStyle>

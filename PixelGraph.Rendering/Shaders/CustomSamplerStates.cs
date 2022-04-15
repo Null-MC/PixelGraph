@@ -98,7 +98,7 @@ namespace PixelGraph.Rendering.Shaders
                 AddressU = TextureAddressMode.Clamp,
                 AddressV = TextureAddressMode.Clamp,
                 AddressW = TextureAddressMode.Clamp,
-                Filter = Filter.MinMagLinearMipPoint,
+                Filter = Filter.MinMagMipPoint,
                 MaximumAnisotropy = 1,
                 MaximumLod = 0f,
             };

@@ -1,14 +1,13 @@
-﻿using HelixToolkit.SharpDX.Core;
-using HelixToolkit.Wpf.SharpDX;
+﻿using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Rendering.CubeMaps;
+using PixelGraph.Rendering.LUTs;
 using PixelGraph.UI.Internal.Preview.Textures;
 using SharpDX.Direct3D11;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,9 +26,10 @@ namespace PixelGraph.UI.Helix.Materials
 
         ResourcePackContext PackContext {get; set;}
         MaterialProperties Material {get; set;}
+        ILutMapSource DielectricBrdfLutMapSource {get; set;}
         ICubeMapSource EnvironmentCubeMapSource {get; set;}
         ICubeMapSource IrradianceCubeMapSource {get; set;}
-        TextureModel BrdfLutMap {get; set;}
+        //TextureModel BrdfLutMap {get; set;}
         bool RenderEnvironmentMap {get; set;}
 
         Task UpdateAllTexturesAsync(int part = 0, CancellationToken token = default);
@@ -54,9 +54,9 @@ namespace PixelGraph.UI.Helix.Materials
 
         public ResourcePackContext PackContext {get; set;}
         public MaterialProperties Material {get; set;}
+        public ILutMapSource DielectricBrdfLutMapSource {get; set;}
         public ICubeMapSource EnvironmentCubeMapSource {get; set;}
         public ICubeMapSource IrradianceCubeMapSource {get; set;}
-        public TextureModel BrdfLutMap {get; set;}
         public bool RenderEnvironmentMap {get; set;}
 
 
@@ -91,8 +91,8 @@ namespace PixelGraph.UI.Helix.Materials
                 if (TextureMap.TryGetValue(tag, out var existing) && existing != null)
                     await existing.DisposeAsync();
 
-                using var previewBuilder = GetPreviewBuilder();
-                TextureMap[tag] = await GetTextureStreamAsync(previewBuilder, tag, 0, part, token);
+                using var previewBuilder = GetPreviewBuilder(0, part);
+                TextureMap[tag] = await GetTextureStreamAsync(previewBuilder, tag, token);
             }
         }
 
@@ -101,8 +101,8 @@ namespace PixelGraph.UI.Helix.Materials
             if (!TextureMap.TryGetValue(textureTag, out var existing)) return;
             if (existing != null) await existing.DisposeAsync();
 
-            using var previewBuilder = GetPreviewBuilder();
-            TextureMap[textureTag] = await GetTextureStreamAsync(previewBuilder, textureTag, 0, part, token);
+            using var previewBuilder = GetPreviewBuilder(0, part);
+            TextureMap[textureTag] = await GetTextureStreamAsync(previewBuilder, textureTag, token);
         }
 
         public virtual void ClearAllTextures()
@@ -119,23 +119,26 @@ namespace PixelGraph.UI.Helix.Materials
             }
         }
 
-        protected ITexturePreviewBuilder GetPreviewBuilder()
+        protected ITexturePreviewBuilder GetPreviewBuilder(int? frame = null, int? part = null)
         {
             var previewBuilder = provider.GetRequiredService<T>();
 
             previewBuilder.Input = PackContext.Input;
             previewBuilder.Profile = PackContext.Profile;
             previewBuilder.Material = Material;
+
+            previewBuilder.TargetFrame = frame;
+            previewBuilder.TargetPart = part;
             
             return previewBuilder;
         }
 
-        protected async Task<Stream> GetTextureStreamAsync(ITexturePreviewBuilder previewBuilder, string textureTag, int? frame = null, int? part = null, CancellationToken token = default)
+        protected async Task<Stream> GetTextureStreamAsync(ITexturePreviewBuilder previewBuilder, string textureTag, CancellationToken token = default)
         {
             var stream = new MemoryStream();
 
             try {
-                using var image = await previewBuilder.BuildAsync<Rgba32>(textureTag, frame, part);
+                using var image = await previewBuilder.BuildAsync(textureTag, token);
 
                 await image.SaveAsBmpAsync(stream, encoder, token);
                 await stream.FlushAsync(token);

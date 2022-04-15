@@ -11,6 +11,7 @@ using Serilog;
 using System;
 using System.Windows;
 using System.Windows.Threading;
+using Serilog.Events;
 
 #if !NORENDER
 using PixelGraph.Rendering.Models;
@@ -68,6 +69,8 @@ namespace PixelGraph.UI
             Log.Information("Application Started.");
             provider = services.BuildServiceProvider();
 
+            AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
+
             try {
                 var settings = provider.GetRequiredService<IAppSettings>();
                 settings.Load();
@@ -97,6 +100,12 @@ namespace PixelGraph.UI
         private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
             Log.Fatal(e.Exception, "An unhandled exception occurred!");
+        }
+
+        private void OnDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var level = e.IsTerminating ? LogEventLevel.Fatal : LogEventLevel.Error;
+            Log.Write(level, e.ExceptionObject as Exception, "An unhandled exception occurred!");
         }
     }
 }

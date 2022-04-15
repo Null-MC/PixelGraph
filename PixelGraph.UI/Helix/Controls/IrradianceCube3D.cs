@@ -46,7 +46,7 @@ namespace PixelGraph.UI.Helix.Controls
 
         public static readonly DependencyProperty FaceSizeProperty =
             DependencyProperty.Register(nameof(FaceSize), typeof(int), typeof(IrradianceCube3D), new PropertyMetadata(128, (d, e) => {
-                if (d is Element3DCore {SceneNode: EnvironmentCubeNode sceneNode})
+                if (d is Element3DCore {SceneNode: DynamicSkyCubeNode sceneNode})
                     sceneNode.FaceSize = (int)e.NewValue;
             }));
     }

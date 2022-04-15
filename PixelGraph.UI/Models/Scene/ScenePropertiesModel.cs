@@ -1,7 +1,9 @@
-﻿using PixelGraph.UI.Internal;
+﻿using HelixToolkit.SharpDX.Core;
+using HelixToolkit.Wpf.SharpDX;
+using PixelGraph.UI.Internal;
 using System;
 using System.Windows.Media.Media3D;
-using HelixToolkit.Wpf.SharpDX;
+using Media = System.Windows.Media;
 
 #if !RELEASENORENDER
 using PixelGraph.Common.Extensions;
@@ -9,13 +11,12 @@ using PixelGraph.Rendering;
 using SharpDX;
 #endif
 
-using Media = System.Windows.Media;
-
 namespace PixelGraph.UI.Models.Scene
 {
     public class ScenePropertiesModel : ModelBase
     {
-        public event EventHandler SceneChanged;
+        public event EventHandler EnvironmentChanged;
+        public event EventHandler DynamicSkyChanged;
 
         private Media.Color _ambientColor;
         private Media.Color _lightColor;
@@ -27,11 +28,16 @@ namespace PixelGraph.UI.Models.Scene
         private Vector3 _sunDirection;
         private float _sunStrength;
         private bool _enableLights;
-        private Transform3D _lightTransform1;
-        private Transform3D _lightTransform2;
+        private TextureModel _equirectangularMap;
+        private string _erpFilename;
+        private float _erpExposure;
+        //private Transform3D _lightTransform1;
+        //private Transform3D _lightTransform2;
 
         public Vector3D SunLightDirection => -_sunDirection.ToVector3D();
         public Media.Color SunLightColor => new Color4(_sunStrength, _sunStrength, _sunStrength, _sunStrength).ToColor();
+        public bool HasEquirectangularMap => _equirectangularMap != null;
+        public bool HasEnvironmentMap => _enableAtmosphere || HasEquirectangularMap;
 
         public Media.Color AmbientColor {
             get => _ambientColor;
@@ -72,7 +78,8 @@ namespace PixelGraph.UI.Models.Scene
             set {
                 _enableAtmosphere = value;
                 OnPropertyChanged();
-                OnSceneChanged();
+                OnEnvironmentChanged();
+                OnPropertyChanged(nameof(HasEnvironmentMap));
             }
         }
 
@@ -82,7 +89,7 @@ namespace PixelGraph.UI.Models.Scene
                 _timeOfDay = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(TimeOfDayLinear));
-                OnSceneChanged();
+                OnDynamicSkyChanged();
             }
         }
 
@@ -99,7 +106,7 @@ namespace PixelGraph.UI.Models.Scene
             set {
                 _sunTilt = value;
                 OnPropertyChanged();
-                OnSceneChanged();
+                OnDynamicSkyChanged();
             }
         }
 
@@ -108,7 +115,7 @@ namespace PixelGraph.UI.Models.Scene
             set {
                 _sunAzimuth = value;
                 OnPropertyChanged();
-                OnSceneChanged();
+                OnDynamicSkyChanged();
             }
         }
 
@@ -135,25 +142,56 @@ namespace PixelGraph.UI.Models.Scene
             set {
                 _enableLights = value;
                 OnPropertyChanged();
-                OnSceneChanged();
+                OnDynamicSkyChanged();
             }
         }
 
-        public Transform3D LightTransform1 {
-            get => _lightTransform1;
+        public string ErpFilename {
+            get => _erpFilename;
             set {
-                _lightTransform1 = value;
+                if (_erpFilename == value) return;
+                _erpFilename = value;
                 OnPropertyChanged();
-                OnSceneChanged();
             }
         }
 
-        public Transform3D LightTransform2 {
-            get => _lightTransform2;
+        public float ErpExposure {
+            get => _erpExposure;
             set {
-                _lightTransform2 = value;
+                if (_erpExposure.NearEqual(value)) return;
+                _erpExposure = value;
                 OnPropertyChanged();
-                OnSceneChanged();
+                OnDynamicSkyChanged();
+            }
+        }
+
+        //public Transform3D LightTransform1 {
+        //    get => _lightTransform1;
+        //    set {
+        //        _lightTransform1 = value;
+        //        OnPropertyChanged();
+        //        OnSceneChanged();
+        //    }
+        //}
+
+        //public Transform3D LightTransform2 {
+        //    get => _lightTransform2;
+        //    set {
+        //        _lightTransform2 = value;
+        //        OnPropertyChanged();
+        //        OnSceneChanged();
+        //    }
+        //}
+
+        public TextureModel EquirectangularMap {
+            get => _equirectangularMap;
+            set {
+                if (_equirectangularMap == value) return;
+                _equirectangularMap = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasEquirectangularMap));
+                OnPropertyChanged(nameof(HasEnvironmentMap));
+                OnEnvironmentChanged();
             }
         }
 
@@ -165,8 +203,9 @@ namespace PixelGraph.UI.Models.Scene
             _lightColor = Media.Color.FromRgb(60, 255, 60);
             _timeOfDay = 6_000;
 
-            _lightTransform1 = new TranslateTransform3D(10, 14, 8);
-            _lightTransform2 = new TranslateTransform3D(-12, -12, -10);
+            //_lightTransform1 = new TranslateTransform3D(10, 14, 8);
+            //_lightTransform2 = new TranslateTransform3D(-12, -12, -10);
+            _erpExposure = 1f;
         }
 
 #if !RELEASENORENDER
@@ -195,9 +234,18 @@ namespace PixelGraph.UI.Models.Scene
 
 #endif
 
-        protected virtual void OnSceneChanged()
+        protected virtual void OnEnvironmentChanged()
         {
-            SceneChanged?.Invoke(this, EventArgs.Empty);
+            EnvironmentChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnDynamicSkyChanged()
+        {
+            GetSunAngle(out var sunDirection, out var sunStrength);
+            SunDirection = sunDirection;
+            SunStrength = sunStrength;
+
+            DynamicSkyChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

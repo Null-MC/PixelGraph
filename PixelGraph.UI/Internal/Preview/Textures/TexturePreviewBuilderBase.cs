@@ -25,9 +25,10 @@ namespace PixelGraph.UI.Internal.Preview.Textures
         ResourcePackProfileProperties Profile {get; set;}
         MaterialProperties Material {get; set;}
         CancellationToken Token {get;}
+        int? TargetFrame {get; set;}
+        int? TargetPart {get; set;}
 
-        Task<Image<TPixel>> BuildAsync<TPixel>(string tag, int? targetFrame = null, int? targetPart = null)
-            where TPixel : unmanaged, IPixel<TPixel>;
+        Task<Image> BuildAsync(string tag, CancellationToken token = default);
 
         void Cancel();
     }
@@ -41,6 +42,8 @@ namespace PixelGraph.UI.Internal.Preview.Textures
         public ResourcePackInputProperties Input {get; set;}
         public ResourcePackProfileProperties Profile {get; set;}
         public MaterialProperties Material {get; set;}
+        public int? TargetFrame {get; set;}
+        public int? TargetPart {get; set;}
 
         protected IDictionary<string, Func<ResourcePackProfileProperties, MaterialProperties, ResourcePackChannelProperties[]>> TagMap {get; set;}
         public CancellationToken Token => tokenSource.Token;
@@ -50,12 +53,12 @@ namespace PixelGraph.UI.Internal.Preview.Textures
         {
             this.provider = provider;
 
+            TargetFrame = 0;
             projectContext = provider.GetRequiredService<IProjectContext>();
             tokenSource = new CancellationTokenSource();
         }
 
-        public async Task<Image<TPixel>> BuildAsync<TPixel>(string tag, int? targetFrame = 0, int? targetPart = null)
-            where TPixel : unmanaged, IPixel<TPixel>
+        public async Task<Image> BuildAsync(string tag, CancellationToken token = default)
         {
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
             
@@ -72,6 +75,9 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             context.Profile = Profile;
             context.Material = Material;
 
+            using var mergedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(tokenSource.Token, token);
+            var mergedToken = mergedTokenSource.Token;
+
             var matMetaFileIn = NamingStructure.GetInputMetaName(Material);
             context.IsAnimated = reader.FileExists(matMetaFileIn);
 
@@ -84,18 +90,31 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 context.OutputEncoding.AddRange(channels);
 
             if (TextureTags.Is(tag, TextureTags.Normal))
-                await graph.PreBuildNormalTextureAsync(tokenSource.Token);
+                await graph.PreBuildNormalTextureAsync(mergedToken);
 
-            await graph.MapAsync(tag, true, targetFrame, targetPart, Token);
+            await graph.MapAsync(tag, true, TargetFrame, TargetPart, Token);
             context.MaxFrameCount = graph.GetMaxFrameCount();
 
             var regions = scope.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = context.MaxFrameCount;
             regions.DestFrameCount = context.MaxFrameCount;
-            regions.TargetFrame = targetFrame;
-            regions.TargetPart = targetPart;
+            regions.TargetFrame = TargetFrame;
+            regions.TargetPart = TargetPart;
 
-            var image = await graph.CreateImageAsync<TPixel>(tag, true, tokenSource.Token);
+            var hasAlpha = context.OutputEncoding.Any(c => c.Color == ColorChannel.Alpha);
+            var hasColor = context.OutputEncoding.Any(c => c.Color != ColorChannel.Red);
+
+            Image image;
+            if (hasAlpha) {
+                image = await graph.CreateImageAsync<Rgba32>(tag, true, token);
+            }
+            else if (hasColor) {
+                image = await graph.CreateImageAsync<Rgb24>(tag, true, token);
+            }
+            else {
+                image = await graph.CreateImageAsync<L8>(tag, true, token);
+            }
+
             if (image == null) return null;
 
             if (image.Width > 1 || image.Height > 1) {
@@ -107,7 +126,9 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 try {
                     foreach (var part in regions.GetAllPublishRegions()) {
                         foreach (var frame in part.Frames) {
-                            var outBounds = targetPart.HasValue
+                            mergedToken.ThrowIfCancellationRequested();
+
+                            var outBounds = TargetPart.HasValue
                                 ? new Rectangle(0, 0, image.Width, image.Height)
                                 : frame.SourceBounds.ScaleTo(image.Width, image.Height);
 

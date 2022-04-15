@@ -8,8 +8,13 @@ using System.Windows.Media.Imaging;
 
 namespace PixelGraph.UI.Internal.Preview
 {
+    public abstract class ImageSharpSource : BitmapSource
+    {
+        public Type SourceFormat {get; set;}
+    }
+
     /// <remarks> https://github.com/jongleur1983/SharpImageSource </remarks>
-    public sealed class ImageSharpSource<TPixel> : BitmapSource
+    public sealed class ImageSharpSource<TPixel> : ImageSharpSource
         where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly Image<TPixel> source;
@@ -26,16 +31,21 @@ namespace PixelGraph.UI.Internal.Preview
         public override double DpiY => source.Metadata.VerticalResolution;
         public override BitmapPalette Palette => null;
         public override bool IsDownloading => false;
-        
 
-        public ImageSharpSource(int width, int height)
+
+        private ImageSharpSource()
         {
-            source = new Image<TPixel>(width, height);
+            SourceFormat = typeof(TPixel);
         }
 
-        public ImageSharpSource(Image<TPixel> source)
+        public ImageSharpSource(Image<TPixel> source) : this()
         {
             this.source = source;
+        }
+
+        private ImageSharpSource(int width, int height) : this()
+        {
+            source = new Image<TPixel>(width, height);
         }
 
         public override void CopyPixels(Array pixels, int stride, int offset)
@@ -51,7 +61,7 @@ namespace PixelGraph.UI.Internal.Preview
             if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset));
 
             // We accept arrays of arbitrary value types - but not reference types.
-            if (elementType == null || !elementType.IsValueType)
+            if (elementType is not { IsValueType: true })
                 throw new ArgumentException("must be a valueType!", nameof(pixels));
 
             checked {
@@ -96,7 +106,7 @@ namespace PixelGraph.UI.Internal.Preview
                 if (stride < 1) throw new ArgumentOutOfRangeException(nameof(stride));
 
                 var minStrideInBits = (uint)(sourceRect.Width * Format.BitsPerPixel);
-                var minStrideInBytes = ((minStrideInBits + 7) / 8);
+                var minStrideInBytes = (minStrideInBits + 7) / 8;
 
                 if (stride < minStrideInBytes)
                     throw new ArgumentOutOfRangeException(nameof(stride));
@@ -130,7 +140,7 @@ namespace PixelGraph.UI.Internal.Preview
 
                     for (var x = 0; x < sourceRect.Width; x++) {
                         var dest = default(Rgba32);
-                        source[x, y].ToRgba32(ref dest);
+                        source[x + sourceRect.X, y + sourceRect.Y].ToRgba32(ref dest);
 
                         // Write sRGB (non-linear) since it is implied by
                         // the pixel format we chose.

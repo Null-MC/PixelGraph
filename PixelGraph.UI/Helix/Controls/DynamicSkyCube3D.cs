@@ -8,7 +8,7 @@ using System.Windows;
 
 namespace PixelGraph.UI.Helix.Controls
 {
-    public class EnvironmentCube3D : Element3D, ICubeMapSource
+    public class DynamicSkyCube3D : Element3D, ICubeMapSource
     {
         public IMinecraftScene Scene {
             get => (IMinecraftScene)GetValue(SceneProperty);
@@ -20,19 +20,19 @@ namespace PixelGraph.UI.Helix.Controls
             set => SetValue(FaceSizeProperty, value);
         }
 
-        private EnvironmentCubeNode EnvCubeNode => SceneNode as EnvironmentCubeNode;
+        private DynamicSkyCubeNode EnvCubeNode => SceneNode as DynamicSkyCubeNode;
         public ShaderResourceViewProxy CubeMap => EnvCubeNode?.CubeMap;
         public long LastUpdated => EnvCubeNode?.LastUpdated ?? 0;
 
 
         protected override SceneNode OnCreateSceneNode()
         {
-            return new EnvironmentCubeNode();
+            return new DynamicSkyCubeNode();
         }
 
         protected override void AssignDefaultValuesToSceneNode(SceneNode core)
         {
-            if (core is EnvironmentCubeNode n) {
+            if (core is DynamicSkyCubeNode n) {
                 n.Scene = Scene;
                 n.FaceSize = FaceSize;
             }
@@ -41,14 +41,14 @@ namespace PixelGraph.UI.Helix.Controls
         }
 
         public static readonly DependencyProperty SceneProperty =
-            DependencyProperty.Register(nameof(Scene), typeof(IMinecraftScene), typeof(EnvironmentCube3D), new PropertyMetadata(null, (d, e) => {
-                if (d is Element3DCore {SceneNode: EnvironmentCubeNode sceneNode})
+            DependencyProperty.Register(nameof(Scene), typeof(IMinecraftScene), typeof(DynamicSkyCube3D), new PropertyMetadata(null, (d, e) => {
+                if (d is Element3DCore {SceneNode: DynamicSkyCubeNode sceneNode})
                     sceneNode.Scene = (IMinecraftScene)e.NewValue;
             }));
 
         public static readonly DependencyProperty FaceSizeProperty =
-            DependencyProperty.Register(nameof(FaceSize), typeof(int), typeof(EnvironmentCube3D), new PropertyMetadata(256, (d, e) => {
-                if (d is Element3DCore {SceneNode: EnvironmentCubeNode sceneNode})
+            DependencyProperty.Register(nameof(FaceSize), typeof(int), typeof(DynamicSkyCube3D), new PropertyMetadata(256, (d, e) => {
+                if (d is Element3DCore {SceneNode: DynamicSkyCubeNode sceneNode})
                     sceneNode.FaceSize = (int)e.NewValue;
             }));
     }

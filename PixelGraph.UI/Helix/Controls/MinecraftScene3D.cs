@@ -68,6 +68,11 @@ namespace PixelGraph.UI.Helix.Controls
             set => SetValue(WaterModeProperty, value);
         }
 
+        public float ErpExposure {
+            get => (float)GetValue(ErpExposureProperty);
+            set => SetValue(ErpExposureProperty, value);
+        }
+
 
         public void Apply(DeviceContextProxy deviceContext)
         {
@@ -100,72 +105,79 @@ namespace PixelGraph.UI.Helix.Controls
             n.EnableLinearSampling = EnableLinearSampling;
             n.EnableSlopeNormals = EnableSlopeNormals;
             n.WaterMode = WaterMode;
+            n.ErpExposure = ErpExposure;
         }
 
-        public static readonly DependencyProperty EnableAtmosphereProperty =
-            DependencyProperty.Register(nameof(EnableAtmosphere), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(true, (d, e) => {
+        public static readonly DependencyProperty EnableAtmosphereProperty = DependencyProperty
+            .Register(nameof(EnableAtmosphere), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(true, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.EnableAtmosphere = (bool)e.NewValue;
             }));
 
-        public static readonly DependencyProperty TimeOfDayProperty =
-            DependencyProperty.Register(nameof(TimeOfDay), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(0.25f, (d, e) => {
+        public static readonly DependencyProperty TimeOfDayProperty = DependencyProperty
+            .Register(nameof(TimeOfDay), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(0.25f, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.TimeOfDay = (float) e.NewValue;
             }));
 
-        public static readonly DependencyProperty SunDirectionProperty =
-            DependencyProperty.Register(nameof(SunDirection), typeof(Vector3), typeof(MinecraftScene3D), new PropertyMetadata(new Vector3(0, -1, 0), (d, e) => {
+        public static readonly DependencyProperty SunDirectionProperty = DependencyProperty
+            .Register(nameof(SunDirection), typeof(Vector3), typeof(MinecraftScene3D), new PropertyMetadata(new Vector3(0, -1, 0), (d, e) => {
                 if (d is Element3DCore { SceneNode: MinecraftSceneNode sceneNode })
                     sceneNode.SunDirection = (Vector3)e.NewValue;
             }));
 
-        public static readonly DependencyProperty SunStrengthProperty =
-            DependencyProperty.Register(nameof(SunStrength), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(1f, (d, e) => {
+        public static readonly DependencyProperty SunStrengthProperty = DependencyProperty
+            .Register(nameof(SunStrength), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(1f, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.SunStrength = (float) e.NewValue;
             }));
 
-        public static readonly DependencyProperty WetnessProperty =
-            DependencyProperty.Register(nameof(Wetness), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(0f, (d, e) => {
+        public static readonly DependencyProperty WetnessProperty = DependencyProperty
+            .Register(nameof(Wetness), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(0f, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.Wetness = (float)e.NewValue;
             }));
 
-        public static readonly DependencyProperty ParallaxDepthProperty =
-            DependencyProperty.Register(nameof(ParallaxDepth), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(0f, (d, e) => {
+        public static readonly DependencyProperty ParallaxDepthProperty = DependencyProperty
+            .Register(nameof(ParallaxDepth), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(0f, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.ParallaxDepth = (float)e.NewValue;
             }));
 
-        public static readonly DependencyProperty ParallaxSamplesMinProperty =
-            DependencyProperty.Register(nameof(ParallaxSamplesMin), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
+        public static readonly DependencyProperty ParallaxSamplesMinProperty = DependencyProperty
+            .Register(nameof(ParallaxSamplesMin), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.ParallaxSamplesMin = (int)e.NewValue;
             }));
 
-        public static readonly DependencyProperty ParallaxSamplesMaxProperty =
-            DependencyProperty.Register(nameof(ParallaxSamplesMax), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
+        public static readonly DependencyProperty ParallaxSamplesMaxProperty = DependencyProperty
+            .Register(nameof(ParallaxSamplesMax), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.ParallaxSamplesMax = (int)e.NewValue;
             }));
 
-        public static readonly DependencyProperty EnableLinearSamplingProperty =
-            DependencyProperty.Register(nameof(EnableLinearSampling), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
+        public static readonly DependencyProperty EnableLinearSamplingProperty = DependencyProperty
+            .Register(nameof(EnableLinearSampling), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.EnableLinearSampling = (bool)e.NewValue;
             }));
 
-        public static readonly DependencyProperty EnableSlopeNormalsProperty =
-            DependencyProperty.Register(nameof(EnableSlopeNormals), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
+        public static readonly DependencyProperty EnableSlopeNormalsProperty = DependencyProperty
+            .Register(nameof(EnableSlopeNormals), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.EnableSlopeNormals = (bool)e.NewValue;
             }));
 
-        public static readonly DependencyProperty WaterModeProperty =
-            DependencyProperty.Register(nameof(WaterMode), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
+        public static readonly DependencyProperty WaterModeProperty = DependencyProperty
+            .Register(nameof(WaterMode), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
                     sceneNode.WaterMode = (int)e.NewValue;
+            }));
+
+        public static readonly DependencyProperty ErpExposureProperty = DependencyProperty
+            .Register(nameof(ErpExposure), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(1f, (d, e) => {
+                if (d is Element3DCore {SceneNode: MinecraftSceneNode node})
+                    node.ErpExposure = (float)e.NewValue;
             }));
     }
 }

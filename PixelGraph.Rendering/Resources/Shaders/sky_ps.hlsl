@@ -1,17 +1,14 @@
 #include "lib/common_structs.hlsl"
-#include "lib/sky.hlsl"
+#include "lib/common_funcs.hlsl"
+#include "lib/sky_atmosphere.hlsl"
 
 #pragma pack_matrix(row_major)
 
 
 float4 main(const in ps_input_cube input) : SV_TARGET
 {
-	//float sun;
-	//float3 extinction;
 	const float3 view = normalize(input.tex);
-    //const float3 col = get_sky_color(view, sun, extinction);
-    const float3 col = get_sky_color(view, SunDirection);
-	//const float3 min = 0.1f; //srgb_to_linear(vLightAmbient.rgb);
+    const float3 col = min_light + get_sky_color(view, SunDirection);
 
-	return float4(min_light + col, 1.0f);
+	return float4(col, 1.0f);
 }

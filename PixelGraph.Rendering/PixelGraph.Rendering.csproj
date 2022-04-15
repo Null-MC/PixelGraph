@@ -1,13 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.9.5</Version>
+    <Version>1.9.7</Version>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\brdf_lut.dds" />
     <Compile Remove="GpuImageProcessors\**" />
     <EmbeddedResource Remove="GpuImageProcessors\**" />
     <None Remove="GpuImageProcessors\**" />
@@ -16,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\brdf_lut.dds" />
     <EmbeddedResource Include="Resources\Shaders\compiled\*.cso" />
   </ItemGroup>
 
@@ -33,10 +31,6 @@
   <ItemGroup>
     <ProjectReference Include="..\MinecraftMappings.NET\MinecraftMappings.NET\MinecraftMappings.NET.csproj" />
     <ProjectReference Include="..\PixelGraph.Common\PixelGraph.Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\Shaders\compiled\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -84,13 +78,25 @@
       <ShaderProfile>vs_4_0</ShaderProfile>
       <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\shadow_vs.cso</ObjectFileOutput>
     </HLSLShader>
-    <HLSLShader Include="Resources\Shaders\sky_final_ps.hlsl">
+    <HLSLShader Include="Resources\Shaders\sky_final_erp_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
-      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_final_ps.cso</ObjectFileOutput>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_final_erp_ps.cso</ObjectFileOutput>
+    </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\sky_final_cube_ps.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_final_cube_ps.cso</ObjectFileOutput>
     </HLSLShader>
     <HLSLShader Include="Resources\Shaders\sky_irradiance_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>
       <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_irradiance_ps.cso</ObjectFileOutput>
+    </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\bdrf_dielectric_ps.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\bdrf_dielectric_ps.cso</ObjectFileOutput>
+    </HLSLShader>
+    <HLSLShader Include="Resources\Shaders\sky_erp_ps.hlsl">
+      <ShaderProfile>ps_4_0</ShaderProfile>
+      <ObjectFileOutput>$(ProjectDir)Resources\Shaders\compiled\sky_erp_ps.cso</ObjectFileOutput>
     </HLSLShader>
     <HLSLShader Include="Resources\Shaders\sky_ps.hlsl">
       <ShaderProfile>ps_4_0</ShaderProfile>

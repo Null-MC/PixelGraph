@@ -2,6 +2,7 @@
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using PixelGraph.Rendering.CubeMaps;
+using PixelGraph.Rendering.LUTs;
 using PixelGraph.Rendering.Shaders;
 using SharpDX;
 using SharpDX.Direct3D11;
@@ -15,7 +16,7 @@ namespace PixelGraph.Rendering.Materials
         private TextureModel _normalHeightMap;
         private TextureModel _roughF0OcclusionMap;
         private TextureModel _porositySssEmissiveMap;
-        private TextureModel _brdfLutMap;
+        private ILutMapSource _dielectricBdrfLutSource;
         private ICubeMapSource _environmentCubeSource;
         private ICubeMapSource _irradianceCubeSource;
         private SamplerStateDescription _surfaceMapSampler;
@@ -52,9 +53,9 @@ namespace PixelGraph.Rendering.Materials
             set => Set(ref _porositySssEmissiveMap, value);
         }
 
-        public TextureModel BrdfLutMap {
-            get => _brdfLutMap;
-            set => Set(ref _brdfLutMap, value);
+        public ILutMapSource DielectricBdrfLutSource {
+            get => _dielectricBdrfLutSource;
+            set => Set(ref _dielectricBdrfLutSource, value);
         }
 
         public ICubeMapSource EnvironmentCubeMapSource {

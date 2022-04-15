@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" x:Name="Control"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
     <UserControl.Resources>
@@ -64,10 +65,31 @@
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Column="0" Grid.Row="0" Text="Ambient Light:"
+                <StackPanel Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
+                            Orientation="Vertical" Margin="0,4,0,4">
+                    <TextBlock Text="IBL ERP Map:" VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
+                    <DockPanel Margin="4,0">
+                        <Button DockPanel.Dock="Right" Click="OnErpFileBrowseClick"
+                                Style="{StaticResource MahApps.Styles.Button.Flat}">
+                            <iconPacks:PackIconFontAwesome Kind="FolderOpenRegular" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
+                        <TextBox IsReadOnly="True" ToolTip="Browse for File" TextAlignment="Right"
+                                 PreviewKeyDown="OnErpFilenamePreviewKeyDown"
+                                 Text="{Binding ErpFilename, Mode=OneWay}"/>
+                    </DockPanel>
+
+                </StackPanel>
+                <TextBlock Grid.Column="0" Grid.Row="1" Text="IBL Intensity:"
                            VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
-                <mah:ColorPicker Grid.Column="1" Grid.Row="0" Margin="4"
+                <Slider Grid.Column="1" Grid.Row="1" Margin="4"
+                        Minimum="0.25" Maximum="4.0" Delay="500" Interval="500"
+                        Value="{Binding ErpExposure, Mode=TwoWay}" />
+                <TextBlock Grid.Column="0" Grid.Row="2" Text="Ambient Light:"
+                           VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
+                <mah:ColorPicker Grid.Column="1" Grid.Row="2" Margin="4" HorizontalAlignment="Right" Width="120"
                                  SelectedColor="{Binding AmbientColor, Mode=TwoWay}" />
             </Grid>
             <CheckBox Margin="8,2" Content="Lights" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"

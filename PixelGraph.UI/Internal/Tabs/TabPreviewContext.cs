@@ -27,7 +27,7 @@ namespace PixelGraph.UI.Internal.Tabs
         
         public Guid Id {get; set;}
         public string SourceFile {get; set;}
-        public Image<Rgb24> LayerImage {get; set;}
+        public Image LayerImage {get; set;}
         public bool IsMaterialBuilderValid {get; private set;}
         public bool IsMaterialValid {get; private set;}
         public bool IsLayerValid {get; private set;}
@@ -80,13 +80,17 @@ namespace PixelGraph.UI.Internal.Tabs
             //previewBuilder.RootDirectory = context.RootPath;
             previewBuilder.Input = context.Input;
             previewBuilder.Profile = context.Profile;
-            previewBuilder.Material = material; 
+            previewBuilder.Material = material;
+            previewBuilder.TargetFrame = 0;
 
             var tag = textureTag;
             if (TextureTags.Is(tag, TextureTags.General))
                 tag = TextureTags.Color;
 
-            LayerImage = await previewBuilder.BuildAsync<Rgb24>(tag, 0);
+            var newImage = await previewBuilder.BuildAsync(tag, token);
+
+            LayerImage?.Dispose();
+            LayerImage = newImage;
             IsLayerValid = true;
         }
 
@@ -104,17 +108,32 @@ namespace PixelGraph.UI.Internal.Tabs
 
             if (!IsLayerValid) return null;
 
-            var texImage2 = new ImageSharpSource<Rgb24>(LayerImage);
-            if (texImage2.CanFreeze) texImage2.Freeze();
+            _layerImageSource = LayerImage switch {
+                Image<Rgb24> imageRgb24 => new ImageSharpSource<Rgb24>(imageRgb24),
+                Image<L8> imageL8 => new ImageSharpSource<L8>(imageL8),
+                _ => null,
+            };
+
+            if (_layerImageSource?.CanFreeze ?? false) _layerImageSource.Freeze();
 
             IsLayerSourceValid = true;
-            return _layerImageSource = texImage2;
+            return _layerImageSource;
         }
 
         #if !NORENDER
 
         public void InvalidateMaterialBuilder(bool clear)
         {
+            IsMaterialBuilderValid = false;
+            IsMaterialValid = false;
+            //if (clear) ModelMaterial = null;
+            if (clear) Mesh.ClearTextureBuilders();
+        }
+
+        public void InvalidateMaterialBuilder(string[] channels, bool clear)
+        {
+            // TODO: only clear the builders containing the channels
+
             IsMaterialBuilderValid = false;
             IsMaterialValid = false;
             //if (clear) ModelMaterial = null;
@@ -135,6 +154,7 @@ namespace PixelGraph.UI.Internal.Tabs
             IsLayerSourceValid = false;
 
             if (clear) {
+                LayerImage?.Dispose();
                 LayerImage = null;
                 _layerImageSource = null;
             }
@@ -147,6 +167,7 @@ namespace PixelGraph.UI.Internal.Tabs
             Mesh.Dispose();
 #endif
 
+            LayerImage?.Dispose();
             LayerImage = null;
             tokenSource?.Dispose();
             IsLayerValid = false;

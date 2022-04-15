@@ -6,7 +6,7 @@ namespace PixelGraph.Rendering.Minecraft
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct MinecraftSceneStruct
     {
-        public const int SizeInBytes = 4 * (13 + 3);
+        public const int SizeInBytes = 4 * (14 + 2);
 
         public bool EnableAtmosphere;
         public Vector3 SunDirection;
@@ -20,5 +20,6 @@ namespace PixelGraph.Rendering.Minecraft
         public float ParallaxDepth;
         public int ParallaxSamplesMin;
         public int ParallaxSamplesMax;
+        public float ErpExposure;
     }
 }

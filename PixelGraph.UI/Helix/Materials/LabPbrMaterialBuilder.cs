@@ -7,7 +7,12 @@ using System;
 
 namespace PixelGraph.UI.Helix.Materials
 {
-    internal class LabPbrMaterialBuilder : MaterialBuilderBase<IRenderLabPbrPreviewBuilder>
+    internal interface IPbrMaterialBuilder
+    {
+        //
+    }
+
+    internal class LabPbrMaterialBuilder : MaterialBuilderBase<IRenderLabPbrPreviewBuilder>, IPbrMaterialBuilder
     {
         public LabPbrMaterialBuilder(IServiceProvider provider) : base(provider)
         {
@@ -20,10 +25,10 @@ namespace PixelGraph.UI.Helix.Materials
         public override Material BuildMaterial()
         {
             var mat = new CustomPbrMaterial(PassName, PassNameOIT) {
+                DielectricBrdfLutMapSource = DielectricBrdfLutMapSource,
                 EnvironmentCubeMapSource = EnvironmentCubeMapSource,
                 IrradianceCubeMapSource = IrradianceCubeMapSource,
                 RenderEnvironmentMap = RenderEnvironmentMap,
-                BrdfLutMap = BrdfLutMap,
                 SurfaceMapSampler = ColorSampler,
                 HeightMapSampler = HeightSampler,
                 RenderShadowMap = true,

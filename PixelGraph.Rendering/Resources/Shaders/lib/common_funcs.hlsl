@@ -1,5 +1,6 @@
 #define BLOCK_SIZE 4.0f
 #define PI 3.14159265f
+#define PI2 6.2831853f
 #define EPSILON 1e-6f
 #define GAMMA 2.4
 
@@ -86,9 +87,9 @@ float3 ior_to_f0_complex(const in float3 ior_n, const in float3 ior_k) {
 	return (pow2(ior_n - 1.0) + k2) / (pow2(ior_n + 1.0) + k2);
 }
 
-float3 ior_to_f0_complex(const in float3 ior_n_out, const in float3 ior_n_in, const in float3 ior_k) {
+float3 ior_to_f0_complex(const in float3 ior_n_from, const in float3 ior_n_to, const in float3 ior_k) {
 	const float3 k2 = ior_k * ior_k;
-	return (pow2(ior_n_in - ior_n_out) + k2) / (pow2(ior_n_in + ior_n_out) + k2);
+	return (pow2(ior_n_to - ior_n_from) + k2) / (pow2(ior_n_to + ior_n_from) + k2);
 }
 
 float lengthSq(const in float2 vec)
@@ -151,4 +152,12 @@ float shadow_strength(in float3 sp)
 
     // now, put the shadow-strength into the 0-nonTeil range
     //return vShadowMapInfo.x + shadow_factor * (1.0f - vShadowMapInfo.x);
+}
+
+
+// Sky
+
+float2 getErpCoord(const in float3 dir)
+{
+	return float2(atan2(dir.z, dir.x) / PI2 + 0.5f, acos(dir.y) / PI);
 }

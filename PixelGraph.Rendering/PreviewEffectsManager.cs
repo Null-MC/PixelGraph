@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Rendering.Shaders;
 using System;
 using System.Collections.Generic;
+using SharpDX.Direct3D;
 
 namespace PixelGraph.Rendering
 {
@@ -33,10 +34,28 @@ namespace PixelGraph.Rendering
                         BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
                         RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                     },
+                    new(CustomPassNames.Sky_ERP) {
+                        ShaderList = new[] {
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyErpPixel, ShaderStage.Pixel),
+                        },
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSNoDepthNoStencil,
+                        BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
+                        RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
+                    },
                     new(CustomPassNames.SkyFinal) {
                         ShaderList = new[] {
                             shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
                             shaderMgr.BuildDescription(CustomShaderManager.Name_SkyFinalPixel, ShaderStage.Pixel),
+                        },
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
+                        BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
+                        RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
+                    },
+                    new(CustomPassNames.SkyFinal_ERP) {
+                        ShaderList = new[] {
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_SkyFinalErpPixel, ShaderStage.Pixel),
                         },
                         DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
                         BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
@@ -52,6 +71,22 @@ namespace PixelGraph.Rendering
                         RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                     },
                 },
+            });
+
+            AddTechnique(new TechniqueDescription(CustomRenderTechniqueNames.BdrfDielectricLut) {
+                InputLayoutDescription = InputLayoutDescription.EmptyInputLayout,
+                PassDescriptions = new[] {
+                    new ShaderPassDescription(DefaultPassNames.Default) {
+                        ShaderList = new[] {
+                            DefaultVSShaderDescriptions.VSScreenQuad,
+                            shaderMgr.BuildDescription(CustomShaderManager.Name_BdrfDielectricLutPixel, ShaderStage.Pixel),
+                        },
+                        Topology = PrimitiveTopology.TriangleStrip,
+                        BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
+                        DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
+                        RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
+                    }
+                }
             });
 
             RemoveTechnique(DefaultRenderTechniqueNames.Mesh);

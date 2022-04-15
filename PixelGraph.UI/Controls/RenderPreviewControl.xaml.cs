@@ -58,7 +58,9 @@ namespace PixelGraph.UI.Controls
         {
             logger = provider.GetRequiredService<ILogger<RenderPreviewControl>>();
 
-            RenderProperties.EnvironmentCube = EnvironmentCubeMapSource;
+            RenderProperties.DielectricBrdfLutMap = DielectricBdrfLutMapSource;
+            RenderProperties.DynamicSkyCubeSource = DynamicSkyCubeSource;
+            RenderProperties.ErpCubeSource = EquirectangularCubeMapSource;
             RenderProperties.IrradianceCube = IrradianceCubeMapSource;
 
             ViewModel = new RenderPreviewViewModel(provider) {
@@ -66,7 +68,6 @@ namespace PixelGraph.UI.Controls
                 RenderProperties = RenderProperties,
             };
 
-            //SceneProperties.SceneChanged += OnSceneSunChanged;
             ViewModel.RenderModelChanged += OnRenderModelChanged;
             ViewModel.ShaderCompileErrors += OnViewModelShaderCompileErrors;
 
@@ -82,7 +83,7 @@ namespace PixelGraph.UI.Controls
             ViewModel.ShaderCompileErrors += OnShaderCompileErrors;
 
             try {
-                await Task.Run(() => ViewModel.LoadContentAsync(), token);
+                await Task.Run(() => ViewModel.ReloadShaders(), token);
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to load 3D preview content!");
@@ -100,7 +101,7 @@ namespace PixelGraph.UI.Controls
                         logger.LogError(error, "Failed to retrieve display device description!");
                     }
 
-                    ViewModel.UpdateSun();
+                    Model.UpdateSunPosition();
                 }
                 catch (Exception error) {
                     logger.LogError(error, "Failed to initialize 3D preview!");
@@ -108,20 +109,6 @@ namespace PixelGraph.UI.Controls
                 }
             });
         }
-
-        //public void UpdateModel(MaterialProperties material)
-        //{
-        //    try {
-        //        ViewModel.UpdateModel(material);
-        //    }
-        //    catch (Exception error) {
-        //        logger.LogError(error, "Failed to load model!");
-        //        // TODO: show warning message!
-
-        //        var window = Window.GetWindow(this);
-        //        if (window != null) MessageBox.Show(window, "Failed to load model!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //}
 
         public BitmapSource TakeScreenshot()
         {
@@ -159,11 +146,6 @@ namespace PixelGraph.UI.Controls
             ThrowShaderCompileErrors(e.Errors);
         }
 
-        private void OnControlUnloaded(object sender, RoutedEventArgs e)
-        {
-            ViewModel?.Dispose();
-        }
-
         private async void OnShaderCompileErrors(object sender, ShaderCompileErrorEventArgs e)
         {
             var message = new StringBuilder("Failed to compile shaders!");
@@ -176,21 +158,12 @@ namespace PixelGraph.UI.Controls
             await Dispatcher.BeginInvoke(() => ShowWindowError(message.ToString()));
         }
 
-        //private void OnModelModelChanged(object sender, EventArgs e)
-        //{
-        //    ViewModel.UpdateModel();
-        //}
-
-        //private void OnSceneChanged(object sender, EventArgs e)
-        //{
-        //    ViewModel.UpdateSun();
-        //}
-
         private void OnRenderModelChanged(object sender, EventArgs e)
         {
             OnRefreshClick();
 
-            //viewport3D.ZoomExtents();
+            // TODO: replace this with UpdateModelParts()
+            // need to rebind existing materials for this to help
         }
 
         private void ShowWindowError(string message)
@@ -201,13 +174,13 @@ namespace PixelGraph.UI.Controls
             MessageBox.Show(window, message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        private void OnSceneChanged(object sender, EventArgs e)
-        {
-            ViewModel.UpdateSun();
-            
-            // ERROR: calling this causes the materials to completely reload while adjusting TOD
-            //OnRefreshClick();
-        }
+        //private void OnEnvironmentChanged(object sender, EventArgs e)
+        //{
+        //    // TODO: this really only needs to refresh the material cubeMap bindings
+        //    //OnRefreshClick();
+
+        //    tabMgr.
+        //}
 
         private static void OnScenePropertiesChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -234,10 +207,5 @@ namespace PixelGraph.UI.Controls
 
         public static readonly DependencyProperty DeviceNameTextProperty = DependencyProperty
             .Register(nameof(DeviceNameText), typeof(string), typeof(RenderPreviewControl));
-
-        //private void OnEnableTilingChecked(object sender, RoutedEventArgs e)
-        //{
-        //    OnRefreshClick();
-        //}
     }
 }

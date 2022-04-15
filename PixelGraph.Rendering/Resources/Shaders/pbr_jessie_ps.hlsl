@@ -1,3 +1,5 @@
+#define MESH
+
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/complex_numbers.hlsl"
@@ -198,9 +200,9 @@ float4 main(const ps_input input) : SV_TARGET
     //if (bRenderShadowMap)
     //    lit *= shadow_strength(input.sp);
 
-	//lit = tonemap_HejlBurgess(lit);
-	lit = tonemap_Uncharted2(lit);
-	lit = linear_to_srgb(lit);
+	lit = tonemap_HejlBurgess(lit);
+	//lit = tonemap_Uncharted2(lit);
+	//lit = linear_to_srgb(lit);
 	
     return float4(lit, mat.opacity);
 }

@@ -1,3 +1,5 @@
+#define MESH
+
 #include "lib/common_structs.hlsl"
 
 #pragma pack_matrix(row_major)

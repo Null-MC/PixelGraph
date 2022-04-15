@@ -45,12 +45,12 @@ namespace PixelGraph.Rendering.CubeMaps
             TextureDesc = new Texture2DDescription {
                 Format = Format.R16G16B16A16_Float, //.R8G8B8A8_UNorm,
                 BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
-                OptionFlags = ResourceOptionFlags.GenerateMipMaps | ResourceOptionFlags.TextureCube,
+                OptionFlags = ResourceOptionFlags.TextureCube,
                 SampleDescription = new SampleDescription(1, 0),
                 CpuAccessFlags = CpuAccessFlags.None,
                 Usage = ResourceUsage.Default,
                 ArraySize = 6,
-                MipLevels = 0,
+                MipLevels = 1,
             };
         }
 
@@ -68,14 +68,6 @@ namespace PixelGraph.Rendering.CubeMaps
             base.Render(context, deviceContext);
 
             sourceLastUpdated = _environmentCubeMapSource.LastUpdated;
-
-            //deviceContext.GenerateMips(cubeMap);
-            //context.SharedResource.EnvironmentMapMipLevels = cubeMap.TextureView.Description.TextureCube.MipLevels;
-
-            //context.UpdatePerFrameData(true, false, deviceContext);
-            //_scene?.Apply(deviceContext);
-
-            //_scene?.ResetValidation();
         }
 
         protected override void RenderFace(RenderContext context, DeviceContextProxy deviceContext)
@@ -83,11 +75,10 @@ namespace PixelGraph.Rendering.CubeMaps
             deviceContext.SetShaderResource(PixelShader.Type, environmentTextureSlot, _environmentCubeMapSource.CubeMap);
             deviceContext.SetSampler(PixelShader.Type, environmentSamplerSlot, textureSampler);
 
-            defaultShaderPass.PixelShader.BindSampler(deviceContext, environmentSamplerSlot, textureSampler);
+            //defaultShaderPass.PixelShader.BindSampler(deviceContext, environmentSamplerSlot, textureSampler);
 
             var vertexStartSlot = 0;
             geometryBuffer.AttachBuffers(deviceContext, ref vertexStartSlot, EffectTechnique.EffectsManager);
-
             deviceContext.Draw(geometryBuffer.VertexBuffer[0].ElementCount, 0);
         }
 
@@ -107,10 +98,10 @@ namespace PixelGraph.Rendering.CubeMaps
             base.OnDetach();
         }
 
-        protected override void OnDefaultPassChanged(ShaderPass pass)
+        protected override void OnDefaultPassChanged()
         {
-            environmentTextureSlot = pass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.EnvironmentCubeTB);
-            environmentSamplerSlot = pass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.EnvironmentCubeSampler);
+            environmentTextureSlot = defaultShaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.EnvironmentCubeTB);
+            environmentSamplerSlot = defaultShaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.EnvironmentCubeSampler);
         }
     }
 }

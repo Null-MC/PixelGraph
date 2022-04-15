@@ -1,13 +1,14 @@
-﻿using System.Windows;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Rendering.CubeMaps;
+using PixelGraph.Rendering.LUTs;
 using PixelGraph.Rendering.Materials;
 using PixelGraph.Rendering.Shaders;
 using SharpDX;
 using SharpDX.Direct3D11;
+using System.Windows;
 
 namespace PixelGraph.UI.Helix.Materials
 {
@@ -36,9 +37,14 @@ namespace PixelGraph.UI.Helix.Materials
             set => SetValue(PorositySssEmissiveMapProperty, value);
         }
 
-        public TextureModel BrdfLutMap {
-            get => (TextureModel)GetValue(BrdfLutMapProperty);
-            set => SetValue(BrdfLutMapProperty, value);
+        //public TextureModel BrdfLutMap {
+        //    get => (TextureModel)GetValue(BrdfLutMapProperty);
+        //    set => SetValue(BrdfLutMapProperty, value);
+        //}
+
+        public ILutMapSource DielectricBrdfLutMapSource {
+            get => (ILutMapSource)GetValue(DielectricBrdfLutMapSourceProperty);
+            set => SetValue(DielectricBrdfLutMapSourceProperty, value);
         }
 
         public ICubeMapSource EnvironmentCubeMapSource {
@@ -107,7 +113,9 @@ namespace PixelGraph.UI.Helix.Materials
             NormalHeightMap = core.NormalHeightMap;
             RoughF0OcclusionMap = core.RoughF0OcclusionMap;
             PorositySssEmissiveMap = core.PorositySssEmissiveMap;
-            BrdfLutMap = core.BrdfLutMap;
+            DielectricBrdfLutMapSource = core.DielectricBdrfLutSource;
+            EnvironmentCubeMapSource = core.EnvironmentCubeMapSource;
+            IrradianceCubeMapSource = core.IrradianceCubeMapSource;
             SurfaceMapSampler = core.SurfaceMapSampler;
             HeightMapSampler = core.HeightMapSampler;
             EnvironmentMapSampler = core.EnvironmentMapSampler;
@@ -125,7 +133,9 @@ namespace PixelGraph.UI.Helix.Materials
                 NormalHeightMap = NormalHeightMap,
                 RoughF0OcclusionMap = RoughF0OcclusionMap,
                 PorositySssEmissiveMap = PorositySssEmissiveMap,
-                BrdfLutMap = BrdfLutMap,
+                DielectricBrdfLutMapSource = DielectricBrdfLutMapSource,
+                EnvironmentCubeMapSource = EnvironmentCubeMapSource,
+                IrradianceCubeMapSource = IrradianceCubeMapSource,
                 SurfaceMapSampler = SurfaceMapSampler,
                 HeightMapSampler = HeightMapSampler,
                 EnvironmentMapSampler = EnvironmentMapSampler,
@@ -145,9 +155,9 @@ namespace PixelGraph.UI.Helix.Materials
                 NormalHeightMap = NormalHeightMap,
                 RoughF0OcclusionMap = RoughF0OcclusionMap,
                 PorositySssEmissiveMap = PorositySssEmissiveMap,
+                DielectricBdrfLutSource = DielectricBrdfLutMapSource,
                 EnvironmentCubeMapSource = EnvironmentCubeMapSource,
                 IrradianceCubeMapSource = IrradianceCubeMapSource,
-                BrdfLutMap = BrdfLutMap,
                 SurfaceMapSampler = SurfaceMapSampler,
                 HeightMapSampler = HeightMapSampler,
                 EnvironmentMapSampler = EnvironmentMapSampler,
@@ -184,9 +194,9 @@ namespace PixelGraph.UI.Helix.Materials
                 ((CustomPbrMaterialCore)((Material)d).Core).PorositySssEmissiveMap = e.NewValue as TextureModel;
             }));
 
-        public static readonly DependencyProperty BrdfLutMapProperty =
-            DependencyProperty.Register(nameof(BrdfLutMap), typeof(TextureModel), typeof(CustomPbrMaterial), new PropertyMetadata(null, (d, e) => {
-                ((CustomPbrMaterialCore)((Material)d).Core).BrdfLutMap = e.NewValue as TextureModel;
+        public static readonly DependencyProperty DielectricBrdfLutMapSourceProperty =
+            DependencyProperty.Register(nameof(DielectricBrdfLutMapSource), typeof(ILutMapSource), typeof(CustomPbrMaterial), new PropertyMetadata(null, (d, e) => {
+                ((CustomPbrMaterialCore)((Material)d).Core).DielectricBdrfLutSource = e.NewValue as ILutMapSource;
             }));
 
         public static readonly DependencyProperty EnvironmentCubeMapSourceProperty =

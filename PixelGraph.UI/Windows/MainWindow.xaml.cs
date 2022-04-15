@@ -29,6 +29,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using PixelGraph.Common.TextureFormats;
 
 #if !NORENDER
 using System.Windows.Media.Imaging;
@@ -55,17 +56,16 @@ namespace PixelGraph.UI.Windows
             themeHelper.ApplyCurrent(this);
 
             viewModel = new MainWindowViewModel(provider) {
-                TextureModel = texturePreview.Model,
+                TextureModel = texturePreview.model,
                 Dispatcher = Dispatcher,
                 Model = Model,
             };
 
             FilterEditor.Initialize(provider);
-            //ConnectionsEditor.Provider = provider;
 
 #if !NORENDER
-            //Model.SceneProperties = renderPreview.Model.SceneProperties;
-            //Model.RenderProperties = renderPreview.Model.RenderProperties;
+            Model.SceneProperties.DynamicSkyChanged += OnScenePropertiesDynamicSkyChanged;
+            Model.SceneProperties.EnvironmentChanged += OnScenePropertiesEnvironmentChanged;
 
             viewModel.SceneProperties = renderPreview.SceneProperties;
             viewModel.RenderProperties = renderPreview.RenderProperties;
@@ -485,16 +485,6 @@ namespace PixelGraph.UI.Windows
                 await viewModel.UpdateTabPreviewAsync();
         }
 
-        private void OnMaterialConnectionsMenuClick(object sender, RoutedEventArgs e)
-        {
-            ShowError("Not Yet Implemented");
-        }
-
-        private void OnMaterialFiltersMenuClick(object sender, RoutedEventArgs e)
-        {
-            ShowError("Not Yet Implemented");
-        }
-
         private void OnHelpDocumentationClick(object sender, RoutedEventArgs e)
         {
             var info = new ProcessStartInfo {
@@ -569,8 +559,10 @@ namespace PixelGraph.UI.Windows
 
             await viewModel.SaveMaterialAsync(material);
 
-#if !NORENDER
+            if (Model.SelectedTab != tab) return;
+
             if (Model.SelectedTab is MaterialTabModel matTab) {
+#if !NORENDER
                 if (string.Equals(e.ClassName, nameof(MaterialProperties), StringComparison.InvariantCultureIgnoreCase)) {
                     var updatePreview = string.Equals(e.PropertyName, nameof(MaterialProperties.BlendMode), StringComparison.InvariantCultureIgnoreCase) 
                                      || string.Equals(e.PropertyName, nameof(MaterialProperties.TintColor), StringComparison.InvariantCultureIgnoreCase);
@@ -579,13 +571,39 @@ namespace PixelGraph.UI.Windows
                         renderPreview.RenderProperties.ApplyMaterial(matTab.MaterialRegistration?.Value);
                     }
                 }
-            }
 #endif
+            }
 
-            viewModel.InvalidateTab(tab.Id);
+            var channels = e.ClassName switch {
+                nameof(MaterialColorProperties) => new[] {
+                    EncodingChannel.ColorRed,
+                    EncodingChannel.ColorGreen,
+                    EncodingChannel.ColorBlue,
+                },
+                nameof(MaterialOpacityProperties) => new[] {EncodingChannel.Opacity},
+                nameof(MaterialHeightProperties) => new[] {EncodingChannel.Height},
+                nameof(MaterialNormalProperties) => new[] {
+                    EncodingChannel.NormalX,
+                    EncodingChannel.NormalY,
+                    EncodingChannel.NormalZ,
+                },
+                nameof(MaterialOcclusionProperties) => new[] {EncodingChannel.Occlusion},
+                nameof(MaterialSpecularProperties) => new[] {EncodingChannel.Specular},
+                nameof(MaterialSmoothProperties) => new[] {EncodingChannel.Smooth},
+                nameof(MaterialRoughProperties) => new[] {EncodingChannel.Rough},
+                nameof(MaterialMetalProperties) => new[] {EncodingChannel.Metal},
+                nameof(MaterialHcmProperties) => new[] {EncodingChannel.HCM},
+                nameof(MaterialF0Properties) => new[] {EncodingChannel.F0},
+                nameof(MaterialPorosityProperties) => new[] {EncodingChannel.Porosity},
+                nameof(MaterialSssProperties) => new[] {EncodingChannel.SubSurfaceScattering},
+                nameof(MaterialEmissiveProperties) => new[] {EncodingChannel.Emissive},
+                _ => null,
+            };
 
-            if (Model.SelectedTab == tab)
-                await viewModel.UpdateTabPreviewAsync();
+            if (channels == null) viewModel.InvalidateTab(tab.Id);
+            else viewModel.InvalidateTabChannels(tab.Id, channels);
+
+            await viewModel.UpdateTabPreviewAsync();
         }
 
         private async void OnMaterialPropertyChanged(object sender, MaterialPropertyChangedEventArgs e)
@@ -938,6 +956,17 @@ namespace PixelGraph.UI.Windows
                     encoder.Save(fileStream);
                 }
             }
+        }
+
+        private void OnScenePropertiesDynamicSkyChanged(object sender, EventArgs e)
+        {
+            renderPreview.Model.UpdateSunPosition();
+        }
+
+        private async void OnScenePropertiesEnvironmentChanged(object sender, EventArgs e)
+        {
+            //await viewModel.UpdateTabPreviewAsync();
+            viewModel.UpdateMaterials();
         }
 #endif
 

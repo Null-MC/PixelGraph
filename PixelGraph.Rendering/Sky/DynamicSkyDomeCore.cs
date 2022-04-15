@@ -6,7 +6,7 @@ using PixelGraph.Rendering.Shaders;
 
 namespace PixelGraph.Rendering.Sky
 {
-    internal class SkyDomeCore : GeometryRenderCore
+    internal class DynamicSkyDomeCore : GeometryRenderCore
     {
         private ShaderPass defaultShaderPass;
 
@@ -16,7 +16,7 @@ namespace PixelGraph.Rendering.Sky
         }
 
 
-        public SkyDomeCore() : base(RenderType.Opaque)
+        public DynamicSkyDomeCore() : base(RenderType.Opaque)
         {
             RasterDescription = DefaultRasterDescriptions.RSSkyDome;
 

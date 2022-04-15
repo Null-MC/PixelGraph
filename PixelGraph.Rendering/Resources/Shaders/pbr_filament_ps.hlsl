@@ -1,3 +1,5 @@
+#define MESH
+
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/parallax.hlsl"
@@ -146,8 +148,9 @@ float4 main(const ps_input input) : SV_TARGET
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
 	//final_color = tonemap_ACESFit2(final_color);
-	final_color = tonemap_Uncharted2(final_color);
-	final_color = linear_to_srgb(final_color);
+	//final_color = tonemap_Uncharted2(final_color);
+	//final_color = linear_to_srgb(final_color);
+	final_color = tonemap_HejlBurgess(final_color);
 	//final_color = tonemap_Reinhard(final_color);
 	
     return float4(final_color, alpha);

@@ -15,8 +15,10 @@ static const float3 ior_k_aluminum = float3(7.4746f, 6.3995f, 5.3031f);
 static const float3 ior_n_chrome = float3(3.1071f, 3.1812f, 2.323f);
 static const float3 ior_k_chrome = float3(3.3314f, 3.3291f, 3.135f);
 
-static const float3 ior_n_copper = float3(0.27105f, 0.67693f, 1.3164f);
-static const float3 ior_k_copper = float3(3.6092f, 2.6248f, 2.2921f);
+//static const float3 ior_n_copper = float3(0.27105f, 0.67693f, 1.3164f);
+//static const float3 ior_k_copper = float3(3.6092f, 2.6248f, 2.2921f);
+static const float3 ior_n_copper = float3(0.212f, 0.676f, 1.31f);
+static const float3 ior_k_copper = float3(4.1f, 2.624f, 2.29f);
 
 static const float3 ior_n_lead = float3(1.91f, 1.83f, 1.44f);
 static const float3 ior_k_lead = float3(3.51f, 3.4f, 3.18f);

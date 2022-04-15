@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Core.Components;
 using HelixToolkit.SharpDX.Core.Render;
@@ -10,6 +8,8 @@ using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
+using System;
+using System.Threading.Tasks;
 
 namespace PixelGraph.Rendering.CubeMaps
 {
@@ -29,12 +29,13 @@ namespace PixelGraph.Rendering.CubeMaps
         private RasterizerStateProxy invertCullModeState;
         private IDeviceContextPool contextPool;
         protected ShaderPass defaultShaderPass;
-        private ShaderResourceViewProxy cubeMap;
+        protected ShaderResourceViewProxy _cubeMap;
         private RasterizerStateProxy rasterState;
+        //private TextureModel _texture;
         private Viewport viewport;
         private int _faceSize;
 
-        public ShaderResourceViewProxy CubeMap => cubeMap;
+        public virtual ShaderResourceViewProxy CubeMap => _cubeMap;
 
         protected string PassName;
         protected Texture2DDescription TextureDesc;
@@ -49,6 +50,11 @@ namespace PixelGraph.Rendering.CubeMaps
             get => defaultShaderPass;
             private set => SetAffectsRender(ref defaultShaderPass, value);
         }
+
+        //public TextureModel Texture {
+        //    get => _texture;
+        //    set => SetAffectsRender(ref _texture, value);
+        //}
 
 
         protected CubeMapRenderCore(RenderType renderType) : base(renderType)
@@ -68,13 +74,13 @@ namespace PixelGraph.Rendering.CubeMaps
 
             TextureDesc = new Texture2DDescription {
                 Format = Format.R8G8B8A8_UNorm,
-                ArraySize = 6,
                 BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
                 OptionFlags = ResourceOptionFlags.GenerateMipMaps | ResourceOptionFlags.TextureCube,
                 SampleDescription = new SampleDescription(1, 0),
-                MipLevels = 0,
-                Usage = ResourceUsage.Default,
                 CpuAccessFlags = CpuAccessFlags.None,
+                Usage = ResourceUsage.Default,
+                ArraySize = 6,
+                MipLevels = 0,
             };
 
             var modelBufferDesc = new ConstantBufferDescription(DefaultBufferNames.GlobalTransformCB, GlobalTransformStruct.SizeInBytes);
@@ -99,11 +105,11 @@ namespace PixelGraph.Rendering.CubeMaps
                 try {
                     var ctx = contextPool.Get();
 
-                    //ctx.ClearRenderTargetView(renderTargetViews[index], Color.Red);
-
                     ctx.SetRenderTarget(null, renderTargetViews[index]);
                     ctx.SetViewport(ref viewport);
                     ctx.SetScissorRectangle(0, 0, FaceSize, FaceSize);
+
+                    ctx.ClearRenderTargetView(renderTargetViews[index], Color4.White);
 
                     var transforms = new GlobalTransformStruct {
                         Projection = cubeFaceCameras.Cameras[index].Projection,
@@ -114,18 +120,11 @@ namespace PixelGraph.Rendering.CubeMaps
                     transforms.ViewProjection = transforms.View * transforms.Projection;
 
                     modelCB.Upload(ctx, ref transforms);
-                    //Scene.Apply(ctx);
 
                     DefaultShaderPass.BindShader(ctx);
                     DefaultShaderPass.BindStates(ctx, StateType.BlendState | StateType.DepthStencilState);
                     ctx.SetRasterState(invertCullModeState);
 
-                    //var vertexStartSlot = 0;
-                    //if (domeGeometryBuffer.AttachBuffers(ctx, ref vertexStartSlot, EffectTechnique.EffectsManager))
-                    //    InstanceBuffer.AttachBuffer(ctx, ref vertexStartSlot);
-                    //geometryBuffer.AttachBuffers(ctx, ref vertexStartSlot, EffectTechnique.EffectsManager);
-
-                    //ctx.DrawIndexed(geometryBuffer.IndexBuffer.ElementCount, 0, 0);
                     RenderFace(context, ctx);
 
                     commands[index] = ctx.FinishCommandList(true);
@@ -149,25 +148,17 @@ namespace PixelGraph.Rendering.CubeMaps
 
             LastUpdated = Environment.TickCount64;
 
-            //deviceContext.GenerateMips(cubeMap);
-            //context.SharedResource.EnvironmentMapMipLevels = cubeMap.TextureView.Description.TextureCube.MipLevels;
-
             context.UpdatePerFrameData(true, false, deviceContext);
-            //_scene?.Apply(deviceContext);
-
-            //_scene?.ResetValidation();
         }
 
         protected override bool OnAttach(IRenderTechnique technique)
         {
             DefaultShaderPass = technique[PassName];
-            OnDefaultPassChanged(defaultShaderPass);
+            OnDefaultPassChanged();
 
             contextPool = technique.EffectsManager.DeviceContextPool;
 
             CreateCubeMapResources();
-
-            //geometryBuffer = Collect(new SkyDomeBufferModel());
 
             var rasterDesc = new RasterizerStateDescription {
                 FillMode = FillMode.Solid,
@@ -182,7 +173,7 @@ namespace PixelGraph.Rendering.CubeMaps
         protected override void OnDetach()
         {
             contextPool = null;
-            cubeMap = null;
+            _cubeMap = null;
             //skyTextureDesc.Width = skyTextureDesc.Height = 0;
             invertCullModeState = null;
             rasterState = null;
@@ -192,12 +183,6 @@ namespace PixelGraph.Rendering.CubeMaps
 
             base.OnDetach();
         }
-
-        //protected void OnElementChanged(object sender, EventArgs e)
-        //{
-        //    UpdateCanRenderFlag();
-        //    RaiseInvalidateRender();
-        //}
 
         protected virtual bool CreateRasterState(RasterizerStateDescription description, bool force)
         {
@@ -219,12 +204,12 @@ namespace PixelGraph.Rendering.CubeMaps
 
         private bool CreateCubeMapResources()
         {
-            if (TextureDesc.Width == _faceSize && cubeMap is {IsDisposed: false}) return false;
-            
+            if (TextureDesc.Width == _faceSize && _cubeMap is {IsDisposed: false}) return false;
+
             TextureDesc.Width = TextureDesc.Height = FaceSize;
 
-            RemoveAndDispose(ref cubeMap);
-            cubeMap = Collect(new ShaderResourceViewProxy(Device, TextureDesc));
+            RemoveAndDispose(ref _cubeMap);
+            _cubeMap = Collect(new ShaderResourceViewProxy(Device, TextureDesc));
 
             var srvDesc = new ShaderResourceViewDescription {
                 Format = TextureDesc.Format,
@@ -234,7 +219,7 @@ namespace PixelGraph.Rendering.CubeMaps
                     MipLevels = -1,
                 },
             };
-            cubeMap.CreateView(srvDesc);
+            _cubeMap.CreateView(srvDesc);
 
             var rtsDesc = new RenderTargetViewDescription {
                 Format = TextureDesc.Format,
@@ -249,7 +234,7 @@ namespace PixelGraph.Rendering.CubeMaps
             for (var i = 0; i < 6; ++i) {
                 RemoveAndDispose(ref renderTargetViews[i]);
                 rtsDesc.Texture2DArray.FirstArraySlice = i;
-                renderTargetViews[i] = Collect(new RenderTargetView(Device, cubeMap.Resource, rtsDesc));
+                renderTargetViews[i] = Collect(new RenderTargetView(Device, _cubeMap.Resource, rtsDesc));
             }
 
             viewport = new Viewport(0, 0, FaceSize, FaceSize);
@@ -268,6 +253,6 @@ namespace PixelGraph.Rendering.CubeMaps
             }
         }
 
-        protected virtual void OnDefaultPassChanged(ShaderPass pass) {}
+        protected virtual void OnDefaultPassChanged() {}
     }
 }

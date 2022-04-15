@@ -5,6 +5,21 @@ using System.Windows.Data;
 namespace PixelGraph.UI.Converters
 {
     [ValueConversion(typeof(object), typeof(bool))]
+    internal class BooleanConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool boolValue) return boolValue;
+            return value != null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return Binding.DoNothing;
+        }
+    }
+
+    [ValueConversion(typeof(object), typeof(bool))]
     internal class BooleanInverseConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

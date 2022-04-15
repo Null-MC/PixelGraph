@@ -20,10 +20,11 @@ namespace PixelGraph.UI.Helix.Materials
         public override Material BuildMaterial()
         {
             var mat = new CustomPbrMaterial(PassName, PassNameOIT) {
+                DielectricBrdfLutMapSource = DielectricBrdfLutMapSource,
                 EnvironmentCubeMapSource = EnvironmentCubeMapSource,
                 IrradianceCubeMapSource = IrradianceCubeMapSource,
                 RenderEnvironmentMap = RenderEnvironmentMap,
-                BrdfLutMap = BrdfLutMap,
+                //BrdfLutMap = BrdfLutMap,
                 SurfaceMapSampler = ColorSampler,
                 HeightMapSampler = HeightSampler,
                 RenderShadowMap = true,

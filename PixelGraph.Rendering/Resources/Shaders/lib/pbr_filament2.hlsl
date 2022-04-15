@@ -1,7 +1,7 @@
 #define PI 3.14159265f
 #define F0_WATER 0.02f
 #define WATER_ROUGH 0.014f
-#define WATER_BLUR 1.2f
+#define WATER_BLUR 0.4f
 
 #pragma pack_matrix(row_major)
 
@@ -56,16 +56,26 @@ float3 F_conductor(const in float VoH, const in float n1, const in float3 n2, co
 	return 0.5f * (rp + rs);
 }
 
-float D_ggx(const in float NoH, const in float roughness)
+//float3 F_conductor2(const in float NoV, const in float n1, const in float3 n2, const in float3 k)
+//{
+//	const float3 ior_n = n2 / n1;
+//	const float3 ior_k = k / n1;
+//
+//	float cos_theta = 1.0-NoV;//REVIEWME : NdotV or NdotL ?
+//    return ((ior_n-1.)*(ior_n-1.)+ior_k*ior_k+4.*ior_n*pow(1.-cos_theta,5.))
+//		    /((ior_n+1.)*(ior_n+1.)+ior_k*ior_k);
+//}
+
+float D_ggx(const in float NoH, const in float roughL)
 {
-	const float a = NoH * roughness;
-	const float k = roughness / (1.0f - NoH * NoH + a * a);
+	const float a = NoH * roughL;
+	const float k = roughL / (1.0f - NoH * NoH + a * a);
 	return k * k * (1.0f / PI);
 }
 
-float V_SmithGGXCorrelated(float NoV, float NoL, float roughness)
+float V_SmithGGXCorrelated(float NoV, float NoL, float roughL)
 {
-	const float a2 = roughness * roughness;
+	const float a2 = roughL * roughL;
 	const float GGXV = NoL * sqrt(NoV * NoV * (1.0f - a2) + a2);
 	const float GGXL = NoV * sqrt(NoL * NoL * (1.0f - a2) + a2);
     return 0.5f / (GGXV + GGXL);
@@ -80,30 +90,30 @@ float V_kelemen(const in float LoH) {
     return 0.25f / (LoH * LoH);
 }
 
-float specular_brdf(const in float eta, const in float LoH, const in float NoH, const in float VoH, const in float rough)
+float specular_brdf(const in float eta, const in float LoH, const in float NoH, const in float VoH, const in float roughL)
 {
     // Fresnel
     const float F = F_full(eta, VoH);
 
     // Distribution
-    const float D = D_ggx(NoH, rough);
+    const float D = D_ggx(NoH, roughL);
 
     // Geometric Visibility
-    const float G = G_Shlick_Smith_Hable(LoH, rough);
+    const float G = G_Shlick_Smith_Hable(LoH, roughL);
 
 	return D * F * G;
 }
 
-float3 specular_brdf_conductor(const in float ior_n1, const in float3 ior_n2, const in float3 ior_k, const in float LoH, const in float NoH, const in float VoH, const in float rough)
+float3 specular_brdf_conductor(const in float ior_n1, const in float3 ior_n2, const in float3 ior_k, const in float LoH, const in float NoH, const in float roughL)
 {
     // Fresnel
-    const float3 F = F_conductor(VoH, ior_n1, ior_n2, ior_k);
+    const float3 F = F_conductor(LoH, ior_n1, ior_n2, ior_k);
 
     // Distribution
-    const float D = D_ggx(NoH, rough);
+    const float D = D_ggx(NoH, roughL);
 
     // Geometric Visibility
-    const float G = G_Shlick_Smith_Hable(LoH, rough);
+    const float G = G_Shlick_Smith_Hable(LoH, roughL);
 
 	return D * F * G;
 }
@@ -128,30 +138,32 @@ float IBL_SpecularOcclusion(float NoV, float ao, float rough)
 
 float3 IBL_ambient(const in float3 F, const in float3 reflect)
 {
-    float3 irradiance = EnableAtmosphere
+    float3 irradiance = bHasCubeMap
 		? tex_irradiance.SampleLevel(sampler_irradiance, reflect, 0)
 		: srgb_to_linear(vLightAmbient.rgb);
 
     return irradiance * (1.0f - F);// * InvPI;
 }
 
-float3 IBL_specular(const in float3 F, const in float NoV, const in float3 r, const in float occlusion, const in float roughP)
+float3 IBL_specular(const in float3 f0, const in float3 f90, const in float NoV, const in float3 r, const in float occlusion, const in float roughP)
 {
-	const float roughL = roughP * roughP;
+	const float roughL = pow2(roughP);
 	const float3 specular_occlusion = IBL_SpecularOcclusion(NoV, occlusion, roughL);
 
     float3 indirect_specular;
-    if (EnableAtmosphere) {
+    if (bHasCubeMap) {
 		const float mip = roughP * NumEnvironmentMapMipLevels;
 	    indirect_specular = tex_environment.SampleLevel(sampler_environment, r, mip);
+		//if (!EnableAtmosphere) indirect_specular = srgb_to_linear(indirect_specular);
+		//return indirect_specular;
     }
 	else {
 		indirect_specular = srgb_to_linear(vLightAmbient.rgb);
 	}
 	
-	const float2 lut_tex = float2(NoV, roughP);
-	const float2 env_brdf  = tex_brdf_lut.SampleLevel(sampler_brdf_lut, lut_tex, 0);
-	return indirect_specular * (F * env_brdf.x + env_brdf.y) * specular_occlusion;
+	const float2 lut_tex = float2(NoV, roughL);
+	const float2 env_brdf = tex_dielectric_brdf_lut.SampleLevel(sampler_brdf_lut, lut_tex, 0);
+	return indirect_specular * (f0 * env_brdf.x + f90 * env_brdf.y) * specular_occlusion;
 }
 
 
@@ -204,7 +216,7 @@ float SSS_Light(const in float3 normal, const in float3 view, const in float3 li
 
 float3 SSS_IBL(const in float3 view, const in float sss)
 {
-	const float3 SSS_Ambient = EnableAtmosphere
+	const float3 SSS_Ambient = bHasCubeMap
 		? tex_irradiance.SampleLevel(sampler_irradiance, -view, 0)
 		: srgb_to_linear(vLightAmbient.rgb);
 

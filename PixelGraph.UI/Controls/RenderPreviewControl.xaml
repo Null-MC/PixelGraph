@@ -10,15 +10,14 @@
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
              xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
              xmlns:controls1="clr-namespace:PixelGraph.UI.Helix.Controls"
-             d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" d:DataContext="{x:Null}"
-             Unloaded="OnControlUnloaded" x:Name="Control">
+             d:DesignHeight="450" d:DesignWidth="800" x:Name="Control" mc:Ignorable="d" d:DataContext="{x:Null}">
     <UserControl.Resources>
         <viewData:RenderModeValues x:Key="RenderModes"/>
         <converters:BooleanInverseConverter x:Key="boolInverseConverter"/>
     </UserControl.Resources>
     <DockPanel>
         <DockPanel.DataContext>
-            <models:RenderPreviewModel x:Name="Model" SceneChanged="OnSceneChanged"/>
+            <models:RenderPreviewModel x:Name="Model"/>
         </DockPanel.DataContext>
         <Border DockPanel.Dock="Top"
                 Background="{DynamicResource MahApps.Brushes.Accent4}">
@@ -40,7 +39,7 @@
             </StackPanel>
         </Border>
         <hx:Viewport3DX x:Name="viewport3D" EnableDeferredRendering="True"
-            BackgroundColor="#222"
+            BackgroundColor="{Binding SceneProperties.AmbientColor}"
             Camera="{Binding RenderProperties.Camera}"
             EffectsManager="{Binding RenderProperties.EffectsManager}"
             EnableD2DRendering="False"
@@ -78,7 +77,8 @@
                 ParallaxSamplesMax="{Binding RenderProperties.ParallaxSamplesMax, Mode=OneWay}"
                 EnableLinearSampling="{Binding RenderProperties.EnableLinearSampling, Mode=OneWay}"
                 EnableSlopeNormals="{Binding RenderProperties.EnableSlopeNormals, Mode=OneWay}"
-                WaterMode="{Binding RenderProperties.WaterMode, Mode=OneWay}"/>
+                WaterMode="{Binding RenderProperties.WaterMode, Mode=OneWay}"
+                ErpExposure="{Binding SceneProperties.ErpExposure, Mode=OneWay}"/>
 
             <controls1:MinecraftMesh3D
                                        BlendMode="{Binding RenderProperties.MeshBlendMode, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
@@ -98,12 +98,38 @@
                 </hx:ShadowMap3D.Style>
             </hx:ShadowMap3D>
 
-            <controls1:EnvironmentCube3D x:Name="EnvironmentCubeMapSource" FaceSize="256"
-                IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"
-                Scene="{Binding Mode=OneWay, Source={x:Reference MinecraftScene}}"/>
+            <controls1:DynamicSkyCube3D x:Name="DynamicSkyCubeSource" FaceSize="512"
+                Scene="{Binding Mode=OneWay, Source={x:Reference MinecraftScene}}"
+                IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"/>
+            <controls1:EquirectangularCubeMap3D x:Name="EquirectangularCubeMapSource" FaceSize="512"
+                Exposure="{Binding SceneProperties.ErpExposure, Mode=OneWay}"
+                IsRendering="{Binding SceneProperties.HasEquirectangularMap, Mode=OneWay}">
+                <controls1:EquirectangularCubeMap3D.Style>
+                    <Style TargetType="controls1:EquirectangularCubeMap3D">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SceneProperties.EnableAtmosphere}" Value="True">
+                                <Setter Property="Texture" Value="{Binding CubeMap, Mode=OneWay, ElementName=DynamicSkyCubeSource}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                        <Setter Property="Texture" Value="{Binding SceneProperties.EquirectangularMap, Mode=OneWay}"/>
+                    </Style>
+                </controls1:EquirectangularCubeMap3D.Style>
+            </controls1:EquirectangularCubeMap3D>
             <controls1:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="64"
-                IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"
-                EnvironmentCubeMapSource="{Binding Mode=OneWay, Source={x:Reference EnvironmentCubeMapSource}}"/>
+                IsRendering="{Binding SceneProperties.HasEnvironmentMap, Mode=OneWay}">
+                <controls1:IrradianceCube3D.Style>
+                    <Style TargetType="controls1:IrradianceCube3D">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SceneProperties.EnableAtmosphere}" Value="True">
+                                <Setter Property="EnvironmentCubeMapSource" Value="{Binding Mode=OneWay, Source={x:Reference DynamicSkyCubeSource}}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                        <Setter Property="EnvironmentCubeMapSource" Value="{Binding Mode=OneWay, Source={x:Reference EquirectangularCubeMapSource}}"/>
+                    </Style>
+                </controls1:IrradianceCube3D.Style>
+            </controls1:IrradianceCube3D>
+            <controls1:DielectricBdrfLut3D x:Name="DielectricBdrfLutMapSource" Resolution="512"/>
+
             <hx:AmbientLight3D Color="{Binding SceneProperties.AmbientColor}"
                 IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay, Converter={StaticResource boolInverseConverter}}"/>
             <hx:DirectionalLight3D Color="{Binding SceneProperties.SunLightColor, Mode=OneWay}"
@@ -111,7 +137,7 @@
                 IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"/>
 
             <hx:CameraModel3D x:Name="lightCamera"
-                              IsRendering="{Binding SceneProperties.EnableLights}"
+                IsRendering="{Binding SceneProperties.EnableLights}"
                 Camera="{Binding RenderProperties.LightCamera, Mode=OneWay}" />
             <hx:SpotLight3D Color="{Binding SceneProperties.LightColor, Mode=OneWay}"
                 Direction="{Binding RenderProperties.LightCamera.LookDirection, Mode=OneWay}"
@@ -130,7 +156,11 @@
                 TargetTransform="{Binding Transform, ElementName=lightCamera}"
                 IsRendering="{Binding SceneProperties.EnableLights, Mode=OneWay}"/>
 
-            <controls1:SkyDome3D/>
+            <controls1:EquirectangularSkyDome3D
+                Texture="{Binding SceneProperties.EquirectangularMap, Mode=OneWay}"
+                IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay, Converter={StaticResource boolInverseConverter}}"/>
+            <controls1:DynamicSkyDome3D
+                IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"/>
             <hx:GroupModel3D ItemsSource="{Binding RenderProperties.MeshParts, Mode=OneWay}"/>
             <!--<controls1:BlockMeshGeometryModel3D CullMode="Back" IsThrowingShadow="True"
                                     Geometry="{Binding BlockMesh, Mode=OneWay}"

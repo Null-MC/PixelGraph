@@ -4,11 +4,11 @@ using PixelGraph.Rendering.Sky;
 
 namespace PixelGraph.UI.Helix.Controls
 {
-    public class SkyDome3D : Element3D
+    public class DynamicSkyDome3D : Element3D
     {
         protected override SceneNode OnCreateSceneNode()
         {
-            return new SkyDomeNode();
+            return new DynamicSkyDomeNode();
         }
     }
 }

@@ -81,6 +81,13 @@ struct LightStruct
     matrix mLightProj;
 };
 
+struct MeshOutlinePS_INPUT
+{
+    float4 Pos : SV_POSITION;
+    noperspective
+    float2 Tex : TEXCOORD0;
+};
+
 cbuffer cbTransforms : register(b0)
 {
     float4x4 mView;
@@ -101,6 +108,7 @@ cbuffer cbTransforms : register(b0)
     float DpiScale;
 };
 
+#ifdef MESH
 cbuffer cbMesh : register(b1) 
 {
     float4x4 mWorld;
@@ -146,6 +154,7 @@ cbuffer cbMesh : register(b1)
     float vertColorBlending;
     float3 padding4;
 };
+#endif
 
 cbuffer cbMinecraftScene : register(b2)
 {
@@ -161,15 +170,18 @@ cbuffer cbMinecraftScene : register(b2)
     float ParallaxDepth;
     int ParallaxSamplesMin;
     int ParallaxSamplesMax;
+    float ErpExposure;
     //int OpacityMode;
 	//float Padding2;
 };
 
+#ifdef MESH
 cbuffer cbMinecraftMesh : register(b4) 
 {
     int BlendMode = 0;
     float3 TintColor = 1.0f;
 };
+#endif
 
 cbuffer cbLights : register(b3)
 {
@@ -191,6 +203,15 @@ cbuffer cbShadow : register(b5)
     float4x4 vLightProjection;
 };
 
+//#ifdef SCREENQUAD
+//cbuffer cbScreenQuad : register(b9)
+//{
+//    float4x4 mWorld;
+//    float4 VertCoord[4];
+//    float4 TextureCoord[4];
+//};
+//#endif
+
 Texture2D tex_albedo_alpha : register(t0);
 Texture2D tex_normal_height : register(t1);
 Texture2D tex_rough_f0_occlusion : register(t2);
@@ -200,8 +221,9 @@ Texture2D tex_diffuse_alpha : register(t0);
 Texture2D tex_emissive : register(t1);
 
 TextureCube<float3> tex_environment : register(t20);
-TextureCube<float3> tex_irradiance : register(t21);
-Texture2D<float2> tex_brdf_lut : register(t22);
+Texture2D<float3> tex_equirectangular : register(t21);
+TextureCube<float3> tex_irradiance : register(t22);
+Texture2D<float2> tex_dielectric_brdf_lut : register(t23);
 Texture2D<float> tex_shadow : register(t30);
 
 SamplerState sampler_surface : register(s0);

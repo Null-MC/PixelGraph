@@ -67,6 +67,11 @@ namespace PixelGraph.Rendering.Minecraft
             set => SceneCore.WaterMode = value;
         }
 
+        public float ErpExposure {
+            get => SceneCore.ErpExposure;
+            set => SceneCore.ErpExposure = value;
+        }
+
 
         public void Apply(DeviceContextProxy deviceContext)
         {
@@ -98,6 +103,7 @@ namespace PixelGraph.Rendering.Minecraft
             sceneCore.EnableLinearSampling = EnableLinearSampling;
             sceneCore.EnableSlopeNormals = EnableSlopeNormals;
             sceneCore.WaterMode = WaterMode;
+            sceneCore.ErpExposure = ErpExposure;
         }
 
         protected override bool CanHitTest(HitTestContext context) => false;

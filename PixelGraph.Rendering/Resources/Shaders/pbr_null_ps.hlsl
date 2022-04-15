@@ -1,3 +1,5 @@
+#define MESH
+
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/parallax.hlsl"
@@ -78,9 +80,11 @@ float4 main(const ps_input input) : SV_TARGET
 
     const float wet_depth = saturate((water_levelMax - shadow_tex.z) * WATER_DEPTH_SCALE);
 
-    const float roughP = clamp(1.0 - mat.smooth, MIN_ROUGH, 1.0f);
-    const float roughL = roughP * roughP;
-
+    const float roughL = max(pow2(1.0 - mat.smooth), MIN_ROUGH);
+    const float roughP = sqrt(roughL); // * roughP;
+    //const float roughL = clamp(1.0 - pow2(mat.smooth), MIN_ROUGH, 1.0f);
+    //const float roughP = sqrt(roughL); // * roughP;
+    
     const float porosityL = srgb_to_linear(mat.porosity);
 	
     // Blend base colors
@@ -115,6 +119,7 @@ float4 main(const ps_input input) : SV_TARGET
 
     float water = max(surface_water, wet_depth);
 	float wet_roughL = lerp(roughL, WATER_ROUGH, water);
+    float wet_roughP = sqrt(wet_roughL);
 
     wet_normal = lerp(wet_normal, normal, saturate(water_fillFactor * wet_depth));
     wet_normal = normalize(wet_normal);
@@ -147,7 +152,7 @@ float4 main(const ps_input input) : SV_TARGET
 	    water_shadow = 1.0f;
     	
         if (Lights[i].iLightType == 1) { // directional
-            light_color *= 2.0f;
+            //light_color *= 2.0f;
             light_dir = normalize(Lights[i].vLightDir.xyz);
 			light_att = SunStrength;
         }
@@ -231,12 +236,13 @@ float4 main(const ps_input input) : SV_TARGET
             const float3 T_2 = 1.0f - F_full(ETA_WATER_TO_AIR, saturate(dot(V_2, H)));
             const float3 H_2 = normalize(V_2 + L_2);
 
+            //const float  NoV_2 = 0.0f; // ERROR: lerp(wet_NoV, saturate(dot(V_2, H_2)), water);
             const float  VoH_2 = lerp(VoH, saturate(dot(V_2, H_2)), water);
 			const float  NoH_2 = lerp(NoH, saturate(dot(tex_normal, H_2)), water);
 			const float  LoH_2 = lerp(LoH, saturate(dot(L_2, H_2)), water);
 
 			const float3 surface_Fr = mat.f0_hcm > 0.9f
-        		? specular_brdf_conductor(ior_in, ior_n, ior_k, LoH_2, NoH_2, VoH_2, roughL) * metal_albedo
+        		? specular_brdf_conductor(ior_in, ior_n, ior_k, LoH_2, NoH_2, roughL) * metal_albedo
         		: specular_brdf(ior_n.r / ior_in, LoH_2, NoH_2, VoH_2, roughL);
             
 	        // ETA is purposely reversed!
@@ -267,7 +273,7 @@ float4 main(const ps_input input) : SV_TARGET
         }
         else {
 			light_specular = mat.f0_hcm > 0.9f
-        		? specular_brdf_conductor(IOR_N_AIR, ior_n, ior_k, LoH, NoH, VoH, roughL) * metal_albedo
+        		? specular_brdf_conductor(IOR_N_AIR, ior_n, ior_k, LoH, NoH, roughL) * metal_albedo
         		: specular_brdf(ior_n.r / IOR_N_AIR, LoH, NoH, VoH, roughL);
 
             const float3 light_factor = NoL * light_color * light_att * light_shadow;
@@ -276,14 +282,19 @@ float4 main(const ps_input input) : SV_TARGET
         }
     }
 
-    const float3 ibl_f0_ambient = ior_to_f0_complex(ior_in, ior_n, ior_k);
-	const float3 ibl_F_ambient = F_schlick_roughness(ibl_f0_ambient, NoV, roughL);
-	const float3 ibl_ambient = IBL_ambient(ibl_F_ambient, tex_normal) * diffuse * mat.occlusion * (1.0f - mat.sss);
-    //return float4(ibl_ambient, 1.0);
-
+    const float3 ibl_f90 = 1.f;
 	const float3 r = reflect(-view, wet_normal);
-	float3 ibl_specular = IBL_specular(ibl_F_ambient, NoV, r, mat.occlusion, roughP) * metal_albedo;
+    const float3 ibl_f0 = ior_to_f0_complex(ior_in, ior_n, ior_k);
+	const float3 ibl_F = F_schlick_roughness(ibl_f0, NoV, roughL);
+	const float3 ibl_ambient = IBL_ambient(ibl_F, tex_normal) * diffuse * mat.occlusion * (1.0f - mat.sss);
+
+    //return float4(r, 1.f);
+    //return float4(tex_environment.SampleLevel(sampler_irradiance, r, 0), 1.0);
+
+	float3 ibl_specular = IBL_specular(ibl_F, ibl_f90, NoV, r, mat.occlusion, roughP) * metal_albedo;
 	float3 ibl_sss = SSS_IBL(view, mat.sss);
+
+    //return float4(ibl_ambient, 1.f);
 
     if (Wetness > EPSILON) {
 		float3 ibl_F_water = F_full(ETA_AIR_TO_WATER, NoV_wet);
@@ -300,20 +311,23 @@ float4 main(const ps_input input) : SV_TARGET
 
         ibl_specular *= 1.0f + water * (T12 * T21 * absorption - 1.0f);
 
-		ibl_specular += IBL_specular(ibl_F_water, NoV_wet, r, mat.occlusion, wet_roughL) * water;
+		ibl_specular += IBL_specular(ibl_F_water, ibl_f90, NoV_wet, r, mat.occlusion, wet_roughP) * water;
     }
 
-    spec_strength += luminance(ibl_specular);
+    spec_strength += luminance(ibl_specular) * 3.f;
 
 	const float3 emissive = mat.emissive * mat.albedo * 200.0f;
 
 	float3 ibl_final = ibl_ambient + ibl_specular;
+    //return float4(ibl_final, 1.f);
 
 	float3 final_sss = (acc_sss + ibl_sss) * diffuse;
 
-    float3 final_color = ibl_final + emissive;
+    float3 final_color = 0.f;
 
-    final_color += acc_light * 4.0f;
+	final_color += ibl_final;// * 4.f;
+	final_color += emissive;
+	final_color += acc_light * 2.f;
 	final_color += final_sss;
 
 	float alpha = mat.opacity + spec_strength;
@@ -321,8 +335,9 @@ float4 main(const ps_input input) : SV_TARGET
 
     //final_color *= 0.3f;
 	//final_color = tonemap_ACESFit2(final_color);
-	final_color = tonemap_Uncharted2(final_color);
-	final_color = linear_to_srgb(final_color);
+	//final_color = tonemap_Uncharted2(final_color);
+	final_color = tonemap_HejlBurgess(final_color);
+	//final_color = linear_to_srgb(final_color);
 
     return float4(final_color, alpha);
 }

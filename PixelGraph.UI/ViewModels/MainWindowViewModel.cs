@@ -323,6 +323,25 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        private RenderContext BuildRenderContext()
+        {
+            return new RenderContext {
+                RenderMode = RenderProperties.RenderMode,
+                PackInput = Model.PackInput,
+                PackProfile = Model.Profile.Loaded,
+                DefaultMaterial = Model.SelectedTabMaterial,
+                MissingMaterial = RenderProperties.MissingMaterial,
+                DielectricBrdfLutMap = RenderProperties.DielectricBrdfLutMap,
+                IrradianceCubeMap = RenderProperties.IrradianceCube,
+                EnvironmentEnabled = SceneProperties.EnableAtmosphere || SceneProperties.EquirectangularMap != null,
+                EnableTiling = RenderProperties.EnableTiling,
+
+                EnvironmentCubeMap = SceneProperties.EnableAtmosphere
+                    ? RenderProperties.DynamicSkyCubeSource
+                    : RenderProperties.ErpCubeSource,
+            };
+        }
+
         private async Task UpdateTabPreviewAsync(TabPreviewContext context, CancellationToken token)
         {
             try {
@@ -335,20 +354,8 @@ namespace PixelGraph.UI.ViewModels
                         //if (!context.IsMaterialBuilderValid)
                         //    await context.BuildModelMeshAsync(material, token);
 
-                        var renderContext = new RenderContext {
-                            RenderMode = RenderProperties.RenderMode,
-                            PackInput = Model.PackInput,
-                            PackProfile = Model.Profile.Loaded,
-                            DefaultMaterial = Model.SelectedTabMaterial,
-                            MissingMaterial = RenderProperties.MissingMaterial,
-                            EnvironmentCubeMap = RenderProperties.EnvironmentCube,
-                            IrradianceCubeMap = RenderProperties.IrradianceCube,
-                            EnvironmentEnabled = SceneProperties.EnableAtmosphere,
-                            BrdfLutMap = RenderProperties.BrdfLutMap,
-                            EnableTiling = RenderProperties.EnableTiling,
-                        };
-
                         try {
+                            var renderContext = BuildRenderContext();
                             await context.BuildModelMeshAsync(renderContext, token);
                         }
                         catch (Exception error) {
@@ -426,6 +433,14 @@ namespace PixelGraph.UI.ViewModels
                 }
             }
             catch (OperationCanceledException) {}
+        }
+
+        public void UpdateMaterials()
+        {
+            var renderContext = BuildRenderContext();
+
+            foreach (var tab in tabPreviewMgr.All)
+                tab.Mesh.UpdateMaterials(renderContext);
         }
 
         public async Task GenerateNormalAsync(MaterialProperties material, string filename, CancellationToken token = default)
@@ -634,6 +649,18 @@ namespace PixelGraph.UI.ViewModels
 
 #if !NORENDER
             context.InvalidateMaterialBuilder(false);
+#endif
+        }
+
+        public void InvalidateTabChannels(Guid tabId, string[] channels)
+        {
+            var context = tabPreviewMgr.Get(tabId);
+            if (context == null) return;
+
+            context.InvalidateLayer(false);
+
+#if !NORENDER
+            context.InvalidateMaterialBuilder(channels, false);
 #endif
         }
 

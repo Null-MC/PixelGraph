@@ -153,7 +153,8 @@ namespace PixelGraph.CLI.CommandLine
                 publisher.Concurrency = Concurrency;
 
                 try {
-                    await publisher.PublishAsync(Context, CleanDestination, token);
+                    await publisher.PrepareAsync(Context, CleanDestination, token);
+                    await publisher.PublishAsync(Context, token);
                 }
                 finally {
                     timer.Stop();

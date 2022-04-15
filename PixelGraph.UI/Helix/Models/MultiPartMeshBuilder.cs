@@ -206,6 +206,21 @@ namespace PixelGraph.UI.Helix.Models
             materialMap.Clear();
         }
 
+        //public void UpdateTabEnvironmentMaps(bool environmentEnabled)
+        //{
+        //    UpdateModelParts();
+
+        //    foreach (var part in ModelParts.OfType<BlockMeshGeometryModel3D>()) {
+        //        part.Material.
+        //    }
+
+        //    foreach (var mat in materialMap.Values) {
+        //        //mat.RenderEnvironmentMap = environmentEnabled;
+        //        ModelParts[0].Material.
+        //        // TODO: ?
+        //    }
+        //}
+
         private async Task BuildMaterialMapAsync(IRenderContext renderContext, IReadOnlyDictionary<string, string> textureMap, CancellationToken token)
         {
             ClearTextureBuilders();
@@ -253,6 +268,18 @@ namespace PixelGraph.UI.Helix.Models
             }
         }
 
+        public void UpdateMaterials(IRenderContext renderContext)
+        {
+            foreach (var materialBuilder in materialMap.Values) {
+                materialBuilder.EnvironmentCubeMapSource = renderContext.EnvironmentCubeMap;
+                materialBuilder.RenderEnvironmentMap = renderContext.EnvironmentEnabled;
+                materialBuilder.DielectricBrdfLutMapSource = renderContext.DielectricBrdfLutMap;
+                materialBuilder.IrradianceCubeMapSource = renderContext.IrradianceCubeMap;
+            }
+
+            UpdateModelParts();
+        }
+
         public void InvalidateMaterials()
         {
             foreach (var builder in materialMap.Values)
@@ -293,15 +320,19 @@ namespace PixelGraph.UI.Helix.Models
             materialBuilder.Material = material;
             materialBuilder.EnvironmentCubeMapSource = renderContext.EnvironmentCubeMap;
             materialBuilder.RenderEnvironmentMap = renderContext.EnvironmentEnabled;
+            materialBuilder.DielectricBrdfLutMapSource = renderContext.DielectricBrdfLutMap;
+            materialBuilder.IrradianceCubeMapSource = renderContext.IrradianceCubeMap;
 
-            if (materialBuilder is LabPbrMaterialBuilder labPbrBuilder) {
-                labPbrBuilder.IrradianceCubeMapSource = renderContext.IrradianceCubeMap;
-                labPbrBuilder.BrdfLutMap = renderContext.BrdfLutMap;
-            }
-            else if (materialBuilder is OldPbrMaterialBuilder oldPbrBuilder) {
-                oldPbrBuilder.IrradianceCubeMapSource = renderContext.IrradianceCubeMap;
-                oldPbrBuilder.BrdfLutMap = renderContext.BrdfLutMap;
-            }
+            //if (materialBuilder is LabPbrMaterialBuilder labPbrBuilder) {
+            //    labPbrBuilder.DielectricBrdfLutMapSource = renderContext.DielectricBrdfLutMap;
+            //    labPbrBuilder.IrradianceCubeMapSource = renderContext.IrradianceCubeMap;
+            //    //labPbrBuilder.BrdfLutMap = renderContext.BrdfLutMap;
+            //}
+            //else if (materialBuilder is OldPbrMaterialBuilder oldPbrBuilder) {
+            //    oldPbrBuilder.DielectricBrdfLutMapSource = renderContext.DielectricBrdfLutMap;
+            //    oldPbrBuilder.IrradianceCubeMapSource = renderContext.IrradianceCubeMap;
+            //    //oldPbrBuilder.BrdfLutMap = renderContext.BrdfLutMap;
+            //}
 
             var enableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling
                                        ?? RenderPreviewSettings.Default_EnableLinearSampling;

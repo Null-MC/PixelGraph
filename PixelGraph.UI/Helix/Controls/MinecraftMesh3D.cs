@@ -10,7 +10,7 @@ using System.Windows;
 
 namespace PixelGraph.UI.Helix.Controls
 {
-    public class MinecraftMesh3D : Element3D, IMinecraftScene
+    public class MinecraftMesh3D : Element3D, IMinecraftSceneCore
     {
         private MinecraftMeshNode MeshNode => SceneNode as MinecraftMeshNode;
         public bool IsRenderValid => MeshNode.IsRenderValid;

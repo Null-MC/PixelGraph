@@ -8,12 +8,17 @@ using SharpDX;
 
 namespace PixelGraph.Rendering.Minecraft
 {
-    public interface IMinecraftScene
+    public interface IMinecraftSceneCore
     {
         bool IsRenderValid {get;}
 
         void Apply(DeviceContextProxy deviceContext);
         void ResetValidation();
+    }
+
+    public interface IMinecraftScene : IMinecraftSceneCore
+    {
+        //bool EnableAtmosphere {get;}
     }
 
     internal class MinecraftSceneCore : RenderCore, IMinecraftScene
@@ -90,11 +95,18 @@ namespace PixelGraph.Rendering.Minecraft
             set => SetAffectsRender(ref data.WaterMode, value);
         }
 
+        public float ErpExposure {
+            get => data.ErpExposure;
+            set => SetAffectsRender(ref data.ErpExposure, value);
+        }
+
 
         public MinecraftSceneCore() : base(RenderType.PreProc)
         {
             var bufferDesc = new ConstantBufferDescription(CustomBufferNames.MinecraftSceneCB, MinecraftSceneStruct.SizeInBytes);
             buffer = AddComponent(new ConstantBufferComponent(bufferDesc));
+
+            data.ErpExposure = 1f;
         }
 
         public void Apply(DeviceContextProxy deviceContext)

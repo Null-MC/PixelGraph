@@ -7,11 +7,11 @@ using MinecraftMappings.Minecraft;
 using PixelGraph.Common.Material;
 using PixelGraph.Rendering;
 using PixelGraph.Rendering.CubeMaps;
+using PixelGraph.Rendering.LUTs;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Models;
 using SharpDX;
 using System;
-using System.IO;
 using System.Linq;
 using System.Windows.Media.Media3D;
 using OrthographicCamera = HelixToolkit.Wpf.SharpDX.OrthographicCamera;
@@ -22,11 +22,12 @@ namespace PixelGraph.UI.Models.Scene
     public class RenderPropertiesModel : ModelBase
     {
         private IEffectsManager _effectsManager;
-        private ICubeMapSource _environmentCube;
+        private ILutMapSource _dielectricBrdfLutMap;
+        //private ICubeMapSource _environmentCube;
         private ICubeMapSource _irradianceCube;
         private ObservableElement3DCollection _meshParts;
         private PerspectiveCamera _camera;
-        private Stream _brdfLutMap;
+        //private Stream _brdfLutMap;
         private MaterialProperties _missingMaterial;
         private bool _enableTiling;
         private RenderPreviewModes _renderMode;
@@ -44,6 +45,9 @@ namespace PixelGraph.UI.Models.Scene
 
         public event EventHandler RenderModeChanged;
         public event EventHandler RenderModelChanged;
+
+        internal ICubeMapSource DynamicSkyCubeSource {get; set;}
+        internal ICubeMapSource ErpCubeSource {get; set;}
 
         public float ParallaxDepth {
             get => _parallaxDepth;
@@ -143,13 +147,21 @@ namespace PixelGraph.UI.Models.Scene
             }
         }
 
-        public ICubeMapSource EnvironmentCube {
-            get => _environmentCube;
+        public ILutMapSource DielectricBrdfLutMap {
+            get => _dielectricBrdfLutMap;
             set {
-                _environmentCube = value;
+                _dielectricBrdfLutMap = value;
                 OnPropertyChanged();
             }
         }
+
+        //public ICubeMapSource EnvironmentCube {
+        //    get => _environmentCube;
+        //    set {
+        //        _environmentCube = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
         public ICubeMapSource IrradianceCube {
             get => _irradianceCube;
@@ -159,13 +171,13 @@ namespace PixelGraph.UI.Models.Scene
             }
         }
 
-        public Stream BrdfLutMap {
-            get => _brdfLutMap;
-            set {
-                _brdfLutMap = value;
-                OnPropertyChanged();
-            }
-        }
+        //public Stream BrdfLutMap {
+        //    get => _brdfLutMap;
+        //    set {
+        //        _brdfLutMap = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
         public MaterialProperties MissingMaterial {
             get => _missingMaterial;

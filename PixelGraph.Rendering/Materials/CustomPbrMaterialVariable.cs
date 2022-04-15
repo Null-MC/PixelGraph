@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Model;
 using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.SharpDX.Core.ShaderManager;
@@ -7,21 +6,22 @@ using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.SharpDX.Core.Utilities;
 using PixelGraph.Rendering.Shaders;
 using SharpDX.Direct3D11;
+using System.Runtime.CompilerServices;
 using PixelShader = HelixToolkit.SharpDX.Core.Shaders.PixelShader;
 
 namespace PixelGraph.Rendering.Materials
 {
     internal class CustomPbrMaterialVariable : MaterialVariable
     {
-        private const int NUMTEXTURES = 5;
+        private const int NUMTEXTURES = 4;
         private const int NUMSAMPLERS = 7;
 
         private const int
             AlbedoAlphaMapIdx = 0,
             NormalHeightMapIdx = 1,
             RoughF0OcclusionMapIdx = 2,
-            PorositySssEmissiveMapIdx = 3,
-            BrdfLutMapIdx = 4;
+            PorositySssEmissiveMapIdx = 3;
+            //BrdfLutMapIdx = 4;
 
         private const int
             SurfaceSamplerIdx = 0,
@@ -39,7 +39,7 @@ namespace PixelGraph.Rendering.Materials
         private readonly ShaderResourceViewProxy[] textureResources;
         private readonly SamplerStateProxy[] samplerResources;
 
-        private int texShadowSlot, texEnvironmentSlot, texIrradianceSlot, texBrdfLutSlot;
+        private int texShadowSlot, texEnvironmentSlot, texIrradianceSlot, texDielectricBdrfLutSlot;
         private int texAlbedoAlphaSlot, texNormalHeightSlot, texRoughF0OcclusionSlot, texPorositySssEmissiveSlot;
         private int samplerSurfaceSlot, samplerHeightSlot, samplerEnvironmentSlot, samplerIrradianceSlot, samplerBrdfLutSlot, samplerShadowSlot, samplerLightSlot;
         private uint textureIndex;
@@ -97,10 +97,6 @@ namespace PixelGraph.Rendering.Materials
                 CreateTextureView(material.PorositySssEmissiveMap, PorositySssEmissiveMapIdx);
             });
 
-            AddPropertyBinding(nameof(CustomPbrMaterialCore.BrdfLutMap), () => {
-                CreateTextureView(material.BrdfLutMap, BrdfLutMapIdx);
-            });
-
             AddPropertyBinding(nameof(CustomPbrMaterialCore.SurfaceMapSampler), () => {
                 CreateSampler(material.SurfaceMapSampler, SurfaceSamplerIdx);
             });
@@ -140,6 +136,11 @@ namespace PixelGraph.Rendering.Materials
         {
             if (HasTextures) {
                 OnBindMaterialTextures(context, deviceContext, shaderPass.PixelShader);
+            }
+
+            if (material.DielectricBdrfLutSource != null) {
+                shaderPass.PixelShader.BindTexture(deviceContext, texDielectricBdrfLutSlot, material.DielectricBdrfLutSource.LutMap);
+                shaderPass.PixelShader.BindSampler(deviceContext, samplerBrdfLutSlot, samplerResources[BrdfLutSamplerIdx]);
             }
 
             if (material.RenderEnvironmentMap) {
@@ -223,7 +224,7 @@ namespace PixelGraph.Rendering.Materials
             texNormalHeightSlot = pbrPassTexMap.TryGetBindSlot(CustomBufferNames.NormalHeightTB);
             texRoughF0OcclusionSlot = pbrPassTexMap.TryGetBindSlot(CustomBufferNames.RoughF0OcclusionTB);
             texPorositySssEmissiveSlot = pbrPassTexMap.TryGetBindSlot(CustomBufferNames.PorositySssEmissiveTB);
-            texBrdfLutSlot = pbrPassTexMap.TryGetBindSlot(CustomBufferNames.BrdfLutTB);
+            texDielectricBdrfLutSlot = pbrPassTexMap.TryGetBindSlot(CustomBufferNames.BrdfDielectricLutTB);
             texShadowSlot = pbrPassTexMap.TryGetBindSlot(CustomBufferNames.ShadowMapTB);
             texEnvironmentSlot = pbrPassTexMap.TryGetBindSlot(CustomBufferNames.EnvironmentCubeTB);
             texIrradianceSlot = pbrPassTexMap.TryGetBindSlot(CustomBufferNames.IrradianceCubeTB);
@@ -255,7 +256,7 @@ namespace PixelGraph.Rendering.Materials
                 shader.BindTexture(deviceContext, texNormalHeightSlot, textureResources[NormalHeightMapIdx]);
                 shader.BindTexture(deviceContext, texRoughF0OcclusionSlot, textureResources[RoughF0OcclusionMapIdx]);
                 shader.BindTexture(deviceContext, texPorositySssEmissiveSlot, textureResources[PorositySssEmissiveMapIdx]);
-                shader.BindTexture(deviceContext, texBrdfLutSlot, textureResources[BrdfLutMapIdx]);
+                //shader.BindTexture(deviceContext, texDielectricBdrfLutSlot, textureResources[BrdfLutMapIdx]);
 
                 shader.BindSampler(deviceContext, samplerSurfaceSlot, samplerResources[SurfaceSamplerIdx]);
                 shader.BindSampler(deviceContext, samplerHeightSlot, samplerResources[HeightSamplerIdx]);
@@ -272,7 +273,7 @@ namespace PixelGraph.Rendering.Materials
                 CreateTextureView(material.NormalHeightMap, NormalHeightMapIdx);
                 CreateTextureView(material.RoughF0OcclusionMap, RoughF0OcclusionMapIdx);
                 CreateTextureView(material.PorositySssEmissiveMap, PorositySssEmissiveMapIdx);
-                CreateTextureView(material.BrdfLutMap, BrdfLutMapIdx);
+                //CreateTextureView(material.BrdfLutMap, BrdfLutMapIdx);
             }
             else {
                 for (var i = 0; i < NUMTEXTURES; ++i)

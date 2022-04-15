@@ -7,6 +7,7 @@ using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Tga;
+using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing.Processors.Quantization;
 using System;
 using System.Collections.Generic;
@@ -43,6 +44,7 @@ namespace PixelGraph.Common.IO
                 ["jpg"] = GetJpegEncoder,
                 ["jpeg"] = GetJpegEncoder,
                 ["gif"] = GetGifEncoder,
+                ["webp"] = GetWebPEncoder,
             };
         }
 
@@ -146,6 +148,16 @@ namespace PixelGraph.Common.IO
         {
             return new() {
                 ColorTableMode = GifColorTableMode.Global,
+            };
+        }
+
+        private static WebpEncoder GetWebPEncoder(ImageChannels type)
+        {
+            return new() {
+                Method = WebpEncodingMethod.Default,
+                FileFormat = WebpFileFormatType.Lossless,
+                TransparentColorMode = WebpTransparentColorMode.Preserve,
+                //UseAlphaCompression = true,
             };
         }
     }

@@ -1,5 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Render;
+using HelixToolkit.SharpDX.Core.Utilities;
 using PixelGraph.Rendering.Minecraft;
 using PixelGraph.Rendering.Sky;
 using SharpDX.Direct3D11;
@@ -7,7 +8,7 @@ using SharpDX.DXGI;
 
 namespace PixelGraph.Rendering.CubeMaps
 {
-    internal class EnvironmentCubeCore : CubeMapRenderCore
+    internal class DynamicSkyCubeCore : CubeMapRenderCore
     {
         private SkyDomeBufferModel geometryBuffer;
         private IMinecraftScene _scene;
@@ -17,19 +18,37 @@ namespace PixelGraph.Rendering.CubeMaps
             set => SetAffectsRender(ref _scene, value);
         }
 
+        public override ShaderResourceViewProxy CubeMap => _cubeMap;
 
-        public EnvironmentCubeCore() : base(RenderType.PreProc)
+
+        public DynamicSkyCubeCore() : base(RenderType.PreProc)
         {
             TextureDesc = new Texture2DDescription {
                 Format = Format.R16G16B16A16_Float,
-                ArraySize = 6,
                 BindFlags = BindFlags.ShaderResource | BindFlags.RenderTarget,
                 OptionFlags = ResourceOptionFlags.GenerateMipMaps | ResourceOptionFlags.TextureCube,
                 SampleDescription = new SampleDescription(1, 0),
-                MipLevels = 0,
-                Usage = ResourceUsage.Default,
                 CpuAccessFlags = CpuAccessFlags.None,
+                Usage = ResourceUsage.Default,
+                ArraySize = 6,
+                MipLevels = 0,
             };
+        }
+
+        protected override bool OnAttach(IRenderTechnique technique)
+        {
+            if (!base.OnAttach(technique)) return false;
+
+            geometryBuffer = Collect(new SkyDomeBufferModel());
+
+            return true;
+        }
+
+        protected override void OnDetach()
+        {
+            geometryBuffer = null;
+
+            base.OnDetach();
         }
 
         protected override bool OnUpdateCanRenderFlag()
@@ -39,14 +58,16 @@ namespace PixelGraph.Rendering.CubeMaps
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
-            if (_scene == null || _scene.IsRenderValid) {
+            if (_scene == null) return;
+
+            if (_scene.IsRenderValid && _cubeMap != null) {
                 if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
             }
 
             base.Render(context, deviceContext);
             
-            deviceContext.GenerateMips(CubeMap);
-            context.SharedResource.EnvironmentMapMipLevels = CubeMap.TextureView.Description.TextureCube.MipLevels;
+            deviceContext.GenerateMips(_cubeMap);
+            context.SharedResource.EnvironmentMapMipLevels = _cubeMap.TextureView.Description.TextureCube.MipLevels;
             
             context.UpdatePerFrameData(true, false, deviceContext);
             _scene?.Apply(deviceContext);
@@ -56,26 +77,12 @@ namespace PixelGraph.Rendering.CubeMaps
 
         protected override void RenderFace(RenderContext context, DeviceContextProxy deviceContext)
         {
-            Scene.Apply(deviceContext);
-
             var vertexStartSlot = 0;
             geometryBuffer.AttachBuffers(deviceContext, ref vertexStartSlot, EffectTechnique.EffectsManager);
 
+            Scene.Apply(deviceContext);
+
             deviceContext.DrawIndexed(geometryBuffer.IndexBuffer.ElementCount, 0, 0);
-        }
-
-        protected override bool OnAttach(IRenderTechnique technique)
-        {
-            geometryBuffer = Collect(new SkyDomeBufferModel());
-
-            return base.OnAttach(technique);
-        }
-
-        protected override void OnDetach()
-        {
-            geometryBuffer = null;
-
-            base.OnDetach();
         }
     }
 }

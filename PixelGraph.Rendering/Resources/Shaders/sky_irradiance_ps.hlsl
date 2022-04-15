@@ -24,9 +24,11 @@ float4 main(const in ps_input_cube input) : SV_TARGET
 			const float3 sampleT = float3(sin_theta * cos(phi),  sin_theta * sin(phi), cos_theta);
 			
 			// tangent space to world
-			const float3 sampleW = sampleT.x * right + sampleT.y * up + sampleT.z * view; 
+			const float3 sampleW = sampleT.x * right + sampleT.y * up + sampleT.z * view;
 
-			irradiance += tex_environment.SampleLevel(sampler_environment, sampleW, 0).rgb * cos_theta * sin_theta;
+			const float3 col = tex_environment.SampleLevel(sampler_environment, sampleW, 0);
+
+			irradiance += col * cos_theta * sin_theta;
 			sample_count++;
 		}
 	}

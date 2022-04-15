@@ -1,3 +1,5 @@
+#define MESH
+
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/parallax.hlsl"
