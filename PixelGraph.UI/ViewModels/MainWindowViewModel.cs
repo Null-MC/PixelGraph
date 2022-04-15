@@ -323,25 +323,6 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        private RenderContext BuildRenderContext()
-        {
-            return new RenderContext {
-                RenderMode = RenderProperties.RenderMode,
-                PackInput = Model.PackInput,
-                PackProfile = Model.Profile.Loaded,
-                DefaultMaterial = Model.SelectedTabMaterial,
-                MissingMaterial = RenderProperties.MissingMaterial,
-                DielectricBrdfLutMap = RenderProperties.DielectricBrdfLutMap,
-                IrradianceCubeMap = RenderProperties.IrradianceCube,
-                EnvironmentEnabled = SceneProperties.EnableAtmosphere || SceneProperties.EquirectangularMap != null,
-                EnableTiling = RenderProperties.EnableTiling,
-
-                EnvironmentCubeMap = SceneProperties.EnableAtmosphere
-                    ? RenderProperties.DynamicSkyCubeSource
-                    : RenderProperties.ErpCubeSource,
-            };
-        }
-
         private async Task UpdateTabPreviewAsync(TabPreviewContext context, CancellationToken token)
         {
             try {
@@ -433,14 +414,6 @@ namespace PixelGraph.UI.ViewModels
                 }
             }
             catch (OperationCanceledException) {}
-        }
-
-        public void UpdateMaterials()
-        {
-            var renderContext = BuildRenderContext();
-
-            foreach (var tab in tabPreviewMgr.All)
-                tab.Mesh.UpdateMaterials(renderContext);
         }
 
         public async Task GenerateNormalAsync(MaterialProperties material, string filename, CancellationToken token = default)
@@ -676,6 +649,35 @@ namespace PixelGraph.UI.ViewModels
             foreach (var item in recentMgr.Items)
                 Model.RecentDirectories.Add(item);
         }
+
+#if !NORENDER
+        public void UpdateMaterials()
+        {
+            var renderContext = BuildRenderContext();
+
+            foreach (var tab in tabPreviewMgr.All)
+                tab.Mesh.UpdateMaterials(renderContext);
+        }
+
+        private RenderContext BuildRenderContext()
+        {
+            return new RenderContext {
+                RenderMode = RenderProperties.RenderMode,
+                PackInput = Model.PackInput,
+                PackProfile = Model.Profile.Loaded,
+                DefaultMaterial = Model.SelectedTabMaterial,
+                MissingMaterial = RenderProperties.MissingMaterial,
+                DielectricBrdfLutMap = RenderProperties.DielectricBrdfLutMap,
+                IrradianceCubeMap = RenderProperties.IrradianceCube,
+                EnvironmentEnabled = SceneProperties.EnableAtmosphere || SceneProperties.EquirectangularMap != null,
+                EnableTiling = RenderProperties.EnableTiling,
+
+                EnvironmentCubeMap = SceneProperties.EnableAtmosphere
+                    ? RenderProperties.DynamicSkyCubeSource
+                    : RenderProperties.ErpCubeSource,
+            };
+        }
+#endif
 
         #region External Image Editing
 
