@@ -85,7 +85,7 @@
                 <TextBlock Grid.Column="0" Grid.Row="1" Text="IBL Intensity:"
                            VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
                 <Slider Grid.Column="1" Grid.Row="1" Margin="4"
-                        Minimum="0.25" Maximum="4.0" Delay="500" Interval="500"
+                        Minimum="0.5" Maximum="4.0" Delay="500" Interval="500"
                         Value="{Binding ErpExposure, Mode=TwoWay}" />
                 <TextBlock Grid.Column="0" Grid.Row="2" Text="Ambient Light:"
                            VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>

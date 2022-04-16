@@ -321,22 +321,22 @@ float4 main(const ps_input input) : SV_TARGET
 	float3 ibl_final = ibl_ambient + ibl_specular;
     //return float4(ibl_final, 1.f);
 
-	float3 final_sss = (acc_sss + ibl_sss) * diffuse;
+	float3 final_sss = (acc_sss + ibl_sss * 2.f) * diffuse;
 
     float3 final_color = 0.f;
 
-	final_color += ibl_final;// * 4.f;
+	final_color += ibl_final * 2.f;
 	final_color += emissive * 2.f;
-	final_color += acc_light * 2.f;
+	final_color += acc_light * 3.f;
 	final_color += final_sss;
 
 	float alpha = mat.opacity + spec_strength;
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
     //final_color *= 0.3f;
-	//final_color = tonemap_ACESFit2(final_color);
+	final_color = tonemap_ACESFit2(final_color);
 	//final_color = tonemap_Uncharted2(final_color);
-	final_color = tonemap_HejlBurgess(final_color);
+	//final_color = tonemap_HejlBurgess(final_color);
 	//final_color = linear_to_srgb(final_color);
 
     return float4(final_color, alpha);

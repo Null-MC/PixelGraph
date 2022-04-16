@@ -368,104 +368,109 @@ namespace PixelGraph.Common.Textures
             var isOutputSpecular = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Specular);
             if (isOutputSpecular && !context.IsImport) {
                 // Smooth > Specular
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
-                    && matReader.TryGetByTag(smoothChannel.Texture, out mapping.SourceFilename)) {
-                    mapping.ApplyInputChannel(smoothChannel);
-                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
-                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
-                    return true;
-                }
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)) {
+                    if (matReader.TryGetByTag(smoothChannel.Texture, out mapping.SourceFilename)) {
+                        mapping.ApplyInputChannel(smoothChannel);
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
+                        return true;
+                    }
 
-                if (context.Material.TryGetChannelValue(EncodingChannel.Smooth, out value)) {
-                    mapping.ApplyInputChannel(inputChannel);
-                    mapping.InputValue = (float)value;
-                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
-                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
-                    return true;
+                    if (context.Material.TryGetChannelValue(EncodingChannel.Smooth, out value)) {
+                        mapping.ApplyInputChannel(smoothChannel);
+                        mapping.InputValue = (float)value;
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
+                        return true;
+                    }
                 }
 
                 // Metal > Specular
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel)
-                    && matReader.TryGetByTag(metalChannel.Texture, out mapping.SourceFilename)) {
-                    mapping.ApplyInputChannel(metalChannel);
-                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
-                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
-                    return true;
-                }
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel)) {
+                    if (matReader.TryGetByTag(metalChannel.Texture, out mapping.SourceFilename)) {
+                        mapping.ApplyInputChannel(metalChannel);
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
+                        return true;
+                    }
 
-                if (context.Material.TryGetChannelValue(EncodingChannel.Metal, out value)) {
-                    var f = value > 0.5m ? 1f : 0f;
-                    var min = (float?)metalChannel.MinValue ?? 0f;
-                    var max = (float?)metalChannel.MaxValue ?? 1f;
+                    if (context.Material.TryGetChannelValue(EncodingChannel.Metal, out value)) {
+                        var f = value > 0.5m ? 1f : 0f;
+                        var min = (float?)metalChannel.MinValue ?? 0f;
+                        var max = (float?)metalChannel.MaxValue ?? 1f;
 
-                    mapping.ApplyInputChannel(inputChannel);
-                    mapping.InputValue = min + f * (max - min);
-                    return true;
+                        mapping.ApplyInputChannel(metalChannel);
+                        mapping.InputValue = min + f * (max - min);
+                        return true;
+                    }
                 }
             }
 
             var isOutputMetal = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Metal);
             if (isOutputMetal && !context.IsImport) {
                 // HCM > Metal
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.HCM, out var hcmChannel)
-                    && matReader.TryGetByTag(hcmChannel.Texture, out mapping.SourceFilename)) {
-                    mapping.ApplyInputChannel(hcmChannel);
-                    mapping.Convert_HcmToMetal = true;
-                    return true;
-                }
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.HCM, out var hcmChannel)) {
+                    if (matReader.TryGetByTag(hcmChannel.Texture, out mapping.SourceFilename)) {
+                        mapping.ApplyInputChannel(hcmChannel);
+                        mapping.Convert_HcmToMetal = true;
+                        return true;
+                    }
 
-                if (context.Material.TryGetChannelValue(EncodingChannel.HCM, out value)) {
-                    mapping.ApplyInputChannel(inputChannel);
+                    if (context.Material.TryGetChannelValue(EncodingChannel.HCM, out value)) {
+                        mapping.ApplyInputChannel(hcmChannel);
 
-                    mapping.InputValue = (float)value >= 230f
-                        ? (float?)outputChannel.MaxValue ?? 1f
-                        : (float?)outputChannel.MinValue ?? 0f;
+                        mapping.InputValue = (float)value >= 230f
+                            ? (float?)outputChannel.MaxValue ?? 1f
+                            : (float?)outputChannel.MinValue ?? 0f;
                     
-                    return true;
+                        return true;
+                    }
                 }
 
                 // F0 > Metal
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.F0, out var f0Channel)
-                    && matReader.TryGetByTag(f0Channel.Texture, out mapping.SourceFilename)) {
-                    mapping.ApplyInputChannel(f0Channel);
-                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.F0);
-                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.F0);
-                    return true;
-                }
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.F0, out var f0Channel)) {
+                    if (matReader.TryGetByTag(f0Channel.Texture, out mapping.SourceFilename)) {
+                        mapping.ApplyInputChannel(f0Channel);
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.F0);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.F0);
+                        return true;
+                    }
 
-                if (context.Material.TryGetChannelValue(EncodingChannel.F0, out value)) {
-                    var f = value > 0.5m ? 1f : 0f;
-                    var min = (float?)f0Channel.MinValue ?? 0f;
-                    var max = (float?)f0Channel.MaxValue ?? 0.9f;
+                    if (context.Material.TryGetChannelValue(EncodingChannel.F0, out value)) {
+                        var f = value > 0.5m ? 1f : 0f;
+                        var min = (float?)f0Channel.MinValue ?? 0f;
+                        var max = (float?)f0Channel.MaxValue ?? 0.9f;
 
-                    mapping.ApplyInputChannel(inputChannel);
-                    mapping.InputValue = min + f * (max - min);
-                    return true;
+                        mapping.ApplyInputChannel(f0Channel);
+                        mapping.InputValue = min + f * (max - min);
+                        return true;
+                    }
                 }
             }
 
             var isOutputHCM = EncodingChannel.Is(outputChannel.ID, EncodingChannel.HCM);
             if (isOutputHCM && !context.IsImport) {
                 // Metal > HCM
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel)
-                    && matReader.TryGetByTag(metalChannel.Texture, out mapping.SourceFilename)) {
-                    mapping.ApplyInputChannel(metalChannel);
-                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
-                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
-                    mapping.Convert_MetalToHcm = true;
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel)) {
+                    if (matReader.TryGetByTag(metalChannel.Texture, out mapping.SourceFilename)) {
+                        mapping.ApplyInputChannel(metalChannel);
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
+                        mapping.Convert_MetalToHcm = true;
 
-                    return true;
-                }
+                        return true;
+                    }
 
-                if (context.Material.TryGetChannelValue(EncodingChannel.Metal, out value)) {
-                    mapping.ApplyInputChannel(inputChannel);
-                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
-                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
+                    if (context.Material.TryGetChannelValue(EncodingChannel.Metal, out value)) {
+                        mapping.ApplyInputChannel(metalChannel);
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
 
-                    var threshold = (mapping.InputMinValue + mapping.InputMaxValue) * 0.5f;
-                    if ((float)value < threshold) return false;
-                    mapping.InputValue = mapping.OutputMaxValue;
-                    return true;
+                        var threshold = (mapping.InputMinValue + mapping.InputMaxValue) * 0.5f;
+                        if ((float)value < threshold) return false;
+                        mapping.InputValue = mapping.OutputMaxValue;
+                        return true;
+                    }
                 }
             }
 

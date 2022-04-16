@@ -3,7 +3,8 @@
 
 #pragma pack_matrix(row_major)
 
-static const float sample_delta = 0.025f;
+//static const float sample_delta = 0.025f;
+static const float sample_delta = 0.05f;
 
 
 float4 main(const in ps_input_cube input) : SV_TARGET

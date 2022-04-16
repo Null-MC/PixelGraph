@@ -51,7 +51,6 @@ namespace PixelGraph.Rendering.Sky
             GeometryBuffer = Collect(new SkyBoxBufferModel());
             textureSampler = Collect(technique.EffectsManager.StateManager.Register(SamplerDescription));
             return true;
-
         }
 
         protected override void OnDetach()

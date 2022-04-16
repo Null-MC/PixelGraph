@@ -65,6 +65,7 @@ namespace PixelGraph.Common.IO
             await stream.FlushAsync(token);
             var size = stream.Length;
 
+            stream.Seek(0, SeekOrigin.Begin);
             await using var entryStream = entry.Open();
             await stream.CopyToAsync(entryStream, token);
 

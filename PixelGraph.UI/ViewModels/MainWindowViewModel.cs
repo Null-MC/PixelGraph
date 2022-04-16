@@ -315,8 +315,8 @@ namespace PixelGraph.UI.ViewModels
                 tab.IsLoading = true;
                 await UpdateTabPreviewAsync(context, token);
             }
-            catch (Exception) {
-                // TODO: LOG
+            catch (Exception error) {
+                logger.LogError(error, "Failed to update tab preview!");
             }
             finally {
                 await Dispatcher.BeginInvoke(() => tab.IsLoading = false);

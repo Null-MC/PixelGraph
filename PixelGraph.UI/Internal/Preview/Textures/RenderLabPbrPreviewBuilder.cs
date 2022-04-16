@@ -64,7 +64,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 [TextureTags.Rough] = (profile, mat) => new ResourcePackChannelProperties[] {
                     new ResourcePackSmoothChannelProperties(TextureTags.Rough, ColorChannel.Red) {
                         //Sampler = mat?.Rough?.Input?.Sampler ?? profile?.Encoding?.Rough?.Sampler,
-                        DefaultValue = 1m,
+                        DefaultValue = 0m,
                     },
                     new ResourcePackF0ChannelProperties(TextureTags.Rough, ColorChannel.Green) {
                         //Sampler = mat?.F0?.Input?.Sampler ?? profile?.Encoding?.F0?.Sampler,

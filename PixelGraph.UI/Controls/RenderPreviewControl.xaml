@@ -115,7 +115,7 @@
                     </Style>
                 </controls1:EquirectangularCubeMap3D.Style>
             </controls1:EquirectangularCubeMap3D>
-            <controls1:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="64"
+            <controls1:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="16"
                 IsRendering="{Binding SceneProperties.HasEnvironmentMap, Mode=OneWay}">
                 <controls1:IrradianceCube3D.Style>
                     <Style TargetType="controls1:IrradianceCube3D">
@@ -165,7 +165,7 @@
             <!--<controls1:BlockMeshGeometryModel3D CullMode="Back" IsThrowingShadow="True"
                                     Geometry="{Binding BlockMesh, Mode=OneWay}"
                                     Material="{Binding ModelMaterial, Mode=OneWay}"/>-->
-            <!--<pm:DebugSkyBox3D CubeMapSource="{Binding Mode=OneWay, Source={x:Reference IrradianceCube}}"/>-->
+            <!--<controls1:DebugSkyBox3D CubeMapSource="{Binding Mode=OneWay, Source={x:Reference IrradianceCubeMapSource}}"/>-->
             <!--<hx:UICompositeManipulator3D Diameter="6"
                 CanRotateX="False" CanRotateY="False" CanRotateZ="False"
                 CanTranslateX="True" CanTranslateY="True" CanTranslateZ="True"
