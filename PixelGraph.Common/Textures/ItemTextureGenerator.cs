@@ -249,19 +249,13 @@ namespace PixelGraph.Common.Textures
             var temp = new Image<TPixel>(targetSize, targetSize);
 
             try {
-                var copyOptions = new CopyRegionProcessor<TPixel>.Options {
-                    SourceImage = image,
-                    SourceX = 0,
-                    SourceY = 0,
-                };
-
                 var outBounds = new Rectangle(
                     (targetSize - image.Width) / 2,
                     (targetSize - image.Height) / 2,
                     image.Width, image.Height);
 
-                var processor = new CopyRegionProcessor<TPixel>(copyOptions);
-                temp.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                ImageProcessors.ImageProcessors.CopyRegion(image, 0, 0, temp, outBounds);
+
                 return temp;
             }
             catch {

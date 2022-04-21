@@ -35,11 +35,14 @@ pbr_material get_pbr_material(const in float2 tex)
 	const float  metal = tex_rough_f0_occlusion.SampleLevel(sampler_surface, tex, 0).g;
 
 	pbr_material mat;
-	mat.diffuse = srgb_to_linear(albedo_opacity.rgb);
+	mat.diffuse = albedo_opacity.rgb;
 	mat.opacity = albedo_opacity.a;
 	mat.smooth = smooth_emissive.r;
     mat.metal = metal;
-	mat.emissive = srgb_to_linear(smooth_emissive.g);
+	mat.emissive = smooth_emissive.g;
+
+	mat.diffuse = srgb_to_linear(mat.diffuse);
+	//mat.emissive = srgb_to_linear(mat.emissive);
 
     return mat;
 }

@@ -13,6 +13,8 @@ using PixelGraph.UI.Internal.Models;
 using SharpDX;
 using System;
 using System.Linq;
+using System.Windows.Documents.DocumentStructures;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
 using OrthographicCamera = HelixToolkit.Wpf.SharpDX.OrthographicCamera;
 using PerspectiveCamera = HelixToolkit.Wpf.SharpDX.PerspectiveCamera;
@@ -40,8 +42,10 @@ namespace PixelGraph.UI.Models.Scene
         private int _waterMode;
         private OrthographicCamera _sunCamera;
         private PerspectiveCamera _lightCamera;
+        //private Transform3D _meshTransform;
         private string _meshBlendMode;
         private string _meshTintColor;
+        private bool _showIrradiance;
 
         public event EventHandler RenderModeChanged;
         public event EventHandler RenderModelChanged;
@@ -203,6 +207,14 @@ namespace PixelGraph.UI.Models.Scene
             }
         }
 
+        //public Transform3D MeshTransform {
+        //    get => _meshTransform;
+        //    set {
+        //        _meshTransform = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
+
         public string MeshBlendMode {
             get => _meshBlendMode;
             set {
@@ -215,6 +227,15 @@ namespace PixelGraph.UI.Models.Scene
             get => _meshTintColor;
             set {
                 _meshTintColor = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool ShowIrradiance {
+            get => _showIrradiance;
+            set {
+                if (_showIrradiance == value) return;
+                _showIrradiance = value;
                 OnPropertyChanged();
             }
         }

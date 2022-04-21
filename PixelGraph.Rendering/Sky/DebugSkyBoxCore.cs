@@ -61,6 +61,8 @@ namespace PixelGraph.Rendering.Sky
 
         protected override void OnRender(RenderContext context, DeviceContextProxy deviceContext)
         {
+            if (_cubeMapSource == null) return;
+
             deviceContext.SetShaderResource(PixelShader.Type, cubeTextureSlot, _cubeMapSource.CubeMap);
             deviceContext.SetSampler(PixelShader.Type, textureSamplerSlot, textureSampler);
 

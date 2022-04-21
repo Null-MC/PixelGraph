@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using PixelGraph.Common.ImageProcessors;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
 using System;
 using System.Linq;
 using System.Threading;
@@ -51,18 +49,13 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 var partHeight = (int)((firstFrame.SourceBounds.Bottom - firstFrame.SourceBounds.Top) * srcHeight * frameCount);
                 using var regionImage = new Image<TPixel>(partWidth, partHeight);
 
-                var options = new CopyRegionProcessor<TPixel>.Options {
-                    SourceImage = image,
-                };
-
-                var processor = new CopyRegionProcessor<TPixel>(options);
-
                 foreach (var frame in part.Frames) {
-                    options.SourceX = (int) (frame.SourceBounds.Left * srcWidth);
-                    options.SourceY = (int) (frame.SourceBounds.Top * srcHeight);
+                    var sourceX = (int) (frame.SourceBounds.Left * srcWidth);
+                    var sourceY = (int) (frame.SourceBounds.Top * srcHeight);
 
                     var outBounds = frame.DestBounds.ScaleTo(partWidth, partHeight);
-                    regionImage.Mutate(c => c.ApplyProcessor(processor, outBounds));
+
+                    ImageProcessors.ImageProcessors.CopyRegion(image, sourceX, sourceY, regionImage, outBounds);
                 }
 
                 diskSize = await ImageWriter.WriteAsync(regionImage, type, destFile, token);

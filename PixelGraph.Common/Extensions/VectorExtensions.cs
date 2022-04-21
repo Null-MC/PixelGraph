@@ -17,6 +17,12 @@ namespace PixelGraph.Common.Extensions
             };
         }
 
+        public static void GetChannelByteValue(this in Vector4 vector, in ColorChannel channel, out byte value)
+        {
+            GetChannelValue(in vector, in channel, out var fValue);
+            MathEx.Saturate(in fValue, out value);
+        }
+
         public static void SetChannelValue(this ref Vector4 vector, in ColorChannel channel, in float value)
         {
             switch (channel) {

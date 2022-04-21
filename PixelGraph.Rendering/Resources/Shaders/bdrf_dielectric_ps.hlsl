@@ -1,5 +1,5 @@
 //#define SCREENQUAD
-#define sampleCount 128
+#define sampleCount 64
 
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
@@ -20,13 +20,10 @@ float2 hammersleySequence(const in uint i, const in uint N)
     return float2(float(i) / float(N), vdcSequence(i));
 }
 
-float3 importanceSampleGGX(const in float2 Xi, const in float3 N, const in float roughL)
+float3 importanceSampleGGX(const in float2 Xi, const in float3 N, const in float a2)
 {
-    //const float alpha = roughP * roughP;
-    const float alpha2 = roughL * roughL;
-	
     const float phi = 2.0 * PI * Xi.x;
-    const float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (alpha2 - 1.0) * Xi.y));
+    const float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a2 - 1.0) * Xi.y));
     const float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
 	
     // from spherical coordinates to cartesian coordinates
@@ -47,36 +44,38 @@ float3 importanceSampleGGX(const in float2 Xi, const in float3 N, const in float
     return normalize(sampleVec);
 }
 
-float GDFG(const in float NoV, const in float NoL, const in float a) {
-    const float a2 = a * a;
+float GDFG(const in float NoV, const in float NoL, const in float a2) {
     const float GGXL = NoV * sqrt((-NoL * a2 + NoL) * NoL + a2);
     const float GGXV = NoL * sqrt((-NoV * a2 + NoV) * NoV + a2);
     return (2.f * NoL) / (GGXV + GGXL);
 }
 
-float2 DFG(const in float NoV, const in float a) {
+float2 DFG(const in float NoV, const in float roughL) {
     // ERROR: This can't be right!
 	const float3 N = float3(0.f, 0.f, 1.f);
 
 	const float3 V = float3(sqrt(1.0f - NoV*NoV), 0.0f, NoV);
+    const float a2 = roughL * roughL;
 
     float2 r = 0.0f;
     for (uint i = 0; i < sampleCount; i++) {
 	    const float2 Xi = hammersleySequence(i, sampleCount);
-        const float3 H = importanceSampleGGX(Xi, N, a);
-        const float3 L = 2.0f * dot(V, H) * H - V;
+        const float3 H = importanceSampleGGX(Xi, N, a2);
+        const float3 L = 2.f * dot(V, H) * H - V;
 
         const float VoH = saturate(dot(V, H));
         const float NoL = saturate(L.z);
         const float NoH = saturate(H.z);
 
         if (NoL > 0.0f) {
-            const float G = GDFG(NoV, NoL, a);
+            const float G = GDFG(NoV, NoL, a2);
             const float Gv = G * VoH / NoH;
-            const float Fc = pow(1 - VoH, 5.0f);
+            const float Fc = pow(1.f - VoH, 5.f);
 
-            r.x += Gv * (1.0f - Fc);
-            r.y += Gv * Fc;
+            //r.x += Gv * (1.f - Fc);
+            //r.y += Gv * Fc;
+            r.x += Gv * Fc;
+            r.y += Gv;
         }
     }
 

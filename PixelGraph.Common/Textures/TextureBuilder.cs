@@ -227,10 +227,8 @@ namespace PixelGraph.Common.Textures
                     await ApplyOutputOcclusionAsync(imageResult, mappingsWithOutputOcclusion, token);
 
                 if (autoLevel && mappingsWithHeight.Any())
-                    imageResult.Mutate(imgContext => {
-                        foreach (var color in mappingsWithHeight.Select(m => m.OutputColor))
-                            AutoLevelHeight(imgContext, color);
-                    });
+                    foreach (var color in mappingsWithHeight.Select(m => m.OutputColor))
+                        AutoLevelHeight(imageResult, color);
 
                 return imageResult;
             }
@@ -797,27 +795,12 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private void AutoLevelHeight(IImageProcessingContext imgContext, ColorChannel color)
+        private static void AutoLevelHeight(Image image, ColorChannel color)
         {
-            var size = imgContext.GetCurrentSize();
-            var scanOptions = new HistogramProcessor<L16>.Options(size.Height) {
-                Color = color,
-            };
+            var offset = 1f - ImageProcessors.ImageProcessors.GetMaxValue(image, color);
+            if (offset < float.Epsilon) return;
 
-            // TODO: find max value
-            var histogramProcessor = new HistogramProcessor<L16>(scanOptions);
-            imgContext.ApplyProcessor(histogramProcessor);
-
-            var max = scanOptions.Max;
-            if (max == 255) return;
-
-            var shiftOptions = new ShiftProcessor<L16>.Options {
-                Offset = (byte)(255 - max),
-                Color = color,
-            };
-
-            var shiftProcessor = new ShiftProcessor<L16>(shiftOptions);
-            imgContext.ApplyProcessor(shiftProcessor);
+            ImageProcessors.ImageProcessors.Shift(image, color, offset);
         }
 
         private async Task<Size?> GetBufferSizeAsync(CancellationToken token = default)

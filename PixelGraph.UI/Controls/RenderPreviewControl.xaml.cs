@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
@@ -164,6 +165,18 @@ namespace PixelGraph.UI.Controls
 
             // TODO: replace this with UpdateModelParts()
             // need to rebind existing materials for this to help
+        }
+
+        private void OnControlPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.I && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                Model.RenderProperties.ShowIrradiance = true;
+        }
+
+        private void OnControlPreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.I && Model.RenderProperties.ShowIrradiance)
+                Model.RenderProperties.ShowIrradiance = false;
         }
 
         private void ShowWindowError(string message)

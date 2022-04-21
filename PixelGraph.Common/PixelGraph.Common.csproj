@@ -3,9 +3,9 @@
   <PropertyGroup>
     <Version>1.9.9</Version>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Platforms>AnyCPU;x64</Platforms>
     <Configurations>Debug;Release</Configurations>
     <LangVersion>latest</LangVersion>
+    <Platforms>x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,9 +21,13 @@
     <Compile Remove="Extensions\RectangleExtensions.cs" />
     <Compile Remove="ImageProcessors\ChannelActionProcessor.cs" />
     <Compile Remove="ImageProcessors\ChannelResizeProcessor.cs" />
+    <Compile Remove="ImageProcessors\CopyRegionProcessor.cs" />
+    <Compile Remove="ImageProcessors\HistogramProcessor.cs" />
+    <Compile Remove="ImageProcessors\NormalMagnitudeReadProcessor.cs" />
     <Compile Remove="ImageProcessors\NormalRestoreProcessor.cs" />
     <Compile Remove="ImageProcessors\OverwriteProcessor.cs" />
     <Compile Remove="ImageProcessors\RegionProcessor.cs" />
+    <Compile Remove="ImageProcessors\ShiftProcessor.cs" />
     <Compile Remove="IO\BedrockNamingStructure.cs" />
     <Compile Remove="IO\JavaNamingStructure.cs" />
     <Compile Remove="IO\Publishing\BedrockPublishReader.cs" />
@@ -37,6 +41,7 @@
     <Compile Remove="ResourcePack\ResourcePackInputDiffuseGreenProperties.cs" />
     <Compile Remove="ResourcePack\ResourcePackInputDiffuseRedProperties.cs" />
     <Compile Remove="Samplers\PointSampler.cs" />
+    <Compile Remove="Samplers\RowSamplerBase.cs" />
     <Compile Remove="Samplers\SamplerScope.cs" />
     <Compile Remove="Textures\Graphing\CtmTextureMap.cs" />
     <Compile Remove="Textures\TextureConnectionTypes.cs" />

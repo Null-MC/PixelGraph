@@ -22,11 +22,14 @@ namespace PixelGraph.Common.ImageProcessors
             var srcBounds = context.Bounds;
             if (srcBounds.IsEmpty) return;
 
+            GetTexCoordY(in context, out double rfy);
+            var rowSampler = options.Sampler.ForRow(in rfy);
+
             double fx, fy;
             Vector4 pixel;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 GetTexCoord(in context, in x, out fx, out fy);
-                options.Sampler.SampleScaled(fx, fy, out pixel);
+                rowSampler.SampleScaled(in fx, in fy, out pixel);
                 row[x].FromScaledVector4(pixel);
             }
         }

@@ -8,9 +8,6 @@ namespace PixelGraph.Common.PixelOperations
 {
     internal abstract class PixelRowProcessor : IImageProcessor
     {
-        //protected const float HalfPixel = 0.5f - float.Epsilon;
-
-
         public IImageProcessor<TPixel> CreatePixelSpecificProcessor<TPixel>(Configuration configuration, Image<TPixel> source, Rectangle sourceRectangle)
             where TPixel : unmanaged, IPixel<TPixel>
         {
@@ -20,10 +17,10 @@ namespace PixelGraph.Common.PixelOperations
         protected virtual void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> row)
             where TPixel : unmanaged, IPixel<TPixel> {}
 
-        //protected virtual void ProcessRow(in PixelRowContext context, Span<Rgba32> row)
-        //{
-        //    ProcessRow<Rgba32>(in context, row);
-        //}
+        protected static void GetTexCoordY(in PixelRowContext context, out double fy)
+        {
+            fy = (context.Y - context.Bounds.Y) / (float)context.Bounds.Height;
+        }
 
         protected static void GetTexCoord(in PixelRowContext context, in int x, out double fx, out double fy)
         {

@@ -13,15 +13,8 @@ namespace PixelGraph.Common.PixelOperations
             return new Processor<TPixel>(configuration, source, in sourceRectangle, ProcessPixel);
         }
 
-        public IImageProcessor<Rgba32> CreatePixelSpecificProcessor(Configuration configuration, Image<Rgba32> source, Rectangle sourceRectangle)
-        {
-            return new Processor<Rgba32>(configuration, source, in sourceRectangle, ProcessPixel);
-        }
-
         protected virtual void ProcessPixel<TPixel>(ref TPixel pixel, in PixelContext context)
             where TPixel : unmanaged, IPixel<TPixel> {}
-
-        protected virtual void ProcessPixel(ref Rgba32 pixel, in PixelContext context) {}
 
 
         private class Processor<TPixel> : ImageProcessor<TPixel>
@@ -60,14 +53,10 @@ namespace PixelGraph.Common.PixelOperations
                 {
                     var context = new PixelContext(region, y);
                     var row = frame.DangerousGetPixelRowMemory(y).Span;
-                    //var pixel = new Rgba32();
 
                     for (var x = region.Left; x < region.Right; x++) {
                         context.X = x;
-
-                        //row[x].ToRgba32(ref pixel);
                         action.Invoke(ref row[x], in context);
-                        //row[x].FromRgba32(pixel);
                     }
                 }
             }

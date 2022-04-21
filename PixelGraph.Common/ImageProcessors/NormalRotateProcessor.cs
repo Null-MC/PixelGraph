@@ -1,7 +1,8 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Textures;
-using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Numerics;
 
@@ -9,91 +10,100 @@ namespace PixelGraph.Common.ImageProcessors
 {
     internal class NormalRotateProcessor : PixelRowProcessor
     {
-        private readonly Options options;
-        private readonly bool hasRotation, hasNoise;
-        private readonly float offsetTop, offsetBottom, offsetLeft, offsetRight;
-        private readonly float invRadiusTop, invRadiusBottom, invRadiusLeft, invRadiusRight;
+        private bool hasRotation, hasNoise;
+        private float offsetTop, offsetBottom, offsetLeft, offsetRight;
+        private float invRadiusTop, invRadiusBottom, invRadiusLeft, invRadiusRight;
+
+        public Rectangle Bounds;
+        public bool RestoreNormalZ;
+        public float CurveTop = 0f;
+        public float CurveBottom = 0f;
+        public float CurveLeft = 0f;
+        public float CurveRight = 0f;
+        public float RadiusTop = 1f;
+        public float RadiusBottom = 1f;
+        public float RadiusLeft = 1f;
+        public float RadiusRight = 1f;
+        public float Noise = 0f;
 
 
-        public NormalRotateProcessor(Options options)
+        public void Apply(Image image)
         {
-            this.options = options;
-
-            var hasCurveTop = MathF.Abs(options.CurveTop) > float.Epsilon && options.RadiusTop > float.Epsilon;
-            var hasCurveBottom = MathF.Abs(options.CurveBottom) > float.Epsilon && options.RadiusBottom > float.Epsilon;
-            var hasCurveLeft = MathF.Abs(options.CurveLeft) > float.Epsilon && options.RadiusLeft > float.Epsilon;
-            var hasCurveRight = MathF.Abs(options.CurveRight) > float.Epsilon && options.RadiusRight > float.Epsilon;
+            var hasCurveTop = MathF.Abs(CurveTop) > float.Epsilon && RadiusTop > float.Epsilon;
+            var hasCurveBottom = MathF.Abs(CurveBottom) > float.Epsilon && RadiusBottom > float.Epsilon;
+            var hasCurveLeft = MathF.Abs(CurveLeft) > float.Epsilon && RadiusLeft > float.Epsilon;
+            var hasCurveRight = MathF.Abs(CurveRight) > float.Epsilon && RadiusRight > float.Epsilon;
 
             hasRotation = hasCurveTop || hasCurveBottom || hasCurveLeft || hasCurveRight;
-            hasNoise = options.Noise > float.Epsilon;
+            hasNoise = Noise > float.Epsilon;
 
             if (hasCurveTop) {
-                offsetTop = 1f - options.RadiusTop;
-                invRadiusTop = 1f / options.RadiusTop;
+                offsetTop = 1f - RadiusTop;
+                invRadiusTop = 1f / RadiusTop;
             }
             else invRadiusTop = offsetTop = 0f;
 
             if (hasCurveBottom) {
-                offsetBottom = 1f - options.RadiusBottom;
-                invRadiusBottom = 1f / options.RadiusBottom;
+                offsetBottom = 1f - RadiusBottom;
+                invRadiusBottom = 1f / RadiusBottom;
             }
             else invRadiusBottom = offsetBottom = 0f;
 
             if (hasCurveLeft) {
-                offsetLeft = 1f - options.RadiusLeft;
-                invRadiusLeft = 1f / options.RadiusLeft;
+                offsetLeft = 1f - RadiusLeft;
+                invRadiusLeft = 1f / RadiusLeft;
             }
             else invRadiusLeft = offsetLeft = 0f;
 
             if (hasCurveRight) {
-                offsetRight = 1f - options.RadiusRight;
-                invRadiusRight = 1f / options.RadiusRight;
+                offsetRight = 1f - RadiusRight;
+                invRadiusRight = 1f / RadiusRight;
             }
             else invRadiusRight = offsetRight = 0f;
+
+            image.Mutate(c => {
+                c.ProcessPixelRowsAsVector4(ProcessRow);
+            });
         }
 
-        protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
+        private void ProcessRow(Span<Vector4> row, Point pos)
         {
-            var pixel = new Rgba32();
             byte[] noiseX = null, noiseY = null;
 
             if (hasNoise) {
-                GenerateNoise(context.Bounds.Width, out noiseX);
-                GenerateNoise(context.Bounds.Width, out noiseY);
+                GenerateNoise(Bounds.Width, out noiseX);
+                GenerateNoise(Bounds.Width, out noiseY);
             }
 
             var v = new Vector3();
-            for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
+            for (var x = Bounds.Left; x < Bounds.Right; x++) {
                 if (x < 0 || x >= row.Length) continue;
 
-                row[x].ToRgba32(ref pixel);
-                pixel.GetChannelValue(ColorChannel.Red, out var normalX);
-                pixel.GetChannelValue(ColorChannel.Green, out var normalY);
+                row[x].GetChannelValue(ColorChannel.Red, out var normalX);
+                row[x].GetChannelValue(ColorChannel.Green, out var normalY);
 
-                v.X = Math.Clamp(normalX / 127f - 1f, -1f, 1f);
-                v.Y = Math.Clamp(normalY / 127f - 1f, -1f, 1f);
+                v.X = Math.Clamp(normalX * 2f - 1f, -1f, 1f);
+                v.Y = Math.Clamp(normalY * 2f - 1f, -1f, 1f);
 
-                if (!options.RestoreNormalZ) {
-                    pixel.GetChannelValue(ColorChannel.Blue, out var normalZ);
-                    v.Z = Math.Clamp(normalZ / 127f - 1f, -1f, 1f);
+                if (!RestoreNormalZ) {
+                    row[x].GetChannelValue(ColorChannel.Blue, out var normalZ);
+                    v.Z = Math.Clamp(normalZ * 2f - 1f, -1f, 1f);
                     MathEx.Normalize(ref v);
                 }
 
-                ProcessPixel(in context, ref v, in noiseX, in noiseY, in x);
+                ProcessPixel(in x, pos.Y, ref v, in noiseX, in noiseY);
 
-                pixel.SetChannelValueScaledF(ColorChannel.Red, v.X * 0.5f + 0.5f);
-                pixel.SetChannelValueScaledF(ColorChannel.Green, v.Y * 0.5f + 0.5f);
-                pixel.SetChannelValueScaledF(ColorChannel.Blue, v.Z * 0.5f + 0.5f);
-
-                row[x].FromRgba32(pixel);
+                row[x].SetChannelValue(ColorChannel.Red, v.X * 0.5f + 0.5f);
+                row[x].SetChannelValue(ColorChannel.Green, v.Y * 0.5f + 0.5f);
+                row[x].SetChannelValue(ColorChannel.Blue, v.Z * 0.5f + 0.5f);
             }
         }
 
-        private void ProcessPixel(in PixelRowContext context, ref Vector3 v, in byte[] noiseX, in byte[] noiseY, in int x)
+        private void ProcessPixel(in int x, in int y, ref Vector3 v, in byte[] noiseX, in byte[] noiseY)
         {
             if (hasRotation || hasNoise) {
-                var fx = (x - context.Bounds.X + 0.5f) / context.Bounds.Width * 2f - 1f;
-                var fy = (context.Y - context.Bounds.Y + 0.5f) / context.Bounds.Height * 2f - 1f;
+                var fx = (x - Bounds.X + 0.5f) / Bounds.Width * 2f - 1f;
+                var fy = (y - Bounds.Y + 0.5f) / Bounds.Height * 2f - 1f;
 
                 var f_top = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
                 var f_bottom = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
@@ -117,22 +127,22 @@ namespace PixelGraph.Common.ImageProcessors
                     var baseAngle = MathF.Acos(baseRotation.Z);
 
                     var mix = MathF.Abs(MathF.Asin(rotationAxis.X) / (MathF.PI / 2f));
-                    var angle_x = MathF.Sign(-f_left) * options.CurveLeft + MathF.Sign(f_right) * options.CurveRight;
-                    var angle_y = MathF.Sign(-f_top) * options.CurveTop + MathF.Sign(f_bottom) * options.CurveBottom;
+                    var angle_x = MathF.Sign(-f_left) * CurveLeft + MathF.Sign(f_right) * CurveRight;
+                    var angle_y = MathF.Sign(-f_top) * CurveTop + MathF.Sign(f_bottom) * CurveBottom;
                     MathEx.Lerp(angle_x, angle_y, mix, out var angle);
                     
                     q = Quaternion.CreateFromAxisAngle(rotationAxis, baseAngle * (angle / 45f));
                 }
 
                 if (hasNoise) {
-                    var z = x - context.Bounds.Left;
-                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[z] / 127.5f - 1f) * options.Noise * MathEx.Deg2RadF);
-                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[z] / 127.5f - 1f) * -options.Noise * MathEx.Deg2RadF);
+                    var z = x - Bounds.Left;
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[z] / 127.5f - 1f) * Noise * MathEx.Deg2RadF);
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[z] / 127.5f - 1f) * -Noise * MathEx.Deg2RadF);
                 }
 
                 v = Vector3.Transform(v, q);
             }
-            else if (options.RestoreNormalZ) {
+            else if (RestoreNormalZ) {
                 var v2 = new Vector2(v.X, v.Y);
                 var d = Vector2.Dot(v2, v2);
                 MathEx.Clamp(ref d, 0f, 1f);
@@ -147,20 +157,6 @@ namespace PixelGraph.Common.ImageProcessors
             var random = new Random();
             buffer = new byte[size];
             random.NextBytes(buffer);
-        }
-
-        public class Options
-        {
-            public bool RestoreNormalZ;
-            public float CurveTop = 0f;
-            public float CurveBottom = 0f;
-            public float CurveLeft = 0f;
-            public float CurveRight = 0f;
-            public float RadiusTop = 1f;
-            public float RadiusBottom = 1f;
-            public float RadiusLeft = 1f;
-            public float RadiusRight = 1f;
-            public float Noise = 0f;
         }
     }
 }

@@ -3,7 +3,6 @@ using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
 using System.Linq;
 
 namespace PixelGraph.Common.Effects
@@ -36,18 +35,15 @@ namespace PixelGraph.Common.Effects
 
             if (!heightChannels.Any()) return;
 
-            var options = new HeightEdgeProcessor.Options {
+            var processor = new HeightEdgeProcessor {
                 SizeX = (float?)context.Material.Height?.EdgeFadeX ?? 0f,
                 SizeY = (float?)context.Material.Height?.EdgeFadeY ?? 0f,
                 Strength = (float?)context.Material.Height?.EdgeFadeStrength ?? 1f,
+                Bounds = bounds ?? image.Bounds(),
                 Colors = heightChannels,
             };
 
-            var processor = new HeightEdgeProcessor(options);
-            image.Mutate(c => {
-                if (!bounds.HasValue) c.ApplyProcessor(processor);
-                else c.ApplyProcessor(processor, bounds.Value);
-            });
+            processor.Apply(image);
         }
     }
 }

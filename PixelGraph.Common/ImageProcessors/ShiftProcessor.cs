@@ -24,7 +24,7 @@ namespace PixelGraph.Common.ImageProcessors
                 row[x].ToRgba32(ref pixel);
                 pixel.GetChannelValue(in options.Color, out var value);
 
-                value = MathEx.Clamp(value + options.Offset);
+                value = MathEx.ByteClamp(value + options.Offset);
 
                 pixel.SetChannelValue(in options.Color, value);
                 row[x].FromRgba32(pixel);

@@ -2,6 +2,7 @@
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers
@@ -9,21 +10,30 @@ namespace PixelGraph.Common.Samplers
     internal abstract class SamplerBase<TPixel> : ISampler<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        //protected const float HalfPixel = 0.5f + float.Epsilon;
         private const float RgbToLinear = 1f / 255f;
+
+        protected Rectangle Bounds;
 
         public Image<TPixel> Image {get; set;}
         public float RangeX {get; set;}
         public float RangeY {get; set;}
         public bool WrapX {get; set;}
         public bool WrapY {get; set;}
-        public Rectangle Bounds {get; set;}
 
 
         protected SamplerBase()
         {
             Bounds = Rectangle.Empty;
         }
+
+        public void SetBounds(in UVRegion region)
+        {
+            if (Image == null) throw new ApplicationException("Unable to set bounds when image is undefined!");
+
+            Bounds = region.ScaleTo(Image.Width, Image.Height);
+        }
+
+        public abstract IRowSampler<TPixel> ForRow(in double y);
 
         public abstract void Sample(in double x, in double y, ref Rgba32 pixel);
 
@@ -49,52 +59,36 @@ namespace PixelGraph.Common.Samplers
 
         protected void GetTexCoord(in double x, in double y, out float fx, out float fy)
         {
-            //Bounds.GetTexCoord(in x, in y, out var dx, out var dy);
-
-            //fx = (float)(Bounds.Left + x * Bounds.Width) * Image.Width;
-            //fy = (float)(Bounds.Top + y * Bounds.Height) * Image.Height;
             fx = (float)(Bounds.Left + x * Bounds.Width);
             fy = (float)(Bounds.Top + y * Bounds.Height);
         }
 
-        protected void WrapCoordX(ref int x)
+        protected void GetTexCoordX(in double x, out float fx)
         {
-            //var innerImageWidth = Image.Width - 1;
-            //var outerBoundsWidth = (int)(Bounds.Width * Image.Width);
-            //var left = (int)(Bounds.Left * innerImageWidth);
-            //var right = (int)(Bounds.Right * innerImageWidth);
-
-            //while (x < left) x += outerBoundsWidth;
-            //while (x > right) x -= outerBoundsWidth;
-
-            while (x < Bounds.Left) x += Bounds.Width;
-            while (x >= Bounds.Right) x -= Bounds.Width;
+            fx = (float)(Bounds.Left + x * Bounds.Width);
         }
 
-        protected void WrapCoordY(ref int y)
+        protected void GetTexCoordY(in double y, out float fy)
         {
-            //var innerImageHeight = Image.Height - 1;
-            //var outerBoundsHeight = (int)(Bounds.Height * Image.Height);
-            //var top = (int)(Bounds.Top * innerImageHeight);
-            //var bottom = (int)(Bounds.Bottom * innerImageHeight);
-
-            //while (y < top) y += outerBoundsHeight;
-            //while (y > bottom) y -= outerBoundsHeight;
-
-            while (y < Bounds.Top) y += Bounds.Height;
-            while (y >= Bounds.Bottom) y -= Bounds.Height;
+            fy = (float)(Bounds.Top + y * Bounds.Height);
         }
 
-        protected void ClampCoordX(ref int x)
+        protected void NormalizeTexCoordX(ref int px)
         {
-            if (x < Bounds.Left) x = Bounds.Left;
-            if (x >= Bounds.Right) x = Bounds.Right-1;
+            if (WrapX) TexCoordHelper.WrapCoordX(ref px, in Bounds);
+            else TexCoordHelper.ClampCoordX(ref px, in Bounds);
         }
 
-        protected void ClampCoordY(ref int y)
+        protected void NormalizeTexCoordY(ref int py)
         {
-            if (y < Bounds.Top) y = Bounds.Top;
-            if (y >= Bounds.Bottom) y = Bounds.Bottom-1;
+            if (WrapY) TexCoordHelper.WrapCoordY(ref py, in Bounds);
+            else TexCoordHelper.ClampCoordY(ref py, in Bounds);
+        }
+
+        protected void NormalizeTexCoord(ref int px, ref int py)
+        {
+            NormalizeTexCoordX(ref px);
+            NormalizeTexCoordY(ref py);
         }
     }
 }

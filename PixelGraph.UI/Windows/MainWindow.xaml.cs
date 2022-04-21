@@ -963,7 +963,7 @@ namespace PixelGraph.UI.Windows
             renderPreview.Model.UpdateSunPosition();
         }
 
-        private async void OnScenePropertiesEnvironmentChanged(object sender, EventArgs e)
+        private void OnScenePropertiesEnvironmentChanged(object sender, EventArgs e)
         {
             //await viewModel.UpdateTabPreviewAsync();
             viewModel.UpdateMaterials();

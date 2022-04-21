@@ -1,7 +1,6 @@
-#define PI 3.14159265f
+//#define PI 3.14159265f
 #define F0_WATER 0.02f
-#define WATER_ROUGH 0.014f
-#define WATER_BLUR 0.4f
+#define WATER_ROUGH 0.002f
 
 #pragma pack_matrix(row_major)
 
@@ -147,8 +146,8 @@ float3 IBL_ambient(const in float3 F, const in float3 reflect)
 
 float3 IBL_specular(const in float3 f0, const in float3 f90, const in float NoV, const in float3 r, const in float occlusion, const in float roughP)
 {
-	const float roughL = pow2(roughP);
-	const float3 specular_occlusion = IBL_SpecularOcclusion(NoV, occlusion, roughL);
+	//const float roughL = pow2(roughP);
+	const float3 specular_occlusion = IBL_SpecularOcclusion(NoV, occlusion, roughP);
 
     float3 indirect_specular;
     if (bHasCubeMap) {
@@ -161,9 +160,10 @@ float3 IBL_specular(const in float3 f0, const in float3 f90, const in float NoV,
 		indirect_specular = srgb_to_linear(vLightAmbient.rgb);
 	}
 	
-	const float2 lut_tex = float2(NoV, roughL);
-	const float2 env_brdf = tex_dielectric_brdf_lut.SampleLevel(sampler_brdf_lut, lut_tex, 0);
-	return indirect_specular * (f0 * env_brdf.x + f90 * env_brdf.y) * specular_occlusion;
+	const float2 lut_tex = float2(NoV, roughP);
+	const float2 DFG = tex_dielectric_brdf_lut.SampleLevel(sampler_brdf_lut, lut_tex, 0);
+	//return indirect_specular * (f0 * DFG.x + f90 * DFG.y) * specular_occlusion;
+	return indirect_specular * lerp(DFG.xxx, DFG.yyy, f0) * specular_occlusion;
 }
 
 
@@ -211,14 +211,21 @@ float SSS_Light(const in float3 normal, const in float3 view, const in float3 li
 	const float3 sss_light = light_dir + normal * SSS_Distortion;
 	const float sss_dot = saturate(dot(-view, sss_light));
 	//return sss * pow(sss_dot, 10) * saturate(1.0f - thickness * (24.0f - 23.0f * sss));
-	return sss * pow(sss_dot, 10) * saturate(1.0 - 24.0f * thickness * (1.0f-sss));
+	const float s = pow(sss_dot, 10) * saturate(1.0 - 24.0f * thickness * (1.0f-sss));
+	return saturate(sss * s);
 }
 
 float3 SSS_IBL(const in float3 view, const in float sss)
 {
-	const float3 SSS_Ambient = bHasCubeMap
+	const float3 SSS_Indirect = bHasCubeMap
 		? tex_irradiance.SampleLevel(sampler_irradiance, -view, 0)
 		: srgb_to_linear(vLightAmbient.rgb);
 
-	return SSS_Ambient * sss;
+	float3 SSS_Direct = 0.f;
+	if (bHasCubeMap) {
+		const float level = (1.f - 0.5f * sss) * NumEnvironmentMapMipLevels;
+		SSS_Direct = tex_environment.SampleLevel(sampler_environment, -view, level);
+	}
+
+	return sss * (SSS_Indirect + SSS_Direct);
 }

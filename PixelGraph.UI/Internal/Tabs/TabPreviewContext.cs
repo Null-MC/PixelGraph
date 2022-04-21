@@ -1,9 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.Material;
-using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal.Preview;
-using PixelGraph.UI.Internal.Preview.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -20,7 +16,6 @@ namespace PixelGraph.UI.Internal.Tabs
 {
     public class TabPreviewContext : IDisposable
     {
-        private readonly IServiceProvider provider;
         private readonly object lockHandle;
         private CancellationTokenSource tokenSource;
         private BitmapSource _layerImageSource;
@@ -40,8 +35,6 @@ namespace PixelGraph.UI.Internal.Tabs
 
         public TabPreviewContext(IServiceProvider provider)
         {
-            this.provider = provider;
-
             lockHandle = new object();
 
 #if !RELEASENORENDER
@@ -73,25 +66,12 @@ namespace PixelGraph.UI.Internal.Tabs
         }
 #endif
 
-        public async Task BuildLayerAsync(ResourcePackContext context, MaterialProperties material, string textureTag, CancellationToken token = default)
+        public void SetImageSource(Image image)
         {
-            using var previewBuilder = provider.GetRequiredService<ILayerPreviewBuilder>();
-
-            //previewBuilder.RootDirectory = context.RootPath;
-            previewBuilder.Input = context.Input;
-            previewBuilder.Profile = context.Profile;
-            previewBuilder.Material = material;
-            previewBuilder.TargetFrame = 0;
-
-            var tag = textureTag;
-            if (TextureTags.Is(tag, TextureTags.General))
-                tag = TextureTags.Color;
-
-            var newImage = await previewBuilder.BuildAsync(tag, token);
-
             LayerImage?.Dispose();
-            LayerImage = newImage;
+            LayerImage = image;
             IsLayerValid = true;
+            IsLayerSourceValid = false;
         }
 
         public BitmapSource GetLayerImageSource()
@@ -114,7 +94,11 @@ namespace PixelGraph.UI.Internal.Tabs
                 _ => null,
             };
 
-            if (_layerImageSource?.CanFreeze ?? false) _layerImageSource.Freeze();
+            if (_layerImageSource != null) {
+                //_layerImageSource.in
+
+                if (_layerImageSource.CanFreeze) _layerImageSource.Freeze();
+            }
 
             IsLayerSourceValid = true;
             return _layerImageSource;
@@ -194,7 +178,7 @@ namespace PixelGraph.UI.Internal.Tabs
             var texImage = new BitmapImage();
 
             texImage.BeginInit();
-            texImage.CacheOption = BitmapCacheOption.OnLoad;
+            texImage.CacheOption = BitmapCacheOption.None; //.OnLoad;
             texImage.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
             texImage.UriSource = new Uri(filename);
             texImage.EndInit();

@@ -79,7 +79,7 @@ namespace PixelGraph.Common.Extensions
         //    value = maxValue - (value - minValue);
         //}
 
-        public static byte Clamp(int value)
+        public static byte ByteClamp(int value)
         {
             return (byte)Math.Clamp(value, 0, 255);
         }
@@ -115,6 +115,11 @@ namespace PixelGraph.Common.Extensions
         //    if (value < min) value = min;
         //    else if (value > max) value = max;
         //}
+
+        public static float Saturate(float value)
+        {
+            return Math.Clamp(value, 0f, 1f);
+        }
 
         public static void Saturate(in float value, out byte result)
         {

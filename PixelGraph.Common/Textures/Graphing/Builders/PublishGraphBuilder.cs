@@ -1,15 +1,15 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Effects;
 using PixelGraph.Common.Extensions;
-using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.ResourcePack;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,6 +91,44 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             }
             else {
                 logger.LogDebug("Skipping up-to-date inventory texture for material '{DisplayName}.", Context.Material.DisplayName);
+            }
+        }
+
+        protected override async Task ProcessTextureAsync<TPixel>(Image<TPixel> image, string textureTag, ImageChannels type, CancellationToken token = default)
+        {
+            await base.ProcessTextureAsync(image, textureTag, type, token);
+            
+            var packPublishInventory = Context.Profile.PublishInventory ?? ResourcePackProfileProperties.PublishInventoryDefault;
+
+            // WARN: hack for only publishing inventory color
+            if (TextureTags.Is(textureTag, TextureTags.Color) && packPublishInventory && (Context.Material.PublishItem ?? false)) {
+                var ext = NamingStructure.GetExtension(Context.Profile);
+                var suffix = $"_inventory.{ext}";
+
+                if (GetMappedInventoryName(suffix, out var destFile)) {
+                    var _p = Path.GetDirectoryName(destFile);
+                    var _n = Path.GetFileNameWithoutExtension(destFile);
+                    _n = TexWriter.TryGet(textureTag, _n, ext, true);
+                    if (_p == null || _n == null) {
+                        // WARN: WHAT DO WE DO?!
+                        throw new NotImplementedException();
+                    }
+
+                    destFile = Path.Combine(_p, _n); 
+
+                    var regions = Provider.GetRequiredService<TextureRegionEnumerator>();
+                    regions.SourceFrameCount = Context.MaxFrameCount;
+                    regions.DestFrameCount = Context.MaxFrameCount;
+
+                    var part = regions.GetAllPublishRegions().First();
+                    using var regionImage = GetImageRegion(image, part);
+
+                    edgeFadeEffect.Apply(regionImage, textureTag);
+
+                    await ImageWriter.WriteAsync(regionImage, type, destFile, token);
+
+                    logger.LogInformation("Published inventory texture {destFile}.", destFile);
+                }
             }
         }
 
@@ -270,26 +308,21 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             var regionImage = new Image<TPixel>(partWidth, partHeight);
 
             try {
-                var options = new CopyRegionProcessor<TPixel>.Options {
-                    SourceImage = image,
-                };
-
-                var processor = new CopyRegionProcessor<TPixel>(options);
-
                 if (targetFrame.HasValue) {
                     var frame = part.Frames[targetFrame.Value];
-                    options.SourceX = (int) (frame.SourceBounds.Left * srcWidth);
-                    options.SourceY = (int) (frame.SourceBounds.Top * srcHeight);
+                    var sourceX = (int) (frame.SourceBounds.Left * srcWidth);
+                    var sourceY = (int) (frame.SourceBounds.Top * srcHeight);
 
-                    regionImage.Mutate(c => c.ApplyProcessor(processor));
+                    var outBounds = new Rectangle(0, 0, regionImage.Width, regionImage.Height);
+                    ImageProcessors.ImageProcessors.CopyRegion(image, sourceX, sourceY, regionImage, outBounds);
                 }
                 else {
                     foreach (var frame in part.Frames) {
-                        options.SourceX = (int) (frame.SourceBounds.Left * srcWidth);
-                        options.SourceY = (int) (frame.SourceBounds.Top * srcHeight);
+                        var sourceX = (int) (frame.SourceBounds.Left * srcWidth);
+                        var sourceY = (int) (frame.SourceBounds.Top * srcHeight);
 
                         var outBounds = frame.DestBounds.ScaleTo(partWidth, partHeight);
-                        regionImage.Mutate(c => c.ApplyProcessor(processor, outBounds));
+                        ImageProcessors.ImageProcessors.CopyRegion(image, sourceX, sourceY, regionImage, outBounds);
                     }
                 }
             }

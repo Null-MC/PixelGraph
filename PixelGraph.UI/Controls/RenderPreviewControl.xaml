@@ -10,7 +10,8 @@
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
              xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
              xmlns:controls1="clr-namespace:PixelGraph.UI.Helix.Controls"
-             d:DesignHeight="450" d:DesignWidth="800" x:Name="Control" mc:Ignorable="d" d:DataContext="{x:Null}">
+             d:DesignHeight="450" d:DesignWidth="800" x:Name="Control" mc:Ignorable="d" d:DataContext="{x:Null}"
+             PreviewKeyDown="OnControlPreviewKeyDown" PreviewKeyUp="OnControlPreviewKeyUp">
     <UserControl.Resources>
         <viewData:RenderModeValues x:Key="RenderModes"/>
         <converters:BooleanInverseConverter x:Key="boolInverseConverter"/>
@@ -54,15 +55,15 @@
             ZoomExtentsWhenLoaded="True"
             FrameRateText="{Binding FrameRateText, Mode=OneWayToSource, RelativeSource={RelativeSource AncestorType={x:Type controls:RenderPreviewControl}}}">
             <hx:Viewport3DX.InputBindings>
-                <KeyBinding Key="B" Command="hx:ViewportCommands.BackView" />
+                <!--<KeyBinding Key="B" Command="hx:ViewportCommands.BackView" />
                 <KeyBinding Key="F" Command="hx:ViewportCommands.FrontView" />
                 <KeyBinding Key="U" Command="hx:ViewportCommands.TopView" />
                 <KeyBinding Key="D" Command="hx:ViewportCommands.BottomView" />
                 <KeyBinding Key="L" Command="hx:ViewportCommands.LeftView" />
-                <KeyBinding Key="R" Command="hx:ViewportCommands.RightView" />
-                <KeyBinding Command="hx:ViewportCommands.ZoomExtents" Gesture="Control+E" />
+                <KeyBinding Key="R" Command="hx:ViewportCommands.RightView" />-->
+                <KeyBinding Command="hx:ViewportCommands.ZoomExtents" Key="Home" />
                 <MouseBinding Command="hx:ViewportCommands.Rotate" Gesture="RightClick" />
-                <MouseBinding Command="hx:ViewportCommands.Zoom" Gesture="MiddleClick" />
+                <!--<MouseBinding Command="hx:ViewportCommands.Zoom" Gesture="MiddleClick" />-->
                 <MouseBinding Command="hx:ViewportCommands.Pan" Gesture="LeftClick" />
             </hx:Viewport3DX.InputBindings>
 
@@ -81,8 +82,8 @@
                 ErpExposure="{Binding SceneProperties.ErpExposure, Mode=OneWay}"/>
 
             <controls1:MinecraftMesh3D
-                                       BlendMode="{Binding RenderProperties.MeshBlendMode, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                                       TintColor="{Binding RenderProperties.MeshTintColor, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                BlendMode="{Binding RenderProperties.MeshBlendMode, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                TintColor="{Binding RenderProperties.MeshTintColor, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 
             <hx:ShadowMap3D Resolution="2048,2048" Bias="0.001" Distance="24"
                             NearFieldDistance="1" FarFieldDistance="48" OrthoWidth="24">
@@ -115,7 +116,7 @@
                     </Style>
                 </controls1:EquirectangularCubeMap3D.Style>
             </controls1:EquirectangularCubeMap3D>
-            <controls1:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="16"
+            <controls1:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="32"
                 IsRendering="{Binding SceneProperties.HasEnvironmentMap, Mode=OneWay}">
                 <controls1:IrradianceCube3D.Style>
                     <Style TargetType="controls1:IrradianceCube3D">
@@ -128,11 +129,13 @@
                     </Style>
                 </controls1:IrradianceCube3D.Style>
             </controls1:IrradianceCube3D>
-            <controls1:DielectricBdrfLut3D x:Name="DielectricBdrfLutMapSource" Resolution="512"/>
+            <controls1:DielectricBdrfLut3D x:Name="DielectricBdrfLutMapSource" Resolution="256"/>
 
-            <hx:AmbientLight3D Color="{Binding SceneProperties.AmbientColor}"
+            <hx:AmbientLight3D
+                Color="{Binding SceneProperties.AmbientColor}"
                 IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay, Converter={StaticResource boolInverseConverter}}"/>
-            <hx:DirectionalLight3D Color="{Binding SceneProperties.SunLightColor, Mode=OneWay}"
+            <hx:DirectionalLight3D
+                Color="{Binding SceneProperties.SunLightColor, Mode=OneWay}"
                 Direction="{Binding SceneProperties.SunLightDirection, Mode=OneWay}"
                 IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"/>
 
@@ -161,21 +164,33 @@
                 IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay, Converter={StaticResource boolInverseConverter}}"/>
             <controls1:DynamicSkyDome3D
                 IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"/>
-            <hx:GroupModel3D ItemsSource="{Binding RenderProperties.MeshParts, Mode=OneWay}"/>
-            <!--<controls1:BlockMeshGeometryModel3D CullMode="Back" IsThrowingShadow="True"
-                                    Geometry="{Binding BlockMesh, Mode=OneWay}"
-                                    Material="{Binding ModelMaterial, Mode=OneWay}"/>-->
-            <!--<controls1:DebugSkyBox3D CubeMapSource="{Binding Mode=OneWay, Source={x:Reference IrradianceCubeMapSource}}"/>-->
+
+            <hx:UICompositeManipulator3D
+                CanRotateX="true"
+                CanRotateY="true"
+                CanRotateZ="true"
+                CanTranslateX="true"
+                CanTranslateY="true"
+                CanTranslateZ="true"
+                Diameter="1"
+                TargetTransform="{Binding SceneProperties.MeshTransform, Mode=TwoWay}">
+                <hx:GroupModel3D
+                    Transform="{Binding SceneProperties.MeshTransform, Mode=OneWay}"
+                    ItemsSource="{Binding RenderProperties.MeshParts, Mode=OneWay}"/>
+            </hx:UICompositeManipulator3D>
+
+            <controls1:DebugSkyBox3D IsRendering="{Binding RenderProperties.ShowIrradiance, Mode=OneWay}"
+                                     CubeMapSource="{Binding Mode=OneWay, Source={x:Reference IrradianceCubeMapSource}}"/>
             <!--<hx:UICompositeManipulator3D Diameter="6"
                 CanRotateX="False" CanRotateY="False" CanRotateZ="False"
                 CanTranslateX="True" CanTranslateY="True" CanTranslateZ="True"
                 Transform="{Binding PointLightTransform}"/>-->
             <hx:PostEffectBloom
                 IsRendering="{Binding RenderProperties.EnableBloom}"
-                BloomExtractIntensity="0.4"
-                BloomPassIntensity="1.015"
+                BloomExtractIntensity="0.32"
+                BloomPassIntensity="1.008"
                 BloomCombineIntensity=".8"
-                BloomCombineSaturation="0.8"
+                BloomCombineSaturation="0.6"
                 NumberOfBlurPass="24">
                 <hx:PostEffectBloom.ThresholdColor>
                     <Color R="120" G="120" B="120"/>

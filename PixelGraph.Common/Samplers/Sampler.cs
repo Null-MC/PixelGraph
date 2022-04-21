@@ -21,7 +21,7 @@ namespace PixelGraph.Common.Samplers
             return map.TryGetValue(name, out var samplerFunc) ? samplerFunc() : null;
         }
 
-        private static readonly Dictionary<string, Func<ISampler<TPixel>>> map = new Dictionary<string, Func<ISampler<TPixel>>>(StringComparer.InvariantCultureIgnoreCase) {
+        private static readonly Dictionary<string, Func<ISampler<TPixel>>> map = new(StringComparer.InvariantCultureIgnoreCase) {
             [Samplers.Nearest] = () => new NearestSampler<TPixel>(),
             [Samplers.Bilinear] = () => new BilinearSampler<TPixel>(),
             [Samplers.Bicubic] = () => new BicubicSampler<TPixel>(),
@@ -37,19 +37,25 @@ namespace PixelGraph.Common.Samplers
         float RangeY {get; set;}
         bool WrapX {get; set;}
         bool WrapY {get; set;}
-        Rectangle Bounds {get; set;}
+        //Rectangle Bounds {get; set;}
+
+        void SetBounds(in UVRegion region);
+        IRowSampler<TPixel> ForRow(in double y);
 
         void Sample(in double x, in double y, ref Rgba32 pixel);
         void SampleScaled(in double x, in double y, out Vector4 pixel);
 
         void Sample(in double x, in double y, in ColorChannel color, out byte pixelValue);
         void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue);
+    }
 
-        public void SetBounds(in UVRegion region)
-        {
-            if (Image == null) throw new ApplicationException("Unable to set bounds when image is undefined!");
+    public interface IRowSampler<TPixel>
+        where TPixel : unmanaged, IPixel<TPixel>
+    {
+        void Sample(in double x, in double y, ref Rgba32 pixel);
+        void SampleScaled(in double x, in double y, out Vector4 pixel);
 
-            Bounds = region.ScaleTo(Image.Width, Image.Height);
-        }
+        void Sample(in double x, in double y, in ColorChannel color, out byte pixelValue);
+        void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue);
     }
 }

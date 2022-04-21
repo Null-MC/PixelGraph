@@ -1,9 +1,10 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
+using Media = System.Windows.Media;
 using PixelGraph.UI.Internal;
 using System;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
-using Media = System.Windows.Media;
 
 #if !RELEASENORENDER
 using PixelGraph.Common.Extensions;
@@ -18,6 +19,7 @@ namespace PixelGraph.UI.Models.Scene
         public event EventHandler EnvironmentChanged;
         public event EventHandler DynamicSkyChanged;
 
+        private readonly Rotation3DAnimation spinAnimation;
         private Media.Color _ambientColor;
         private Media.Color _lightColor;
         private int _wetness;
@@ -29,8 +31,10 @@ namespace PixelGraph.UI.Models.Scene
         private float _sunStrength;
         private bool _enableLights;
         private TextureModel _equirectangularMap;
+        private Transform3D _meshTransform;
         private string _erpFilename;
         private float _erpExposure;
+        private bool _spinMesh;
         //private Transform3D _lightTransform1;
         //private Transform3D _lightTransform2;
 
@@ -61,6 +65,16 @@ namespace PixelGraph.UI.Models.Scene
                 _wetness = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(WetnessLinear));
+            }
+        }
+
+        public bool SpinMesh {
+            get => _spinMesh;
+            set {
+                if (_spinMesh == value) return;
+                _spinMesh = value;
+                OnPropertyChanged();
+                UpdateSpinAnimation();
             }
         }
 
@@ -183,6 +197,14 @@ namespace PixelGraph.UI.Models.Scene
         //    }
         //}
 
+        public Transform3D MeshTransform {
+            get => _meshTransform;
+            set {
+                _meshTransform = value;
+                OnPropertyChanged();
+            }
+        }
+
         public TextureModel EquirectangularMap {
             get => _equirectangularMap;
             set {
@@ -202,15 +224,30 @@ namespace PixelGraph.UI.Models.Scene
             _ambientColor = Media.Color.FromRgb(60, 60, 60);
             _lightColor = Media.Color.FromRgb(60, 255, 60);
             _timeOfDay = 6_000;
+            _erpExposure = 0f;
 
             //_lightTransform1 = new TranslateTransform3D(10, 14, 8);
             //_lightTransform2 = new TranslateTransform3D(-12, -12, -10);
-            _erpExposure = 1f;
+
+            _meshTransform = new RotateTransform3D {
+                CenterX = 0f,
+                CenterY = 0f,
+                CenterZ = 0f,
+            };
+
+            spinAnimation = new Rotation3DAnimation {
+                RepeatBehavior = RepeatBehavior.Forever,
+                By = new AxisAngleRotation3D(new Vector3D(0f, 1f, 0f), 240),
+                Duration = TimeSpan.FromSeconds(14),
+                IsCumulative = true,
+            };
+
+            if (spinAnimation.CanFreeze) spinAnimation.Freeze();
         }
 
 #if !RELEASENORENDER
 
-        public void GetSunAngle(out Vector3 sunAngle, out float strength)
+        private void GetSunAngle(out Vector3 sunAngle, out float strength)
         {
             const float sun_overlap = 0.0f;
             const float sun_power = 0.9f;
@@ -220,16 +257,24 @@ namespace PixelGraph.UI.Models.Scene
             strength = MinecraftTime.GetSunStrength(in sunAngle, sun_overlap, sun_power);
         }
 
-        public float GetLinearTimeOfDay()
+        private float GetLinearTimeOfDay()
         {
             var t = _timeOfDay / 24_000f;
             MathEx.Wrap(ref t, 0f, 1f);
             return t;
         }
 
-        public void SetTimeOfDay(float value)
+        private void SetTimeOfDay(float value)
         {
             TimeOfDay = (int)(value * 24_000f);
+        }
+
+        private void UpdateSpinAnimation()
+        {
+            if (_spinMesh)
+                _meshTransform.BeginAnimation(RotateTransform3D.RotationProperty, spinAnimation, HandoffBehavior.SnapshotAndReplace);
+            else
+                _meshTransform.BeginAnimation(RotateTransform3D.RotationProperty, null);
         }
 
 #endif

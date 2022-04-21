@@ -1,9 +1,9 @@
-﻿using System.Windows;
-using HelixToolkit.SharpDX.Core.Model.Scene;
+﻿using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
 using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.Rendering.Sky;
+using System.Windows;
 
 namespace PixelGraph.UI.Helix.Controls
 {

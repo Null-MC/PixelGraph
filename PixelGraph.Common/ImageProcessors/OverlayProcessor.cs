@@ -4,6 +4,7 @@ using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Linq;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -20,14 +21,13 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
         {
+            GetTexCoordY(in context, out var rfy);
+            var samplerCount = options.Samplers.Length;
+            var rowSamplers = options.Samplers.Select(sampler => sampler.Sampler.ForRow(rfy)).ToArray();
+
+            double fx, fy;
             var pixelOut = new Rgba32();
 
-            var samplerCount = options.Samplers.Length;
-            //var samplerKeys = options.Samplers.Keys.ToArray();
-
-            float value;
-            double fx, fy;
-            byte finalValue, pixelValue;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 row[x].ToRgba32(ref pixelOut);
 
@@ -35,17 +35,14 @@ namespace PixelGraph.Common.ImageProcessors
                     var samplerOptions = options.Samplers[i];
                     var mapping = samplerOptions.PixelMap;
 
-                    pixelValue = 0;
-                    if (samplerOptions.Sampler != null) {
-                        GetTexCoord(in context, in x, out fx, out fy);
-                        samplerOptions.Sampler.Sample(fx, fy, in samplerOptions.InputColor, out pixelValue);
-                    }
+                    GetTexCoord(in context, in x, out fx, out fy);
+                    rowSamplers[i].Sample(fx, fy, in samplerOptions.InputColor, out var pixelValue);
 
-                    if (!mapping.TryUnmap(in pixelValue, out value)) continue;
+                    if (!mapping.TryUnmap(in pixelValue, out var value)) continue;
 
                     if (!ProcessConversions(samplerOptions.PixelMap, ref value)) continue;
 
-                    if (!mapping.TryMap(ref value, out finalValue)) continue;
+                    if (!mapping.TryMap(ref value, out var finalValue)) continue;
 
                     if (mapping.OutputClipValue.HasValue && value.NearEqual(mapping.OutputClipValue.Value)) continue;
 

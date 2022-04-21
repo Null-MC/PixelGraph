@@ -21,22 +21,27 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
         {
-            byte occlusionPixel;
             double fx, fy;
+            byte occlusionPixel;
             float occlusionValue;
             var colorCount = options.MappingColors.Length;
+
+            GetTexCoordY(in context, out fy);
+            var occlusionRowSampler = options.OcclusionSampler.ForRow(in fy);
+            var emissiveRowSampler = options.EmissiveSampler?.ForRow(in fy);
+
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
                 GetTexCoord(in context, in x, out fx, out fy);
-                options.OcclusionSampler.Sample(in fx, in fy, in options.OcclusionInputColor, out occlusionPixel);
+                occlusionRowSampler.Sample(in fx, in fy, in options.OcclusionInputColor, out occlusionPixel);
 
                 if (!options.OcclusionMapping.TryUnmap(in occlusionPixel, out occlusionValue))
                     occlusionValue = 0f;
 
                 occlusionValue *= options.OcclusionMapping.OutputValueScale;
 
-                if (options.EmissiveSampler != null) {
-                    options.EmissiveSampler.Sample(in fx, in fy, in options.EmissiveInputColor, out var emissivePixel);
+                if (emissiveRowSampler != null) {
+                    emissiveRowSampler.Sample(in fx, in fy, in options.EmissiveInputColor, out var emissivePixel);
 
                     if (options.EmissiveMapping.TryUnmap(in emissivePixel, out var emissiveValue))
                         occlusionValue = MathF.Max(occlusionValue - emissiveValue, 0f);

@@ -4,7 +4,7 @@
 #pragma pack_matrix(row_major)
 
 //static const float sample_delta = 0.025f;
-static const float sample_delta = 0.05f;
+static const float sample_delta = 0.02f;
 
 
 float4 main(const in ps_input_cube input) : SV_TARGET
@@ -34,6 +34,6 @@ float4 main(const in ps_input_cube input) : SV_TARGET
 		}
 	}
 	
-	irradiance = PI * irradiance * rcp(float(sample_count));
+	irradiance = PI * irradiance / float(sample_count);
 	return float4(irradiance, 1.0f);
 }

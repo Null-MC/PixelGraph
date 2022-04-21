@@ -9,9 +9,10 @@
 #include "lib/tonemap.hlsl"
 
 #define MIN_ROUGH 0.002f
-#define WET_DARKEN 0.76f
+#define WET_DARKEN 0.86f
 #define WATER_DEPTH_SCALE 20.0f
 #define WATER_ABS_SCALE 80.0f
+#define WATER_BLUR 0.2f
 
 #pragma pack_matrix(row_major)
 
@@ -80,12 +81,16 @@ float4 main(const ps_input input) : SV_TARGET
 
     const float wet_depth = saturate((water_levelMax - shadow_tex.z) * WATER_DEPTH_SCALE);
 
-    const float roughL = max(pow2(1.0 - mat.smooth), MIN_ROUGH);
-    const float roughP = sqrt(roughL); // * roughP;
+    float roughP = 1.0 - mat.smooth; // * roughP;
+    float roughL = max(pow2(roughP), MIN_ROUGH);
+    //const float roughP = sqrt(roughL); // * roughP;
     //const float roughL = clamp(1.0 - pow2(mat.smooth), MIN_ROUGH, 1.0f);
     //const float roughP = sqrt(roughL); // * roughP;
+
+    //roughL = roughP;
+    //roughP = sqrt(roughP);
     
-    const float porosityL = srgb_to_linear(mat.porosity);
+    //const float porosityL = srgb_to_linear(mat.porosity);
 	
     // Blend base colors
 	const float metal = mat.f0_hcm > 0.9f ? 1.0f : 0.0f;
@@ -100,11 +105,15 @@ float4 main(const ps_input input) : SV_TARGET
     float3 wet_normal = src_normal;
 
     if (Wetness > EPSILON) {
-		diffuse *= 1.0f - WET_DARKEN * max(pow(Wetness, 2), wet_depth) * porosityL;
+		diffuse *= 1.0f - mat.porosity * WET_DARKEN * max(pow(Wetness, 2), wet_depth);
 
-	    surface_water = saturate(1.4 * Wetness - 0.7f * porosityL);
+	    surface_water = saturate(1.4 * Wetness - 0.7f * mat.porosity);
 
-		wet_normal = tex_normal_height.SampleBias(sampler_height, tex, surface_water * WATER_BLUR).xyz;
+        float texWidth, texHeight, lodLevels;
+        tex_albedo_alpha.GetDimensions(0, texWidth, texHeight, lodLevels);
+        float water_lod = surface_water * lodLevels * WATER_BLUR * surface_NoV;
+
+		wet_normal = tex_normal_height.SampleBias(sampler_height, tex, water_lod).xyz;
 		wet_normal = mul(normalize(wet_normal * 2.0f - 1.0f), matTBN);
     }
 
@@ -146,7 +155,7 @@ float4 main(const ps_input input) : SV_TARGET
 
 	[loop]
     for (int i = 0; i < NumLights; i++) {
-        light_color = srgb_to_linear(Lights[i].vLightColor.rgb);
+        light_color = srgb_to_linear(Lights[i].vLightColor.rgb) * 4.f;
 
         light_shadow = 1.0f;
 	    water_shadow = 1.0f;
@@ -288,8 +297,7 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 ibl_F = F_schlick_roughness(ibl_f0, NoV, roughL);
 	const float3 ibl_ambient = IBL_ambient(ibl_F, tex_normal) * diffuse * mat.occlusion * (1.0f - mat.sss);
 
-    //return float4(r, 1.f);
-    //return float4(tex_environment.SampleLevel(sampler_irradiance, r, 0), 1.0);
+    //return float4(tex_dielectric_brdf_lut.SampleLevel(sampler_brdf_lut, input.tex, 0), 0.0, 1.0);
 
 	float3 ibl_specular = IBL_specular(ibl_F, ibl_f90, NoV, r, mat.occlusion, roughP) * metal_albedo;
 	float3 ibl_sss = SSS_IBL(view, mat.sss);
@@ -321,19 +329,19 @@ float4 main(const ps_input input) : SV_TARGET
 	float3 ibl_final = ibl_ambient + ibl_specular;
     //return float4(ibl_final, 1.f);
 
-	float3 final_sss = (acc_sss + ibl_sss * 2.f) * diffuse;
+	float3 final_sss = (acc_sss + ibl_sss) * diffuse;
 
     float3 final_color = 0.f;
 
-	final_color += ibl_final * 2.f;
-	final_color += emissive * 2.f;
-	final_color += acc_light * 3.f;
+	final_color += ibl_final;
+	final_color += emissive;
+	final_color += acc_light;
 	final_color += final_sss;
 
 	float alpha = mat.opacity + spec_strength;
-    if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
+	if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
-    //final_color *= 0.3f;
+	//final_color *= 0.3f;
 	final_color = tonemap_ACESFit2(final_color);
 	//final_color = tonemap_Uncharted2(final_color);
 	//final_color = tonemap_HejlBurgess(final_color);

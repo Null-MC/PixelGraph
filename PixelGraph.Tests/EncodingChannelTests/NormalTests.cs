@@ -96,9 +96,9 @@ namespace PixelGraph.Tests.EncodingChannelTests
             PixelAssert.BlueEquals(valueZ, image);
         }
 
-        [InlineData(127, 127, 255)]
-        [InlineData(  0, 127, 127)]
-        [InlineData(127,   0, 127)]
+        [InlineData(128, 128, 255)]
+        [InlineData(  0, 128, 128)]
+        [InlineData(128,   0, 128)]
         [Theory] public async Task RestoreZ(byte valueX, byte valueY, byte expectedZ)
         {
             await using var graph = Graph();

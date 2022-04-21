@@ -9,6 +9,11 @@ namespace PixelGraph.Common.Samplers
     internal class BicubicSampler<TPixel> : SamplerBase<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
+        public override IRowSampler<TPixel> ForRow(in double y)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public override void Sample(in double x, in double y, ref Rgba32 pixel)
         {
             SampleScaled(in x, in y, out var vector);
@@ -31,16 +36,14 @@ namespace PixelGraph.Common.Samplers
                 k[ky] = new Vector4[4];
                 var ly = pyMin + ky - 1;
 
-                if (WrapY) WrapCoordY(ref ly);
-                else ClampCoordY(ref ly);
+                NormalizeTexCoordY(ref ly);
 
                 var row = Image.DangerousGetPixelRowMemory(ly).Span;
 
                 for (var kx = 0; kx < 4; kx++) {
                     var lx = pxMin + kx - 1;
 
-                    if (WrapX) WrapCoordX(ref lx);
-                    else ClampCoordX(ref lx);
+                    NormalizeTexCoordX(ref lx);
 
                     k[ky][kx] = row[lx].ToScaledVector4();
                 }

@@ -30,7 +30,7 @@
                         Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
             </StackPanel>
         </Border>
-        <ProgressBar DockPanel.Dock="Bottom" Maximum="1.0"
+        <mah:MetroProgressBar DockPanel.Dock="Bottom" Maximum="1.0"
                      IsIndeterminate="{Binding IsAnalyzing, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                      Value="{Binding Progress, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
         <controls:LogListControl x:Name="LogList"/>

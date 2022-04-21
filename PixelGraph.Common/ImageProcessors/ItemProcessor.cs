@@ -22,22 +22,28 @@ namespace PixelGraph.Common.ImageProcessors
 
         protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
         {
-            Vector4 normal;
             double fx, fy;
-            float occlusionPixel, occlusionValue;
+            float occlusionValue;
+            Vector4 albedoPixel;
+
+            GetTexCoordY(in context, out fy);
+            var normalRowSampler = options.NormalSampler?.ForRow(in fy);
+            var occlusionRowSampler = options.OcclusionSampler?.ForRow(in fy);
+            var emissiveRowSampler = options.EmissiveSampler?.ForRow(in fy);
+
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
-                var albedoPixel = row[x].ToScaledVector4();
+                albedoPixel = row[x].ToScaledVector4();
                 GetTexCoord(in context, in x, out fx, out fy);
 
                 occlusionValue = 0f;
-                if (options.OcclusionSampler != null) {
-                    options.OcclusionSampler.SampleScaled(in fx, in fy, in options.OcclusionInputColor, out occlusionPixel);
+                if (occlusionRowSampler != null) {
+                    occlusionRowSampler.SampleScaled(in fx, in fy, in options.OcclusionInputColor, out var occlusionPixel);
                     options.OcclusionMapping.TryUnmap(in occlusionPixel, out occlusionValue);
                 }
 
                 var litNormal = 1f;
-                if (options.NormalSampler != null) {
-                    options.NormalSampler.SampleScaled(in fx, in fy, out normal);
+                if (normalRowSampler != null) {
+                    normalRowSampler.SampleScaled(in fx, in fy, out var normal);
                     normal.X = normal.X * 2f - 1f;
                     normal.Y = normal.Y * 2f - 1f;
                     normal.Z = normal.Z * 2f - 1f;
@@ -48,7 +54,7 @@ namespace PixelGraph.Common.ImageProcessors
                 }
 
                 var emissiveValue = 0f;
-                options.EmissiveSampler?.SampleScaled(in fx, in fy, in options.EmissiveColor, out emissiveValue);
+                emissiveRowSampler?.SampleScaled(in fx, in fy, in options.EmissiveColor, out emissiveValue);
 
                 var lit = MathF.Min(litNormal, 1f - occlusionValue);
                 lit = MathF.Max(lit, emissiveValue);

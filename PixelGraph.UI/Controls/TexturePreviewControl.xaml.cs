@@ -1,12 +1,13 @@
 ﻿using PixelGraph.UI.Internal.Preview;
+using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
+using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using PixelGraph.UI.Internal.Utilities;
 
 namespace PixelGraph.UI.Controls
 {
@@ -28,6 +29,40 @@ namespace PixelGraph.UI.Controls
         public TexturePreviewControl()
         {
             InitializeComponent();
+        }
+
+        private void UpdateMouseColor(System.Windows.Point pos)
+        {
+            var rect = new Int32Rect((int)pos.X, (int)pos.Y, 1, 1);
+            var bytesPerPixel = (model.Texture.Format.BitsPerPixel + 7) / 8;
+
+            var bytes = new byte[bytesPerPixel];
+            model.Texture.CopyPixels(rect, bytes, bytesPerPixel, 0);
+
+            if (model.Texture is ImageSharpSource imageSharpTex) {
+                if (imageSharpTex.SourceFormat == typeof(Rgb24)) {
+                    var hex = ColorHelper.ToHexRGB(bytes[2], bytes[1], bytes[0]);
+                    model.MousePixel = $"C={hex}";
+                }
+                else if (imageSharpTex.SourceFormat == typeof(L8)) {
+                    model.MousePixel = $"V={bytes[0]}";
+                }
+                else {
+                    model.MousePixel = null;
+                }
+            }
+            else {
+                if (model.Texture.Format == PixelFormats.Bgra32 || model.Texture.Format == PixelFormats.Bgr32) {
+                    var hex = ColorHelper.ToHexRGB(bytes[2], bytes[1], bytes[0]);
+                    model.MousePixel = $"C={hex}";
+                }
+                else if (model.Texture.Format == PixelFormats.Gray8 || model.Texture.Format == PixelFormats.Gray16) {
+                    model.MousePixel = $"V={bytes[0]}";
+                }
+                else {
+                    model.MousePixel = null;
+                }
+            }
         }
 
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
@@ -58,36 +93,13 @@ namespace PixelGraph.UI.Controls
                 return;
             }
 
-            var pos = e.GetPosition(img);
-            var rect = new Int32Rect((int)pos.X, (int)pos.Y, 1, 1);
-            var bytesPerPixel = (model.Texture.Format.BitsPerPixel + 7) / 8;
-
-            var bytes = new byte[bytesPerPixel];
-            model.Texture.CopyPixels(rect, bytes, bytesPerPixel, 0);
-
-            if (model.Texture is ImageSharpSource imageSharpTex) {
-                if (imageSharpTex.SourceFormat == typeof(Rgb24)) {
-                    var hex = ColorHelper.ToHexRGB(bytes[2], bytes[1], bytes[0]);
-                    model.MousePixel = $"C={hex}";
-                }
-                else if (imageSharpTex.SourceFormat == typeof(L8)) {
-                    model.MousePixel = $"V={bytes[0]}";
-                }
-                else {
-                    model.MousePixel = null;
-                }
+            try {
+                var pos = e.GetPosition(img);
+                UpdateMouseColor(pos);
             }
-            else {
-                if (model.Texture.Format == PixelFormats.Bgra32 || model.Texture.Format == PixelFormats.Bgr32) {
-                    var hex = ColorHelper.ToHexRGB(bytes[2], bytes[1], bytes[0]);
-                    model.MousePixel = $"C={hex}";
-                }
-                else if (model.Texture.Format == PixelFormats.Gray8 || model.Texture.Format == PixelFormats.Gray16) {
-                    model.MousePixel = $"V={bytes[0]}";
-                }
-                else {
-                    model.MousePixel = null;
-                }
+            catch (Exception error) {
+                Log.Error(error, "Failed to get pixel value at mouse position!");
+                model.MousePixel = null;
             }
         }
 

@@ -35,29 +35,25 @@ namespace PixelGraph.Common.ImageProcessors
                 }
             }
 
-            options.SetRow(in context.Y, in min, in max);
+            options.SetRow(in context.Y, in max);
         }
 
         public class Options
         {
-            private readonly byte[] rowMin;
             private readonly byte[] rowMax;
 
             public ColorChannel Color;
 
-            public byte Min => rowMin.Min();
             public byte Max => rowMax.Max();
 
 
             public Options(int height)
             {
-                rowMin = new byte[height];
                 rowMax = new byte[height];
             }
 
-            public void SetRow(in int y, in byte min, in byte max)
+            public void SetRow(in int y, in byte max)
             {
-                rowMin[y] = min;
                 rowMax[y] = max;
             }
         }

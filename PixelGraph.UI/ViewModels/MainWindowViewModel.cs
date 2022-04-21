@@ -25,6 +25,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using PixelGraph.UI.Internal.Preview.Textures;
 
 #if !NORENDER
 using PixelGraph.Rendering.Models;
@@ -373,15 +374,33 @@ namespace PixelGraph.UI.ViewModels
                     if (!Model.IsViewModeRender) {
                         if (context.IsLayerValid) return;
 
-                        var packContext = new ResourcePackContext {
-                            //RootPath = projectContext.RootDirectory,
-                            Input = Model.PackInput,
-                            Profile = Model.Profile.Loaded,
-                        };
+                        //var packContext = new ResourcePackContext {
+                        //    //RootPath = projectContext.RootDirectory,
+                        //    Input = Model.PackInput,
+                        //    Profile = Model.Profile.Loaded,
+                        //};
 
-                        await Task.Run(() => context.BuildLayerAsync(packContext, material, Model.SelectedTag, token), token);
+                        var image = await Task.Run(async () => {
+                            using var previewBuilder = provider.GetRequiredService<ILayerPreviewBuilder>();
+
+                            //previewBuilder.RootDirectory = context.RootPath;
+                            previewBuilder.Input = Model.PackInput;
+                            previewBuilder.Profile = Model.Profile.Loaded;
+                            previewBuilder.Material = material;
+                            previewBuilder.TargetFrame = 0;
+
+                            var tag = Model.SelectedTag;
+                            if (TextureTags.Is(tag, TextureTags.General))
+                                tag = TextureTags.Color;
+
+                            return await previewBuilder.BuildAsync(tag, token);
+
+                            //return await context.BuildLayerAsync(packContext, material, Model.SelectedTag, token);
+                        }, token);
 
                         await Dispatcher.BeginInvoke(() => {
+                            context.SetImageSource(image);
+
                             if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
 
 #if !NORENDER

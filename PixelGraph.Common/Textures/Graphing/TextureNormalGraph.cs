@@ -145,8 +145,10 @@ namespace PixelGraph.Common.Textures.Graphing
             var autoGenNormal = context.Profile?.AutoGenerateNormal
                 ?? ResourcePackProfileProperties.AutoGenerateNormalDefault;
 
-            if (NormalTexture == null && autoGenNormal && !context.IsImport)
+            if (NormalTexture == null && autoGenNormal && !context.IsImport) {
                 NormalTexture = await GenerateAsync(token);
+                hasNormalZ = true;
+            }
 
             if (NormalTexture == null) return false;
 
@@ -154,8 +156,8 @@ namespace PixelGraph.Common.Textures.Graphing
             NormalFrameHeight = NormalTexture.Height;
             if (NormalFrameCount > 1) NormalFrameHeight /= NormalFrameCount;
 
-            var options = new NormalRotateProcessor.Options {
-                RestoreNormalZ = !hasNormalZ,
+            var processor = new NormalRotateProcessor {
+                Bounds = NormalTexture.Bounds(),
                 CurveTop = (float?)context.Material.Normal?.GetCurveTop() ?? 0f,
                 CurveBottom = (float?)context.Material.Normal?.GetCurveBottom() ?? 0f,
                 CurveLeft = (float?)context.Material.Normal?.GetCurveLeft() ?? 0f,
@@ -165,10 +167,10 @@ namespace PixelGraph.Common.Textures.Graphing
                 RadiusLeft = (float?)context.Material.Normal?.GetRadiusLeft() ?? 1f,
                 RadiusRight = (float?)context.Material.Normal?.GetRadiusRight() ?? 1f,
                 Noise = (float?)context.Material.Normal?.Noise ?? 0f,
+                RestoreNormalZ = !hasNormalZ,
             };
 
-            var processor = new NormalRotateProcessor(options);
-            NormalTexture.Mutate(c => c.ApplyProcessor(processor));
+            processor.Apply(NormalTexture);
 
             // Apply filtering
             if (context.Material.Filters != null)
@@ -281,7 +283,7 @@ namespace PixelGraph.Common.Textures.Graphing
         private void ApplyFilterRegion(MaterialFilter filter, Rectangle region)
         {
             if (filter.HasNormalRotation) {
-                var curveOptions = new NormalRotateProcessor.Options {
+                var curveProcessor = new NormalRotateProcessor {
                     CurveTop = (float?)filter.GetNormalCurveTop() ?? 0f,
                     CurveBottom = (float?)filter.GetNormalCurveBottom() ?? 0f,
                     CurveLeft = (float?)filter.GetNormalCurveLeft() ?? 0f,
@@ -291,9 +293,9 @@ namespace PixelGraph.Common.Textures.Graphing
                     RadiusLeft = (float?)filter.GetNormalRadiusLeft() ?? 1f,
                     RadiusRight = (float?)filter.GetNormalRadiusRight() ?? 1f,
                     Noise = (float?)filter.NormalNoise ?? 0f,
+                    Bounds = region,
                 };
 
-                var curveProcessor = new NormalRotateProcessor(curveOptions);
                 NormalTexture.Mutate(c => c.ApplyProcessor(curveProcessor, region));
             }
         }
@@ -316,16 +318,11 @@ namespace PixelGraph.Common.Textures.Graphing
             };
 
             mapping.ApplyInputChannel(magnitudeInputChannel);
-
-            var options = new NormalMagnitudeReadProcessor<Rgb24>.Options {
-                Mapping = new PixelMapping(mapping),
-                NormalTexture = NormalTexture,
-            };
-
             MagnitudeTexture = new Image<L8>(NormalTexture.Width, NormalTexture.Height);
 
-            var processor = new NormalMagnitudeReadProcessor<Rgb24>(options);
-            MagnitudeTexture.Mutate(c => c.ApplyProcessor(processor));
+            var bounds = NormalTexture.Bounds();
+            var pixelMapping = new PixelMapping(mapping);
+            ImageProcessors.ImageProcessors.ExtractMagnitude(NormalTexture, MagnitudeTexture, pixelMapping, bounds);
 
             MagnitudeFrameWidth = MagnitudeTexture.Width;
             MagnitudeFrameHeight = MagnitudeTexture.Height;

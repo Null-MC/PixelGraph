@@ -2,10 +2,10 @@
 using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Numerics;
-using SixLabors.ImageSharp.Advanced;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -53,15 +53,6 @@ namespace PixelGraph.Common.ImageProcessors
             tp.SetChannelValue(ColorChannel.Green, normal.Y * 0.5f + 0.5f - hp);
             tp.SetChannelValue(ColorChannel.Blue, normal.Z * 0.5f + 0.5f - hp);
             pixel.FromScaledVector4(tp);
-        }
-
-        protected override void ProcessPixel(ref Rgba32 pixel, in PixelContext context)
-        {
-            ProcessPixelNormal(in context, out var normal);
-
-            pixel.SetChannelValueScaledF(ColorChannel.Red, normal.X * 0.5f + 0.5f - hp);
-            pixel.SetChannelValueScaledF(ColorChannel.Green, normal.Y * 0.5f + 0.5f - hp);
-            pixel.SetChannelValueScaledF(ColorChannel.Blue, normal.Z * 0.5f + 0.5f - hp);
         }
 
         private void ProcessPixelNormal(in PixelContext context, out Vector3 normal)
