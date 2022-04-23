@@ -22,14 +22,18 @@ namespace PixelGraph.Common.ImageProcessors
             var pixelOut = new Rgba32();
             var overlayPixel = new Rgba32();
 
+            GetTexCoordY(in context, out var rfy);
+            var overlayRowSampler = options.SamplerOverlay.ForRow(in rfy);
+            var opacityRowSampler = options.SamplerOpacity?.ForRow(in rfy);
+
             double fx, fy;
             byte opacityValue;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 row[x].ToRgba32(ref pixelOut);
                 GetTexCoord(in context, in x, out fx, out fy);
 
-                if (options.SamplerOpacity != null) {
-                    options.SamplerOpacity.Sample(fx, fy, ColorChannel.Alpha, out opacityValue);
+                if (opacityRowSampler != null) {
+                    opacityRowSampler.Sample(fx, fy, ColorChannel.Alpha, out opacityValue);
                 }
                 else {
                     opacityValue = pixelOut.A;
@@ -37,7 +41,7 @@ namespace PixelGraph.Common.ImageProcessors
 
                 if (opacityValue > options.Threshold) continue;
 
-                options.SamplerOverlay.Sample(fx, fy, ref overlayPixel);
+                overlayRowSampler.Sample(fx, fy, ref overlayPixel);
 
                 // TODO: this should probably use the profile mappings instead of assuming
                 //if (!mapping.TryUnmap(in pixelValue, out value)) continue;

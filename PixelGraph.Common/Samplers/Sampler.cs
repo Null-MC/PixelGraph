@@ -42,10 +42,10 @@ namespace PixelGraph.Common.Samplers
         void SetBounds(in UVRegion region);
         IRowSampler<TPixel> ForRow(in double y);
 
-        void Sample(in double x, in double y, ref Rgba32 pixel);
-        void SampleScaled(in double x, in double y, out Vector4 pixel);
+        //void Sample(in double x, in double y, ref Rgba32 pixel);
+        //void SampleScaled(in double x, in double y, out Vector4 pixel);
 
-        void Sample(in double x, in double y, in ColorChannel color, out byte pixelValue);
+        //void Sample(in double x, in double y, in ColorChannel color, out byte pixelValue);
         void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue);
     }
 

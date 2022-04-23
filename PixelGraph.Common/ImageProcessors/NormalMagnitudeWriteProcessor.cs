@@ -23,19 +23,22 @@ namespace PixelGraph.Common.ImageProcessors
         {
             Vector3 normal;
             double fx, fy;
-            float valueIn, value, ValueOut;
+
+            GetTexCoordY(in context, out var rfy);
+            var rowSampler = options.MagSampler.ForRow(in rfy);
+
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 GetTexCoord(in context, in x, out fx, out fy);
-                options.MagSampler.SampleScaled(in fx, in fy, in options.InputColor, out valueIn);
-                if (!options.Mapping.TryUnmap(in valueIn, out value)) continue;
+                rowSampler.SampleScaled(in fx, in fy, in options.InputColor, out var valueIn);
+                if (!options.Mapping.TryUnmap(in valueIn, out var value)) continue;
 
-                if (!options.ValueShift.NearEqual(0f))
-                    value += options.ValueShift;
+                //if (!options.ValueShift.NearEqual(0f))
+                //    value += options.ValueShift;
 
                 if (!options.Mapping.OutputValueScale.NearEqual(1f))
                     value *= options.Mapping.OutputValueScale;
 
-                options.Mapping.Map(ref value, out ValueOut);
+                options.Mapping.Map(ref value, out var ValueOut);
                 if (ValueOut.NearEqual(1f)) continue;
 
 
@@ -61,8 +64,8 @@ namespace PixelGraph.Common.ImageProcessors
             public ColorChannel InputColor;
             public ISampler<TPixel> MagSampler;
             public PixelMapping Mapping;
-            public float ValueShift;
-            public float Scale;
+            //public float ValueShift;
+            //public float Scale;
         }
     }
 }

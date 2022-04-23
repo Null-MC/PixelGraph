@@ -34,14 +34,16 @@ namespace PixelGraph.Common.ImageProcessors
             var zScale = options.ZScale; // * options.HeightMapping.ValueScale;
             var hasZScale = !zScale.NearEqual(1f);
 
+            GetTexCoordY(in context, out var rfy);
+            var heightRowSampler = options.HeightSampler.ForRow(in rfy);
+
             double fx, fy;
-            float heightPixel, heightValue, rayHitFactor;
             for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
                 options.Token.ThrowIfCancellationRequested();
 
                 GetTexCoord(in context, in x, out fx, out fy);
-                options.HeightSampler.SampleScaled(in fx, in fy, in options.HeightInputColor, out heightPixel);
-                if (!options.HeightMapping.TryUnmap(in heightPixel, out heightValue)) continue;
+                heightRowSampler.SampleScaled(in fx, in fy, in options.HeightInputColor, out var heightPixel);
+                if (!options.HeightMapping.TryUnmap(in heightPixel, out var heightValue)) continue;
 
                 MathEx.Invert(ref heightValue, 0f, 1f);
                 if (hasZScale) heightValue *= zScale;
@@ -57,7 +59,7 @@ namespace PixelGraph.Common.ImageProcessors
                         position.Y = context.Y;
                         position.Z = heightValue;
 
-                        if (RayTest(in context, ref position, in rayList.Value[i], out rayHitFactor))
+                        if (RayTest(in context, ref position, in rayList.Value[i], out var rayHitFactor))
                             hitFactor += rayHitFactor * rayCountFactor;
                     }
                 //}
@@ -75,15 +77,14 @@ namespace PixelGraph.Common.ImageProcessors
             var hasHitPower = !options.HitPower.NearEqual(1f);
 
             double fx, fy;
-            float heightPixel, heightValue;
             for (var step = 1; step <= options.StepCount; step++) {
                 position.Add(in ray);
 
                 if (position.Z >= zScale) break;
 
                 GetTexCoord(in context, in position.X, in position.Y, out fx, out fy);
-                options.HeightSampler.SampleScaled(in fx, in fy, options.HeightInputColor, out heightPixel);
-                if (!options.HeightMapping.TryUnmap(in heightPixel, out heightValue)) continue;
+                options.HeightSampler.SampleScaled(in fx, in fy, options.HeightInputColor, out var heightPixel);
+                if (!options.HeightMapping.TryUnmap(in heightPixel, out var heightValue)) continue;
 
                 MathEx.Invert(ref heightValue, 0f, 1f);
                 if (hasZScale) heightValue *= zScale;

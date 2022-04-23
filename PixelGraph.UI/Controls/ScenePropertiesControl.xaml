@@ -9,34 +9,34 @@
              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" x:Name="Control"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
     <UserControl.Resources>
-        <converters:VisibilityInverseConverter x:Key="InverseVisibilityConverter"/>
+        <converters:BooleanInverseConverter x:Key="InverseBoolConverter"/>
     </UserControl.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Orientation="Vertical" DataContext="{Binding SceneProperties, ElementName=Control, Mode=OneWay}">
-            <Expander Header="General">
-                <!--<Expander.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconFontAwesome Kind="PaletteSolid"/>
-                        <TextBlock Text="General"/>
-                    </StackPanel>
-                </Expander.Header>-->
+            <Expander Header="General" Margin="1" IsExpanded="True"
+                      mah:HeaderedControlHelper.HeaderFontWeight="Bold"
+                      mah:ControlsHelper.ContentCharacterCasing="Normal">
                 <StackPanel Orientation="Vertical">
-                    <TextBlock Text="Wetness:" VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
+                    <TextBlock Text="Wetness:" VerticalAlignment="Center" Margin="4,4,4,0" FontWeight="Bold"/>
                     <Slider Margin="4" Minimum="0" Maximum="100"
                         Style="{StaticResource MahApps.Styles.Slider.Flat}"
                         Value="{Binding Wetness, Mode=TwoWay}"/>
-                    <CheckBox Content="Spin Model"
+                    <CheckBox Content="Spin Model" Margin="4,12,4,4"
                         IsChecked="{Binding SpinMesh, Mode=TwoWay}"/>
                 </StackPanel>
             </Expander>
 
-            <Expander Header="Atmosphere">
-                <StackPanel Orientation="Vertical">
-                    <CheckBox Margin="8,2" Content="Atmosphere" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                              Foreground="{DynamicResource MahApps.Brushes.Gray2}"
-                              IsChecked="{Binding EnableAtmosphere, Mode=TwoWay}"/>
-                    <Grid Margin="0,0,0,20"
-                          Visibility="{Binding EnableAtmosphere, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Expander Margin="1">
+                <Expander.Header>
+                    <DockPanel>
+                        <CheckBox DockPanel.Dock="Right"
+                            IsChecked="{Binding EnableAtmosphere, Mode=TwoWay}"/>
+                        <TextBlock Text="Atmosphere" FontWeight="Bold"/>
+                    </DockPanel>
+                </Expander.Header>
+                <StackPanel Orientation="Vertical"
+                            IsEnabled="{Binding EnableAtmosphere, Mode=OneWay}">
+                    <Grid Margin="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -50,24 +50,29 @@
                                    VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
                         <Slider Grid.Column="1" Grid.Row="0" Margin="4"
                                 Minimum="-12000" Maximum="12000"
-                                Value="{Binding TimeOfDay, Mode=TwoWay}"/>
+                                Value="{Binding TimeOfDay, Mode=TwoWay}"
+                                Style="{StaticResource MahApps.Styles.Slider.Flat}"/>
                         <TextBlock Grid.Column="0" Grid.Row="1" Text="Tilt:"
                                    VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
                         <Slider Grid.Column="1" Grid.Row="1" Margin="4"
                                 Minimum="0" Maximum="90"
-                                Value="{Binding SunTilt, Mode=TwoWay}"/>
+                                Value="{Binding SunTilt, Mode=TwoWay}"
+                                Style="{StaticResource MahApps.Styles.Slider.Flat}"/>
                         <TextBlock Grid.Column="0" Grid.Row="2" Text="Azimuth:"
                                    VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
                         <Slider Grid.Column="1" Grid.Row="2" Margin="4"
                                 Minimum="0" Maximum="360"
-                                Value="{Binding SunAzimuth, Mode=TwoWay}"/>
+                                Value="{Binding SunAzimuth, Mode=TwoWay}"
+                                Style="{StaticResource MahApps.Styles.Slider.Flat}"/>
                     </Grid>
                 </StackPanel>
             </Expander>
 
-            <Expander Header="Image-Based Lighting">
-                <Grid Margin="0,0,0,20"
-                      Visibility="{Binding EnableAtmosphere, Mode=OneWay, Converter={StaticResource InverseVisibilityConverter}}">
+            <Expander Margin="1" Header="Image-Based Lighting"
+                      mah:HeaderedControlHelper.HeaderFontWeight="Bold"
+                      mah:ControlsHelper.ContentCharacterCasing="Normal">
+                <Grid Margin="4"
+                      IsEnabled="{Binding EnableAtmosphere, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
@@ -103,16 +108,21 @@
                 </Grid>
             </Expander>
 
-            <Expander Header="Lights">
-                <StackPanel Orientation="Vertical">
-                    <CheckBox Margin="8,2" Content="Lights" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                              Foreground="{DynamicResource MahApps.Brushes.Gray2}"
-                              IsChecked="{Binding EnableLights, Mode=TwoWay}"/>
-                    <Grid Margin="0,0,0,20"
-                          Visibility="{Binding EnableLights, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Expander Margin="1">
+                <Expander.Header>
+                    <DockPanel>
+                        <CheckBox DockPanel.Dock="Right"
+                                  Foreground="{DynamicResource MahApps.Brushes.Gray2}"
+                                  IsChecked="{Binding EnableLights, Mode=TwoWay}"/>
+                        <TextBlock Text="Lights" FontWeight="Bold"/>
+                    </DockPanel>
+                </Expander.Header>
+                <StackPanel Orientation="Vertical"
+                            IsEnabled="{Binding EnableLights, Mode=OneWay}">
+                    <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="128"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>

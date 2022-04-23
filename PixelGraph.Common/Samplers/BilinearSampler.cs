@@ -15,48 +15,56 @@ namespace PixelGraph.Common.Samplers
         {
             GetTexCoordY(in y, out var fy);
 
-            var pyMin = (int)fy;
-            var pyMax = pyMin + 1;
+            var minRangeY = (int)MathF.Ceiling(RangeY);
+            var pyMin = (int)MathF.Floor(fy - 0.5f*minRangeY);
+            var pyMax = pyMin + minRangeY;
 
-            NormalizeTexCoordY(ref pyMin);
-            NormalizeTexCoordY(ref pyMax);
-
-            return new BilinearRowSampler<TPixel> {
-                RowMin = Image.DangerousGetPixelRowMemory(pyMin),
-                RowMax = Image.DangerousGetPixelRowMemory(pyMax),
+            var sampler = new BilinearRowSampler<TPixel> {
                 RangeX = RangeX,
                 RangeY = RangeY,
                 WrapX = WrapX,
-                WrapY = WrapY,
                 Bounds = Bounds,
                 YMin = pyMin,
                 YMax = pyMax,
             };
+
+            NormalizeTexCoordY(ref pyMin);
+            NormalizeTexCoordY(ref pyMax);
+
+            sampler.RowMin = Image
+                .DangerousGetPixelRowMemory(pyMin)
+                .Slice(Bounds.X, Bounds.Width);
+
+            sampler.RowMax = Image
+                .DangerousGetPixelRowMemory(pyMax)
+                .Slice(Bounds.X, Bounds.Width);
+
+            return sampler;
         }
 
-        public override void Sample(in double x, in double y, ref Rgba32 pixel)
-        {
-            SampleScaled(in x, in y, out var vector);
-            pixel.FromScaledVector4(vector);
-        }
-
-        public override void SampleScaled(in double x, in double y, out Vector4 vector)
+        public override void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue)
         {
             GetTexCoord(in x, in y, out var fx, out var fy);
 
-            var pxMin = (int)fx; //(fx + 0.5f);
-            var pxMax = pxMin + 1;
-            var pyMin = (int)fy; //(fy + 0.5f);
-            var pyMax = pyMin + 1;
+            fx -= 0.5f;
 
-            var px = fx - pxMin;// - 0.5f;
-            var py = fy - pyMin;// - 0.5f;
+            var pxMin = (int)MathF.Floor(fx);
+            var pxMax = pxMin + (int)MathF.Ceiling(RangeX);
+            var pyMin = (int)MathF.Floor(fy);
+            var pyMax = pyMin + (int)MathF.Ceiling(RangeY);
+
+            var px = fx - pxMin;
+            var py = fy - pyMin;
 
             NormalizeTexCoord(ref pxMin, ref pyMin);
             NormalizeTexCoord(ref pxMax, ref pyMax);
 
-            var rowMin = Image.DangerousGetPixelRowMemory(pyMin).Span;
-            var rowMax = Image.DangerousGetPixelRowMemory(pyMax).Span;
+            var rowMin = Image
+                .DangerousGetPixelRowMemory(pyMin)
+                .Slice(Bounds.X, Bounds.Width).Span;
+            var rowMax = Image
+                .DangerousGetPixelRowMemory(pyMax)
+                .Slice(Bounds.X, Bounds.Width).Span;
 
             var pixelMatrix = new Vector4[4];
             pixelMatrix[0] = rowMin[pxMin].ToScaledVector4();
@@ -66,19 +74,8 @@ namespace PixelGraph.Common.Samplers
 
             MathEx.Lerp(in pixelMatrix[0], in pixelMatrix[1], in px, out var zMin);
             MathEx.Lerp(in pixelMatrix[2], in pixelMatrix[3], in px, out var zMax);
-            MathEx.Lerp(in zMin, in zMax, in py, out vector);
-        }
+            MathEx.Lerp(in zMin, in zMax, in py, out var vector);
 
-        public override void Sample(in double fx, in double fy, in ColorChannel color, out byte pixelValue)
-        {
-            var pixel = new Rgba32();
-            Sample(in fx, in fy, ref pixel);
-            pixel.GetChannelValue(color, out pixelValue);
-        }
-
-        public override void SampleScaled(in double fx, in double fy, in ColorChannel color, out float pixelValue)
-        {
-            SampleScaled(in fx, in fy, out var vector);
             vector.GetChannelValue(color, out pixelValue);
         }
     }
@@ -94,7 +91,6 @@ namespace PixelGraph.Common.Samplers
         public float RangeX {get; set;}
         public float RangeY {get; set;}
         public bool WrapX {get; set;}
-        public bool WrapY {get; set;}
 
 
         public void Sample(in double x, in double y, ref Rgba32 pixel)
@@ -122,16 +118,24 @@ namespace PixelGraph.Common.Samplers
 
         private void SampleInternal(in double x, in double y, out Vector4 pixel)
         {
-            var fx = (float)(Bounds.Left + x * Bounds.Width);
-            var fy = (float)(Bounds.Top + y * Bounds.Height);
+            var minRangeX = (int)MathF.Ceiling(RangeX);
+            var minRangeY = (int)MathF.Ceiling(RangeY);
 
-            var pxMin = (int)fx; //(fx + 0.5f);
-            var pxMax = pxMin + 1;
-            var pyMin = (int)fy; //(fy + 0.5f);
-            var pyMax = pyMin + 1;
+            var fx = (float)(Bounds.Left + x * Bounds.Width) - 0.5f*minRangeX;
+            var fy = (float)(Bounds.Top + y * Bounds.Height) - 0.5f*minRangeX;
 
-            var px = fx - pxMin;// - 0.5f;
-            var py = fy - pyMin;// - 0.5f;
+            var pxMin = (int)MathF.Floor(fx);
+            var pxMax = pxMin + minRangeX;
+            var pyMin = (int)MathF.Floor(fy);
+            var pyMax = pyMin + minRangeY;
+
+            var px = fx - pxMin;
+            var py = fy - pyMin;
+
+#if DEBUG
+            if (pyMin != YMin) throw new ApplicationException($"Sample row {pyMin} does not match RowSampler row {YMin}!");
+            if (pyMax != YMax) throw new ApplicationException($"Sample row {pyMax} does not match RowSampler row {YMax}!");
+#endif
 
             if (WrapX) {
                 TexCoordHelper.WrapCoordX(ref pxMin, in Bounds);
@@ -142,25 +146,13 @@ namespace PixelGraph.Common.Samplers
                 TexCoordHelper.ClampCoordX(ref pxMax, in Bounds);
             }
 
-            if (WrapY) {
-                TexCoordHelper.WrapCoordY(ref pyMin, in Bounds);
-                TexCoordHelper.WrapCoordY(ref pyMax, in Bounds);
-            }
-            else {
-                TexCoordHelper.ClampCoordY(ref pyMin, in Bounds);
-                TexCoordHelper.ClampCoordY(ref pyMax, in Bounds);
-            }
-
-            if (pyMin != YMin) throw new ApplicationException($"Sample row {pyMin} does not match RowSampler row {YMin}!");
-            if (pyMax != YMax) throw new ApplicationException($"Sample row {pyMax} does not match RowSampler row {YMax}!");
-
             var spanMin = RowMin.Span;
             var spanMax = RowMax.Span;
             var pixelMatrix = new Vector4[4];
-            pixelMatrix[0] = spanMin[pxMin].ToScaledVector4();
-            pixelMatrix[1] = spanMin[pxMax].ToScaledVector4();
-            pixelMatrix[2] = spanMax[pxMin].ToScaledVector4();
-            pixelMatrix[3] = spanMax[pxMax].ToScaledVector4();
+            pixelMatrix[0] = spanMin[pxMin - Bounds.X].ToScaledVector4();
+            pixelMatrix[1] = spanMin[pxMax - Bounds.X].ToScaledVector4();
+            pixelMatrix[2] = spanMax[pxMin - Bounds.X].ToScaledVector4();
+            pixelMatrix[3] = spanMax[pxMax - Bounds.X].ToScaledVector4();
 
             MathEx.Lerp(in pixelMatrix[0], in pixelMatrix[1], in px, out var zMin);
             MathEx.Lerp(in pixelMatrix[2], in pixelMatrix[3], in px, out var zMax);

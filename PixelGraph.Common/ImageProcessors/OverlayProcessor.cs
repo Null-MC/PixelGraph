@@ -28,14 +28,14 @@ namespace PixelGraph.Common.ImageProcessors
             double fx, fy;
             var pixelOut = new Rgba32();
 
-            for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
+            for (var x = 0; x < context.Bounds.Width; x++) {
                 row[x].ToRgba32(ref pixelOut);
 
                 for (var i = 0; i < samplerCount; i++) {
                     var samplerOptions = options.Samplers[i];
                     var mapping = samplerOptions.PixelMap;
 
-                    GetTexCoord(in context, in x, out fx, out fy);
+                    GetTexCoord(in context, context.Bounds.Left + x, out fx, out fy);
                     rowSamplers[i].Sample(fx, fy, in samplerOptions.InputColor, out var pixelValue);
 
                     if (!mapping.TryUnmap(in pixelValue, out var value)) continue;

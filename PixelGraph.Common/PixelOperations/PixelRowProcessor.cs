@@ -17,9 +17,19 @@ namespace PixelGraph.Common.PixelOperations
         protected virtual void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> row)
             where TPixel : unmanaged, IPixel<TPixel> {}
 
+        private static void GetTexCoordX(in Rectangle bounds, in float x, out double fx)
+        {
+            fx = (x - bounds.X + 0.5f) / bounds.Width;
+        }
+
+        private static void GetTexCoordY(in Rectangle bounds, in float y, out double fy)
+        {
+            fy = (y - bounds.Y + 0.5f) / bounds.Height;
+        }
+
         protected static void GetTexCoordY(in PixelRowContext context, out double fy)
         {
-            fy = (context.Y - context.Bounds.Y) / (float)context.Bounds.Height;
+            GetTexCoordY(in context.Bounds, context.Y, out fy);
         }
 
         protected static void GetTexCoord(in PixelRowContext context, in int x, out double fx, out double fy)
@@ -29,8 +39,8 @@ namespace PixelGraph.Common.PixelOperations
 
         protected static void GetTexCoord(in PixelRowContext context, in float x, in float y, out double fx, out double fy)
         {
-            fx = (x - context.Bounds.X) / context.Bounds.Width;
-            fy = (y - context.Bounds.Y) / context.Bounds.Height;
+            GetTexCoordX(in context.Bounds, in x, out fx);
+            GetTexCoordY(in context.Bounds, in y, out fy);
         }
 
         private class Processor<TPixel> : ImageProcessor<TPixel>

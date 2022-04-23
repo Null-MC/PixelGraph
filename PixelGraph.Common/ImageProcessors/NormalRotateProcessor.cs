@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common.Extensions;
-using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
@@ -8,7 +7,7 @@ using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class NormalRotateProcessor : PixelRowProcessor
+    internal class NormalRotateProcessor //: PixelRowProcessor
     {
         private bool hasRotation, hasNoise;
         private float offsetTop, offsetBottom, offsetLeft, offsetRight;
@@ -62,7 +61,7 @@ namespace PixelGraph.Common.ImageProcessors
             else invRadiusRight = offsetRight = 0f;
 
             image.Mutate(c => {
-                c.ProcessPixelRowsAsVector4(ProcessRow);
+                c.ProcessPixelRowsAsVector4(ProcessRow, Bounds);
             });
         }
 
@@ -76,8 +75,8 @@ namespace PixelGraph.Common.ImageProcessors
             }
 
             var v = new Vector3();
-            for (var x = Bounds.Left; x < Bounds.Right; x++) {
-                if (x < 0 || x >= row.Length) continue;
+            for (var x = 0; x < Bounds.Width; x++) {
+                //if (x < 0 || x >= row.Length) continue;
 
                 row[x].GetChannelValue(ColorChannel.Red, out var normalX);
                 row[x].GetChannelValue(ColorChannel.Green, out var normalY);
@@ -91,7 +90,7 @@ namespace PixelGraph.Common.ImageProcessors
                     MathEx.Normalize(ref v);
                 }
 
-                ProcessPixel(in x, pos.Y, ref v, in noiseX, in noiseY);
+                ProcessPixel(x, pos.Y - Bounds.Y, ref v, in noiseX, in noiseY);
 
                 row[x].SetChannelValue(ColorChannel.Red, v.X * 0.5f + 0.5f);
                 row[x].SetChannelValue(ColorChannel.Green, v.Y * 0.5f + 0.5f);
@@ -102,8 +101,8 @@ namespace PixelGraph.Common.ImageProcessors
         private void ProcessPixel(in int x, in int y, ref Vector3 v, in byte[] noiseX, in byte[] noiseY)
         {
             if (hasRotation || hasNoise) {
-                var fx = (x - Bounds.X + 0.5f) / Bounds.Width * 2f - 1f;
-                var fy = (y - Bounds.Y + 0.5f) / Bounds.Height * 2f - 1f;
+                var fx = (x + 0.5f) / Bounds.Width * 2f - 1f;
+                var fy = (y + 0.5f) / Bounds.Height * 2f - 1f;
 
                 var f_top = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
                 var f_bottom = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
@@ -135,9 +134,8 @@ namespace PixelGraph.Common.ImageProcessors
                 }
 
                 if (hasNoise) {
-                    var z = x - Bounds.Left;
-                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[z] / 127.5f - 1f) * Noise * MathEx.Deg2RadF);
-                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[z] / 127.5f - 1f) * -Noise * MathEx.Deg2RadF);
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[x] / 127.5f - 1f) * Noise * MathEx.Deg2RadF);
+                    q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[x] / 127.5f - 1f) * -Noise * MathEx.Deg2RadF);
                 }
 
                 v = Vector3.Transform(v, q);

@@ -18,24 +18,23 @@ namespace PixelGraph.Common.Samplers
 
             var minRangeY = MathF.Max(RangeY, 1f);
             var stepY = (int)MathF.Ceiling(minRangeY);
-            var pyMin = (int)fy;
+            var pyMin = (int)MathF.Floor(fy - 0.5f*stepY);
 
             return new AverageRowSampler<TPixel> {
                 Rows = Enumerable.Range(pyMin, stepY).Select(i => {
                     NormalizeTexCoordY(ref i);
-                    return Image.DangerousGetPixelRowMemory(i);
+                    return Image.DangerousGetPixelRowMemory(i)
+                        .Slice(Bounds.X, Bounds.Width);
                 }).ToArray(),
                 RangeX = RangeX,
                 RangeY = RangeY,
                 WrapX = WrapX,
-                WrapY = WrapY,
                 Bounds = Bounds,
                 YMin = pyMin,
-                YMax = pyMin + stepY,
             };
         }
 
-        public override void Sample(in double x, in double y, ref Rgba32 pixel)
+        public override void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue)
         {
             GetTexCoord(in x, in y, out var fx, out var fy);
             
@@ -46,29 +45,29 @@ namespace PixelGraph.Common.Samplers
             var stepY = (int)MathF.Ceiling(minRangeY);
             var weight = stepX * stepY;
 
-            var pxMin = (int)fx; //(fx - 0.5f);
-            var pyMin = (int)fy; //(fy - 0.5f);
-            var pxMax = pxMin + stepX;
-            var pyMax = pyMin + stepY;
+            var pxMin = (int)MathF.Floor(fx - 0.5f*stepX);
+            var pyMin = (int)MathF.Floor(fy - 0.5f*stepY);
 
-            var color = new Vector4();
-            for (var py = pyMin; py < pyMax; py++) {
-                var _py = py;
+            pixelValue = 0f;
+            for (var iy = 0; iy < stepX; iy++) {
+                var py = pyMin + iy;
+                NormalizeTexCoordY(ref py);
 
-                NormalizeTexCoordY(ref _py);
+                var row = Image
+                    .DangerousGetPixelRowMemory(py)
+                    .Slice(Bounds.X, Bounds.Width).Span;
 
-                var row = Image.DangerousGetPixelRowMemory(_py).Span;
+                for (var ix = 0; ix < stepX; ix++) {
+                    var px = pxMin + ix;
+                    NormalizeTexCoordX(ref px);
 
-                for (var px = pxMin; px < pxMax; px++) {
-                    var _px = px;
-
-                    NormalizeTexCoordX(ref _px);
-
-                    color += row[_px].ToScaledVector4();
+                    var p = row[px - Bounds.X].ToScaledVector4();
+                    p.GetChannelValue(color, out var pValue);
+                    pixelValue += pValue;
                 }
             }
 
-            pixel.FromScaledVector4(color / weight);
+            pixelValue /= weight;
         }
     }
 
@@ -77,12 +76,11 @@ namespace PixelGraph.Common.Samplers
     {
         public Memory<TPixel>[] Rows;
         public Rectangle Bounds;
-        public int YMin, YMax;
+        public int YMin;
 
         public float RangeX {get; set;}
         public float RangeY {get; set;}
         public bool WrapX {get; set;}
-        public bool WrapY {get; set;}
 
 
         public void Sample(in double x, in double y, ref Rgba32 pixel)
@@ -120,33 +118,24 @@ namespace PixelGraph.Common.Samplers
             var stepY = (int)MathF.Ceiling(minRangeY);
             var weight = stepX * stepY;
 
-            var pxMin = (int)fx; //(fx - 0.5f);
-            var pyMin = (int)fy; //(fy - 0.5f);
-            //var pxMax = pxMin + stepX;
-            var pyMax = pyMin + stepY;
+            var pxMin = (int)MathF.Floor(fx - 0.5f*stepX);
+            var pyMin = (int)MathF.Floor(fy - 0.5f*stepY);
 
+#if DEBUG
             if (pyMin != YMin) throw new ApplicationException($"Sample row {pyMin} does not match RowSampler row {YMin}!");
-            if (pyMax != YMax) throw new ApplicationException($"Sample row {pyMax} does not match RowSampler row {YMax}!");
+#endif
 
             var color = new Vector4();
             for (var iy = 0; iy < stepY; iy++) {
-                var py = pyMin + iy;
-                var _py = py;
-
-                if (WrapY) TexCoordHelper.WrapCoordY(ref _py, in Bounds);
-                else TexCoordHelper.ClampCoordY(ref _py, in Bounds);
-
-                //var row = Image.DangerousGetPixelRowMemory(_py).Span;
-                var row = Rows[_py].Span;
+                var row = Rows[iy].Span;
 
                 for (var ix = 0; ix < stepX; ix++) {
                     var px = pxMin + ix;
-                    var _px = px;
 
-                    if (WrapX) TexCoordHelper.WrapCoordX(ref _px, in Bounds);
-                    else TexCoordHelper.ClampCoordX(ref _px, in Bounds);
+                    if (WrapX) TexCoordHelper.WrapCoordX(ref px, in Bounds);
+                    else TexCoordHelper.ClampCoordX(ref px, in Bounds);
 
-                    color += row[_px].ToScaledVector4();
+                    color += row[px - Bounds.X].ToScaledVector4();
                 }
             }
 

@@ -296,7 +296,7 @@ namespace PixelGraph.Common.Textures.Graphing
                     Bounds = region,
                 };
 
-                NormalTexture.Mutate(c => c.ApplyProcessor(curveProcessor, region));
+                curveProcessor.Apply(NormalTexture);
             }
         }
 
@@ -343,8 +343,9 @@ namespace PixelGraph.Common.Textures.Graphing
             mapping.ApplyOutputChannel(magnitudeChannel);
 
             var options = new NormalMagnitudeWriteProcessor<L8>.Options {
-                Scale = (float)context.Material.GetChannelScale(magnitudeChannel.ID),
+                //Scale = (float)context.Material.GetChannelScale(magnitudeChannel.ID),
                 Mapping = new PixelMapping(mapping),
+                InputColor = magnitudeChannel.Color ?? ColorChannel.Magnitude,
             };
 
             int srcFrameCount;

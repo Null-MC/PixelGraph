@@ -17,7 +17,7 @@ namespace PixelGraph.Common.ImageProcessors
 
         public void Apply(Image image)
         {
-            image.Mutate(c => c.ProcessPixelRowsAsVector4(ProcessPixel));
+            image.Mutate(c => c.ProcessPixelRowsAsVector4(ProcessPixel, Bounds));
         }
 
         private void ProcessPixel(Span<Vector4> row, Point pos)
@@ -49,23 +49,23 @@ namespace PixelGraph.Common.ImageProcessors
             if (SizeX > float.Epsilon) {
                 var right = Bounds.Right - 1;
                 var sizeX = (int) MathF.Ceiling(SizeX * Bounds.Width);
-                var skipX = x > Bounds.Left + sizeX && x < right - sizeX;
+                var skipX = x > 0 + sizeX && x < right - sizeX;
 
                 if (!skipX) {
-                    var fLeft = 1f - Math.Clamp((x - Bounds.Left) / (float) sizeX, 0f, 1f);
-                    var fRight = 1f - Math.Clamp((right - x) / (float) sizeX, 0f, 1f);
+                    var fLeft = 1f - Math.Clamp(x / (float)sizeX, 0f, 1f);
+                    var fRight = 1f - Math.Clamp((right - x) / (float)sizeX, 0f, 1f);
                     fx = MathF.Max(fLeft, fRight);
                     hasChanges = true;
                 }
             }
 
             if (SizeY > float.Epsilon) {
-                var bottom = Bounds.Bottom - 1;
+                var bottom = Bounds.Height - 1;
                 var sizeY = (int) MathF.Ceiling(SizeY * Bounds.Height);
-                var skipY = y > Bounds.Top + sizeY && y < bottom - sizeY;
+                var skipY = y > 0 + sizeY && y < bottom - sizeY;
 
                 if (!skipY) {
-                    var fTop = 1f - Math.Clamp((y - Bounds.Top) / (float) sizeY, 0f, 1f);
+                    var fTop = 1f - Math.Clamp(y / (float) sizeY, 0f, 1f);
                     var fBottom = 1f - Math.Clamp((bottom - y) / (float) sizeY, 0f, 1f);
                     fy = MathF.Max(fTop, fBottom);
                     hasChanges = true;
