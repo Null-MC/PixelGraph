@@ -1,9 +1,10 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.ResourcePack;
 using System;
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialOcclusionProperties
+    public class MaterialOcclusionProperties : IHaveData
     {
         //public const string DefaultSampler = Samplers.Samplers.Nearest;
         //public const float DefaultQuality = 0.1f;

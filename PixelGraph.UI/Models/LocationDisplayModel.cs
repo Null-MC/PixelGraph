@@ -2,7 +2,7 @@
 
 namespace PixelGraph.UI.Models
 {
-    public class LocationModel : ModelBase
+    public class LocationDisplayModel : ModelBase
     {
         public LocationDataModel DataSource {get;}
         private bool _isManualSelect {get; set;}
@@ -40,12 +40,12 @@ namespace PixelGraph.UI.Models
         }
 
 
-        public LocationModel()
+        public LocationDisplayModel()
         {
             DataSource = new LocationDataModel();
         }
 
-        public LocationModel(LocationDataModel location)
+        public LocationDisplayModel(LocationDataModel location)
         {
             DataSource = location;
         }

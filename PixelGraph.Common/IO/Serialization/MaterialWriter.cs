@@ -15,20 +15,23 @@ namespace PixelGraph.Common.IO.Serialization
 
     internal class MaterialWriter : IMaterialWriter
     {
+        private static readonly ISerializer serializer;
         private readonly IOutputWriter writer;
-        private readonly ISerializer serializer;
 
 
-        public MaterialWriter(IOutputWriter writer)
+        static MaterialWriter()
         {
-            this.writer = writer;
-
             serializer = new SerializerBuilder()
                 .WithTypeConverter(new YamlStringEnumConverter())
                 .WithNamingConvention(HyphenatedNamingConvention.Instance)
                 .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults)
-                .WithEmissionPhaseObjectGraphVisitor(args => new CustomObjectGraphVisitor(args.InnerVisitor))
+                .WithEmissionPhaseObjectGraphVisitor(args => new CustomGraphVisitor(args.InnerVisitor))
                 .Build();
+        }
+
+        public MaterialWriter(IOutputWriter writer)
+        {
+            this.writer = writer;
         }
         
         public Task WriteAsync(MaterialProperties material, CancellationToken token = default)

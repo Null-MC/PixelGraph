@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.Extensions;
+using System.IO;
 
 namespace PixelGraph.Common.IO
 {
@@ -19,21 +20,30 @@ namespace PixelGraph.Common.IO
                 return true;
             }
 
-            var texturesPath = PathEx.Join("assets/minecraft/textures", searchFile, "mat.yml");
-            texturesPath = PathEx.Localize(texturesPath);
+            var texturesFile = PathEx.Join("assets/minecraft/textures", searchFile, "mat.yml");
+            texturesFile = PathEx.Localize(texturesFile);
 
-            if (reader.FileExists(texturesPath)) {
-                localPath = texturesPath;
+            if (reader.FileExists(texturesFile)) {
+                localPath = texturesFile;
                 return true;
             }
 
-            var modelsBlockPath = PathEx.Join("assets/minecraft/textures/block", searchFile, "mat.yml");
-            modelsBlockPath = PathEx.Localize(modelsBlockPath);
+            var matName = Path.GetFileNameWithoutExtension(searchFile);
 
-            if (reader.FileExists(modelsBlockPath)) {
-                localPath = modelsBlockPath;
+            var texturesBlockFile = PathEx.Join("assets/minecraft/textures/block", matName, "mat.yml");
+            texturesBlockFile = PathEx.Localize(texturesBlockFile);
+
+            if (reader.FileExists(texturesBlockFile)) {
+                localPath = texturesBlockFile;
                 return true;
             }
+
+            // TODO: add textures/models
+
+            var optifineCtmPath = PathEx.Join("assets/minecraft/optifine/ctm", matName);
+            optifineCtmPath = PathEx.Localize(optifineCtmPath);
+
+            if (TryFindFile(optifineCtmPath, "mat.yml", true, out localPath)) return true;
 
             localPath = null;
             return false;
@@ -51,6 +61,23 @@ namespace PixelGraph.Common.IO
             if (!FindLocalEntityModel(searchFile, out localPath)) return false;
             localPath = reader.GetFullPath(localPath);
             return true;
+        }
+
+        private bool TryFindFile(string searchPath, string searchFile, bool recursive, out string localFile)
+        {
+            foreach (var file in reader.EnumerateFiles(searchPath, searchFile)) {
+                localFile = file;
+                return true;
+            }
+
+            if (recursive) {
+                foreach (var path in reader.EnumerateDirectories(searchPath)) {
+                    if (TryFindFile(path, searchFile, true, out localFile)) return true;
+                }
+            }
+
+            localFile = null;
+            return false;
         }
 
         private bool FindLocalBlockModel(string searchFile, out string localPath)

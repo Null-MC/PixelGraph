@@ -13,7 +13,8 @@ namespace PixelGraph.UI.Helix.Controls
     public class MinecraftMesh3D : Element3D, IMinecraftSceneCore
     {
         private MinecraftMeshNode MeshNode => SceneNode as MinecraftMeshNode;
-        public bool IsRenderValid => MeshNode.IsRenderValid;
+        //public bool IsRenderValid => MeshNode.IsRenderValid;
+        public long LastUpdated => MeshNode.LastUpdated;
 
         public string BlendMode {
             get => (string)GetValue(BlendModeProperty);
@@ -31,10 +32,10 @@ namespace PixelGraph.UI.Helix.Controls
             MeshNode?.Apply(deviceContext);
         }
 
-        public void ResetValidation()
-        {
-            MeshNode?.ResetValidation();
-        }
+        //public void ResetValidation()
+        //{
+        //    MeshNode?.ResetValidation();
+        //}
 
         protected override SceneNode OnCreateSceneNode()
         {

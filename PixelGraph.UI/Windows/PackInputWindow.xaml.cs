@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Utilities;
-using PixelGraph.UI.ViewModels;
 using System;
 using System.Windows;
 
@@ -12,29 +10,34 @@ namespace PixelGraph.UI.Windows
 {
     public partial class PackInputWindow
     {
-        private readonly ILogger<PackInputWindow> logger;
-        private readonly PackInputViewModel viewModel;
+        //private readonly ILogger<PackInputWindow> logger;
+        private readonly IProjectContextManager projectContextMgr;
+        //private readonly PackInputViewModel viewModel;
 
 
         public PackInputWindow(IServiceProvider provider)
         {
-            logger = provider.GetRequiredService<ILogger<PackInputWindow>>();
+            //logger = provider.GetRequiredService<ILogger<PackInputWindow>>();
+            projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
 
             InitializeComponent();
             themeHelper.ApplyCurrent(this);
 
-            viewModel = new PackInputViewModel(provider) {
-                Model = Model,
-            };
+            var projectContext = projectContextMgr.GetContext();
+            Model.PackInput = (ResourcePackInputProperties)projectContext.Project.Input.Clone();
+
+            //viewModel = new PackInputViewModel(provider) {
+            //    Model = Model,
+            //};
         }
 
-        private void ShowError(string message)
-        {
-            Dispatcher.Invoke(() => {
-                MessageBox.Show(this, message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-            });
-        }
+        //private void ShowError(string message)
+        //{
+        //    Dispatcher.Invoke(() => {
+        //        MessageBox.Show(this, message, "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+        //    });
+        //}
 
         #region Events
 
@@ -72,16 +75,12 @@ namespace PixelGraph.UI.Windows
         //    DialogResult = false;
         //}
 
-        private async void OnOkButtonClick(object sender, RoutedEventArgs e)
+        private void OnOkButtonClick(object sender, RoutedEventArgs e)
         {
-            try {
-                await viewModel.SavePackInputAsync();
-                Dispatcher.Invoke(() => DialogResult = true);
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to save pack input!");
-                ShowError($"Failed to save pack input! {error.UnfoldMessageString()}");
-            }
+            var projectContext = projectContextMgr.GetContext();
+
+            projectContext.Project.Input = Model.PackInput;
+            DialogResult = true;
         }
 
         #endregion

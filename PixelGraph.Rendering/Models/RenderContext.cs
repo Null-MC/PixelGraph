@@ -17,6 +17,7 @@ namespace PixelGraph.Rendering.Models
         ICubeMapSource EnvironmentCubeMap {get;}
         ICubeMapSource IrradianceCubeMap {get;}
         bool EnvironmentEnabled {get;}
+        bool EnableLinearSampling {get;}
         bool EnableTiling {get;}
     }
 
@@ -32,6 +33,7 @@ namespace PixelGraph.Rendering.Models
         public ICubeMapSource EnvironmentCubeMap {get; set;}
         public ICubeMapSource IrradianceCubeMap {get; set;}
         public bool EnvironmentEnabled {get; set;}
+        public bool EnableLinearSampling {get; set;}
         public bool EnableTiling {get; set;}
     }
 }

@@ -5,20 +5,12 @@ namespace PixelGraph.UI.Models
 {
     internal class PublishLocationsModel : ModelBase
     {
-        protected ObservableCollection<LocationModel> _locations;
-        private LocationModel _selectedLocationItem;
-        //private bool _hasChanges;
+        protected ObservableCollection<LocationDisplayModel> _locations;
+        private LocationDisplayModel _selectedLocationItem;
+
         public bool HasChanges {get; set;}
 
         public bool HasSelectedLocation => _selectedLocationItem != null;
-
-        //public bool HasChanges {
-        //    get => _hasChanges;
-        //    set {
-        //        _hasChanges = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
         public string EditName {
             get => _selectedLocationItem?.DisplayName;
@@ -53,7 +45,7 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public ObservableCollection<LocationModel> Locations {
+        public ObservableCollection<LocationDisplayModel> Locations {
             get => _locations;
             set {
                 _locations = value;
@@ -61,7 +53,7 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public LocationModel SelectedLocationItem {
+        public LocationDisplayModel SelectedLocationItem {
             get => _selectedLocationItem;
             set {
                 _selectedLocationItem = value;

@@ -11,21 +11,20 @@ using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Preview.Textures;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.Models.Tabs;
-using PixelGraph.UI.ViewData;
 using SixLabors.ImageSharp;
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Threading;
-using PixelGraph.UI.Internal.Preview.Textures;
 
 #if !NORENDER
 using PixelGraph.Rendering.Models;
@@ -40,10 +39,10 @@ namespace PixelGraph.UI.ViewModels
         private readonly IServiceProvider provider;
         private readonly IRecentPathManager recentMgr;
         private readonly ITabPreviewManager tabPreviewMgr;
-        private readonly IProjectContext projectContext;
+        private readonly IProjectContextManager projectContextMgr;
+        private readonly IPublishLocationManager publishLocationMgr;
         private readonly MaterialPropertiesCache materialCache;
         private readonly TextureEditUtility editUtility;
-        private LocationDataModel[] publishLocationList;
 
         public event EventHandler<UnhandledExceptionEventArgs> TreeError;
 
@@ -64,23 +63,21 @@ namespace PixelGraph.UI.ViewModels
             logger = provider.GetRequiredService<ILogger<MainWindowViewModel>>();
             recentMgr = provider.GetRequiredService<IRecentPathManager>();
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
-            projectContext = provider.GetRequiredService<IProjectContext>();
+            projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
+            publishLocationMgr = provider.GetRequiredService<IPublishLocationManager>();
             materialCache = provider.GetRequiredService<MaterialPropertiesCache>();
             editUtility = provider.GetRequiredService<TextureEditUtility>();
         }
 
         public void Initialize()
         {
+            UpdatePublishLocations();
+
             var settings = provider.GetRequiredService<IAppSettings>();
 
-            if (publishLocationList != null) {
-                Model.PublishLocations = publishLocationList
-                    .Select(x => new LocationModel(x)).ToList();
-
-                if (settings.Data.SelectedPublishLocation != null) {
-                    var location = Model.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
-                    if (location != null) Model.SelectedLocation = location;
-                }
+            if (settings.Data.SelectedPublishLocation != null) {
+                var location = Model.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
+                if (location != null) Model.SelectedLocation = location;
             }
 
             UpdateRecentProjectsList();
@@ -97,14 +94,13 @@ namespace PixelGraph.UI.ViewModels
 
         public void Clear()
         {
-            projectContext.RootDirectory = null;
-            Model.RootDirectory = null;
+            projectContextMgr.SetContext(null);
 
+            Model.ProfileList?.Clear();
+            Model.ProjectFilename = null;
             Model.SelectedNode = null;
-            Model.PackInput = null;
             Model.TreeRoot = null;
 
-            Model.Profile.List.Clear();
             materialCache.Clear();
         }
 
@@ -118,25 +114,38 @@ namespace PixelGraph.UI.ViewModels
             Model.TabList.Clear();
         }
 
-        public async Task SetRootDirectoryAsync(string path, CancellationToken token = default)
+        public async Task LoadProjectAsync(string filename)
         {
-            projectContext.RootDirectory = path;
-            Model.RootDirectory = path;
+            var serializer = new ProjectSerializer();
+            var project = await serializer.LoadAsync(filename);
 
-            await LoadRootDirectoryAsync();
+            var context = new ProjectContext {
+                Project = project,
+                ProjectFilename = filename,
+                RootDirectory = Path.GetDirectoryName(filename),
+            };
 
-            await Dispatcher.BeginInvoke(() => {
-                recentMgr.Insert(path);
-                UpdateRecentProjectsList();
-            });
+            projectContextMgr.SetContext(context);
+        }
 
-            await recentMgr.SaveAsync(token);
+        public Task AppendRecentProject(string filename, CancellationToken token = default)
+        {
+            recentMgr.Insert(filename);
+            return recentMgr.SaveAsync(token);
+        }
+
+        public async Task SetRootDirectoryAsync(CancellationToken token = default)
+        {
+            //await LoadRootDirectoryAsync();
+
+            await Dispatcher.BeginInvoke(UpdateRecentProjectsList);
         }
 
         public async Task LoadRootDirectoryAsync()
         {
             if (!Model.TryStartBusy()) return;
 
+            var projectContext = projectContextMgr.GetContext();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();
@@ -145,39 +154,23 @@ namespace PixelGraph.UI.ViewModels
             
             await using var scope = serviceBuilder.Build();
 
-            var reader = scope.GetRequiredService<IInputReader>();
+            //var reader = scope.GetRequiredService<IInputReader>();
             var loader = scope.GetRequiredService<IPublishReader>();
             var treeReader = scope.GetRequiredService<ContentTreeReader>();
 
             try {
-                try {
-                    await LoadPackInputAsync();
-                }
-                catch (Exception error) {
-                    throw new ApplicationException("Failed to load pack input definitions!", error);
-                }
+                //try {
+                //    await LoadPackInputAsync();
+                //}
+                //catch (Exception error) {
+                //    throw new ApplicationException("Failed to load pack input definitions!", error);
+                //}
 
-                loader.EnableAutoMaterial = Model.PackInput?.AutoMaterial
+                loader.EnableAutoMaterial = projectContext.Project.Input?.AutoMaterial
                     ?? ResourcePackInputProperties.AutoMaterialDefault;
                 
                 await Dispatcher.BeginInvoke(() => {
-                    try {
-                        Model.Profile.List.Clear();
-
-                        foreach (var file in reader.EnumerateFiles(".", "*.pack.yml")) {
-                            var localFile = Path.GetFileName(file);
-
-                            var profileItem = new ProfileItem {
-                                Name = localFile[..^9],
-                                LocalFile = localFile,
-                            };
-
-                            Model.Profile.List.Add(profileItem);
-                        }
-                    }
-                    catch (Exception error) {
-                        throw new ApplicationException("Failed to load pack profile definitions!", error);
-                    }
+                    UpdatePublishProfiles();
 
                     Model.TreeRoot = new ContentTreeDirectory(null) {
                         LocalPath = null,
@@ -192,7 +185,9 @@ namespace PixelGraph.UI.ViewModels
                     }
 
                     Model.TreeRoot.UpdateVisibility(Model);
-                    Model.Profile.Selected = Model.Profile.List.FirstOrDefault();
+
+                    // TODO: add 'selected-profile' to project to restore last selection?
+                    Model.SelectedProfile = projectContext.SelectedProfile = projectContext.Project.Profiles.FirstOrDefault();
                     Model.EndBusy();
                 });
             }
@@ -209,6 +204,7 @@ namespace PixelGraph.UI.ViewModels
         {
             if (!Model.TryStartBusy()) return;
 
+            var projectContext = projectContextMgr.GetContext();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();
@@ -221,7 +217,7 @@ namespace PixelGraph.UI.ViewModels
             var treeReader = scope.GetRequiredService<ContentTreeReader>();
 
             try {
-                loader.EnableAutoMaterial = Model.PackInput?.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
+                loader.EnableAutoMaterial = projectContext.Project.Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
 
                 treeReader.Update(Model.TreeRoot);
                 Model.TreeRoot.UpdateVisibility(Model);
@@ -269,32 +265,49 @@ namespace PixelGraph.UI.ViewModels
             Model.TabListSelection = newTab;
         }
 
-        public async Task UpdateSelectedProfileAsync()
+        public void UpdatePublishLocations()
         {
-            if (!Model.Profile.HasSelection) {
-                Model.Profile.Loaded = null;
-                return;
-            }
+            Model.PublishLocations = publishLocationMgr.GetLocations()
+                .Select(l => new LocationDisplayModel(l)).ToList();
 
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
-
-            serviceBuilder.Initialize();
-            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
-
-            await using var scope = serviceBuilder.Build();
-
-            var packReader = scope.GetRequiredService<IResourcePackReader>();
-            var profile = await packReader.ReadProfileAsync(Model.Profile.Selected.LocalFile);
-
-            await Dispatcher.BeginInvoke(() => Model.Profile.Loaded = profile);
+            // TODO: this should probably be lock-wrapped as well...
+            Model.SelectedLocation = Model.PublishLocations.FirstOrDefault(l =>
+                string.Equals(l.DisplayName, publishLocationMgr.SelectedLocation, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        public async Task LoadPublishLocationsAsync(CancellationToken token = default)
+        public void UpdatePublishProfiles()
         {
-            var locationMgr = provider.GetRequiredService<IPublishLocationManager>();
-
-            publishLocationList = await locationMgr.LoadAsync(token);
+            var projectContext = projectContextMgr.GetContext();
+            Model.ProfileList = new ObservableCollection<ResourcePackProfileProperties>(projectContext.Project.Profiles);
+            Model.SelectedProfile = projectContext.SelectedProfile;
         }
+
+        //public async Task UpdateSelectedProfileAsync()
+        //{
+        //    if (!Model.Profile.HasSelection) {
+        //        Model.Profile.Loaded = null;
+        //        return;
+        //    }
+
+        //    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+        //    serviceBuilder.Initialize();
+        //    serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContextMgr.RootDirectory);
+
+        //    await using var scope = serviceBuilder.Build();
+
+        //    var packReader = scope.GetRequiredService<IResourcePackReader>();
+        //    var profile = await packReader.ReadProfileAsync(Model.Profile.Selected.LocalFile);
+
+        //    await Dispatcher.BeginInvoke(() => Model.Profile.Loaded = profile);
+        //}
+
+        //public async Task LoadPublishLocationsAsync(CancellationToken token = default)
+        //{
+        //    var locationMgr = provider.GetRequiredService<IPublishLocationManager>();
+
+        //    publishLocationList = await locationMgr.LoadAsync(token);
+        //}
 
         public async Task LoadRecentProjectsAsync()
         {
@@ -382,10 +395,11 @@ namespace PixelGraph.UI.ViewModels
 
                         var image = await Task.Run(async () => {
                             using var previewBuilder = provider.GetRequiredService<ILayerPreviewBuilder>();
+                            var projectContext = projectContextMgr.GetContext();
 
                             //previewBuilder.RootDirectory = context.RootPath;
-                            previewBuilder.Input = Model.PackInput;
-                            previewBuilder.Profile = Model.Profile.Loaded;
+                            previewBuilder.Input = projectContext.Project.Input;
+                            previewBuilder.Profile = projectContext.SelectedProfile;
                             previewBuilder.Material = material;
                             previewBuilder.TargetFrame = 0;
 
@@ -417,6 +431,7 @@ namespace PixelGraph.UI.ViewModels
                 if (Model.SelectedTab is TextureTabModel textureTab) {
                     if (context.LayerImage != null) return;
 
+                    var projectContext = projectContextMgr.GetContext();
                     context.SourceFile = PathEx.Join(projectContext.RootDirectory, textureTab.ImageFilename);
 
                     await Dispatcher.BeginInvoke(() => {
@@ -439,10 +454,12 @@ namespace PixelGraph.UI.ViewModels
         {
             if (!Model.TryStartBusy()) return;
 
+            var projectContext = projectContextMgr.GetContext();
+
             try {
-                var inputFormat = TextureFormat.GetFactory(Model.PackInput.Format);
+                var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
                 var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
-                inputEncoding.Merge(Model.PackInput);
+                inputEncoding.Merge(projectContext.Project.Input);
                 inputEncoding.Merge(material);
 
                 await Task.Factory.StartNew(async () => {
@@ -457,7 +474,7 @@ namespace PixelGraph.UI.ViewModels
                     var graph = scope.GetRequiredService<ITextureNormalGraph>();
                     var reader = scope.GetRequiredService<IInputReader>();
 
-                    context.Input = Model.PackInput;
+                    context.Input = projectContext.Project.Input;
                     context.Material = material;
 
                     var matMetaFileIn = NamingStructure.GetInputMetaName(material);
@@ -479,10 +496,12 @@ namespace PixelGraph.UI.ViewModels
         {
             if (!Model.TryStartBusy()) return;
 
+            var projectContext = projectContextMgr.GetContext();
+
             try {
-                var inputFormat = TextureFormat.GetFactory(Model.PackInput.Format);
+                var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
                 var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
-                inputEncoding.Merge(Model.PackInput);
+                inputEncoding.Merge(projectContext.Project.Input);
                 inputEncoding.Merge(material);
 
                 await Task.Factory.StartNew(async () => {
@@ -497,7 +516,7 @@ namespace PixelGraph.UI.ViewModels
                     var graph = scope.GetRequiredService<ITextureOcclusionGraph>();
                     var reader = scope.GetRequiredService<IInputReader>();
 
-                    context.Input = Model.PackInput;
+                    context.Input = projectContext.Project.Input;
                     context.Material = material;
 
                     var matMetaFileIn = NamingStructure.GetInputMetaName(material);
@@ -539,6 +558,7 @@ namespace PixelGraph.UI.ViewModels
         {
             if (material == null) throw new ArgumentNullException(nameof(material));
 
+            var projectContext = projectContextMgr.GetContext();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
             
             serviceBuilder.Initialize();
@@ -546,9 +566,8 @@ namespace PixelGraph.UI.ViewModels
 
             await using var scope = serviceBuilder.Build();
 
-            var matWriter = scope.GetRequiredService<IMaterialWriter>();
-
             try {
+                var matWriter = scope.GetRequiredService<IMaterialWriter>();
                 await matWriter.WriteAsync(material);
             }
             catch (Exception error) {
@@ -558,6 +577,7 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task<MaterialProperties> ImportTextureAsync(string filename, CancellationToken token = default)
         {
+            var projectContext = projectContextMgr.GetContext();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
             
             serviceBuilder.Initialize();
@@ -661,7 +681,7 @@ namespace PixelGraph.UI.ViewModels
             tabPreviewMgr.InvalidateAll(true);
         }
 
-        private void UpdateRecentProjectsList()
+        public void UpdateRecentProjectsList()
         {
             Model.RecentDirectories.Clear();
 
@@ -674,21 +694,25 @@ namespace PixelGraph.UI.ViewModels
         {
             var renderContext = BuildRenderContext();
 
-            foreach (var tab in tabPreviewMgr.All)
-                tab.Mesh.UpdateMaterials(renderContext);
+            foreach (var tab in tabPreviewMgr.All) {
+                tab.UpdateMaterials(renderContext);
+            }
         }
 
         private RenderContext BuildRenderContext()
         {
+            var projectContext = projectContextMgr.GetContext();
+
             return new RenderContext {
                 RenderMode = RenderProperties.RenderMode,
-                PackInput = Model.PackInput,
-                PackProfile = Model.Profile.Loaded,
+                PackInput = projectContext.Project.Input,
+                PackProfile = projectContext.SelectedProfile,
                 DefaultMaterial = Model.SelectedTabMaterial,
                 MissingMaterial = RenderProperties.MissingMaterial,
                 DielectricBrdfLutMap = RenderProperties.DielectricBrdfLutMap,
                 IrradianceCubeMap = RenderProperties.IrradianceCube,
                 EnvironmentEnabled = SceneProperties.EnableAtmosphere || SceneProperties.EquirectangularMap != null,
+                EnableLinearSampling = SceneProperties.PomType?.EnableLinearSampling ?? false,
                 EnableTiling = RenderProperties.EnableTiling,
 
                 EnvironmentCubeMap = SceneProperties.EnableAtmosphere
@@ -733,24 +757,25 @@ namespace PixelGraph.UI.ViewModels
 
         #endregion
 
-        private async Task LoadPackInputAsync()
-        {
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+        //private async Task LoadPackInputAsync()
+        //{
+        //    var projectContext = projectContextMgr.GetContext();
+        //    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-            serviceBuilder.Initialize();
-            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+        //    serviceBuilder.Initialize();
+        //    serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
 
-            await using var scope = serviceBuilder.Build();
+        //    await using var scope = serviceBuilder.Build();
 
-            var packReader = scope.GetRequiredService<IResourcePackReader>();
+        //    var packReader = scope.GetRequiredService<IResourcePackReader>();
 
-            var packInput = await packReader.ReadInputAsync("input.yml")
-                            ?? new ResourcePackInputProperties {
-                                Format = TextureFormat.Format_Raw,
-                            };
+        //    var packInput = await packReader.ReadInputAsync("input.yml")
+        //                    ?? new ResourcePackInputProperties {
+        //                        Format = TextureFormat.Format_Raw,
+        //                    };
 
-            Application.Current.Dispatcher.Invoke(() => Model.PackInput = packInput);
-        }
+        //    Application.Current.Dispatcher.Invoke(() => Model.PackInput = packInput);
+        //}
 
         private void OnTreeError(Exception error)
         {

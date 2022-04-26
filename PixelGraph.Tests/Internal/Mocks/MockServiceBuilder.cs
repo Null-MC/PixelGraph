@@ -32,10 +32,6 @@ namespace PixelGraph.Tests.Internal.Mocks
 
             Services.AddTransient<IServiceBuilder, MockServiceBuilder>();
 
-            Services.AddSingleton<IResourcePackReader, ResourcePackReader>();
-            Services.AddSingleton<IResourcePackWriter, ResourcePackWriter>();
-            Services.AddSingleton<IMaterialReader, MaterialReader>();
-            Services.AddSingleton<IMaterialWriter, MaterialWriter>();
             Services.AddSingleton<IPublishReader, PublishReader>();
 
             Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
@@ -49,9 +45,12 @@ namespace PixelGraph.Tests.Internal.Mocks
             Services.AddScoped<IEdgeFadeImageEffect, EdgeFadeImageEffect>();
             Services.AddScoped<IImageWriter, ImageWriter>();
 
+            Services.AddTransient<IMaterialReader, MaterialReader>();
+            Services.AddTransient<IMaterialWriter, MaterialWriter>();
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
             Services.AddTransient<IItemTextureGenerator, ItemTextureGenerator>();
             Services.AddTransient<ITextureBuilder, TextureBuilder>();
+            //Services.AddTransient<ProjectSerializer>();
         }
 
         protected override void AddContentReader(ContentTypes contentType)

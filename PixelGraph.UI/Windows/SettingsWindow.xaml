@@ -125,18 +125,9 @@
                                   IsChecked="{Binding RenderPreview_Enabled, Mode=TwoWay}"/>
                         <StackPanel Orientation="Vertical"
                                     IsEnabled="{Binding RenderPreview_Enabled, Mode=OneWay}">
-                            <CheckBox Content="Linear Sampling" FontSize="14" Margin="8"
-                                      ToolTip="When enabled the height and normal channels will be smoothly interpolated."
-                                      IsChecked="{Binding RenderPreview_EnableLinearSampling, Mode=TwoWay}"/>
-                            <CheckBox Content="Slope Normals" FontSize="14" Margin="8"
-                                      ToolTip="When enabled the vertical surfaces between pixels will have correct normals instead of using the surface normal. Requires Linear Sampling to be disabled."
-                                      IsChecked="{Binding RenderPreview_EnableSlopeNormals, Mode=TwoWay}"/>
                             <CheckBox Content="Bloom" FontSize="14" Margin="8"
                                       ToolTip="When enabled, bright pixels become brighter  ¯\_(ツ)_/¯."
                                       IsChecked="{Binding RenderPreview_EnableBloom, Mode=TwoWay}"/>
-                            <!--<CheckBox Content="Water Mode" FontSize="14" Margin="8"
-                                      ToolTip="When enabled the wetness slider will cause water puddles to form on the top surface."
-                                      IsChecked="{Binding RenderPreview_WaterMode, Mode=TwoWay}"/>-->
                             <StackPanel Orientation="Horizontal" Margin="8">
                                 <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
                                           Width="80" HorizontalContentAlignment="Center"
@@ -162,14 +153,8 @@
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="8">
                                 <TextBox Width="80" HorizontalContentAlignment="Center"
-                                         ToolTip="The minimum number of samples (layers) to use when rendering POM."
-                                         Text="{Binding RenderPreview_ParallaxSamplesMin, Mode=TwoWay}"/>
-                                <TextBlock Text="Minimum Sample Count" FontSize="14" Margin="8,0" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="8">
-                                <TextBox Width="80" HorizontalContentAlignment="Center"
                                          ToolTip="The Maximum number of samples (layers) to use when rendering POM."
-                                         Text="{Binding RenderPreview_ParallaxSamplesMax, Mode=TwoWay}"/>
+                                         Text="{Binding RenderPreview_ParallaxSamples, Mode=TwoWay}"/>
                                 <TextBlock Text="Maximum Sample Count" FontSize="14" Margin="8,0" VerticalAlignment="Center"/>
                             </StackPanel>
 

@@ -10,15 +10,14 @@
                  xmlns:models="clr-namespace:PixelGraph.UI.Models"
                  xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
                  d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
-                 Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d" WindowState="Maximized"
-                 Loaded="OnWindowLoaded"
+                 Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d"
+                 WindowState="Maximized" Loaded="OnWindowLoaded"
                  ShowIconOnTitleBar="True" IconScalingMode="NoScaleSmallerFrame" TitleCharacterCasing="Normal"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                  Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
-        <!--<converters:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter"/>-->
         <vd:TextureItemList x:Key="TextureList"/>
         <CollectionViewSource x:Key="PublishLocationsView" Source="{Binding Path=PublishLocations}" />
     </Window.Resources>
@@ -40,21 +39,22 @@
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands Margin="0,0,16,0" Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
             <ComboBox MaxWidth="200" DisplayMemberPath="Name" ToolTip="Pack Profile" Background="Transparent" BorderThickness="0"
-                      ItemsSource="{Binding Profile.List, Mode=OneWay}"
-                      SelectedItem="{Binding Profile.Selected, Mode=TwoWay}"/>
+                      ItemsSource="{Binding ProfileList, Mode=OneWay}"
+                      SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"
+                      SelectionChanged="OnPublishProfileSelectionChanged"/>
             <ComboBox MaxWidth="200" DisplayMemberPath="DisplayName" ToolTip="Publish Location" Background="Transparent" BorderThickness="0"
                       SelectedItem="{Binding SelectedLocation, Mode=TwoWay}"
                       SelectionChanged="OnPublishLocationSelectionChanged">
                 <ComboBox.ItemsSource>
                     <CompositeCollection>
-                        <models:LocationModel x:Name="ManualLocation" DisplayName="Manual" IsManualSelect="True"/>
+                        <models:LocationDisplayModel x:Name="ManualLocation" DisplayName="Manual" IsManualSelect="True"/>
                         <CollectionContainer Collection="{Binding Source={StaticResource PublishLocationsView}}"/>
                     </CompositeCollection>
                 </ComboBox.ItemsSource>
             </ComboBox>
             <Button Content="Publish" Click="OnPublishMenuItemClick"
                     ToolTip="Compiles all textures to the specified profile. Hold shift for a clean build."
-                    IsEnabled="{Binding Profile.HasSelection, Mode=OneWay}"/>
+                    IsEnabled="{Binding HasProfileSelected, Mode=OneWay}"/>
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>
     <Grid>
@@ -94,6 +94,7 @@
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Open" Icon="{iconPacks:FontAwesome FolderOpenSolid}" Click="OnOpenClick"/>
+                <MenuItem Header="Open Legacy Project" Icon="{iconPacks:FontAwesome FileImportSolid}" Click="OnOpenLegacyClick"/>
                 <MenuItem Header="Close" Icon="{iconPacks:FontAwesome DoorClosedSolid}" Click="OnCloseProjectClick"
                           IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
                 <Separator/>
@@ -200,8 +201,8 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox Margin="2" Padding="4,0,12,0" VerticalContentAlignment="Center" Height="26"
-                             Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                    <iconPacks:PackIconFontAwesome Grid.Column="0" Kind="SearchSolid" Margin="4,0" Height="12" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False" Foreground="#FFC9C9C9"/>
+                             Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource MahApps.Styles.TextBox.Search}"/>
                     <Button Grid.Column="1" ToolTip="Refresh" Width="26" Height="26" Margin="2,4" BorderThickness="0" Padding="6" Click="OnContentRefreshClick"
                             Style="{StaticResource MahApps.Styles.Button.Square.Accent}">
                         <iconPacks:PackIconFontAwesome Kind="RedoSolid" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -283,12 +284,13 @@
                             <Border DockPanel.Dock="Top" Height="34"
                                     IsEnabled="{Binding HasSelectedMaterial, Mode=OneWay}"
                                     Background="{DynamicResource MahApps.Brushes.Accent4}">
-                                <DockPanel Margin="2">
-                                    <Button DockPanel.Dock="Right" Margin="2" Padding="6,2" BorderThickness="0"
+                                <DockPanel Margin="0,0,0,4">
+                                    <Button DockPanel.Dock="Left" Margin="2,0" Padding="6,2" BorderThickness="0"
                                             ToolTip="Edit Layer Image" Click="OnChannelEditImageButtonClick"
                                             Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"
                                             Content="{iconPacks:FontAwesome Kind=EditSolid}"/>
-                                    <ComboBox DisplayMemberPath="Name" SelectedValuePath="Key" Margin="2" Padding="4,0" FontSize="16" Grid.IsSharedSizeScope="True"
+                                    <ComboBox DisplayMemberPath="Name" SelectedValuePath="Key"
+                                              Margin="2,0" Padding="4,0" FontSize="16" Grid.IsSharedSizeScope="True"
                                               ItemsSource="{StaticResource TextureList}"
                                               SelectedValue="{Binding SelectedTag, Mode=TwoWay}"/>
                                 </DockPanel>
@@ -296,7 +298,6 @@
                             <Grid>
                                 <controls:MaterialPropertiesControl DataChanged="OnMaterialPropertyChanged" ModelChanged="OnMaterialPropertiesModelChanged"
                                                                     GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
-                                                                    ProjectRootPath="{Binding RootDirectory, Mode=OneWay}"
                                                                     Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                                                     SelectedTag="{Binding SelectedTag, Mode=OneWay}"
                                                                     IsEnabled="{Binding HasSelectedMaterial, Mode=OneWay}"
@@ -389,11 +390,11 @@
             <StatusBarItem Grid.Column="0" HorizontalAlignment="Stretch">
                 <TextBlock FontFamily="Consolas"
                     Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
-                    Text="{Binding RootDirectory, Mode=OneWay}"/>
+                    Text="{Binding ProjectFilename, Mode=OneWay}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Center"
                            Visibility="{Binding IsViewModeLayer, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <TextBlock Grid.Column="0" FontFamily="Consolas" Margin="4,0"
+                <TextBlock FontFamily="Consolas" Margin="4,0"
                            Text="{Binding Model.MousePixel, Mode=OneWay, ElementName=texturePreview}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" HorizontalContentAlignment="Center"

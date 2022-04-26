@@ -36,7 +36,7 @@ namespace PixelGraph.UI
                 .AddSerilog());
 
             services.AddSingleton<IAppSettings, AppSettings>();
-            services.AddSingleton<IProjectContext, ProjectContext>();
+            services.AddSingleton<IProjectContextManager, ProjectContextManager>();
             services.AddSingleton<IRecentPathManager, RecentPathManager>();
             services.AddSingleton<IPublishLocationManager, PublishLocationManager>();
             services.AddSingleton<ITabPreviewManager, TabPreviewManager>();

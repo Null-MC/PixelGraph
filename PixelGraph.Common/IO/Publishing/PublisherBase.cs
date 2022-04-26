@@ -38,7 +38,6 @@ namespace PixelGraph.Common.IO.Publishing
         private readonly IPublishSummary summary;
         private int totalMaterialCount, totalFileCount;
         private int currentMaterialCount, currentFileCount;
-        private DateTime packWriteTime;
         private object[] content;
 
         public event EventHandler<PublishStatus> StateChanged;
@@ -79,7 +78,6 @@ namespace PixelGraph.Common.IO.Publishing
 
             await PublishPackMetaAsync(context.Profile, token);
 
-            packWriteTime = Reader.GetWriteTime(context.Profile.LocalFile) ?? DateTime.Now;
             content = await loader.LoadAsync(token).ToArrayAsync(token);
 
             totalMaterialCount = content.Count(o => o is MaterialProperties);
@@ -153,6 +151,7 @@ namespace PixelGraph.Common.IO.Publishing
                 var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
                 var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
 
+                graphContext.PackWriteTime = packContext.LastUpdated;
                 graphContext.Input = packContext.Input;
                 graphContext.Profile = packContext.Profile;
                 graphContext.Material = material;
@@ -173,11 +172,11 @@ namespace PixelGraph.Common.IO.Publishing
                 var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
                 var genericPublisher = scope.ServiceProvider.GetRequiredService<GenericTexturePublisher>();
 
+                graphContext.PackWriteTime = packContext.LastUpdated;
                 graphContext.Input = packContext.Input;
                 graphContext.Profile = packContext.Profile;
                 graphContext.Mapping = Mapping;
                             
-                //await PublishFileAsync(genericPublisher, packWriteTime, localFile, destFile, token);
                 var file = Path.GetFileName(localFile);
                 if (fileIgnoreList.Contains(file)) {
                     Logger.LogDebug("Skipping ignored file {sourceFile}.", localFile);
@@ -187,7 +186,7 @@ namespace PixelGraph.Common.IO.Publishing
                 var sourceTime = Reader.GetWriteTime(localFile);
                 var destinationTime = Writer.GetWriteTime(destFile);
 
-                if (IsUpToDate(packWriteTime, sourceTime, destinationTime)) {
+                if (IsUpToDate(packContext.LastUpdated, sourceTime, destinationTime)) {
                     Logger.LogDebug("Skipping up-to-date untracked file {sourceFile}.", localFile);
                     return;
                 }
@@ -200,8 +199,6 @@ namespace PixelGraph.Common.IO.Publishing
                     await Writer.OpenWriteAsync(destFile, async destStream => {
                         await srcStream.CopyToAsync(destStream, token);
                     }, token);
-
-                    //UntrackedFileCount++;
                 }
 
                 Logger.LogInformation("Published untracked file {destFile}.", destFile);

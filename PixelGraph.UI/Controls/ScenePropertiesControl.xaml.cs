@@ -47,5 +47,11 @@ namespace PixelGraph.UI.Controls
                 SceneProperties.ErpFilename = null;
             }
         }
+
+        private void OnErpRemoveClick(object sender, RoutedEventArgs e)
+        {
+            SceneProperties.EquirectangularMap = null;
+            SceneProperties.ErpFilename = null;
+        }
     }
 }

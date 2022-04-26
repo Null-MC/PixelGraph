@@ -10,27 +10,36 @@ namespace PixelGraph.Rendering.Minecraft
 {
     public interface IMinecraftMesh
     {
-        bool IsRenderValid {get;}
+        //bool IsRenderValid {get;}
+        long LastUpdated {get;}
 
         void Apply(DeviceContextProxy deviceContext);
-        void ResetValidation();
+        //void ResetValidation();
     }
 
     internal class MinecraftMeshCore : RenderCore, IMinecraftMesh
     {
         private readonly ConstantBufferComponent buffer;
         private MinecraftMeshStruct data;
+        private bool isRenderValid;
 
-        public bool IsRenderValid {get; private set;}
+        //public bool IsRenderValid {get; private set;}
+        public long LastUpdated {get; private set;}
 
         public int BlendMode {
             get => data.BlendMode;
-            set => SetAffectsRender(ref data.BlendMode, value);
+            set {
+                if (SetAffectsRender(ref data.BlendMode, value))
+                    isRenderValid = false;
+            }
         }
 
         public Vector3 TintColor {
             get => data.TintColor;
-            set => SetAffectsRender(ref data.TintColor, value);
+            set {
+                if (SetAffectsRender(ref data.TintColor, value))
+                    isRenderValid = false;
+            }
         }
 
 
@@ -45,10 +54,10 @@ namespace PixelGraph.Rendering.Minecraft
             buffer.Upload(deviceContext, ref data);
         }
 
-        public void ResetValidation()
-        {
-            IsRenderValid = true;
-        }
+        //public void ResetValidation()
+        //{
+        //    isRenderValid = true;
+        //}
 
         protected override bool OnAttach(IRenderTechnique technique)
         {
@@ -57,7 +66,10 @@ namespace PixelGraph.Rendering.Minecraft
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
+            if (isRenderValid) return;
+
             Apply(deviceContext);
+            isRenderValid = true;
         }
     }
 }

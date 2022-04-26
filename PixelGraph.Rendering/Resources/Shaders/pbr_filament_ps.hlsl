@@ -25,7 +25,7 @@ float4 main(const ps_input input) : SV_TARGET
     float tex_depth = 0;
 
     const float SNoV = saturate(dot(normal, view));
-	const float2 tex = get_parallax_texcoord(input.tex, input.vTS, SNoV, shadow_tex, tex_depth);
+	const float2 tex = get_parallax_texcoord(input.tex, input.vTS, shadow_tex, tex_depth);
 	float3 src_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
 	src_normal = mul(normalize(src_normal * 2.0f - 1.0f), mTBN);
 	const pbr_material mat = get_pbr_material(tex);

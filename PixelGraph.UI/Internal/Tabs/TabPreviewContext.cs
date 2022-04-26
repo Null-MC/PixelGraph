@@ -59,6 +59,13 @@ namespace PixelGraph.UI.Internal.Tabs
             //IsMaterialBuilderValid = true;
         }
 
+        public void UpdateMaterials(IRenderContext renderContext)
+        {
+            Mesh.UpdateMaterials(renderContext);
+            Mesh.UpdateModelParts();
+            IsMaterialBuilderValid = true;
+        }
+
         public void UpdateModelParts()
         {
             Mesh.UpdateModelParts();

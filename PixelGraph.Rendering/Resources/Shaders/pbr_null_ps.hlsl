@@ -51,7 +51,7 @@ float4 main(const ps_input input) : SV_TARGET
         const float3 refractDirT = mul(matTBN, refractDir);
 		const float2 refractParallaxOffset = get_parallax_offset(refractDirT) * input.pDepth;// * aspect;
 
-		tex = get_parallax_texcoord_wet(input.tex, input.vTS, refractParallaxOffset, surface_NoV, water_levelMin, water_tex, shadow_tex, tex_depth);
+		tex = get_parallax_texcoord_wet(input.tex, input.vTS, refractParallaxOffset, water_levelMin, water_tex, shadow_tex, tex_depth);
 
 	    const float h1 = 1.0f - min(max(shadow_tex.z, water_levelMin), 1.0f);
 	    float pom_depth = rcp(max(surface_NoV, EPSILON)) * h1 * BLOCK_SIZE * ParallaxDepth;
@@ -65,7 +65,7 @@ float4 main(const ps_input input) : SV_TARGET
 	    pom_wp = water_pom_wp + water_trace_dist * refractDir;
     }
     else {
-		tex = get_parallax_texcoord(input.tex, input.vTS, surface_NoV, shadow_tex, tex_depth);
+		tex = get_parallax_texcoord(input.tex, input.vTS, shadow_tex, tex_depth);
         water_tex = tex;
 
 	    const float pom_depth = rcp(max(surface_NoV, EPSILON)) * (1.0f - shadow_tex.z) * BLOCK_SIZE * ParallaxDepth;

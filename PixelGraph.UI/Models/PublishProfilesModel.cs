@@ -2,20 +2,254 @@
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.ViewData;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.Models
 {
+    public class PublishProfileDisplayRow : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public ResourcePackProfileProperties Profile {get;}
+
+        public bool IsJavaProfile => Common.IO.GameEdition.Is(Profile.Edition, Common.IO.GameEdition.Java);
+        public bool IsBedrockProfile => Common.IO.GameEdition.Is(Profile.Edition, Common.IO.GameEdition.Bedrock);
+
+        public string Name {
+            get => Profile.Name;
+            set {
+                Profile.Name = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string GameEdition {
+            get => Profile.Edition;
+            set {
+                Profile.Edition = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(IsJavaProfile));
+                OnPropertyChanged(nameof(IsBedrockProfile));
+            }
+        }
+
+        public string PackDescription {
+            get => Profile.Description;
+            set {
+                Profile.Description = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string PackTags {
+            get => Profile.Tags;
+            set {
+                Profile.Tags = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int? PackFormat {
+            get => Profile.Format;
+            set {
+                Profile.Format = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Guid? PackHeaderUuid {
+            get => Profile.HeaderUuid;
+            set {
+                Profile.HeaderUuid = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Guid? PackModuleUuid {
+            get => Profile.ModuleUuid;
+            set {
+                Profile.ModuleUuid = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string TextureFormat {
+            get => Profile.Encoding?.Format;
+            set {
+                Profile.Encoding ??= new ResourcePackOutputProperties();
+                Profile.Encoding.Format = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string ImageEncoding {
+            get => Profile.Encoding?.Image;
+            set {
+                Profile.Encoding ??= new ResourcePackOutputProperties();
+                Profile.Encoding.Image = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ImageEncoding));
+            }
+        }
+
+        public bool EnablePalette {
+            get => Profile.Encoding?.EnablePalette ?? false;
+            set {
+                Profile.Encoding ??= new ResourcePackOutputProperties();
+                Profile.Encoding.EnablePalette = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ImageEncoding));
+            }
+        }
+
+        public int? PaletteColors {
+            get => Profile.Encoding?.PaletteColors;
+            set {
+                Profile.Encoding ??= new ResourcePackOutputProperties();
+                Profile.Encoding.PaletteColors = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PaletteColors));
+            }
+        }
+
+        public string EncodingSampler {
+            get => Profile.Encoding?.Sampler;
+            set {
+                Profile.Encoding ??= new ResourcePackOutputProperties();
+                Profile.Encoding.Sampler = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(EncodingSampler));
+            }
+        }
+
+        public int? TextureSize {
+            get => Profile.TextureSize;
+            set {
+                Profile.TextureSize = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int? BlockTextureSize {
+            get => Profile.BlockTextureSize;
+            set {
+                Profile.BlockTextureSize = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int? ItemTextureSize {
+            get => Profile.ItemTextureSize;
+            set {
+                Profile.ItemTextureSize = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public decimal? TextureScale {
+            get => Profile.TextureScale;
+            set {
+                Profile.TextureScale = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public decimal? OcclusionQuality {
+            get => Profile.OcclusionQuality;
+            set {
+                Profile.OcclusionQuality = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public decimal? OcclusionPower {
+            get => Profile.OcclusionPower;
+            set {
+                Profile.OcclusionPower = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool? AutoLevelHeight {
+            get => Profile.AutoLevelHeight ?? ResourcePackProfileProperties.AutoLevelHeightDefault;
+            set {
+                Profile.AutoLevelHeight = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool? AutoGenerateNormal {
+            get => Profile.AutoGenerateNormal ?? ResourcePackProfileProperties.AutoGenerateNormalDefault;
+            set {
+                Profile.AutoGenerateNormal = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool? AutoGenerateOcclusion {
+            get => Profile.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
+            set {
+                Profile.AutoGenerateOcclusion = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool? BakeOcclusionToColor {
+            get => Profile.BakeOcclusionToColor ?? ResourcePackProfileProperties.BakeOcclusionToColorDefault;
+            set {
+                Profile.BakeOcclusionToColor = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        public PublishProfileDisplayRow(ResourcePackProfileProperties profile)
+        {
+            Profile = profile;
+        }
+
+        //public void InvalidateValues()
+        //{
+        //    OnPropertyChanged(nameof(Name));
+        //    OnPropertyChanged(nameof(GameEdition));
+        //    OnPropertyChanged(nameof(PackDescription));
+        //    OnPropertyChanged(nameof(PackTags));
+        //    OnPropertyChanged(nameof(PackFormat));
+        //    OnPropertyChanged(nameof(PackHeaderUuid));
+        //    OnPropertyChanged(nameof(PackModuleUuid));
+        //    OnPropertyChanged(nameof(TextureFormat));
+        //    OnPropertyChanged(nameof(ImageEncoding));
+        //    OnPropertyChanged(nameof(EnablePalette));
+        //    OnPropertyChanged(nameof(PaletteColors));
+        //    OnPropertyChanged(nameof(EncodingSampler));
+        //    OnPropertyChanged(nameof(TextureSize));
+        //    OnPropertyChanged(nameof(BlockTextureSize));
+        //    OnPropertyChanged(nameof(ItemTextureSize));
+        //    OnPropertyChanged(nameof(TextureScale));
+        //    OnPropertyChanged(nameof(OcclusionQuality));
+        //    OnPropertyChanged(nameof(OcclusionPower));
+        //    OnPropertyChanged(nameof(AutoGenerateNormal));
+        //    OnPropertyChanged(nameof(AutoGenerateOcclusion));
+        //    OnPropertyChanged(nameof(BakeOcclusionToColor));
+
+        //    OnPropertyChanged(nameof(IsBedrockProfile));
+        //    OnPropertyChanged(nameof(IsJavaProfile));
+        //}
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
     internal class PublishProfilesModel : ModelBase
     {
-        protected ObservableCollection<ProfileItem> _profiles;
-        private ResourcePackProfileProperties _loadedProfile;
-        private ProfileItem _selectedProfileItem;
-        //private string _rootDirectory;
-
-        public event EventHandler DataChanged;
+        protected ObservableCollection<PublishProfileDisplayRow> _profiles;
+        private PublishProfileDisplayRow _selectedProfile;
 
         public TextureChannelMapping Opacity {get;}
 
@@ -46,306 +280,105 @@ namespace PixelGraph.UI.Models
 
         public TextureChannelMapping Emissive {get; set;}
 
-        public bool HasSelectedProfile => _selectedProfileItem != null;
-        public bool HasLoadedProfile => _loadedProfile != null;
-        public bool IsJavaProfile => Common.IO.GameEdition.Is(_loadedProfile?.Edition, Common.IO.GameEdition.Java);
-        public bool IsBedrockProfile => Common.IO.GameEdition.Is(_loadedProfile?.Edition, Common.IO.GameEdition.Bedrock);
+        public bool HasSelectedProfile => _selectedProfile != null;
+        public bool IsSelectedProfileJava => SelectedProfile?.IsJavaProfile ?? false;
+        public bool IsSelectedProfileBedrock => SelectedProfile?.IsBedrockProfile ?? false;
         public decimal OcclusionQualityDefault => ResourcePackProfileProperties.DefaultOcclusionQuality;
         public decimal OcclusionPowerDefault => ResourcePackProfileProperties.DefaultOcclusionPower;
-        public string PackName => _loadedProfile?.Name;
-        public int? PaletteColors => _loadedProfile?.Encoding?.PaletteColors;
-        public string EncodingSampler => _loadedProfile?.Encoding?.Sampler;
-        public string ImageEncoding => _loadedProfile?.Encoding?.Image;
 
-        //public string RootDirectory {
-        //    get => _rootDirectory;
-        //    set {
-        //        _rootDirectory = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
-        public ObservableCollection<ProfileItem> Profiles {
+        public ObservableCollection<PublishProfileDisplayRow> Profiles {
             get => _profiles;
             set {
                 _profiles = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public ResourcePackProfileProperties LoadedProfile {
-            get => _loadedProfile;
-            set {
-                _loadedProfile = value;
                 OnPropertyChanged();
 
                 InvalidateValues();
             }
         }
 
-        public ProfileItem SelectedProfileItem {
-            get => _selectedProfileItem;
+        public PublishProfileDisplayRow SelectedProfile {
+            get => _selectedProfile;
             set {
-                _selectedProfileItem = value;
+                _selectedProfile = value;
                 OnPropertyChanged();
 
-                OnPropertyChanged(nameof(HasSelectedProfile));
+                InvalidateValues();
+                //UpdateDefaultValues();
             }
         }
 
-        public string EditPackName {
-            get => _loadedProfile?.Name ?? _loadedProfile?.GetDefaultPackName();
+        public string EditGameEdition {
+            get => _selectedProfile?.GameEdition;
             set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.Name = value;
+                if (_selectedProfile == null) return;
+                _selectedProfile.GameEdition = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(PackName));
 
-                OnDataChanged();
+                OnPropertyChanged(nameof(IsSelectedProfileJava));
+                OnPropertyChanged(nameof(IsSelectedProfileBedrock));
+                UpdateDefaultValues();
             }
         }
 
-        public string GameEdition {
-            get => _loadedProfile?.Edition;
+        public string EditTextureFormat {
+            get => _selectedProfile?.TextureFormat;
             set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.Edition = value;
-                OnPropertyChanged();
-
-                OnPropertyChanged(nameof(IsJavaProfile));
-                OnPropertyChanged(nameof(IsBedrockProfile));
-                OnDataChanged();
-            }
-        }
-
-        public string PackDescription {
-            get => _loadedProfile?.Description;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.Description = value;
-                OnPropertyChanged();
-
-                OnDataChanged();
-            }
-        }
-
-        public string PackTags {
-            get => _loadedProfile?.Tags;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.Tags = value;
-                OnPropertyChanged();
-
-                OnDataChanged();
-            }
-        }
-
-        public int? PackFormat {
-            get => _loadedProfile?.Format;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.Format = value;
-                OnPropertyChanged();
-
-                OnDataChanged();
-            }
-        }
-
-        public Guid? PackHeaderUuid {
-            get => _loadedProfile?.HeaderUuid;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.HeaderUuid = value;
-                OnPropertyChanged();
-
-                OnDataChanged();
-            }
-        }
-
-        public Guid? PackModuleUuid {
-            get => _loadedProfile?.ModuleUuid;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.ModuleUuid = value;
-                OnPropertyChanged();
-
-                OnDataChanged();
-            }
-        }
-
-        public string TextureFormat {
-            get => _loadedProfile?.Encoding?.Format;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
-                _loadedProfile.Encoding.Format = value;
+                if (_selectedProfile == null) return;
+                _selectedProfile.TextureFormat = value;
                 OnPropertyChanged();
 
                 UpdateDefaultValues();
-                OnDataChanged();
             }
         }
 
         public string EditImageEncoding {
-            get => _loadedProfile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
+            get => _selectedProfile?.ImageEncoding ?? ResourcePackOutputProperties.ImageDefault;
             set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
-                _loadedProfile.Encoding.Image = value;
+                if (_selectedProfile == null) return;
+                _selectedProfile.ImageEncoding = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(ImageEncoding));
 
                 UpdateDefaultValues();
-                OnDataChanged();
             }
         }
 
-        public bool EnablePalette {
-            get => _loadedProfile?.Encoding?.EnablePalette ?? false;
+        public bool EditEnablePalette {
+            get => _selectedProfile?.EnablePalette ?? false;
             set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
-                _loadedProfile.Encoding.EnablePalette = value;
+                if (_selectedProfile == null) return;
+                _selectedProfile.EnablePalette = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(ImageEncoding));
 
                 UpdateDefaultValues();
-                OnDataChanged();
             }
         }
 
         public int? EditPaletteColors {
-            get => _loadedProfile?.Encoding?.PaletteColors ?? ResourcePackOutputProperties.DefaultPaletteColors;
+            get => _selectedProfile?.PaletteColors ?? ResourcePackOutputProperties.DefaultPaletteColors;
             set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
-                _loadedProfile.Encoding.PaletteColors = value;
+                if (_selectedProfile == null) return;
+                _selectedProfile.PaletteColors = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(PaletteColors));
 
                 UpdateDefaultValues();
-                OnDataChanged();
             }
         }
 
         public string EditEncodingSampler {
-            get => _loadedProfile?.Encoding?.Sampler ?? Samplers.Nearest;
+            get => _selectedProfile?.EncodingSampler ?? Samplers.Nearest;
             set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.Encoding ??= new ResourcePackOutputProperties();
-                _loadedProfile.Encoding.Sampler = value;
+                if (_selectedProfile == null) return;
+                _selectedProfile.EncodingSampler = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(EncodingSampler));
 
                 UpdateDefaultValues();
-                OnDataChanged();
-            }
-        }
-
-        public int? TextureSize {
-            get => _loadedProfile?.TextureSize;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.TextureSize = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public int? BlockTextureSize {
-            get => _loadedProfile?.BlockTextureSize;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.BlockTextureSize = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public int? ItemTextureSize {
-            get => _loadedProfile?.ItemTextureSize;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.ItemTextureSize = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public decimal? TextureScale {
-            get => _loadedProfile?.TextureScale;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.TextureScale = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public decimal? OcclusionQuality {
-            get => _loadedProfile?.OcclusionQuality;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.OcclusionQuality = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public decimal? OcclusionPower {
-            get => _loadedProfile?.OcclusionPower;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.OcclusionPower = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public bool? AutoLevelHeight {
-            get => _loadedProfile?.AutoLevelHeight ?? ResourcePackProfileProperties.AutoLevelHeightDefault;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.AutoLevelHeight = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public bool? AutoGenerateNormal {
-            get => _loadedProfile?.AutoGenerateNormal ?? ResourcePackProfileProperties.AutoGenerateNormalDefault;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.AutoGenerateNormal = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public bool? AutoGenerateOcclusion {
-            get => _loadedProfile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.AutoGenerateOcclusion = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
-
-        public bool? BakeOcclusionToColor {
-            get => _loadedProfile?.BakeOcclusionToColor ?? ResourcePackProfileProperties.BakeOcclusionToColorDefault;
-            set {
-                if (_loadedProfile == null) return;
-                _loadedProfile.BakeOcclusionToColor = value;
-                OnPropertyChanged();
-                OnDataChanged();
             }
         }
 
 
         public PublishProfilesModel()
         {
-            _profiles = new ObservableCollection<ProfileItem>();
+            _profiles = new ObservableCollection<PublishProfileDisplayRow>();
 
             Opacity = new TextureChannelMapping("Opacity");
 
@@ -376,65 +409,48 @@ namespace PixelGraph.UI.Models
             Emissive = new TextureChannelMapping("Emissive");
 
 
-            Opacity.DataChanged += OnPropertyDataChanged;
+            //Opacity.DataChanged += OnPropertyDataChanged;
             
-            ColorRed.DataChanged += OnPropertyDataChanged;
-            ColorGreen.DataChanged += OnPropertyDataChanged;
-            ColorBlue.DataChanged += OnPropertyDataChanged;
+            //ColorRed.DataChanged += OnPropertyDataChanged;
+            //ColorGreen.DataChanged += OnPropertyDataChanged;
+            //ColorBlue.DataChanged += OnPropertyDataChanged;
 
-            Height.DataChanged += OnPropertyDataChanged;
-            Occlusion.DataChanged += OnPropertyDataChanged;
+            //Height.DataChanged += OnPropertyDataChanged;
+            //Occlusion.DataChanged += OnPropertyDataChanged;
 
-            NormalX.DataChanged += OnPropertyDataChanged;
-            NormalY.DataChanged += OnPropertyDataChanged;
-            NormalZ.DataChanged += OnPropertyDataChanged;
+            //NormalX.DataChanged += OnPropertyDataChanged;
+            //NormalY.DataChanged += OnPropertyDataChanged;
+            //NormalZ.DataChanged += OnPropertyDataChanged;
 
-            Specular.DataChanged += OnPropertyDataChanged;
+            //Specular.DataChanged += OnPropertyDataChanged;
 
-            Smooth.DataChanged += OnPropertyDataChanged;
-            Rough.DataChanged += OnPropertyDataChanged;
+            //Smooth.DataChanged += OnPropertyDataChanged;
+            //Rough.DataChanged += OnPropertyDataChanged;
 
-            Metal.DataChanged += OnPropertyDataChanged;
-            HCM.DataChanged += OnPropertyDataChanged;
-            F0.DataChanged += OnPropertyDataChanged;
+            //Metal.DataChanged += OnPropertyDataChanged;
+            //HCM.DataChanged += OnPropertyDataChanged;
+            //F0.DataChanged += OnPropertyDataChanged;
 
-            Porosity.DataChanged += OnPropertyDataChanged;
+            //Porosity.DataChanged += OnPropertyDataChanged;
 
-            SSS.DataChanged += OnPropertyDataChanged;
+            //SSS.DataChanged += OnPropertyDataChanged;
 
-            Emissive.DataChanged += OnPropertyDataChanged;
+            //Emissive.DataChanged += OnPropertyDataChanged;
         }
 
         private void InvalidateValues()
         {
-            OnPropertyChanged(nameof(IsBedrockProfile));
-            OnPropertyChanged(nameof(IsJavaProfile));
-            OnPropertyChanged(nameof(HasLoadedProfile));
-            OnPropertyChanged(nameof(PackName));
-            OnPropertyChanged(nameof(EditPackName));
-            OnPropertyChanged(nameof(GameEdition));
-            OnPropertyChanged(nameof(PackDescription));
-            OnPropertyChanged(nameof(PackTags));
-            OnPropertyChanged(nameof(PackFormat));
-            OnPropertyChanged(nameof(PackHeaderUuid));
-            OnPropertyChanged(nameof(PackModuleUuid));
-            OnPropertyChanged(nameof(TextureFormat));
-            OnPropertyChanged(nameof(ImageEncoding));
+            OnPropertyChanged(nameof(HasSelectedProfile));
+            OnPropertyChanged(nameof(IsSelectedProfileJava));
+            OnPropertyChanged(nameof(IsSelectedProfileBedrock));
+
+            OnPropertyChanged(nameof(EditGameEdition));
+            OnPropertyChanged(nameof(EditTextureFormat));
             OnPropertyChanged(nameof(EditImageEncoding));
-            OnPropertyChanged(nameof(EnablePalette));
-            OnPropertyChanged(nameof(PaletteColors));
             OnPropertyChanged(nameof(EditPaletteColors));
-            OnPropertyChanged(nameof(EncodingSampler));
             OnPropertyChanged(nameof(EditEncodingSampler));
-            OnPropertyChanged(nameof(TextureSize));
-            OnPropertyChanged(nameof(BlockTextureSize));
-            OnPropertyChanged(nameof(ItemTextureSize));
-            OnPropertyChanged(nameof(TextureScale));
-            OnPropertyChanged(nameof(OcclusionQuality));
-            OnPropertyChanged(nameof(OcclusionPower));
-            OnPropertyChanged(nameof(AutoGenerateNormal));
-            OnPropertyChanged(nameof(AutoGenerateOcclusion));
-            OnPropertyChanged(nameof(BakeOcclusionToColor));
+
+            //_selectedProfile?.InvalidateValues();
 
             UpdateChannels();
             UpdateDefaultValues();
@@ -442,40 +458,40 @@ namespace PixelGraph.UI.Models
 
         private void UpdateChannels()
         {
-            Opacity.SetChannel(_loadedProfile?.Encoding?.Opacity);
+            Opacity.SetChannel(_selectedProfile?.Profile.Encoding?.Opacity);
 
-            ColorRed.SetChannel(_loadedProfile?.Encoding?.ColorRed);
-            ColorGreen.SetChannel(_loadedProfile?.Encoding?.ColorGreen);
-            ColorBlue.SetChannel(_loadedProfile?.Encoding?.ColorBlue);
+            ColorRed.SetChannel(_selectedProfile?.Profile.Encoding?.ColorRed);
+            ColorGreen.SetChannel(_selectedProfile?.Profile.Encoding?.ColorGreen);
+            ColorBlue.SetChannel(_selectedProfile?.Profile.Encoding?.ColorBlue);
 
-            Height.SetChannel(_loadedProfile?.Encoding?.Height);
-            Occlusion.SetChannel(_loadedProfile?.Encoding?.Occlusion);
+            Height.SetChannel(_selectedProfile?.Profile.Encoding?.Height);
+            Occlusion.SetChannel(_selectedProfile?.Profile.Encoding?.Occlusion);
 
-            NormalX.SetChannel(_loadedProfile?.Encoding?.NormalX);
-            NormalY.SetChannel(_loadedProfile?.Encoding?.NormalY);
-            NormalZ.SetChannel(_loadedProfile?.Encoding?.NormalZ);
+            NormalX.SetChannel(_selectedProfile?.Profile.Encoding?.NormalX);
+            NormalY.SetChannel(_selectedProfile?.Profile.Encoding?.NormalY);
+            NormalZ.SetChannel(_selectedProfile?.Profile.Encoding?.NormalZ);
 
-            Specular.SetChannel(_loadedProfile?.Encoding?.Specular);
+            Specular.SetChannel(_selectedProfile?.Profile.Encoding?.Specular);
 
-            Smooth.SetChannel(_loadedProfile?.Encoding?.Smooth);
-            Rough.SetChannel(_loadedProfile?.Encoding?.Rough);
+            Smooth.SetChannel(_selectedProfile?.Profile.Encoding?.Smooth);
+            Rough.SetChannel(_selectedProfile?.Profile.Encoding?.Rough);
 
-            Metal.SetChannel(_loadedProfile?.Encoding?.Metal);
-            HCM.SetChannel(_loadedProfile?.Encoding?.HCM);
-            F0.SetChannel(_loadedProfile?.Encoding?.F0);
+            Metal.SetChannel(_selectedProfile?.Profile.Encoding?.Metal);
+            HCM.SetChannel(_selectedProfile?.Profile.Encoding?.HCM);
+            F0.SetChannel(_selectedProfile?.Profile.Encoding?.F0);
 
-            Porosity.SetChannel(_loadedProfile?.Encoding?.Porosity);
+            Porosity.SetChannel(_selectedProfile?.Profile.Encoding?.Porosity);
 
-            SSS.SetChannel(_loadedProfile?.Encoding?.SSS);
+            SSS.SetChannel(_selectedProfile?.Profile.Encoding?.SSS);
 
-            Emissive.SetChannel(_loadedProfile?.Encoding?.Emissive);
+            Emissive.SetChannel(_selectedProfile?.Profile.Encoding?.Emissive);
         }
 
         public void UpdateDefaultValues()
         {
-            var encoding = Common.TextureFormats.TextureFormat.GetFactory(_loadedProfile?.Encoding?.Format);
+            var encoding = Common.TextureFormats.TextureFormat.GetFactory(_selectedProfile?.Profile.Encoding?.Format);
             var encodingDefaults = encoding?.Create();
-            var sampler = _loadedProfile?.Encoding?.Sampler ?? Samplers.Nearest;
+            var sampler = _selectedProfile?.Profile.Encoding?.Sampler ?? Samplers.Nearest;
 
             Opacity.ApplyDefaultValues(encodingDefaults?.Opacity, sampler);
 
@@ -505,42 +521,14 @@ namespace PixelGraph.UI.Models
 
             Emissive.ApplyDefaultValues(encodingDefaults?.Emissive, sampler);
         }
-
-        //private string GetDefaultPackName()
-        //{
-        //    var name = _loadedProfile?.LocalFile;
-        //    if (string.IsNullOrWhiteSpace(name)) return null;
-
-        //    name = Path.GetFileName(name);
-        //    if (string.IsNullOrWhiteSpace(name)) return null;
-
-        //    if (name.EndsWith(".pack.yml")) name = name[..^9];
-        //    return string.IsNullOrWhiteSpace(name) ? null : name;
-        //}
-
-        private void OnPropertyDataChanged(object sender, EventArgs e)
-        {
-            OnDataChanged();
-        }
-
-        private void OnDataChanged()
-        {
-            DataChanged?.Invoke(this, EventArgs.Empty);
-        }
     }
 
     internal class PublishProfilesDesignerModel : PublishProfilesModel
     {
         public PublishProfilesDesignerModel()
         {
-            _profiles.Add(new ProfileItem {Name = "Profile A"});
-            _profiles.Add(new ProfileItem {Name = "Profile B"});
-            _profiles.Add(new ProfileItem {Name = "Profile C"});
-
-            SelectedProfileItem = _profiles[0];
-
-            LoadedProfile = new ResourcePackProfileProperties {
-                Edition = Common.IO.GameEdition.Bedrock,
+            _profiles.Add(new PublishProfileDisplayRow(new ResourcePackProfileProperties {
+                Edition = GameEdition.Bedrock,
                 Name = "Sample RP",
                 Description = "A description of the resource pack.",
                 Format = 7,
@@ -548,7 +536,12 @@ namespace PixelGraph.UI.Models
                     Image = ImageExtensions.Jpg,
                     Sampler = Samplers.Nearest,
                 },
-            };
+            }));
+
+            _profiles.Add(new PublishProfileDisplayRow(new ResourcePackProfileProperties {Name = "Profile B"}));
+            _profiles.Add(new PublishProfileDisplayRow(new ResourcePackProfileProperties {Name = "Profile C"}));
+
+            SelectedProfile = _profiles[0];
         }
     }
 }

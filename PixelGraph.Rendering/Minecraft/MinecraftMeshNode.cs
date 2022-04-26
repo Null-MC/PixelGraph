@@ -10,7 +10,8 @@ namespace PixelGraph.Rendering.Minecraft
     public class MinecraftMeshNode : SceneNode, IMinecraftMesh
     {
         private MinecraftMeshCore MeshCore => RenderCore as MinecraftMeshCore;
-        public bool IsRenderValid => MeshCore.IsRenderValid;
+        //public bool IsRenderValid => MeshCore.IsRenderValid;
+        public long LastUpdated => MeshCore.LastUpdated;
 
         public int BlendMode {
             get => MeshCore.BlendMode;
@@ -28,10 +29,10 @@ namespace PixelGraph.Rendering.Minecraft
             MeshCore?.Apply(deviceContext);
         }
 
-        public void ResetValidation()
-        {
-            MeshCore?.ResetValidation();
-        }
+        //public void ResetValidation()
+        //{
+        //    MeshCore?.ResetValidation();
+        //}
 
         protected override RenderCore OnCreateRenderCore()
         {

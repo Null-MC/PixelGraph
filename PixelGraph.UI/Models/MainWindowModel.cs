@@ -28,13 +28,14 @@ namespace PixelGraph.UI.Models
         private volatile bool _isBusy, _isInitializing;
         private volatile bool _isImageEditorOpen;
         private ObservableCollection<string> _recentDirectories;
-        private List<LocationModel> _publishLocations;
-        private ResourcePackInputProperties _packInput;
-        private string _rootDirectory;
+        private ObservableCollection<ResourcePackProfileProperties> _profileList;
+        private List<LocationDisplayModel> _publishLocations;
+        private ResourcePackProfileProperties _selectedProfile;
+        private string _projectFilename;
         private string _searchText;
         private bool _showAllFiles;
         private ContentTreeNode _selectedNode;
-        private LocationModel _selectedLocation;
+        private LocationDisplayModel _selectedLocation;
         private ContentTreeNode _treeRoot;
         private ITabModel _tabListSelection;
         private ITabModel _previewTab;
@@ -43,6 +44,7 @@ namespace PixelGraph.UI.Models
         private EditModes _editMode;
         private string _selectedTag;
 
+        //public event EventHandler SelectedProfileChanged;
         public event EventHandler SelectedTabChanged;
         public event EventHandler SelectedTagChanged;
         public event EventHandler<TabClosedEventArgs> TabClosed;
@@ -58,12 +60,14 @@ namespace PixelGraph.UI.Models
 
         //public MaterialConnectionsModel ConnectionsModel {get; set;}
 
-        public ProfileContextModel Profile {get;}
         public ObservableCollection<ITabModel> TabList {get;}
         public ICommand TabCloseButtonCommand {get;}
+        public bool SupportsRender {get;}
 
         public bool IsInitializing => _isInitializing;
-        public bool IsProjectLoaded => _rootDirectory != null;
+        public bool IsProjectLoaded => _projectFilename != null;
+
+        public bool HasProfileSelected => _selectedProfile != null;
 
         public bool HasTreeSelection => _selectedNode is ContentTreeFile;
         public bool HasTreeMaterialSelection => _selectedNode is ContentTreeMaterialDirectory;
@@ -75,6 +79,26 @@ namespace PixelGraph.UI.Models
         public bool HasSelectedMaterial => SelectedTab is MaterialTabModel;
         public bool HasSelectedTab => IsPreviewTabSelected || TabListSelection != null;
         public bool HasPreviewTab => PreviewTab != null;
+
+        public ObservableCollection<ResourcePackProfileProperties> ProfileList {
+            get => _profileList;
+            set {
+                if (_profileList == value) return;
+                _profileList = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ResourcePackProfileProperties SelectedProfile {
+            get => _selectedProfile;
+            set {
+                if (value == _selectedProfile) return;
+                _selectedProfile = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasProfileSelected));
+                //OnSelectedProfileChanged();
+            }
+        }
 
         public ITabModel PreviewTab {
             get => _previewTab;
@@ -222,10 +246,10 @@ namespace PixelGraph.UI.Models
             }
         }
         
-        public string RootDirectory {
-            get => _rootDirectory;
+        public string ProjectFilename {
+            get => _projectFilename;
             set {
-                _rootDirectory = value;
+                _projectFilename = value;
                 OnPropertyChanged();
 
                 OnPropertyChanged(nameof(IsProjectLoaded));
@@ -240,7 +264,7 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public List<LocationModel> PublishLocations {
+        public List<LocationDisplayModel> PublishLocations {
             get => _publishLocations;
             set {
                 _publishLocations = value;
@@ -256,13 +280,13 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public ResourcePackInputProperties PackInput {
-            get => _packInput;
-            set {
-                _packInput = value;
-                OnPropertyChanged();
-            }
-        }
+        //public ResourcePackInputProperties PackInput {
+        //    get => _packInput;
+        //    set {
+        //        _packInput = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
         public string SearchText {
             get => _searchText;
@@ -295,7 +319,7 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public LocationModel SelectedLocation {
+        public LocationDisplayModel SelectedLocation {
             get => _selectedLocation;
             set {
                 _selectedLocation = value;
@@ -319,19 +343,17 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public bool SupportsRender {get;}
-
         #endregion
 
 
         public MainWindowModel()
         {
             RecentDirectories = new ObservableCollection<string>();
-            _publishLocations = new List<LocationModel>();
+            _publishLocations = new List<LocationDisplayModel>();
             _treeRoot = new ContentTreeNode(null);
             busyLock = new object();
 
-            Profile = new ProfileContextModel();
+            //Profile = new ProfileContextModel();
 
             TabList = new ObservableCollection<ITabModel>();
             TabCloseButtonCommand = new ActionCommand(OnTabCloseButtonClicked);
@@ -384,6 +406,11 @@ namespace PixelGraph.UI.Models
             if (parameter is Guid tabId) OnTabClosed(tabId);
         }
 
+        //private void OnSelectedProfileChanged()
+        //{
+        //    SelectedProfileChanged?.Invoke(this, EventArgs.Empty);
+        //}
+
         private void OnSelectedTabChanged()
         {
             SelectedTabChanged?.Invoke(this, EventArgs.Empty);
@@ -414,7 +441,7 @@ namespace PixelGraph.UI.Models
 
             AddTreeItems();
 
-            RootDirectory = "x:\\dev\\test-rp";
+            ProjectFilename = "x:\\dev\\test-rp\\project.yml";
             //IsBusy = true;
             SearchText = "as";
             ShowAllFiles = true;

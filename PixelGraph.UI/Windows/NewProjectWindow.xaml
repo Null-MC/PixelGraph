@@ -40,7 +40,7 @@
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Width="28" Height="24" Padding="0" ToolTip="Browse" Click="OnLocationBrowseClick"
                                 Content="{iconPacks:FontAwesome Kind=FolderOpenSolid}"/>
-                        <TextBox Margin="0,0,4,0" FontFamily="Global Monospace" Text="{Binding Location, Mode=TwoWay}"/>
+                        <TextBox Margin="0,0,4,0" FontFamily="Global Monospace" Text="{Binding ProjectFilename, Mode=TwoWay}"/>
                     </DockPanel>
                     <TextBlock Margin="12,20,12,12" TextWrapping="Wrap"
                         Text="Select a folder where the source content of the project should be stored. This should typically be an empty folder with no existing files."/>
@@ -60,7 +60,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                        Content="Back" IsCancel="True" Width="80" Margin="8"
+                        Content="Back" Width="80" Margin="8"
                         Click="OnReviewBackClick"/>
                 <Button Grid.Column="1" IsDefault="True" HorizontalAlignment="Right" VerticalAlignment="Center"
                         Content="Create" Width="80" Margin="8"
@@ -68,8 +68,8 @@
             </Grid>
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="12" Orientation="Vertical">
-                    <CheckBox Margin="0,6" Content="Create default publishing profile."
-                              IsChecked="{Binding CreateDefaultProfile, Mode=TwoWay}"/>
+                    <!--<CheckBox Margin="0,6" Content="Create default publishing profile."
+                              IsChecked="{Binding CreateDefaultProfile, Mode=TwoWay}"/>-->
                     <CheckBox Margin="0,6,4,2" Content="Import an existing resource pack."
                               IsChecked="{Binding EnablePackImport, Mode=TwoWay}"/>
                     <RadioButton Margin="20,2,0,2" Content="From Directory"

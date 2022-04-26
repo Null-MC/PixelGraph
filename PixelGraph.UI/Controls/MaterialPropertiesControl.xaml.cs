@@ -13,10 +13,10 @@ namespace PixelGraph.UI.Controls
         public event EventHandler<MaterialPropertyChangedEventArgs> DataChanged;
         public event EventHandler ModelChanged;
 
-        public string ProjectRootPath {
-            //get => (string)GetValue(SelectedTagProperty);
-            set => SetValue(ProjectRootPathProperty, value);
-        }
+        //public string ProjectRootPath {
+        //    //get => (string)GetValue(SelectedTagProperty);
+        //    set => SetValue(ProjectRootPathProperty, value);
+        //}
 
         public MaterialProperties Material {
             //get => (MaterialProperties)GetValue(MaterialProperty);
@@ -72,12 +72,12 @@ namespace PixelGraph.UI.Controls
             OnModelChanged();
         }
 
-        private static void OnProjectRootPathPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (sender is not MaterialPropertiesControl control) return;
+        //private static void OnProjectRootPathPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        //{
+        //    if (sender is not MaterialPropertiesControl control) return;
 
-            control.ProjectRootPath = e.NewValue as string;
-        }
+        //    control.ProjectRootPath = e.NewValue as string;
+        //}
 
         private static void OnMaterialPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
@@ -93,8 +93,8 @@ namespace PixelGraph.UI.Controls
             control.Model.SelectedTag = e.NewValue as string;
         }
 
-        public static readonly DependencyProperty ProjectRootPathProperty = DependencyProperty
-            .Register(nameof(ProjectRootPath), typeof(string), typeof(MaterialPropertiesControl), new PropertyMetadata(OnProjectRootPathPropertyChanged));
+        //public static readonly DependencyProperty ProjectRootPathProperty = DependencyProperty
+        //    .Register(nameof(ProjectRootPath), typeof(string), typeof(MaterialPropertiesControl), new PropertyMetadata(OnProjectRootPathPropertyChanged));
 
         public static readonly DependencyProperty MaterialProperty = DependencyProperty
             .Register(nameof(Material), typeof(MaterialProperties), typeof(MaterialPropertiesControl), new PropertyMetadata(OnMaterialPropertyChanged));

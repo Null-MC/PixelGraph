@@ -15,7 +15,6 @@ using PixelGraph.UI.Helix.Controls;
 using PixelGraph.UI.Helix.Materials;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Models;
-using PixelGraph.UI.Internal.Settings;
 using SharpDX;
 using SharpDX.Direct3D11;
 using System;
@@ -32,8 +31,7 @@ namespace PixelGraph.UI.Helix.Models
         private const float CubeSize = 4f;
 
         private readonly IServiceProvider provider;
-        private readonly IAppSettings appSettings;
-        private readonly IProjectContext projectContext;
+        private readonly IProjectContextManager projectContextMgr;
         private readonly ModelLoader modelLoader;
         private readonly Dictionary<string, IMaterialBuilder> materialMap;
         private readonly List<(IModelBuilder, IMaterialBuilder)> partsList;
@@ -44,13 +42,11 @@ namespace PixelGraph.UI.Helix.Models
 
         public MultiPartMeshBuilder(
             IServiceProvider provider,
-            IAppSettings appSettings,
-            IProjectContext projectContext,
+            IProjectContextManager projectContextMgr,
             ModelLoader modelLoader)
         {
             this.provider = provider;
-            this.appSettings = appSettings;
-            this.projectContext = projectContext;
+            this.projectContextMgr = projectContextMgr;
             this.modelLoader = modelLoader;
 
             materialMap = new Dictionary<string, IMaterialBuilder>();
@@ -225,6 +221,7 @@ namespace PixelGraph.UI.Helix.Models
         {
             ClearTextureBuilders();
 
+            var projectContext = projectContextMgr.GetContext();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();
@@ -271,13 +268,15 @@ namespace PixelGraph.UI.Helix.Models
         public void UpdateMaterials(IRenderContext renderContext)
         {
             foreach (var materialBuilder in materialMap.Values) {
+                materialBuilder.HeightSampler = renderContext.EnableLinearSampling
+                    ? CustomSamplerStates.Height_Linear
+                    : CustomSamplerStates.Height_Point;
+
                 materialBuilder.EnvironmentCubeMapSource = renderContext.EnvironmentCubeMap;
                 materialBuilder.RenderEnvironmentMap = renderContext.EnvironmentEnabled;
                 materialBuilder.DielectricBrdfLutMapSource = renderContext.DielectricBrdfLutMap;
                 materialBuilder.IrradianceCubeMapSource = renderContext.IrradianceCubeMap;
             }
-
-            UpdateModelParts();
         }
 
         public void InvalidateMaterials()
@@ -334,12 +333,9 @@ namespace PixelGraph.UI.Helix.Models
             //    //oldPbrBuilder.BrdfLutMap = renderContext.BrdfLutMap;
             //}
 
-            var enableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling
-                                       ?? RenderPreviewSettings.Default_EnableLinearSampling;
-
             materialBuilder.ColorSampler = CustomSamplerStates.Color_Point;
 
-            materialBuilder.HeightSampler = enableLinearSampling
+            materialBuilder.HeightSampler = renderContext.EnableLinearSampling
                 ? CustomSamplerStates.Height_Linear
                 : CustomSamplerStates.Height_Point;
 

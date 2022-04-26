@@ -1,11 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.UI.Internal.Utilities;
-using PixelGraph.UI.Models;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
@@ -16,14 +20,28 @@ namespace PixelGraph.UI.Windows
 
         public PublishLocationsWindow(IServiceProvider provider)
         {
-            var themeHelper = provider.GetRequiredService<IThemeHelper>();
-            viewModel = new PublishLocationsViewModel(provider);
+            DataContext = viewModel = new PublishLocationsViewModel(provider);
 
             InitializeComponent();
 
+            var themeHelper = provider.GetRequiredService<IThemeHelper>();
             themeHelper.ApplyCurrent(this);
+        }
 
-            viewModel.Model = Model;
+        private async Task SaveAsync()
+        {
+            try {
+                await viewModel.SaveAsync();
+            }
+            catch (Exception error) {
+                ShowError($"Failed to save publish locations! {error.Message}");
+                return;
+            }
+
+            await Dispatcher.BeginInvoke(() => {
+                viewModel.HasChanges = false;
+                DialogResult = true;
+            });
         }
 
         private void ShowError(string message)
@@ -37,13 +55,13 @@ namespace PixelGraph.UI.Windows
 
         private async void OnWindowClosing(object sender, CancelEventArgs e)
         {
-            if (DialogResult.HasValue || !Model.HasChanges) return;
+            if (DialogResult.HasValue || !viewModel.HasChanges) return;
 
             var result = MessageBox.Show(this, "Would you like to save your changes?", "Warning!", MessageBoxButton.YesNoCancel);
 
             switch (result) {
                 case MessageBoxResult.Yes:
-                    await viewModel.SaveChangesAsync();
+                    await SaveAsync();
                     break;
                 case MessageBoxResult.Cancel:
                     e.Cancel = true;
@@ -59,46 +77,34 @@ namespace PixelGraph.UI.Windows
             };
 
             if (dialog.ShowDialog(this) == true)
-                Model.EditPath = dialog.SelectedPath;
+                viewModel.EditPath = dialog.SelectedPath;
+        }
+
+        private void OnLocationListBoxMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var r = VisualTreeHelper.HitTest(LocationsListBox, e.GetPosition(LocationsListBox));
+            if (r.VisualHit.GetType() != typeof(ListBoxItem)) LocationsListBox.UnselectAll();
         }
 
         private void OnAddClick(object sender, RoutedEventArgs e)
         {
-            var newLocation = new LocationModel();
-            Model.Locations.Add(newLocation);
-            Model.SelectedLocationItem = newLocation;
-            Model.HasChanges = true;
+            viewModel.AddNew();
             EditNameTextBox.Focus();
         }
 
         private void OnRemoveClick(object sender, RoutedEventArgs e)
         {
-            if (!Model.HasSelectedLocation) return;
-
-            Model.Locations.Remove(Model.SelectedLocationItem);
-            Model.SelectedLocationItem = null;
-            Model.HasChanges = true;
+            viewModel.RemoveSelected();
         }
 
-        //private void OnCancelButtonClick(object sender, RoutedEventArgs e)
-        //{
-        //    DialogResult = false;
-        //}
+        private void OnDuplicateClick(object sender, RoutedEventArgs e)
+        {
+            viewModel.DuplicateSelected();
+        }
         
         private async void OnOkButtonClick(object sender, RoutedEventArgs e)
         {
-            try {
-                await viewModel.SaveChangesAsync();
-            }
-            catch (Exception error) {
-                ShowError($"Failed to save publish locations! {error.Message}");
-                return;
-            }
-
-            Application.Current.Dispatcher.Invoke(() => {
-                Model.HasChanges = false;
-                return DialogResult = true;
-            });
+            await SaveAsync();
         }
 
         #endregion

@@ -9,7 +9,7 @@ using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Extensions
 {
-    internal class YamlStringEnumConverter : IYamlTypeConverter
+    public class YamlStringEnumConverter : IYamlTypeConverter
     {
         public bool Accepts(Type type)
         {
@@ -40,11 +40,12 @@ namespace PixelGraph.Common.Extensions
             var nullType = Nullable.GetUnderlyingType(type);
             var t = nullType ?? type;
 
-            var enumMember = t.GetMember(value.ToString()).FirstOrDefault();
+            var memberName = value.ToString() ?? throw new ApplicationException("Member name is undefined!");
+            var enumMember = t.GetMember(memberName).FirstOrDefault();
 
             var yamlValue = enumMember?.GetCustomAttributes<EnumMemberAttribute>(true)
                 .Select(ema => ema.Value).FirstOrDefault() ?? value.ToString();
 
-            emitter.Emit(new Scalar(yamlValue));
+            if (yamlValue != null) emitter.Emit(new Scalar(yamlValue));
         }
     }}

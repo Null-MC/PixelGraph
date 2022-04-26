@@ -5,25 +5,15 @@ namespace PixelGraph.UI.Models
     internal class NewProjectModel : ModelBase
     {
         private NewProjectStates _state;
-        //private string _contentFormat;
         private string _packName;
-        private string _location;
+        private string _projectFilename;
         private bool _createMinecraftFolders;
         private bool _createRealmsFolders;
         private bool _createOptifineFolders;
         private bool _enablePackImport;
-        private bool _createDefaultProfile;
+        //private bool _createDefaultProfile;
         private bool _importFromDirectory;
         private bool _importFromArchive;
-
-        //public string ContentFormat {
-        //    get => _contentFormat;
-        //    set {
-        //        if (_contentFormat == value) return;
-        //        _contentFormat = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
         public string PackName {
             get => _packName;
@@ -34,11 +24,11 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public string Location {
-            get => _location;
+        public string ProjectFilename {
+            get => _projectFilename;
             set {
-                if (_location == value) return;
-                _location = value;
+                if (_projectFilename == value) return;
+                _projectFilename = value;
                 OnPropertyChanged();
             }
         }
@@ -70,14 +60,14 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public bool CreateDefaultProfile {
-            get => _createDefaultProfile;
-            set {
-                if (_createDefaultProfile == value) return;
-                _createDefaultProfile = value;
-                OnPropertyChanged();
-            }
-        }
+        //public bool CreateDefaultProfile {
+        //    get => _createDefaultProfile;
+        //    set {
+        //        if (_createDefaultProfile == value) return;
+        //        _createDefaultProfile = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
         public bool EnablePackImport {
             get => _enablePackImport;
@@ -106,7 +96,6 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        //public bool IsFormatPage => _state == NewProjectStates.Format;
         public bool IsLocationPage => _state == NewProjectStates.Location;
         public bool IsReviewPage => _state == NewProjectStates.Review;
 
@@ -115,11 +104,10 @@ namespace PixelGraph.UI.Models
         {
             _state = NewProjectStates.Location;
             _packName = "My New RP";
-            //_contentFormat = TextureEncoding.Format_Raw;
             _createMinecraftFolders = true;
-            _createRealmsFolders = true;
-            _createOptifineFolders = true;
-            _createDefaultProfile = true;
+            _createRealmsFolders = false;
+            _createOptifineFolders = false;
+            //_createDefaultProfile = true;
             _enablePackImport = false;
         }
 
@@ -128,7 +116,6 @@ namespace PixelGraph.UI.Models
             if (state == _state) return;
 
             _state = state;
-            //OnPropertyChanged(nameof(IsFormatPage));
             OnPropertyChanged(nameof(IsLocationPage));
             OnPropertyChanged(nameof(IsReviewPage));
         }
@@ -138,9 +125,8 @@ namespace PixelGraph.UI.Models
     {
         public NewProjectDesignVM()
         {
-            //ContentFormat = TextureEncoding.Format_Raw;
             PackName = "Sample RP";
-            Location = "C:\\Somewhere\\over\\the\\rainbow";
+            ProjectFilename = "C:\\Somewhere\\over\\the\\rainbow\\isShit.yml";
             SetState(NewProjectStates.Location);
         }
     }
@@ -148,7 +134,6 @@ namespace PixelGraph.UI.Models
     internal enum NewProjectStates
     {
         Location,
-        //Format,
         Review,
     }
 }

@@ -1,8 +1,9 @@
-﻿using System;
+﻿using PixelGraph.Common.IO.Serialization;
+using System;
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialConnectionProperties
+    public class MaterialConnectionProperties : IHaveData
     {
         public string Method {get; set;}
         public int? Width {get; set;}

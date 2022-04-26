@@ -1,28 +1,29 @@
 ﻿using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using MinecraftMappings.Minecraft.Java;
 using Ookii.Dialogs.Wpf;
+using PixelGraph.Common.Projects;
+using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.TextureFormats;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.IO;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
     public partial class NewProjectWindow
     {
-        private readonly ILogger<NewProjectWindow> logger;
         private readonly NewProjectViewModel viewModel;
 
 
         public NewProjectWindow(IServiceProvider provider)
         {
-            logger = provider.GetRequiredService<ILogger<NewProjectWindow>>();
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
 
             InitializeComponent();
@@ -33,50 +34,58 @@ namespace PixelGraph.UI.Windows
             };
         }
 
-        private async Task<bool> CreateDirectoryAsync()
+        public async Task BuildProjectAsync(CancellationToken token = default)
         {
-            try {
-                viewModel.CreateDirectories();
-            }
-            catch (Exception error) {
-                logger.LogError(error, $"Failed to create new project directory \"{Model.Location}\"!");
-                Model.SetState(NewProjectStates.Location);
-                await this.ShowMessageAsync("Error!", "Failed to create new project directory!");
-                return false;
-            }
+            var projectContext = BuildProjectContext();
+            await viewModel.CreateProjectAsync(projectContext, token);
+        }
 
-            var existingFiles = Directory.EnumerateFiles(Model.Location, "*", SearchOption.AllDirectories);
+        private ProjectContext BuildProjectContext()
+        {
+            var projectContext = new ProjectContext {
+                Project = new ProjectData {
+                    Name = Model.PackName,
+                    Input = new ResourcePackInputProperties {
+                        Format = TextureFormat.Format_Raw,
+                    },
+                },
+                ProjectFilename = Model.ProjectFilename,
+                RootDirectory = Path.GetDirectoryName(Model.ProjectFilename),
+            };
 
-            if (existingFiles.Any()) {
-                var result = await this.ShowMessageAsync("Warning!", "There is existing content in the chosen directory! Are you sure you want to proceed?", MessageDialogStyle.AffirmativeAndNegative);
-                if (result != MessageDialogResult.Affirmative) return false;
-            }
+            var packProfile = new ResourcePackProfileProperties {
+                Name = $"{Model.PackName}-LabPbr",
+                Description = "A short description of the RP content.",
+                Encoding = {
+                    Format = TextureFormat.Format_Lab13,
+                },
+                Edition = "Java",
+                Format = JavaPackVersion.Latest.Index,
+            };
 
-            return true;
+            projectContext.Project.Profiles.Add(packProfile);
+            projectContext.SelectedProfile = packProfile;
+
+            return projectContext;
         }
 
         #region Events
 
         private void OnLocationBrowseClick(object sender, RoutedEventArgs e)
         {
-            var dialog = new VistaFolderBrowserDialog {
-                Description = "Please select a folder.",
-                UseDescriptionForTitle = true,
+            var dialog = new VistaSaveFileDialog {
+                FileName = "project.yml",
+                Filter = "Project Yaml|*.yml;*.yaml|All Files|*.*",
             };
 
             if (dialog.ShowDialog(this) != true) return;
-            Model.Location = dialog.SelectedPath;
+            Model.ProjectFilename = dialog.FileName;
         }
-
-        //private void OnLocationCancelClick(object sender, RoutedEventArgs e)
-        //{
-        //    DialogResult = false;
-        //}
 
         private async void OnLocationNextClick(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(Model.Location)) {
-                await this.ShowMessageAsync("Error!", "Please select a location for your project content!");
+            if (string.IsNullOrEmpty(Model.ProjectFilename)) {
+                await this.ShowMessageAsync("Error!", "You must select a project file first!");
                 return;
             }
 
@@ -95,11 +104,7 @@ namespace PixelGraph.UI.Windows
                 return;
             }
 
-            if (!await CreateDirectoryAsync()) return;
-
-            await viewModel.CreatePackFilesAsync();
-
-            await Dispatcher.BeginInvoke(() => DialogResult = true);
+            DialogResult = true;
         }
 
         #endregion

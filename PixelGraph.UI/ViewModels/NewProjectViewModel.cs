@@ -1,82 +1,60 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
-using PixelGraph.Common.IO.Serialization;
-using PixelGraph.Common.ResourcePack;
-using PixelGraph.Common.TextureFormats;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models;
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PixelGraph.UI.ViewModels
 {
     internal class NewProjectViewModel
     {
-        private readonly IServiceProvider provider;
+        //private readonly IServiceProvider provider;
+        private readonly IProjectContextManager projectContextMgr;
 
         public NewProjectModel Model {get; set;}
 
 
         public NewProjectViewModel(IServiceProvider provider)
         {
-            this.provider = provider;
+            //this.provider = provider;
+
+            projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
         }
 
-        public async Task CreatePackFilesAsync()
+        public async Task CreateProjectAsync(ProjectContext projectContext, CancellationToken token = default)
         {
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+            //var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-            serviceBuilder.Initialize();
-            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.Location);
+            //serviceBuilder.Initialize();
+            //serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
 
-            await using var scope = serviceBuilder.Build();
+            //await using var scope = serviceBuilder.Build();
 
-            var packWriter = scope.GetRequiredService<IResourcePackWriter>();
+            //var projectSerializer = new ProjectSerializer();
+            //await projectSerializer.SaveAsync(projectContext.Project, projectContext.ProjectFilename);
 
-            var packInput = new ResourcePackInputProperties {
-                Format = TextureFormat.Format_Raw,
-            };
+            projectContextMgr.SetContext(projectContext);
+            await projectContextMgr.SaveAsync();
 
-            await packWriter.WriteAsync("input.yml", packInput);
-
-            if (Model.CreateDefaultProfile) {
-                var packProfile = new ResourcePackProfileProperties {
-                    Name = Model.PackName,
-                    Description = "A short description of the RP content.",
-                    Encoding = {
-                        Format = TextureFormat.Format_Lab13,
-                    },
-                    Edition = "Java",
-                    Format = 6,
-                };
-
-                var safeName = Model.PackName
-                    .Replace('/', '_')
-                    .Replace('\\', '_');
-
-                await packWriter.WriteAsync($"{safeName}.pack.yml", packProfile);
-            }
-        }
-
-        public void CreateDirectories()
-        {
-            if (!Directory.Exists(Model.Location))
-                Directory.CreateDirectory(Model.Location);
+            if (!Directory.Exists(projectContext.RootDirectory))
+                Directory.CreateDirectory(projectContext.RootDirectory);
 
             if (Model.CreateMinecraftFolders)
-                CreateDefaultMinecraftFolders();
+                CreateDefaultMinecraftFolders(projectContext);
 
             if (Model.CreateRealmsFolders)
-                CreateDefaultRealmsFolders();
+                CreateDefaultRealmsFolders(projectContext);
 
             if (Model.CreateOptifineFolders)
-                CreateDefaultOptifineFolders();
+                CreateDefaultOptifineFolders(projectContext);
         }
 
-        private void CreateDefaultMinecraftFolders()
+        private static void CreateDefaultMinecraftFolders(ProjectContext projectContext)
         {
-            var mcPath = PathEx.Join(Model.Location, "assets", "minecraft");
+            var mcPath = PathEx.Join(projectContext.RootDirectory, "assets", "minecraft");
 
             TryCreateDirectory(mcPath, "blockstates");
             TryCreateDirectory(mcPath, "font");
@@ -121,21 +99,21 @@ namespace PixelGraph.UI.ViewModels
             TryCreateDirectory(mcPath, "textures", "painting");
             TryCreateDirectory(mcPath, "textures", "particle");
 
-            var realmsPath = PathEx.Join(Model.Location, "assets", "realms");
+            var realmsPath = PathEx.Join(projectContext.RootDirectory, "assets", "realms");
 
             TryCreateDirectory(realmsPath, "textures");
         }
 
-        private void CreateDefaultRealmsFolders()
+        private static void CreateDefaultRealmsFolders(ProjectContext projectContext)
         {
-            var realmsPath = PathEx.Join(Model.Location, "assets", "realms");
+            var realmsPath = PathEx.Join(projectContext.RootDirectory, "assets", "realms");
 
             TryCreateDirectory(realmsPath, "textures");
         }
 
-        private void CreateDefaultOptifineFolders()
+        private static void CreateDefaultOptifineFolders(ProjectContext projectContext)
         {
-            var optifinePath = PathEx.Join(Model.Location, "assets", "minecraft", "optifine");
+            var optifinePath = PathEx.Join(projectContext.RootDirectory, "assets", "minecraft", "optifine");
 
             TryCreateDirectory(optifinePath, "anim");
             TryCreateDirectory(optifinePath, "cem");

@@ -12,6 +12,7 @@ namespace PixelGraph.Rendering.CubeMaps
     {
         private SkyDomeBufferModel geometryBuffer;
         private IMinecraftScene _scene;
+        private long lastSceneUpdate;
 
         public IMinecraftScene Scene {
             get => _scene;
@@ -59,10 +60,11 @@ namespace PixelGraph.Rendering.CubeMaps
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
             if (_scene == null) return;
+            if (_scene.LastUpdated == lastSceneUpdate) return;
 
-            if (_scene.IsRenderValid && _cubeMap != null) {
-                if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
-            }
+            //if (_scene.IsRenderValid && _cubeMap != null) {
+            //if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
+            //}
 
             base.Render(context, deviceContext);
             
@@ -70,9 +72,10 @@ namespace PixelGraph.Rendering.CubeMaps
             context.SharedResource.EnvironmentMapMipLevels = _cubeMap.TextureView.Description.TextureCube.MipLevels;
             
             context.UpdatePerFrameData(true, false, deviceContext);
-            _scene?.Apply(deviceContext);
+            _scene.Apply(deviceContext);
 
-            _scene?.ResetValidation();
+            //_scene.ResetValidation();
+            lastSceneUpdate = _scene.LastUpdated;
         }
 
         protected override void RenderFace(RenderContext context, DeviceContextProxy deviceContext)

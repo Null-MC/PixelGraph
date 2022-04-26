@@ -12,15 +12,15 @@ namespace PixelGraph.UI.Internal
     internal class MaterialPropertiesCache : AsyncRegistrationCounterCache<string, MaterialProperties>
     {
         private readonly IServiceProvider provider;
-        private readonly IProjectContext projectContext;
+        private readonly IProjectContextManager projectContextMgr;
 
 
         public MaterialPropertiesCache(
             IServiceProvider provider,
-            IProjectContext projectContext) : base(StringComparer.InvariantCultureIgnoreCase)
+            IProjectContextManager projectContextMgr) : base(StringComparer.InvariantCultureIgnoreCase)
         {
             this.provider = provider;
-            this.projectContext = projectContext;
+            this.projectContextMgr = projectContextMgr;
         }
 
         public Task<CacheRegistration<string, MaterialProperties>> RegisterAsync(string localFile, CancellationToken token = default)
@@ -35,6 +35,7 @@ namespace PixelGraph.UI.Internal
 
         private async Task<MaterialProperties> LoadMaterial(string localFile, CancellationToken token)
         {
+            var projectContext = projectContextMgr.GetContext();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();

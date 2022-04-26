@@ -27,7 +27,7 @@ namespace PixelGraph.UI.Models
         public GameEditions SourceGameEdition {get; set;}
         public string SourceTextureFormat {get; set;}
         public ResourcePackOutputProperties Encoding {get; set;}
-        public ResourcePackInputProperties PackInput {get; set;}
+        //public ResourcePackInputProperties PackInput {get; set;}
 
         public bool IsReady {
             get => _isReady;

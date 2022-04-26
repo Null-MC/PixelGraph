@@ -1,9 +1,10 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.ResourcePack;
 using System;
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialHeightProperties
+    public class MaterialHeightProperties : IHaveData
     {
         public const decimal DefaultEdgeFadeStrength = 1.0m;
         //public const bool DefaultAutoLevel = false;

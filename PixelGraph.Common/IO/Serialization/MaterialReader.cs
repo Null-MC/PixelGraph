@@ -21,18 +21,21 @@ namespace PixelGraph.Common.IO.Serialization
 
     internal class MaterialReader : IMaterialReader
     {
+        private static readonly IDeserializer deserializer;
         private readonly IInputReader reader;
-        private readonly IDeserializer deserializer;
 
 
-        public MaterialReader(IInputReader reader)
+        static MaterialReader()
         {
-            this.reader = reader;
-
             deserializer = new DeserializerBuilder()
                 .WithTypeConverter(new YamlStringEnumConverter())
                 .WithNamingConvention(HyphenatedNamingConvention.Instance)
                 .Build();
+        }
+
+        public MaterialReader(IInputReader reader)
+        {
+            this.reader = reader;
         }
 
         public Task<MaterialProperties> LoadAsync(string localFile, CancellationToken token = default)
@@ -107,24 +110,7 @@ namespace PixelGraph.Common.IO.Serialization
         //    results = resultList.ToArray();
         //    return true;
         //}
-
-        /// <summary>
-        /// Migrates material properties from deprecated fields to their new locations.
-        /// </summary>
-        private void Upgrade(MaterialProperties material)
-        {
-            if (material.Color?.__PreviewTint != null && material.TintColor == null)
-                material.TintColor = material.Color?.__PreviewTint;
-
-            if (material.Color?.Value == null && ((material.Color?.__ValueRed.HasValue ?? false) || (material.Color?.__ValueRed.HasValue ?? false) || (material.Color?.__ValueRed.HasValue ?? false))) {
-                var red = (byte?)material.Color?.__ValueRed ?? 0;
-                var green = (byte?)material.Color?.__ValueGreen ?? 0;
-                var blue = (byte?)material.Color?.__ValueBlue ?? 0;
-
-                material.Color.Value = $"#{red:X2}{green:X2}{blue:X2}";
-            }
-        }
-
+        
         private async Task<MaterialProperties> ParseDocumentAsync(string localFile)
         {
             await using var stream = reader.Open(localFile);
@@ -136,6 +122,24 @@ namespace PixelGraph.Common.IO.Serialization
                 document.CTM.Method = replaceMethod;
 
             return document;
+        }
+
+        /// <summary>
+        /// Migrates material properties from deprecated fields to their new locations.
+        /// </summary>
+        private static void Upgrade(MaterialProperties material)
+        {
+            if (material.Color?.__PreviewTint != null && material.TintColor == null)
+                material.TintColor = material.Color?.__PreviewTint;
+
+            if (material.Color?.Value == null && ((material.Color?.__ValueRed.HasValue ?? false) || (material.Color?.__ValueRed.HasValue ?? false) || (material.Color?.__ValueRed.HasValue ?? false))) {
+                var red = (byte?)material.Color?.__ValueRed ?? 0;
+                var green = (byte?)material.Color?.__ValueGreen ?? 0;
+                var blue = (byte?)material.Color?.__ValueBlue ?? 0;
+
+                material.Color ??= new MaterialColorProperties();
+                material.Color.Value = $"#{red:X2}{green:X2}{blue:X2}";
+            }
         }
 
         /// <summary> For deprecated mappings </summary>

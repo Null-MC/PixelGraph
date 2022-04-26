@@ -1,8 +1,9 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialSmoothProperties
+    public class MaterialSmoothProperties : IHaveData
     {
         public ResourcePackSmoothChannelProperties Input {get; set;}
         public string Texture {get; set;}

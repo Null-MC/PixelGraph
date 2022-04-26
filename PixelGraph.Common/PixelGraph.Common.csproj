@@ -33,6 +33,9 @@
     <Compile Remove="IO\Publishing\BedrockPublishReader.cs" />
     <Compile Remove="IO\Publishing\JavaToBedrockMap.cs" />
     <Compile Remove="IO\Publishing\PublishOptions.cs" />
+    <Compile Remove="IO\Serialization\ObjectPropertyFileSerializer.cs" />
+    <Compile Remove="IO\Serialization\ResourcePackReader.cs" />
+    <Compile Remove="IO\Serialization\ResourcePackWriter.cs" />
     <Compile Remove="MaterialContext.cs" />
     <Compile Remove="Material\IMaterialChannel.cs" />
     <Compile Remove="PixelOperations\PixelFilterProcessor.cs" />

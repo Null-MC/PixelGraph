@@ -10,7 +10,8 @@ namespace PixelGraph.Rendering.Minecraft
     public class MinecraftSceneNode : SceneNode, IMinecraftScene
     {
         private MinecraftSceneCore SceneCore => RenderCore as MinecraftSceneCore;
-        public bool IsRenderValid => SceneCore.IsRenderValid;
+        //public bool IsRenderValid => SceneCore.IsRenderValid;
+        public long LastUpdated => SceneCore.LastUpdated;
 
         public bool EnableAtmosphere {
             get => SceneCore.EnableAtmosphere;
@@ -42,14 +43,9 @@ namespace PixelGraph.Rendering.Minecraft
             set => SceneCore.ParallaxDepth = value;
         }
 
-        public int ParallaxSamplesMin {
-            get => SceneCore.ParallaxSamplesMin;
-            set => SceneCore.ParallaxSamplesMin = value;
-        }
-
-        public int ParallaxSamplesMax {
-            get => SceneCore.ParallaxSamplesMax;
-            set => SceneCore.ParallaxSamplesMax = value;
+        public int ParallaxSamples {
+            get => SceneCore.ParallaxSamples;
+            set => SceneCore.ParallaxSamples = value;
         }
 
         public bool EnableLinearSampling {
@@ -78,10 +74,10 @@ namespace PixelGraph.Rendering.Minecraft
             SceneCore?.Apply(deviceContext);
         }
 
-        public void ResetValidation()
-        {
-            SceneCore?.ResetValidation();
-        }
+        //public void ResetValidation()
+        //{
+        //    SceneCore?.ResetValidation();
+        //}
 
         protected override RenderCore OnCreateRenderCore()
         {
@@ -98,8 +94,7 @@ namespace PixelGraph.Rendering.Minecraft
             sceneCore.SunDirection = SunDirection;
             sceneCore.Wetness = Wetness;
             sceneCore.ParallaxDepth = ParallaxDepth;
-            sceneCore.ParallaxSamplesMin = ParallaxSamplesMin;
-            sceneCore.ParallaxSamplesMax = ParallaxSamplesMax;
+            sceneCore.ParallaxSamples = ParallaxSamples;
             sceneCore.EnableLinearSampling = EnableLinearSampling;
             sceneCore.EnableSlopeNormals = EnableSlopeNormals;
             sceneCore.WaterMode = WaterMode;

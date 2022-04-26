@@ -4,11 +4,12 @@ using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PixelGraph.Common.IO.Serialization;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
 {
-    public class ResourcePackEncoding
+    public class ResourcePackEncoding : IHaveData
     {
         public ResourcePackOpacityChannelProperties Opacity {get; set;}
 
@@ -210,6 +211,29 @@ namespace PixelGraph.Common.ResourcePack
             clone.Emissive = (ResourcePackEmissiveChannelProperties)Emissive.Clone();
 
             return clone;
+        }
+
+        public virtual bool HasAnyData()
+        {
+            if (Opacity.HasAnyData()) return true;
+            if (ColorRed.HasAnyData()) return true;
+            if (ColorGreen.HasAnyData()) return true;
+            if (ColorBlue.HasAnyData()) return true;
+            if (Height.HasAnyData()) return true;
+            if (Occlusion.HasAnyData()) return true;
+            if (NormalX.HasAnyData()) return true;
+            if (NormalY.HasAnyData()) return true;
+            if (NormalZ.HasAnyData()) return true;
+            if (Specular.HasAnyData()) return true;
+            if (Smooth.HasAnyData()) return true;
+            if (Rough.HasAnyData()) return true;
+            if (Metal.HasAnyData()) return true;
+            if (HCM.HasAnyData()) return true;
+            if (F0.HasAnyData()) return true;
+            if (Porosity.HasAnyData()) return true;
+            if (SSS.HasAnyData()) return true;
+            if (Emissive.HasAnyData()) return true;
+            return false;
         }
 
         #region Deprecated

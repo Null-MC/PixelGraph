@@ -19,6 +19,7 @@ namespace PixelGraph.Common.IO
         public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null)
         {
             var fullPath = GetFullPath(localPath);
+            if (!Directory.Exists(fullPath)) yield break;
 
             foreach (var directory in Directory.EnumerateDirectories(fullPath, pattern ?? "*", SearchOption.TopDirectoryOnly)) {
                 var directoryName = Path.GetFileName(directory);
@@ -29,6 +30,7 @@ namespace PixelGraph.Common.IO
         public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = null)
         {
             var fullPath = GetFullPath(localPath);
+            if (!Directory.Exists(fullPath)) yield break;
 
             foreach (var file in Directory.EnumerateFiles(fullPath, pattern ?? "*.*", SearchOption.TopDirectoryOnly)) {
                 var fileName = Path.GetFileName(file);

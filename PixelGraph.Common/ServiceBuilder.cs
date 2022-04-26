@@ -66,10 +66,6 @@ namespace PixelGraph.Common
         {
             Services.AddLogging(builder => builder.AddSerilog(LocalLogFile.FileLogger));
 
-            Services.AddSingleton<IResourcePackReader, ResourcePackReader>();
-            Services.AddSingleton<IResourcePackWriter, ResourcePackWriter>();
-            Services.AddSingleton<IMaterialReader, MaterialReader>();
-            Services.AddSingleton<IMaterialWriter, MaterialWriter>();
             Services.AddSingleton<IPublishReader, PublishReader>();
 
             Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
@@ -83,9 +79,12 @@ namespace PixelGraph.Common
             Services.AddScoped<IEdgeFadeImageEffect, EdgeFadeImageEffect>();
             Services.AddScoped<IImageWriter, ImageWriter>();
 
+            Services.AddTransient<IMaterialReader, MaterialReader>();
+            Services.AddTransient<IMaterialWriter, MaterialWriter>();
             Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
             Services.AddTransient<IItemTextureGenerator, ItemTextureGenerator>();
             Services.AddTransient<ITextureBuilder, TextureBuilder>();
+            //Services.AddTransient<ProjectSerializer>();
         }
 
         public void ConfigureReader(ContentTypes contentType, GameEditions gameEdition, string rootPath)
@@ -111,9 +110,6 @@ namespace PixelGraph.Common
                 case ContentTypes.Archive:
                     Services.AddSingleton<IInputReader, ArchiveInputReader>();
                     break;
-                //case ContentTypes.None:
-                //default:
-                //    throw new ApplicationException("Content input type is undefined!");
             }
         }
 
@@ -126,9 +122,6 @@ namespace PixelGraph.Common
                 case ContentTypes.Archive:
                     Services.AddSingleton<IOutputWriter, ArchiveOutputWriter>();
                     break;
-                //case ContentTypes.None:
-                //default:
-                //    throw new ApplicationException("Content output type is undefined!");
             }
         }
 
@@ -171,9 +164,6 @@ namespace PixelGraph.Common
                 case GameEditions.Bedrock:
                     Services.AddTransient<IMaterialImporter, BedrockMaterialImporter>();
                     break;
-                //case GameEditions.None:
-                //default:
-                //    throw new ApplicationException("Game edition is undefined!");
             }
         }
 
@@ -186,9 +176,6 @@ namespace PixelGraph.Common
                 case GameEditions.Bedrock:
                     Services.AddTransient<IPublisher, BedrockPublisher>();
                     break;
-                //case GameEditions.None:
-                //default:
-                //    throw new ApplicationException("Game edition is undefined!");
             }
         }
 

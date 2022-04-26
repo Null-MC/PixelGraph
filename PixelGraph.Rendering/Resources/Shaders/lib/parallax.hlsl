@@ -23,9 +23,9 @@ float2 get_parallax_offset(const in float3 lightT)
 	return parallax_dir * parallax_length;
 }
 
-float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, const in float NoV, out float3 shadow_tex, out float tex_depth) //, out float3 hit_normal)
+float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, out float3 shadow_tex, out float tex_depth) //, out float3 hit_normal)
 {
-	const int step_count = ParallaxSamplesMax; //(int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoV);
+	const int step_count = ParallaxSamples; //(int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoV);
 	const float step_size = rcp(step_count);
 	const float2 step_offset = step_size * offsetT;
 	
@@ -70,9 +70,9 @@ float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, const
 	return EnableLinearSampling ? shadow_tex.xy : trace_offset;
 }
 
-float2 get_parallax_texcoord_wet(const in float2 tex, const in float2 vTS, const in float2 rTS, const in float NoV, const in float water_level, out float2 water_tex, out float3 shadow_tex, out float tex_depth)
+float2 get_parallax_texcoord_wet(const in float2 tex, const in float2 vTS, const in float2 rTS, const in float water_level, out float2 water_tex, out float3 shadow_tex, out float tex_depth)
 {
-	const int step_count = ParallaxSamplesMax; //(int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoV);
+	const int step_count = ParallaxSamples; //(int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoV);
 	const float step_size = rcp(step_count);
 	float2 step_offset = step_size * vTS;
 	
@@ -132,8 +132,8 @@ float get_parallax_shadow(const in float3 tex, const in float2 offsetT, const in
 {
 	if (NoL <= 0.0) return 0.0;
 
-	const int step_count = (1.0f - tex.z) * ParallaxSamplesMax; //(int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoL);
-	const float step_size = rcp(ParallaxSamplesMax);
+	const int step_count = (1.0f - tex.z) * ParallaxSamples; //(int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoL);
+	const float step_size = rcp(ParallaxSamples);
 	const float2 step_offset = step_size * offsetT;
 	
 	float trace_depth = tex.z;

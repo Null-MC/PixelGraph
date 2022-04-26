@@ -74,12 +74,11 @@
                 SunStrength="{Binding SceneProperties.SunStrength, Mode=OneWay}"
                 Wetness="{Binding SceneProperties.WetnessLinear, Mode=OneWay}"
                 ParallaxDepth="{Binding RenderProperties.ParallaxDepth, Mode=OneWay}"
-                ParallaxSamplesMin="{Binding RenderProperties.ParallaxSamplesMin, Mode=OneWay}"
-                ParallaxSamplesMax="{Binding RenderProperties.ParallaxSamplesMax, Mode=OneWay}"
-                EnableLinearSampling="{Binding RenderProperties.EnableLinearSampling, Mode=OneWay}"
-                EnableSlopeNormals="{Binding RenderProperties.EnableSlopeNormals, Mode=OneWay}"
+                ParallaxSamples="{Binding RenderProperties.ParallaxSamples, Mode=OneWay}"
+                EnableLinearSampling="{Binding SceneProperties.PomType.EnableLinearSampling, Mode=OneWay}"
+                EnableSlopeNormals="{Binding SceneProperties.PomType.EnableSlopeNormals, Mode=OneWay}"
                 WaterMode="{Binding RenderProperties.WaterMode, Mode=OneWay}"
-                ErpExposure="{Binding SceneProperties.ErpExposure, Mode=OneWay}"/>
+                ErpExposure="{Binding SceneProperties.ErpIntensity, Mode=OneWay}"/>
 
             <controls1:MinecraftMesh3D
                 BlendMode="{Binding RenderProperties.MeshBlendMode, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
@@ -103,19 +102,9 @@
                 Scene="{Binding Mode=OneWay, Source={x:Reference MinecraftScene}}"
                 IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"/>
             <controls1:EquirectangularCubeMap3D x:Name="EquirectangularCubeMapSource" FaceSize="512"
-                Exposure="{Binding SceneProperties.ErpExposure, Mode=OneWay}"
-                IsRendering="{Binding SceneProperties.HasEquirectangularMap, Mode=OneWay}">
-                <controls1:EquirectangularCubeMap3D.Style>
-                    <Style TargetType="controls1:EquirectangularCubeMap3D">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding SceneProperties.EnableAtmosphere}" Value="True">
-                                <Setter Property="Texture" Value="{Binding CubeMap, Mode=OneWay, ElementName=DynamicSkyCubeSource}"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                        <Setter Property="Texture" Value="{Binding SceneProperties.EquirectangularMap, Mode=OneWay}"/>
-                    </Style>
-                </controls1:EquirectangularCubeMap3D.Style>
-            </controls1:EquirectangularCubeMap3D>
+                Exposure="{Binding SceneProperties.ErpIntensity, Mode=OneWay}"
+                Texture="{Binding SceneProperties.EquirectangularMap, Mode=OneWay}"
+                IsRendering="{Binding SceneProperties.HasEquirectangularMap, Mode=OneWay}"/>
             <controls1:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="32"
                 IsRendering="{Binding SceneProperties.HasEnvironmentMap, Mode=OneWay}">
                 <controls1:IrradianceCube3D.Style>

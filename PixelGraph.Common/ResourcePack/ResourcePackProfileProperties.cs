@@ -1,11 +1,11 @@
 ﻿using PixelGraph.Common.IO;
 using System;
-using System.IO;
+using PixelGraph.Common.IO.Serialization;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
 {
-    public class ResourcePackProfileProperties
+    public class ResourcePackProfileProperties : IHaveData
     {
         public const int DefaultJavaFormat = 6;
         public const int DefaultBedrockFormat = 2;
@@ -18,9 +18,6 @@ namespace PixelGraph.Common.ResourcePack
         public const bool BakeOcclusionToColorDefault = false;
         public const bool PublishInventoryDefault = true;
         public const bool PublishConnectedDefault = true;
-
-        [YamlIgnore]
-        public string LocalFile {get; set;}
 
         /// <summary>
         /// Gets or sets the edition of Minecraft the RP will target.
@@ -112,23 +109,31 @@ namespace PixelGraph.Common.ResourcePack
             Encoding = new ResourcePackOutputProperties();
         }
 
-        public string GetDefaultPackName()
-        {
-            var name = LocalFile;
-            if (string.IsNullOrWhiteSpace(name)) return null;
+        //public string GetDefaultPackName()
+        //{
+        //    var name = LocalFile;
+        //    if (string.IsNullOrWhiteSpace(name)) return null;
 
-            name = Path.GetFileName(name);
-            if (string.IsNullOrWhiteSpace(name)) return null;
+        //    name = Path.GetFileName(name);
+        //    if (string.IsNullOrWhiteSpace(name)) return null;
 
-            if (name.EndsWith(".pack.yml")) name = name[..^9];
-            return string.IsNullOrWhiteSpace(name) ? null : name;
-        }
+        //    if (name.EndsWith(".pack.yml")) name = name[..^9];
+        //    return string.IsNullOrWhiteSpace(name) ? null : name;
+        //}
 
         public virtual object Clone()
         {
             var clone = (ResourcePackProfileProperties)MemberwiseClone();
             clone.Encoding = (ResourcePackOutputProperties)Encoding.Clone();
             return clone;
+        }
+
+        public bool HasAnyData()
+        {
+            if (!string.IsNullOrWhiteSpace(Edition)) return true;
+            if (HeaderUuid.HasValue) return true;
+            if (ModuleUuid.HasValue) return true;
+            return false;
         }
     }
 }

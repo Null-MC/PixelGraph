@@ -1,10 +1,12 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.Wpf.SharpDX;
-using Media = System.Windows.Media;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.ViewData;
 using System;
+using System.IO;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
+using Media = System.Windows.Media;
 
 #if !RELEASENORENDER
 using PixelGraph.Common.Extensions;
@@ -32,9 +34,12 @@ namespace PixelGraph.UI.Models.Scene
         private bool _enableLights;
         private TextureModel _equirectangularMap;
         private Transform3D _meshTransform;
-        private string _erpFilename;
-        private float _erpExposure;
+        private string _erpFilename, _erpName;
+        private float _erpIntensity;
         private bool _spinMesh;
+        private PomTypeValues.Item _pomType;
+        //private bool _enableSlopeNormals;
+        //private bool _enableLinearSampling;
         //private Transform3D _lightTransform1;
         //private Transform3D _lightTransform2;
 
@@ -77,6 +82,37 @@ namespace PixelGraph.UI.Models.Scene
                 UpdateSpinAnimation();
             }
         }
+
+        public PomTypeValues.Item PomType {
+            get => _pomType;
+            set {
+                if (_pomType == value) return;
+                _pomType = value;
+                OnPropertyChanged();
+
+                //EnableLinearSampling = _pomType?.EnableLinearSampling ?? false;
+                //EnableSlopeNormals = _pomType?.EnableSlopeNormals ?? false;
+                OnEnvironmentChanged();
+            }
+        }
+
+        //public bool EnableSlopeNormals {
+        //    get => _enableSlopeNormals;
+        //    set {
+        //        if (_enableSlopeNormals == value) return;
+        //        _enableSlopeNormals = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
+
+        //public bool EnableLinearSampling {
+        //    get => _enableLinearSampling;
+        //    set {
+        //        if (_enableLinearSampling == value) return;
+        //        _enableLinearSampling = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
         public float WetnessLinear {
             get => _wetness * 0.01f;
@@ -160,20 +196,31 @@ namespace PixelGraph.UI.Models.Scene
             }
         }
 
+        public string ErpName {
+            get => _erpName;
+            private set {
+                if (_erpName == value) return;
+                _erpName = value;
+                OnPropertyChanged();
+            }
+        }
+
         public string ErpFilename {
             get => _erpFilename;
             set {
                 if (_erpFilename == value) return;
                 _erpFilename = value;
                 OnPropertyChanged();
+
+                ErpName = Path.GetFileName(value);
             }
         }
 
-        public float ErpExposure {
-            get => _erpExposure;
+        public float ErpIntensity {
+            get => _erpIntensity;
             set {
-                if (_erpExposure.NearEqual(value)) return;
-                _erpExposure = value;
+                if (_erpIntensity.NearEqual(value)) return;
+                _erpIntensity = value;
                 OnPropertyChanged();
                 OnDynamicSkyChanged();
             }
@@ -224,10 +271,12 @@ namespace PixelGraph.UI.Models.Scene
             _ambientColor = Media.Color.FromRgb(60, 60, 60);
             _lightColor = Media.Color.FromRgb(60, 255, 60);
             _timeOfDay = 6_000;
-            _erpExposure = 0f;
+            _erpIntensity = 0f;
 
             //_lightTransform1 = new TranslateTransform3D(10, 14, 8);
             //_lightTransform2 = new TranslateTransform3D(-12, -12, -10);
+
+            _pomType = PomTypeValues.Normal;
 
             _meshTransform = new RotateTransform3D {
                 CenterX = 0f,

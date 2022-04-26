@@ -99,6 +99,7 @@ namespace PixelGraph.Common.Textures.Graphing
                 normalContext.Material = context.Material;
                 normalContext.IsImport = context.IsImport;
                 normalContext.IsAnimated = context.IsAnimated;
+                normalContext.PackWriteTime = DateTime.UtcNow;
                 
                 builder.InputChannels = new [] {normalXChannel, normalYChannel, normalZChannel}
                     .Where(x => x != null).ToArray();

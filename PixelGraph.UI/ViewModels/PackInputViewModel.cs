@@ -1,10 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common;
-using PixelGraph.Common.IO.Serialization;
-using PixelGraph.UI.Internal;
-using PixelGraph.UI.Models;
+﻿using PixelGraph.UI.Models;
 using System;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -20,23 +15,23 @@ namespace PixelGraph.UI.ViewModels
             this.provider = provider;
         }
 
-        public async Task SavePackInputAsync()
-        {
-            var projectContext = provider.GetRequiredService<IProjectContext>();
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+        //public async Task SavePackInputAsync()
+        //{
+        //    var projectContext = provider.GetRequiredService<IProjectContext>();
+        //    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-            serviceBuilder.Initialize();
-            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+        //    serviceBuilder.Initialize();
+        //    serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
 
-            await using var scope = serviceBuilder.Build();
+        //    await using var scope = serviceBuilder.Build();
 
-            try {
-                var packWriter = scope.GetRequiredService<IResourcePackWriter>();
-                await packWriter.WriteAsync("input.yml", Model.PackInput);
-            }
-            catch (Exception error) {
-                throw new ApplicationException("Failed to save pack input!", error);
-            }
-        }
+        //    try {
+        //        var packWriter = scope.GetRequiredService<IResourcePackWriter>();
+        //        await packWriter.WriteAsync("input.yml", Model.PackInput);
+        //    }
+        //    catch (Exception error) {
+        //        throw new ApplicationException("Failed to save pack input!", error);
+        //    }
+        //}
     }
 }

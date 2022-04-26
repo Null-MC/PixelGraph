@@ -22,293 +22,305 @@
         <converters:NullableConverter x:Key="NullableConverter"/>
     </Window.Resources>
     <Window.DataContext>
-        <models:PublishProfilesModel x:Name="Model" DataChanged="OnDataChanged"/>
+        <models:PublishProfilesModel x:Name="Model"/>
     </Window.DataContext>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <DockPanel Margin="0,0,3,0">
-            <ToolBar DockPanel.Dock="Top" ToolBarTray.IsLocked="True">
-                <Button ToolTip="New Profile" Width="32" Height="28" Padding="0" Click="OnNewProfileClick" Foreground="LawnGreen"
-                        Content="{iconPacks:FontAwesome Kind=PlusSolid}"/>
-                <Button ToolTip="Duplicate Profile" Width="32" Height="28" Padding="0" Click="OnDuplicateProfileClick" Foreground="DeepSkyBlue"
-                        Content="{iconPacks:FontAwesome Kind=CopySolid}"
-                        IsEnabled="{Binding HasSelectedProfile, Mode=OneWay}"/>
-                <Button ToolTip="Delete Profile" Width="32" Height="28" Padding="0" Click="OnDeleteProfileClick" Foreground="Red"
-                        Content="{iconPacks:FontAwesome Kind=TrashSolid}"
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource MahApps.Brushes.Highlight}">
+            <DockPanel Margin="4,4,4,4" LastChildFill="False">
+                <Button DockPanel.Dock="Left" Content="Cancel" Margin="4" IsCancel="True" Width="80"/>
+                <Button DockPanel.Dock="Right" Content="Save" Margin="4" Click="OnSaveButtonClick" Width="80"/>
+            </DockPanel>
+        </Border>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <DockPanel Margin="0,0,3,0">
+                <ToolBar DockPanel.Dock="Top" ToolBarTray.IsLocked="True">
+                    <Button ToolTip="New Profile" Width="32" Height="28" Padding="0"
+                            Click="OnNewProfileClick" Foreground="LawnGreen"
+                            Content="{iconPacks:FontAwesome Kind=PlusSolid}"/>
+                    <Button ToolTip="Duplicate Profile" Width="32" Height="28" Padding="0"
+                            Click="OnDuplicateProfileClick" Foreground="DeepSkyBlue"
+                            Content="{iconPacks:FontAwesome Kind=CopySolid}"
+                            IsEnabled="{Binding HasSelectedProfile, Mode=OneWay}"/>
+                    <Button ToolTip="Delete Profile" Width="32" Height="28" Padding="0"
+                            Click="OnDeleteProfileClick" Foreground="Red"
+                            Content="{iconPacks:FontAwesome Kind=TrashSolid}"
+                            IsEnabled="{Binding HasSelectedProfile, Mode=OneWay}">
+                    </Button>
+                </ToolBar>
+                <ListBox x:Name="ProfileListBox" DisplayMemberPath="Name" Width="320"
+                         Background="Black" MouseDown="OnProfileListBoxMouseDown"
+                         ItemsSource="{Binding Profiles, Mode=OneWay}"
+                         SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
+            </DockPanel>
+            <GridSplitter Grid.Column="0" ResizeBehavior="CurrentAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Right" Width="3"/>
+            <TabControl Grid.Column="1" mah:HeaderedControlHelper.HeaderFontSize="28" Style="{StaticResource MahApps.Styles.TabControl}"
                         IsEnabled="{Binding HasSelectedProfile, Mode=OneWay}">
-                </Button>
-            </ToolBar>
-            <ListBox x:Name="ProfileListBox" DisplayMemberPath="Name" Width="320" Background="Black" MouseDown="OnProfileListBoxMouseDown" SelectionChanged="OnProfileSelectionChanged"
-                     ItemsSource="{Binding Profiles, Mode=OneWay}"
-                     SelectedItem="{Binding SelectedProfileItem, Mode=TwoWay}"/>
-        </DockPanel>
-        <GridSplitter Grid.Column="0" ResizeBehavior="CurrentAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Right" Width="3"/>
-        <TabControl Grid.Column="1" mah:HeaderedControlHelper.HeaderFontSize="28" Style="{StaticResource MahApps.Styles.TabControl}"
-                    IsEnabled="{Binding HasSelectedProfile, Mode=OneWay}">
-            <TabItem Header="Metadata">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition MaxWidth="420"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Orientation="Vertical" Margin="12">
-                            <TextBlock Text="Pack Name" FontSize="12" FontWeight="Bold"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                            <TextBox Text="{Binding EditPackName}">
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding PackName}" Value="{x:Null}">
-                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                <Setter Property="FontStyle" Value="Italic"/>
-                                            </DataTrigger>
-                                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
-                                                <Setter Property="FontStyle" Value="Normal"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBox.Style>
-                            </TextBox>
-                            <TextBlock Text="Game Edition" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
-                                      ItemsSource="{StaticResource GameEditions}"
-                                      SelectedValue="{Binding GameEdition}"/>
-                            <TextBlock Text="Description" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                            <TextBox Text="{Binding PackDescription}"/>
-                            <TextBlock Text="Tags" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"
-                                       Visibility="{Binding IsJavaProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                            <TextBox Text="{Binding PackTags}"
-                                     Visibility="{Binding IsJavaProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                            <TextBlock Text="Pack Version" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                            <TextBox Text="{Binding PackFormat}"/>
-                            <TextBlock Text="Header UUID" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"
-                                       Visibility="{Binding IsBedrockProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                            <DockPanel Visibility="{Binding IsBedrockProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateHeaderUuid"/>
-                                <TextBox Text="{Binding PackHeaderUuid, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
-                            </DockPanel>
-                            <TextBlock Text="Module UUID" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"
-                                       Visibility="{Binding IsBedrockProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                            <DockPanel Visibility="{Binding IsBedrockProfile, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <Button DockPanel.Dock="Right" Margin="6,0,0,0"
-                                        Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateModuleUuid"/>
-                                <TextBox Text="{Binding PackModuleUuid, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
-                            </DockPanel>
-                            <TextBlock Text="Image Encoding" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" KeyUp="OnImageEncodingKeyUp"
-                                      ItemsSource="{StaticResource ImageEncodings}"
-                                      SelectedValue="{Binding EditImageEncoding}">
-                                <ComboBox.Style>
-                                    <Style TargetType="ComboBox" BasedOn="{StaticResource MahApps.Styles.ComboBox}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding ImageEncoding}" Value="{x:Null}">
-                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                <Setter Property="FontStyle" Value="Italic"/>
-                                            </DataTrigger>
-                                            <Trigger Property="IsDropDownOpen" Value="True">
-                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
-                                                <Setter Property="FontStyle" Value="Normal"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ComboBox.Style>
-                            </ComboBox>
-                            <CheckBox Content="Palettize" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                      ToolTip="When enabled the published images will be compressed to a color palette."
-                                      IsChecked="{Binding EnablePalette, Mode=TwoWay}"/>
-                            <TextBlock Text="Palette Colors" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"
-                                       Visibility="{Binding EnablePalette, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                            <TextBox Text="{Binding EditPaletteColors, Mode=TwoWay, Converter={StaticResource NullableConverter}}"
-                                     Visibility="{Binding EnablePalette, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding PaletteColors}" Value="{x:Null}">
-                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                <Setter Property="FontStyle" Value="Italic"/>
-                                            </DataTrigger>
-                                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
-                                                <Setter Property="FontStyle" Value="Normal"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBox.Style>
-                            </TextBox>
-                        </StackPanel>
-                    </Grid>
-                </ScrollViewer>
-            </TabItem>
-            <TabItem Header="Encoding">
-                <ScrollViewer x:Name="EncodingScrollViewer" VerticalScrollBarVisibility="Auto">
-                    <Grid Margin="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="999*" MaxWidth="400"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <StackPanel Orientation="Vertical">
-                            <TextBlock Text="Format" FontSize="12" FontWeight="Bold"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                            <DockPanel>
-                                <Button DockPanel.Dock="Right" Margin="0" Padding="4,0" BorderThickness="0"
-                                        ToolTip="Edit Encoding" Click="OnEditEncodingClick"
-                                        Content="{iconPacks:FontAwesome Kind=EditSolid}"
-                                        Style="{StaticResource MahApps.Styles.Button.MetroSquare}"/>
+                <TabItem Header="Metadata">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition MaxWidth="420"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Vertical" Margin="12">
+                                <TextBlock Text="Pack Name" FontSize="12" FontWeight="Bold"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                                <TextBox Text="{Binding SelectedProfile.Name}">
+                                    <TextBox.Style>
+                                        <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedProfile.Name}" Value="{x:Null}">
+                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                                    <Setter Property="FontStyle" Value="Italic"/>
+                                                </DataTrigger>
+                                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                                                    <Setter Property="FontStyle" Value="Normal"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
+                                <TextBlock Text="Game Edition" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                                 <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
-                                          ItemsSource="{StaticResource AllTextureFormats}"
-                                          SelectedValue="{Binding TextureFormat, UpdateSourceTrigger=PropertyChanged}"/>
-                            </DockPanel>
-                            <TextBlock Text="Default Sampler" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
-                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                            <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" KeyUp="OnEncodingSamplerKeyUp"
-                                                 ItemsSource="{StaticResource Samplers}"
-                                                 SelectedValue="{Binding EditEncodingSampler, Mode=TwoWay}">
-                                <ComboBox.Style>
-                                    <Style TargetType="ComboBox" BasedOn="{StaticResource MahApps.Styles.ComboBox}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding EncodingSampler}" Value="{x:Null}">
-                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                                                <Setter Property="FontStyle" Value="Italic"/>
-                                            </DataTrigger>
-                                            <Trigger Property="IsDropDownOpen" Value="True">
-                                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
-                                                <Setter Property="FontStyle" Value="Normal"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ComboBox.Style>
-                            </ComboBox>
-                        </StackPanel>
-                    </Grid>
-                </ScrollViewer>
-            </TabItem>
-            <TabItem Header="Textures">
-                <TabControl mah:HeaderedControlHelper.HeaderFontSize="18">
-                    <TabControl.Resources>
-                        <Style x:Key="FieldLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource MahApps.Styles.TextBlock}">
-                            <Setter Property="FontSize" Value="14"/>
-                            <Setter Property="FontWeight" Value="Bold"/>
-                            <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                        </Style>
-                        <Style x:Key="DescriptionTextStyle" TargetType="TextBlock" BasedOn="{StaticResource MahApps.Styles.TextBlock}">
-                            <Setter Property="Margin" Value="0,4,0,20"/>
-                            <Setter Property="TextWrapping" Value="Wrap"/>
-                            <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
-                        </Style>
-                        <Style TargetType="controls:TextBoxEx" BasedOn="{StaticResource MahApps.Styles.TextBox}">
-                            <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
-                            <Setter Property="PlaceholderForeground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
-                            <Setter Property="VerticalContentAlignment" Value="Center"/>
-                        </Style>
-                    </TabControl.Resources>
-                    <TabItem Header="Sizing">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Margin="8" Orientation="Vertical">
-                                <TextBlock Text="Texture Size" Style="{StaticResource FieldLabelStyle}"/>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" MaxWidth="200"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Text="{Binding TextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
-                                </Grid>
-                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
-                                           Text="When defined this value will be used as the target width when publishing textures. Height is preserved through aspect ratio."/>
-                                <TextBlock Text="Block Texture Size" Style="{StaticResource FieldLabelStyle}"/>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" MaxWidth="200"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Text="{Binding BlockTextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
-                                </Grid>
-                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
-                                           Text="When defined this value will be used as the target width when publishing textures located in 'block' folders. Height is preserved through aspect ratio. This overrides the above 'Texture Size' value."/>
-                                <TextBlock Text="Item Texture Size" Style="{StaticResource FieldLabelStyle}"/>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" MaxWidth="200"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Text="{Binding ItemTextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
-                                </Grid>
-                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
-                                           Text="When defined this value will be used as the target width when publishing textures located in 'item' folders. Height is preserved through aspect ratio. This overrides the above 'Texture Size' value."/>
-                                <TextBlock Text="Texture Scale" Style="{StaticResource FieldLabelStyle}"/>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" MaxWidth="200"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Text="{Binding TextureScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
-                                </Grid>
-                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
-                                           Text="When defined this value will be used as the scale to apply when publishing textures. If block/texture-size is defined it will supersede this value."/>
+                                          ItemsSource="{StaticResource GameEditions}"
+                                          SelectedValue="{Binding EditGameEdition}"/>
+                                <TextBlock Text="Description" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                                <TextBox Text="{Binding SelectedProfile.PackDescription}"/>
+                                <TextBlock Text="Tags" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"
+                                           Visibility="{Binding IsSelectedProfileJava, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                <TextBox Text="{Binding SelectedProfile.PackTags}"
+                                         Visibility="{Binding IsSelectedProfileJava, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                <TextBlock Text="Pack Version" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                                <TextBox Text="{Binding SelectedProfile.PackFormat}"/>
+                                <TextBlock Text="Header UUID" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"
+                                           Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                <DockPanel Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateHeaderUuid"/>
+                                    <TextBox Text="{Binding SelectedProfile.PackHeaderUuid, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                </DockPanel>
+                                <TextBlock Text="Module UUID" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"
+                                           Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                <DockPanel Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <Button DockPanel.Dock="Right" Margin="6,0,0,0"
+                                            Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateModuleUuid"/>
+                                    <TextBox Text="{Binding SelectedProfile.PackModuleUuid, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                </DockPanel>
+                                <TextBlock Text="Image Encoding" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                                <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" KeyUp="OnImageEncodingKeyUp"
+                                          ItemsSource="{StaticResource ImageEncodings}"
+                                          SelectedValue="{Binding EditImageEncoding}">
+                                    <ComboBox.Style>
+                                        <Style TargetType="ComboBox" BasedOn="{StaticResource MahApps.Styles.ComboBox}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedProfile.ImageEncoding}" Value="{x:Null}">
+                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                                    <Setter Property="FontStyle" Value="Italic"/>
+                                                </DataTrigger>
+                                                <Trigger Property="IsDropDownOpen" Value="True">
+                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                                                    <Setter Property="FontStyle" Value="Normal"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ComboBox.Style>
+                                </ComboBox>
+                                <CheckBox Content="Palettize" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                          ToolTip="When enabled the published images will be compressed to a color palette."
+                                          IsChecked="{Binding EditEnablePalette, Mode=TwoWay}"/>
+                                <TextBlock Text="Palette Colors" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"
+                                           Visibility="{Binding EditEnablePalette, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                <TextBox Text="{Binding EditPaletteColors, Mode=TwoWay, Converter={StaticResource NullableConverter}}"
+                                         Visibility="{Binding EditEnablePalette, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <TextBox.Style>
+                                        <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedProfile.PaletteColors}" Value="{x:Null}">
+                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                                    <Setter Property="FontStyle" Value="Italic"/>
+                                                </DataTrigger>
+                                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                                                    <Setter Property="FontStyle" Value="Normal"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
                             </StackPanel>
-                        </ScrollViewer>
-                    </TabItem>
-                    <TabItem Header="Height">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Margin="8" Orientation="Vertical">
-                                <CheckBox IsChecked="{Binding AutoLevelHeight, Mode=TwoWay}">
-                                    <TextBlock Text="Auto-Level" Style="{StaticResource FieldLabelStyle}"/>
-                                </CheckBox>
-                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
-                                           Text="When enabled the height channel will be automatically shifted up to 255 to prevent POM-shifting."/>
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Encoding">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <Grid Margin="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="999*" MaxWidth="400"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="Format" FontSize="12" FontWeight="Bold"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Margin="0" Padding="4,0" BorderThickness="0"
+                                            ToolTip="Edit Encoding" Click="OnEditEncodingClick"
+                                            Content="{iconPacks:FontAwesome Kind=EditSolid}"
+                                            Style="{StaticResource MahApps.Styles.Button.MetroSquare}"/>
+                                    <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
+                                              ItemsSource="{StaticResource AllTextureFormats}"
+                                              SelectedValue="{Binding EditTextureFormat, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DockPanel>
+                                <TextBlock Text="Default Sampler" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                                <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value" KeyUp="OnEncodingSamplerKeyUp"
+                                                     ItemsSource="{StaticResource Samplers}"
+                                                     SelectedValue="{Binding EditEncodingSampler, Mode=TwoWay}">
+                                    <ComboBox.Style>
+                                        <Style TargetType="ComboBox" BasedOn="{StaticResource MahApps.Styles.ComboBox}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedProfile.EncodingSampler}" Value="{x:Null}">
+                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                                    <Setter Property="FontStyle" Value="Italic"/>
+                                                </DataTrigger>
+                                                <Trigger Property="IsDropDownOpen" Value="True">
+                                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}"/>
+                                                    <Setter Property="FontStyle" Value="Normal"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ComboBox.Style>
+                                </ComboBox>
                             </StackPanel>
-                        </ScrollViewer>
-                    </TabItem>
-                    <TabItem Header="Normal">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Margin="8" Orientation="Vertical">
-                                <CheckBox IsChecked="{Binding AutoGenerateNormal, Mode=TwoWay}">
-                                    <TextBlock Text="Generate Automatically" Style="{StaticResource FieldLabelStyle}"/>
-                                </CheckBox>
-                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
-                                           Text="When enabled materials that are missing a normal texture will attempt to generate it from the height texture."/>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </TabItem>
-                    <TabItem Header="Occlusion">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Margin="8" Orientation="Vertical">
-                                <CheckBox IsChecked="{Binding AutoGenerateOcclusion, Mode=TwoWay}">
-                                    <TextBlock Text="Generate Automatically" Style="{StaticResource FieldLabelStyle}"/>
-                                </CheckBox>
-                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
-                                           Text="When enabled materials that are missing an occlusion texture will attempt to generate it from the height texture."/>
-                                <CheckBox IsChecked="{Binding BakeOcclusionToColor, Mode=TwoWay}">
-                                    <TextBlock Text="Bake to Color" Style="{StaticResource FieldLabelStyle}"/>
-                                </CheckBox>
-                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
-                                           Text="When enabled the ambient occlusion will be baked directly into the color channels."/>
-                                <TextBlock Text="Ray Quality" Style="{StaticResource FieldLabelStyle}"/>
-                                <controls:TextBoxEx Placeholder="{Binding OcclusionQualityDefault, Mode=OneTime}"
-                                                    Text="{Binding OcclusionQuality, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
-                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
-                                           Text="Defines the number of rays to cast per-pixel as a percentage of a hemisphere. A value of 0 will cast 5 rays, and a value of 0.1 is 348 rays."/>
-                                <TextBlock Text="Ray Power" Style="{StaticResource FieldLabelStyle}"/>
-                                <controls:TextBoxEx Placeholder="{Binding OcclusionPowerDefault, Mode=OneTime}"
-                                                    Text="{Binding OcclusionPower, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
-                                <TextBlock Style="{StaticResource DescriptionTextStyle}"
-                                           Text="Defines the power to apply to ray intersections. The default is 1 for a linear falloff; a value of 0.5 will reduce AO density, and values over 1 will increase density."/>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </TabItem>
-                </TabControl>
-            </TabItem>
-        </TabControl>
-    </Grid>
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Textures">
+                    <TabControl mah:HeaderedControlHelper.HeaderFontSize="18">
+                        <TabControl.Resources>
+                            <Style x:Key="FieldLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource MahApps.Styles.TextBlock}">
+                                <Setter Property="FontSize" Value="14"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
+                            </Style>
+                            <Style x:Key="DescriptionTextStyle" TargetType="TextBlock" BasedOn="{StaticResource MahApps.Styles.TextBlock}">
+                                <Setter Property="Margin" Value="0,4,0,20"/>
+                                <Setter Property="TextWrapping" Value="Wrap"/>
+                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                            </Style>
+                            <Style TargetType="controls:TextBoxEx" BasedOn="{StaticResource MahApps.Styles.TextBox}">
+                                <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.IdealForeground}"/>
+                                <Setter Property="PlaceholderForeground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            </Style>
+                        </TabControl.Resources>
+                        <TabItem Header="Sizing">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="8" Orientation="Vertical">
+                                    <TextBlock Text="Texture Size" Style="{StaticResource FieldLabelStyle}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MaxWidth="200"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Text="{Binding SelectedProfile.TextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="When defined this value will be used as the target width when publishing textures. Height is preserved through aspect ratio."/>
+                                    <TextBlock Text="Block Texture Size" Style="{StaticResource FieldLabelStyle}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MaxWidth="200"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Text="{Binding SelectedProfile.BlockTextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="When defined this value will be used as the target width when publishing textures located in 'block' folders. Height is preserved through aspect ratio. This overrides the above 'Texture Size' value."/>
+                                    <TextBlock Text="Item Texture Size" Style="{StaticResource FieldLabelStyle}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MaxWidth="200"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Text="{Binding SelectedProfile.ItemTextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="When defined this value will be used as the target width when publishing textures located in 'item' folders. Height is preserved through aspect ratio. This overrides the above 'Texture Size' value."/>
+                                    <TextBlock Text="Texture Scale" Style="{StaticResource FieldLabelStyle}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MaxWidth="200"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Text="{Binding SelectedProfile.TextureScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="When defined this value will be used as the scale to apply when publishing textures. If block/texture-size is defined it will supersede this value."/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem Header="Height">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="8" Orientation="Vertical">
+                                    <CheckBox IsChecked="{Binding SelectedProfile.AutoLevelHeight, Mode=TwoWay}">
+                                        <TextBlock Text="Auto-Level" Style="{StaticResource FieldLabelStyle}"/>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="When enabled the height channel will be automatically shifted up to 255 to prevent POM-shifting."/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem Header="Normal">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="8" Orientation="Vertical">
+                                    <CheckBox IsChecked="{Binding SelectedProfile.AutoGenerateNormal, Mode=TwoWay}">
+                                        <TextBlock Text="Generate Automatically" Style="{StaticResource FieldLabelStyle}"/>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="When enabled materials that are missing a normal texture will attempt to generate it from the height texture."/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem Header="Occlusion">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="8" Orientation="Vertical">
+                                    <CheckBox IsChecked="{Binding SelectedProfile.AutoGenerateOcclusion, Mode=TwoWay}">
+                                        <TextBlock Text="Generate Automatically" Style="{StaticResource FieldLabelStyle}"/>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="When enabled materials that are missing an occlusion texture will attempt to generate it from the height texture."/>
+                                    <CheckBox IsChecked="{Binding SelectedProfile.BakeOcclusionToColor, Mode=TwoWay}">
+                                        <TextBlock Text="Bake to Color" Style="{StaticResource FieldLabelStyle}"/>
+                                    </CheckBox>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="When enabled the ambient occlusion will be baked directly into the color channels."/>
+                                    <TextBlock Text="Ray Quality" Style="{StaticResource FieldLabelStyle}"/>
+                                    <controls:TextBoxEx Placeholder="{Binding OcclusionQualityDefault, Mode=OneTime}"
+                                                        Text="{Binding SelectedProfile.OcclusionQuality, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="Defines the number of rays to cast per-pixel as a percentage of a hemisphere. A value of 0 will cast 5 rays, and a value of 0.1 is 348 rays."/>
+                                    <TextBlock Text="Ray Power" Style="{StaticResource FieldLabelStyle}"/>
+                                    <controls:TextBoxEx Placeholder="{Binding OcclusionPowerDefault, Mode=OneTime}"
+                                                        Text="{Binding SelectedProfile.OcclusionPower, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="Defines the power to apply to ray intersections. The default is 1 for a linear falloff; a value of 0.5 will reduce AO density, and values over 1 will increase density."/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </DockPanel>
 </mah:MetroWindow>

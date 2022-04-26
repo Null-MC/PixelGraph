@@ -1,10 +1,11 @@
-﻿using PixelGraph.Common.Textures;
+﻿using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.Textures;
 using System;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
 {
-    public abstract class ResourcePackChannelProperties
+    public abstract class ResourcePackChannelProperties : IHaveData
     {
         [YamlIgnore]
         public string ID {get;}

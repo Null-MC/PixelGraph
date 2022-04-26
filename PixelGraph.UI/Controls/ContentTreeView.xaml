@@ -13,19 +13,20 @@
     <TreeView.Resources>
         <DataTemplate DataType="{x:Type vm:ContentTreeFile}">
             <StackPanel Orientation="Horizontal">
-                <icons:PackIconFontAwesome Padding="2" VerticalAlignment="Center" Width="16"
-                                               Kind="{Binding Icon, Mode=OneWay}"
-                                               Foreground="{DynamicResource MahApps.Brushes.Gray4}">
+                <icons:PackIconFontAwesome
+                        Padding="2" VerticalAlignment="Center" Width="16"
+                        Kind="{Binding Icon, Mode=OneWay}">
                     <icons:PackIconFontAwesome.Style>
                         <Style TargetType="icons:PackIconFontAwesome">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Type, Mode=OneWay}" Value="{x:Static vm:ContentNodeType.Material}">
-                                    <Setter Property="Foreground" Value="#0F0"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding Type, Mode=OneWay}" Value="{x:Static vm:ContentNodeType.Texture}">
-                                    <Setter Property="Foreground" Value="#F00"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent3}"/>
                                 </DataTrigger>
                             </Style.Triggers>
+                            <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Gray4}"/>
                         </Style>
                     </icons:PackIconFontAwesome.Style>
                 </icons:PackIconFontAwesome>
@@ -38,7 +39,7 @@
         <HierarchicalDataTemplate DataType="{x:Type vm:ContentTreeMaterialDirectory}"
                                   ItemsSource="{Binding Nodes, Mode=OneWay}">
             <StackPanel Orientation="Horizontal">
-                <icons:PackIconFontAwesome Kind="PaletteSolid" Padding="2" VerticalAlignment="Center" Width="16"
+                <icons:PackIconFontAwesome Kind="BrushSolid" Padding="2" VerticalAlignment="Center" Width="16"
                                                Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                 <TextBlock Padding="4,0,8,2" VerticalAlignment="Center"
                            FontSize="{TemplateBinding TreeViewItem.FontSize}"

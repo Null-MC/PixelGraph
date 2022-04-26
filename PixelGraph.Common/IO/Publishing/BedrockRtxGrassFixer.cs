@@ -43,7 +43,8 @@ namespace PixelGraph.Common.IO.Publishing
                 return;
             }
 
-            var encoder = imgWriter.GetEncoder(ext, ImageChannels.ColorAlpha);
+            var format = ImageWriter.GetFormat(ext);
+            var encoder = imgWriter.GetEncoder(format, ImageChannels.ColorAlpha);
 
             await writer.OpenReadWriteAsync($"textures/blocks/grass_side.{ext}", async writeStream => {
                 using var colorTex = await Image.LoadAsync<Rgba32>(Configuration.Default, writeStream, token);

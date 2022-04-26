@@ -26,13 +26,12 @@ namespace PixelGraph.Common.ResourcePack
         public string Edition {get; set;}
 
 
-        public override object Clone()
+        public override bool HasAnyData()
         {
-            var clone = (ResourcePackInputProperties)base.Clone();
-
-            //clone.Format = Format;
-
-            return clone;
+            if (AutoMaterial.HasValue) return true;
+            if (!string.IsNullOrWhiteSpace(Format)) return true;
+            if (!string.IsNullOrWhiteSpace(Edition)) return true;
+            return base.HasAnyData();
         }
     }
 }

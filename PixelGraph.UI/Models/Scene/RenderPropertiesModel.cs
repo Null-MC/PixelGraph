@@ -13,8 +13,6 @@ using PixelGraph.UI.Internal.Models;
 using SharpDX;
 using System;
 using System.Linq;
-using System.Windows.Documents.DocumentStructures;
-using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
 using OrthographicCamera = HelixToolkit.Wpf.SharpDX.OrthographicCamera;
 using PerspectiveCamera = HelixToolkit.Wpf.SharpDX.PerspectiveCamera;
@@ -25,24 +23,18 @@ namespace PixelGraph.UI.Models.Scene
     {
         private IEffectsManager _effectsManager;
         private ILutMapSource _dielectricBrdfLutMap;
-        //private ICubeMapSource _environmentCube;
         private ICubeMapSource _irradianceCube;
         private ObservableElement3DCollection _meshParts;
         private PerspectiveCamera _camera;
-        //private Stream _brdfLutMap;
         private MaterialProperties _missingMaterial;
         private bool _enableTiling;
         private RenderPreviewModes _renderMode;
         private float _parallaxDepth;
-        private int _parallaxSamplesMin;
-        private int _parallaxSamplesMax;
-        private bool _enableLinearSampling;
-        private bool _enableSlopeNormals;
+        private int _parallaxSamples;
         private bool _enableBloom;
         private int _waterMode;
         private OrthographicCamera _sunCamera;
         private PerspectiveCamera _lightCamera;
-        //private Transform3D _meshTransform;
         private string _meshBlendMode;
         private string _meshTintColor;
         private bool _showIrradiance;
@@ -61,34 +53,10 @@ namespace PixelGraph.UI.Models.Scene
             }
         }
 
-        public int ParallaxSamplesMin {
-            get => _parallaxSamplesMin;
+        public int ParallaxSamples {
+            get => _parallaxSamples;
             set {
-                _parallaxSamplesMin = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int ParallaxSamplesMax {
-            get => _parallaxSamplesMax;
-            set {
-                _parallaxSamplesMax = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool EnableLinearSampling {
-            get => _enableLinearSampling;
-            set {
-                _enableLinearSampling = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool EnableSlopeNormals {
-            get => _enableSlopeNormals;
-            set {
-                _enableSlopeNormals = value;
+                _parallaxSamples = value;
                 OnPropertyChanged();
             }
         }
@@ -159,14 +127,6 @@ namespace PixelGraph.UI.Models.Scene
             }
         }
 
-        //public ICubeMapSource EnvironmentCube {
-        //    get => _environmentCube;
-        //    set {
-        //        _environmentCube = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
-
         public ICubeMapSource IrradianceCube {
             get => _irradianceCube;
             set {
@@ -174,14 +134,6 @@ namespace PixelGraph.UI.Models.Scene
                 OnPropertyChanged();
             }
         }
-
-        //public Stream BrdfLutMap {
-        //    get => _brdfLutMap;
-        //    set {
-        //        _brdfLutMap = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
         public MaterialProperties MissingMaterial {
             get => _missingMaterial;
@@ -206,14 +158,6 @@ namespace PixelGraph.UI.Models.Scene
                 OnPropertyChanged();
             }
         }
-
-        //public Transform3D MeshTransform {
-        //    get => _meshTransform;
-        //    set {
-        //        _meshTransform = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
         public string MeshBlendMode {
             get => _meshBlendMode;

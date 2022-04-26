@@ -29,7 +29,7 @@ namespace PixelGraph.Common.IO.Publishing
             var packMeta = new BedrockPackMetadata {
                 FormatVersion = pack.Format ?? ResourcePackProfileProperties.DefaultBedrockFormat,
                 Header = {
-                    Name = pack.Name ?? pack.GetDefaultPackName(),
+                    Name = pack.Name,
                     Description = pack.Description,
                     UniqueId = pack.HeaderUuid,
                     Version = new [] {1, 0, 0},

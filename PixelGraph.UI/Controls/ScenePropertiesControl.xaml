@@ -6,23 +6,37 @@
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:viewData="clr-namespace:PixelGraph.UI.ViewData"
              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" x:Name="Control"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
     <UserControl.Resources>
         <converters:BooleanInverseConverter x:Key="InverseBoolConverter"/>
+        <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
+        <viewData:PomTypeValues x:Key="PomTypeValues"/>
     </UserControl.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Orientation="Vertical" DataContext="{Binding SceneProperties, ElementName=Control, Mode=OneWay}">
             <Expander Header="General" Margin="1" IsExpanded="True"
                       mah:HeaderedControlHelper.HeaderFontWeight="Bold"
                       mah:ControlsHelper.ContentCharacterCasing="Normal">
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Text="Wetness:" VerticalAlignment="Center" Margin="4,4,4,0" FontWeight="Bold"/>
-                    <Slider Margin="4" Minimum="0" Maximum="100"
+                <StackPanel Orientation="Vertical" Margin="4">
+                    <DockPanel Margin="0,4">
+                        <ComboBox DockPanel.Dock="Right" Width="80" MinHeight="24"
+                                  Padding="4,0" HorizontalContentAlignment="Center"
+                                  DisplayMemberPath="Name"
+                                  ItemsSource="{StaticResource PomTypeValues}"
+                                  SelectedItem="{Binding PomType, Mode=TwoWay}"/>
+                        <TextBlock Text="POM Type" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <DockPanel Margin="0,4">
+                        <CheckBox DockPanel.Dock="Right" Padding="0"
+                                  IsChecked="{Binding SpinMesh, Mode=TwoWay}"/>
+                        <TextBlock Text="Spin Model" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBlock Text="Wetness" VerticalAlignment="Center" Margin="0,4,0,0" FontWeight="Bold"/>
+                    <Slider Margin="0,4,0,4" Minimum="0" Maximum="100"
                         Style="{StaticResource MahApps.Styles.Slider.Flat}"
                         Value="{Binding Wetness, Mode=TwoWay}"/>
-                    <CheckBox Content="Spin Model" Margin="4,12,4,4"
-                        IsChecked="{Binding SpinMesh, Mode=TwoWay}"/>
                 </StackPanel>
             </Expander>
 
@@ -46,21 +60,21 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Column="0" Grid.Row="0" Text="Time:"
-                                   VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
-                        <Slider Grid.Column="1" Grid.Row="0" Margin="4"
-                                Minimum="-12000" Maximum="12000"
+                        <TextBlock Grid.Column="0" Grid.Row="0" Text="Time"
+                                   VerticalAlignment="Center" Margin="0,4,8,4" FontWeight="Bold"/>
+                        <Slider Grid.Column="1" Grid.Row="0" VerticalAlignment="Center"
+                                Minimum="-12000" Maximum="12000" Margin="0,4"
                                 Value="{Binding TimeOfDay, Mode=TwoWay}"
                                 Style="{StaticResource MahApps.Styles.Slider.Flat}"/>
-                        <TextBlock Grid.Column="0" Grid.Row="1" Text="Tilt:"
-                                   VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
-                        <Slider Grid.Column="1" Grid.Row="1" Margin="4"
+                        <TextBlock Grid.Column="0" Grid.Row="1" Text="Tilt"
+                                   VerticalAlignment="Center" Margin="0,4,8,4" FontWeight="Bold"/>
+                        <Slider Grid.Column="1" Grid.Row="1" Margin="0,4" VerticalAlignment="Center"
                                 Minimum="0" Maximum="90"
                                 Value="{Binding SunTilt, Mode=TwoWay}"
                                 Style="{StaticResource MahApps.Styles.Slider.Flat}"/>
-                        <TextBlock Grid.Column="0" Grid.Row="2" Text="Azimuth:"
-                                   VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
-                        <Slider Grid.Column="1" Grid.Row="2" Margin="4"
+                        <TextBlock Grid.Column="0" Grid.Row="2" Text="Azimuth"
+                                   VerticalAlignment="Center" Margin="0,4,8,4" FontWeight="Bold"/>
+                        <Slider Grid.Column="1" Grid.Row="2" Margin="0,4" VerticalAlignment="Center"
                                 Minimum="0" Maximum="360"
                                 Value="{Binding SunAzimuth, Mode=TwoWay}"
                                 Style="{StaticResource MahApps.Styles.Slider.Flat}"/>
@@ -81,56 +95,72 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <StackPanel Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
-                                Orientation="Vertical" Margin="0,4,0,4">
-                        <TextBlock Text="IBL ERP Map:" VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
-                        <DockPanel Margin="4,0">
-                            <Button DockPanel.Dock="Right" Click="OnErpFileBrowseClick"
-                                    Style="{StaticResource MahApps.Styles.Button.Flat}">
+                    <Border Grid.ColumnSpan="2" Margin="0,2,0,4" Padding="8,1,8,3"
+                            CornerRadius="6" HorizontalAlignment="Center"
+                        Background="{DynamicResource MahApps.Brushes.Accent4}"
+                        Visibility="{Binding EnableAtmosphere, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock FontWeight="Bold" Text="Disable atmosphere to use IBL"/>
+                    </Border>
+                    <StackPanel Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2"
+                                Orientation="Vertical" Margin="0,4">
+                        <TextBlock Text="Texture" VerticalAlignment="Center" FontWeight="Bold"/>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Padding="6,1"
+                                    Click="OnErpRemoveClick"
+                                    Style="{StaticResource MahApps.Styles.Button.Flat}"
+                                    Visibility="{Binding HasEquirectangularMap, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <iconPacks:PackIconFontAwesome Kind="EraserSolid" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Button>
+                            <Button DockPanel.Dock="Right" Padding="6,1"
+                                    Click="OnErpFileBrowseClick"
+                                    Style="{StaticResource MahApps.Styles.Button.Flat}"
+                                    Visibility="{Binding HasEquirectangularMap, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}">
                                 <iconPacks:PackIconFontAwesome Kind="FolderOpenRegular" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Button>
-                            <TextBox IsReadOnly="True" ToolTip="Browse for File" TextAlignment="Right"
-                                     PreviewKeyDown="OnErpFilenamePreviewKeyDown"
-                                     Text="{Binding ErpFilename, Mode=OneWay}"/>
+                            <TextBox IsReadOnly="True" FontSize="10" Height="22" MinHeight="22"
+                                     ToolTip="Browse for File" PreviewKeyDown="OnErpFilenamePreviewKeyDown"
+                                     Text="{Binding ErpName, Mode=OneWay}"/>
                         </DockPanel>
-
                     </StackPanel>
-                    <TextBlock Grid.Column="0" Grid.Row="1" Text="IBL Intensity:"
-                               VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
-                    <Slider Grid.Column="1" Grid.Row="1" Margin="4"
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Intensity"
+                               VerticalAlignment="Center" Margin="0,4,8,4" FontWeight="Bold"/>
+                    <Slider Grid.Column="1" Grid.Row="2" Margin="0,4" VerticalAlignment="Center"
                             Minimum="0.0" Maximum="1.0" Delay="500" Interval="500"
-                            Value="{Binding ErpExposure, Mode=TwoWay}" />
-                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Ambient Light:"
-                               VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
-                    <mah:ColorPicker Grid.Column="1" Grid.Row="2" Margin="4" HorizontalAlignment="Right" Width="120"
-                                     SelectedColor="{Binding AmbientColor, Mode=TwoWay}" />
+                            Value="{Binding ErpIntensity, Mode=TwoWay}"
+                            Style="{StaticResource MahApps.Styles.Slider.Flat}"/>
                 </Grid>
             </Expander>
 
-            <Expander Margin="1">
-                <Expander.Header>
-                    <DockPanel>
-                        <CheckBox DockPanel.Dock="Right"
-                                  Foreground="{DynamicResource MahApps.Brushes.Gray2}"
-                                  IsChecked="{Binding EnableLights, Mode=TwoWay}"/>
-                        <TextBlock Text="Lights" FontWeight="Bold"/>
-                    </DockPanel>
-                </Expander.Header>
-                <StackPanel Orientation="Vertical"
-                            IsEnabled="{Binding EnableLights, Mode=OneWay}">
+            <Expander Margin="1" Header="Lights"
+                      mah:HeaderedControlHelper.HeaderFontWeight="Bold"
+                      mah:ControlsHelper.ContentCharacterCasing="Normal">
+                <StackPanel Orientation="Vertical">
                     <Grid>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="128"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Column="0" Grid.Row="0" Text="Color:"
-                                   VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
-                        <mah:ColorPicker Grid.Column="1" Grid.Row="0" Margin="4"
-                                         SelectedColor="{Binding LightColor, Mode=TwoWay}" />
+                        <TextBlock Grid.Column="1" Grid.Row="0" Text="Ambient"
+                            VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
+                        <mah:ColorPicker Grid.Column="2" Grid.Row="0" Margin="4" Padding="2,0"
+                            HorizontalAlignment="Right" Width="120" Height="20" MinHeight="22"
+                            SelectedColor="{Binding AmbientColor, Mode=TwoWay}" />
+                        <CheckBox Grid.Column="0" Grid.Row="1"
+                            VerticalAlignment="Center" Margin="4,0"
+                            IsChecked="{Binding EnableLights, Mode=TwoWay}"/>
+                        <TextBlock Grid.Column="1" Grid.Row="1" Text="Light 1"
+                            VerticalAlignment="Center" Margin="4,0" FontWeight="Bold"/>
+                        <mah:ColorPicker Grid.Column="2" Grid.Row="1" Margin="4" Padding="2,0"
+                            HorizontalAlignment="Right" Width="120" Height="20" MinHeight="22"
+                            IsEnabled="{Binding EnableLights, Mode=OneWay}"
+                            SelectedColor="{Binding LightColor, Mode=TwoWay}" />
                     </Grid>
                 </StackPanel>
             </Expander>

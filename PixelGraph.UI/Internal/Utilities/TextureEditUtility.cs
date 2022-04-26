@@ -24,7 +24,7 @@ namespace PixelGraph.UI.Internal.Utilities
         private readonly ILogger<TextureEditUtility> logger;
         private readonly IServiceProvider provider;
         private readonly IAppSettings appSettings;
-        private readonly IProjectContext projectContext;
+        private readonly IProjectContextManager projectContextMgr;
 
         private CancellationTokenSource mergedTokenSource;
 
@@ -33,11 +33,11 @@ namespace PixelGraph.UI.Internal.Utilities
             ILogger<TextureEditUtility> logger,
             IServiceProvider provider,
             IAppSettings appSettings,
-            IProjectContext projectContext)
+            IProjectContextManager projectContextMgr)
         {
             this.appSettings = appSettings;
             this.provider = provider;
-            this.projectContext = projectContext;
+            this.projectContextMgr = projectContextMgr;
             this.logger = logger;
         }
 
@@ -121,6 +121,7 @@ namespace PixelGraph.UI.Internal.Utilities
         {
             var inputFile = TextureTags.Get(material, textureTag);
 
+            var projectContext = projectContextMgr.GetContext();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();

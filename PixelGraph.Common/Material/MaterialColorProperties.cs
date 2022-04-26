@@ -1,10 +1,11 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.ResourcePack;
 using System;
 using System.Globalization;
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialColorProperties
+    public class MaterialColorProperties : IHaveData
     {
         public const bool DefaultBakeOcclusion = false;
 

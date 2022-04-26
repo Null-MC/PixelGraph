@@ -22,6 +22,7 @@ namespace PixelGraph.UI.Windows
     public partial class ImportPackWindow : IDisposable
     {
         private readonly CancellationTokenSource tokenSource;
+        private readonly IProjectContextManager projectContextMgr;
         private readonly IServiceProvider provider;
         private readonly ILogger logger;
 
@@ -30,6 +31,7 @@ namespace PixelGraph.UI.Windows
         {
             this.provider = provider;
 
+            projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
             logger = provider.GetRequiredService<ILogger<ImportPackWindow>>();
             tokenSource = new CancellationTokenSource();
 
@@ -64,12 +66,13 @@ namespace PixelGraph.UI.Windows
 
             await using var scope = serviceBuilder.Build();
 
+            var projectContext = projectContextMgr.GetContext();
             var importer = scope.GetRequiredService<IResourcePackImporter>();
 
             importer.AsGlobal = Model.AsGlobal;
             importer.CopyUntracked = Model.CopyUntracked;
             importer.IncludeUnknown = Model.IncludeUnknown;
-            importer.PackInput = Model.PackInput;
+            importer.PackInput = projectContext.Project.Input;
 
             Model.Encoding.Format = Model.SourceTextureFormat;
 
@@ -213,11 +216,6 @@ namespace PixelGraph.UI.Windows
 
             await LoadSourceAsync(tokenSource.Token);
         }
-
-        //private void OnCancelButtonClick(object sender, RoutedEventArgs e)
-        //{
-        //    DialogResult = false;
-        //}
 
         #endregion
     }

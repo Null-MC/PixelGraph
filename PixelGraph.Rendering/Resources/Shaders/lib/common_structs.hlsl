@@ -168,8 +168,7 @@ cbuffer cbMinecraftScene : register(b2)
 	bool EnableSlopeNormals = false;
     //bool padding9;
     float ParallaxDepth;
-    int ParallaxSamplesMin;
-    int ParallaxSamplesMax;
+    int ParallaxSamples;
     float ErpExposure;
     //int OpacityMode;
 	//float Padding2;

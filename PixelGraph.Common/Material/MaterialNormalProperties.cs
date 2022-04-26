@@ -1,10 +1,11 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.ResourcePack;
 using System;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialNormalProperties
+    public class MaterialNormalProperties : IHaveData
     {
         public const decimal DefaultStrength = 1.0m;
         //public const string DefaultMethod = NormalMapMethod.Sobel3;

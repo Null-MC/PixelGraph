@@ -99,6 +99,7 @@ namespace PixelGraph.Tests.Internal
             graphContext.Profile = PackProfile;
             graphContext.Material = Material;
             graphContext.Mapping = new DefaultPublishMapping();
+            graphContext.PackWriteTime = DateTime.UtcNow;
 
             await graphBuilder.PublishAsync(token);
             await graphBuilder.PublishInventoryAsync(token);

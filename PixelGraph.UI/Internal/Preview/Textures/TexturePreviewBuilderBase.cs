@@ -36,7 +36,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
     internal abstract class TexturePreviewBuilderBase : ITexturePreviewBuilder
     {
         private readonly IServiceProvider provider;
-        private readonly IProjectContext projectContext;
+        private readonly IProjectContextManager projectContextMgr;
         private readonly CancellationTokenSource tokenSource;
 
         public ResourcePackInputProperties Input {get; set;}
@@ -54,12 +54,13 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             this.provider = provider;
 
             TargetFrame = 0;
-            projectContext = provider.GetRequiredService<IProjectContext>();
+            projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
             tokenSource = new CancellationTokenSource();
         }
 
         public async Task<Image> BuildAsync(string tag, CancellationToken token = default)
         {
+            var projectContext = projectContextMgr.GetContext();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
             
             serviceBuilder.Initialize();
@@ -74,6 +75,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             context.Input = Input;
             context.Profile = Profile;
             context.Material = Material;
+            //context.PackWriteTime = ;
 
             using var mergedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(tokenSource.Token, token);
             var mergedToken = mergedTokenSource.Token;

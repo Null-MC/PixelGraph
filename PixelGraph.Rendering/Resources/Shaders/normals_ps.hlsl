@@ -13,13 +13,10 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 normal = normalize(input.nor);
     const float3 tangent = normalize(input.tan);
     const float3 bitangent = normalize(input.bin);
-	const float3 view = normalize(input.eye);
-
-    const float surface_NoV = saturate(dot(normal, view));
 
 	float tex_depth = 0;
     float3 shadow_tex = 0;
-	const float2 tex = get_parallax_texcoord(input.tex, input.vTS, surface_NoV, shadow_tex, tex_depth);
+	const float2 tex = get_parallax_texcoord(input.tex, input.vTS, shadow_tex, tex_depth);
 
 	const pbr_material mat = get_pbr_material(tex);
 

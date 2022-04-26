@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MahApps.Metro.Controls.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.Common;
@@ -7,7 +8,8 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Material;
-using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Projects;
+using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Controls;
 using PixelGraph.UI.Internal;
@@ -18,7 +20,6 @@ using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewModels;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -29,7 +30,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using PixelGraph.Common.TextureFormats;
 
 #if !NORENDER
 using System.Windows.Media.Imaging;
@@ -42,6 +42,8 @@ namespace PixelGraph.UI.Windows
         private readonly ILogger<MainWindow> logger;
         private readonly IServiceProvider provider;
         private readonly IThemeHelper themeHelper;
+        private readonly IProjectContextManager projectContextMgr;
+        private readonly IPublishLocationManager publishLocationMgr;
         private readonly MainWindowViewModel viewModel;
 
 
@@ -50,6 +52,8 @@ namespace PixelGraph.UI.Windows
             this.provider = provider;
 
             themeHelper = provider.GetRequiredService<IThemeHelper>();
+            projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
+            publishLocationMgr = provider.GetRequiredService<IPublishLocationManager>();
             logger = provider.GetRequiredService<ILogger<MainWindow>>();
 
             InitializeComponent();
@@ -79,7 +83,7 @@ namespace PixelGraph.UI.Windows
 
             viewModel.TreeError += OnTreeViewError;
 
-            Model.Profile.SelectionChanged += OnSelectedProfileChanged;
+            //Model.SelectedProfileChanged += OnSelectedProfileChanged;
         }
 
         private async Task RefreshPreview(CancellationToken token = default)
@@ -90,16 +94,16 @@ namespace PixelGraph.UI.Windows
             await viewModel.UpdateTabPreviewAsync(token);
         }
 
-        private async Task SelectRootDirectoryAsync(CancellationToken token)
-        {
-            var dialog = new VistaFolderBrowserDialog {
-                Description = "Please select a folder.",
-                UseDescriptionForTitle = true,
-            };
+        //private async Task SelectRootDirectoryAsync(CancellationToken token)
+        //{
+        //    var dialog = new VistaFolderBrowserDialog {
+        //        Description = "Please select a folder.",
+        //        UseDescriptionForTitle = true,
+        //    };
 
-            if (dialog.ShowDialog(this) == true)
-                await viewModel.SetRootDirectoryAsync(dialog.SelectedPath, token);
-        }
+        //    if (dialog.ShowDialog(this) == true)
+        //        await viewModel.SetRootDirectoryAsync(dialog.SelectedPath, token);
+        //}
 
         private async Task ShowImportFolderAsync()
         {
@@ -128,8 +132,8 @@ namespace PixelGraph.UI.Windows
             using var window = new ImportPackWindow(provider) {
                 Owner = this,
                 Model = {
-                    RootDirectory = Model.RootDirectory,
-                    PackInput = Model.PackInput,
+                    //RootDirectory = Model.RootDirectory,
+                    //PackInput = Model.PackInput,
                     ImportSource = source,
                     IsArchive = isArchive,
                 },
@@ -147,15 +151,21 @@ namespace PixelGraph.UI.Windows
                 AddExtension = true,
             };
 
+            var projectContext = projectContextMgr.GetContext();
+
             if (isBedrock) {
                 defaultExt = ".mcpack";
                 saveFileDialog.Filter = "MCPACK Archive|*.mcpack|All Files|*.*";
-                saveFileDialog.FileName = $"{Model.Profile.Selected?.Name}.mcpack";
+
+                if (projectContext.SelectedProfile != null)
+                    saveFileDialog.FileName = $"{projectContext.SelectedProfile.Name}.mcpack";
             }
             else {
                 defaultExt = ".zip";
                 saveFileDialog.Filter = "ZIP Archive|*.zip|All Files|*.*";
-                saveFileDialog.FileName = $"{Model.Profile.Selected?.Name}.zip";
+
+                if (projectContext.SelectedProfile != null)
+                    saveFileDialog.FileName = $"{projectContext.SelectedProfile?.Name}.zip";
             }
 
             var result = saveFileDialog.ShowDialog();
@@ -249,7 +259,7 @@ namespace PixelGraph.UI.Windows
 
         private async Task LoadWindowAsync()
         {
-            var publishLocationsTask = Task.Run(() => viewModel.LoadPublishLocationsAsync());
+            var publishLocationsTask = Task.Run(() => publishLocationMgr.LoadAsync());
             var recentProjectsTask = Task.Run(() => viewModel.LoadRecentProjectsAsync());
 
             try {
@@ -270,6 +280,7 @@ namespace PixelGraph.UI.Windows
 
             await Dispatcher.BeginInvoke(() => {
                 try {
+                    viewModel.UpdatePublishLocations();
                     viewModel.Initialize();
                 }
                 catch (Exception error) {
@@ -283,42 +294,77 @@ namespace PixelGraph.UI.Windows
         {
             if (RecentList.SelectedItem is not string item) return;
 
-            if (!Directory.Exists(item)) {
-                //Model.RootDirectory = null;
+            if (!File.Exists(item)) {
                 viewModel.Clear();
-                MessageBox.Show(this, "The selected resource pack directory could not be found!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, "The selected project file could not be found!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
 
                 await viewModel.RemoveRecentItemAsync(item);
                 return;
             }
 
             try {
-                await Task.Run(() => viewModel.SetRootDirectoryAsync(item));
+                await Task.Run(() => viewModel.LoadProjectAsync(item));
             }
             catch (Exception error) {
-                logger.LogError(error, $"Failed to load resource pack directory '{item}'!");
+                logger.LogError(error, $"Failed to load recent project '{item}'!");
 
                 Dispatcher.Invoke(() => {
                     viewModel.Clear();
-                    MessageBox.Show(this, $"Failed to load resource pack directory! {error.UnfoldMessageString()}", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(this, $"Failed to load project! {error.UnfoldMessageString()}", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                 });
 
                 await viewModel.RemoveRecentItemAsync(item);
+                return;
+            }
+
+            await LoadCurrentProject();
+        }
+
+        private async Task LoadCurrentProject()
+        {
+            var projectContext = projectContextMgr.GetContext();
+
+            await Dispatcher.BeginInvoke(() => {
+                Model.ProjectFilename = projectContext.ProjectFilename;
+                viewModel.AppendRecentProject(projectContext.ProjectFilename);
+                viewModel.UpdateRecentProjectsList();
+            });
+
+            try {
+                await Task.Run(() => viewModel.LoadRootDirectoryAsync());
+            }
+            catch (Exception error) {
+                logger.LogError(error, $"Failed to load content for project '{projectContext.ProjectFilename}'!");
+
+                Dispatcher.Invoke(() => {
+                    viewModel.Clear();
+                    MessageBox.Show(this, $"Failed to load project content! {error.UnfoldMessageString()}", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                });
             }
         }
 
         private async void OnNewProjectClick(object sender, RoutedEventArgs e)
         {
-            var window = new NewProjectWindow(provider) {
-                Owner = this,
-            };
+            var window = new NewProjectWindow(provider) {Owner = this};
 
-            if (window.ShowDialog() != true) return;
+            try {
+                if (window.ShowDialog() != true) return;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in NewProjectWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+                return;
+            }
 
             viewModel.CloseAllTabs();
             viewModel.Clear();
 
-            await viewModel.SetRootDirectoryAsync(window.Model.Location, CancellationToken.None);
+            // TODO: Have window update projectContextMgr
+            // window.Model.Location
+
+            await window.BuildProjectAsync();
+
+            await LoadCurrentProject();
 
             if (window.Model.EnablePackImport) {
                 if (window.Model.ImportFromDirectory) {
@@ -332,7 +378,99 @@ namespace PixelGraph.UI.Windows
 
         private async void OnOpenClick(object sender, RoutedEventArgs e)
         {
-            await SelectRootDirectoryAsync(CancellationToken.None);
+            var dialog = new VistaOpenFileDialog {
+                FileName = "project.yml",
+                Filter = "Project Yaml|*.yml;*.yaml|All Files|*.*",
+            };
+
+            if (dialog.ShowDialog(this) != true) return;
+
+            try {
+                await viewModel.LoadProjectAsync(dialog.FileName);
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to load project data!");
+                await this.ShowMessageAsync("Error!", "Failed to load project!");
+                return;
+            }
+
+            await LoadCurrentProject();
+        }
+
+        private async void OnOpenLegacyClick(object sender, RoutedEventArgs e)
+        {
+            var dialog = new VistaFolderBrowserDialog {
+                Multiselect = false,
+            };
+
+            if (dialog.ShowDialog(this) != true) return;
+
+            var warnResult = await this.ShowMessageAsync("Warning!", "Are you sure you want to upgrade the selected project directory? This operation cannot be undone.", MessageDialogStyle.AffirmativeAndNegative);
+            if (warnResult != MessageDialogResult.Affirmative) return;
+
+            viewModel.CloseAllTabs();
+            viewModel.Clear();
+
+            logger.LogDebug($"Upgrading legacy project from directory '{dialog.SelectedPath}'.");
+            var deleteFileList = new List<string>();
+
+            try {
+                var project = new ProjectData();
+
+                var inputFile = Path.Combine(dialog.SelectedPath, "input.yml");
+                if (!File.Exists(inputFile)) throw new ApplicationException("No 'input.yml' file was found!");
+                deleteFileList.Add(inputFile);
+
+                await using (var stream = File.OpenRead(inputFile)) {
+                    project.Input = ResourcePackReader.ParseInput(stream);
+                }
+
+                foreach (var packFile in Directory.EnumerateFiles(dialog.SelectedPath, "*.pack.yml")) {
+                    await using var stream = File.OpenRead(packFile);
+                    var profile = ResourcePackReader.ParseProfile(stream);
+
+                    if (profile.Name == null) {
+                        profile.Name = Path.GetFileNameWithoutExtension(packFile);
+                        if (profile.Name.EndsWith(".pack")) profile.Name = profile.Name[..^5];
+                    }
+
+                    project.Profiles.Add(profile);
+                    deleteFileList.Add(packFile);
+                }
+
+                projectContextMgr.SetContext(new ProjectContext {
+                    ProjectFilename = Path.Combine(dialog.SelectedPath, "project.yml"),
+                    RootDirectory = dialog.SelectedPath,
+                    Project = project,
+                });
+
+                await projectContextMgr.SaveAsync();
+            }
+            catch (Exception error) {
+                logger.LogError(error, $"Failed to upgrade project data from directory '{dialog.SelectedPath}'!");
+                await this.ShowMessageAsync("Error!", "Failed to upgrade project!");
+                return;
+            }
+
+            var deleteFailureCount = 0;
+            foreach (var file in deleteFileList) {
+                try {
+                    File.Delete(file);
+                }
+                catch (Exception error) {
+                    logger.LogWarning(error, $"Failed to delete file '{file}' after project upgrade!");
+                    deleteFailureCount++;
+                }
+            }
+
+            if (deleteFailureCount > 0) {
+                await this.ShowMessageAsync("Warning!", "The upgrade was successful, but some of the old files could not be removed!");
+            }
+            else {
+                await this.ShowMessageAsync("Success!", "The upgrade was successful.");
+            }
+
+            await LoadCurrentProject();
         }
 
         private async void OnImportFolderClick(object sender, RoutedEventArgs e)
@@ -355,30 +493,26 @@ namespace PixelGraph.UI.Windows
         {
             var window = new PackInputWindow(provider) {
                 Owner = this,
-                Model = {
-                    //RootDirectory = Model.RootDirectory,
-                    PackInput = (ResourcePackInputProperties)Model.PackInput.Clone(),
-                },
-            };
-
-            if (window.ShowDialog() != true) return;
-            Model.PackInput = window.Model.PackInput;
-        }
-
-        private void OnProfilesClick(object sender, RoutedEventArgs e)
-        {
-            var window = new PackProfilesWindow(provider) {
-                Owner = this,
-                Model = {
-                    //RootDirectory = Model.RootDirectory,
-                    Profiles = Model.Profile.List,
-                    SelectedProfileItem = Model.Profile.Selected,
-                },
             };
 
             window.ShowDialog();
+        }
 
-            Model.Profile.Selected = window.Model.SelectedProfileItem;
+        private async void OnProfilesClick(object sender, RoutedEventArgs e)
+        {
+            var window = new PackProfilesWindow(provider) {
+                Owner = this,
+            };
+
+            try {
+                if (window.ShowDialog() != true) return;
+
+                viewModel.UpdatePublishProfiles();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in PackProfilesWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+            }
         }
 
         private void OnTreeViewError(object sender, UnhandledExceptionEventArgs e)
@@ -387,23 +521,25 @@ namespace PixelGraph.UI.Windows
             ShowError($"Failed to update content tree! {error.Message}");
         }
 
-        private void OnLocationsClick(object sender, RoutedEventArgs e)
+        private async void OnLocationsClick(object sender, RoutedEventArgs e)
         {
-            var window = new PublishLocationsWindow(provider) {
-                Owner = this,
-                Model = {
-                    Locations = new ObservableCollection<LocationModel>(Model.PublishLocations),
-                },
-            };
+            var window = new PublishLocationsWindow(provider) {Owner = this};
 
-            if (Model.SelectedLocation != null && !Model.SelectedLocation.IsManualSelect)
-                window.Model.SelectedLocationItem = Model.SelectedLocation;
+            //if (Model.SelectedLocation is { IsManualSelect: false })
+            //    window.Model.SelectedLocationItem = Model.SelectedLocation;
 
-            var result = window.ShowDialog();
-            if (result != true) return;
+            try {
+                if (window.ShowDialog() != true) return;
 
-            Model.PublishLocations = window.Model.Locations.ToList();
-            Model.SelectedLocation = window.Model.SelectedLocationItem;
+                viewModel.UpdatePublishLocations();
+
+                //Model.PublishLocations = window.Model.Locations.ToList();
+                //Model.SelectedLocation = window.Model.SelectedLocationItem;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in PublishLocationsWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+            }
         }
 
         private void OnSettingsClick(object sender, RoutedEventArgs e)
@@ -444,15 +580,16 @@ namespace PixelGraph.UI.Windows
                     UseGlobalMatching = false,
                 };
 
+                var projectContext = projectContextMgr.GetContext();
                 var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
                 serviceBuilder.Initialize();
-                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
 
                 await using var scope = serviceBuilder.Build();
 
-                var materialWriter = scope.GetRequiredService<IMaterialWriter>();
-                await materialWriter.WriteAsync(material);
+                var matWriter = scope.GetRequiredService<IMaterialWriter>();
+                await matWriter.WriteAsync(material);
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to create new material definition!");
@@ -510,27 +647,28 @@ namespace PixelGraph.UI.Windows
 
         private void OnPublishMenuItemClick(object sender, RoutedEventArgs e)
         {
-            if (!Model.Profile.HasLoaded) return;
+            var projectContext = projectContextMgr.GetContext();
+            if (projectContext.SelectedProfile == null) return;
 
             using var window = new PublishOutputWindow(provider) {
                 Owner = this,
                 Model = {
-                    RootDirectory = Model.RootDirectory,
-                    Input = Model.PackInput,
-                    Profile = Model.Profile.Loaded,
+                    RootDirectory = projectContext.RootDirectory,
+                    Input = projectContext.Project.Input,
+                    Profile = projectContext.SelectedProfile,
                     Clean = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
                 },
             };
 
             if (Model.SelectedLocation != null && !Model.SelectedLocation.IsManualSelect) {
-                var name = Model.Profile.Loaded.Name ?? GetDefaultPackProfileName(Model.Profile.Selected.LocalFile);
+                var name = projectContext.SelectedProfile.Name;
                 if (name == null) throw new ApplicationException("Unable to determine profile name!");
 
                 window.Model.Destination = Path.Combine(Model.SelectedLocation.Path, name);
                 window.Model.Archive = Model.SelectedLocation.Archive;
             }
             else {
-                var isBedrock = GameEdition.Is(Model.Profile.Loaded?.Edition, GameEdition.Bedrock);
+                var isBedrock = GameEdition.Is(projectContext.SelectedProfile.Edition, GameEdition.Bedrock);
 
                 window.Model.Destination = GetArchiveFilename(isBedrock);
                 window.Model.Archive = true;
@@ -541,15 +679,15 @@ namespace PixelGraph.UI.Windows
             window.ShowDialog();
         }
 
-        private static string GetDefaultPackProfileName(string localFile)
-        {
-            var name = Path.GetFileName(localFile);
+        //private static string GetDefaultPackProfileName(string localFile)
+        //{
+        //    var name = Path.GetFileName(localFile);
 
-            if (name.EndsWith(".pack.yml", StringComparison.InvariantCultureIgnoreCase))
-                name = name[..^9];
+        //    if (name.EndsWith(".pack.yml", StringComparison.InvariantCultureIgnoreCase))
+        //        name = name[..^9];
 
-            return Path.GetFileNameWithoutExtension(name);
-        }
+        //    return Path.GetFileNameWithoutExtension(name);
+        //}
 
         private async Task UpdateMaterialProperties(MaterialPropertyChangedEventArgs e)
         {
@@ -689,13 +827,14 @@ namespace PixelGraph.UI.Windows
             var material = materialTab.MaterialRegistration.Value;
             if (material == null) return;
 
+            var projectContext = projectContextMgr.GetContext();
             var outputName = TextureTags.Get(material, TextureTags.Normal);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
                 var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
                 serviceBuilder.Initialize();
-                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
 
                 await using var scope = serviceBuilder.Build();
 
@@ -707,7 +846,7 @@ namespace PixelGraph.UI.Windows
                 }
             }
 
-            var path = PathEx.Join(Model.RootDirectory, material.LocalPath);
+            var path = PathEx.Join(projectContext.RootDirectory, material.LocalPath);
             if (!material.UseGlobalMatching) path = PathEx.Join(path, material.Name);
             var fullName = PathEx.Join(path, outputName);
 
@@ -740,13 +879,14 @@ namespace PixelGraph.UI.Windows
             var material = materialTab.MaterialRegistration.Value;
             if (material == null) return;
 
+            var projectContext = projectContextMgr.GetContext();
             var outputName = TextureTags.Get(material, TextureTags.Occlusion);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
                 var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
                 serviceBuilder.Initialize();
-                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
 
                 await using var scope = serviceBuilder.Build();
 
@@ -759,7 +899,7 @@ namespace PixelGraph.UI.Windows
                 }
             }
 
-            var path = PathEx.Join(Model.RootDirectory, material.LocalPath);
+            var path = PathEx.Join(projectContext.RootDirectory, material.LocalPath);
             if (!material.UseGlobalMatching) path = PathEx.Join(path, material.Name);
             var fullName = PathEx.Join(path, outputName);
 
@@ -792,10 +932,11 @@ namespace PixelGraph.UI.Windows
 
             var material = await Task.Run(() => viewModel.ImportTextureAsync(fileNode.Filename));
 
+            var projectContext = projectContextMgr.GetContext();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();
-            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
             serviceBuilder.Services.AddSingleton<ContentTreeReader>();
 
             
@@ -835,17 +976,18 @@ namespace PixelGraph.UI.Windows
             viewModel.ReloadContent();
         }
 
-        private async void OnSelectedProfileChanged(object sender, EventArgs e)
-        {
-            await viewModel.UpdateSelectedProfileAsync();
+        //private async void OnSelectedProfileChanged(object sender, EventArgs e)
+        //{
+        //    var projectContext = projectContextMgr.GetContext();
 
-            viewModel.InvalidateAllTabs();
+        //    if (projectContext != null)
+        //        projectContext.SelectedProfile = Model.SelectedProfile;
 
-            if (Model.SelectedTab != null)
-                await viewModel.UpdateTabPreviewAsync();
+        //    viewModel.InvalidateAllTabs();
 
-            // TODO: update recent 
-        }
+        //    if (Model.SelectedTab != null)
+        //        await viewModel.UpdateTabPreviewAsync();
+        //}
 
         //private void OnPreviewCancelClick(object sender, RoutedEventArgs e)
         //{
@@ -865,6 +1007,21 @@ namespace PixelGraph.UI.Windows
             await settings.SaveAsync();
         }
 
+        private async void OnPublishProfileSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (Model.IsInitializing) return;
+
+            var projectContext = projectContextMgr.GetContext();
+
+            if (projectContext != null)
+                projectContext.SelectedProfile = Model.SelectedProfile;
+
+            viewModel.InvalidateAllTabs();
+
+            if (Model.SelectedTab != null)
+                await viewModel.UpdateTabPreviewAsync();
+        }
+
         private void OnTreeOpenFolderClick(object sender, RoutedEventArgs e)
         {
             if (Model.SelectedNode is ContentTreeFile fileNode) {
@@ -880,7 +1037,8 @@ namespace PixelGraph.UI.Windows
 
         private void OpenFolder(string path)
         {
-            var fullPath = PathEx.Join(Model.RootDirectory, path);
+            var projectContext = projectContextMgr.GetContext();
+            var fullPath = PathEx.Join(projectContext.RootDirectory, path);
 
             if (!fullPath.EndsWith(Path.DirectorySeparatorChar))
                 fullPath += Path.DirectorySeparatorChar;
@@ -896,7 +1054,8 @@ namespace PixelGraph.UI.Windows
 
         private void OpenFolderSelectFile(string file)
         {
-            var fullFile = PathEx.Join(Model.RootDirectory, file);
+            var projectContext = projectContextMgr.GetContext();
+            var fullFile = PathEx.Join(projectContext.RootDirectory, file);
 
             try {
                 using var _ = Process.Start("explorer.exe", $"/select,\"{fullFile}\"");

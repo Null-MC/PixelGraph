@@ -162,6 +162,7 @@ namespace PixelGraph.Common.Textures
             subContext.Profile = context.Profile;
             subContext.Material = context.Material;
             subContext.IsAnimated = context.IsAnimated;
+            //subContext.PackWriteTime = ;
 
             if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorRed, out var redInputChannel))
                 subContext.InputEncoding.Add(redInputChannel);

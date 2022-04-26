@@ -5,15 +5,17 @@ using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.SharpDX.Core.Shaders;
 using PixelGraph.Rendering.Shaders;
 using SharpDX;
+using System;
 
 namespace PixelGraph.Rendering.Minecraft
 {
     public interface IMinecraftSceneCore
     {
-        bool IsRenderValid {get;}
+        //bool IsRenderValid {get;}
+        long LastUpdated {get;}
 
         void Apply(DeviceContextProxy deviceContext);
-        void ResetValidation();
+        //void ResetValidation();
     }
 
     public interface IMinecraftScene : IMinecraftSceneCore
@@ -25,8 +27,10 @@ namespace PixelGraph.Rendering.Minecraft
     {
         private readonly ConstantBufferComponent buffer;
         private MinecraftSceneStruct data;
+        private bool isRenderValid;
 
-        public bool IsRenderValid {get; private set;}
+        //public bool IsRenderValid {get; private set;}
+        public long LastUpdated {get; private set;}
 
         public bool EnableAtmosphere {
             get => data.EnableAtmosphere;
@@ -37,7 +41,7 @@ namespace PixelGraph.Rendering.Minecraft
             get => data.SunDirection;
             set {
                 if (SetAffectsRender(ref data.SunDirection, value))
-                    IsRenderValid = false;
+                    isRenderValid = false;
             }
         }
 
@@ -45,7 +49,7 @@ namespace PixelGraph.Rendering.Minecraft
             get => data.SunStrength;
             set {
                 if (SetAffectsRender(ref data.SunStrength, value))
-                    IsRenderValid = false;
+                    isRenderValid = false;
             }
         }
 
@@ -53,7 +57,7 @@ namespace PixelGraph.Rendering.Minecraft
             get => data.TimeOfDay;
             set {
                 if (SetAffectsRender(ref data.TimeOfDay, value))
-                    IsRenderValid = false;
+                    isRenderValid = false;
             }
         }
 
@@ -61,7 +65,7 @@ namespace PixelGraph.Rendering.Minecraft
             get => data.Wetness;
             set {
                 if (SetAffectsRender(ref data.Wetness, value))
-                    IsRenderValid = false;
+                    isRenderValid = false;
             }
         }
 
@@ -70,24 +74,25 @@ namespace PixelGraph.Rendering.Minecraft
             set => SetAffectsRender(ref data.ParallaxDepth, value);
         }
 
-        public int ParallaxSamplesMin {
-            get => data.ParallaxSamplesMin;
-            set => SetAffectsRender(ref data.ParallaxSamplesMin, value);
-        }
-
-        public int ParallaxSamplesMax {
-            get => data.ParallaxSamplesMax;
-            set => SetAffectsRender(ref data.ParallaxSamplesMax, value);
+        public int ParallaxSamples {
+            get => data.ParallaxSamples;
+            set => SetAffectsRender(ref data.ParallaxSamples, value);
         }
 
         public bool EnableLinearSampling {
             get => data.EnableLinearSampling;
-            set => SetAffectsRender(ref data.EnableLinearSampling, value);
+            set {
+                if (SetAffectsRender(ref data.EnableLinearSampling, value))
+                    isRenderValid = false;
+            }
         }
 
         public bool EnableSlopeNormals {
             get => data.EnableSlopeNormals;
-            set => SetAffectsRender(ref data.EnableSlopeNormals, value);
+            set {
+                if (SetAffectsRender(ref data.EnableSlopeNormals, value))
+                    isRenderValid = false;
+            }
         }
 
         public int WaterMode {
@@ -97,7 +102,10 @@ namespace PixelGraph.Rendering.Minecraft
 
         public float ErpExposure {
             get => data.ErpExposure;
-            set => SetAffectsRender(ref data.ErpExposure, value);
+            set {
+                if (SetAffectsRender(ref data.ErpExposure, value))
+                    isRenderValid = false;
+            }
         }
 
 
@@ -114,10 +122,10 @@ namespace PixelGraph.Rendering.Minecraft
             buffer.Upload(deviceContext, ref data);
         }
 
-        public void ResetValidation()
-        {
-            IsRenderValid = true;
-        }
+        //public void ResetValidation()
+        //{
+        //    isRenderValid = true;
+        //}
 
         protected override bool OnAttach(IRenderTechnique technique)
         {
@@ -126,7 +134,12 @@ namespace PixelGraph.Rendering.Minecraft
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
+            if (isRenderValid) return;
+
             Apply(deviceContext);
+
+            LastUpdated = Environment.TickCount64;
+            isRenderValid = true;
         }
     }
 }

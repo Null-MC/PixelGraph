@@ -1,8 +1,9 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Material
 {
-    public class MaterialHcmProperties
+    public class MaterialHcmProperties : IHaveData
     {
         public ResourcePackHcmChannelProperties Input {get; set;}
         public string Texture {get; set;}

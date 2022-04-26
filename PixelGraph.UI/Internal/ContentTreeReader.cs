@@ -143,11 +143,11 @@ namespace PixelGraph.UI.Internal
 
             if (string.Equals("mat.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
                 || fileName.EndsWith(".mat.yml", StringComparison.InvariantCultureIgnoreCase))
-                return PackIconFontAwesomeKind.ChartAreaSolid;
+                return PackIconFontAwesomeKind.BrushSolid;
 
             if (string.Equals("pbr.yml", fileName, StringComparison.InvariantCultureIgnoreCase)
                 || fileName.EndsWith(".pbr.yml", StringComparison.InvariantCultureIgnoreCase))
-                return PackIconFontAwesomeKind.ChartAreaSolid;
+                return PackIconFontAwesomeKind.BrushSolid;
 
             var ext = Path.GetExtension(fileName);
             if (ImageExtensions.Supports(ext)) return PackIconFontAwesomeKind.ImageSolid;

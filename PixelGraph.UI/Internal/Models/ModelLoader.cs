@@ -15,15 +15,15 @@ namespace PixelGraph.UI.Internal.Models
     public class ModelLoader
     {
         private readonly IServiceProvider provider;
-        private readonly IProjectContext projectContext;
+        private readonly IProjectContextManager projectContextMgr;
 
 
         public ModelLoader(
             IServiceProvider provider,
-            IProjectContext projectContext)
+            IProjectContextManager projectContextMgr)
         {
             this.provider = provider;
-            this.projectContext = projectContext;
+            this.projectContextMgr = projectContextMgr;
         }
 
         public JavaEntityModelVersion GetJavaEntityModel(MaterialProperties material)
@@ -45,12 +45,10 @@ namespace PixelGraph.UI.Internal.Models
             if (baseModel == null) return null;
 
             if (modelFile != null) {
-                var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
-                serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+                var serviceBuilder = BuildServiceContainer();
                 serviceBuilder.Services.AddTransient<EntityModelParser>();
 
                 using var scope = serviceBuilder.Build();
-
                 var entityParser = scope.GetRequiredService<EntityModelParser>();
                 entityParser.Build(baseModel, modelFile);
             }
@@ -68,12 +66,10 @@ namespace PixelGraph.UI.Internal.Models
                 modelFile = modelData?.GetLatestVersion()?.Id;
             }
 
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
-            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+            var serviceBuilder = BuildServiceContainer();
             serviceBuilder.Services.AddTransient<BlockModelParser>();
 
             using var scope = serviceBuilder.Build();
-
             var blockParser = scope.GetRequiredService<BlockModelParser>();
 
             if (modelFile == null && defaultCube) {
@@ -86,6 +82,16 @@ namespace PixelGraph.UI.Internal.Models
             }
 
             return blockParser.LoadRecursive(modelFile);
+        }
+
+        private IServiceBuilder BuildServiceContainer()
+        {
+            var projectContext = projectContextMgr.GetContext();
+            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+            return serviceBuilder;
         }
     }
 }

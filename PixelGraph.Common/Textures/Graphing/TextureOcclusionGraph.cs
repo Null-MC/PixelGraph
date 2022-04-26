@@ -32,7 +32,6 @@ namespace PixelGraph.Common.Textures.Graphing
     {
         private readonly IServiceProvider provider;
         private readonly ITextureGraphContext context;
-        //private readonly ITextureRegionEnumerator regions;
         private readonly ITextureHeightGraph heightGraph;
         private Image<L8> texture;
         private bool isLoaded;
@@ -47,13 +46,11 @@ namespace PixelGraph.Common.Textures.Graphing
         public TextureOcclusionGraph(
             IServiceProvider provider,
             ITextureGraphContext context,
-            //ITextureRegionEnumerator regions,
             ITextureHeightGraph heightGraph)
         {
             this.provider = provider;
             this.context = context;
             this.heightGraph = heightGraph;
-            //this.regions = regions;
 
             FrameCount = 1;
         }
@@ -253,6 +250,8 @@ namespace PixelGraph.Common.Textures.Graphing
             subContext.Material = context.Material;
             subContext.IsAnimated = context.IsAnimated;
             subContext.InputEncoding.Add(inputChannel);
+            //subContext.PackWriteTime = ;
+
             builder.InputChannels = new [] {inputChannel};
             builder.OutputChannels = new[] {outputChannel};
 
@@ -269,48 +268,6 @@ namespace PixelGraph.Common.Textures.Graphing
                 throw;
             }
         }
-
-        //private async Task<(Image<T> image, int frameCount, ResourcePackChannelProperties channel)> GetChannelTextureAsync<T>(string encodingChannel, CancellationToken token)
-        //    where T : unmanaged, IPixel<T>
-        //{
-        //    if (EncodingChannel.Is(encodingChannel, EncodingChannel.Bump)) {
-        //        foreach (var file in reader.EnumerateInputTextures(context.Material, TextureTags.Bump)) {
-        //            if (file == null) continue;
-
-        //            var info = await sourceGraph.GetOrCreateAsync(file, token);
-        //            if (info == null) continue;
-
-        //            await using var stream = reader.Open(file);
-
-        //            var image = await Image.LoadAsync<T>(Configuration.Default, stream, token);
-        //            var channel = new ResourcePackBumpChannelProperties {
-        //                Color = ColorChannel.Red,
-        //                Invert = true,
-        //                Power = 1,
-        //            };
-        //            return (image, info.FrameCount, channel);
-        //        }
-        //    }
-        //    else {
-        //        foreach (var channel in context.InputEncoding.Where(c => EncodingChannel.Is(c.ID, encodingChannel))) {
-        //            if (!channel.HasTexture) continue;
-
-        //            foreach (var file in reader.EnumerateInputTextures(context.Material, channel.Texture)) {
-        //                if (file == null) continue;
-
-        //                var info = await sourceGraph.GetOrCreateAsync(file, token);
-        //                if (info == null) continue;
-
-        //                await using var stream = reader.Open(file);
-
-        //                var image = await Image.LoadAsync<T>(Configuration.Default, stream, token);
-        //                return (image, info.FrameCount, channel);
-        //            }
-        //        }
-        //    }
-
-        //    return (null, 0, null);
-        //}
 
         private int GetTileSize(in int imageWidth)
         {

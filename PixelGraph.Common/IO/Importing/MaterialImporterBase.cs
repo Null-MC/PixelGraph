@@ -32,7 +32,7 @@ namespace PixelGraph.Common.IO.Importing
     internal abstract class MaterialImporterBase : IMaterialImporter
     {
         private readonly IServiceProvider provider;
-        private readonly IMaterialWriter materialWriter;
+        private readonly IMaterialWriter matWriter;
 
         protected IInputReader Reader {get;}
 
@@ -48,7 +48,7 @@ namespace PixelGraph.Common.IO.Importing
         {
             this.provider = provider;
 
-            materialWriter = provider.GetRequiredService<IMaterialWriter>();
+            matWriter = provider.GetRequiredService<IMaterialWriter>();
             Reader = provider.GetRequiredService<IInputReader>();
         }
 
@@ -67,7 +67,7 @@ namespace PixelGraph.Common.IO.Importing
                 UseGlobalMatching = AsGlobal,
             };
 
-            await materialWriter.WriteAsync(material);
+            await matWriter.WriteAsync(material);
             return material;
         }
 
@@ -76,6 +76,7 @@ namespace PixelGraph.Common.IO.Importing
             using var scope = provider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
 
+            context.PackWriteTime = DateTime.Now;
             context.Input = (ResourcePackInputProperties)PackInput.Clone();
             context.Profile = (ResourcePackProfileProperties)PackProfile.Clone();
             context.PublishAsGlobal = AsGlobal;
@@ -94,7 +95,7 @@ namespace PixelGraph.Common.IO.Importing
             material.LocalPath = AsGlobal ? destPath : PathEx.Join(destPath, destName);
             material.LocalFilename = PathEx.Join(material.LocalPath, fileName);
 
-            await materialWriter.WriteAsync(material, token);
+            await matWriter.WriteAsync(material, token);
         }
 
         protected virtual Task OnImportMaterialAsync(IServiceProvider scope, CancellationToken token = default)

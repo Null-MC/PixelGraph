@@ -10,14 +10,14 @@ namespace PixelGraph.UI.Models
         private string _texture_imageEditorExe;
         private string _texture_imageEditorArgs;
         private bool _renderPreview_enabled;
-        private bool _renderPreview_enableLinearSampling;
-        private bool _renderPreview_enableSlopeNormals;
+        //private bool _renderPreview_enableLinearSampling;
+        //private bool _renderPreview_enableSlopeNormals;
         private bool _renderPreview_enableBloom;
         private int _renderPreview_waterMode;
         //private bool _renderPreview_parallaxEnabled;
         private decimal? _renderPreview_parallaxDepth;
-        private int? _renderPreview_parallaxSamplesMin;
-        private int? _renderPreview_parallaxSamplesMax;
+        //private int? _renderPreview_parallaxSamplesMin;
+        private int? _renderPreview_parallaxSamples;
         private string _theme_baseColor;
         private string _theme_accentColor;
 
@@ -70,23 +70,23 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public bool RenderPreview_EnableLinearSampling {
-            get => _renderPreview_enableLinearSampling;
-            set {
-                _renderPreview_enableLinearSampling = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
+        //public bool RenderPreview_EnableLinearSampling {
+        //    get => _renderPreview_enableLinearSampling;
+        //    set {
+        //        _renderPreview_enableLinearSampling = value;
+        //        OnPropertyChanged();
+        //        OnDataChanged();
+        //    }
+        //}
 
-        public bool RenderPreview_EnableSlopeNormals {
-            get => _renderPreview_enableSlopeNormals;
-            set {
-                _renderPreview_enableSlopeNormals = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
+        //public bool RenderPreview_EnableSlopeNormals {
+        //    get => _renderPreview_enableSlopeNormals;
+        //    set {
+        //        _renderPreview_enableSlopeNormals = value;
+        //        OnPropertyChanged();
+        //        OnDataChanged();
+        //    }
+        //}
 
         public bool RenderPreview_EnableBloom {
             get => _renderPreview_enableBloom;
@@ -124,19 +124,19 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public int? RenderPreview_ParallaxSamplesMin {
-            get => _renderPreview_parallaxSamplesMin;
-            set {
-                _renderPreview_parallaxSamplesMin = value;
-                OnPropertyChanged();
-                OnDataChanged();
-            }
-        }
+        //public int? RenderPreview_ParallaxSamplesMin {
+        //    get => _renderPreview_parallaxSamplesMin;
+        //    set {
+        //        _renderPreview_parallaxSamplesMin = value;
+        //        OnPropertyChanged();
+        //        OnDataChanged();
+        //    }
+        //}
 
-        public int? RenderPreview_ParallaxSamplesMax {
-            get => _renderPreview_parallaxSamplesMax;
+        public int? RenderPreview_ParallaxSamples {
+            get => _renderPreview_parallaxSamples;
             set {
-                _renderPreview_parallaxSamplesMax = value;
+                _renderPreview_parallaxSamples = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }

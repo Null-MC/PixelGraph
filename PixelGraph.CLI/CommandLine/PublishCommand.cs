@@ -2,10 +2,10 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.CLI.Extensions;
 using PixelGraph.Common;
-using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using Serilog;
 using System;
@@ -37,12 +37,16 @@ namespace PixelGraph.CLI.CommandLine
             this.logger = logger;
 
             Command = new Command("publish", "Publishes the specified profile.") {
-                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, FileInfo, bool, int>(RunAsync),
+                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, FileInfo, string, bool, int>(RunAsync),
             };
 
             Command.AddOption(new Option<FileInfo>(
-                new [] {"-p", "--profile"}, () => new FileInfo("pack.json"),
-                "The file name of the profile to publish."));
+                new [] {"-f", "--project"}, () => new FileInfo("project.yml"),
+                "The filename of the project to publish."));
+
+            Command.AddOption(new Option<FileInfo>(
+                new [] {"-p", "--profile"},
+                "The filename of the project to publish."));
 
             Command.AddOption(new Option<DirectoryInfo>(
                 new[] { "-d", "--destination" },
@@ -58,32 +62,32 @@ namespace PixelGraph.CLI.CommandLine
 
             Command.AddOption(new Option<int>(
                 new [] {"--concurrency"}, ConcurrencyHelper.GetDefaultValue,
-                "Sets the level of concurrency for importing/publishing files. Default value is the system processor count."));
+                "Sets the level of concurrency for importing/publishing files. Default value is half of the system processor count."));
         }
 
-        private async Task<int> RunAsync(FileInfo profile, DirectoryInfo destination, FileInfo zip, bool clean, int concurrency)
+        private async Task<int> RunAsync(FileInfo project, DirectoryInfo destination, FileInfo zip, string profile, bool clean, int concurrency)
         {
-            var root = Path.GetDirectoryName(profile.FullName);
-            var profileLocalFile = Path.GetFileName(profile.FullName);
             var destPath = zip?.FullName ?? destination.FullName;
 
             try {
-                var context = new ResourcePackContext();
-
-                await using (var stream = profile.OpenRead()) {
-                    context.Profile = ResourcePackReader.ParseProfile(stream);
+                ProjectData projectData;
+                await using (var stream = project.OpenRead()) {
+                    projectData = ProjectSerializer.Parse(stream);
                 }
-
-                var inputFile = PathEx.Join(root, "input.yml");
-                await using (var stream = File.OpenRead(inputFile)) {
-                    context.Input = ResourcePackReader.ParseInput(stream);
-                }
+                
+                var context = new ResourcePackContext {
+                    Input = projectData.Input,
+                    Profile = projectData.Profiles.Find(p => string.Equals(p.Name, profile, StringComparison.InvariantCultureIgnoreCase)),
+                    LastUpdated = project.LastWriteTimeUtc,
+                };
 
                 ConsoleEx.WriteLine("\nPublishing...", ConsoleColor.White);
-                ConsoleEx.Write("  Profile     : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(profileLocalFile, ConsoleColor.Cyan);
+                ConsoleEx.Write("  Project     : ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine(project.FullName, ConsoleColor.Cyan);
                 ConsoleEx.Write("  Destination : ", ConsoleColor.Gray);
                 ConsoleEx.WriteLine(destPath, ConsoleColor.Cyan);
+                ConsoleEx.Write("  Profile     : ", ConsoleColor.Gray);
+                ConsoleEx.WriteLine(profile, ConsoleColor.Cyan);
                 ConsoleEx.Write("  Concurrency : ", ConsoleColor.Gray);
                 ConsoleEx.WriteLine(concurrency.ToString("N0"), ConsoleColor.Cyan);
                 ConsoleEx.WriteLine();
@@ -95,7 +99,7 @@ namespace PixelGraph.CLI.CommandLine
                 executor.CleanDestination = clean;
                 executor.AsArchive = zip != null;
 
-                await executor.ExecuteAsync(root, destPath, lifetime.Token);
+                await executor.ExecuteAsync(project.DirectoryName, destPath, lifetime.Token);
 
                 return 0;
             }

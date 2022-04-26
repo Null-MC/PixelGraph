@@ -22,8 +22,9 @@ namespace PixelGraph.Common.Textures.Graphing
         List<ResourcePackChannelProperties> OutputEncoding {get; set;}
         IPublisherMapping Mapping {get; set;}
 
-        //string DestinationName {get; set;}
-        //string DestinationPath {get; set;}
+        string Author {get; set;}
+
+        DateTime PackWriteTime {get; set;}
         bool IsAnimated {get; set;}
         int MaxFrameCount {get; set;}
         bool PublishAsGlobal {get; set;}
@@ -35,8 +36,6 @@ namespace PixelGraph.Common.Textures.Graphing
         bool IsMaterialCtm {get;}
         float? TextureScale {get;}
         string DefaultSampler {get;}
-        //string ImageFormat {get;}
-        //bool AutoMaterial {get;}
         bool AutoGenerateOcclusion {get;}
         bool BakeOcclusionToColor {get;}
         bool EnablePalette {get;}
@@ -48,7 +47,6 @@ namespace PixelGraph.Common.Textures.Graphing
         float? GetExpectedAspect();
         Size? GetTextureSize(float? defaultAspect);
         Size? GetBufferSize(float aspect);
-        //string GetMetaInputFilename();
         MaterialType GetFinalMaterialType();
     }
 
@@ -66,11 +64,15 @@ namespace PixelGraph.Common.Textures.Graphing
         public List<ResourcePackChannelProperties> InputEncoding {get; set;}
         public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
         public IPublisherMapping Mapping {get; set;}
+
+        public DateTime PackWriteTime {get; set;}
         public bool IsAnimated {get; set;}
         public int MaxFrameCount {get; set;}
         public bool PublishAsGlobal {get; set;}
         public bool ApplyPostProcessing {get; set;}
         public bool IsImport {get; set;}
+
+        public string Author {get; set;}
 
         public bool MaterialWrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool MaterialWrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
@@ -79,9 +81,7 @@ namespace PixelGraph.Common.Textures.Graphing
 
         public float? TextureScale => (float?)Profile?.TextureScale;
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
-        //public string ImageFormat => Profile?.Encoding?.Image ?? ResourcePackOutputProperties.ImageDefault;
 
-        //public bool AutoMaterial => Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
         public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
 
         public bool BakeOcclusionToColor {
@@ -96,7 +96,6 @@ namespace PixelGraph.Common.Textures.Graphing
             }
         }
 
-        //public bool EnablePalette => Material.EnablePalette ?? Profile?.EnablePalette ?? false;
         public bool EnablePalette => Profile?.Encoding?.EnablePalette ?? false;
         public int PaletteColors => Profile?.Encoding?.PaletteColors ?? ResourcePackOutputProperties.DefaultPaletteColors;
 
@@ -108,18 +107,9 @@ namespace PixelGraph.Common.Textures.Graphing
             ApplyPostProcessing = true;
             PublishAsGlobal = true;
             MaxFrameCount = 1;
+
+            Author = "Samael the Destroyer";
         }
-
-        //public string GetMetaInputFilename()
-        //{
-        //    var matPath = Material.UseGlobalMatching
-        //        ? Material.LocalPath
-        //        : PathEx.Join(Material.LocalPath, Material.Name);
-
-
-
-        //    return PathEx.Join(matPath, "mat.mcmeta");
-        //}
 
         public void ApplyInputEncoding()
         {
@@ -256,12 +246,6 @@ namespace PixelGraph.Common.Textures.Graphing
             if (Material.TryGetSourceBounds(in blockSize, scale, out var bounds)) return bounds;
 
             return GetTextureSize(aspect);
-
-            //if (!TextureScale.HasValue) return bounds;
-
-            //var width = (int)MathF.Ceiling(bounds.Width * TextureScale.Value);
-            //var height = (int)MathF.Ceiling(bounds.Height * TextureScale.Value);
-            //return new Size(width, height);
         }
 
         private static ResourcePackEncoding BuildEncoding(string format)

@@ -21,6 +21,7 @@ namespace PixelGraph.Rendering.LUTs
         private RasterizerStateProxy rasterState;
         private Viewport viewport;
         private int _resolution;
+        private bool isRenderValid;
 
         public ShaderResourceViewProxy LutMap => lutMap;
 
@@ -84,6 +85,7 @@ namespace PixelGraph.Rendering.LUTs
 
             CreateRasterState(rasterDesc, true);
 
+            isRenderValid = false;
             return true;
         }
 
@@ -94,6 +96,7 @@ namespace PixelGraph.Rendering.LUTs
             rasterState = null;
 
             renderTargetView = null;
+            //isRenderValid = false;
 
             base.OnDetach();
         }
@@ -101,6 +104,8 @@ namespace PixelGraph.Rendering.LUTs
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
             if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
+
+            if (isRenderValid) return;
 
             if (CreateLutMapResources()) {
                 RaiseInvalidateRender();
@@ -123,6 +128,7 @@ namespace PixelGraph.Rendering.LUTs
             deviceContext.ClearRenderTagetBindings();
 
             LastUpdated = Environment.TickCount64;
+            isRenderValid = true;
         }
 
         protected virtual bool CreateRasterState(RasterizerStateDescription description, bool force)

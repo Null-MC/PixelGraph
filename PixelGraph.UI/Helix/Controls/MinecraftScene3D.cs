@@ -11,7 +11,8 @@ namespace PixelGraph.UI.Helix.Controls
     public class MinecraftScene3D : Element3D, IMinecraftScene
     {
         private MinecraftSceneNode MCSceneNode => SceneNode as MinecraftSceneNode;
-        public bool IsRenderValid => MCSceneNode.IsRenderValid;
+        //public bool IsRenderValid => MCSceneNode.IsRenderValid;
+        public long LastUpdated => MCSceneNode.LastUpdated;
 
         public bool EnableAtmosphere {
             get => (bool)GetValue(EnableAtmosphereProperty);
@@ -43,14 +44,9 @@ namespace PixelGraph.UI.Helix.Controls
             set => SetValue(ParallaxDepthProperty, value);
         }
 
-        public int ParallaxSamplesMin {
-            get => (int)GetValue(ParallaxSamplesMinProperty);
-            set => SetValue(ParallaxSamplesMinProperty, value);
-        }
-
-        public int ParallaxSamplesMax {
-            get => (int)GetValue(ParallaxSamplesMaxProperty);
-            set => SetValue(ParallaxSamplesMaxProperty, value);
+        public int ParallaxSamples {
+            get => (int)GetValue(ParallaxSamplesProperty);
+            set => SetValue(ParallaxSamplesProperty, value);
         }
 
         public bool EnableLinearSampling {
@@ -79,10 +75,10 @@ namespace PixelGraph.UI.Helix.Controls
             MCSceneNode?.Apply(deviceContext);
         }
 
-        public void ResetValidation()
-        {
-            MCSceneNode?.ResetValidation();
-        }
+        //public void ResetValidation()
+        //{
+        //    MCSceneNode?.ResetValidation();
+        //}
 
         protected override SceneNode OnCreateSceneNode()
         {
@@ -100,8 +96,7 @@ namespace PixelGraph.UI.Helix.Controls
             n.TimeOfDay = TimeOfDay;
             n.Wetness = Wetness;
             n.ParallaxDepth = ParallaxDepth;
-            n.ParallaxSamplesMin = ParallaxSamplesMin;
-            n.ParallaxSamplesMax = ParallaxSamplesMax;
+            n.ParallaxSamples = ParallaxSamples;
             n.EnableLinearSampling = EnableLinearSampling;
             n.EnableSlopeNormals = EnableSlopeNormals;
             n.WaterMode = WaterMode;
@@ -144,16 +139,10 @@ namespace PixelGraph.UI.Helix.Controls
                     sceneNode.ParallaxDepth = (float)e.NewValue;
             }));
 
-        public static readonly DependencyProperty ParallaxSamplesMinProperty = DependencyProperty
-            .Register(nameof(ParallaxSamplesMin), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
+        public static readonly DependencyProperty ParallaxSamplesProperty = DependencyProperty
+            .Register(nameof(ParallaxSamples), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(128, (d, e) => {
                 if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
-                    sceneNode.ParallaxSamplesMin = (int)e.NewValue;
-            }));
-
-        public static readonly DependencyProperty ParallaxSamplesMaxProperty = DependencyProperty
-            .Register(nameof(ParallaxSamplesMax), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
-                if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
-                    sceneNode.ParallaxSamplesMax = (int)e.NewValue;
+                    sceneNode.ParallaxSamples = (int)e.NewValue;
             }));
 
         public static readonly DependencyProperty EnableLinearSamplingProperty = DependencyProperty

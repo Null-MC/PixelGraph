@@ -49,12 +49,11 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             matMetaFileIn = NamingStructure.GetInputMetaName(Context.Material);
             Context.IsAnimated = Reader.FileExists(matMetaFileIn);
 
-            var packWriteTime = Reader.GetWriteTime(Context.Profile.LocalFile) ?? DateTime.Now;
             var sourceTime = Reader.GetWriteTime(Context.Material.LocalFilename);
 
             if (!(Context.Material.Publish ?? true)) return;
 
-            if (IsOutputUpToDate(packWriteTime, sourceTime)) {
+            if (IsOutputUpToDate(sourceTime)) {
                 logger.LogDebug("Skipping up-to-date material '{DisplayName}'.", Context.Material.DisplayName);
                 return;
             }
@@ -80,13 +79,12 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 return;
             }
 
-            var packWriteTime = Reader.GetWriteTime(Context.Profile.LocalFile) ?? DateTime.Now;
             var sourceTime = Reader.GetWriteTime(Context.Material.LocalFilename);
             
             var ext = NamingStructure.GetExtension(Context.Profile);
             if (!GetMappedInventoryName($"_inventory.{ext}", out var destFile)) return;
 
-            if (!IsInventoryUpToDate(destFile, packWriteTime, sourceTime)) {
+            if (!IsInventoryUpToDate(destFile, sourceTime)) {
                 await GenerateInventoryTextureAsync(destFile, token);
             }
             else {
@@ -153,7 +151,6 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                 return;
             }
 
-            //imageWriter.Format = context.ImageFormat;
             var diskSize = await ImageWriter.WriteAsync(itemImage, ImageChannels.ColorAlpha, destFile, token);
 
             Summary.IncrementTextureCount();
@@ -163,7 +160,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             logger.LogInformation("Published item texture {destFile}.", destFile);
         }
 
-        private bool IsOutputUpToDate(DateTime packWriteTime, DateTime? sourceTime)
+        private bool IsOutputUpToDate(DateTime? sourceTime)
         {
             DateTime? destinationTime = null;
 
@@ -197,7 +194,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                     sourceTime = metaTime.Value;
             }
 
-            return IsUpToDate(packWriteTime, sourceTime, destinationTime);
+            return IsUpToDate(Context.PackWriteTime, sourceTime, destinationTime);
         }
 
         private IEnumerable<string> GetMaterialInputFiles(IEnumerable<string> textureTags)
@@ -266,12 +263,10 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
             }
         }
 
-        private bool IsInventoryUpToDate(in string destFile, in DateTime packWriteTime, in DateTime? sourceTime)
+        private bool IsInventoryUpToDate(in string destFile, in DateTime? sourceTime)
         {
-            //if (!GetMappedInventoryName(suffix, out var destFile)) return false;
-
             var destinationTime = Writer.GetWriteTime(destFile);
-            return IsUpToDate(packWriteTime, sourceTime, destinationTime);
+            return IsUpToDate(Context.PackWriteTime, sourceTime, destinationTime);
         }
 
         private bool GetMappedInventoryName(in string suffix, out string destFile)
