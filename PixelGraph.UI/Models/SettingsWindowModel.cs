@@ -14,6 +14,8 @@ namespace PixelGraph.UI.Models
         //private bool _renderPreview_enableSlopeNormals;
         private bool _renderPreview_enableBloom;
         private int _renderPreview_waterMode;
+        private int _renderPreview_environmentCubeSize;
+        private int _renderPreview_irradianceCubeSize;
         //private bool _renderPreview_parallaxEnabled;
         private decimal? _renderPreview_parallaxDepth;
         //private int? _renderPreview_parallaxSamplesMin;
@@ -101,6 +103,24 @@ namespace PixelGraph.UI.Models
             get => _renderPreview_waterMode;
             set {
                 _renderPreview_waterMode = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public int RenderPreview_EnvironmentCubeSize {
+            get => _renderPreview_environmentCubeSize;
+            set {
+                _renderPreview_environmentCubeSize = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public int RenderPreview_IrradianceCubeSize {
+            get => _renderPreview_irradianceCubeSize;
+            set {
+                _renderPreview_irradianceCubeSize = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }

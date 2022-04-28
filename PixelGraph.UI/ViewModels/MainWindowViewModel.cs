@@ -702,11 +702,12 @@ namespace PixelGraph.UI.ViewModels
         private RenderContext BuildRenderContext()
         {
             var projectContext = projectContextMgr.GetContext();
+            //if (projectContext == null) return null;
 
             return new RenderContext {
                 RenderMode = RenderProperties.RenderMode,
-                PackInput = projectContext.Project.Input,
-                PackProfile = projectContext.SelectedProfile,
+                PackInput = projectContext?.Project.Input,
+                PackProfile = projectContext?.SelectedProfile,
                 DefaultMaterial = Model.SelectedTabMaterial,
                 MissingMaterial = RenderProperties.MissingMaterial,
                 DielectricBrdfLutMap = RenderProperties.DielectricBrdfLutMap,

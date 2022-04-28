@@ -21,8 +21,8 @@ namespace PixelGraph.Rendering.CubeMaps
         }
 
         public float Exposure {
-            get => _renderCore.Exposure;
-            set => _renderCore.Exposure = value;
+            get => _renderCore.Intensity;
+            set => _renderCore.Intensity = value;
         }
 
         private EquirectangularCubeMapCore _renderCore => RenderCore as EquirectangularCubeMapCore;
@@ -42,7 +42,7 @@ namespace PixelGraph.Rendering.CubeMaps
 
             c.FaceSize = FaceSize;
             c.Texture = Texture;
-            c.Exposure = Exposure;
+            c.Intensity = Exposure;
         }
 
         protected override IRenderTechnique OnCreateRenderTechnique(IRenderHost host)

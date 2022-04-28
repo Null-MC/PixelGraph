@@ -23,6 +23,21 @@ namespace PixelGraph.Rendering.Minecraft
             set => MeshCore.TintColor = value;
         }
 
+        public float ParallaxDepth {
+            get => MeshCore.ParallaxDepth;
+            set => MeshCore.ParallaxDepth = value;
+        }
+
+        public int ParallaxSamples {
+            get => MeshCore.ParallaxSamples;
+            set => MeshCore.ParallaxSamples = value;
+        }
+
+        public int WaterMode {
+            get => MeshCore.WaterMode;
+            set => MeshCore.WaterMode = value;
+        }
+
 
         public void Apply(DeviceContextProxy deviceContext)
         {
@@ -46,6 +61,9 @@ namespace PixelGraph.Rendering.Minecraft
 
             meshCore.BlendMode = BlendMode;
             meshCore.TintColor = TintColor;
+            meshCore.ParallaxDepth = ParallaxDepth;
+            meshCore.ParallaxSamples = ParallaxSamples;
+            meshCore.WaterMode = WaterMode;
         }
 
         protected override bool CanHitTest(HitTestContext context) => false;

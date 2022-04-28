@@ -88,22 +88,22 @@ float3 specular_IBL(const in float3 ref, const in float3 kS, const in float roug
     return tex_environment.SampleLevel(sampler_environment, ref, mip) * kS;
 }
 
-void IBL(float3 n, float3 v, float3 diffuse, float3 f0, float occlusion, float rough, out float3 ambient, out float3 specular)
+void IBL(float3 n, float3 v, float3 diffuse, float3 f0, float occlusion, float roughP, out float3 ambient, out float3 specular)
 {
     float3 indirect_diffuse = srgb_to_linear(vLightAmbient.rgb);
     float3 indirect_specular = indirect_diffuse;
     float3 specular_occlusion = 1.0;
 		
 	const float NoV = max(dot(n, v), 0.0);
-	const float3 kS = fresnelSchlickRoughness(f0, NoV, sqrt(rough));
+	const float3 kS = fresnelSchlickRoughness(f0, NoV, roughP);
     const float3 specular_color = lerp(f0, 1.0, kS); // WARN: wrong af
 	
-    if (EnableAtmosphere) {
+    if (bHasCubeMap) {
 		const float3 ref = reflect(-v, n);
     	
     	indirect_diffuse = diffuse_IBL(n, kS);
-		indirect_specular = specular_IBL(ref, kS, rough);
-		specular_occlusion = get_specular_occlusion(NoV, occlusion, rough);
+		indirect_specular = specular_IBL(ref, kS, roughP);
+		specular_occlusion = get_specular_occlusion(NoV, occlusion, roughP);
     }
 	
     ambient = diffuse * indirect_diffuse * occlusion;

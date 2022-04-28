@@ -38,15 +38,15 @@ namespace PixelGraph.Rendering.Minecraft
             set => SceneCore.Wetness = value;
         }
 
-        public float ParallaxDepth {
-            get => SceneCore.ParallaxDepth;
-            set => SceneCore.ParallaxDepth = value;
-        }
+        //public float ParallaxDepth {
+        //    get => SceneCore.ParallaxDepth;
+        //    set => SceneCore.ParallaxDepth = value;
+        //}
 
-        public int ParallaxSamples {
-            get => SceneCore.ParallaxSamples;
-            set => SceneCore.ParallaxSamples = value;
-        }
+        //public int ParallaxSamples {
+        //    get => SceneCore.ParallaxSamples;
+        //    set => SceneCore.ParallaxSamples = value;
+        //}
 
         public bool EnableLinearSampling {
             get => SceneCore.EnableLinearSampling;
@@ -58,10 +58,10 @@ namespace PixelGraph.Rendering.Minecraft
             set => SceneCore.EnableSlopeNormals = value;
         }
 
-        public int WaterMode {
-            get => SceneCore.WaterMode;
-            set => SceneCore.WaterMode = value;
-        }
+        //public int WaterMode {
+        //    get => SceneCore.WaterMode;
+        //    set => SceneCore.WaterMode = value;
+        //}
 
         public float ErpExposure {
             get => SceneCore.ErpExposure;
@@ -93,11 +93,11 @@ namespace PixelGraph.Rendering.Minecraft
             sceneCore.TimeOfDay = TimeOfDay;
             sceneCore.SunDirection = SunDirection;
             sceneCore.Wetness = Wetness;
-            sceneCore.ParallaxDepth = ParallaxDepth;
-            sceneCore.ParallaxSamples = ParallaxSamples;
+            //sceneCore.ParallaxDepth = ParallaxDepth;
+            //sceneCore.ParallaxSamples = ParallaxSamples;
             sceneCore.EnableLinearSampling = EnableLinearSampling;
             sceneCore.EnableSlopeNormals = EnableSlopeNormals;
-            sceneCore.WaterMode = WaterMode;
+            //sceneCore.WaterMode = WaterMode;
             sceneCore.ErpExposure = ErpExposure;
         }
 

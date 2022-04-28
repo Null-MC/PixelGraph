@@ -18,25 +18,24 @@ namespace PixelGraph.Rendering.CubeMaps
         private TextureModel _texture;
         private int textureSamplerSlot;
         private int textureSlot;
-        private float _exposure;
-        private bool isValid;
+        private float _intensity;
+        //private bool isValid;
 
         public TextureModel Texture {
             get => _texture;
             set {
                 if (SetAffectsRender(ref _texture, value) && IsAttached) {
                     UpdateTexture();
-                    isValid = false;
+                    IsRenderValid = false;
                 }
             }
         }
 
-        public float Exposure {
-            get => _exposure;
+        public float Intensity {
+            get => _intensity;
             set {
-                if (SetAffectsRender(ref _exposure, value)) {
-                    isValid = false;
-                }
+                if (SetAffectsRender(ref _intensity, value))
+                    IsRenderValid = false;
             }
         }
 
@@ -60,6 +59,7 @@ namespace PixelGraph.Rendering.CubeMaps
         protected override bool OnAttach(IRenderTechnique technique)
         {
             if (!base.OnAttach(technique)) return false;
+            IsRenderValid = false;
 
             geometryBuffer = Collect(new SkyBoxBufferModel());
             //defaultShaderPass = technique[CustomPassNames.Sky_ERP];
@@ -76,7 +76,7 @@ namespace PixelGraph.Rendering.CubeMaps
             RemoveAndDispose(ref textureSampler);
             RemoveAndDispose(ref textureView);
             geometryBuffer = null;
-            isValid = false;
+            //isValid = false;
 
             base.OnDetach();
         }
@@ -85,6 +85,8 @@ namespace PixelGraph.Rendering.CubeMaps
         {
             textureSlot = defaultShaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.EquirectangularTB);
             textureSamplerSlot = defaultShaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.EnvironmentCubeSampler);
+            IsRenderValid = false;
+
             base.OnDefaultPassChanged();
         }
 
@@ -95,8 +97,15 @@ namespace PixelGraph.Rendering.CubeMaps
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
-            if (_cubeMap != null && isValid) {
-                if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
+            //if (_cubeMap != null && IsRenderValid) {
+            //    //if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
+            //}
+
+            if (IsRenderValid) return;
+
+            if (CreateCubeMapResources()) {
+                RaiseInvalidateRender();
+                return;
             }
 
             base.Render(context, deviceContext);
@@ -105,7 +114,7 @@ namespace PixelGraph.Rendering.CubeMaps
             context.SharedResource.EnvironmentMapMipLevels = _cubeMap.TextureView.Description.TextureCube.MipLevels;
             
             //context.UpdatePerFrameData(true, false, deviceContext);
-            isValid = true;
+            //IsRenderValid = true;
         }
 
         protected override void RenderFace(RenderContext context, DeviceContextProxy deviceContext)

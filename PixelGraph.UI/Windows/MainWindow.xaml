@@ -9,10 +9,10 @@
                  xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                  xmlns:models="clr-namespace:PixelGraph.UI.Models"
                  xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
-                 d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
                  Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d"
-                 WindowState="Maximized" Loaded="OnWindowLoaded"
-                 ShowIconOnTitleBar="True" IconScalingMode="NoScaleSmallerFrame" TitleCharacterCasing="Normal"
+                 WindowState="Maximized" Loaded="OnWindowLoaded" TitleCharacterCasing="Normal"
+                 ShowIconOnTitleBar="True" IconScalingMode="NoScaleSmallerFrame"
+                 d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                  Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
@@ -296,23 +296,27 @@
                                 </DockPanel>
                             </Border>
                             <Grid>
-                                <controls:MaterialPropertiesControl DataChanged="OnMaterialPropertyChanged" ModelChanged="OnMaterialPropertiesModelChanged"
-                                                                    GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
-                                                                    Material="{Binding SelectedTabMaterial, Mode=OneWay}"
-                                                                    SelectedTag="{Binding SelectedTag, Mode=OneWay}"
-                                                                    IsEnabled="{Binding HasSelectedMaterial, Mode=OneWay}"
-                                                                    Visibility="{Binding IsEditModeMaterial, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                <controls:MaterialFiltersControl x:Name="FilterEditor" DataChanged="OnMaterialFiltersChanged"
-                                                                 Material="{Binding SelectedTabMaterial, Mode=OneWay}"
-                                                                 SelectedTag="{Binding SelectedTag, Mode=OneWay}"
-                                                                 IsEnabled="{Binding HasSelectedMaterial, Mode=OneWay}"
-                                                                 Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                <controls:MaterialConnectionsControl DataChanged="OnMaterialConnectionsChanged"
-                                                                     DataContext="{Binding ., Mode=OneWay}"
-                                                                     Material="{Binding SelectedTabMaterial, Mode=OneWay}"
-                                                                     IsEnabled="{Binding HasSelectedMaterial, Mode=OneWay}"
-                                                                     Visibility="{Binding IsEditModeConnections, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                <controls:ScenePropertiesControl
+                                <controls:MaterialPropertiesControl x:Name="MatPropertiesPanel"
+                                    DataChanged="OnMaterialPropertyChanged"
+                                    ModelChanged="OnMaterialPropertiesModelChanged"
+                                    GenerateNormal="OnGenerateNormal" GenerateOcclusion="OnGenerateOcclusion"
+                                    Material="{Binding SelectedTabMaterial, Mode=OneWay}"
+                                    SelectedTag="{Binding SelectedTag, Mode=OneWay}"
+                                    IsEnabled="{Binding HasSelectedMaterial, Mode=OneWay}"
+                                    Visibility="{Binding IsEditModeMaterial, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                <controls:MaterialFiltersControl x:Name="FilterEditor"
+                                    DataChanged="OnMaterialFiltersChanged"
+                                    Material="{Binding SelectedTabMaterial, Mode=OneWay}"
+                                    SelectedTag="{Binding SelectedTag, Mode=OneWay}"
+                                    IsEnabled="{Binding HasSelectedMaterial, Mode=OneWay}"
+                                    Visibility="{Binding IsEditModeFilters, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                <controls:MaterialConnectionsControl
+                                    DataChanged="OnMaterialConnectionsChanged"
+                                    DataContext="{Binding ., Mode=OneWay}"
+                                    Material="{Binding SelectedTabMaterial, Mode=OneWay}"
+                                    IsEnabled="{Binding HasSelectedMaterial, Mode=OneWay}"
+                                    Visibility="{Binding IsEditModeConnections, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                <controls:ScenePropertiesControl x:Name="scenePropertiesPanel"
                                     SceneProperties="{Binding SceneProperties, Mode=OneWay}"
                                     Visibility="{Binding IsEditModeScene, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             </Grid>
@@ -322,14 +326,15 @@
                         <Grid Grid.Column="2">
                             <DockPanel Visibility="{Binding HasSelectedTab, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <Grid Visibility="{Binding HasSelectedTab, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                                    <controls:TexturePreviewControl x:Name="texturePreview" RefreshClick="OnPreviewRefreshClick"
-                                                                    ShowOutline="{Binding IsEditModeFilters, Mode=OneWay}"
-                                                                    OutlineBounds="{Binding SelectedFilterBounds, Mode=OneWay, ElementName=FilterEditor}"
-                                                                    Visibility="{Binding IsViewModeLayer, Converter={StaticResource VisibilityConverter}}"/>
+                                    <controls:TexturePreviewControl x:Name="texturePreview"
+                                        RefreshClick="OnPreviewRefreshClick"
+                                        ShowOutline="{Binding IsEditModeFilters, Mode=OneWay}"
+                                        OutlineBounds="{Binding SelectedFilterBounds, Mode=OneWay, ElementName=FilterEditor}"
+                                        Visibility="{Binding IsViewModeLayer, Converter={StaticResource VisibilityConverter}}"/>
                                     <controls:RenderPreviewControl x:Name="renderPreview"
-                                                                   SceneProperties="{Binding SceneProperties, Mode=OneWay}"
-                                                                   RenderProperties="{Binding RenderProperties, Mode=OneWay}"
-                                                                   Visibility="{Binding IsViewModeRender, Converter={StaticResource VisibilityConverter}}"/>
+                                        SceneProperties="{Binding SceneProperties, Mode=OneWay}"
+                                        RenderProperties="{Binding RenderProperties, Mode=OneWay}"
+                                        Visibility="{Binding IsViewModeRender, Converter={StaticResource VisibilityConverter}}"/>
                                     <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                 Visibility="{Binding Preview.IsLoading, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                         <Button Width="20" Height="20" Margin="0,0,4,0" ToolTip="Cancel" Click="OnPreviewCancelClick" Padding="0" VerticalAlignment="Center"

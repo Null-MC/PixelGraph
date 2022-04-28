@@ -8,6 +8,7 @@
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:viewData="clr-namespace:PixelGraph.UI.ViewData"
              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" x:Name="Control"
+             Loaded="OnControlLoaded"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
     <UserControl.Resources>
         <converters:BooleanInverseConverter x:Key="InverseBoolConverter"/>
@@ -128,6 +129,7 @@
                                VerticalAlignment="Center" Margin="0,4,8,4" FontWeight="Bold"/>
                     <Slider Grid.Column="1" Grid.Row="2" Margin="0,4" VerticalAlignment="Center"
                             Minimum="0.0" Maximum="1.0" Delay="500" Interval="500"
+                            SmallChange="0.02" LargeChange="0.1"
                             Value="{Binding ErpIntensity, Mode=TwoWay}"
                             Style="{StaticResource MahApps.Styles.Slider.Flat}"/>
                 </Grid>

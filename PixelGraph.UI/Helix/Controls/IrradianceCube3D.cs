@@ -1,9 +1,11 @@
-﻿using System.Windows;
-using HelixToolkit.SharpDX.Core.Model.Scene;
+﻿using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.SharpDX.Core.Utilities;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
 using PixelGraph.Rendering.CubeMaps;
+using PixelGraph.Rendering.Shaders;
+using SharpDX.Direct3D11;
+using System.Windows;
 
 namespace PixelGraph.UI.Helix.Controls
 {
@@ -12,6 +14,11 @@ namespace PixelGraph.UI.Helix.Controls
         public ICubeMapSource EnvironmentCubeMapSource {
             get => (ICubeMapSource)GetValue(EnvironmentCubeMapSourceProperty);
             set => SetValue(EnvironmentCubeMapSourceProperty, value);
+        }
+
+        public SamplerStateDescription SamplerDescription {
+            get => (SamplerStateDescription)GetValue(SamplerDescriptionProperty);
+            set => SetValue(SamplerDescriptionProperty, value);
         }
 
         public int FaceSize {
@@ -32,6 +39,7 @@ namespace PixelGraph.UI.Helix.Controls
         {
             if (core is IrradianceCubeNode n) {
                 n.EnvironmentCubeMapSource = EnvironmentCubeMapSource;
+                n.SamplerDescription = SamplerDescription;
                 n.FaceSize = FaceSize;
             }
 
@@ -44,9 +52,15 @@ namespace PixelGraph.UI.Helix.Controls
                     node.EnvironmentCubeMapSource = (ICubeMapSource)e.NewValue;
             }));
 
+        public static readonly DependencyProperty SamplerDescriptionProperty =
+            DependencyProperty.Register(nameof(SamplerDescription), typeof(SamplerStateDescription), typeof(IrradianceCube3D), new PropertyMetadata(CustomSamplerStates.Environment, (d, e) => {
+                if (d is Element3DCore {SceneNode: IrradianceCubeNode sceneNode})
+                    sceneNode.SamplerDescription = (SamplerStateDescription)e.NewValue;
+            }));
+
         public static readonly DependencyProperty FaceSizeProperty =
             DependencyProperty.Register(nameof(FaceSize), typeof(int), typeof(IrradianceCube3D), new PropertyMetadata(128, (d, e) => {
-                if (d is Element3DCore {SceneNode: DynamicSkyCubeNode sceneNode})
+                if (d is Element3DCore {SceneNode: IrradianceCubeNode sceneNode})
                     sceneNode.FaceSize = (int)e.NewValue;
             }));
     }

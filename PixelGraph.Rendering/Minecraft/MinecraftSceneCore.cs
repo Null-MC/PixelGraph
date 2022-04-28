@@ -69,15 +69,15 @@ namespace PixelGraph.Rendering.Minecraft
             }
         }
 
-        public float ParallaxDepth {
-            get => data.ParallaxDepth;
-            set => SetAffectsRender(ref data.ParallaxDepth, value);
-        }
+        //public float ParallaxDepth {
+        //    get => data.ParallaxDepth;
+        //    set => SetAffectsRender(ref data.ParallaxDepth, value);
+        //}
 
-        public int ParallaxSamples {
-            get => data.ParallaxSamples;
-            set => SetAffectsRender(ref data.ParallaxSamples, value);
-        }
+        //public int ParallaxSamples {
+        //    get => data.ParallaxSamples;
+        //    set => SetAffectsRender(ref data.ParallaxSamples, value);
+        //}
 
         public bool EnableLinearSampling {
             get => data.EnableLinearSampling;
@@ -95,10 +95,10 @@ namespace PixelGraph.Rendering.Minecraft
             }
         }
 
-        public int WaterMode {
-            get => data.WaterMode;
-            set => SetAffectsRender(ref data.WaterMode, value);
-        }
+        //public int WaterMode {
+        //    get => data.WaterMode;
+        //    set => SetAffectsRender(ref data.WaterMode, value);
+        //}
 
         public float ErpExposure {
             get => data.ErpExposure;

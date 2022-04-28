@@ -20,6 +20,8 @@
         <viewData:AppThemeBaseValues x:Key="AppThemeBases"/>
         <viewData:AppThemeAccentValues x:Key="AppThemeAccents"/>
         <viewData:WaterModeValues x:Key="WaterModeValues"/>
+        <viewData:EnvironmentSizeList x:Key="EnvironmentSizeValues"/>
+        <viewData:IrradianceSizeList x:Key="IrradianceSizeValues"/>
         <converters:NullableConverter x:Key="NullableConverter"/>
     </Window.Resources>
     <DockPanel>
@@ -130,13 +132,28 @@
                                       IsChecked="{Binding RenderPreview_EnableBloom, Mode=TwoWay}"/>
                             <StackPanel Orientation="Horizontal" Margin="8">
                                 <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
-                                          Width="80" HorizontalContentAlignment="Center"
+                                          Width="128" HorizontalContentAlignment="Center"
                                           ToolTip="The method for applying water to the 3D preview."
                                           ItemsSource="{StaticResource WaterModeValues}"
                                           SelectedValue="{Binding RenderPreview_WaterMode}"/>
                                 <TextBlock Text="Water Mode" FontSize="14" Margin="8,0" VerticalAlignment="Center"/>
                             </StackPanel>
-
+                            <StackPanel Orientation="Horizontal" Margin="8">
+                                <ComboBox DisplayMemberPath="Name" SelectedValuePath="Value"
+                                          Width="128" HorizontalContentAlignment="Center"
+                                          ToolTip="The resolution to use for each length of the environment cube map."
+                                          ItemsSource="{StaticResource EnvironmentSizeValues}"
+                                          SelectedValue="{Binding RenderPreview_EnvironmentCubeSize}"/>
+                                <TextBlock Text="Environment Cube Resolution" FontSize="14" Margin="8,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="8">
+                                <ComboBox DisplayMemberPath="Name" SelectedValuePath="Value"
+                                          Width="128" HorizontalContentAlignment="Center"
+                                          ToolTip="The resolution to use for each length of the irradiance cube map."
+                                          ItemsSource="{StaticResource IrradianceSizeValues}"
+                                          SelectedValue="{Binding RenderPreview_IrradianceCubeSize}"/>
+                                <TextBlock Text="Irradiance Cube Resolution" FontSize="14" Margin="8,0" VerticalAlignment="Center"/>
+                            </StackPanel>
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Width="60" VerticalAlignment="Bottom"
                                         Content="Reset" Click="OnResetRenderPreviewClick"
@@ -157,7 +174,6 @@
                                          Text="{Binding RenderPreview_ParallaxSamples, Mode=TwoWay}"/>
                                 <TextBlock Text="Maximum Sample Count" FontSize="14" Margin="8,0" VerticalAlignment="Center"/>
                             </StackPanel>
-
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>

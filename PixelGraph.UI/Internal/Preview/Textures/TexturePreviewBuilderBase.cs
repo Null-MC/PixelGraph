@@ -134,7 +134,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                                 ? new Rectangle(0, 0, image.Width, image.Height)
                                 : frame.SourceBounds.ScaleTo(image.Width, image.Height);
 
-                            edgeFadeEffect.Apply(image, tag, outBounds);
+                            edgeFadeEffect.Apply(image, tag, outBounds, !hasColor);
 
                             if (context.EnablePalette) {
                                 image.Mutate(imgContext => imgContext.Quantize(quantizer.Value));

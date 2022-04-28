@@ -42,6 +42,21 @@ namespace PixelGraph.Rendering.Minecraft
             }
         }
 
+        public float ParallaxDepth {
+            get => data.ParallaxDepth;
+            set => SetAffectsRender(ref data.ParallaxDepth, value);
+        }
+
+        public int ParallaxSamples {
+            get => data.ParallaxSamples;
+            set => SetAffectsRender(ref data.ParallaxSamples, value);
+        }
+
+        public int WaterMode {
+            get => data.WaterMode;
+            set => SetAffectsRender(ref data.WaterMode, value);
+        }
+
 
         public MinecraftMeshCore() : base(RenderType.PreProc)
         {
@@ -66,7 +81,7 @@ namespace PixelGraph.Rendering.Minecraft
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
-            if (isRenderValid) return;
+            if (isRenderValid && !context.UpdateSceneGraphRequested) return;
 
             Apply(deviceContext);
             isRenderValid = true;

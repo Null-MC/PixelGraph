@@ -1,28 +1,39 @@
 ﻿using PixelGraph.Common.Textures;
-using PixelGraph.UI.Controls;
 using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData
 {
-    public class TextureItemList : List<MaterialPropertiesControl.TextureItem>
+    public class TextureItemList : List<TextureItemList.Item>
     {
         public TextureItemList()
         {
-            Add(new MaterialPropertiesControl.TextureItem {Name = "General", Key = TextureTags.General});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Color", Key = TextureTags.Color});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Opacity", Key = TextureTags.Opacity});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Height", Key = TextureTags.Height});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Normal", Key = TextureTags.Normal});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Occlusion", Key = TextureTags.Occlusion});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Specular", Key = TextureTags.Specular});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Smoothness", Key = TextureTags.Smooth});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Roughness", Key = TextureTags.Rough});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Metal", Key = TextureTags.Metal});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "HCM", Key = TextureTags.HCM});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "F0", Key = TextureTags.F0});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Porosity", Key = TextureTags.Porosity});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "SSS", Key = TextureTags.SubSurfaceScattering});
-            Add(new MaterialPropertiesControl.TextureItem {Name = "Emissive", Key = TextureTags.Emissive});
+            Add(new Item("General", TextureTags.General));
+            Add(new Item("Color", TextureTags.Color));
+            Add(new Item("Opacity", TextureTags.Opacity));
+            Add(new Item("Height", TextureTags.Height));
+            Add(new Item("Normal", TextureTags.Normal));
+            Add(new Item("Occlusion", TextureTags.Occlusion));
+            Add(new Item("Specular", TextureTags.Specular));
+            Add(new Item("Smoothness", TextureTags.Smooth));
+            Add(new Item("Roughness", TextureTags.Rough));
+            Add(new Item("Metal", TextureTags.Metal));
+            Add(new Item("HCM", TextureTags.HCM));
+            Add(new Item("F0", TextureTags.F0));
+            Add(new Item("Porosity", TextureTags.Porosity));
+            Add(new Item("SSS", TextureTags.SubSurfaceScattering));
+            Add(new Item("Emissive", TextureTags.Emissive));
+        }
+
+        public class Item
+        {
+            public string Name {get;}
+            public string Key {get;}
+
+            public Item(string name, string key)
+            {
+                Name = name;
+                Key = key;
+            }
         }
     }
 }

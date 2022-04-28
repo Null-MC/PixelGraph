@@ -37,7 +37,7 @@ struct pbr_material
 pbr_material get_pbr_material(const in float2 tex)
 {
 	const float4 albedo_opacity = tex_albedo_alpha.Sample(sampler_surface, tex);
-	const float2 smooth_occlusion = tex_rough_f0_occlusion.Sample(sampler_surface, tex).rb;
+	const float2 smooth_occlusion = tex_rough_f0_occlusion.Sample(sampler_height, tex).rb;
 	const float  f0_hcm = tex_rough_f0_occlusion.SampleLevel(sampler_surface, tex, 0).g;
 	const float3 porosity_sss_emissive = tex_porosity_sss_emissive.Sample(sampler_surface, tex).rgb;
 

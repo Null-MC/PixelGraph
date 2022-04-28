@@ -65,6 +65,8 @@ namespace PixelGraph.UI.Windows
                 Model = Model,
             };
 
+            scenePropertiesPanel.Initialize(provider);
+            MatPropertiesPanel.Initialize(provider);
             FilterEditor.Initialize(provider);
 
 #if !NORENDER
@@ -82,8 +84,6 @@ namespace PixelGraph.UI.Windows
             Model.SelectedLocation = ManualLocation;
 
             viewModel.TreeError += OnTreeViewError;
-
-            //Model.SelectedProfileChanged += OnSelectedProfileChanged;
         }
 
         private async Task RefreshPreview(CancellationToken token = default)
@@ -93,17 +93,6 @@ namespace PixelGraph.UI.Windows
             viewModel.InvalidateTab(Model.SelectedTab.Id);
             await viewModel.UpdateTabPreviewAsync(token);
         }
-
-        //private async Task SelectRootDirectoryAsync(CancellationToken token)
-        //{
-        //    var dialog = new VistaFolderBrowserDialog {
-        //        Description = "Please select a folder.",
-        //        UseDescriptionForTitle = true,
-        //    };
-
-        //    if (dialog.ShowDialog(this) == true)
-        //        await viewModel.SetRootDirectoryAsync(dialog.SelectedPath, token);
-        //}
 
         private async Task ShowImportFolderAsync()
         {
@@ -525,16 +514,10 @@ namespace PixelGraph.UI.Windows
         {
             var window = new PublishLocationsWindow(provider) {Owner = this};
 
-            //if (Model.SelectedLocation is { IsManualSelect: false })
-            //    window.Model.SelectedLocationItem = Model.SelectedLocation;
-
             try {
                 if (window.ShowDialog() != true) return;
 
                 viewModel.UpdatePublishLocations();
-
-                //Model.PublishLocations = window.Model.Locations.ToList();
-                //Model.SelectedLocation = window.Model.SelectedLocationItem;
             }
             catch (Exception error) {
                 logger.LogError(error, "An unhandled exception occurred in PublishLocationsWindow!");
@@ -544,16 +527,20 @@ namespace PixelGraph.UI.Windows
 
         private void OnSettingsClick(object sender, RoutedEventArgs e)
         {
-            var window = new SettingsWindow(provider) {
-                Owner = this,
-            };
+            var window = new SettingsWindow(provider) {Owner = this};
 
-            if (window.ShowDialog() == true) {
+            try {
+                if (window.ShowDialog() != true) return;
+
                 themeHelper.ApplyCurrent(this);
 
 #if !NORENDER
                 renderPreview.ViewModel.LoadAppSettings();
 #endif
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in SettingsWindow!");
+                ShowError($"An unknown error has occurred! {error.UnfoldMessageString()}");
             }
         }
 
@@ -678,16 +665,6 @@ namespace PixelGraph.UI.Windows
 
             window.ShowDialog();
         }
-
-        //private static string GetDefaultPackProfileName(string localFile)
-        //{
-        //    var name = Path.GetFileName(localFile);
-
-        //    if (name.EndsWith(".pack.yml", StringComparison.InvariantCultureIgnoreCase))
-        //        name = name[..^9];
-
-        //    return Path.GetFileNameWithoutExtension(name);
-        //}
 
         private async Task UpdateMaterialProperties(MaterialPropertyChangedEventArgs e)
         {
@@ -975,24 +952,6 @@ namespace PixelGraph.UI.Windows
         {
             viewModel.ReloadContent();
         }
-
-        //private async void OnSelectedProfileChanged(object sender, EventArgs e)
-        //{
-        //    var projectContext = projectContextMgr.GetContext();
-
-        //    if (projectContext != null)
-        //        projectContext.SelectedProfile = Model.SelectedProfile;
-
-        //    viewModel.InvalidateAllTabs();
-
-        //    if (Model.SelectedTab != null)
-        //        await viewModel.UpdateTabPreviewAsync();
-        //}
-
-        //private void OnPreviewCancelClick(object sender, RoutedEventArgs e)
-        //{
-        //    previewViewModel.Cancel();
-        //}
 
         private async void OnPublishLocationSelectionChanged(object sender, SelectionChangedEventArgs e)
         {

@@ -35,6 +35,8 @@ namespace PixelGraph.UI.Models.Scene
         private int _waterMode;
         private OrthographicCamera _sunCamera;
         private PerspectiveCamera _lightCamera;
+        private int _environmentMapSize;
+        private int _irradianceMapSize;
         private string _meshBlendMode;
         private string _meshTintColor;
         private bool _showIrradiance;
@@ -44,6 +46,24 @@ namespace PixelGraph.UI.Models.Scene
 
         internal ICubeMapSource DynamicSkyCubeSource {get; set;}
         internal ICubeMapSource ErpCubeSource {get; set;}
+
+        public int EnvironmentMapSize {
+            get => _environmentMapSize;
+            set {
+                if (_environmentMapSize == value) return;
+                _environmentMapSize = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int IrradianceMapSize {
+            get => _irradianceMapSize;
+            set {
+                if (_irradianceMapSize == value) return;
+                _irradianceMapSize = value;
+                OnPropertyChanged();
+            }
+        }
 
         public float ParallaxDepth {
             get => _parallaxDepth;

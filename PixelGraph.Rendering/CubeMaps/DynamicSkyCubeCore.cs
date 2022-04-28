@@ -60,11 +60,16 @@ namespace PixelGraph.Rendering.CubeMaps
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
             if (_scene == null) return;
-            if (_scene.LastUpdated == lastSceneUpdate) return;
+            if (IsRenderValid && _scene.LastUpdated == lastSceneUpdate) return;
 
             //if (_scene.IsRenderValid && _cubeMap != null) {
             //if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
             //}
+
+            if (CreateCubeMapResources()) {
+                RaiseInvalidateRender();
+                return;
+            }
 
             base.Render(context, deviceContext);
             
@@ -76,6 +81,7 @@ namespace PixelGraph.Rendering.CubeMaps
 
             //_scene.ResetValidation();
             lastSceneUpdate = _scene.LastUpdated;
+            //IsRenderValid = true;
         }
 
         protected override void RenderFace(RenderContext context, DeviceContextProxy deviceContext)

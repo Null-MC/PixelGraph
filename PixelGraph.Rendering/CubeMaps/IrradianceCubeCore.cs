@@ -61,8 +61,16 @@ namespace PixelGraph.Rendering.CubeMaps
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
-            if (_environmentCubeMapSource == null || sourceLastUpdated == _environmentCubeMapSource.LastUpdated) {
-                if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
+            //if (_environmentCubeMapSource == null || sourceLastUpdated == _environmentCubeMapSource.LastUpdated) {
+            //    if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
+            //}
+
+            if (_environmentCubeMapSource == null) return;
+            if (IsRenderValid && sourceLastUpdated == _environmentCubeMapSource.LastUpdated) return;
+
+            if (CreateCubeMapResources()) {
+                RaiseInvalidateRender();
+                return;
             }
 
             base.Render(context, deviceContext);
@@ -74,8 +82,6 @@ namespace PixelGraph.Rendering.CubeMaps
         {
             deviceContext.SetShaderResource(PixelShader.Type, environmentTextureSlot, _environmentCubeMapSource.CubeMap);
             deviceContext.SetSampler(PixelShader.Type, environmentSamplerSlot, textureSampler);
-
-            //defaultShaderPass.PixelShader.BindSampler(deviceContext, environmentSamplerSlot, textureSampler);
 
             var vertexStartSlot = 0;
             geometryBuffer.AttachBuffers(deviceContext, ref vertexStartSlot, EffectTechnique.EffectsManager);

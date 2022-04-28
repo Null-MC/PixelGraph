@@ -164,11 +164,11 @@ cbuffer cbMinecraftScene : register(b2)
     float TimeOfDay;
 	bool EnableLinearSampling = false;
     float Wetness;
-    int WaterMode = WATER_SURFACE;
+    //int WaterMode = WATER_SURFACE;
 	bool EnableSlopeNormals = false;
     //bool padding9;
-    float ParallaxDepth;
-    int ParallaxSamples;
+    //float ParallaxDepth;
+    //int ParallaxSamples;
     float ErpExposure;
     //int OpacityMode;
 	//float Padding2;
@@ -179,6 +179,9 @@ cbuffer cbMinecraftMesh : register(b4)
 {
     int BlendMode = 0;
     float3 TintColor = 1.0f;
+    float ParallaxDepth;
+    int ParallaxSamples;
+    int WaterMode = WATER_SURFACE;
 };
 #endif
 

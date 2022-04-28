@@ -31,30 +31,28 @@ namespace PixelGraph.Rendering.CubeMaps
         protected ShaderPass defaultShaderPass;
         protected ShaderResourceViewProxy _cubeMap;
         private RasterizerStateProxy rasterState;
-        //private TextureModel _texture;
         private Viewport viewport;
         private int _faceSize;
+        protected bool IsRenderValid;
+        protected string PassName;
+        protected Texture2DDescription TextureDesc;
 
         public virtual ShaderResourceViewProxy CubeMap => _cubeMap;
 
-        protected string PassName;
-        protected Texture2DDescription TextureDesc;
-        public long LastUpdated {get; set;}
+        public long LastUpdated {get; private set;}
         
         public int FaceSize {
             get => _faceSize;
-            set => SetAffectsRender(ref _faceSize, value);
+            set {
+                if (SetAffectsRender(ref _faceSize, value))
+                    IsRenderValid = false;
+            }
         }
 
         protected ShaderPass DefaultShaderPass {
             get => defaultShaderPass;
             private set => SetAffectsRender(ref defaultShaderPass, value);
         }
-
-        //public TextureModel Texture {
-        //    get => _texture;
-        //    set => SetAffectsRender(ref _texture, value);
-        //}
 
 
         protected CubeMapRenderCore(RenderType renderType) : base(renderType)
@@ -93,10 +91,10 @@ namespace PixelGraph.Rendering.CubeMaps
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
-            if (CreateCubeMapResources()) {
-                RaiseInvalidateRender();
-                return;
-            }
+            //if (CreateCubeMapResources()) {
+            //    RaiseInvalidateRender();
+            //    return;
+            //}
 
             context.IsInvertCullMode = true;
 
@@ -147,6 +145,7 @@ namespace PixelGraph.Rendering.CubeMaps
             }
 
             LastUpdated = Environment.TickCount64;
+            IsRenderValid = true;
 
             context.UpdatePerFrameData(true, false, deviceContext);
         }
@@ -174,7 +173,6 @@ namespace PixelGraph.Rendering.CubeMaps
         {
             contextPool = null;
             _cubeMap = null;
-            //skyTextureDesc.Width = skyTextureDesc.Height = 0;
             invertCullModeState = null;
             rasterState = null;
 
@@ -202,7 +200,7 @@ namespace PixelGraph.Rendering.CubeMaps
             return true;
         }
 
-        private bool CreateCubeMapResources()
+        protected bool CreateCubeMapResources()
         {
             if (TextureDesc.Width == _faceSize && _cubeMap is {IsDisposed: false}) return false;
 

@@ -3,8 +3,7 @@
 
 #pragma pack_matrix(row_major)
 
-//static const float sample_delta = 0.025f;
-static const float sample_delta = 0.02f;
+static const float sample_delta = 0.025f;
 
 
 float4 main(const in ps_input_cube input) : SV_TARGET
@@ -27,7 +26,7 @@ float4 main(const in ps_input_cube input) : SV_TARGET
 			// tangent space to world
 			const float3 sampleW = sampleT.x * right + sampleT.y * up + sampleT.z * view;
 
-			const float3 col = tex_environment.SampleLevel(sampler_environment, sampleW, 0);
+			const float3 col = tex_environment.SampleLevel(sampler_environment, sampleW, 4);
 
 			irradiance += col * cos_theta * sin_theta;
 			sample_count++;

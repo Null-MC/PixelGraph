@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.SharpDX.Core.Utilities;
 using PixelGraph.Rendering.Shaders;
 using SharpDX;
+using SharpDX.Direct3D11;
+using System.Collections.Generic;
 
 namespace PixelGraph.Rendering.CubeMaps
 {
@@ -13,6 +14,11 @@ namespace PixelGraph.Rendering.CubeMaps
         public ICubeMapSource EnvironmentCubeMapSource {
             get => ((IrradianceCubeCore)RenderCore).EnvironmentCubeMapSource;
             set => ((IrradianceCubeCore)RenderCore).EnvironmentCubeMapSource = value;
+        }
+
+        public SamplerStateDescription SamplerDescription {
+            get => ((IrradianceCubeCore)RenderCore).SamplerDescription;
+            set => ((IrradianceCubeCore)RenderCore).SamplerDescription = value;
         }
 
         public int FaceSize {
@@ -40,6 +46,7 @@ namespace PixelGraph.Rendering.CubeMaps
             if (core is not IrradianceCubeCore c) return;
 
             c.EnvironmentCubeMapSource = EnvironmentCubeMapSource;
+            c.SamplerDescription = SamplerDescription;
             c.FaceSize = FaceSize;
         }
 

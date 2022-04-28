@@ -17,7 +17,7 @@
             <StackPanel.DataContext>
                 <models:MaterialPropertiesModel x:Name="Model" DataChanged="OnDataChanged" ModelChanged="OnPropertyGridModelChanged"/>
             </StackPanel.DataContext>
-            <local:PropertyGridControl ProjectRootPath="{Binding ProjectRootPath, Mode=OneWay, ElementName=Control}">
+            <local:PropertyGridControl SelectFile="OnSelectFile">
                 <DataGrid.Style>
                     <Style TargetType="DataGrid" BasedOn="{StaticResource MahApps.Styles.DataGrid}">
                         <Style.Triggers>
@@ -75,8 +75,8 @@
                 <StackPanel Orientation="Vertical">
                     <TextBlock Margin="8,2" Text="Preview" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                               ProjectRootPath="{Binding ProjectRootPath, Mode=OneWay, ElementName=Control}"
+                    <local:PropertyGridControl SelectFile="OnSelectFile"
+                                               Style="{StaticResource MahApps.Styles.DataGrid}"
                                                ItemsSource="{Binding GeneralModelProperties, Mode=OneWay}"/>
                 </StackPanel>
             </Border>
@@ -85,8 +85,8 @@
                 <StackPanel Orientation="Vertical">
                     <TextBlock Margin="8,2" Text="Other" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                               ProjectRootPath="{Binding ProjectRootPath, Mode=OneWay, ElementName=Control}"
+                    <local:PropertyGridControl SelectFile="OnSelectFile"
+                                               Style="{StaticResource MahApps.Styles.DataGrid}"
                                                ItemsSource="{Binding ColorOtherProperties, Mode=OneWay}"/>
                 </StackPanel>
             </Border>
@@ -95,8 +95,8 @@
                 <StackPanel Orientation="Vertical">
                     <TextBlock Margin="8,2" Text="Edge Fading" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                               ProjectRootPath="{Binding ProjectRootPath, Mode=OneWay, ElementName=Control}"
+                    <local:PropertyGridControl SelectFile="OnSelectFile"
+                                               Style="{StaticResource MahApps.Styles.DataGrid}"
                                                ItemsSource="{Binding HeightEdgeProperties, Mode=OneWay}"/>
                 </StackPanel>
             </Border>
@@ -105,8 +105,8 @@
                 <StackPanel Orientation="Vertical">
                     <TextBlock Margin="8,2" Text="Filtering" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                               ProjectRootPath="{Binding ProjectRootPath, Mode=OneWay, ElementName=Control}"
+                    <local:PropertyGridControl SelectFile="OnSelectFile"
+                                               Style="{StaticResource MahApps.Styles.DataGrid}"
                                                ItemsSource="{Binding NormalFilterProperties, Mode=OneWay}"/>
                 </StackPanel>
             </Border>
@@ -120,8 +120,8 @@
                         <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                    Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                     </DockPanel>
-                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                               ProjectRootPath="{Binding ProjectRootPath, Mode=OneWay, ElementName=Control}"
+                    <local:PropertyGridControl SelectFile="OnSelectFile"
+                                               Style="{StaticResource MahApps.Styles.DataGrid}"
                                                ItemsSource="{Binding NormalGenerationProperties, Mode=OneWay}"/>
                 </StackPanel>
             </Border>
@@ -134,8 +134,8 @@
                         <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                    Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                     </DockPanel>
-                    <local:PropertyGridControl Style="{StaticResource MahApps.Styles.DataGrid}"
-                                               ProjectRootPath="{Binding ProjectRootPath, Mode=OneWay, ElementName=Control}"
+                    <local:PropertyGridControl SelectFile="OnSelectFile"
+                                               Style="{StaticResource MahApps.Styles.DataGrid}"
                                                ItemsSource="{Binding OcclusionGenerationProperties, Mode=OneWay}"/>
                 </StackPanel>
             </Border>

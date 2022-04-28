@@ -1,9 +1,6 @@
-﻿using Ookii.Dialogs.Wpf;
-using PixelGraph.Common.Extensions;
-using PixelGraph.UI.Internal;
+﻿using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.PropertyGrid;
 using System;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,16 +8,18 @@ using System.Windows.Input;
 
 namespace PixelGraph.UI.Controls
 {
+    public class SelectFileEventArgs : EventArgs
+    {
+        public object Value {get; set;}
+        public bool Success {get; set;}
+    }
+
     public partial class PropertyGridControl
     {
         private bool isEditing;
 
         public event EventHandler<PropertyGridChangedEventArgs> PropertyChanged;
-
-        public string ProjectRootPath {
-            get => (string)GetValue(ProjectRootPathProperty);
-            set => SetValue(ProjectRootPathProperty, value);
-        }
+        public event EventHandler<SelectFileEventArgs> SelectFile;
 
 
         public PropertyGridControl()
@@ -88,71 +87,27 @@ namespace PixelGraph.UI.Controls
             PropertyChanged?.Invoke(this, e);
         }
 
-        private string GetSourcePath(IEditPropertyRow editRow)
-        {
-            if (editRow.EditValue is string sourceValue) {
-                if (File.Exists(sourceValue)) return sourceValue;
-
-                var fullPath = PathEx.Join(ProjectRootPath, sourceValue);
-                fullPath = Path.GetFullPath(fullPath);
-
-                if (File.Exists(fullPath)) return fullPath;
-            }
-
-            // WARN: Add DefaultDirectory option instead since the control isn't type specific
-            //var modelsPath = PathEx.Join(ProjectRootPath, "assets/minecraft/models");
-
-            //if (Directory.Exists(modelsPath))
-            //    return modelsPath;
-
-            return null;
-        }
-
         private void OnSelectFileClick(object sender, RoutedEventArgs e)
         {
             var button = sender as UIElement;
             var row = button?.FindParent<DataGridRow>();
             if (row?.DataContext is not IEditTextPropertyRow editRow) return;
 
-            if (string.IsNullOrEmpty(ProjectRootPath)) {
-                // TODO: log and alert
-                return;
-            }
-
-            var dialog = new VistaOpenFileDialog {
-                Title = "Select Model File",
-                Filter = "JSON File|*.json|All Files|*.*",
-                CheckFileExists = true,
-            };
-
-            var sourcePath = GetSourcePath(editRow);
-            if (sourcePath != null) {
-                dialog.InitialDirectory = Path.GetDirectoryName(sourcePath);
-                dialog.FileName = sourcePath;
-            }
-
-            var window = Window.GetWindow(this);
-            if (dialog.ShowDialog(window) != true) return;
-
-            if (PathEx.TryGetRelative(ProjectRootPath, dialog.FileName, out var localPath)) {
-                editRow.EditValue = localPath;
-            }
-            else {
-                if (window != null) MessageBox.Show(window, "The selected path must be within the project root!", "Warning!", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
+            if (OnSelectFile(editRow.EditValue, out var newValue))
+                editRow.EditValue = newValue;
         }
 
-        //private void OnSelectColorClick(object sender, RoutedEventArgs e)
-        //{
-        //    var button = sender as UIElement;
-        //    var row = button?.FindParent<DataGridRow>();
-        //    if (row?.DataContext is not IEditTextPropertyRow editRow) return;
+        private bool OnSelectFile(in object value, out object result)
+        {
+            var e = new SelectFileEventArgs {
+                Value = value,
+            };
 
-        //    throw new NotImplementedException();
-        //}
+            SelectFile?.Invoke(this, e);
 
-        public static readonly DependencyProperty ProjectRootPathProperty = DependencyProperty
-            .Register(nameof(ProjectRootPath), typeof(string), typeof(PropertyGridControl));
+            result = e.Value;
+            return e.Success;
+        }
     }
 
     public class PropertyGridCellTemplateSelector : DataTemplateSelector

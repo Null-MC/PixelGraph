@@ -73,16 +73,16 @@
                 SunDirection="{Binding SceneProperties.SunDirection, Mode=OneWay}"
                 SunStrength="{Binding SceneProperties.SunStrength, Mode=OneWay}"
                 Wetness="{Binding SceneProperties.WetnessLinear, Mode=OneWay}"
-                ParallaxDepth="{Binding RenderProperties.ParallaxDepth, Mode=OneWay}"
-                ParallaxSamples="{Binding RenderProperties.ParallaxSamples, Mode=OneWay}"
                 EnableLinearSampling="{Binding SceneProperties.PomType.EnableLinearSampling, Mode=OneWay}"
                 EnableSlopeNormals="{Binding SceneProperties.PomType.EnableSlopeNormals, Mode=OneWay}"
-                WaterMode="{Binding RenderProperties.WaterMode, Mode=OneWay}"
                 ErpExposure="{Binding SceneProperties.ErpIntensity, Mode=OneWay}"/>
 
             <controls1:MinecraftMesh3D
                 BlendMode="{Binding RenderProperties.MeshBlendMode, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                TintColor="{Binding RenderProperties.MeshTintColor, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                TintColor="{Binding RenderProperties.MeshTintColor, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                ParallaxDepth="{Binding RenderProperties.ParallaxDepth, Mode=OneWay}"
+                ParallaxSamples="{Binding RenderProperties.ParallaxSamples, Mode=OneWay}"
+                WaterMode="{Binding RenderProperties.WaterMode, Mode=OneWay}"/>
 
             <hx:ShadowMap3D Resolution="2048,2048" Bias="0.001" Distance="24"
                             NearFieldDistance="1" FarFieldDistance="48" OrthoWidth="24">
@@ -98,14 +98,17 @@
                 </hx:ShadowMap3D.Style>
             </hx:ShadowMap3D>
 
-            <controls1:DynamicSkyCube3D x:Name="DynamicSkyCubeSource" FaceSize="512"
+            <controls1:DynamicSkyCube3D x:Name="DynamicSkyCubeSource"
+                FaceSize="{Binding RenderProperties.EnvironmentMapSize, Mode=OneWay}"
                 Scene="{Binding Mode=OneWay, Source={x:Reference MinecraftScene}}"
                 IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"/>
-            <controls1:EquirectangularCubeMap3D x:Name="EquirectangularCubeMapSource" FaceSize="512"
+            <controls1:EquirectangularCubeMap3D x:Name="EquirectangularCubeMapSource"
+                FaceSize="{Binding RenderProperties.EnvironmentMapSize, Mode=OneWay}"
                 Exposure="{Binding SceneProperties.ErpIntensity, Mode=OneWay}"
                 Texture="{Binding SceneProperties.EquirectangularMap, Mode=OneWay}"
                 IsRendering="{Binding SceneProperties.HasEquirectangularMap, Mode=OneWay}"/>
-            <controls1:IrradianceCube3D x:Name="IrradianceCubeMapSource" FaceSize="32"
+            <controls1:IrradianceCube3D x:Name="IrradianceCubeMapSource"
+                FaceSize="{Binding RenderProperties.IrradianceMapSize, Mode=OneWay}"
                 IsRendering="{Binding SceneProperties.HasEnvironmentMap, Mode=OneWay}">
                 <controls1:IrradianceCube3D.Style>
                     <Style TargetType="controls1:IrradianceCube3D">

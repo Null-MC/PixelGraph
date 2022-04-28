@@ -13,6 +13,7 @@ namespace PixelGraph.Common.ImageProcessors
         public ColorChannel[] Colors;
         public float SizeX, SizeY;
         public float Strength = 1f;
+        public bool IsGrayscale;
 
 
         public void Apply(Image image)
@@ -26,7 +27,7 @@ namespace PixelGraph.Common.ImageProcessors
 
             for (var x = 0; x < Bounds.Width; x++) {
                 float fx = 0f, fy = 0f;
-                if (!TryGetFactors(in x, pos.Y, ref fx, ref fy)) return;
+                if (!TryGetFactors(in x, pos.Y - Bounds.Y, ref fx, ref fy)) return;
 
                 var fadeValue = Math.Max(fx, fy);
 
@@ -37,7 +38,11 @@ namespace PixelGraph.Common.ImageProcessors
                     outVal = MathF.Max(srcValue, outVal);
 
                     if (srcValue.NearEqual(outVal)) continue;
-                    row[x].SetChannelValue(in Colors[i], in outVal);
+
+                    if (IsGrayscale)
+                        row[x].X = row[x].Y = row[x].Z = outVal;
+                    else
+                        row[x].SetChannelValue(in Colors[i], in outVal);
                 }
             }
         }
@@ -47,9 +52,9 @@ namespace PixelGraph.Common.ImageProcessors
             var hasChanges = false;
 
             if (SizeX > float.Epsilon) {
-                var right = Bounds.Right - 1;
+                var right = Bounds.Width - 1;
                 var sizeX = (int) MathF.Ceiling(SizeX * Bounds.Width);
-                var skipX = x > 0 + sizeX && x < right - sizeX;
+                var skipX = x > sizeX && x < right - sizeX;
 
                 if (!skipX) {
                     var fLeft = 1f - Math.Clamp(x / (float)sizeX, 0f, 1f);

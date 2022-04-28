@@ -39,15 +39,15 @@ namespace PixelGraph.UI.Helix.Controls
             set => SetValue(WetnessProperty, value);
         }
 
-        public float ParallaxDepth {
-            get => (float)GetValue(ParallaxDepthProperty);
-            set => SetValue(ParallaxDepthProperty, value);
-        }
+        //public float ParallaxDepth {
+        //    get => (float)GetValue(ParallaxDepthProperty);
+        //    set => SetValue(ParallaxDepthProperty, value);
+        //}
 
-        public int ParallaxSamples {
-            get => (int)GetValue(ParallaxSamplesProperty);
-            set => SetValue(ParallaxSamplesProperty, value);
-        }
+        //public int ParallaxSamples {
+        //    get => (int)GetValue(ParallaxSamplesProperty);
+        //    set => SetValue(ParallaxSamplesProperty, value);
+        //}
 
         public bool EnableLinearSampling {
             get => (bool)GetValue(EnableLinearSamplingProperty);
@@ -59,10 +59,10 @@ namespace PixelGraph.UI.Helix.Controls
             set => SetValue(EnableSlopeNormalsProperty, value);
         }
 
-        public int WaterMode {
-            get => (int)GetValue(WaterModeProperty);
-            set => SetValue(WaterModeProperty, value);
-        }
+        //public int WaterMode {
+        //    get => (int)GetValue(WaterModeProperty);
+        //    set => SetValue(WaterModeProperty, value);
+        //}
 
         public float ErpExposure {
             get => (float)GetValue(ErpExposureProperty);
@@ -95,11 +95,11 @@ namespace PixelGraph.UI.Helix.Controls
             n.SunStrength = SunStrength;
             n.TimeOfDay = TimeOfDay;
             n.Wetness = Wetness;
-            n.ParallaxDepth = ParallaxDepth;
-            n.ParallaxSamples = ParallaxSamples;
+            //n.ParallaxDepth = ParallaxDepth;
+            //n.ParallaxSamples = ParallaxSamples;
             n.EnableLinearSampling = EnableLinearSampling;
             n.EnableSlopeNormals = EnableSlopeNormals;
-            n.WaterMode = WaterMode;
+            //n.WaterMode = WaterMode;
             n.ErpExposure = ErpExposure;
         }
 
@@ -133,17 +133,17 @@ namespace PixelGraph.UI.Helix.Controls
                     sceneNode.Wetness = (float)e.NewValue;
             }));
 
-        public static readonly DependencyProperty ParallaxDepthProperty = DependencyProperty
-            .Register(nameof(ParallaxDepth), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(0f, (d, e) => {
-                if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
-                    sceneNode.ParallaxDepth = (float)e.NewValue;
-            }));
+        //public static readonly DependencyProperty ParallaxDepthProperty = DependencyProperty
+        //    .Register(nameof(ParallaxDepth), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(0f, (d, e) => {
+        //        if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
+        //            sceneNode.ParallaxDepth = (float)e.NewValue;
+        //    }));
 
-        public static readonly DependencyProperty ParallaxSamplesProperty = DependencyProperty
-            .Register(nameof(ParallaxSamples), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(128, (d, e) => {
-                if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
-                    sceneNode.ParallaxSamples = (int)e.NewValue;
-            }));
+        //public static readonly DependencyProperty ParallaxSamplesProperty = DependencyProperty
+        //    .Register(nameof(ParallaxSamples), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(128, (d, e) => {
+        //        if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
+        //            sceneNode.ParallaxSamples = (int)e.NewValue;
+        //    }));
 
         public static readonly DependencyProperty EnableLinearSamplingProperty = DependencyProperty
             .Register(nameof(EnableLinearSampling), typeof(bool), typeof(MinecraftScene3D), new PropertyMetadata(false, (d, e) => {
@@ -157,11 +157,11 @@ namespace PixelGraph.UI.Helix.Controls
                     sceneNode.EnableSlopeNormals = (bool)e.NewValue;
             }));
 
-        public static readonly DependencyProperty WaterModeProperty = DependencyProperty
-            .Register(nameof(WaterMode), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
-                if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
-                    sceneNode.WaterMode = (int)e.NewValue;
-            }));
+        //public static readonly DependencyProperty WaterModeProperty = DependencyProperty
+        //    .Register(nameof(WaterMode), typeof(int), typeof(MinecraftScene3D), new PropertyMetadata(0, (d, e) => {
+        //        if (d is Element3DCore {SceneNode: MinecraftSceneNode sceneNode})
+        //            sceneNode.WaterMode = (int)e.NewValue;
+        //    }));
 
         public static readonly DependencyProperty ErpExposureProperty = DependencyProperty
             .Register(nameof(ErpExposure), typeof(float), typeof(MinecraftScene3D), new PropertyMetadata(1f, (d, e) => {

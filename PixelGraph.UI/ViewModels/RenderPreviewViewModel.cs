@@ -64,25 +64,18 @@ namespace PixelGraph.UI.ViewModels
 
         public void LoadAppSettings()
         {
-            //SceneProperties.EnableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling ?? RenderPreviewSettings.Default_EnableLinearSampling;
-            //SceneProperties.EnableSlopeNormals = appSettings.Data.RenderPreview.EnableSlopeNormals ?? RenderPreviewSettings.Default_EnableSlopeNormals;
-
             RenderProperties.ParallaxDepth = (float)(appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth);
-            //RenderProperties.ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
             RenderProperties.ParallaxSamples = appSettings.Data.RenderPreview.ParallaxSamples ?? RenderPreviewSettings.Default_ParallaxSamples;
             RenderProperties.EnableBloom = appSettings.Data.RenderPreview.EnableBloom ?? RenderPreviewSettings.Default_EnableBloom;
             RenderProperties.WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
+
+            RenderProperties.EnvironmentMapSize = appSettings.Data.RenderPreview.EnvironmentCubeSize ?? RenderPreviewSettings.Default_EnvironmentCubeSize;
+            RenderProperties.IrradianceMapSize = appSettings.Data.RenderPreview.IrradianceCubeSize ?? RenderPreviewSettings.Default_IrradianceCubeSize;
 
             if (appSettings.Data.RenderPreview.SelectedMode != null)
                 if (RenderPreviewMode.TryParse(appSettings.Data.RenderPreview.SelectedMode, out var renderMode))
                     RenderProperties.RenderMode = renderMode;
         }
-
-        //public void UpdateMaterials()
-        //{
-        //    tabPreviewMgr.InvalidateAllMaterialBuilders(true);
-        //    tabPreviewMgr.InvalidateAllMaterials(true);
-        //}
 
         public Task SaveRenderStateAsync(CancellationToken token = default)
         {

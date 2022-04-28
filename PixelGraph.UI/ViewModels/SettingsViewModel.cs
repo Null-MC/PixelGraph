@@ -35,6 +35,8 @@ namespace PixelGraph.UI.ViewModels
             //Model.RenderPreview_EnableSlopeNormals = appSettings.Data.RenderPreview.EnableSlopeNormals ?? RenderPreviewSettings.Default_EnableSlopeNormals;
             Model.RenderPreview_EnableBloom = appSettings.Data.RenderPreview.EnableBloom ?? RenderPreviewSettings.Default_EnableBloom;
             Model.RenderPreview_WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
+            Model.RenderPreview_EnvironmentCubeSize = appSettings.Data.RenderPreview.EnvironmentCubeSize ?? RenderPreviewSettings.Default_EnvironmentCubeSize;
+            Model.RenderPreview_IrradianceCubeSize = appSettings.Data.RenderPreview.IrradianceCubeSize ?? RenderPreviewSettings.Default_IrradianceCubeSize;
             //Model.RenderPreview_ParallaxEnabled = appSettings.Data.RenderPreview.ParallaxEnabled ?? RenderPreviewSettings.Default_ParallaxEnabled;
             Model.RenderPreview_ParallaxDepth = appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth;
             //Model.RenderPreview_ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
@@ -62,6 +64,8 @@ namespace PixelGraph.UI.ViewModels
             //Model.RenderPreview_EnableSlopeNormals = RenderPreviewSettings.Default_EnableSlopeNormals;
             Model.RenderPreview_EnableBloom = RenderPreviewSettings.Default_EnableBloom;
             Model.RenderPreview_WaterMode = RenderPreviewSettings.Default_WaterMode;
+            Model.RenderPreview_EnvironmentCubeSize = RenderPreviewSettings.Default_EnvironmentCubeSize;
+            Model.RenderPreview_IrradianceCubeSize = RenderPreviewSettings.Default_IrradianceCubeSize;
             //Model.RenderPreview_ParallaxEnabled = RenderPreviewSettings.Default_ParallaxEnabled;
             Model.RenderPreview_ParallaxDepth = RenderPreviewSettings.Default_ParallaxDepth;
             //Model.RenderPreview_ParallaxSamplesMin = RenderPreviewSettings.Default_ParallaxSamplesMin;
@@ -83,6 +87,8 @@ namespace PixelGraph.UI.ViewModels
                 //appSettings.Data.RenderPreview.EnableSlopeNormals = Model.RenderPreview_EnableSlopeNormals == RenderPreviewSettings.Default_EnableSlopeNormals ? null : Model.RenderPreview_EnableSlopeNormals;
                 appSettings.Data.RenderPreview.EnableBloom = Model.RenderPreview_EnableBloom == RenderPreviewSettings.Default_EnableBloom ? null : Model.RenderPreview_EnableBloom;
                 appSettings.Data.RenderPreview.WaterMode = Model.RenderPreview_WaterMode == RenderPreviewSettings.Default_WaterMode ? null : Model.RenderPreview_WaterMode;
+                appSettings.Data.RenderPreview.EnvironmentCubeSize = Model.RenderPreview_EnvironmentCubeSize == RenderPreviewSettings.Default_EnvironmentCubeSize ? null : Model.RenderPreview_EnvironmentCubeSize;
+                appSettings.Data.RenderPreview.IrradianceCubeSize = Model.RenderPreview_IrradianceCubeSize == RenderPreviewSettings.Default_IrradianceCubeSize ? null : Model.RenderPreview_IrradianceCubeSize;
                 //appSettings.Data.RenderPreview.ParallaxEnabled = Model.RenderPreview_ParallaxEnabled == RenderPreviewSettings.Default_ParallaxEnabled ? null : Model.RenderPreview_ParallaxEnabled;
                 appSettings.Data.RenderPreview.ParallaxDepth = Model.RenderPreview_ParallaxDepth == RenderPreviewSettings.Default_ParallaxDepth ? null : Model.RenderPreview_ParallaxDepth;
                 //appSettings.Data.RenderPreview.ParallaxSamplesMin = Model.RenderPreview_ParallaxSamplesMin == RenderPreviewSettings.Default_ParallaxSamplesMin ? null : Model.RenderPreview_ParallaxSamplesMin;
