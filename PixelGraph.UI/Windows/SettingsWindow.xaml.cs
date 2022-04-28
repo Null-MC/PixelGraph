@@ -16,9 +16,9 @@ namespace PixelGraph.UI.Windows
 
         public SettingsWindow(IServiceProvider provider)
         {
-            var themeHelper = provider.GetRequiredService<IThemeHelper>();
-
             InitializeComponent();
+
+            var themeHelper = provider.GetRequiredService<IThemeHelper>();
             themeHelper.ApplyCurrent(this);
 
             viewModel = new SettingsViewModel(provider) {

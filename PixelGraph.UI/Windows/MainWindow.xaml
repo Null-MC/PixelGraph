@@ -122,8 +122,9 @@
             </MenuItem>
             <MenuItem Header="Help">
                 <MenuItem Header="Documentation" Icon="{iconPacks:FontAwesome QuestionSolid}" Click="OnHelpDocumentationClick"/>
-                <Separator/>
                 <MenuItem Header="View Logs" Icon="{iconPacks:FontAwesome FolderOpenSolid}" Click="OnHelpViewLogsClick"/>
+                <Separator/>
+                <MenuItem Header="About" Icon="{iconPacks:FontAwesome InfoCircleSolid}" Click="OnHelpAboutClick"/>
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1">

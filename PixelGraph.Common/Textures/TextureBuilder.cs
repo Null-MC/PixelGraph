@@ -286,7 +286,7 @@ namespace PixelGraph.Common.Textures
                     return true;
                 }
 
-                var path = context.Material.LocalPath;
+                //var path = context.Material.LocalPath;
                 if (inputChannel.__Filename != null && matReader.TryGetByName(inputChannel.__Filename, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(inputChannel);
                     return true;
@@ -311,55 +311,113 @@ namespace PixelGraph.Common.Textures
                 }
             }
             
-            // Rough > Smooth
             var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
-            var hasOuputRough = context.OutputEncoding.HasChannel(EncodingChannel.Rough);
-            if (isOutputSmooth && !hasOuputRough) {
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)
-                    && matReader.TryGetByTag(roughChannel.Texture, out mapping.SourceFilename)) {
-                    mapping.ApplyInputChannel(roughChannel);
-                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
-                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Rough);
-                    mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
-                    mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
-                    return true;
+            if (isOutputSmooth) {
+                // Rough > Smooth
+                var hasOuputRough = context.OutputEncoding.HasChannel(EncodingChannel.Rough);
+                if (!hasOuputRough) {
+                    if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)
+                        && matReader.TryGetByTag(roughChannel.Texture, out mapping.SourceFilename)) {
+                        mapping.ApplyInputChannel(roughChannel);
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Rough);
+                        mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                        mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+                        return true;
+                    }
+
+                    if (context.Material.TryGetChannelValue(EncodingChannel.Rough, out value)) {
+                        mapping.ApplyInputChannel(inputChannel);
+                        mapping.InputValue = (float)value;
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Rough);
+                        mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                        mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+                        return true;
+                    }
                 }
 
-                if (context.Material.TryGetChannelValue(EncodingChannel.Rough, out value)) {
-                    mapping.ApplyInputChannel(inputChannel);
-                    mapping.InputValue = (float)value;
-                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
-                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Rough);
-                    mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
-                    mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
-                    return true;
+                // Specular > Smooth
+                var hasOuputSpecular = context.OutputEncoding.HasChannel(EncodingChannel.Specular);
+                if (!hasOuputSpecular) {
+                    if (context.InputEncoding.TryGetChannel(EncodingChannel.Specular, out var specularChannel)
+                        && matReader.TryGetByTag(specularChannel.Texture, out mapping.SourceFilename)) {
+                        mapping.ApplyInputChannel(specularChannel);
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Specular);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Specular);
+                        //mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                        //mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+                        //mapping.Convert_SpecularToSmooth = true;
+                        return true;
+                    }
+
+                    if (context.Material.TryGetChannelValue(EncodingChannel.Specular, out value)) {
+                        mapping.ApplyInputChannel(inputChannel);
+                        mapping.InputValue = (float)value;
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Specular);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Specular);
+                        //mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                        //mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+                        mapping.InputValue = (float)value;
+                        return true;
+                    }
                 }
             }
 
-            // Smooth > Rough
             var isOutputRough = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Rough);
-            var hasOuputSmooth = context.OutputEncoding.HasChannel(EncodingChannel.Smooth);
-            if (isOutputRough && !hasOuputSmooth) {
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
-                    && matReader.TryGetByTag(smoothChannel.Texture, out mapping.SourceFilename)) {
-                    mapping.ApplyInputChannel(smoothChannel);
-                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
-                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
-                    mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
-                    mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+            if (isOutputRough) {
+                // Smooth > Rough
+                var hasOuputSmooth = context.OutputEncoding.HasChannel(EncodingChannel.Smooth);
+                if (!hasOuputSmooth) {
+                    if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
+                        && matReader.TryGetByTag(smoothChannel.Texture, out mapping.SourceFilename)) {
+                        mapping.ApplyInputChannel(smoothChannel);
+                        mapping.InputValueScale = (float)context.Material.GetChannelScale(EncodingChannel.Smooth);
+                        mapping.InputValueShift = (float)context.Material.GetChannelShift(EncodingChannel.Smooth);
+                        mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                        mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+                        return true;
+                    }
 
-                    return true;
+                    if (context.Material.TryGetChannelValue(EncodingChannel.Smooth, out value)) {
+                        mapping.ApplyInputChannel(inputChannel);
+                        mapping.InputValue = (float)value;
+                        mapping.InputValueScale = (float)context.Material.GetChannelScale(EncodingChannel.Smooth);
+                        mapping.InputValueShift = (float)context.Material.GetChannelShift(EncodingChannel.Smooth);
+                        mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                        mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+
+                        return true;
+                    }
                 }
 
-                if (context.Material.TryGetChannelValue(EncodingChannel.Smooth, out value)) {
-                    mapping.ApplyInputChannel(inputChannel);
-                    mapping.InputValue = (float)value;
-                    mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
-                    mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
-                    mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
-                    mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+                // Specular > Rough
+                var hasOuputSpecular = context.OutputEncoding.HasChannel(EncodingChannel.Specular);
+                if (!hasOuputSpecular) {
+                    if (context.InputEncoding.TryGetChannel(EncodingChannel.Specular, out var specularChannel)
+                        && matReader.TryGetByTag(specularChannel.Texture, out mapping.SourceFilename)) {
+                        mapping.ApplyInputChannel(specularChannel);
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Specular);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Specular);
+                        mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                        mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+                        //mapping.Convert_SpecularToRough = true;
+                        return true;
+                    }
 
-                    return true;
+                    if (context.Material.TryGetChannelValue(EncodingChannel.Specular, out value)) {
+                        mapping.ApplyInputChannel(inputChannel);
+                        mapping.InputValue = (float)value;
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Specular);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Specular);
+                        //mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                        //mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+                        //mapping.InputValue = MathEx.Invert((float)value,
+                        //    (float?)outputChannel.MinValue ?? 0f,
+                        //    (float?)outputChannel.MaxValue ?? 1f);
+
+                        return true;
+                    }
                 }
             }
 
@@ -371,6 +429,7 @@ namespace PixelGraph.Common.Textures
                         mapping.ApplyInputChannel(smoothChannel);
                         mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
                         mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
+                        //mapping.Convert_SmoothToSpecular = true;
                         return true;
                     }
 
@@ -379,6 +438,27 @@ namespace PixelGraph.Common.Textures
                         mapping.InputValue = (float)value;
                         mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
                         mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
+                        return true;
+                    }
+                }
+
+                // Rough > Specular
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)) {
+                    if (matReader.TryGetByTag(roughChannel.Texture, out mapping.SourceFilename)) {
+                        mapping.ApplyInputChannel(roughChannel);
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Rough);
+                        //mapping.Convert_RoughToSpecular = true;
+                        return true;
+                    }
+
+                    if (context.Material.TryGetChannelValue(EncodingChannel.Smooth, out value)) {
+                        mapping.ApplyInputChannel(smoothChannel);
+                        mapping.InputValue = (float)value;
+                        mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
+                        mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
+                        mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
+                        mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
                         return true;
                     }
                 }

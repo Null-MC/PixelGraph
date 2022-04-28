@@ -38,8 +38,9 @@ namespace PixelGraph.Common.Textures
         public bool OutputEnableClipping;
         public bool OutputApplyOcclusion;
 
-        public bool Convert_MetalToHcm;
-        public bool Convert_HcmToMetal;
+        public bool Convert_MetalToHcm, Convert_HcmToMetal;
+        //public bool Convert_SpecularToSmooth, Convert_SmoothToSpecular;
+        //public bool Convert_SpecularToRough, Convert_RoughToSpecular;
 
         public string SourceTag;
         public string SourceFilename;

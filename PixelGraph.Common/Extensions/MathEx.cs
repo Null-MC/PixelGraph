@@ -69,7 +69,12 @@ namespace PixelGraph.Common.Extensions
         //    value = 1f - value;
         //}
 
-        public static void Invert(ref float value, in float minValue, in float maxValue)
+        public static float Invert(in float value, in float minValue, in float maxValue)
+        {
+            return maxValue - (value - minValue);
+        }
+
+        public static void InvertRef(ref float value, in float minValue, in float maxValue)
         {
             value = maxValue - (value - minValue);
         }

@@ -612,12 +612,24 @@ namespace PixelGraph.UI.Windows
         private void OnHelpDocumentationClick(object sender, RoutedEventArgs e)
         {
             var info = new ProcessStartInfo {
-                FileName = @"https://github.com/null511/PixelGraph/wiki",
+                FileName = @"https://github.com/null511/PixelGraph-Release/wiki",
                 UseShellExecute = true,
             };
 
             using var process = Process.Start(info);
             process?.WaitForInputIdle(3_000);
+        }
+
+        private void OnHelpAboutClick(object sender, RoutedEventArgs e)
+        {
+            var window = new AboutWindow(provider) {Owner = this};
+
+            try {
+                window.ShowDialog();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in AboutWindow!");
+            }
         }
 
         private void OnHelpViewLogsClick(object sender, RoutedEventArgs e)

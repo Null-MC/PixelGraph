@@ -2,7 +2,7 @@
 
 namespace PixelGraph.Common
 {
-    internal static class AppCommon
+    public static class AppCommon
     {
         public static string Version {get;}
 

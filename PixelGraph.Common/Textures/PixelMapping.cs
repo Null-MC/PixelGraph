@@ -54,8 +54,9 @@ namespace PixelGraph.Common.Textures
         //public float ValueShift;
         //public bool Invert;
 
-        public bool Convert_MetalToHcm;
-        public bool Convert_HcmToMetal;
+        public bool Convert_MetalToHcm, Convert_HcmToMetal;
+        //public bool Convert_SpecularToSmooth, Convert_SmoothToSpecular;
+        //public bool Convert_SpecularToRough, Convert_RoughToSpecular;
 
 
         public PixelMapping(TextureChannelMapping mapping)
@@ -109,6 +110,10 @@ namespace PixelGraph.Common.Textures
 
             Convert_HcmToMetal = mapping.Convert_HcmToMetal;
             Convert_MetalToHcm = mapping.Convert_MetalToHcm;
+            //Convert_SpecularToSmooth = mapping.Convert_SpecularToSmooth;
+            //Convert_SmoothToSpecular = mapping.Convert_SmoothToSpecular;
+            //Convert_SpecularToRough = mapping.Convert_SpecularToRough;
+            //Convert_RoughToSpecular = mapping.Convert_RoughToSpecular;
         }
 
         public readonly bool TryUnmap(in byte pixelValue, out float value)
@@ -141,7 +146,7 @@ namespace PixelGraph.Common.Textures
 
             value += InputMinValue;
 
-            if (InputChannelInverted) MathEx.Invert(ref value, InputMinValue, InputMaxValue);
+            if (InputChannelInverted) MathEx.InvertRef(ref value, InputMinValue, InputMaxValue);
 
             if (hasInputChannelPower) value = MathF.Pow(value, inputPowerInv);
 
@@ -187,7 +192,7 @@ namespace PixelGraph.Common.Textures
 
             value += InputMinValue;
 
-            if (InputChannelInverted) MathEx.Invert(ref value, InputMinValue, InputMaxValue);
+            if (InputChannelInverted) MathEx.InvertRef(ref value, InputMinValue, InputMaxValue);
 
             if (hasInputChannelPower) value = MathF.Pow(value, inputPowerInv);
 
@@ -234,7 +239,7 @@ namespace PixelGraph.Common.Textures
 
             if (hasOutputPower) value = MathF.Pow(value, OutputChannelPower);
 
-            if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
+            if (OutputInverted) MathEx.InvertRef(ref value, OutputMinValue, OutputMaxValue);
 
             // convert from value-space to pixel-space
             //var valueRange = OutputMaxValue - OutputMinValue;
@@ -285,7 +290,7 @@ namespace PixelGraph.Common.Textures
 
             if (hasOutputPower) value = MathF.Pow(value, OutputChannelPower);
 
-            if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
+            if (OutputInverted) MathEx.InvertRef(ref value, OutputMinValue, OutputMaxValue);
 
             // convert from value-space to pixel-space
             //var valueRange = OutputMaxValue - OutputMinValue;

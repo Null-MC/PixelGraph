@@ -73,6 +73,18 @@ namespace PixelGraph.Common.ImageProcessors
 
                 value = map.OutputMaxValue;
             }
+            //else if (map.Convert_SmoothToSpecular) {
+            //    value = 2f / MathF.Pow(1f - value, 4) - 2f;
+            //}
+            //else if (map.Convert_SpecularToSmooth) {
+            //    value = 1f - MathF.Pow((value + 2f) * 2f, 0.25f);
+            //}
+            //else if (map.Convert_RoughToSpecular) {
+            //    value = 2f / MathF.Pow(value, 4) - 2f;
+            //}
+            //else if (map.Convert_SpecularToRough) {
+            //    value = MathF.Pow((value + 2f) * 2f, 0.25f);
+            //}
 
             return true;
         }

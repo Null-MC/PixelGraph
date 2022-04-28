@@ -45,7 +45,7 @@ namespace PixelGraph.Common.ImageProcessors
                 heightRowSampler.SampleScaled(in fx, in fy, in options.HeightInputColor, out var heightPixel);
                 if (!options.HeightMapping.TryUnmap(in heightPixel, out var heightValue)) continue;
 
-                MathEx.Invert(ref heightValue, 0f, 1f);
+                MathEx.InvertRef(ref heightValue, 0f, 1f);
                 if (hasZScale) heightValue *= zScale;
 
                 heightValue += bias * zScale;
@@ -86,7 +86,7 @@ namespace PixelGraph.Common.ImageProcessors
                 options.HeightSampler.SampleScaled(in fx, in fy, options.HeightInputColor, out var heightPixel);
                 if (!options.HeightMapping.TryUnmap(in heightPixel, out var heightValue)) continue;
 
-                MathEx.Invert(ref heightValue, 0f, 1f);
+                MathEx.InvertRef(ref heightValue, 0f, 1f);
                 if (hasZScale) heightValue *= zScale;
 
                 if (position.Z - heightValue > -float.Epsilon) continue;
