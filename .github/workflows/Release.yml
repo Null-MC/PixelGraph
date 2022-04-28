@@ -34,7 +34,6 @@ jobs:
   publish_ui:
     name: Publish UI
     runs-on: windows-latest
-    needs: [prepare_release]
     steps:
       - uses: actions/checkout@v3
         with:
