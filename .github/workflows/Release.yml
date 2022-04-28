@@ -1,3 +1,6 @@
+name: Release
+on: workflow_dispatch
+
   publish_cli:
     name: Publish CLI
     runs-on: ubuntu-latest
