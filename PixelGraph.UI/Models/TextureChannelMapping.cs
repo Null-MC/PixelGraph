@@ -1,13 +1,12 @@
 ﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
-using System;
 
 namespace PixelGraph.UI.Models
 {
     internal class TextureChannelMapping : ModelBase
     {
-        private ResourcePackChannelProperties _channel;
+        private PackEncodingChannel _channel;
         private string _textureDefault;
         private ColorChannel? _colorDefault;
         private string _samplerDefault;
@@ -19,7 +18,7 @@ namespace PixelGraph.UI.Models
         private decimal? _powerDefault;
         private bool? _invertDefault;
 
-        public event EventHandler DataChanged;
+        //public event EventHandler DataChanged;
 
         public string Texture => _channel?.Texture;
         public ColorChannel? Color => _channel?.Color;
@@ -260,7 +259,7 @@ namespace PixelGraph.UI.Models
             Label = label;
         }
 
-        public void SetChannel(ResourcePackChannelProperties channel)
+        public void SetChannel(PackEncodingChannel channel)
         {
             _channel = channel;
 
@@ -286,7 +285,7 @@ namespace PixelGraph.UI.Models
             OnPropertyChanged(nameof(EditInvert));
         }
 
-        public void ApplyDefaultValues(ResourcePackChannelProperties encodingDefaults, string sampler = null)
+        public void ApplyDefaultValues(PackEncodingChannel encodingDefaults, string sampler = null)
         {
             TextureDefault = encodingDefaults?.Texture;
             ColorDefault = encodingDefaults?.Color;
@@ -316,7 +315,7 @@ namespace PixelGraph.UI.Models
 
         private void OnDataChanged()
         {
-            DataChanged?.Invoke(this, EventArgs.Empty);
+            //DataChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

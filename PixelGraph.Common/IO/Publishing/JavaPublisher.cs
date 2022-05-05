@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PixelGraph.Common.ConnectedTextures;
-using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
 using System;
@@ -24,10 +24,10 @@ namespace PixelGraph.Common.IO.Publishing
             this.ctmPublish = ctmPublish;
         }
 
-        protected override async Task PublishPackMetaAsync(ResourcePackProfileProperties pack, CancellationToken token)
+        protected override async Task PublishPackMetaAsync(PublishProfileProperties pack, CancellationToken token)
         {
             var packMeta = new JavaPackMetadata {
-                PackFormat = pack.Format ?? ResourcePackProfileProperties.DefaultJavaFormat,
+                PackFormat = pack.Format ?? PublishProfileProperties.DefaultJavaFormat,
                 Description = pack.Description ?? string.Empty,
             };
 

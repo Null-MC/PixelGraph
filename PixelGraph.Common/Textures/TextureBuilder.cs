@@ -4,6 +4,7 @@ using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
@@ -21,8 +22,8 @@ namespace PixelGraph.Common.Textures
 {
     public interface ITextureBuilder
     {
-        ResourcePackChannelProperties[] InputChannels {get; set;}
-        ResourcePackChannelProperties[] OutputChannels {get; set;}
+        PackEncodingChannel[] InputChannels {get; set;}
+        PackEncodingChannel[] OutputChannels {get; set;}
         bool HasMappedSources {get;}
         int FrameCount {get;}
         int? TargetFrame {get; set;}
@@ -47,8 +48,8 @@ namespace PixelGraph.Common.Textures
         private Size bufferSize;
         private bool isGrayscale;
 
-        public ResourcePackChannelProperties[] InputChannels {get; set;}
-        public ResourcePackChannelProperties[] OutputChannels {get; set;}
+        public PackEncodingChannel[] InputChannels {get; set;}
+        public PackEncodingChannel[] OutputChannels {get; set;}
         public bool HasMappedSources {get; private set;}
         public int FrameCount {get; private set;}
         public int? TargetFrame {get; set;}
@@ -133,7 +134,7 @@ namespace PixelGraph.Common.Textures
 
             var autoLevel = context.Material.Height?.AutoLevel
                 ?? context.Profile?.AutoLevelHeight
-                ?? ResourcePackProfileProperties.AutoLevelHeightDefault;
+                ?? PublishProfileProperties.AutoLevelHeightDefault;
 
             if (targetSize.HasValue) {
                 bufferSize = targetSize.Value;
@@ -238,7 +239,7 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private bool TryBuildMapping(ResourcePackChannelProperties outputChannel, bool createEmpty, out TextureChannelMapping mapping)
+        private bool TryBuildMapping(PackEncodingChannel outputChannel, bool createEmpty, out TextureChannelMapping mapping)
         {
             mapping = new TextureChannelMapping {
                 Sampler = outputChannel.Sampler,

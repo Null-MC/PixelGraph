@@ -1,6 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
-using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Projects;
 using System;
 
 namespace PixelGraph.Common.IO
@@ -38,7 +38,7 @@ namespace PixelGraph.Common.IO
             return global ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
         }
 
-        public static string GetExtension(ResourcePackProfileProperties pack)
+        public static string GetExtension(PublishProfileProperties pack)
         {
             var encoding = pack.Encoding.Image ?? ImageExtensions.Default;
 

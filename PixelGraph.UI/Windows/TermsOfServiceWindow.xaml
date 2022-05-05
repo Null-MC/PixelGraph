@@ -1,0 +1,30 @@
+﻿<mah:MetroWindow x:Class="PixelGraph.UI.Windows.TermsOfServiceWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+        Title="PixelGraph TOS" Width="640" Height="480" mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen" TitleCharacterCasing="Normal" Loaded="OnWindowLoaded"
+        Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+        Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
+    <mah:MetroWindow.DataContext>
+        <vm:TermsOfServiceViewModel x:Name="Model"/>
+    </mah:MetroWindow.DataContext>
+    <DockPanel>
+        <Grid DockPanel.Dock="Bottom"
+              Background="{DynamicResource MahApps.Brushes.Accent4}">
+            <Button Content="Decline" Click="OnDeclineButtonClick"
+                    HorizontalAlignment="Left" Margin="6" Width="80"
+                    IsEnabled="{Binding HasNotAccepted, Mode=OneWay}"/>
+            <Button Content="Accept" HorizontalAlignment="Right" Margin="6"
+                    Click="OnAcceptButtonClick" Width="80"/>
+        </Grid>
+        <Grid Background="LightGray">
+            <FlowDocumentScrollViewer x:Name="Document"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Visible"/>
+        </Grid>
+    </DockPanel>
+</mah:MetroWindow>

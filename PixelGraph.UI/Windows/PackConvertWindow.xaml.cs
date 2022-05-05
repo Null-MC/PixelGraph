@@ -4,6 +4,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
@@ -82,8 +83,8 @@ namespace PixelGraph.UI.Windows
             importer.AsGlobal = false;
             importer.CopyUntracked = true;
             importer.IncludeUnknown = false;
-            importer.PackInput = Model.PackInput;
-            importer.PackProfile = new ResourcePackProfileProperties {
+            importer.Project = Model.Project;
+            importer.PackProfile = new PublishProfileProperties {
                 Encoding = Model.PackOutput,
             };
 
@@ -183,7 +184,7 @@ namespace PixelGraph.UI.Windows
             var window = new TextureFormatWindow {
                 Owner = this,
                 Model = {
-                    Encoding = (ResourcePackEncoding)Model.PackOutput.Clone(),
+                    Encoding = (PackEncoding)Model.PackOutput.Clone(),
                     DefaultEncoding = formatFactory.Create(),
                     //TextureFormat = Model.SourceFormat,
                     EnableSampler = false,
@@ -193,7 +194,7 @@ namespace PixelGraph.UI.Windows
 
             if (window.ShowDialog() != true) return;
 
-            Model.PackOutput = (ResourcePackOutputProperties)window.Model.Encoding;
+            Model.PackOutput = (PackOutputEncoding)window.Model.Encoding;
             //Model.SourceFormat = window.Model.TextureFormat;
         }
 

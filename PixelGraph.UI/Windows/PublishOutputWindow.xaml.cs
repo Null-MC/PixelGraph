@@ -3,7 +3,6 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
-using PixelGraph.UI.ViewModels;
 using System;
 using System.Windows;
 using System.Windows.Threading;
@@ -12,26 +11,22 @@ namespace PixelGraph.UI.Windows
 {
     public partial class PublishOutputWindow : IDisposable
     {
-        private readonly PublishOutputViewModel viewModel;
-
-
         public PublishOutputWindow(IServiceProvider provider)
         {
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
             var appSettings = provider.GetRequiredService<IAppSettings>();
 
             InitializeComponent();
+
             themeHelper.ApplyCurrent(this);
-
-            viewModel = new PublishOutputViewModel(provider) {
-                Model = Model,
-            };
-
-            viewModel.StateChanged += OnStatusChanged;
-            viewModel.LogAppended += OnLogAppended;
+            
+            Model.StateChanged += OnStatusChanged;
+            Model.LogAppended += OnLogAppended;
 
             Model.IsLoading = true;
             Model.CloseOnComplete = appSettings.Data.PublishCloseOnComplete;
+
+            Model.Initialize(provider);
             Model.IsLoading = false;
         }
 
@@ -45,7 +40,7 @@ namespace PixelGraph.UI.Windows
 
         public void Dispose()
         {
-            viewModel?.Dispose();
+            Model?.Dispose();
             GC.SuppressFinalize(this);
         }
 
@@ -54,7 +49,7 @@ namespace PixelGraph.UI.Windows
             Model.IsActive = true;
 
             try {
-                var success = await viewModel.PublishAsync();
+                var success = await Model.PublishAsync();
                 if (success && Model.CloseOnComplete) DialogResult = true;
             }
             catch (OperationCanceledException) {
@@ -67,8 +62,8 @@ namespace PixelGraph.UI.Windows
 
         private void OnWindowClosed(object sender, EventArgs e)
         {
-            viewModel.Cancel();
-            viewModel.Dispose();
+            Model.Cancel();
+            Model.Dispose();
         }
 
         private void OnLogAppended(object sender, LogEventArgs e)
@@ -78,12 +73,12 @@ namespace PixelGraph.UI.Windows
 
         private void OnCancelButtonClick(object sender, RoutedEventArgs e)
         {
-            viewModel.Cancel();
+            Model.Cancel();
         }
 
         private void OnCloseButtonClick(object sender, RoutedEventArgs e)
         {
-            viewModel.Cancel();
+            Model.Cancel();
             DialogResult = true;
         }
     }

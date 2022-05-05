@@ -1,8 +1,9 @@
-﻿using YamlDotNet.Serialization;
+﻿using System;
+using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
 {
-    public class ResourcePackInputProperties : ResourcePackEncoding
+    public class PackInputEncoding : PackEncoding, ICloneable
     {
         public const bool AutoMaterialDefault = false;
 

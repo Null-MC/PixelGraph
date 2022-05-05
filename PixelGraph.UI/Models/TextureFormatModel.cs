@@ -1,7 +1,7 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.Projects;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
-using System;
 
 namespace PixelGraph.UI.Models
 {
@@ -26,8 +26,8 @@ namespace PixelGraph.UI.Models
         private readonly TextureChannelMapping _sss;
         private readonly TextureChannelMapping _emissive;
         
-        private ResourcePackEncoding _encoding;
-        private ResourcePackEncoding _defaultEncoding;
+        private PackEncoding _encoding;
+        private PackEncoding _defaultEncoding;
         //public string _format, _sampler;
         private string _defaultSampler;
         private bool _enableSampler;
@@ -57,7 +57,7 @@ namespace PixelGraph.UI.Models
         //    }
         //}
 
-        public ResourcePackEncoding Encoding {
+        public PackEncoding Encoding {
             get => _encoding;
             set {
                 _encoding = value;
@@ -75,7 +75,7 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        public ResourcePackEncoding DefaultEncoding {
+        public PackEncoding DefaultEncoding {
             get => _defaultEncoding;
             set {
                 _defaultEncoding = value;

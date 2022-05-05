@@ -1,11 +1,14 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MahApps.Metro.IconPacks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Xaml.Behaviors.Core;
 using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
@@ -17,13 +20,16 @@ using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.Models.Tabs;
+using PixelGraph.UI.ViewData;
 using SixLabors.ImageSharp;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 #if !NORENDER
@@ -33,35 +39,333 @@ using PixelGraph.UI.Models.Scene;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class MainWindowViewModel
+    internal class MainWindowViewModel : ModelBase, ISearchParameters
     {
-        private readonly ILogger<MainWindowViewModel> logger;
-        private readonly IServiceProvider provider;
-        private readonly IRecentPathManager recentMgr;
-        private readonly ITabPreviewManager tabPreviewMgr;
-        private readonly IProjectContextManager projectContextMgr;
-        private readonly IPublishLocationManager publishLocationMgr;
-        private readonly MaterialPropertiesCache materialCache;
-        private readonly TextureEditUtility editUtility;
+        private readonly object busyLock;
+
+        private ILogger<MainWindowViewModel> logger;
+        private ITabPreviewManager tabPreviewMgr;
+        private IProjectContextManager projectContextMgr;
+        private IPublishLocationManager publishLocationMgr;
+        private MaterialPropertiesCache materialCache;
+        private TextureEditUtility editUtility;
+
+        private IServiceProvider _provider;
+        private volatile bool _isBusy, _isInitializing;
+        private volatile bool _isImageEditorOpen;
+        private List<LocationDisplayModel> _publishLocations;
+        private PublishProfileDisplayRow _selectedProfile;
+        private string _projectFilename;
+        private string _searchText;
+        private bool _showAllFiles;
+        private ContentTreeNode _selectedNode;
+        private LocationDisplayModel _selectedLocation;
+        private ContentTreeNode _treeRoot;
+        private ITabModel _tabListSelection;
+        private ITabModel _previewTab;
+        private bool _isPreviewTabSelected;
+        private ViewModes _viewMode;
+        private EditModes _editMode;
+        private string _selectedTag;
 
         public event EventHandler<UnhandledExceptionEventArgs> TreeError;
+        public event EventHandler SelectedTabChanged;
+        public event EventHandler SelectedTagChanged;
+        public event EventHandler ViewModeChanged;
+        public event EventHandler SelectedProfileChanged;
 
-        public MainWindowModel Model {get; set;}
-        public TexturePreviewModel TextureModel {get; set;}
-        public Dispatcher Dispatcher {get; set;}
+        public ObservableCollection<PublishProfileDisplayRow> ProfileList {get;}
+        public TexturePreviewModel TextureModel {get;}
+        public ObservableCollection<ITabModel> TabList {get;}
+        public ICommand TabCloseButtonCommand {get;}
+        public bool SupportsRender {get;}
 
-#if !NORENDER
-        public ScenePropertiesModel SceneProperties {get; set;}
-        public RenderPropertiesModel RenderProperties {get; set;}
+#if NORENDER
+        public MockScenePropertiesModel SceneProperties {get;}
+        public MockRenderPropertiesModel RenderProperties {get;}
+#else
+        public ScenePropertiesModel SceneProperties {get;}
+        public RenderPropertiesModel RenderProperties {get;}
 #endif
 
 
-        public MainWindowViewModel(IServiceProvider provider)
+        public bool IsInitializing => _isInitializing;
+        public bool IsProjectLoaded => _projectFilename != null;
+        public bool HasProfileSelected => _selectedProfile != null;
+        public bool HasTreeSelection => _selectedNode is ContentTreeFile;
+        public bool HasTreeMaterialSelection => _selectedNode is ContentTreeMaterialDirectory;
+        public bool HasTreeTextureSelection => _selectedNode is ContentTreeFile {Type: ContentNodeType.Texture};
+        public bool HasSelectedTag => _selectedTag != null;
+        public MaterialProperties SelectedTabMaterial => (SelectedTab as MaterialTabModel)?.MaterialRegistration?.Value;
+        public ITabModel SelectedTab => _isPreviewTabSelected ? _previewTab : _tabListSelection;
+        public bool HasSelectedMaterial => SelectedTab is MaterialTabModel;
+        public bool HasSelectedTab => IsPreviewTabSelected || TabListSelection != null;
+        public bool HasPreviewTab => PreviewTab != null;
+
+
+        public PublishProfileDisplayRow SelectedProfile {
+            get => _selectedProfile;
+            set {
+                if (value == _selectedProfile) return;
+                _selectedProfile = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasProfileSelected));
+
+                OnSelectedProfileChanged();
+            }
+        }
+
+        public ITabModel PreviewTab {
+            get => _previewTab;
+            set {
+                if (_previewTab == value) return;
+                _previewTab = value;
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasPreviewTab));
+
+                if (_isPreviewTabSelected) {
+                    OnPropertyChanged(nameof(SelectedTab));
+                    OnPropertyChanged(nameof(SelectedTabMaterial));
+                    OnPropertyChanged(nameof(HasSelectedMaterial));
+                    OnSelectedTabChanged();
+                }
+            }
+        }
+
+        public string SelectedTag {
+            get => _selectedTag;
+            set {
+                if (value == _selectedTag) return;
+
+                _selectedTag = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(HasSelectedTag));
+                OnSelectedTagChanged();
+            }
+        }
+
+        public bool IsViewModeLayer {
+            get => _viewMode == ViewModes.Layer;
+            set {
+                if (!value) return;
+                _viewMode = ViewModes.Layer;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsViewModeRender));
+                OnViewModeChanged();
+            }
+        }
+
+        public bool IsViewModeRender {
+            get => _viewMode == ViewModes.Render;
+            set {
+                if (!value) return;
+                _viewMode = ViewModes.Render;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsViewModeLayer));
+                OnViewModeChanged();
+            }
+        }
+
+        public bool IsEditModeMaterial {
+            get => _editMode == EditModes.Material;
+            set {
+                if (!value) return;
+                _editMode = EditModes.Material;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsEditModeFilters));
+                OnPropertyChanged(nameof(IsEditModeConnections));
+                OnPropertyChanged(nameof(IsEditModeScene));
+            }
+        }
+
+        public bool IsEditModeFilters {
+            get => _editMode == EditModes.Filters;
+            set {
+                if (!value) return;
+                _editMode = EditModes.Filters;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsEditModeMaterial));
+                OnPropertyChanged(nameof(IsEditModeConnections));
+                OnPropertyChanged(nameof(IsEditModeScene));
+            }
+        }
+
+        public bool IsEditModeConnections {
+            get => _editMode == EditModes.Connections;
+            set {
+                if (!value) return;
+                _editMode = EditModes.Connections;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsEditModeMaterial));
+                OnPropertyChanged(nameof(IsEditModeFilters));
+                OnPropertyChanged(nameof(IsEditModeScene));
+            }
+        }
+
+        public bool IsEditModeScene {
+            get => _editMode == EditModes.Scene;
+            set {
+                if (!value) return;
+                _editMode = EditModes.Scene;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsEditModeMaterial));
+                OnPropertyChanged(nameof(IsEditModeFilters));
+                OnPropertyChanged(nameof(IsEditModeConnections));
+            }
+        }
+
+        public bool IsPreviewTabSelected {
+            get => _isPreviewTabSelected;
+            set {
+                if (_isPreviewTabSelected == value) return;
+                _isPreviewTabSelected = value;
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasSelectedTab));
+
+                if (_isPreviewTabSelected) {
+                    OnPropertyChanged(nameof(SelectedTab));
+                    OnPropertyChanged(nameof(SelectedTabMaterial));
+                    OnPropertyChanged(nameof(HasSelectedMaterial));
+                }
+            }
+        }
+        
+        public ITabModel TabListSelection {
+            get => _tabListSelection;
+            set {
+                if (_tabListSelection == value) return;
+                _tabListSelection = value;
+
+                if (value != null && _isPreviewTabSelected)
+                    _isPreviewTabSelected = false;
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasSelectedMaterial));
+                OnPropertyChanged(nameof(IsPreviewTabSelected));
+                OnPropertyChanged(nameof(HasSelectedTab));
+
+                if (!_isPreviewTabSelected) {
+                    OnPropertyChanged(nameof(SelectedTab));
+                    OnPropertyChanged(nameof(SelectedTabMaterial));
+                    OnPropertyChanged(nameof(HasSelectedMaterial));
+                }
+
+                OnSelectedTabChanged();
+            }
+        }
+        
+        public string ProjectFilename {
+            get => _projectFilename;
+            set {
+                _projectFilename = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(IsProjectLoaded));
+            }
+        }
+        
+        public List<LocationDisplayModel> PublishLocations {
+            get => _publishLocations;
+            private set {
+                _publishLocations = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ContentTreeNode TreeRoot {
+            get => _treeRoot;
+            private set {
+                _treeRoot = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string SearchText {
+            get => _searchText;
+            set {
+                _searchText = value;
+                OnPropertyChanged();
+
+                TreeRoot.UpdateVisibility(this);
+            }
+        }
+
+        public bool ShowAllFiles {
+            get => _showAllFiles;
+            set {
+                _showAllFiles = value;
+                OnPropertyChanged();
+
+                TreeRoot.UpdateVisibility(this);
+            }
+        }
+
+        public ContentTreeNode SelectedNode {
+            get => _selectedNode;
+            set {
+                _selectedNode = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(HasTreeSelection));
+                NotifyTreeSelectionChanged();
+            }
+        }
+
+        public LocationDisplayModel SelectedLocation {
+            get => _selectedLocation;
+            set {
+                _selectedLocation = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsBusy {
+            get => _isBusy || _isInitializing;
+            set {
+                _isBusy = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsImageEditorOpen {
+            get => _isImageEditorOpen;
+            set {
+                _isImageEditorOpen = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        public MainWindowViewModel()
         {
-            this.provider = provider;
+            _publishLocations = new List<LocationDisplayModel>();
+            _treeRoot = new ContentTreeNode(null);
+            busyLock = new object();
+
+            TabList = new ObservableCollection<ITabModel>();
+            ProfileList = new ObservableCollection<PublishProfileDisplayRow>();
+            TabCloseButtonCommand = new ActionCommand(OnTabCloseButtonClicked);
+
+            _isInitializing = true;
+            _selectedTag = TextureTags.Color;
+
+#if !NORENDER
+            SupportsRender = true;
+            SceneProperties = new ScenePropertiesModel();
+            RenderProperties = new RenderPropertiesModel();
+#endif
+
+            TextureModel = new TexturePreviewModel();
+        }
+
+        public void Initialize(IServiceProvider provider)
+        {
+            _provider = provider;
 
             logger = provider.GetRequiredService<ILogger<MainWindowViewModel>>();
-            recentMgr = provider.GetRequiredService<IRecentPathManager>();
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
             projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
             publishLocationMgr = provider.GetRequiredService<IPublishLocationManager>();
@@ -73,33 +377,103 @@ namespace PixelGraph.UI.ViewModels
         {
             UpdatePublishLocations();
 
-            var settings = provider.GetRequiredService<IAppSettings>();
+            var settings = _provider.GetRequiredService<IAppSettings>();
 
             if (settings.Data.SelectedPublishLocation != null) {
-                var location = Model.PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
-                if (location != null) Model.SelectedLocation = location;
+                var location = PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
+                if (location != null) SelectedLocation = location;
+            }
+        }
+
+        public void EndInit()
+        {
+            _isInitializing = false;
+            OnPropertyChanged(nameof(IsInitializing));
+            OnPropertyChanged(nameof(IsBusy));
+        }
+
+        private bool TryStartBusy()
+        {
+            lock (busyLock) {
+                if (_isBusy) return false;
+                _isBusy = true;
             }
 
-            UpdateRecentProjectsList();
+            OnPropertyChanged(nameof(IsBusy));
+            return true;
+        }
 
-            Model.SelectedTabChanged += OnSelectedTabChanged;
-            Model.SelectedTagChanged += OnSelectedTagChanged;
-            Model.ViewModeChanged += OnViewModeChanged;
-            Model.TabClosed += OnTabClosed;
+        private void EndBusy()
+        {
+            lock (busyLock) {
+                _isBusy = false;
+            }
+
+            OnPropertyChanged(nameof(IsBusy));
+        }
+
+        private void NotifyTreeSelectionChanged()
+        {
+            OnPropertyChanged(nameof(HasTreeMaterialSelection));
+            OnPropertyChanged(nameof(HasTreeTextureSelection));
+        }
+
+        private void OnTabCloseButtonClicked(object parameter)
+        {
+            if (parameter is Guid tabId)
+                CloseTab(tabId);
+        }
+
+        private void OnSelectedTabChanged()
+        {
+            var tab = SelectedTab;
+            if (tab == null) return;
+
+            var context = tabPreviewMgr.Get(tab.Id);
+            if (context == null) throw new ApplicationException($"Tab context not found! id={SelectedTab.Id}");
 
 #if !NORENDER
-            RenderProperties.RenderModeChanged += OnRenderModeChanged;
+            if (tab is MaterialTabModel matTab) {
+                var mat = matTab.MaterialRegistration.Value;
+                RenderProperties.ApplyMaterial(mat);
+            }
+
+            RenderProperties.MeshParts = context.Mesh.ModelParts;
 #endif
+
+            TextureModel.Texture = context.GetLayerImageSource();
+
+            SelectedTabChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnSelectedTagChanged()
+        {
+            SelectedTagChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnViewModeChanged()
+        {
+            ViewModeChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnSelectedProfileChanged()
+        {
+            if (_isInitializing) return;
+
+            var context = projectContextMgr.GetContext();
+            if (context != null) context.SelectedProfile = SelectedProfile?.Profile;
+
+            SelectedProfileChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void Clear()
         {
             projectContextMgr.SetContext(null);
 
-            Model.ProfileList?.Clear();
-            Model.ProjectFilename = null;
-            Model.SelectedNode = null;
-            Model.TreeRoot = null;
+            ProfileList?.Clear();
+            ProjectFilename = null;
+            SelectedNode = null;
+            TreeRoot = null;
 
             materialCache.Clear();
         }
@@ -108,10 +482,10 @@ namespace PixelGraph.UI.ViewModels
         {
             tabPreviewMgr.Clear();
 
-            Model.IsPreviewTabSelected = false;
-            Model.TabListSelection = null;
-            Model.PreviewTab = null;
-            Model.TabList.Clear();
+            IsPreviewTabSelected = false;
+            TabListSelection = null;
+            PreviewTab = null;
+            TabList.Clear();
         }
 
         public async Task LoadProjectAsync(string filename)
@@ -128,25 +502,12 @@ namespace PixelGraph.UI.ViewModels
             projectContextMgr.SetContext(context);
         }
 
-        public Task AppendRecentProject(string filename, CancellationToken token = default)
+        public async Task LoadRootDirectoryAsync(Dispatcher dispatcher)
         {
-            recentMgr.Insert(filename);
-            return recentMgr.SaveAsync(token);
-        }
-
-        public async Task SetRootDirectoryAsync(CancellationToken token = default)
-        {
-            //await LoadRootDirectoryAsync();
-
-            await Dispatcher.BeginInvoke(UpdateRecentProjectsList);
-        }
-
-        public async Task LoadRootDirectoryAsync()
-        {
-            if (!Model.TryStartBusy()) return;
+            if (!TryStartBusy()) return;
 
             var projectContext = projectContextMgr.GetContext();
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+            var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();
             serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
@@ -154,58 +515,53 @@ namespace PixelGraph.UI.ViewModels
             
             await using var scope = serviceBuilder.Build();
 
-            //var reader = scope.GetRequiredService<IInputReader>();
             var loader = scope.GetRequiredService<IPublishReader>();
             var treeReader = scope.GetRequiredService<ContentTreeReader>();
 
             try {
-                //try {
-                //    await LoadPackInputAsync();
-                //}
-                //catch (Exception error) {
-                //    throw new ApplicationException("Failed to load pack input definitions!", error);
-                //}
-
+                _isInitializing = true;
                 loader.EnableAutoMaterial = projectContext.Project.Input?.AutoMaterial
-                    ?? ResourcePackInputProperties.AutoMaterialDefault;
-                
-                await Dispatcher.BeginInvoke(() => {
+                                            ?? PackInputEncoding.AutoMaterialDefault;
+
+                await dispatcher.BeginInvoke(() => {
                     UpdatePublishProfiles();
 
-                    Model.TreeRoot = new ContentTreeDirectory(null) {
+                    TreeRoot = new ContentTreeDirectory(null) {
                         LocalPath = null,
                     };
 
                     try {
-                        treeReader.Update(Model.TreeRoot);
+                        treeReader.Update(TreeRoot);
                     }
                     catch (Exception error) {
                         logger.LogError(error, "Failed to populate TreeView!");
                         OnTreeError(error);
                     }
 
-                    Model.TreeRoot.UpdateVisibility(Model);
+                    TreeRoot.UpdateVisibility(this);
 
                     // TODO: add 'selected-profile' to project to restore last selection?
-                    Model.SelectedProfile = projectContext.SelectedProfile = projectContext.Project.Profiles.FirstOrDefault();
-                    Model.EndBusy();
+                    projectContext.SelectedProfile = projectContext.Project.Profiles.FirstOrDefault();
+
+                    SelectedProfile = ProfileList.FirstOrDefault(p => p.Profile == projectContext.SelectedProfile);
+                    EndBusy();
                 });
             }
             catch {
-                await Dispatcher.BeginInvoke(() => {
-                    Model.EndBusy();
-                });
-
+                await dispatcher.BeginInvoke(EndBusy);
                 throw;
+            }
+            finally {
+                _isInitializing = false;
             }
         }
 
         public void ReloadContent()
         {
-            if (!Model.TryStartBusy()) return;
+            if (!TryStartBusy()) return;
 
             var projectContext = projectContextMgr.GetContext();
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+            var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();
             serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
@@ -217,135 +573,117 @@ namespace PixelGraph.UI.ViewModels
             var treeReader = scope.GetRequiredService<ContentTreeReader>();
 
             try {
-                loader.EnableAutoMaterial = projectContext.Project.Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
+                loader.EnableAutoMaterial = projectContext.Project.Input.AutoMaterial ?? PackInputEncoding.AutoMaterialDefault;
 
-                treeReader.Update(Model.TreeRoot);
-                Model.TreeRoot.UpdateVisibility(Model);
+                treeReader.Update(TreeRoot);
+                TreeRoot.UpdateVisibility(this);
             }
             finally {
-                Model.EndBusy();
+                EndBusy();
             }
         }
 
         public void ClearPreviewTab()
         {
-            if (Model.PreviewTab == null) return;
+            if (PreviewTab == null) return;
 
-            if (Model.PreviewTab is MaterialTabModel materialTab && materialTab.MaterialRegistration != null)
+            if (PreviewTab is MaterialTabModel materialTab && materialTab.MaterialRegistration != null)
                 materialCache.Release(materialTab.MaterialRegistration);
 
-            tabPreviewMgr.Remove(Model.PreviewTab.Id);
-            Model.PreviewTab = null;
-            Model.IsPreviewTabSelected = false;
+            tabPreviewMgr.Remove(PreviewTab.Id);
+            PreviewTab = null;
+            IsPreviewTabSelected = false;
         }
 
         public void SetPreviewTab(ITabModel newTab)
         {
-            if (Model.PreviewTab != null)
+            if (PreviewTab != null)
                 ClearPreviewTab();
 
-            var context = new TabPreviewContext(provider) {
+            var context = new TabPreviewContext(_provider) {
                 Id = newTab.Id,
             };
 
             tabPreviewMgr.Add(context);
-            Model.IsPreviewTabSelected = true;
-            Model.PreviewTab = newTab;
-            Model.TabListSelection = null;
+            IsPreviewTabSelected = true;
+            PreviewTab = newTab;
+            TabListSelection = null;
         }
 
         public void AddNewTab(ITabModel newTab)
         {
-            var context = new TabPreviewContext(provider) {
+            var context = new TabPreviewContext(_provider) {
                 Id = newTab.Id,
             };
 
             tabPreviewMgr.Add(context);
-            Model.TabList.Add(newTab);
-            Model.TabListSelection = newTab;
+            TabList.Add(newTab);
+            TabListSelection = newTab;
+        }
+
+        public bool HasAcceptedLicenseAgreement()
+        {
+            var settings = _provider.GetRequiredService<IAppSettings>();
+            return settings.Data.HasAcceptedLicenseAgreement ?? false;
+        }
+
+        public bool HasAcceptedTermsOfService()
+        {
+            var settings = _provider.GetRequiredService<IAppSettings>();
+            return settings.Data.HasAcceptedTermsOfService ?? false;
         }
 
         public void UpdatePublishLocations()
         {
-            Model.PublishLocations = publishLocationMgr.GetLocations()
+            PublishLocations = publishLocationMgr.GetLocations()
                 .Select(l => new LocationDisplayModel(l)).ToList();
 
             // TODO: this should probably be lock-wrapped as well...
-            Model.SelectedLocation = Model.PublishLocations.FirstOrDefault(l =>
+            SelectedLocation = PublishLocations.FirstOrDefault(l =>
                 string.Equals(l.DisplayName, publishLocationMgr.SelectedLocation, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public void UpdatePublishProfiles()
         {
             var projectContext = projectContextMgr.GetContext();
-            Model.ProfileList = new ObservableCollection<ResourcePackProfileProperties>(projectContext.Project.Profiles);
-            Model.SelectedProfile = projectContext.SelectedProfile;
+
+            ProfileList.Clear();
+            
+            foreach (var profile in projectContext.Project.Profiles)
+                ProfileList.Add(new PublishProfileDisplayRow(profile) {
+                    DefaultName = projectContext.Project.Name,
+                });
+
+            SelectedProfile = ProfileList.FirstOrDefault(p => p.Profile == projectContext.SelectedProfile);
         }
 
-        //public async Task UpdateSelectedProfileAsync()
-        //{
-        //    if (!Model.Profile.HasSelection) {
-        //        Model.Profile.Loaded = null;
-        //        return;
-        //    }
-
-        //    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
-
-        //    serviceBuilder.Initialize();
-        //    serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContextMgr.RootDirectory);
-
-        //    await using var scope = serviceBuilder.Build();
-
-        //    var packReader = scope.GetRequiredService<IResourcePackReader>();
-        //    var profile = await packReader.ReadProfileAsync(Model.Profile.Selected.LocalFile);
-
-        //    await Dispatcher.BeginInvoke(() => Model.Profile.Loaded = profile);
-        //}
-
-        //public async Task LoadPublishLocationsAsync(CancellationToken token = default)
-        //{
-        //    var locationMgr = provider.GetRequiredService<IPublishLocationManager>();
-
-        //    publishLocationList = await locationMgr.LoadAsync(token);
-        //}
-
-        public async Task LoadRecentProjectsAsync()
+        public async Task UpdateTabPreviewAsync(Dispatcher dispatcher, CancellationToken token = default)
         {
-            try {
-                await recentMgr.LoadAsync();
-            }
-            catch (Exception error) {
-                throw new ApplicationException("Failed to load recent projects list!", error);
-            }
-        }
-
-        public async Task UpdateTabPreviewAsync(CancellationToken token = default)
-        {
-            var tab = Model.SelectedTab;
+            var tab = SelectedTab;
             var context = tabPreviewMgr.Get(tab.Id);
             if (context == null) return;
 
             try {
-                tab.IsLoading = true;
-                await UpdateTabPreviewAsync(context, token);
+                await dispatcher.BeginInvoke(() => tab.IsLoading = true);
+                await Task.Run(() => UpdateTabPreviewAsync(dispatcher, context, token), token);
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to update tab preview!");
             }
             finally {
-                await Dispatcher.BeginInvoke(() => tab.IsLoading = false);
+                await dispatcher.BeginInvoke(() => tab.IsLoading = false);
             }
         }
 
-        private async Task UpdateTabPreviewAsync(TabPreviewContext context, CancellationToken token)
+        private async Task UpdateTabPreviewAsync(Dispatcher dispatcher, TabPreviewContext context, CancellationToken token)
         {
             try {
-                if (Model.SelectedTab is MaterialTabModel materialTab) {
+                if (SelectedTab is MaterialTabModel materialTab) {
                     var material = materialTab.MaterialRegistration.Value;
                     if (material == null || context.IsMaterialValid) return;
 
 #if !NORENDER
-                    if (Model.IsViewModeRender) {
+                    if (IsViewModeRender) {
                         //if (!context.IsMaterialBuilderValid)
                         //    await context.BuildModelMeshAsync(material, token);
 
@@ -358,8 +696,8 @@ namespace PixelGraph.UI.ViewModels
                             // TODO: show error modal!
                         }
 
-                        await Dispatcher.BeginInvoke(() => {
-                            if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
+                        await dispatcher.BeginInvoke(() => {
+                            if (SelectedTab == null || SelectedTab.Id != context.Id) return;
 
                             //RenderModel.MeshParts.Clear();
 
@@ -384,26 +722,19 @@ namespace PixelGraph.UI.ViewModels
                         });
                     }
 #endif
-                    if (!Model.IsViewModeRender) {
+                    if (!IsViewModeRender) {
                         if (context.IsLayerValid) return;
 
-                        //var packContext = new ResourcePackContext {
-                        //    //RootPath = projectContext.RootDirectory,
-                        //    Input = Model.PackInput,
-                        //    Profile = Model.Profile.Loaded,
-                        //};
-
                         var image = await Task.Run(async () => {
-                            using var previewBuilder = provider.GetRequiredService<ILayerPreviewBuilder>();
+                            using var previewBuilder = _provider.GetRequiredService<ILayerPreviewBuilder>();
                             var projectContext = projectContextMgr.GetContext();
 
-                            //previewBuilder.RootDirectory = context.RootPath;
-                            previewBuilder.Input = projectContext.Project.Input;
+                            previewBuilder.Project = projectContext.Project;
                             previewBuilder.Profile = projectContext.SelectedProfile;
                             previewBuilder.Material = material;
                             previewBuilder.TargetFrame = 0;
 
-                            var tag = Model.SelectedTag;
+                            var tag = SelectedTag;
                             if (TextureTags.Is(tag, TextureTags.General))
                                 tag = TextureTags.Color;
 
@@ -412,14 +743,12 @@ namespace PixelGraph.UI.ViewModels
                             //return await context.BuildLayerAsync(packContext, material, Model.SelectedTag, token);
                         }, token);
 
-                        await Dispatcher.BeginInvoke(() => {
+                        await dispatcher.BeginInvoke(() => {
                             context.SetImageSource(image);
 
-                            if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
+                            if (SelectedTab == null || SelectedTab.Id != context.Id) return;
 
 #if !NORENDER
-                            //RenderModel.ModelMaterial = null;
-                            //RenderModel.BlockMesh = null;
                             RenderProperties.MeshParts.Clear();
 #endif
 
@@ -428,18 +757,16 @@ namespace PixelGraph.UI.ViewModels
                     }
                 }
 
-                if (Model.SelectedTab is TextureTabModel textureTab) {
+                if (SelectedTab is TextureTabModel textureTab) {
                     if (context.LayerImage != null) return;
 
                     var projectContext = projectContextMgr.GetContext();
                     context.SourceFile = PathEx.Join(projectContext.RootDirectory, textureTab.ImageFilename);
 
-                    await Dispatcher.BeginInvoke(() => {
-                        if (Model.SelectedTab == null || Model.SelectedTab.Id != context.Id) return;
+                    await dispatcher.BeginInvoke(() => {
+                        if (SelectedTab == null || SelectedTab.Id != context.Id) return;
 
 #if !NORENDER
-                        //RenderModel.ModelMaterial = null;
-                        //RenderModel.BlockMesh = null;
                         RenderProperties.MeshParts.Clear();
 #endif
 
@@ -452,18 +779,18 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task GenerateNormalAsync(MaterialProperties material, string filename, CancellationToken token = default)
         {
-            if (!Model.TryStartBusy()) return;
+            if (!TryStartBusy()) return;
 
             var projectContext = projectContextMgr.GetContext();
 
             try {
                 var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
-                var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+                var inputEncoding = inputFormat?.Create() ?? new PackEncoding();
                 inputEncoding.Merge(projectContext.Project.Input);
                 inputEncoding.Merge(material);
 
                 await Task.Factory.StartNew(async () => {
-                    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+                    var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
 
                     serviceBuilder.Initialize();
                     serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
@@ -474,7 +801,7 @@ namespace PixelGraph.UI.ViewModels
                     var graph = scope.GetRequiredService<ITextureNormalGraph>();
                     var reader = scope.GetRequiredService<IInputReader>();
 
-                    context.Input = projectContext.Project.Input;
+                    context.Project = (IProjectDescription)projectContext.Project.Clone();
                     context.Material = material;
 
                     var matMetaFileIn = NamingStructure.GetInputMetaName(material);
@@ -488,24 +815,24 @@ namespace PixelGraph.UI.ViewModels
                 }, token);
             }
             finally {
-                Model.EndBusy();
+                EndBusy();
             }
         }
 
         public async Task GenerateOcclusionAsync(MaterialProperties material, string filename, CancellationToken token = default)
         {
-            if (!Model.TryStartBusy()) return;
+            if (!TryStartBusy()) return;
 
             var projectContext = projectContextMgr.GetContext();
 
             try {
                 var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
-                var inputEncoding = inputFormat?.Create() ?? new ResourcePackEncoding();
+                var inputEncoding = inputFormat?.Create() ?? new PackEncoding();
                 inputEncoding.Merge(projectContext.Project.Input);
                 inputEncoding.Merge(material);
 
                 await Task.Factory.StartNew(async () => {
-                    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+                    var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
 
                     serviceBuilder.Initialize();
                     serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
@@ -516,7 +843,7 @@ namespace PixelGraph.UI.ViewModels
                     var graph = scope.GetRequiredService<ITextureOcclusionGraph>();
                     var reader = scope.GetRequiredService<IInputReader>();
 
-                    context.Input = projectContext.Project.Input;
+                    context.Project = (IProjectDescription)projectContext.Project.Clone();
                     context.Material = material;
 
                     var matMetaFileIn = NamingStructure.GetInputMetaName(material);
@@ -550,7 +877,7 @@ namespace PixelGraph.UI.ViewModels
                 }, token);
             }
             finally {
-                Model.EndBusy();
+                EndBusy();
             }
         }
 
@@ -559,7 +886,7 @@ namespace PixelGraph.UI.ViewModels
             if (material == null) throw new ArgumentNullException(nameof(material));
 
             var projectContext = projectContextMgr.GetContext();
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+            var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
             
             serviceBuilder.Initialize();
             serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
@@ -578,7 +905,7 @@ namespace PixelGraph.UI.ViewModels
         public async Task<MaterialProperties> ImportTextureAsync(string filename, CancellationToken token = default)
         {
             var projectContext = projectContextMgr.GetContext();
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+            var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
             
             serviceBuilder.Initialize();
             serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
@@ -614,14 +941,6 @@ namespace PixelGraph.UI.ViewModels
             return material;
         }
 
-        public async Task RemoveRecentItemAsync(string item, CancellationToken token = default)
-        {
-            recentMgr.Remove(item);
-            UpdateRecentProjectsList();
-
-            await recentMgr.SaveAsync(token);
-        }
-
         public async Task LoadTabContentAsync(ITabModel tabModel, CancellationToken token = default)
         {
             if (tabModel is MaterialTabModel materialTab) {
@@ -629,19 +948,19 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public void CloseTab(Guid tabId)
+        private void CloseTab(Guid tabId)
         {
             ITabModel tab = null;
-            if (Model.PreviewTab?.Id == tabId) {
-                tab = Model.PreviewTab;
-                Model.PreviewTab = null;
+            if (PreviewTab?.Id == tabId) {
+                tab = PreviewTab;
+                PreviewTab = null;
             }
             else {
-                for (var i = Model.TabList.Count - 1; i >= 0; i--) {
-                    if (Model.TabList[i].Id != tabId) continue;
+                for (var i = TabList.Count - 1; i >= 0; i--) {
+                    if (TabList[i].Id != tabId) continue;
 
-                    tab = Model.TabList[i];
-                    Model.TabList.RemoveAt(i);
+                    tab = TabList[i];
+                    TabList.RemoveAt(i);
                     break;
                 }
             }
@@ -664,6 +983,12 @@ namespace PixelGraph.UI.ViewModels
 #endif
         }
 
+        public void InvalidateTabLayer()
+        {
+            if (SelectedTab == null) return;
+            tabPreviewMgr.Get(SelectedTab.Id)?.InvalidateLayer(false);
+        }
+
         public void InvalidateTabChannels(Guid tabId, string[] channels)
         {
             var context = tabPreviewMgr.Get(tabId);
@@ -681,14 +1006,6 @@ namespace PixelGraph.UI.ViewModels
             tabPreviewMgr.InvalidateAll(true);
         }
 
-        public void UpdateRecentProjectsList()
-        {
-            Model.RecentDirectories.Clear();
-
-            foreach (var item in recentMgr.Items)
-                Model.RecentDirectories.Add(item);
-        }
-
 #if !NORENDER
         public void UpdateMaterials()
         {
@@ -702,13 +1019,12 @@ namespace PixelGraph.UI.ViewModels
         private RenderContext BuildRenderContext()
         {
             var projectContext = projectContextMgr.GetContext();
-            //if (projectContext == null) return null;
 
             return new RenderContext {
                 RenderMode = RenderProperties.RenderMode,
-                PackInput = projectContext?.Project.Input,
+                Project = projectContext?.Project,
                 PackProfile = projectContext?.SelectedProfile,
-                DefaultMaterial = Model.SelectedTabMaterial,
+                DefaultMaterial = SelectedTabMaterial,
                 MissingMaterial = RenderProperties.MissingMaterial,
                 DielectricBrdfLutMap = RenderProperties.DielectricBrdfLutMap,
                 IrradianceCubeMap = RenderProperties.IrradianceCube,
@@ -727,17 +1043,17 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task BeginExternalEditAsync(CancellationToken token = default)
         {
-            if (Model.SelectedTab is not MaterialTabModel materialTab) return;
+            if (SelectedTab is not MaterialTabModel materialTab) return;
             
             var selectedMaterial = materialTab.MaterialRegistration.Value;
             if (selectedMaterial == null) return;
 
-            if (!Model.HasSelectedTag) return;
+            if (!HasSelectedTag) return;
 
             try {
-                Model.IsImageEditorOpen = true;
+                IsImageEditorOpen = true;
 
-                var success = await editUtility.EditLayerAsync(selectedMaterial, Model.SelectedTag, token);
+                var success = await editUtility.EditLayerAsync(selectedMaterial, SelectedTag, token);
                 if (!success) return;
             }
             catch (Exception error) {
@@ -746,111 +1062,80 @@ namespace PixelGraph.UI.ViewModels
                 throw new ApplicationException("Failed to launch external image editor!", error);
             }
             finally {
-                Model.IsImageEditorOpen = false;
+                IsImageEditorOpen = false;
             }
         }
 
         public void CancelExternalImageEdit()
         {
             editUtility.Cancel();
-            Model.IsImageEditorOpen = false;
+            IsImageEditorOpen = false;
         }
 
         #endregion
-
-        //private async Task LoadPackInputAsync()
-        //{
-        //    var projectContext = projectContextMgr.GetContext();
-        //    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
-
-        //    serviceBuilder.Initialize();
-        //    serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
-
-        //    await using var scope = serviceBuilder.Build();
-
-        //    var packReader = scope.GetRequiredService<IResourcePackReader>();
-
-        //    var packInput = await packReader.ReadInputAsync("input.yml")
-        //                    ?? new ResourcePackInputProperties {
-        //                        Format = TextureFormat.Format_Raw,
-        //                    };
-
-        //    Application.Current.Dispatcher.Invoke(() => Model.PackInput = packInput);
-        //}
 
         private void OnTreeError(Exception error)
         {
             var e = new UnhandledExceptionEventArgs(error, false);
             TreeError?.Invoke(this, e);
         }
+    }
 
-        private void OnTabClosed(object sender, TabClosedEventArgs e)
+    internal class MainWindowDesignerViewModel : MainWindowViewModel
+    {
+        public MainWindowDesignerViewModel()
         {
-            CloseTab(e.TabId);
+            AddTreeItems();
+
+            ProjectFilename = "x:\\dev\\test-rp\\project.yml";
+            //IsBusy = true;
+            SearchText = "as";
+            ShowAllFiles = true;
+            //IsPreviewLoading = true;
+
+            PreviewTab = new MaterialTabModel {
+                DisplayName = "Bricks",
+                IsPreview = true,
+            };
         }
 
-        private async void OnSelectedTabChanged(object sender, EventArgs e)
+        private void AddTreeItems()
         {
-            var tab = Model.SelectedTab;
-            if (tab == null) return;
+            IsPreviewTabSelected = true;
+            PreviewTab = new MaterialTabModel {
+                DisplayName = "Test Material",
+            };
 
-            var context = tabPreviewMgr.Get(tab.Id);
-            if (context == null) throw new ApplicationException($"Tab context not found! id={Model.SelectedTab.Id}");
-
-#if !NORENDER
-            if (tab is MaterialTabModel matTab) {
-                var mat = matTab.MaterialRegistration.Value;
-                RenderProperties.ApplyMaterial(mat);
-                //RenderModel.MeshBlendMode = mat?.BlendMode;
-                //RenderModel.MeshTintColor = mat?.TintColor;
-            }
-
-            RenderProperties.MeshParts = context.Mesh.ModelParts;
-            //RenderModel.ModelMaterial = context.ModelMaterial;
-#endif
-
-            TextureModel.Texture = context.GetLayerImageSource();
-            //tab.IsLoading = true;
-
-            await UpdateTabPreviewAsync();
+            TreeRoot.Nodes.Add(new ContentTreeDirectory(null) {
+                Name = "assets",
+                Nodes = {
+                    new ContentTreeDirectory(null) {
+                        Name = "minecraft",
+                        Nodes = {
+                            new ContentTreeFile(null) {
+                                Name = "Dirt",
+                                Type = ContentNodeType.Texture,
+                                Icon = PackIconFontAwesomeKind.ImageSolid,
+                            },
+                            new ContentTreeFile(null) {
+                                Name = "Grass",
+                                Type = ContentNodeType.Texture,
+                                Icon = PackIconFontAwesomeKind.ImageSolid,
+                            },
+                            new ContentTreeFile(null) {
+                                Name = "Glass",
+                                Type = ContentNodeType.Texture,
+                                Icon = PackIconFontAwesomeKind.ImageSolid,
+                            },
+                            new ContentTreeFile(null) {
+                                Name = "Stone",
+                                Type = ContentNodeType.Texture,
+                                Icon = PackIconFontAwesomeKind.ImageSolid,
+                            },
+                        },
+                    },
+                },
+            });
         }
-
-        private async void OnSelectedTagChanged(object sender, EventArgs e)
-        {
-            tabPreviewMgr.InvalidateAllLayers(true);
-
-            if (Model.IsViewModeRender || Model.SelectedTab == null) return;
-
-            await UpdateTabPreviewAsync();
-        }
-
-        private async void OnViewModeChanged(object sender, EventArgs e)
-        {
-            var tab = Model.SelectedTab;
-            if (tab == null) return;
-
-            var context = tabPreviewMgr.Get(tab.Id);
-            if (context == null) return;
-
-            context.InvalidateLayer(false);
-
-#if !NORENDER
-            context.InvalidateMaterial(false);
-#endif
-
-            await UpdateTabPreviewAsync();
-        }
-
-#if !NORENDER
-        private async void OnRenderModeChanged(object sender, EventArgs e)
-        {
-            if (!Model.IsViewModeRender) return;
-
-            tabPreviewMgr.InvalidateAllMaterials(true);
-
-            if (Model.SelectedTab != null)
-                await UpdateTabPreviewAsync();
-        }
-#endif
     }
 }

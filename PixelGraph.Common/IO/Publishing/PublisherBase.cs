@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
@@ -22,8 +23,8 @@ namespace PixelGraph.Common.IO.Publishing
 
         int Concurrency {get; set;}
 
-        Task PrepareAsync(ResourcePackContext context, bool clean, CancellationToken token = default);
-        Task PublishAsync(ResourcePackContext context, CancellationToken token = default);
+        Task PrepareAsync(ProjectPublishContext context, bool clean, CancellationToken token = default);
+        Task PublishAsync(ProjectPublishContext context, CancellationToken token = default);
     }
 
     public struct PublishStatus
@@ -67,11 +68,11 @@ namespace PixelGraph.Common.IO.Publishing
             Mapping = new DefaultPublishMapping();
         }
 
-        public virtual async Task PrepareAsync(ResourcePackContext context, bool clean, CancellationToken token = default)
+        public virtual async Task PrepareAsync(ProjectPublishContext context, bool clean, CancellationToken token = default)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            loader.EnableAutoMaterial = context.Input.AutoMaterial ?? ResourcePackInputProperties.AutoMaterialDefault;
+            loader.EnableAutoMaterial = context.Project.Input.AutoMaterial ?? PackInputEncoding.AutoMaterialDefault;
 
             summary.Reset();
             if (clean) CleanDestination();
@@ -84,7 +85,7 @@ namespace PixelGraph.Common.IO.Publishing
             totalFileCount = content.Length - totalMaterialCount;
         }
 
-        public virtual async Task PublishAsync(ResourcePackContext context, CancellationToken token = default)
+        public virtual async Task PublishAsync(ProjectPublishContext context, CancellationToken token = default)
         {
             await PublishContentAsync(context, token);
 
@@ -105,9 +106,9 @@ namespace PixelGraph.Common.IO.Publishing
             }
         }
 
-        protected virtual Task OnPackPublished(ResourcePackContext packContext, CancellationToken token) => Task.CompletedTask;
+        protected virtual Task OnPackPublished(ProjectPublishContext packContext, CancellationToken token) => Task.CompletedTask;
 
-        private async Task PublishContentAsync(ResourcePackContext packContext, CancellationToken token = default)
+        private async Task PublishContentAsync(ProjectPublishContext packContext, CancellationToken token = default)
         {
             currentMaterialCount = 0;
             currentFileCount = 0;
@@ -135,10 +136,10 @@ namespace PixelGraph.Common.IO.Publishing
             }, Concurrency, null, token);
         }
 
-        private async Task PublishMaterialAsync(ResourcePackContext packContext, MaterialProperties material, CancellationToken token)
+        private async Task PublishMaterialAsync(ProjectPublishContext packContext, MaterialProperties material, CancellationToken token)
         {
             if (material.CTM?.Method != null) {
-                var publishConnected = packContext.Profile.PublishConnected ?? ResourcePackProfileProperties.PublishConnectedDefault;
+                var publishConnected = packContext.Profile.PublishConnected ?? PublishProfileProperties.PublishConnectedDefault;
 
                 if (!publishConnected) {
                     Logger.LogDebug("Skipping connected texture '{DisplayName}'. feature disabled.", material.DisplayName);
@@ -152,7 +153,7 @@ namespace PixelGraph.Common.IO.Publishing
                 var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
 
                 graphContext.PackWriteTime = packContext.LastUpdated;
-                graphContext.Input = packContext.Input;
+                graphContext.Project = packContext.Project;
                 graphContext.Profile = packContext.Profile;
                 graphContext.Material = material;
                 graphContext.Mapping = Mapping;
@@ -165,7 +166,7 @@ namespace PixelGraph.Common.IO.Publishing
             }
         }
 
-        private async Task PublishFileAsync(ResourcePackContext packContext, string localFile, CancellationToken token)
+        private async Task PublishFileAsync(ProjectPublishContext packContext, string localFile, CancellationToken token)
         {
             if (TryMapFile(localFile, out var destFile)) {
                 using var scope = Provider.CreateScope();
@@ -173,7 +174,7 @@ namespace PixelGraph.Common.IO.Publishing
                 var genericPublisher = scope.ServiceProvider.GetRequiredService<GenericTexturePublisher>();
 
                 graphContext.PackWriteTime = packContext.LastUpdated;
-                graphContext.Input = packContext.Input;
+                graphContext.Project = packContext.Project;
                 graphContext.Profile = packContext.Profile;
                 graphContext.Mapping = Mapping;
                             
@@ -208,7 +209,7 @@ namespace PixelGraph.Common.IO.Publishing
             }
         }
 
-        protected abstract Task PublishPackMetaAsync(ResourcePackProfileProperties pack, CancellationToken token);
+        protected abstract Task PublishPackMetaAsync(PublishProfileProperties pack, CancellationToken token);
 
         protected virtual bool TryMapFile(in string sourceFile, out string destinationFile)
         {

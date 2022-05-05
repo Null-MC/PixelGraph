@@ -10,7 +10,6 @@ namespace PixelGraph.Rendering.Minecraft
     public class MinecraftSceneNode : SceneNode, IMinecraftScene
     {
         private MinecraftSceneCore SceneCore => RenderCore as MinecraftSceneCore;
-        //public bool IsRenderValid => SceneCore.IsRenderValid;
         public long LastUpdated => SceneCore.LastUpdated;
 
         public bool EnableAtmosphere {
@@ -38,31 +37,6 @@ namespace PixelGraph.Rendering.Minecraft
             set => SceneCore.Wetness = value;
         }
 
-        //public float ParallaxDepth {
-        //    get => SceneCore.ParallaxDepth;
-        //    set => SceneCore.ParallaxDepth = value;
-        //}
-
-        //public int ParallaxSamples {
-        //    get => SceneCore.ParallaxSamples;
-        //    set => SceneCore.ParallaxSamples = value;
-        //}
-
-        public bool EnableLinearSampling {
-            get => SceneCore.EnableLinearSampling;
-            set => SceneCore.EnableLinearSampling = value;
-        }
-
-        public bool EnableSlopeNormals {
-            get => SceneCore.EnableSlopeNormals;
-            set => SceneCore.EnableSlopeNormals = value;
-        }
-
-        //public int WaterMode {
-        //    get => SceneCore.WaterMode;
-        //    set => SceneCore.WaterMode = value;
-        //}
-
         public float ErpExposure {
             get => SceneCore.ErpExposure;
             set => SceneCore.ErpExposure = value;
@@ -73,11 +47,6 @@ namespace PixelGraph.Rendering.Minecraft
         {
             SceneCore?.Apply(deviceContext);
         }
-
-        //public void ResetValidation()
-        //{
-        //    SceneCore?.ResetValidation();
-        //}
 
         protected override RenderCore OnCreateRenderCore()
         {
@@ -93,11 +62,6 @@ namespace PixelGraph.Rendering.Minecraft
             sceneCore.TimeOfDay = TimeOfDay;
             sceneCore.SunDirection = SunDirection;
             sceneCore.Wetness = Wetness;
-            //sceneCore.ParallaxDepth = ParallaxDepth;
-            //sceneCore.ParallaxSamples = ParallaxSamples;
-            sceneCore.EnableLinearSampling = EnableLinearSampling;
-            sceneCore.EnableSlopeNormals = EnableSlopeNormals;
-            //sceneCore.WaterMode = WaterMode;
             sceneCore.ErpExposure = ErpExposure;
         }
 

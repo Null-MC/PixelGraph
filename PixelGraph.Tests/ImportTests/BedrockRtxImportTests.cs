@@ -10,6 +10,7 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
 using System.Threading.Tasks;
+using PixelGraph.Common.Projects;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,8 +18,8 @@ namespace PixelGraph.Tests.ImportTests
 {
     public class BedrockRtxImportTests : ImageTestBase
     {
-        private readonly ResourcePackInputProperties packInput;
-        private readonly ResourcePackProfileProperties packProfile;
+        private readonly ProjectData project;
+        private readonly PublishProfileProperties packProfile;
 
 
         public BedrockRtxImportTests(ITestOutputHelper output) : base(output)
@@ -27,12 +28,14 @@ namespace PixelGraph.Tests.ImportTests
             Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
             Builder.AddImporter(GameEditions.Bedrock);
 
-            packInput = new ResourcePackInputProperties {
-                //Edition = GameEditions.Java,
-                Format = TextureFormat.Format_Raw,
+            project = new ProjectData {
+                Input = new PackInputEncoding {
+                    //Edition = GameEditions.Java,
+                    Format = TextureFormat.Format_Raw,
+                },
             };
 
-            packProfile = new ResourcePackProfileProperties {
+            packProfile = new PublishProfileProperties {
                 //Edition = GameEditions.Bedrock,
                 Encoding = {
                     Format = TextureFormat.Format_Rtx,
@@ -51,7 +54,7 @@ namespace PixelGraph.Tests.ImportTests
             await graph.CreateImageAsync("textures/blocks/brick_mer.png", 16, 8, 45);
 
             var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
-            importer.PackInput = packInput;
+            importer.Project = project;
             importer.PackProfile = packProfile;
             importer.AsGlobal = false;
 
@@ -109,7 +112,7 @@ namespace PixelGraph.Tests.ImportTests
             await graph.CreateFileAsync("textures/blocks/brick.texture_set.json", json);
 
             var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
-            importer.PackInput = packInput;
+            importer.Project = project;
             importer.PackProfile = packProfile;
             importer.AsGlobal = false;
 

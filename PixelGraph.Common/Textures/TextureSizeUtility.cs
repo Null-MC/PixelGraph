@@ -1,5 +1,5 @@
 ﻿using PixelGraph.Common.Material;
-using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Projects;
 using SixLabors.ImageSharp;
 using System;
 
@@ -7,7 +7,7 @@ namespace PixelGraph.Common.Textures
 {
     internal static class TextureSizeUtility
     {
-        public static Size? GetSizeByType(ResourcePackProfileProperties profile, MaterialType type, float? defaultAspect = null)
+        public static Size? GetSizeByType(PublishProfileProperties profile, MaterialType type, float? defaultAspect = null)
         {
             switch (type) {
                 case MaterialType.Block:
@@ -26,19 +26,19 @@ namespace PixelGraph.Common.Textures
             return null;
         }
 
-        public static bool TryGetBlockSize(ResourcePackProfileProperties profile, out Size result, float? defaultAspect = null)
+        public static bool TryGetBlockSize(PublishProfileProperties profile, out Size result, float? defaultAspect = null)
         {
             if (profile == null) throw new ArgumentNullException(nameof(profile));
             return TryGetScaledSize(profile.BlockTextureSize, out result, defaultAspect);
         }
 
-        public static bool TryGetItemSize(ResourcePackProfileProperties profile, out Size result, float? defaultAspect = null)
+        public static bool TryGetItemSize(PublishProfileProperties profile, out Size result, float? defaultAspect = null)
         {
             if (profile == null) throw new ArgumentNullException(nameof(profile));
             return TryGetScaledSize(profile.ItemTextureSize, out result, defaultAspect);
         }
 
-        public static bool TryGetTextureSize(ResourcePackProfileProperties profile, out Size result, float? defaultAspect = null)
+        public static bool TryGetTextureSize(PublishProfileProperties profile, out Size result, float? defaultAspect = null)
         {
             if (profile == null) throw new ArgumentNullException(nameof(profile));
             return TryGetScaledSize(profile.TextureSize, out result, defaultAspect);

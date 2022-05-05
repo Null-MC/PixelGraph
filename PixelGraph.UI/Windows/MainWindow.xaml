@@ -9,10 +9,11 @@
                  xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                  xmlns:models="clr-namespace:PixelGraph.UI.Models"
                  xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
+                 xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
                  Title="PixelGraph" Height="600" Width="1000" mc:Ignorable="d"
                  WindowState="Maximized" Loaded="OnWindowLoaded" TitleCharacterCasing="Normal"
                  ShowIconOnTitleBar="True" IconScalingMode="NoScaleSmallerFrame"
-                 d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
+                 d:DataContext="{d:DesignInstance vm:MainWindowDesignerViewModel, IsDesignTimeCreatable=True}"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                  Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
@@ -22,7 +23,11 @@
         <CollectionViewSource x:Key="PublishLocationsView" Source="{Binding Path=PublishLocations}" />
     </Window.Resources>
     <Window.DataContext>
-        <models:MainWindowModel x:Name="Model"/>
+        <vm:MainWindowViewModel x:Name="Model"
+                                SelectedProfileChanged="OnSelectedProfileChanged"
+                                SelectedTabChanged="OnSelectedTabChanged"
+                                SelectedTagChanged="OnSelectedTagChanged"
+                                ViewModeChanged="OnViewModeChanged"/>
     </Window.DataContext>
     <mah:MetroWindow.IconTemplate>
         <DataTemplate>
@@ -37,12 +42,14 @@
         </DataTemplate>
     </mah:MetroWindow.IconTemplate>
     <mah:MetroWindow.RightWindowCommands>
-        <mah:WindowCommands Margin="0,0,16,0" Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-            <ComboBox MaxWidth="200" DisplayMemberPath="Name" ToolTip="Pack Profile" Background="Transparent" BorderThickness="0"
+        <mah:WindowCommands Margin="0,0,16,0"
+                            Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+            <ComboBox MaxWidth="200" Background="Transparent" BorderThickness="0"
+                      DisplayMemberPath="DisplayName" ToolTip="Pack Profile"
                       ItemsSource="{Binding ProfileList, Mode=OneWay}"
-                      SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"
-                      SelectionChanged="OnPublishProfileSelectionChanged"/>
-            <ComboBox MaxWidth="200" DisplayMemberPath="DisplayName" ToolTip="Publish Location" Background="Transparent" BorderThickness="0"
+                      SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
+            <ComboBox MaxWidth="200" Background="Transparent" BorderThickness="0"
+                      ToolTip="Publish Location" DisplayMemberPath="DisplayName"
                       SelectedItem="{Binding SelectedLocation, Mode=TwoWay}"
                       SelectionChanged="OnPublishLocationSelectionChanged">
                 <ComboBox.ItemsSource>
@@ -75,45 +82,51 @@
                     </Style.Triggers>
                 </Style>
             </Menu.Resources>
-            <MenuItem Header="App" Background="Transparent">
-                <MenuItem Header="Settings" Click="OnSettingsClick">
+            <MenuItem Header="File" Background="Transparent">
+                <MenuItem Header="New" Click="OnNewProjectClick"
+                          Icon="{iconPacks:FontAwesome FileSolid}"/>
+                <MenuItem Header="Open" Click="OnOpenClick"
+                          Icon="{iconPacks:FontAwesome FolderOpenSolid}"/>
+                <MenuItem Header="Open Legacy" Click="OnOpenLegacyClick"
+                          Icon="{iconPacks:FontAwesome FileImportSolid}"/>
+                <MenuItem Header="Import"
+                          Icon="{iconPacks:FontAwesome FileImportSolid}"
+                          IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}">
+                    <MenuItem Header="From Folder" Click="OnImportFolderClick"
+                              Icon="{iconPacks:FontAwesome FolderSolid}"/>
+                    <MenuItem Header="From Archive" Click="OnImportZipClick"
+                              Icon="{iconPacks:FontAwesome FileArchiveSolid}"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Close" Click="OnCloseProjectClick"
+                          Icon="{iconPacks:FontAwesome WindowCloseSolid}"
+                          IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
+                <MenuItem Header="Exit" Click="OnExitClick">
+                    <MenuItem.Icon>
+                        <iconPacks:PackIconFontAwesome Kind="DoorClosedSolid"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Edit" Background="Transparent">
+                <MenuItem Header="App Settings" Click="OnSettingsClick">
                     <MenuItem.Icon>
                         <iconPacks:PackIconFontAwesome Kind="CogSolid"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Exit" Click="OnExitClick">
-                    <MenuItem.Icon>
-                        <iconPacks:PackIconFontAwesome Kind="WindowCloseSolid"/>
-                    </MenuItem.Icon>
-                </MenuItem>
+                <MenuItem Header="Publish Locations" Click="OnLocationsClick"
+                          Icon="{iconPacks:FontAwesome FolderSolid}"/>
             </MenuItem>
             <MenuItem Header="Project" Background="Transparent">
-                <MenuItem Header="New" Click="OnNewProjectClick">
-                    <MenuItem.Icon>
-                        <iconPacks:PackIconFontAwesome Kind="FolderPlusSolid"/>
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Open" Icon="{iconPacks:FontAwesome FolderOpenSolid}" Click="OnOpenClick"/>
-                <MenuItem Header="Open Legacy Project" Icon="{iconPacks:FontAwesome FileImportSolid}" Click="OnOpenLegacyClick"/>
-                <MenuItem Header="Close" Icon="{iconPacks:FontAwesome DoorClosedSolid}" Click="OnCloseProjectClick"
+                <MenuItem Header="Configuration" Click="OnInputEncodingClick"
+                          Icon="{iconPacks:FontAwesome PaletteSolid}"
                           IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
-                <Separator/>
-                <MenuItem Header="Configuration" Icon="{iconPacks:FontAwesome PaletteSolid}" Click="OnInputEncodingClick"
+                <MenuItem Header="Publish Profiles" Click="OnProfilesClick"
+                          Icon="{iconPacks:FontAwesome BookSolid}"
                           IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
-            </MenuItem>
-            <MenuItem Header="Pack" Background="Transparent">
-                <MenuItem Header="Import" Icon="{iconPacks:FontAwesome FileImportSolid}"
-                          IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}">
-                    <MenuItem Header="From Folder" Icon="{iconPacks:FontAwesome FolderSolid}" Click="OnImportFolderClick"/>
-                    <MenuItem Header="From Archive" Icon="{iconPacks:FontAwesome FileArchiveSolid}" Click="OnImportZipClick"/>
-                </MenuItem>
-                <Separator/>
-                <MenuItem Header="Publish Profiles" Icon="{iconPacks:FontAwesome BookSolid}" Click="OnProfilesClick"
-                          IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
-                <MenuItem Header="Publish Locations" Icon="{iconPacks:FontAwesome FolderSolid}" Click="OnLocationsClick"/>
             </MenuItem>
             <MenuItem Header="Material">
-                <MenuItem Header="New" Icon="{iconPacks:FontAwesome PlusSolid}" Click="OnNewMaterialMenuClick"
+                <MenuItem Header="New" Click="OnNewMaterialMenuClick"
+                          Icon="{iconPacks:FontAwesome PlusSolid}"
                           IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
             </MenuItem>
             <MenuItem Header="Tools" Visibility="Collapsed">
@@ -128,63 +141,9 @@
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
-            <Border HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="16" MaxWidth="800" CornerRadius="8"
-                    Background="{DynamicResource MahApps.Brushes.Accent4}"
-                    Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="200"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,6,0" Orientation="Vertical">
-                        <Button Margin="4" Padding="8" FontSize="14" HorizontalContentAlignment="Left" BorderThickness="0" Click="OnNewProjectClick"
-                                Style="{DynamicResource MahApps.Styles.Button.Square.Accent}">
-                            <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconFontAwesome Kind="FolderPlusSolid" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="New Project" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Margin="4" Padding="8" FontSize="14" HorizontalContentAlignment="Left" BorderThickness="0" Click="OnOpenClick"
-                                Style="{DynamicResource MahApps.Styles.Button.Square.Accent}">
-                            <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconFontAwesome Kind="FolderOpenSolid" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Open Existing" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Margin="4" Padding="8" FontSize="14" HorizontalContentAlignment="Left" BorderThickness="0"
-                                Click="OnConvertExistingClick" IsEnabled="False"
-                                Style="{DynamicResource MahApps.Styles.Button.Square.Accent}">
-                            <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconFontAwesome Kind="BrushSolid" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Convert Existing" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                    <TextBlock Grid.Column="1" Grid.Row="0" Margin="6,6,0,0" Text="Recent Projects" FontWeight="Bold" FontSize="16"
-                               Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                    <Rectangle Grid.Column="1" Grid.Row="0" VerticalAlignment="Bottom" Height="1"
-                               Fill="{DynamicResource MahApps.Brushes.Accent2}"/>
-                    <ListView x:Name="RecentList" Grid.Column="1" Grid.Row="1" Margin="0,0,6,6"
-                              SelectionChanged="OnRecentSelectionChanged" BorderThickness="0" FontSize="14"
-                              Background="Transparent" FocusVisualStyle="{x:Null}"
-                              ItemsSource="{Binding RecentDirectories, Mode=OneWay}">
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="ListViewItem" BasedOn="{StaticResource MahApps.Styles.ListViewItem}">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Foreground" Value="White"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ListView.ItemContainerStyle>
-                    </ListView>
-                </Grid>
-            </Border>
+            <controls:RecentProjectsControl x:Name="RecentProjects"
+                TileClicked="OnRecentProjectTileClicked"
+                Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
             <Grid Visibility="{Binding IsProjectLoaded, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -272,7 +231,7 @@
                 </ToolBarTray>
                 <DockPanel Grid.Column="2" Grid.Row="1">
                     <controls:DocumentTabControl DockPanel.Dock="Top" Height="34"
-                                                 CloseTab="OnCloseDocumentTab" CloseAllTabs="OnCloseAllDocumentTabs"
+                                                 CloseAllTabs="OnCloseAllDocumentTabs"
                                                  ItemsSource="{Binding TabList, Mode=OneWay}"
                                                  SelectedItem="{Binding TabListSelection, Mode=TwoWay}"/>
                     <Grid>
@@ -307,6 +266,7 @@
                                     Visibility="{Binding IsEditModeMaterial, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <controls:MaterialFiltersControl x:Name="FilterEditor"
                                     DataChanged="OnMaterialFiltersChanged"
+                                    TexturePreviewModel="{Binding TextureModel, Mode=OneWay}"
                                     Material="{Binding SelectedTabMaterial, Mode=OneWay}"
                                     SelectedTag="{Binding SelectedTag, Mode=OneWay}"
                                     IsEnabled="{Binding HasSelectedMaterial, Mode=OneWay}"
@@ -329,8 +289,8 @@
                                 <Grid Visibility="{Binding HasSelectedTab, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                     <controls:TexturePreviewControl x:Name="texturePreview"
                                         RefreshClick="OnPreviewRefreshClick"
+                                        TexturePreviewModel="{Binding TextureModel, Mode=OneWay}"
                                         ShowOutline="{Binding IsEditModeFilters, Mode=OneWay}"
-                                        OutlineBounds="{Binding SelectedFilterBounds, Mode=OneWay, ElementName=FilterEditor}"
                                         Visibility="{Binding IsViewModeLayer, Converter={StaticResource VisibilityConverter}}"/>
                                     <controls:RenderPreviewControl x:Name="renderPreview"
                                         SceneProperties="{Binding SceneProperties, Mode=OneWay}"
@@ -401,7 +361,7 @@
             <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Center"
                            Visibility="{Binding IsViewModeLayer, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock FontFamily="Consolas" Margin="4,0"
-                           Text="{Binding Model.MousePixel, Mode=OneWay, ElementName=texturePreview}"/>
+                           Text="{Binding TexturePreviewModel.MousePixel, Mode=OneWay, ElementName=texturePreview}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" HorizontalContentAlignment="Center"
                            Visibility="{Binding IsViewModeRender, Converter={StaticResource BooleanToVisibilityConverter}}">

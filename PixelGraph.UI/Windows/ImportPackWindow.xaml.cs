@@ -4,6 +4,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
@@ -72,11 +73,11 @@ namespace PixelGraph.UI.Windows
             importer.AsGlobal = Model.AsGlobal;
             importer.CopyUntracked = Model.CopyUntracked;
             importer.IncludeUnknown = Model.IncludeUnknown;
-            importer.PackInput = projectContext.Project.Input;
+            importer.Project = projectContext.Project;
 
             Model.Encoding.Format = Model.SourceTextureFormat;
 
-            importer.PackProfile = new ResourcePackProfileProperties {
+            importer.PackProfile = new PublishProfileProperties {
                 Encoding = Model.Encoding,
             };
 
@@ -87,11 +88,12 @@ namespace PixelGraph.UI.Windows
         {
             var contentType = Model.IsArchive ? ContentTypes.Archive : ContentTypes.File;
 
+            var projectContext = projectContextMgr.GetContext();
             var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();
             serviceBuilder.ConfigureReader(contentType, Model.SourceGameEdition, Model.ImportSource);
-            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, Model.RootDirectory);
+            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
             serviceBuilder.AddImporter(Model.SourceGameEdition);
             
             return serviceBuilder;
@@ -181,7 +183,7 @@ namespace PixelGraph.UI.Windows
             var window = new TextureFormatWindow {
                 Owner = this,
                 Model = {
-                    Encoding = (ResourcePackEncoding)Model.Encoding.Clone(),
+                    Encoding = (PackEncoding)Model.Encoding.Clone(),
                     DefaultEncoding = formatFactory.Create(),
                     EnableSampler = false,
                 },
@@ -189,7 +191,7 @@ namespace PixelGraph.UI.Windows
 
             if (window.ShowDialog() != true) return;
 
-            Model.Encoding = (ResourcePackOutputProperties)window.Model.Encoding;
+            Model.Encoding = (PackOutputEncoding)window.Model.Encoding;
         }
 
         private void OnCancelClick(object sender, RoutedEventArgs e)

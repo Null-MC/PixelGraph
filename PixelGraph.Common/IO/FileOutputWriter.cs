@@ -86,7 +86,7 @@ namespace PixelGraph.Common.IO
         private static void CreateMissingDirectory(string filename)
         {
             var path = Path.GetDirectoryName(filename);
-            if (path == null) return;
+            if (string.IsNullOrEmpty(path)) return;
 
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);

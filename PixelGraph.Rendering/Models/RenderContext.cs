@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.Rendering.LUTs;
@@ -8,8 +9,8 @@ namespace PixelGraph.Rendering.Models
     public interface IRenderContext
     {
         RenderPreviewModes RenderMode {get;}
-        ResourcePackInputProperties PackInput {get;}
-        ResourcePackProfileProperties PackProfile {get;}
+        IProjectDescription Project {get;}
+        PublishProfileProperties PackProfile {get;}
         MaterialProperties DefaultMaterial {get;}
         MaterialProperties MissingMaterial {get;}
 
@@ -24,8 +25,8 @@ namespace PixelGraph.Rendering.Models
     public class RenderContext : IRenderContext
     {
         public RenderPreviewModes RenderMode {get; set;}
-        public ResourcePackInputProperties PackInput {get; set;}
-        public ResourcePackProfileProperties PackProfile {get; set;}
+        public IProjectDescription Project {get; set;}
+        public PublishProfileProperties PackProfile {get; set;}
         public MaterialProperties DefaultMaterial {get; set;}
         public MaterialProperties MissingMaterial {get; set;}
 

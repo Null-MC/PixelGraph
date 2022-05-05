@@ -38,7 +38,6 @@ namespace PixelGraph.UI.Controls
 
         public string FrameRateText {
             get => (string)GetValue(FrameRateTextProperty);
-            //set => SetValue(FrameRateTextProperty, value);
         }
 
         public string DeviceNameText {

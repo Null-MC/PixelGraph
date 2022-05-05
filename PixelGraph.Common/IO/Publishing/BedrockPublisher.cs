@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
@@ -24,10 +25,10 @@ namespace PixelGraph.Common.IO.Publishing
             Mapping = new JavaToBedrockPublishMapping();
         }
 
-        protected override async Task PublishPackMetaAsync(ResourcePackProfileProperties pack, CancellationToken token)
+        protected override async Task PublishPackMetaAsync(PublishProfileProperties pack, CancellationToken token)
         {
             var packMeta = new BedrockPackMetadata {
-                FormatVersion = pack.Format ?? ResourcePackProfileProperties.DefaultBedrockFormat,
+                FormatVersion = pack.Format ?? PublishProfileProperties.DefaultBedrockFormat,
                 Header = {
                     Name = pack.Name,
                     Description = pack.Description,
@@ -53,7 +54,7 @@ namespace PixelGraph.Common.IO.Publishing
             }, token);
         }
 
-        protected override async Task OnPackPublished(ResourcePackContext context, CancellationToken token)
+        protected override async Task OnPackPublished(ProjectPublishContext context, CancellationToken token)
         {
             try {
                 var grassFixer = Provider.GetRequiredService<BedrockRtxGrassFixer>();

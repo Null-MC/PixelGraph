@@ -6,14 +6,13 @@
                  xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
                  xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
                  Title="About PixelGraph" Height="260" Width="400" mc:Ignorable="d"
-                 TitleCharacterCasing="Normal" Loaded="OnWindowLoaded"
+                 TitleCharacterCasing="Normal"
                  ShowMaxRestoreButton="False" ShowMinButton="False"
                  WindowStartupLocation="CenterOwner"
-                 d:DataContext="{d:DesignInstance vm:AboutDesignerViewModel, IsDesignTimeCreatable=True}"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                  Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <mah:MetroWindow.DataContext>
-        <vm:AboutViewModel x:Name="ViewModel"/>
+        <vm:AboutViewModel/>
     </mah:MetroWindow.DataContext>
     <DockPanel>
         <Border DockPanel.Dock="Top"
@@ -40,8 +39,14 @@
             <Button Content="Ok" HorizontalAlignment="Right" Margin="6"
                     IsCancel="True" Width="80" FontSize="12"/>
         </Border>
-        <Grid Margin="8,4">
-            <TextBlock Text="..."/>
-        </Grid>
+        <StackPanel Margin="8,4" Orientation="Vertical">
+            <TextBlock Margin="4" Text="{Binding CopyrightText, Mode=OneWay}"/>
+            <Button Content="View End-User License Agreement" Click="OnViewEulaClicked"
+                    HorizontalAlignment="Left" Margin="4" Cursor="Hand"
+                    Style="{StaticResource MahApps.Styles.Button.Chromeless}"/>
+            <Button Content="View Terms &amp; Conditions" Click="OnViewTosClicked"
+                    HorizontalAlignment="Left" Margin="4" Cursor="Hand"
+                    Style="{StaticResource MahApps.Styles.Button.Chromeless}"/>
+        </StackPanel>
     </DockPanel>
 </mah:MetroWindow>

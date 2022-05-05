@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
@@ -94,7 +95,7 @@ namespace PixelGraph.Common.Textures.Graphing
                 var builder = scope.ServiceProvider.GetRequiredService<ITextureBuilder>();
 
                 // make image from normal X & Y; z if found
-                normalContext.Input = context.Input;
+                normalContext.Project = context.Project;
                 normalContext.Profile = context.Profile;
                 normalContext.Material = context.Material;
                 normalContext.IsImport = context.IsImport;
@@ -104,7 +105,7 @@ namespace PixelGraph.Common.Textures.Graphing
                 builder.InputChannels = new [] {normalXChannel, normalYChannel, normalZChannel}
                     .Where(x => x != null).ToArray();
 
-                builder.OutputChannels = new ResourcePackChannelProperties[] {
+                builder.OutputChannels = new PackEncodingChannel[] {
                     new ResourcePackNormalXChannelProperties {
                         Texture = TextureTags.Normal,
                         Color = ColorChannel.Red,
@@ -144,7 +145,7 @@ namespace PixelGraph.Common.Textures.Graphing
             }
 
             var autoGenNormal = context.Profile?.AutoGenerateNormal
-                ?? ResourcePackProfileProperties.AutoGenerateNormalDefault;
+                ?? PublishProfileProperties.AutoGenerateNormalDefault;
 
             if (NormalTexture == null && autoGenNormal && !context.IsImport) {
                 NormalTexture = await GenerateAsync(token);
@@ -159,14 +160,14 @@ namespace PixelGraph.Common.Textures.Graphing
 
             var processor = new NormalRotateProcessor {
                 Bounds = NormalTexture.Bounds(),
-                CurveTop = (float?)context.Material.Normal?.GetCurveTop() ?? 0f,
-                CurveBottom = (float?)context.Material.Normal?.GetCurveBottom() ?? 0f,
-                CurveLeft = (float?)context.Material.Normal?.GetCurveLeft() ?? 0f,
-                CurveRight = (float?)context.Material.Normal?.GetCurveRight() ?? 0f,
-                RadiusTop = (float?)context.Material.Normal?.GetRadiusTop() ?? 1f,
-                RadiusBottom = (float?)context.Material.Normal?.GetRadiusBottom() ?? 1f,
-                RadiusLeft = (float?)context.Material.Normal?.GetRadiusLeft() ?? 1f,
-                RadiusRight = (float?)context.Material.Normal?.GetRadiusRight() ?? 1f,
+                CurveTop = ((float?)context.Material.Normal?.CurveY ?? 0f) * 0.5f,
+                CurveBottom = ((float?)context.Material.Normal?.CurveY ?? 0f) * 0.5f,
+                CurveLeft = ((float?)context.Material.Normal?.CurveX ?? 0f) * 0.5f,
+                CurveRight = ((float?)context.Material.Normal?.CurveX ?? 0f) * 0.5f,
+                RadiusTop = (float?)context.Material.Normal?.RadiusY ?? 1f,
+                RadiusBottom = (float?)context.Material.Normal?.RadiusY ?? 1f,
+                RadiusLeft = (float?)context.Material.Normal?.RadiusX ?? 1f,
+                RadiusRight = (float?)context.Material.Normal?.RadiusX ?? 1f,
                 Noise = (float?)context.Material.Normal?.Noise ?? 0f,
                 RestoreNormalZ = !hasNormalZ,
             };
@@ -330,7 +331,7 @@ namespace PixelGraph.Common.Textures.Graphing
             if (MagnitudeFrameCount > 1) MagnitudeFrameHeight /= MagnitudeFrameCount;
         }
 
-        private async Task ApplyMagnitudeAsync(ResourcePackChannelProperties magnitudeChannel, CancellationToken token)
+        private async Task ApplyMagnitudeAsync(PackEncodingChannel magnitudeChannel, CancellationToken token)
         {
             var inputChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, magnitudeChannel.ID));
             if (inputChannel == null) return;

@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
@@ -15,9 +16,9 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             TagMap = tagMap;
         }
         
-        private static readonly Dictionary<string, Func<ResourcePackProfileProperties, MaterialProperties, ResourcePackChannelProperties[]>> tagMap =
+        private static readonly Dictionary<string, Func<PublishProfileProperties, MaterialProperties, PackEncodingChannel[]>> tagMap =
             new(StringComparer.InvariantCultureIgnoreCase) {
-                [TextureTags.Color] = (profile, mat) => new ResourcePackChannelProperties[] {
+                [TextureTags.Color] = (profile, mat) => new PackEncodingChannel[] {
                     new ResourcePackColorRedChannelProperties(TextureTags.Color, ColorChannel.Red) {
                         //Sampler = mat?.Color?.InputRed?.Sampler ?? profile?.Encoding?.ColorRed?.Sampler,
                         MaxValue = 255,
@@ -36,7 +37,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         DefaultValue = 255m,
                     },
                 },
-                [TextureTags.Normal] = (profile, mat) => new ResourcePackChannelProperties[] {
+                [TextureTags.Normal] = (profile, mat) => new PackEncodingChannel[] {
                     new ResourcePackNormalXChannelProperties(TextureTags.Normal, ColorChannel.Red) {
                         //Sampler = mat?.Normal?.InputX?.Sampler ?? profile?.Encoding?.NormalX?.Sampler,
                         MinValue = -1m,
@@ -61,7 +62,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         Invert = true,
                     },
                 },
-                [TextureTags.Rough] = (profile, mat) => new ResourcePackChannelProperties[] {
+                [TextureTags.Rough] = (profile, mat) => new PackEncodingChannel[] {
                     new ResourcePackSmoothChannelProperties(TextureTags.Rough, ColorChannel.Red) {
                         //Sampler = mat?.Rough?.Input?.Sampler ?? profile?.Encoding?.Rough?.Sampler,
                         DefaultValue = 0m,

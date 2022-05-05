@@ -9,18 +9,20 @@ using System;
 
 namespace PixelGraph.Rendering.Minecraft
 {
-    public interface IMinecraftSceneCore
+    //public interface IMinecraftSceneCore
+    //{
+    //    //bool IsRenderValid {get;}
+    //    long LastUpdated {get;}
+
+    //    void Apply(DeviceContextProxy deviceContext);
+    //    //void ResetValidation();
+    //}
+
+    public interface IMinecraftScene //: IMinecraftSceneCore
     {
-        //bool IsRenderValid {get;}
         long LastUpdated {get;}
 
         void Apply(DeviceContextProxy deviceContext);
-        //void ResetValidation();
-    }
-
-    public interface IMinecraftScene : IMinecraftSceneCore
-    {
-        //bool EnableAtmosphere {get;}
     }
 
     internal class MinecraftSceneCore : RenderCore, IMinecraftScene
@@ -29,7 +31,6 @@ namespace PixelGraph.Rendering.Minecraft
         private MinecraftSceneStruct data;
         private bool isRenderValid;
 
-        //public bool IsRenderValid {get; private set;}
         public long LastUpdated {get; private set;}
 
         public bool EnableAtmosphere {
@@ -69,37 +70,6 @@ namespace PixelGraph.Rendering.Minecraft
             }
         }
 
-        //public float ParallaxDepth {
-        //    get => data.ParallaxDepth;
-        //    set => SetAffectsRender(ref data.ParallaxDepth, value);
-        //}
-
-        //public int ParallaxSamples {
-        //    get => data.ParallaxSamples;
-        //    set => SetAffectsRender(ref data.ParallaxSamples, value);
-        //}
-
-        public bool EnableLinearSampling {
-            get => data.EnableLinearSampling;
-            set {
-                if (SetAffectsRender(ref data.EnableLinearSampling, value))
-                    isRenderValid = false;
-            }
-        }
-
-        public bool EnableSlopeNormals {
-            get => data.EnableSlopeNormals;
-            set {
-                if (SetAffectsRender(ref data.EnableSlopeNormals, value))
-                    isRenderValid = false;
-            }
-        }
-
-        //public int WaterMode {
-        //    get => data.WaterMode;
-        //    set => SetAffectsRender(ref data.WaterMode, value);
-        //}
-
         public float ErpExposure {
             get => data.ErpExposure;
             set {
@@ -122,11 +92,6 @@ namespace PixelGraph.Rendering.Minecraft
             buffer.Upload(deviceContext, ref data);
         }
 
-        //public void ResetValidation()
-        //{
-        //    isRenderValid = true;
-        //}
-
         protected override bool OnAttach(IRenderTechnique technique)
         {
             return true;
@@ -134,7 +99,7 @@ namespace PixelGraph.Rendering.Minecraft
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
-            if (isRenderValid) return;
+            if (isRenderValid && !context.UpdateSceneGraphRequested) return;
 
             Apply(deviceContext);
 

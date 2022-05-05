@@ -2,6 +2,7 @@
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
@@ -18,8 +19,8 @@ namespace PixelGraph.Tests.GenerationTests
 {
     public class NormalGenerationTests : ImageTestBase
     {
-        private readonly ResourcePackInputProperties packInput;
-        private readonly ResourcePackProfileProperties packProfile;
+        private readonly ProjectData project;
+        private readonly PublishProfileProperties packProfile;
 
 
         public NormalGenerationTests(ITestOutputHelper output) : base(output)
@@ -27,14 +28,16 @@ namespace PixelGraph.Tests.GenerationTests
             Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
             Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
 
-            packInput = new ResourcePackInputProperties {
-                Height = {
-                    Texture = TextureTags.Height,
-                    Color = ColorChannel.Red,
+            project = new ProjectData {
+                Input = new PackInputEncoding {
+                    Height = {
+                        Texture = TextureTags.Height,
+                        Color = ColorChannel.Red,
+                    },
                 },
             };
 
-            packProfile = new ResourcePackProfileProperties {
+            packProfile = new PublishProfileProperties {
                 Encoding = {
                     NormalX = {
                         Texture = TextureTags.Normal,
@@ -70,7 +73,7 @@ namespace PixelGraph.Tests.GenerationTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",

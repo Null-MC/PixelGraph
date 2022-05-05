@@ -79,8 +79,11 @@ namespace PixelGraph.Common.PixelOperations
                 {
                     if (y < 0 || y >= frame.Height) return;
 
+                    var row = frame
+                        .DangerousGetPixelRowMemory(y)
+                        .Slice(region.X, region.Width).Span;
+
                     var context = new PixelRowContext(region, y);
-                    var row = frame.DangerousGetPixelRowMemory(y).Span;
                     action.Invoke(in context, row);
                 }
             }

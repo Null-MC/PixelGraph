@@ -68,6 +68,7 @@ namespace PixelGraph.UI.ViewModels
             RenderProperties.ParallaxSamples = appSettings.Data.RenderPreview.ParallaxSamples ?? RenderPreviewSettings.Default_ParallaxSamples;
             RenderProperties.EnableBloom = appSettings.Data.RenderPreview.EnableBloom ?? RenderPreviewSettings.Default_EnableBloom;
             RenderProperties.WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
+            RenderProperties.SubSurfaceBlur = (float)(appSettings.Data.RenderPreview.SubSurfaceBlur ?? RenderPreviewSettings.Default_SubSurfaceBlur);
 
             RenderProperties.EnvironmentMapSize = appSettings.Data.RenderPreview.EnvironmentCubeSize ?? RenderPreviewSettings.Default_EnvironmentCubeSize;
             RenderProperties.IrradianceMapSize = appSettings.Data.RenderPreview.IrradianceCubeSize ?? RenderPreviewSettings.Default_IrradianceCubeSize;

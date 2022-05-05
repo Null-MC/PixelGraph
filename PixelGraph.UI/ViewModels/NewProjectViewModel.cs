@@ -11,36 +11,28 @@ namespace PixelGraph.UI.ViewModels
 {
     internal class NewProjectViewModel
     {
-        //private readonly IServiceProvider provider;
         private readonly IProjectContextManager projectContextMgr;
+        private readonly IRecentPathManager recentMgr;
 
         public NewProjectModel Model {get; set;}
 
 
         public NewProjectViewModel(IServiceProvider provider)
         {
-            //this.provider = provider;
-
             projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
+            recentMgr = provider.GetRequiredService<IRecentPathManager>();
         }
 
         public async Task CreateProjectAsync(ProjectContext projectContext, CancellationToken token = default)
         {
-            //var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
-
-            //serviceBuilder.Initialize();
-            //serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
-
-            //await using var scope = serviceBuilder.Build();
-
-            //var projectSerializer = new ProjectSerializer();
-            //await projectSerializer.SaveAsync(projectContext.Project, projectContext.ProjectFilename);
+            if (!Directory.Exists(projectContext.RootDirectory))
+                Directory.CreateDirectory(projectContext.RootDirectory);
 
             projectContextMgr.SetContext(projectContext);
             await projectContextMgr.SaveAsync();
 
-            if (!Directory.Exists(projectContext.RootDirectory))
-                Directory.CreateDirectory(projectContext.RootDirectory);
+            recentMgr.Insert(projectContext.ProjectFilename);
+            await recentMgr.SaveAsync(token);
 
             if (Model.CreateMinecraftFolders)
                 CreateDefaultMinecraftFolders(projectContext);

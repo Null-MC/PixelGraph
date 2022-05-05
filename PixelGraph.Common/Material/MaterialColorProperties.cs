@@ -2,6 +2,7 @@
 using PixelGraph.Common.ResourcePack;
 using System;
 using System.Globalization;
+using PixelGraph.Common.Projects;
 
 namespace PixelGraph.Common.Material
 {

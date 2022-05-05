@@ -6,7 +6,7 @@ namespace PixelGraph.UI.Internal.Settings
 {
     public interface IAppSettings
     {
-        AppSettingsDataModel Data {get;}
+        AppSettingsDataModel Data {get; set;}
 
         void Load();
         //Task LoadAsync(CancellationToken token = default);
@@ -19,7 +19,7 @@ namespace PixelGraph.UI.Internal.Settings
 
         private readonly IAppDataUtility appData;
 
-        public AppSettingsDataModel Data {get; private set;}
+        public AppSettingsDataModel Data {get; set;}
 
 
         public AppSettings(IAppDataUtility appData)

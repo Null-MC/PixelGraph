@@ -10,7 +10,8 @@
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
              xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
              xmlns:controls1="clr-namespace:PixelGraph.UI.Helix.Controls"
-             d:DesignHeight="450" d:DesignWidth="800" x:Name="Control" mc:Ignorable="d" d:DataContext="{x:Null}"
+             d:DesignHeight="450" d:DesignWidth="800" x:Name="Control" mc:Ignorable="d"
+             d:DataContext="{x:Null}"
              PreviewKeyDown="OnControlPreviewKeyDown" PreviewKeyUp="OnControlPreviewKeyUp">
     <UserControl.Resources>
         <viewData:RenderModeValues x:Key="RenderModes"/>
@@ -73,8 +74,6 @@
                 SunDirection="{Binding SceneProperties.SunDirection, Mode=OneWay}"
                 SunStrength="{Binding SceneProperties.SunStrength, Mode=OneWay}"
                 Wetness="{Binding SceneProperties.WetnessLinear, Mode=OneWay}"
-                EnableLinearSampling="{Binding SceneProperties.PomType.EnableLinearSampling, Mode=OneWay}"
-                EnableSlopeNormals="{Binding SceneProperties.PomType.EnableSlopeNormals, Mode=OneWay}"
                 ErpExposure="{Binding SceneProperties.ErpIntensity, Mode=OneWay}"/>
 
             <controls1:MinecraftMesh3D
@@ -82,7 +81,10 @@
                 TintColor="{Binding RenderProperties.MeshTintColor, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                 ParallaxDepth="{Binding RenderProperties.ParallaxDepth, Mode=OneWay}"
                 ParallaxSamples="{Binding RenderProperties.ParallaxSamples, Mode=OneWay}"
-                WaterMode="{Binding RenderProperties.WaterMode, Mode=OneWay}"/>
+                EnableLinearSampling="{Binding SceneProperties.PomType.EnableLinearSampling, Mode=OneWay}"
+                EnableSlopeNormals="{Binding SceneProperties.PomType.EnableSlopeNormals, Mode=OneWay}"
+                WaterMode="{Binding RenderProperties.WaterMode, Mode=OneWay}"
+                SubSurfaceBlur="{Binding RenderProperties.SubSurfaceBlur, Mode=OneWay}"/>
 
             <hx:ShadowMap3D Resolution="2048,2048" Bias="0.001" Distance="24"
                             NearFieldDistance="1" FarFieldDistance="48" OrthoWidth="24">
@@ -157,7 +159,7 @@
             <controls1:DynamicSkyDome3D
                 IsRendering="{Binding SceneProperties.EnableAtmosphere, Mode=OneWay}"/>
 
-            <hx:UICompositeManipulator3D
+            <!--<hx:UICompositeManipulator3D
                 CanRotateX="true"
                 CanRotateY="true"
                 CanRotateZ="true"
@@ -169,7 +171,10 @@
                 <hx:GroupModel3D
                     Transform="{Binding SceneProperties.MeshTransform, Mode=OneWay}"
                     ItemsSource="{Binding RenderProperties.MeshParts, Mode=OneWay}"/>
-            </hx:UICompositeManipulator3D>
+            </hx:UICompositeManipulator3D>-->
+            <hx:GroupModel3D
+                Transform="{Binding SceneProperties.MeshTransform, Mode=OneWay}"
+                ItemsSource="{Binding RenderProperties.MeshParts, Mode=OneWay}"/>
 
             <controls1:DebugSkyBox3D IsRendering="{Binding RenderProperties.ShowIrradiance, Mode=OneWay}"
                                      CubeMapSource="{Binding Mode=OneWay, Source={x:Reference IrradianceCubeMapSource}}"/>

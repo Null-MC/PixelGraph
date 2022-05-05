@@ -4,7 +4,7 @@ using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Effects;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
-using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Projects;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -72,7 +72,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
 
         public async Task PublishInventoryAsync(CancellationToken token = default)
         {
-            var publish = Context.Profile.PublishInventory ?? ResourcePackProfileProperties.PublishInventoryDefault;
+            var publish = Context.Profile.PublishInventory ?? PublishProfileProperties.PublishInventoryDefault;
 
             if (!publish) {
                 logger.LogDebug("Skipping inventory texture '{DisplayName}'. feature disabled.", Context.Material.DisplayName);
@@ -96,7 +96,7 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
         {
             await base.ProcessTextureAsync(image, textureTag, type, token);
             
-            var packPublishInventory = Context.Profile.PublishInventory ?? ResourcePackProfileProperties.PublishInventoryDefault;
+            var packPublishInventory = Context.Profile.PublishInventory ?? PublishProfileProperties.PublishInventoryDefault;
 
             // WARN: hack for only publishing inventory color
             if (TextureTags.Is(textureTag, TextureTags.Color) && packPublishInventory && (Context.Material.PublishItem ?? false)) {

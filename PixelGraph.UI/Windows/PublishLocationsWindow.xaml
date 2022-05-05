@@ -62,7 +62,8 @@
             <CheckBox Margin="4,20,0,0" Content="Archive"
                       IsChecked="{Binding EditArchive, Mode=TwoWay}"/>
         </StackPanel>
-        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="{DynamicResource MahApps.Brushes.Accent4}">
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+              Background="{DynamicResource MahApps.Brushes.Accent4}">
             <Rectangle Fill="{DynamicResource MaterialDesignCardBackground}"/>
             <Button Content="Cancel" IsCancel="True" HorizontalAlignment="Left"
                     Width="80" Margin="6"/>

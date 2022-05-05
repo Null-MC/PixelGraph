@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using System;
 using System.Collections.Generic;
@@ -17,8 +18,8 @@ namespace PixelGraph.Common.IO.Importing
         bool AsGlobal {get; set;}
         bool CopyUntracked {get; set;}
         bool IncludeUnknown {get; set;}
-        ResourcePackInputProperties PackInput {get; set;}
-        ResourcePackProfileProperties PackProfile {get; set;}
+        IProjectDescription Project {get; set;}
+        PublishProfileProperties PackProfile {get; set;}
 
         Task ImportAsync(CancellationToken token = default);
     }
@@ -34,8 +35,8 @@ namespace PixelGraph.Common.IO.Importing
         public bool AsGlobal {get; set;}
         public bool CopyUntracked {get; set;}
         public bool IncludeUnknown {get; set;}
-        public ResourcePackInputProperties PackInput {get; set;}
-        public ResourcePackProfileProperties PackProfile {get; set;}
+        public IProjectDescription Project {get; set;}
+        public PublishProfileProperties PackProfile {get; set;}
 
         public int FailureCount {get; set;}
 
@@ -201,7 +202,7 @@ namespace PixelGraph.Common.IO.Importing
         private async Task<MaterialProperties> ImportMaterialAsync(string localPath, string name, CancellationToken token)
         {
             importer.AsGlobal = AsGlobal;
-            importer.PackInput = PackInput;
+            importer.Project = Project;
             importer.PackProfile = PackProfile;
 
             var material = new MaterialProperties {

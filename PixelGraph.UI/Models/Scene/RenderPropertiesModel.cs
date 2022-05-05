@@ -39,6 +39,7 @@ namespace PixelGraph.UI.Models.Scene
         private int _irradianceMapSize;
         private string _meshBlendMode;
         private string _meshTintColor;
+        private float _subSurfaceBlur;
         private bool _showIrradiance;
 
         public event EventHandler RenderModeChanged;
@@ -181,7 +182,7 @@ namespace PixelGraph.UI.Models.Scene
 
         public string MeshBlendMode {
             get => _meshBlendMode;
-            set {
+            private set {
                 _meshBlendMode = value;
                 OnPropertyChanged();
             }
@@ -189,8 +190,16 @@ namespace PixelGraph.UI.Models.Scene
 
         public string MeshTintColor {
             get => _meshTintColor;
-            set {
+            private set {
                 _meshTintColor = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public float SubSurfaceBlur {
+            get => _subSurfaceBlur;
+            set {
+                _subSurfaceBlur = value;
                 OnPropertyChanged();
             }
         }

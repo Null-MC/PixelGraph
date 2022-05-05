@@ -1,107 +1,230 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelGraph.Common.IO;
+using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
-using PixelGraph.UI.Models;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class SettingsViewModel
+    internal class SettingsViewModel : ModelBase
     {
-        private readonly IAppSettings appSettings;
+        private IAppSettings appSettings;
+        private AppSettingsDataModel data;
+        private bool isLoading;
 
-        public SettingsWindowModel Model {get; set;}
+        public event EventHandler DataChanged;
 
+        public int DefaultConcurrency {get;}
+        public string RenderPreview_SubSurfaceBlurText => (RenderPreview_SubSurfaceBlur ?? 0m).ToString("P0");
 
-        public SettingsViewModel(IServiceProvider provider)
-        {
-            appSettings = provider.GetRequiredService<IAppSettings>();
+        public int? App_Concurrency {
+            get => data?.Concurrency;
+            set {
+                if (data == null) return;
+                if (value is < 1) throw new ArgumentOutOfRangeException(nameof(App_Concurrency), "value must be greater than 0!");
+                data.Concurrency = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
         }
 
-        public void LoadData()
+        public string App_ThemeBaseColor {
+            get => data?.ThemeBaseColor;
+            set {
+                if (data == null) return;
+                data.ThemeBaseColor = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public string App_ThemeAccentColor {
+            get => data?.ThemeAccentColor;
+            set {
+                if (data == null) return;
+                data.ThemeAccentColor = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public string Texture_ImageEditorExe {
+            get => data?.TextureEditorExecutable;
+            set {
+                if (data == null) return;
+                data.TextureEditorExecutable = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public string Texture_ImageEditorArgs {
+            get => data?.TextureEditorArguments;
+            set {
+                if (data == null) return;
+                data.TextureEditorArguments = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public bool? RenderPreview_Enabled {
+            get => data?.RenderPreview.Enabled;
+            set {
+                if (data == null) return;
+                data.RenderPreview.Enabled = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public bool? RenderPreview_EnableBloom {
+            get => data?.RenderPreview.EnableBloom;
+            set {
+                if (data == null) return;
+                data.RenderPreview.EnableBloom = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public int? RenderPreview_WaterMode {
+            get => data?.RenderPreview.WaterMode;
+            set {
+                if (data == null) return;
+                data.RenderPreview.WaterMode = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public int? RenderPreview_EnvironmentCubeSize {
+            get => data?.RenderPreview.EnvironmentCubeSize;
+            set {
+                if (data == null) return;
+                data.RenderPreview.EnvironmentCubeSize = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public int? RenderPreview_IrradianceCubeSize {
+            get => data?.RenderPreview.IrradianceCubeSize;
+            set {
+                if (data == null) return;
+                data.RenderPreview.IrradianceCubeSize = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? RenderPreview_ParallaxDepth {
+            get => data?.RenderPreview.ParallaxDepth;
+            set {
+                if (data == null) return;
+                data.RenderPreview.ParallaxDepth = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public int? RenderPreview_ParallaxSamples {
+            get => data?.RenderPreview.ParallaxSamples;
+            set {
+                if (data == null) return;
+                data.RenderPreview.ParallaxSamples = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public decimal? RenderPreview_SubSurfaceBlur {
+            get => data?.RenderPreview.SubSurfaceBlur;
+            set {
+                if (data == null) return;
+                data.RenderPreview.SubSurfaceBlur = value;
+                OnPropertyChanged();
+                OnDataChanged();
+
+                OnPropertyChanged(nameof(RenderPreview_SubSurfaceBlurText));
+            }
+        }
+
+
+        public SettingsViewModel()
         {
-            Model.IsLoading = true;
+            DefaultConcurrency = ConcurrencyHelper.GetDefaultValue();
+            isLoading = true;
+        }
 
-            Model.App_Concurrency = appSettings.Data.Concurrency;
-            Model.App_ThemeBaseColor = appSettings.Data.ThemeBaseColor;
-            Model.App_ThemeAccentColor = appSettings.Data.ThemeAccentColor;
-
-            Model.Texture_ImageEditorExe = appSettings.Data.TextureEditorExecutable;
-            Model.Texture_ImageEditorArgs = appSettings.Data.TextureEditorArguments;
-
-            Model.RenderPreview_Enabled = appSettings.Data.RenderPreview.Enabled ?? RenderPreviewSettings.Default_Enabled;
-            //Model.RenderPreview_EnableLinearSampling = appSettings.Data.RenderPreview.EnableLinearSampling ?? RenderPreviewSettings.Default_EnableLinearSampling;
-            //Model.RenderPreview_EnableSlopeNormals = appSettings.Data.RenderPreview.EnableSlopeNormals ?? RenderPreviewSettings.Default_EnableSlopeNormals;
-            Model.RenderPreview_EnableBloom = appSettings.Data.RenderPreview.EnableBloom ?? RenderPreviewSettings.Default_EnableBloom;
-            Model.RenderPreview_WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
-            Model.RenderPreview_EnvironmentCubeSize = appSettings.Data.RenderPreview.EnvironmentCubeSize ?? RenderPreviewSettings.Default_EnvironmentCubeSize;
-            Model.RenderPreview_IrradianceCubeSize = appSettings.Data.RenderPreview.IrradianceCubeSize ?? RenderPreviewSettings.Default_IrradianceCubeSize;
-            //Model.RenderPreview_ParallaxEnabled = appSettings.Data.RenderPreview.ParallaxEnabled ?? RenderPreviewSettings.Default_ParallaxEnabled;
-            Model.RenderPreview_ParallaxDepth = appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth;
-            //Model.RenderPreview_ParallaxSamplesMin = appSettings.Data.RenderPreview.ParallaxSamplesMin ?? RenderPreviewSettings.Default_ParallaxSamplesMin;
-            Model.RenderPreview_ParallaxSamples = appSettings.Data.RenderPreview.ParallaxSamples ?? RenderPreviewSettings.Default_ParallaxSamples;
-            
-            Model.IsLoading = false;
+        public void Initialize(IServiceProvider provider)
+        {
+            appSettings = provider.GetRequiredService<IAppSettings>();
+            data = (AppSettingsDataModel)appSettings.Data.Clone();
+            UpdateAllProperties();
+            isLoading = false;
         }
 
         public void ResetImageEditor()
         {
-            Model.Texture_ImageEditorExe = AppSettingsDataModel.DefaultImageEditorExe;
-            Model.Texture_ImageEditorArgs = AppSettingsDataModel.DefaultImageEditorArgs;
+            Texture_ImageEditorExe = null;
+            Texture_ImageEditorArgs = null;
         }
 
         public void ResetThemeColors()
         {
-            Model.App_ThemeBaseColor = AppSettingsDataModel.DefaultThemeBaseColor;
-            Model.App_ThemeAccentColor = AppSettingsDataModel.DefaultThemeAccentColor;
+            App_ThemeBaseColor = null;
+            App_ThemeAccentColor = null;
         }
 
-        public void ResetRenderPreview()
+        public void ResetPreviewRenderer()
         {
-            Model.RenderPreview_Enabled = RenderPreviewSettings.Default_Enabled;
-            //Model.RenderPreview_EnableLinearSampling = RenderPreviewSettings.Default_EnableLinearSampling;
-            //Model.RenderPreview_EnableSlopeNormals = RenderPreviewSettings.Default_EnableSlopeNormals;
-            Model.RenderPreview_EnableBloom = RenderPreviewSettings.Default_EnableBloom;
-            Model.RenderPreview_WaterMode = RenderPreviewSettings.Default_WaterMode;
-            Model.RenderPreview_EnvironmentCubeSize = RenderPreviewSettings.Default_EnvironmentCubeSize;
-            Model.RenderPreview_IrradianceCubeSize = RenderPreviewSettings.Default_IrradianceCubeSize;
-            //Model.RenderPreview_ParallaxEnabled = RenderPreviewSettings.Default_ParallaxEnabled;
-            Model.RenderPreview_ParallaxDepth = RenderPreviewSettings.Default_ParallaxDepth;
-            //Model.RenderPreview_ParallaxSamplesMin = RenderPreviewSettings.Default_ParallaxSamplesMin;
-            Model.RenderPreview_ParallaxSamples = RenderPreviewSettings.Default_ParallaxSamples;
+            RenderPreview_Enabled = RenderPreviewSettings.Default_Enabled;
+            RenderPreview_EnableBloom = RenderPreviewSettings.Default_EnableBloom;
+            RenderPreview_SubSurfaceBlur = RenderPreviewSettings.Default_SubSurfaceBlur;
+            RenderPreview_EnvironmentCubeSize = RenderPreviewSettings.Default_EnvironmentCubeSize;
+            RenderPreview_IrradianceCubeSize = RenderPreviewSettings.Default_IrradianceCubeSize;
+            RenderPreview_WaterMode = RenderPreviewSettings.Default_WaterMode;
         }
 
-        public async Task<bool> SaveSettingsAsync(CancellationToken token)
+        public void ResetPreviewParallax()
         {
-            try {
-                appSettings.Data.Concurrency = Model.App_Concurrency;
-                appSettings.Data.ThemeBaseColor = Model.App_ThemeBaseColor;
-                appSettings.Data.ThemeAccentColor = Model.App_ThemeAccentColor;
+            RenderPreview_ParallaxDepth = null;
+            RenderPreview_ParallaxSamples = null;
+        }
 
-                appSettings.Data.TextureEditorExecutable = Model.Texture_ImageEditorExe;
-                appSettings.Data.TextureEditorArguments = Model.Texture_ImageEditorArgs;
+        public async Task SaveSettingsAsync(CancellationToken token = default)
+        {
+            appSettings.Data = data;
+            await appSettings.SaveAsync(token);
+        }
 
-                appSettings.Data.RenderPreview.Enabled = Model.RenderPreview_Enabled == RenderPreviewSettings.Default_Enabled ? null : Model.RenderPreview_Enabled;
-                //appSettings.Data.RenderPreview.EnableLinearSampling = Model.RenderPreview_EnableLinearSampling == RenderPreviewSettings.Default_EnableLinearSampling ? null : Model.RenderPreview_EnableLinearSampling;
-                //appSettings.Data.RenderPreview.EnableSlopeNormals = Model.RenderPreview_EnableSlopeNormals == RenderPreviewSettings.Default_EnableSlopeNormals ? null : Model.RenderPreview_EnableSlopeNormals;
-                appSettings.Data.RenderPreview.EnableBloom = Model.RenderPreview_EnableBloom == RenderPreviewSettings.Default_EnableBloom ? null : Model.RenderPreview_EnableBloom;
-                appSettings.Data.RenderPreview.WaterMode = Model.RenderPreview_WaterMode == RenderPreviewSettings.Default_WaterMode ? null : Model.RenderPreview_WaterMode;
-                appSettings.Data.RenderPreview.EnvironmentCubeSize = Model.RenderPreview_EnvironmentCubeSize == RenderPreviewSettings.Default_EnvironmentCubeSize ? null : Model.RenderPreview_EnvironmentCubeSize;
-                appSettings.Data.RenderPreview.IrradianceCubeSize = Model.RenderPreview_IrradianceCubeSize == RenderPreviewSettings.Default_IrradianceCubeSize ? null : Model.RenderPreview_IrradianceCubeSize;
-                //appSettings.Data.RenderPreview.ParallaxEnabled = Model.RenderPreview_ParallaxEnabled == RenderPreviewSettings.Default_ParallaxEnabled ? null : Model.RenderPreview_ParallaxEnabled;
-                appSettings.Data.RenderPreview.ParallaxDepth = Model.RenderPreview_ParallaxDepth == RenderPreviewSettings.Default_ParallaxDepth ? null : Model.RenderPreview_ParallaxDepth;
-                //appSettings.Data.RenderPreview.ParallaxSamplesMin = Model.RenderPreview_ParallaxSamplesMin == RenderPreviewSettings.Default_ParallaxSamplesMin ? null : Model.RenderPreview_ParallaxSamplesMin;
-                appSettings.Data.RenderPreview.ParallaxSamples = Model.RenderPreview_ParallaxSamples == RenderPreviewSettings.Default_ParallaxSamples ? null : Model.RenderPreview_ParallaxSamples;
+        private void UpdateAllProperties()
+        {
+            OnPropertyChanged(nameof(App_Concurrency));
+            OnPropertyChanged(nameof(App_ThemeBaseColor));
+            OnPropertyChanged(nameof(App_ThemeAccentColor));
+            OnPropertyChanged(nameof(Texture_ImageEditorExe));
+            OnPropertyChanged(nameof(Texture_ImageEditorArgs));
+            OnPropertyChanged(nameof(RenderPreview_Enabled));
+            OnPropertyChanged(nameof(RenderPreview_EnableBloom));
+            OnPropertyChanged(nameof(RenderPreview_WaterMode));
+            OnPropertyChanged(nameof(RenderPreview_EnvironmentCubeSize));
+            OnPropertyChanged(nameof(RenderPreview_IrradianceCubeSize));
+            OnPropertyChanged(nameof(RenderPreview_ParallaxDepth));
+            OnPropertyChanged(nameof(RenderPreview_ParallaxSamples));
+            OnPropertyChanged(nameof(RenderPreview_SubSurfaceBlur));
+            OnPropertyChanged(nameof(RenderPreview_SubSurfaceBlurText));
+        }
 
-                await appSettings.SaveAsync(token);
-                return true;
-            }
-            catch {
-                // TODO: log
-                // TODO: show
-                return false;
-            }
+        private void OnDataChanged()
+        {
+            if (isLoading) return;
+            DataChanged?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    internal class SettingsDesignerViewModel : SettingsViewModel {}
 }

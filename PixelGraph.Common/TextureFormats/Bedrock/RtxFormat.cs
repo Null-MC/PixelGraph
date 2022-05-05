@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.Projects;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.TextureFormats.Bedrock
@@ -8,7 +9,7 @@ namespace PixelGraph.Common.TextureFormats.Bedrock
         public const string Description = "The NVidia standard for Bedrock RTX PBR.";
 
 
-        public ResourcePackEncoding Create()
+        public PackEncoding Create()
         {
             return new() {
                 ColorRed = new ResourcePackColorRedChannelProperties {

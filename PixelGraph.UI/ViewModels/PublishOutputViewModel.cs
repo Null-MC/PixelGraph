@@ -4,47 +4,106 @@ using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
-using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Projects;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Extensions;
 using PixelGraph.UI.Internal.Settings;
-using PixelGraph.UI.Models;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class PublishOutputViewModel : IDisposable
+    internal class PublishOutputViewModel : ModelBase, IDisposable
     {
-        private readonly ILogger<PublishOutputViewModel> logger;
-        private readonly IServiceProvider provider;
-        private readonly IAppSettings settings;
         private readonly CancellationTokenSource tokenSource;
-        private PublishOutputModel _model;
+        private ILogger<PublishOutputViewModel> logger;
+        private IServiceProvider _provider;
+        private IAppSettings settings;
+        private IProjectContextManager projectContextMgr;
+        private double _progress;
+        private bool _closeOnComplete;
+        private bool isInitializing;
+
         private volatile bool isRunning;
+        private volatile bool _isLoading;
+        private volatile bool _isActive;
+        private volatile bool _isAnalyzing;
 
         public event EventHandler<PublishStatus> StateChanged;
         public event EventHandler<LogEventArgs> LogAppended;
 
-        public PublishOutputModel Model {
-            get => _model;
+        public string Destination {get; set;}
+        public bool Archive {get; set;}
+        public bool Clean {get; set;}
+
+        public bool IsLoading {
+            get => _isLoading;
             set {
-                if (_model != value) SetModel(value);
+                if (_isLoading == value) return;
+                _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsActive {
+            get => _isActive;
+            set {
+                if (_isActive == value) return;
+                _isActive = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsAnalyzing {
+            get => _isAnalyzing;
+            set {
+                if (_isAnalyzing == value) return;
+                _isAnalyzing = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double Progress {
+            get => _progress;
+            set {
+                if (Math.Abs(_progress - value) < float.Epsilon) return;
+                _progress = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool CloseOnComplete {
+            get => _closeOnComplete;
+            set {
+                if (_closeOnComplete == value) return;
+                _closeOnComplete = value;
+                OnPropertyChanged();
+
+                if (!isInitializing) {
+                    settings.Data.PublishCloseOnComplete = value;
+                    settings.SaveAsync();
+                }
             }
         }
 
 
-        public PublishOutputViewModel(IServiceProvider provider)
+        public PublishOutputViewModel()
         {
-            this.provider = provider;
-
-            settings = provider.GetRequiredService<IAppSettings>();
-            logger = provider.GetRequiredService<ILogger<PublishOutputViewModel>>();
-
             tokenSource = new CancellationTokenSource();
+            isInitializing = true;
+        }
+
+        public void Initialize(IServiceProvider provider)
+        {
+            _provider = provider;
+
+            logger = provider.GetRequiredService<ILogger<PublishOutputViewModel>>();
+            projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
+            settings = provider.GetRequiredService<IAppSettings>();
+
+            isInitializing = false;
         }
 
         public void Dispose()
@@ -63,15 +122,17 @@ namespace PixelGraph.UI.ViewModels
 
             OnStateChanged(ref status);
 
+            var projectContext = projectContextMgr.GetContext();
+
             var timer = Stopwatch.StartNew();
-            logger.LogInformation("Publishing profile '{Name}'...", Model.Profile.Name);
+            logger.LogInformation("Publishing profile '{Name}'...", projectContext.SelectedProfile.Name);
 
             var concurrency = settings.Data.Concurrency ?? ConcurrencyHelper.GetDefaultValue();
             OnLogAppended(LogLevel.Debug, $"  Concurrency: {concurrency:N0}");
             IPublishSummary summary = null;
 
             try {
-                summary = await Task.Run(() => PublishInternalAsync(token), token);
+                summary = await Task.Run(() => PublishInternalAsync(projectContext, token), token);
                 timer.Stop();
 
                 logger.LogInformation("Publish successful. Duration: {Elapsed}", timer.Elapsed);
@@ -110,17 +171,16 @@ namespace PixelGraph.UI.ViewModels
             tokenSource?.Cancel();
         }
 
-        private async Task<IPublishSummary> PublishInternalAsync(CancellationToken token)
+        private async Task<IPublishSummary> PublishInternalAsync(ProjectContext projectContext, CancellationToken token)
         {
-            var appSettings = provider.GetRequiredService<IAppSettings>();
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+            var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
 
-            var edition = GameEdition.Parse(Model.Profile.Edition);
-            var contentType = Model.Archive ? ContentTypes.Archive : ContentTypes.File;
+            var edition = GameEdition.Parse(projectContext.SelectedProfile.Edition);
+            var contentType = Archive ? ContentTypes.Archive : ContentTypes.File;
 
             serviceBuilder.Initialize();
-            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, Model.RootDirectory);
-            serviceBuilder.ConfigureWriter(contentType, edition, Model.Destination);
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+            serviceBuilder.ConfigureWriter(contentType, edition, Destination);
             serviceBuilder.AddPublisher(edition);
 
             var logReceiver = serviceBuilder.AddSerilogRedirect();
@@ -132,17 +192,17 @@ namespace PixelGraph.UI.ViewModels
             var writer = scope.GetRequiredService<IOutputWriter>();
             writer.Prepare();
 
-            var context = new ResourcePackContext {
-                Input = Model.Input,
-                Profile = Model.Profile,
+            var context = new ProjectPublishContext {
+                Project = projectContext.Project,
+                Profile = projectContext.SelectedProfile,
             };
 
             var publisher = scope.GetRequiredService<IPublisher>();
-            publisher.Concurrency = appSettings.Data.Concurrency ?? ConcurrencyHelper.GetDefaultValue();
+            publisher.Concurrency = settings.Data.Concurrency ?? ConcurrencyHelper.GetDefaultValue();
             publisher.StateChanged += (_, e) => OnStateChanged(ref e);
 
             OnLogAppended(LogLevel.None, "Analyzing content...");
-            await publisher.PrepareAsync(context, Model.Clean, token);
+            await publisher.PrepareAsync(context, Clean, token);
 
             var status = new PublishStatus {
                 IsAnalyzing = false,
@@ -156,29 +216,6 @@ namespace PixelGraph.UI.ViewModels
             await publisher.PublishAsync(context, token);
 
             return scope.GetRequiredService<IPublishSummary>();
-        }
-
-        private void SetModel(PublishOutputModel newModel)
-        {
-            if (_model != null) {
-                _model.PropertyChanged -= OnModelPropertyChanged;
-            }
-
-            _model = newModel;
-
-            if (_model != null) {
-                _model.PropertyChanged += OnModelPropertyChanged;
-            }
-        }
-
-        private async void OnModelPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (string.Equals(e.PropertyName, nameof(PublishOutputModel.CloseOnComplete))) {
-                if (Model.IsLoading) return;
-
-                settings.Data.PublishCloseOnComplete = Model.CloseOnComplete;
-                await settings.SaveAsync();
-            }
         }
 
         private void OnInternalLog(object sender, LogEventArgs e)
@@ -195,6 +232,17 @@ namespace PixelGraph.UI.ViewModels
         {
             var e = new LogEventArgs(level, message);
             LogAppended?.Invoke(this, e);
+        }
+    }
+
+    internal class PublishOutputDesignerViewModel : PublishOutputViewModel
+    {
+        public PublishOutputDesignerViewModel()
+        {
+            IsActive = true;
+            //OnAppendLog(LogLevel.Debug, "Hello World!");
+            //AppendLog(LogLevel.Warning, "Something is wrong...");
+            //AppendLog(LogLevel.Error, "DANGER Will Robinson");
         }
     }
 }

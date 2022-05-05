@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Projects;
 
 namespace PixelGraph.Common.Textures.Graphing
 {
@@ -118,7 +119,7 @@ namespace PixelGraph.Common.Textures.Graphing
         }
 
         private void UpsertInputChannel<T>(Action<T> channelAction)
-            where T : ResourcePackChannelProperties, new()
+            where T : PackEncodingChannel, new()
         {
             var hasChannel = false;
             foreach (var channel in context.InputEncoding.OfType<T>()) {

@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using System.IO;
 using YamlDotNet.Serialization;
@@ -6,7 +7,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace PixelGraph.UI.Internal
 {
-    public class ResourcePackReader
+    public static class ResourcePackReader
     {
         private static readonly IDeserializer deserializer;
 
@@ -19,16 +20,16 @@ namespace PixelGraph.UI.Internal
                 .Build();
         }
 
-        public static ResourcePackInputProperties ParseInput(Stream stream)
+        public static PackInputEncoding ParseInput(Stream stream)
         {
             using var streamReader = new StreamReader(stream);
-            return deserializer.Deserialize<ResourcePackInputProperties>(streamReader);
+            return deserializer.Deserialize<PackInputEncoding>(streamReader);
         }
 
-        public static ResourcePackProfileProperties ParseProfile(Stream stream)
+        public static PublishProfileProperties ParseProfile(Stream stream)
         {
             using var streamReader = new StreamReader(stream);
-            return deserializer.Deserialize<ResourcePackProfileProperties>(streamReader);
+            return deserializer.Deserialize<PublishProfileProperties>(streamReader);
         }
     }
 }

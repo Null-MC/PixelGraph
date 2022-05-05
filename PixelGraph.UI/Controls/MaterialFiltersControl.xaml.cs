@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Material;
 using PixelGraph.UI.Internal.Models;
-using SixLabors.ImageSharp;
+using PixelGraph.UI.Models;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -19,8 +19,10 @@ namespace PixelGraph.UI.Controls
         private IServiceProvider provider;
         private ILogger<MaterialFiltersControl> logger;
 
-        //private MaterialFiltersViewModel Model => DataContext as MaterialFiltersViewModel;
-        public RectangleF? SelectedFilterBounds => (RectangleF?)GetValue(SelectedFilterBoundsProperty);
+        public ITexturePreviewModel TexturePreviewModel {
+            get => (ITexturePreviewModel)GetValue(TexturePreviewModelProperty);
+            set => SetValue(TexturePreviewModelProperty, value);
+        }
 
         public MaterialProperties Material {
             //get => (MaterialProperties)GetValue(MaterialProperty);
@@ -53,11 +55,11 @@ namespace PixelGraph.UI.Controls
         {
             if (Model.SelectedFilter != null) {
                 Model.SelectedFilter.Filter.GetRectangle(out var bounds);
-                SetValue(SelectedFilterBoundsProperty, bounds);
+                TexturePreviewModel.SetOutlineBounds(bounds);
                 return;
             }
 
-            SetValue(SelectedFilterBoundsProperty, null);
+            TexturePreviewModel.SetOutlineBounds(null);
         }
 
         private void OnModelDataChanged(object sender, EventArgs e)
@@ -148,6 +150,12 @@ namespace PixelGraph.UI.Controls
             Model.DeleteSelectedFilter();
         }
 
+        private static void OnTexturePreviewModelPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is not MaterialFiltersControl control) return;
+            control.Model.TexturePreviewData = e.NewValue as ITexturePreviewModel;
+        }
+
         private static void OnMaterialPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
             if (sender is not MaterialFiltersControl control) return;
@@ -162,13 +170,13 @@ namespace PixelGraph.UI.Controls
             control.Model.SelectedTag = e.NewValue as string;
         }
 
+        public static readonly DependencyProperty TexturePreviewModelProperty = DependencyProperty
+            .Register(nameof(TexturePreviewModel), typeof(ITexturePreviewModel), typeof(MaterialFiltersControl), new PropertyMetadata(OnTexturePreviewModelPropertyChanged));
+
         public static readonly DependencyProperty MaterialProperty = DependencyProperty
             .Register(nameof(Material), typeof(MaterialProperties), typeof(MaterialFiltersControl), new PropertyMetadata(OnMaterialPropertyChanged));
 
         public static readonly DependencyProperty SelectedTagProperty = DependencyProperty
             .Register(nameof(SelectedTag), typeof(string), typeof(MaterialFiltersControl), new PropertyMetadata(OnSelectedTagPropertyChanged));
-
-        public static readonly DependencyProperty SelectedFilterBoundsProperty = DependencyProperty
-            .Register(nameof(SelectedFilterBounds), typeof(RectangleF?), typeof(MaterialFiltersControl));
     }
 }

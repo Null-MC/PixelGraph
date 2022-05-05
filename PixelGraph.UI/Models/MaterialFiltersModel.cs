@@ -6,13 +6,13 @@ using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Models;
 using PixelGraph.UI.ViewModels;
+using SharpDX;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using SharpDX;
 
 namespace PixelGraph.UI.Models
 {
@@ -21,6 +21,7 @@ namespace PixelGraph.UI.Models
         private MaterialProperties _material;
         private ObservableMaterialFilter _selectedFilter;
         private ObservableCollection<ObservableMaterialFilter> _filterList;
+        private ITexturePreviewModel _texturePreviewModel;
         private string _selectedTag;
 
         public event EventHandler SelectionChanged;
@@ -33,6 +34,14 @@ namespace PixelGraph.UI.Models
         public bool HasSelectedFilter => _selectedFilter != null;
         public bool IsGeneralSelected => TextureTags.Is(_selectedTag, TextureTags.General);
         public bool IsNormalSelected => TextureTags.Is(_selectedTag, TextureTags.Normal);
+
+        public ITexturePreviewModel TexturePreviewData {
+            get => _texturePreviewModel;
+            set {
+                _texturePreviewModel = value;
+                OnPropertyChanged();
+            }
+        }
 
         public ObservableCollection<ObservableMaterialFilter> FilterList {
             get => _filterList;
@@ -127,7 +136,7 @@ namespace PixelGraph.UI.Models
 
         private static IEnumerable<MaterialFilter> ImportFiltersFromEntityModel(EntityModelVersion model)
         {
-            var existingRegions = new List<SharpDX.RectangleF>();
+            var existingRegions = new List<RectangleF>();
             var nameBuilder = new StringBuilder();
 
             IEnumerable<MaterialFilter> ProcessElements(IEnumerable<EntityElement> elements) {
@@ -195,7 +204,7 @@ namespace PixelGraph.UI.Models
 
         private static IEnumerable<MaterialFilter> ImportFiltersFromBlockModel(BlockModelVersion model)
         {
-            var existingRegions = new List<SharpDX.RectangleF>();
+            var existingRegions = new List<RectangleF>();
 
             IEnumerable<MaterialFilter> ProcessElements(IEnumerable<ModelElement> elements) {
                 foreach (var element in elements) {

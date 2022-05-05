@@ -11,7 +11,6 @@ namespace PixelGraph.UI.Models
     internal class PackImportModel : ModelBase
     {
         private ImportTreeNode _rootNode;
-        private string _rootDirectory;
         private string _importSource;
         private bool _copyUntracked;
         private bool _includeUnknown;
@@ -26,21 +25,12 @@ namespace PixelGraph.UI.Models
         public bool AsGlobal {get; set;}
         public GameEditions SourceGameEdition {get; set;}
         public string SourceTextureFormat {get; set;}
-        public ResourcePackOutputProperties Encoding {get; set;}
-        //public ResourcePackInputProperties PackInput {get; set;}
+        public PackOutputEncoding Encoding {get; set;}
 
         public bool IsReady {
             get => _isReady;
             set {
                 _isReady = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string RootDirectory {
-            get => _rootDirectory;
-            set {
-                _rootDirectory = value;
                 OnPropertyChanged();
             }
         }
@@ -97,12 +87,10 @@ namespace PixelGraph.UI.Models
             }
         }
 
-        //public bool IsBedrock => false;
-
 
         public PackImportModel()
         {
-            Encoding = new ResourcePackOutputProperties();
+            Encoding = new PackOutputEncoding();
 
             SourceGameEdition = GameEditions.Java;
             SourceTextureFormat = TextureFormat.Format_Color;

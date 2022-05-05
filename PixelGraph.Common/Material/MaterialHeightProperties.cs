@@ -1,6 +1,7 @@
 ﻿using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using System;
+using PixelGraph.Common.Projects;
 
 namespace PixelGraph.Common.Material
 {

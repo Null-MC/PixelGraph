@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.Projects;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.TextureFormats
@@ -8,7 +9,7 @@ namespace PixelGraph.Common.TextureFormats
         public const string Description = "Uses only the albedo color map and alpha channel.";
 
 
-        public ResourcePackEncoding Create()
+        public PackEncoding Create()
         {
             return new() {
                 Opacity = new ResourcePackOpacityChannelProperties {

@@ -36,10 +36,14 @@
     <Compile Remove="Internal\Preview\Textures\RenderPbrMetalPreviewBuilder.cs" />
     <Compile Remove="Internal\Utilities\ConcurrentMaterialWriter.cs" />
     <Compile Remove="Internal\Utilities\ResourceLoader.cs" />
+    <Compile Remove="Models\MainWindowModel.cs" />
     <Compile Remove="Models\MaterialContextModel.cs" />
     <Compile Remove="Models\PreviewContextModel.cs" />
     <Compile Remove="Models\ProfileContextModel.cs" />
     <Compile Remove="Models\PublishLocationsModel.cs" />
+    <Compile Remove="Models\PublishOutputModel.cs" />
+    <Compile Remove="Models\PublishProfilesModel.cs" />
+    <Compile Remove="Models\SettingsWindowModel.cs" />
     <Compile Remove="Models\ShaderErrorWindowModel.cs" />
     <Compile Remove="ViewData\BedrockTextureFormatValues.cs" />
     <Compile Remove="ViewData\JavaTextureFormatValues.cs" />
@@ -50,7 +54,6 @@
     <Compile Remove="ViewModels\LogListVM.cs" />
     <Compile Remove="ViewModels\OutputChannelMapping.cs" />
     <Compile Remove="ViewModels\PackEncodingVM.cs" />
-    <Compile Remove="ViewModels\PackInputViewModel.cs" />
     <Compile Remove="ViewModels\PreviewViewModel.cs" />
     <Compile Remove="ViewModels\PropertyGridDesignVM.cs" />
     <Compile Remove="ViewModels\TreeSearchFilter.cs" />
@@ -61,7 +64,11 @@
 
   <ItemGroup>
     <None Remove="icon.ico" />
+    <None Remove="Resources\EULA.htm" />
+    <None Remove="Resources\EULA.rtf" />
     <None Remove="Resources\tiled_bg.png" />
+    <None Remove="Resources\TOS.rtf" />
+    <None Remove="Resources\unknown_pack.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -90,6 +97,10 @@
     <Page Remove="Controls\MockScenePropertiesControl.xaml" />
     <Compile Remove="Controls\MockScenePropertiesControl.xaml.cs" />
     <Compile Remove="Models\MockScene\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\EULA.rtf" />
+    <EmbeddedResource Include="Resources\TOS.rtf" />
   </ItemGroup>
 
   <ItemGroup>
@@ -120,5 +131,19 @@
     <Resource Include="icon.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Resources\unknown_pack.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Windows\TermsOfServiceWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Windows\TermsOfServiceWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 </Project>

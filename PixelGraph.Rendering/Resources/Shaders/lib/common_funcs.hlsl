@@ -9,7 +9,7 @@
 #define BLEND_TRANSPARENT 2
 #define CUTOUT_THRESHOLD 0.1f
 
-#define IOR_N_AIR 1.0f
+#define IOR_N_AIR 1.0002926f
 #define IOR_N_WATER 1.333f
 
 #pragma pack_matrix(row_major)

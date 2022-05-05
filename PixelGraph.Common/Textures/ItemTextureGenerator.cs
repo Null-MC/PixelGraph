@@ -14,6 +14,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Projects;
 
 namespace PixelGraph.Common.Textures
 {
@@ -158,7 +159,7 @@ namespace PixelGraph.Common.Textures
             var subContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
             var builder = scope.ServiceProvider.GetRequiredService<ITextureBuilder>();
 
-            subContext.Input = context.Input;
+            subContext.Project = context.Project;
             subContext.Profile = context.Profile;
             subContext.Material = context.Material;
             subContext.IsAnimated = context.IsAnimated;
@@ -177,7 +178,7 @@ namespace PixelGraph.Common.Textures
                 subContext.InputEncoding.Add(opacityInputChannel);
 
             builder.InputChannels = subContext.InputEncoding.ToArray();
-            builder.OutputChannels = new ResourcePackChannelProperties[] {
+            builder.OutputChannels = new PackEncodingChannel[] {
                 new ResourcePackColorRedChannelProperties(TextureTags.Color, ColorChannel.Red) {MaxValue = 255m},
                 new ResourcePackColorGreenChannelProperties(TextureTags.Color, ColorChannel.Green) {MaxValue = 255m},
                 new ResourcePackColorBlueChannelProperties(TextureTags.Color, ColorChannel.Blue) {MaxValue = 255m},

@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.Projects;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.TextureFormats.Java
@@ -8,7 +9,7 @@ namespace PixelGraph.Common.TextureFormats.Java
         public const string Description = "Uses a diffuse color map, with special encoding of the alpha channel for PBR materials. Proposed by Espen 2021";
 
 
-        public ResourcePackEncoding Create()
+        public PackEncoding Create()
         {
             return new() {
                 ColorRed = new ResourcePackColorRedChannelProperties {

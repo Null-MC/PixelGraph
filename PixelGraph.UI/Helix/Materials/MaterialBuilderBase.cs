@@ -1,7 +1,7 @@
 ﻿using HelixToolkit.Wpf.SharpDX;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Material;
-using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Projects;
 using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.Rendering.LUTs;
 using PixelGraph.UI.Internal.Preview.Textures;
@@ -24,7 +24,7 @@ namespace PixelGraph.UI.Helix.Materials
         SamplerStateDescription ColorSampler {get; set;}
         SamplerStateDescription HeightSampler {get; set;}
 
-        ResourcePackContext PackContext {get; set;}
+        ProjectPublishContext PackContext {get; set;}
         MaterialProperties Material {get; set;}
         ILutMapSource DielectricBrdfLutMapSource {get; set;}
         ICubeMapSource EnvironmentCubeMapSource {get; set;}
@@ -52,7 +52,7 @@ namespace PixelGraph.UI.Helix.Materials
         public SamplerStateDescription ColorSampler {get; set;}
         public SamplerStateDescription HeightSampler {get; set;}
 
-        public ResourcePackContext PackContext {get; set;}
+        public ProjectPublishContext PackContext {get; set;}
         public MaterialProperties Material {get; set;}
         public ILutMapSource DielectricBrdfLutMapSource {get; set;}
         public ICubeMapSource EnvironmentCubeMapSource {get; set;}
@@ -123,7 +123,7 @@ namespace PixelGraph.UI.Helix.Materials
         {
             var previewBuilder = provider.GetRequiredService<T>();
 
-            previewBuilder.Input = PackContext.Input;
+            previewBuilder.Project = PackContext.Project;
             previewBuilder.Profile = PackContext.Profile;
             previewBuilder.Material = Material;
 

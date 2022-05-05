@@ -9,7 +9,7 @@ namespace PixelGraph.Common
 
         static AppCommon()
         {
-            Version = Assembly.GetEntryAssembly()?
+            Version = Assembly.GetExecutingAssembly()
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion;
         }

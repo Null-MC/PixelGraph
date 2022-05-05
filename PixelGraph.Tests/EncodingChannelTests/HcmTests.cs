@@ -4,6 +4,7 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using System.Threading.Tasks;
+using PixelGraph.Common.Projects;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,8 +12,8 @@ namespace PixelGraph.Tests.EncodingChannelTests
 {
     public class HcmTests : ImageTestBase
     {
-        private readonly ResourcePackInputProperties packInput;
-        private readonly ResourcePackProfileProperties packProfile;
+        private readonly ProjectData project;
+        private readonly PublishProfileProperties packProfile;
 
 
         public HcmTests(ITestOutputHelper output) : base(output)
@@ -20,19 +21,21 @@ namespace PixelGraph.Tests.EncodingChannelTests
             Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
             Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
 
-            packInput = new ResourcePackInputProperties {
-                HCM = {
-                    Texture = TextureTags.HCM,
-                    Color = ColorChannel.Red,
-                    MinValue = 230m,
-                    MaxValue = 255m,
-                    RangeMin = 230,
-                    RangeMax = 255,
-                    EnableClipping = true,
+            project = new ProjectData {
+                Input = new PackInputEncoding {
+                    HCM = {
+                        Texture = TextureTags.HCM,
+                        Color = ColorChannel.Red,
+                        MinValue = 230m,
+                        MaxValue = 255m,
+                        RangeMin = 230,
+                        RangeMax = 255,
+                        EnableClipping = true,
+                    },
                 },
             };
 
-            packProfile = new ResourcePackProfileProperties {
+            packProfile = new PublishProfileProperties {
                 Encoding = {
                     HCM = {
                         Texture = TextureTags.HCM,
@@ -56,7 +59,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -133,12 +136,15 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = new ResourcePackInputProperties {
-                Metal = {
-                    Texture = TextureTags.Metal,
-                    Color = ColorChannel.Red,
+            graph.Project = new ProjectData {
+                Input = new PackInputEncoding {
+                    Metal = {
+                        Texture = TextureTags.Metal,
+                        Color = ColorChannel.Red,
+                    },
                 },
             };
+
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",

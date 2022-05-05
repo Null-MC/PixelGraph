@@ -7,11 +7,11 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:controls="clr-namespace:PixelGraph.UI.Controls"
                  xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
-                 xmlns:models="clr-namespace:PixelGraph.UI.Models"
                  xmlns:vd="clr-namespace:PixelGraph.UI.ViewData"
+                 xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
                  Title="Publishing Profiles" Width="1000" Height="600" mc:Ignorable="d" 
-                 WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal" SaveWindowPosition="True"
-                 d:DataContext="{d:DesignInstance models:PublishProfilesDesignerModel, IsDesignTimeCreatable=True}"
+                 WindowStartupLocation="CenterOwner" TitleCharacterCasing="Normal"
+                 d:DataContext="{d:DesignInstance vm:PublishProfilesDesignerModel, IsDesignTimeCreatable=True}"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                  Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
     <Window.Resources>
@@ -22,7 +22,7 @@
         <converters:NullableConverter x:Key="NullableConverter"/>
     </Window.Resources>
     <Window.DataContext>
-        <models:PublishProfilesModel x:Name="Model"/>
+        <vm:PublishProfilesViewModel x:Name="Model"/>
     </Window.DataContext>
     <DockPanel>
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource MahApps.Brushes.Highlight}">
@@ -51,7 +51,7 @@
                             IsEnabled="{Binding HasSelectedProfile, Mode=OneWay}">
                     </Button>
                 </ToolBar>
-                <ListBox x:Name="ProfileListBox" DisplayMemberPath="Name" Width="320"
+                <ListBox x:Name="ProfileListBox" DisplayMemberPath="DisplayName" Width="320"
                          Background="Black" MouseDown="OnProfileListBoxMouseDown"
                          ItemsSource="{Binding Profiles, Mode=OneWay}"
                          SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"/>
@@ -68,7 +68,9 @@
                             <StackPanel Orientation="Vertical" Margin="12">
                                 <TextBlock Text="Pack Name" FontSize="12" FontWeight="Bold"
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                                <TextBox Text="{Binding SelectedProfile.Name}">
+                                <TextBox
+                                        mah:TextBoxHelper.Watermark="{Binding DefaultPackName, Mode=OneWay}"
+                                        Text="{Binding SelectedProfile.Name, Mode=TwoWay}">
                                     <TextBox.Style>
                                         <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
                                             <Style.Triggers>
@@ -91,7 +93,9 @@
                                           SelectedValue="{Binding EditGameEdition}"/>
                                 <TextBlock Text="Description" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                                <TextBox Text="{Binding SelectedProfile.PackDescription}"/>
+                                <TextBox 
+                                    mah:TextBoxHelper.Watermark="{Binding DefaultPackDescription, Mode=OneWay}"
+                                    Text="{Binding SelectedProfile.PackDescription}"/>
                                 <TextBlock Text="Tags" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"
                                            Visibility="{Binding IsSelectedProfileJava, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>

@@ -1,4 +1,4 @@
-﻿using PixelGraph.UI.Models;
+﻿using PixelGraph.UI.ViewModels;
 using System;
 using System.Windows;
 using System.Windows.Input;
@@ -18,7 +18,7 @@ namespace PixelGraph.UI.Controls
 
         private void OnPreviewTabPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is not MainWindowModel model) return;
+            if (DataContext is not MainWindowViewModel model) return;
 
             model.IsPreviewTabSelected = true;
             model.TabListSelection = null;
@@ -26,7 +26,7 @@ namespace PixelGraph.UI.Controls
 
         private void OnContextMenuCloseTabClick(object sender, RoutedEventArgs e)
         {
-            if (DataContext is MainWindowModel {HasSelectedTab: true} model)
+            if (DataContext is MainWindowViewModel {HasSelectedTab: true} model)
                 OnCloseTab(model.SelectedTab.Id);
         }
 

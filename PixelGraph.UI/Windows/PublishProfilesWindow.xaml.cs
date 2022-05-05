@@ -1,65 +1,34 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MahApps.Metro.Controls.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
-using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Utilities;
-using PixelGraph.UI.Models;
 using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using PixelGraph.Common.Projects;
 
 namespace PixelGraph.UI.Windows
 {
     public partial class PackProfilesWindow
     {
-        private readonly IProjectContextManager projectContextMgr;
+        private readonly ILogger<PackProfilesWindow> logger;
 
 
         public PackProfilesWindow(IServiceProvider provider)
         {
+            logger = provider.GetRequiredService<ILogger<PackProfilesWindow>>();
+
             InitializeComponent();
 
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
             themeHelper.ApplyCurrent(this);
 
-            projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
-            var projectContext = projectContextMgr.GetContext();
-
-            foreach (var profile in projectContext.Project.Profiles)
-                Model.Profiles.Add(new PublishProfileDisplayRow(profile));
-
-            if (projectContext.SelectedProfile != null)
-                Model.SelectedProfile = Model.Profiles.FirstOrDefault(p => p.Name == projectContext.SelectedProfile.Name);
-        }
-
-        private void CreateNewProfile()
-        {
-            var projectContext = projectContextMgr.GetContext();
-
-            var profile = new ResourcePackProfileProperties {
-                Name = projectContext.Project.Name ?? "New Profile",
-                Encoding = {
-                    Format = TextureFormat.Format_Lab13,
-                },
-            };
-
-            var row = new PublishProfileDisplayRow(profile);
-            Model.Profiles.Add(row);
-            Model.SelectedProfile = row;
-        }
-
-        private void CloneSelectedProfile()
-        {
-            if (!Model.HasSelectedProfile) return;
-            var profile = (ResourcePackProfileProperties)Model.SelectedProfile.Profile.Clone();
-
-            var row = new PublishProfileDisplayRow(profile);
-            Model.Profiles.Add(row);
-            Model.SelectedProfile = row;
+            Model.Initialize(provider);
         }
 
         private bool TryGenerateGuid(Guid? currentValue, out Guid id)
@@ -77,12 +46,12 @@ namespace PixelGraph.UI.Windows
 
         private void OnNewProfileClick(object sender, RoutedEventArgs e)
         {
-            CreateNewProfile();
+            Model.CreateNewProfile();
         }
 
         private void OnDuplicateProfileClick(object sender, RoutedEventArgs e)
         {
-            CloneSelectedProfile();
+            Model.CloneSelectedProfile();
         }
 
         private void OnDeleteProfileClick(object sender, RoutedEventArgs e)
@@ -90,7 +59,7 @@ namespace PixelGraph.UI.Windows
             //var result = MessageBox.Show(this, "Are you sure? This operation cannot be undone.", "Warning", MessageBoxButton.OKCancel);
             //if (result != MessageBoxResult.OK) return;
 
-            Model.Profiles.Remove(Model.SelectedProfile);
+            Model.RemoveSelected();
         }
 
         private void OnProfileListBoxMouseDown(object sender, MouseButtonEventArgs e)
@@ -139,7 +108,7 @@ namespace PixelGraph.UI.Windows
             var window = new TextureFormatWindow {
                 Owner = this,
                 Model = {
-                    Encoding = (ResourcePackEncoding)profile.Encoding.Clone(),
+                    Encoding = (PackEncoding)profile.Encoding.Clone(),
                     DefaultEncoding = formatFactory.Create(),
                     DefaultSampler = Model.EditEncodingSampler,
                     EnableSampler = true,
@@ -148,17 +117,19 @@ namespace PixelGraph.UI.Windows
 
             if (window.ShowDialog() != true) return;
 
-            profile.Encoding = (ResourcePackOutputProperties)window.Model.Encoding;
+            profile.Encoding = (PackOutputEncoding)window.Model.Encoding;
         }
 
         private async void OnSaveButtonClick(object sender, RoutedEventArgs e)
         {
-            var context = projectContextMgr.GetContext();
-
-            context.Project.Profiles = Model.Profiles.Select(p => p.Profile).ToList();
-            context.SelectedProfile = Model.SelectedProfile?.Profile;
-
-            await projectContextMgr.SaveAsync();
+            try {
+                await Model.SaveAsync();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to save project file!");
+                await this.ShowMessageAsync("Error!", "Failed to save project file!");
+                return;
+            }
 
             await Dispatcher.BeginInvoke(() => DialogResult = true);
         }

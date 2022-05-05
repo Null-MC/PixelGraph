@@ -1,15 +1,15 @@
-﻿using PixelGraph.Common.Material;
+﻿using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.Material;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PixelGraph.Common.IO.Serialization;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
 {
-    public class ResourcePackEncoding : IHaveData
+    public class PackEncoding : IHaveData
     {
         public ResourcePackOpacityChannelProperties Opacity {get; set;}
 
@@ -43,7 +43,7 @@ namespace PixelGraph.Common.ResourcePack
         public ResourcePackEmissiveChannelProperties Emissive {get; set;}
 
 
-        public ResourcePackEncoding()
+        public PackEncoding()
         {
             Opacity = new ResourcePackOpacityChannelProperties();
 
@@ -80,12 +80,12 @@ namespace PixelGraph.Common.ResourcePack
         //    return GetAll().FirstOrDefault(e => EncodingChannel.Is(e.ID, encodingChannel));
         //}
 
-        public IEnumerable<ResourcePackChannelProperties> GetMapped()
+        public IEnumerable<PackEncodingChannel> GetMapped()
         {
             return GetAll().Where(e => e.HasMapping);
         }
 
-        public void Merge(ResourcePackEncoding encoding)
+        public void Merge(PackEncoding encoding)
         {
             if (encoding.Opacity != null) Opacity.Merge(encoding.Opacity);
 
@@ -147,7 +147,7 @@ namespace PixelGraph.Common.ResourcePack
             if (material.Emissive?.Input != null) Emissive.Merge(material.Emissive.Input);
         }
 
-        private IEnumerable<ResourcePackChannelProperties> GetAll()
+        private IEnumerable<PackEncodingChannel> GetAll()
         {
             yield return Opacity;
 
@@ -180,7 +180,7 @@ namespace PixelGraph.Common.ResourcePack
 
         public virtual object Clone()
         {
-            var clone = (ResourcePackEncoding)MemberwiseClone();
+            var clone = (PackEncoding)MemberwiseClone();
 
             clone.Opacity = (ResourcePackOpacityChannelProperties)Opacity.Clone();
 
@@ -283,7 +283,7 @@ namespace PixelGraph.Common.ResourcePack
         #endregion
     }
 
-    public class ResourcePackOpacityChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackOpacityChannelProperties : PackEncodingChannel
     {
         public ResourcePackOpacityChannelProperties() : base(EncodingChannel.Opacity) {}
 
@@ -295,126 +295,126 @@ namespace PixelGraph.Common.ResourcePack
         }
     }
 
-    public class ResourcePackColorRedChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackColorRedChannelProperties : PackEncodingChannel
     {
         public ResourcePackColorRedChannelProperties() : base(EncodingChannel.ColorRed) {}
 
         public ResourcePackColorRedChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.ColorRed, texture, color) {}
     }
 
-    public class ResourcePackColorGreenChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackColorGreenChannelProperties : PackEncodingChannel
     {
         public ResourcePackColorGreenChannelProperties() : base(EncodingChannel.ColorGreen) {}
 
         public ResourcePackColorGreenChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.ColorGreen, texture, color) {}
     }
 
-    public class ResourcePackColorBlueChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackColorBlueChannelProperties : PackEncodingChannel
     {
         public ResourcePackColorBlueChannelProperties() : base(EncodingChannel.ColorBlue) {}
 
         public ResourcePackColorBlueChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.ColorBlue, texture, color) {}
     }
 
-    public class ResourcePackHeightChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackHeightChannelProperties : PackEncodingChannel
     {
         public ResourcePackHeightChannelProperties() : base(EncodingChannel.Height) {}
 
         public ResourcePackHeightChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Height, texture, color) {}
     }
 
-    public class ResourcePackBumpChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackBumpChannelProperties : PackEncodingChannel
     {
         public ResourcePackBumpChannelProperties() : base(EncodingChannel.Bump) {}
 
         public ResourcePackBumpChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Bump, texture, color) {}
     }
 
-    public class ResourcePackOcclusionChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackOcclusionChannelProperties : PackEncodingChannel
     {
         public ResourcePackOcclusionChannelProperties() : base(EncodingChannel.Occlusion) {}
 
         public ResourcePackOcclusionChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Occlusion, texture, color) {}
     }
 
-    public class ResourcePackNormalXChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackNormalXChannelProperties : PackEncodingChannel
     {
         public ResourcePackNormalXChannelProperties() : base(EncodingChannel.NormalX) {}
 
         public ResourcePackNormalXChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.NormalX, texture, color) {}
     }
 
-    public class ResourcePackNormalYChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackNormalYChannelProperties : PackEncodingChannel
     {
         public ResourcePackNormalYChannelProperties() : base(EncodingChannel.NormalY) {}
 
         public ResourcePackNormalYChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.NormalY, texture, color) {}
     }
 
-    public class ResourcePackNormalZChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackNormalZChannelProperties : PackEncodingChannel
     {
         public ResourcePackNormalZChannelProperties() : base(EncodingChannel.NormalZ) {}
 
         public ResourcePackNormalZChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.NormalZ, texture, color) {}
     }
 
-    public class ResourcePackSpecularChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackSpecularChannelProperties : PackEncodingChannel
     {
         public ResourcePackSpecularChannelProperties() : base(EncodingChannel.Specular) {}
 
         public ResourcePackSpecularChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Specular, texture, color) {}
     }
 
-    public class ResourcePackSmoothChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackSmoothChannelProperties : PackEncodingChannel
     {
         public ResourcePackSmoothChannelProperties() : base(EncodingChannel.Smooth) {}
 
         public ResourcePackSmoothChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Smooth, texture, color) {}
     }
 
-    public class ResourcePackRoughChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackRoughChannelProperties : PackEncodingChannel
     {
         public ResourcePackRoughChannelProperties() : base(EncodingChannel.Rough) {}
 
         public ResourcePackRoughChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Rough, texture, color) {}
     }
 
-    public class ResourcePackMetalChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackMetalChannelProperties : PackEncodingChannel
     {
         public ResourcePackMetalChannelProperties() : base(EncodingChannel.Metal) {}
 
         public ResourcePackMetalChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Metal, texture, color) {}
     }
 
-    public class ResourcePackHcmChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackHcmChannelProperties : PackEncodingChannel
     {
         public ResourcePackHcmChannelProperties() : base(EncodingChannel.HCM) {}
 
         public ResourcePackHcmChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.HCM, texture, color) {}
     }
 
-    public class ResourcePackF0ChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackF0ChannelProperties : PackEncodingChannel
     {
         public ResourcePackF0ChannelProperties() : base(EncodingChannel.F0) {}
 
         public ResourcePackF0ChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.F0, texture, color) {}
     }
 
-    public class ResourcePackPorosityChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackPorosityChannelProperties : PackEncodingChannel
     {
         public ResourcePackPorosityChannelProperties() : base(EncodingChannel.Porosity) {}
 
         public ResourcePackPorosityChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.Porosity, texture, color) {}
     }
 
-    public class ResourcePackSssChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackSssChannelProperties : PackEncodingChannel
     {
         public ResourcePackSssChannelProperties() : base(EncodingChannel.SubSurfaceScattering) {}
 
         public ResourcePackSssChannelProperties(string texture, ColorChannel color) : base(EncodingChannel.SubSurfaceScattering, texture, color) {}
     }
 
-    public class ResourcePackEmissiveChannelProperties : ResourcePackChannelProperties
+    public class ResourcePackEmissiveChannelProperties : PackEncodingChannel
     {
         public ResourcePackEmissiveChannelProperties() : base(EncodingChannel.Emissive) {}
 

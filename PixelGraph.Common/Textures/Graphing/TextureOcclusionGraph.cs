@@ -3,6 +3,7 @@ using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
@@ -17,7 +18,7 @@ namespace PixelGraph.Common.Textures.Graphing
 {
     public interface ITextureOcclusionGraph
     {
-        ResourcePackChannelProperties Channel {get;}
+        PackEncodingChannel Channel {get;}
         int FrameCount {get;}
         int FrameWidth {get;}
         int FrameHeight {get;}
@@ -36,7 +37,7 @@ namespace PixelGraph.Common.Textures.Graphing
         private Image<L8> texture;
         private bool isLoaded;
 
-        public ResourcePackChannelProperties Channel {get; private set;}
+        public PackEncodingChannel Channel {get; private set;}
         public int FrameCount {get; private set;}
         public int FrameWidth {get; private set;}
         public int FrameHeight {get; private set;}
@@ -132,11 +133,11 @@ namespace PixelGraph.Common.Textures.Graphing
             heightSampler.RangeX = (float)heightImage.Width / occlusionWidth;
             heightSampler.RangeY = (float)heightImage.Height / occlusionHeight;
 
-            var quality = (float) (context.Profile?.OcclusionQuality ?? ResourcePackProfileProperties.DefaultOcclusionQuality);
+            var quality = (float) (context.Profile?.OcclusionQuality ?? PublishProfileProperties.DefaultOcclusionQuality);
             var stepDistance = (float)(context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance);
             var zScale = (float) (context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale);
             var zBias = (float) (context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias);
-            var hitPower = (float)(context.Profile?.OcclusionPower ?? ResourcePackProfileProperties.DefaultOcclusionPower);
+            var hitPower = (float)(context.Profile?.OcclusionPower ?? PublishProfileProperties.DefaultOcclusionPower);
 
             // adjust volume height with texture scale
             zBias *= heightScale;
@@ -235,7 +236,7 @@ namespace PixelGraph.Common.Textures.Graphing
             }
         }
 
-        private async Task<(Image<TPixel> image, int frameCount)> ExtractInputAsync<TPixel>(string inputEncodingChannel, ResourcePackChannelProperties outputChannel, CancellationToken token)
+        private async Task<(Image<TPixel> image, int frameCount)> ExtractInputAsync<TPixel>(string inputEncodingChannel, PackEncodingChannel outputChannel, CancellationToken token)
             where TPixel : unmanaged, IPixel<TPixel>
         {
             var inputChannel = context.InputEncoding.GetChannel(inputEncodingChannel);
@@ -245,7 +246,7 @@ namespace PixelGraph.Common.Textures.Graphing
             var subContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
             var builder = scope.ServiceProvider.GetRequiredService<ITextureBuilder>();
 
-            subContext.Input = context.Input;
+            subContext.Project = context.Project;
             subContext.Profile = context.Profile;
             subContext.Material = context.Material;
             subContext.IsAnimated = context.IsAnimated;

@@ -5,8 +5,8 @@
           xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
           xmlns:tabs="clr-namespace:PixelGraph.UI.Models.Tabs"
           xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
-          xmlns:models="clr-namespace:PixelGraph.UI.Models"
-          d:DataContext="{d:DesignInstance models:MainDesignerModel, IsDesignTimeCreatable=True}"
+          xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+          d:DataContext="{d:DesignInstance vm:MainWindowDesignerViewModel, IsDesignTimeCreatable=True}"
           mc:Ignorable="d" d:DesignHeight="34" d:DesignWidth="420"
           x:Name="Root" SelectionMode="Single">
     <ListView.ContextMenu>

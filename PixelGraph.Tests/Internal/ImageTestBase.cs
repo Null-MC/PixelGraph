@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
@@ -31,8 +32,8 @@ namespace PixelGraph.Tests.Internal
         private readonly ServiceProvider provider;
 
         public IServiceProvider Provider => provider;
-        public ResourcePackInputProperties PackInput {get; set;}
-        public ResourcePackProfileProperties PackProfile {get; set;}
+        public IProjectDescription Project {get; set;}
+        public PublishProfileProperties PackProfile {get; set;}
         public MaterialProperties Material {get; set;}
 
 
@@ -95,7 +96,7 @@ namespace PixelGraph.Tests.Internal
             var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
             var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
 
-            graphContext.Input = PackInput;
+            graphContext.Project = Project;
             graphContext.Profile = PackProfile;
             graphContext.Material = Material;
             graphContext.Mapping = new DefaultPublishMapping();

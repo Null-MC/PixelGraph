@@ -11,6 +11,7 @@ using Serilog;
 using System;
 using System.Windows;
 using System.Windows.Threading;
+using PixelGraph.Common.Extensions;
 using Serilog.Events;
 
 #if !NORENDER
@@ -71,8 +72,9 @@ namespace PixelGraph.UI
 
             AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
 
+            var settings = provider.GetRequiredService<IAppSettings>();
+
             try {
-                var settings = provider.GetRequiredService<IAppSettings>();
                 settings.Load();
             }
             catch (Exception error) {
@@ -80,8 +82,13 @@ namespace PixelGraph.UI
                 throw;
             }
 
-            window = new MainWindow(provider);
-            window.Show();
+            try {
+                window = new MainWindow(provider);
+                window.Show();
+            }
+            catch (Exception error) {
+                Log.Error(error, "Failed to show Main window!");
+            }
         }
 
         private void App_OnExit(object sender, ExitEventArgs e)

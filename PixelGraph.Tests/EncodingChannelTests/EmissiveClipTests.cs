@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
@@ -11,8 +12,8 @@ namespace PixelGraph.Tests.EncodingChannelTests
 {
     public class EmissiveClipTests : ImageTestBase
     {
-        private readonly ResourcePackInputProperties packInput;
-        private readonly ResourcePackProfileProperties packProfile;
+        private readonly ProjectData project;
+        private readonly PublishProfileProperties packProfile;
 
 
         public EmissiveClipTests(ITestOutputHelper output) : base(output)
@@ -20,15 +21,17 @@ namespace PixelGraph.Tests.EncodingChannelTests
             Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
             Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
 
-            packInput = new ResourcePackInputProperties {
-                Emissive = {
-                    Texture = TextureTags.Emissive,
-                    Color = ColorChannel.Red,
-                    Shift = -1,
-                }
+            project = new ProjectData {
+                Input = new PackInputEncoding {
+                    Emissive = {
+                        Texture = TextureTags.Emissive,
+                        Color = ColorChannel.Red,
+                        Shift = -1,
+                    },
+                },
             };
 
-            packProfile = new ResourcePackProfileProperties {
+            packProfile = new PublishProfileProperties {
                 Encoding = {
                     Emissive = {
                         Texture = TextureTags.Emissive,
@@ -47,7 +50,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -100,7 +103,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -125,12 +128,15 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = new ResourcePackInputProperties {
-                Emissive = {
-                    Texture = TextureTags.Emissive,
-                    Color = ColorChannel.Red,
+            graph.Project = new ProjectData {
+                Input = new PackInputEncoding {
+                    Emissive = {
+                        Texture = TextureTags.Emissive,
+                        Color = ColorChannel.Red,
+                    },
                 },
             };
+
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",

@@ -123,13 +123,13 @@ namespace PixelGraph.Common.IO.Importing
 
                     context.Material.Color.Value = $"#{colorValues[0]:X2}{colorValues[1]:X2}{colorValues[2]:X2}";
 
-                    context.Input.ColorRed.Reset();
-                    context.Input.ColorGreen.Reset();
-                    context.Input.ColorBlue.Reset();
+                    context.Project.Input.ColorRed.Reset();
+                    context.Project.Input.ColorGreen.Reset();
+                    context.Project.Input.ColorBlue.Reset();
 
                     if (channelOpacity != null && colorValues.Length == 4) {
                         context.Material.Opacity.Value = (decimal)(colorValues[3] / 255f * opacityRange) + channelOpacity.MinValue;
-                        context.Input.Opacity.Reset();
+                        context.Project.Input.Opacity.Reset();
                     }
                 }
                 else { throw new ApplicationException($"Unexpected data-type '{colorData.Type}' for element 'minecraft:texture_set/color'!"); }
@@ -152,21 +152,21 @@ namespace PixelGraph.Common.IO.Importing
                         if (metalChannel != null) {
                             var metalRange = ((float?)metalChannel.MaxValue ?? 0f) - ((float?)metalChannel.MinValue ?? 0f);
                             context.Material.Metal.Value = (decimal)(metal / 255f * metalRange) + metalChannel.MinValue;
-                            context.Input.Metal.Reset();
+                            context.Project.Input.Metal.Reset();
                         }
 
                         var emissiveChannel = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Emissive));
                         if (emissiveChannel != null) {
                             var emissiveRange = ((float?)emissiveChannel.MaxValue ?? 0f) - ((float?)emissiveChannel.MinValue ?? 0f);
                             context.Material.Metal.Value = (decimal)(emissive / 255f * emissiveRange) + emissiveChannel.MinValue;
-                            context.Input.Emissive.Reset();
+                            context.Project.Input.Emissive.Reset();
                         }
 
                         var roughChannel = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Rough));
                         if (roughChannel != null) {
                             var roughRange = ((float?)roughChannel.MaxValue ?? 0f) - ((float?)roughChannel.MinValue ?? 0f);
                             context.Material.Rough.Value = (decimal)(rough / 255f * roughRange) + roughChannel.MinValue;
-                            context.Input.Rough.Reset();
+                            context.Project.Input.Rough.Reset();
                         }
                     }
                     else {
@@ -188,21 +188,21 @@ namespace PixelGraph.Common.IO.Importing
                     if (metalChannel != null) {
                         var metalRange = ((float?)metalChannel.MaxValue ?? 0f) - ((float?)metalChannel.MinValue ?? 0f);
                         context.Material.Metal.Value = (decimal)(merValues[0] / 255f * metalRange) + metalChannel.MinValue;
-                        context.Input.Metal.Reset();
+                        context.Project.Input.Metal.Reset();
                     }
 
                     var emissiveChannel = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Emissive));
                     if (emissiveChannel != null) {
                         var emissiveRange = ((float?)emissiveChannel.MaxValue ?? 0f) - ((float?)emissiveChannel.MinValue ?? 0f);
                         context.Material.Metal.Value = (decimal)(merValues[1] / 255f * emissiveRange) + emissiveChannel.MinValue;
-                        context.Input.Emissive.Reset();
+                        context.Project.Input.Emissive.Reset();
                     }
 
                     var roughChannel = context.InputEncoding.FirstOrDefault(e => TextureTags.Is(e.ID, TextureTags.Rough));
                     if (roughChannel != null) {
                         var roughRange = ((float?)roughChannel.MaxValue ?? 0f) - ((float?)roughChannel.MinValue ?? 0f);
                         context.Material.Rough.Value = (decimal)(merValues[1] / 255f * roughRange) + roughChannel.MinValue;
-                        context.Input.Rough.Reset();
+                        context.Project.Input.Rough.Reset();
                     }
                 }
                 else { throw new ApplicationException($"Unexpected data-type '{merData.Type}' for element 'minecraft:texture_set/metalness_emissive_roughness'!"); }

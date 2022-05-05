@@ -5,7 +5,7 @@ using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack
 {
-    public abstract class ResourcePackChannelProperties : IHaveData
+    public abstract class PackEncodingChannel : IHaveData
     {
         [YamlIgnore]
         public string ID {get;}
@@ -40,18 +40,18 @@ namespace PixelGraph.Common.ResourcePack
         public bool HasMapping => HasTexture && HasColor;
 
 
-        protected ResourcePackChannelProperties(string id)
+        protected PackEncodingChannel(string id)
         {
             ID = id;
         }
 
-        protected ResourcePackChannelProperties(string id, string texture, ColorChannel color) : this(id)
+        protected PackEncodingChannel(string id, string texture, ColorChannel color) : this(id)
         {
             Texture = texture;
             Color = color;
         }
 
-        public void Merge(ResourcePackChannelProperties channel)
+        public void Merge(PackEncodingChannel channel)
         {
             if (channel == null) throw new ArgumentNullException(nameof(channel));
 

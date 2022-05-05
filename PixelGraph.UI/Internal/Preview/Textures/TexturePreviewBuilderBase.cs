@@ -3,6 +3,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.Effects;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
@@ -21,8 +22,8 @@ namespace PixelGraph.UI.Internal.Preview.Textures
 {
     public interface ITexturePreviewBuilder : IDisposable
     {
-        ResourcePackInputProperties Input {get; set;}
-        ResourcePackProfileProperties Profile {get; set;}
+        IProjectDescription Project {get; set;}
+        PublishProfileProperties Profile {get; set;}
         MaterialProperties Material {get; set;}
         CancellationToken Token {get;}
         int? TargetFrame {get; set;}
@@ -39,13 +40,13 @@ namespace PixelGraph.UI.Internal.Preview.Textures
         private readonly IProjectContextManager projectContextMgr;
         private readonly CancellationTokenSource tokenSource;
 
-        public ResourcePackInputProperties Input {get; set;}
-        public ResourcePackProfileProperties Profile {get; set;}
+        public IProjectDescription Project {get; set;}
+        public PublishProfileProperties Profile {get; set;}
         public MaterialProperties Material {get; set;}
         public int? TargetFrame {get; set;}
         public int? TargetPart {get; set;}
 
-        protected IDictionary<string, Func<ResourcePackProfileProperties, MaterialProperties, ResourcePackChannelProperties[]>> TagMap {get; set;}
+        protected IDictionary<string, Func<PublishProfileProperties, MaterialProperties, PackEncodingChannel[]>> TagMap {get; set;}
         public CancellationToken Token => tokenSource.Token;
 
 
@@ -72,7 +73,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             var graph = scope.GetRequiredService<ITextureGraph>();
             var reader = scope.GetRequiredService<IInputReader>();
 
-            context.Input = Input;
+            context.Project = Project;
             context.Profile = Profile;
             context.Material = Material;
             //context.PackWriteTime = ;
@@ -83,8 +84,8 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             var matMetaFileIn = NamingStructure.GetInputMetaName(Material);
             context.IsAnimated = reader.FileExists(matMetaFileIn);
 
-            var inputEncoding = GetEncoding(Input?.Format);
-            inputEncoding.Merge(Input);
+            var inputEncoding = GetEncoding(Project.Input?.Format);
+            inputEncoding.Merge(Project.Input);
             inputEncoding.Merge(Material);
             context.InputEncoding = inputEncoding.GetMapped().ToList();
 
@@ -161,7 +162,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             tokenSource?.Dispose();
         }
 
-        private bool TryGetChannels(string textureTag, out ResourcePackChannelProperties[] channels)
+        private bool TryGetChannels(string textureTag, out PackEncodingChannel[] channels)
         {
             if (TagMap.TryGetValue(textureTag, out var channelFunc)) {
                 channels = channelFunc(Profile, Material);
@@ -172,16 +173,16 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             return false;
         }
 
-        private static ResourcePackEncoding GetEncoding(string format)
+        private static PackEncoding GetEncoding(string format)
         {
-            ResourcePackEncoding encoding = null;
+            PackEncoding encoding = null;
 
             if (format != null) {
                 var factory = TextureFormat.GetFactory(format);
                 if (factory != null) encoding = factory.Create();
             }
 
-            return encoding ?? new ResourcePackEncoding();
+            return encoding ?? new PackEncoding();
         }
     }
 }

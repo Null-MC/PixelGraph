@@ -119,11 +119,13 @@ float4 main(const ps_input input) : SV_TARGET
 
     //-- Slope Normals --
     float3 tex_normal = src_normal;
+    bool isSlope = false;
 
     if (EnableSlopeNormals && !EnableLinearSampling && tex_depth - shadow_tex.z > 0.002f) {
 	    const float3 slope = apply_slope_normal(tex, input.vTS, shadow_tex.z);
 
 	    wet_normal = tex_normal = mul(slope, matTBN);
+        isSlope = true;
     }
 
     float water = max(surface_water, wet_depth);
@@ -297,12 +299,11 @@ float4 main(const ps_input input) : SV_TARGET
 	const float3 ibl_F = F_schlick_roughness(ibl_f0, NoV, roughL);
 	const float3 ibl_ambient = IBL_ambient(ibl_F, tex_normal) * diffuse * mat.occlusion * (1.0f - mat.sss);
 
-    //return float4(tex_dielectric_brdf_lut.SampleLevel(sampler_brdf_lut, input.tex, 0), 0.0, 1.0);
-
 	float3 ibl_specular = IBL_specular(ibl_F, ibl_f90, NoV, r, mat.occlusion, roughP) * metal_albedo;
 	float3 ibl_sss = SSS_IBL(view, mat.sss);
 
-    //return float4(ibl_ambient, 1.f);
+    // Fix for reflected IBL passing through object
+    if (isSlope) ibl_specular *= saturate(dot(r, normal) * 4.f + 1.f);
 
     if (Wetness > EPSILON) {
 		float3 ibl_F_water = F_full(ETA_AIR_TO_WATER, NoV_wet);
@@ -338,8 +339,8 @@ float4 main(const ps_input input) : SV_TARGET
 	final_color += acc_light;
 	final_color += final_sss;
 
-	float alpha = mat.opacity + spec_strength;
-	if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
+	float alpha = saturate(mat.opacity + spec_strength);
+	//if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
 	//final_color *= 0.3f;
 	final_color = tonemap_ACESFit2(final_color);
@@ -347,5 +348,28 @@ float4 main(const ps_input input) : SV_TARGET
 	//final_color = tonemap_HejlBurgess(final_color);
 	//final_color = linear_to_srgb(final_color);
 
-    return float4(final_color, alpha);
+	if (BlendMode == BLEND_TRANSPARENT) {
+        const float ior = f0_to_ior(clamp(mat.f0_hcm, 0.0f, 0.9f));
+        const float eta = IOR_N_AIR / ior;
+        float3 refractDir = refract(-view, tex_normal, eta);
+
+        if (lengthSq(refractDir) >= EPSILON) {
+	        const float exit_eta = ior / IOR_N_AIR;
+	        refractDir = refract(refractDir, normal, exit_eta);
+        }
+
+        if (lengthSq(refractDir) >= EPSILON) {
+			const float2 refractTex = getErpCoord(refractDir);
+			float3 blendColor = tex_equirectangular.Sample(sampler_surface, refractTex);
+			blendColor = pow(abs(blendColor), 1.f + 2.5f * ErpExposure);
+			blendColor *= 16.f;
+
+			blendColor = tonemap_ACESFit2(blendColor);
+	        //final_color = lerp(blendColor, final_color, alpha);
+	        final_color = final_color*alpha + blendColor*lerp(1.f, final_color, alpha)*(1.f - alpha);
+	        //final_color = blendColor * lerp(1.f, final_color, alpha);
+        }
+	}
+
+    return float4(final_color, 1.f);
 }

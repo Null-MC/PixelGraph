@@ -22,17 +22,17 @@ namespace PixelGraph.Common.Extensions
             foreach (var e in collection) action(e);
         }
 
-        public static ResourcePackChannelProperties GetChannel(this IEnumerable<ResourcePackChannelProperties> collection, string encodingChannel)
+        public static PackEncodingChannel GetChannel(this IEnumerable<PackEncodingChannel> collection, string encodingChannel)
         {
             return collection.FirstOrDefault(c => EncodingChannel.Is(c.ID, encodingChannel));
         }
 
-        public static bool HasChannel(this IEnumerable<ResourcePackChannelProperties> collection, string encodingChannel)
+        public static bool HasChannel(this IEnumerable<PackEncodingChannel> collection, string encodingChannel)
         {
             return collection.Any(c => EncodingChannel.Is(c.ID, encodingChannel));
         }
 
-        public static bool HasNormalChannels(this IEnumerable<ResourcePackChannelProperties> collection)
+        public static bool HasNormalChannels(this IEnumerable<PackEncodingChannel> collection)
         {
             return collection.Any(c => EncodingChannel.Is(c.ID, EncodingChannel.NormalX)
                                     || EncodingChannel.Is(c.ID, EncodingChannel.NormalY)
@@ -46,7 +46,7 @@ namespace PixelGraph.Common.Extensions
         //    return channelProperties != null;
         //}
 
-        public static bool TryGetChannel(this IEnumerable<ResourcePackChannelProperties> collection, string encodingChannel, out ResourcePackChannelProperties channelProperties)
+        public static bool TryGetChannel(this IEnumerable<PackEncodingChannel> collection, string encodingChannel, out PackEncodingChannel channelProperties)
         {
             channelProperties = collection.FirstOrDefault(c => EncodingChannel.Is(c.ID, encodingChannel));
             return channelProperties != null;

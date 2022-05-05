@@ -8,23 +8,11 @@ using SharpDX;
 
 namespace PixelGraph.Rendering.Minecraft
 {
-    public interface IMinecraftMesh
-    {
-        //bool IsRenderValid {get;}
-        long LastUpdated {get;}
-
-        void Apply(DeviceContextProxy deviceContext);
-        //void ResetValidation();
-    }
-
-    internal class MinecraftMeshCore : RenderCore, IMinecraftMesh
+    internal class MinecraftMeshCore : RenderCore
     {
         private readonly ConstantBufferComponent buffer;
         private MinecraftMeshStruct data;
         private bool isRenderValid;
-
-        //public bool IsRenderValid {get; private set;}
-        public long LastUpdated {get; private set;}
 
         public int BlendMode {
             get => data.BlendMode;
@@ -38,6 +26,22 @@ namespace PixelGraph.Rendering.Minecraft
             get => data.TintColor;
             set {
                 if (SetAffectsRender(ref data.TintColor, value))
+                    isRenderValid = false;
+            }
+        }
+
+        public bool EnableLinearSampling {
+            get => data.EnableLinearSampling;
+            set {
+                if (SetAffectsRender(ref data.EnableLinearSampling, value))
+                    isRenderValid = false;
+            }
+        }
+
+        public bool EnableSlopeNormals {
+            get => data.EnableSlopeNormals;
+            set {
+                if (SetAffectsRender(ref data.EnableSlopeNormals, value))
                     isRenderValid = false;
             }
         }
@@ -57,6 +61,11 @@ namespace PixelGraph.Rendering.Minecraft
             set => SetAffectsRender(ref data.WaterMode, value);
         }
 
+        public float SubSurfaceBlur {
+            get => data.SubSurfaceBlur;
+            set => SetAffectsRender(ref data.SubSurfaceBlur, value);
+        }
+
 
         public MinecraftMeshCore() : base(RenderType.PreProc)
         {
@@ -68,11 +77,6 @@ namespace PixelGraph.Rendering.Minecraft
         {
             buffer.Upload(deviceContext, ref data);
         }
-
-        //public void ResetValidation()
-        //{
-        //    isRenderValid = true;
-        //}
 
         protected override bool OnAttach(IRenderTechnique technique)
         {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.CLI.CommandLine;
 using PixelGraph.Common.IO;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
@@ -40,18 +41,20 @@ namespace PixelGraph.Tests.CommandLineTests
         {
             var executor = provider.GetRequiredService<PublishCommand.Executor>();
 
-            executor.Context = new ResourcePackContext {
-                Input = new ResourcePackInputProperties {
-                    Edition = null,
-                    Format = TextureFormat.Format_Raw,
-                    //...
+            executor.Context = new ProjectPublishContext {
+                Project = new ProjectData {
+                    Input = new PackInputEncoding {
+                        Edition = null,
+                        Format = TextureFormat.Format_Raw,
+                        //...
+                    },
                 },
-                Profile = new ResourcePackProfileProperties {
+                Profile = new PublishProfileProperties {
                     Edition = GameEdition.Java,
                     Encoding = {
                         Format = TextureFormat.Format_Lab13,
-                    }
-                }
+                    },
+                },
             };
 
             await executor.ExecuteAsync("sourceDir", "destDir");
@@ -65,18 +68,20 @@ namespace PixelGraph.Tests.CommandLineTests
             var executor = provider.GetRequiredService<PublishCommand.Executor>();
             executor.AsArchive = true;
 
-            executor.Context = new ResourcePackContext {
-                Input = new ResourcePackInputProperties {
-                    Edition = null,
-                    Format = TextureFormat.Format_Raw,
-                    //...
+            executor.Context = new ProjectPublishContext {
+                Project = new ProjectData {
+                    Input = new PackInputEncoding {
+                        Edition = null,
+                        Format = TextureFormat.Format_Raw,
+                        //...
+                    },
                 },
-                Profile = new ResourcePackProfileProperties {
+                Profile = new PublishProfileProperties {
                     Edition = GameEdition.Java,
                     Encoding = {
                         Format = TextureFormat.Format_Lab13,
-                    }
-                }
+                    },
+                },
             };
 
             await executor.ExecuteAsync("sourceDir", "destDir");

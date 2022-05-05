@@ -223,8 +223,12 @@ float3 SSS_IBL(const in float3 view, const in float sss)
 
 	float3 SSS_Direct = 0.f;
 	if (bHasCubeMap) {
-		const float level = (1.f - 0.5f * sss) * NumEnvironmentMapMipLevels;
+		const float blurFactor = saturate(1.f - SubSurfaceBlur);
+		const float level = (1.f - pow2(blurFactor) * sss) * NumEnvironmentMapMipLevels;
 		SSS_Direct = tex_environment.SampleLevel(sampler_environment, -view, level);
+
+		//SSS_Direct = pow(abs(SSS_Direct), 1.f + 2.5f * ErpExposure);
+		//SSS_Direct *= 16.f;
 	}
 
 	return sss * (SSS_Indirect + SSS_Direct);

@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.Projects;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.TextureFormats
@@ -8,7 +9,7 @@ namespace PixelGraph.Common.TextureFormats
         public const string Description = "Separates all encoding channels as separate textures.";
 
 
-        public ResourcePackEncoding Create()
+        public PackEncoding Create()
         {
             return new() {
                 Opacity = new ResourcePackOpacityChannelProperties {

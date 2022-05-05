@@ -1,0 +1,69 @@
+﻿<UserControl x:Class="PixelGraph.UI.Controls.RecentProjectsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:m="clr-namespace:PixelGraph.UI.Models"
+             xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+             mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800"
+             Loaded="OnControlLoaded">
+    <DockPanel>
+        <DockPanel.DataContext>
+            <vm:RecentProjectsViewModel x:Name="Model"/>
+        </DockPanel.DataContext>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+            <TextBlock DockPanel.Dock="Top" Text="Recent Projects"
+                       FontWeight="Bold" FontSize="24" Margin="4,0,16,0"
+                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+            <!--<Button Margin="12,4" VerticalAlignment="Bottom"
+                Style="{DynamicResource MahApps.Styles.Button.Chromeless}">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconFontAwesome Kind="PlusSolid"
+                        Margin="0,0,4,0" Height="12" VerticalAlignment="Center"/>
+                    <TextBlock Text="New" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Margin="12,4" VerticalAlignment="Bottom"
+                Style="{DynamicResource MahApps.Styles.Button.Chromeless}">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconFontAwesome Kind="FolderOpenSolid"
+                        Margin="0,0,4,0" Height="12" VerticalAlignment="Center"/>
+                    <TextBlock Text="Open" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>-->
+        </StackPanel>
+        <Rectangle DockPanel.Dock="Top" VerticalAlignment="Bottom" Height="1"
+                   Fill="{DynamicResource MahApps.Brushes.Accent2}"/>
+        <ItemsControl Margin="2" ItemsSource="{Binding Tiles, Mode=OneWay}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="m:ProjectTileModel">
+                    <mah:Tile Width="300" Height="Auto" HorizontalContentAlignment="Stretch"
+                              Click="OnTileClick"
+                              Background="{DynamicResource MahApps.Brushes.Accent4}"
+                              mah:ControlsHelper.MouseOverBorderBrush="{DynamicResource MahApps.Brushes.ThemeForeground}">
+                        <DockPanel>
+                            <Image DockPanel.Dock="Left" Margin="6" Width="64" Height="64"
+                                   Source="{Binding Icon, Mode=OneWay}"/>
+                            <TextBlock DockPanel.Dock="Top" FontWeight="Bold" FontSize="20"
+                                       Text="{Binding Name, Mode=OneWay}"
+                                       Foreground="{DynamicResource MahApps.Brushes.TextBlock.FloatingMessage}"/>
+                            <TextBlock Text="{Binding Description, Mode=OneWay}"/>
+                        </DockPanel>
+                        <mah:Tile.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Open" Click="OnContextMenuOpenClick"/>
+                                <MenuItem Header="Remove" Click="OnContextMenuRemoveClick"/>
+                            </ContextMenu>
+                        </mah:Tile.ContextMenu>
+                    </mah:Tile>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </DockPanel>
+</UserControl>

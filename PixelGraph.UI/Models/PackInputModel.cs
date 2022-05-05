@@ -37,9 +37,9 @@ namespace PixelGraph.UI.Models
 
         public TextureChannelMapping Emissive {get; set;}
 
-        private ResourcePackInputProperties _packInput;
+        private PackInputEncoding _packInput;
 
-        public ResourcePackInputProperties PackInput {
+        public PackInputEncoding PackInput {
             get => _packInput;
             set {
                 if (_packInput == value) return;
@@ -166,7 +166,7 @@ namespace PixelGraph.UI.Models
     {
         public PackInputDesignerModel()
         {
-            PackInput = new ResourcePackInputProperties {
+            PackInput = new PackInputEncoding {
                 Format = TextureFormat.Format_Raw,
                 Opacity = {
                     MinValue = 100,

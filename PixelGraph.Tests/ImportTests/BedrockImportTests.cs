@@ -3,6 +3,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
@@ -14,8 +15,8 @@ namespace PixelGraph.Tests.ImportTests
 {
     public class BedrockImportTests : ImageTestBase
     {
-        private readonly ResourcePackInputProperties packInput;
-        private readonly ResourcePackProfileProperties packProfile;
+        private readonly ProjectData project;
+        private readonly PublishProfileProperties packProfile;
 
 
         public BedrockImportTests(ITestOutputHelper output) : base(output)
@@ -24,12 +25,14 @@ namespace PixelGraph.Tests.ImportTests
             Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
             Builder.AddImporter(GameEditions.Bedrock);
 
-            packInput = new ResourcePackInputProperties {
-                //Edition = GameEditions.Java,
-                Format = TextureFormat.Format_Raw,
+            project = new ProjectData {
+                Input = new PackInputEncoding {
+                    //Edition = GameEditions.Java,
+                    Format = TextureFormat.Format_Raw,
+                },
             };
 
-            packProfile = new ResourcePackProfileProperties {
+            packProfile = new PublishProfileProperties {
                 //Edition = GameEditions.Bedrock,
                 Encoding = {
                     Format = TextureFormat.Format_Color,
@@ -46,7 +49,7 @@ namespace PixelGraph.Tests.ImportTests
 
             var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
 
-            importer.PackInput = packInput;
+            importer.Project = project;
             importer.PackProfile = packProfile;
             importer.AsGlobal = false;
 

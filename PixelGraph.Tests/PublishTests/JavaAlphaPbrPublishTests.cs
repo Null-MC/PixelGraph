@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
@@ -12,8 +13,8 @@ namespace PixelGraph.Tests.PublishTests
 {
     public class JavaAlphaPbrPublishTests : ImageTestBase
     {
-        private readonly ResourcePackInputProperties packInput;
-        private readonly ResourcePackProfileProperties packProfile;
+        private readonly ProjectData project;
+        private readonly PublishProfileProperties packProfile;
 
 
         public JavaAlphaPbrPublishTests(ITestOutputHelper output) : base(output)
@@ -21,11 +22,13 @@ namespace PixelGraph.Tests.PublishTests
             Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
             Builder.ConfigureWriter(ContentTypes.File, GameEditions.Java, null);
 
-            packInput = new ResourcePackInputProperties {
-                Format = TextureFormat.Format_Raw,
+            project = new ProjectData {
+                Input = new PackInputEncoding {
+                    Format = TextureFormat.Format_Raw,
+                },
             };
 
-            packProfile = new ResourcePackProfileProperties {
+            packProfile = new PublishProfileProperties {
                 Encoding = {
                     Format = TextureFormat.Format_AlphaPbr,
                 },
@@ -40,7 +43,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -64,7 +67,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -88,7 +91,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -111,7 +114,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -135,7 +138,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -158,7 +161,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -183,7 +186,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -206,7 +209,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -230,7 +233,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -248,7 +251,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -284,7 +287,7 @@ namespace PixelGraph.Tests.PublishTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",

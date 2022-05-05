@@ -1,31 +1,31 @@
 ﻿using ControlzEx.Theming;
+using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
+using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Internal.Utilities;
-using PixelGraph.UI.ViewModels;
 using System;
-using System.Threading;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows
 {
     public partial class SettingsWindow
     {
-        private readonly SettingsViewModel viewModel;
+        private readonly ILogger<SettingsWindow> logger;
 
 
         public SettingsWindow(IServiceProvider provider)
         {
+            logger = provider.GetRequiredService<ILogger<SettingsWindow>>();
+
             InitializeComponent();
 
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
             themeHelper.ApplyCurrent(this);
 
-            viewModel = new SettingsViewModel(provider) {
-                Model = Model,
-            };
-
-            viewModel.LoadData();
+            Model.Initialize(provider);
         }
 
         private void OnVMDataChanged(object sender, EventArgs e)
@@ -35,28 +35,36 @@ namespace PixelGraph.UI.Windows
 
         private void OnResetImageEditorClick(object sender, RoutedEventArgs e)
         {
-            viewModel.ResetImageEditor();
+            Model.ResetImageEditor();
         }
 
         private void OnResetAppThemeColorsClick(object sender, RoutedEventArgs e)
         {
-            viewModel.ResetThemeColors();
+            Model.ResetThemeColors();
         }
 
-        private void OnResetRenderPreviewClick(object sender, RoutedEventArgs e)
+        private void OnResetPreviewRendererClick(object sender, RoutedEventArgs e)
         {
-            viewModel.ResetRenderPreview();
+            Model.ResetPreviewRenderer();
         }
 
-        private void OnCancelButtonClick(object sender, RoutedEventArgs e)
+        private void OnResetPreviewParallaxClick(object sender, RoutedEventArgs e)
         {
-            DialogResult = false;
+            Model.ResetPreviewParallax();
         }
 
         private async void OnOkButtonClick(object sender, RoutedEventArgs e)
         {
-            if (await viewModel.SaveSettingsAsync(CancellationToken.None))
-                Application.Current.Dispatcher.Invoke(() => DialogResult = true);
+            try {
+                await Model.SaveSettingsAsync();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to save app settings!");
+                await this.ShowMessageAsync("Error!", $"Failed to save settings! {error.UnfoldMessageString()}");
+                return;
+            }
+
+            await Dispatcher.BeginInvoke(() => DialogResult = true);
         }
 
         private void OnTextureExecutableBrowseClick(object sender, RoutedEventArgs e)

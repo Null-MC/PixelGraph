@@ -1,11 +1,12 @@
 ﻿using PixelGraph.Common.IO;
-using System;
 using PixelGraph.Common.IO.Serialization;
+using PixelGraph.Common.ResourcePack;
+using System;
 using YamlDotNet.Serialization;
 
-namespace PixelGraph.Common.ResourcePack
+namespace PixelGraph.Common.Projects
 {
-    public class ResourcePackProfileProperties : IHaveData
+    public class PublishProfileProperties : IHaveData, ICloneable
     {
         public const int DefaultJavaFormat = 6;
         public const int DefaultBedrockFormat = 2;
@@ -76,7 +77,7 @@ namespace PixelGraph.Common.ResourcePack
         /// </remarks>
         public string Tags {get; set;}
 
-        public ResourcePackOutputProperties Encoding {get; set;}
+        public PackOutputEncoding Encoding {get; set;}
 
         public int? TextureSize {get; set;}
         public int? BlockTextureSize {get; set;}
@@ -104,27 +105,15 @@ namespace PixelGraph.Common.ResourcePack
         public int? TileStartIndex {get; set;}
 
 
-        public ResourcePackProfileProperties()
+        public PublishProfileProperties()
         {
-            Encoding = new ResourcePackOutputProperties();
+            Encoding = new PackOutputEncoding();
         }
-
-        //public string GetDefaultPackName()
-        //{
-        //    var name = LocalFile;
-        //    if (string.IsNullOrWhiteSpace(name)) return null;
-
-        //    name = Path.GetFileName(name);
-        //    if (string.IsNullOrWhiteSpace(name)) return null;
-
-        //    if (name.EndsWith(".pack.yml")) name = name[..^9];
-        //    return string.IsNullOrWhiteSpace(name) ? null : name;
-        //}
 
         public virtual object Clone()
         {
-            var clone = (ResourcePackProfileProperties)MemberwiseClone();
-            clone.Encoding = (ResourcePackOutputProperties)Encoding.Clone();
+            var clone = (PublishProfileProperties)MemberwiseClone();
+            clone.Encoding = (PackOutputEncoding)Encoding.Clone();
             return clone;
         }
 
@@ -133,6 +122,25 @@ namespace PixelGraph.Common.ResourcePack
             if (!string.IsNullOrWhiteSpace(Edition)) return true;
             if (HeaderUuid.HasValue) return true;
             if (ModuleUuid.HasValue) return true;
+            if (Format.HasValue) return true;
+            if (!string.IsNullOrWhiteSpace(Name)) return true;
+            if (!string.IsNullOrWhiteSpace(Description)) return true;
+            if (!string.IsNullOrWhiteSpace(Tags)) return true;
+            if (Encoding.HasAnyData()) return true;
+            if (TextureSize.HasValue) return true;
+            if (BlockTextureSize.HasValue) return true;
+            if (ItemTextureSize.HasValue) return true;
+            if (TextureScale.HasValue) return true;
+            if (DiffuseOcclusionStrength.HasValue) return true;
+            if (AutoLevelHeight.HasValue) return true;
+            if (AutoGenerateNormal.HasValue) return true;
+            if (AutoGenerateOcclusion.HasValue) return true;
+            if (BakeOcclusionToColor.HasValue) return true;
+            if (OcclusionQuality.HasValue) return true;
+            if (OcclusionPower.HasValue) return true;
+            if (PublishInventory.HasValue) return true;
+            if (PublishConnected.HasValue) return true;
+            if (TileStartIndex.HasValue) return true;
             return false;
         }
     }

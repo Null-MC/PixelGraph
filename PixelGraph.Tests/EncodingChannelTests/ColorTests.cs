@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
@@ -11,8 +12,8 @@ namespace PixelGraph.Tests.EncodingChannelTests
 {
     public class ColorTests : ImageTestBase
     {
-        private readonly ResourcePackInputProperties packInput;
-        private readonly ResourcePackProfileProperties packProfile;
+        private readonly ProjectData project;
+        private readonly PublishProfileProperties packProfile;
 
 
         public ColorTests(ITestOutputHelper output) : base(output)
@@ -20,25 +21,27 @@ namespace PixelGraph.Tests.EncodingChannelTests
             Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
             Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
 
-            packInput = new ResourcePackInputProperties {
-                ColorRed = {
-                    Texture = TextureTags.Color,
-                    Color = ColorChannel.Red,
-                    MaxValue = 255m,
-                },
-                ColorGreen = {
-                    Texture = TextureTags.Color,
-                    Color = ColorChannel.Green,
-                    MaxValue = 255m,
-                },
-                ColorBlue = {
-                    Texture = TextureTags.Color,
-                    Color = ColorChannel.Blue,
-                    MaxValue = 255m,
+            project = new ProjectData {
+                Input = new PackInputEncoding {
+                    ColorRed = {
+                        Texture = TextureTags.Color,
+                        Color = ColorChannel.Red,
+                        MaxValue = 255m,
+                    },
+                    ColorGreen = {
+                        Texture = TextureTags.Color,
+                        Color = ColorChannel.Green,
+                        MaxValue = 255m,
+                    },
+                    ColorBlue = {
+                        Texture = TextureTags.Color,
+                        Color = ColorChannel.Blue,
+                        MaxValue = 255m,
+                    },
                 },
             };
 
-            packProfile = new ResourcePackProfileProperties {
+            packProfile = new PublishProfileProperties {
                 Encoding = {
                     ColorRed = {
                         Texture = TextureTags.Color,
@@ -67,7 +70,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -89,7 +92,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -140,7 +143,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -162,23 +165,26 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = new ResourcePackInputProperties {
-                ColorRed = {
-                    Texture = TextureTags.Color,
-                    Color = ColorChannel.Green,
-                    MaxValue = 255m,
-                },
-                ColorGreen = {
-                    Texture = TextureTags.Color,
-                    Color = ColorChannel.Blue,
-                    MaxValue = 255m,
-                },
-                ColorBlue = {
-                    Texture = TextureTags.Color,
-                    Color = ColorChannel.Red,
-                    MaxValue = 255m,
+            graph.Project = new ProjectData {
+                Input = new PackInputEncoding {
+                    ColorRed = {
+                        Texture = TextureTags.Color,
+                        Color = ColorChannel.Green,
+                        MaxValue = 255m,
+                    },
+                    ColorGreen = {
+                        Texture = TextureTags.Color,
+                        Color = ColorChannel.Blue,
+                        MaxValue = 255m,
+                    },
+                    ColorBlue = {
+                        Texture = TextureTags.Color,
+                        Color = ColorChannel.Red,
+                        MaxValue = 255m,
+                    },
                 },
             };
+
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",

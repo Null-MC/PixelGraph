@@ -1,17 +1,14 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Model.Scene;
-using HelixToolkit.SharpDX.Core.Render;
 using SharpDX;
 using System.Collections.Generic;
 
 namespace PixelGraph.Rendering.Minecraft
 {
-    public class MinecraftMeshNode : SceneNode, IMinecraftMesh
+    public class MinecraftMeshNode : SceneNode
     {
         private MinecraftMeshCore MeshCore => RenderCore as MinecraftMeshCore;
-        //public bool IsRenderValid => MeshCore.IsRenderValid;
-        public long LastUpdated => MeshCore.LastUpdated;
 
         public int BlendMode {
             get => MeshCore.BlendMode;
@@ -33,20 +30,30 @@ namespace PixelGraph.Rendering.Minecraft
             set => MeshCore.ParallaxSamples = value;
         }
 
+        public bool EnableLinearSampling {
+            get => MeshCore.EnableLinearSampling;
+            set => MeshCore.EnableLinearSampling = value;
+        }
+
+        public bool EnableSlopeNormals {
+            get => MeshCore.EnableSlopeNormals;
+            set => MeshCore.EnableSlopeNormals = value;
+        }
+
         public int WaterMode {
             get => MeshCore.WaterMode;
             set => MeshCore.WaterMode = value;
         }
 
-
-        public void Apply(DeviceContextProxy deviceContext)
-        {
-            MeshCore?.Apply(deviceContext);
+        public float SubSurfaceBlur {
+            get => MeshCore.SubSurfaceBlur;
+            set => MeshCore.SubSurfaceBlur = value;
         }
 
-        //public void ResetValidation()
+
+        //public void Apply(DeviceContextProxy deviceContext)
         //{
-        //    MeshCore?.ResetValidation();
+        //    MeshCore?.Apply(deviceContext);
         //}
 
         protected override RenderCore OnCreateRenderCore()
@@ -63,7 +70,10 @@ namespace PixelGraph.Rendering.Minecraft
             meshCore.TintColor = TintColor;
             meshCore.ParallaxDepth = ParallaxDepth;
             meshCore.ParallaxSamples = ParallaxSamples;
+            meshCore.EnableLinearSampling = EnableLinearSampling;
+            meshCore.EnableSlopeNormals = EnableSlopeNormals;
             meshCore.WaterMode = WaterMode;
+            meshCore.SubSurfaceBlur = SubSurfaceBlur;
         }
 
         protected override bool CanHitTest(HitTestContext context) => false;

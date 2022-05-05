@@ -1,21 +1,17 @@
 ﻿using HelixToolkit.SharpDX.Core.Model.Scene;
-using HelixToolkit.SharpDX.Core.Render;
 using HelixToolkit.Wpf.SharpDX;
 using HelixToolkit.Wpf.SharpDX.Model;
 using MinecraftMappings.Internal;
 using PixelGraph.Rendering.Minecraft;
+using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
 using SharpDX;
 using System.Windows;
 
 namespace PixelGraph.UI.Helix.Controls
 {
-    public class MinecraftMesh3D : Element3D, IMinecraftSceneCore
+    public class MinecraftMesh3D : Element3D
     {
-        private MinecraftMeshNode MeshNode => SceneNode as MinecraftMeshNode;
-        //public bool IsRenderValid => MeshNode.IsRenderValid;
-        public long LastUpdated => MeshNode.LastUpdated;
-
         public string BlendMode {
             get => (string)GetValue(BlendModeProperty);
             set => SetValue(BlendModeProperty, value);
@@ -36,20 +32,30 @@ namespace PixelGraph.UI.Helix.Controls
             set => SetValue(ParallaxSamplesProperty, value);
         }
 
+        public bool EnableLinearSampling {
+            get => (bool)GetValue(EnableLinearSamplingProperty);
+            set => SetValue(EnableLinearSamplingProperty, value);
+        }
+
+        public bool EnableSlopeNormals {
+            get => (bool)GetValue(EnableSlopeNormalsProperty);
+            set => SetValue(EnableSlopeNormalsProperty, value);
+        }
+
         public int WaterMode {
             get => (int)GetValue(WaterModeProperty);
             set => SetValue(WaterModeProperty, value);
         }
 
-
-        public void Apply(DeviceContextProxy deviceContext)
-        {
-            MeshNode?.Apply(deviceContext);
+        public float SubSurfaceBlur {
+            get => (float)GetValue(SubSurfaceBlurProperty);
+            set => SetValue(SubSurfaceBlurProperty, value);
         }
 
-        //public void ResetValidation()
+
+        //public void Apply(DeviceContextProxy deviceContext)
         //{
-        //    MeshNode?.ResetValidation();
+        //    MeshNode?.Apply(deviceContext);
         //}
 
         protected override SceneNode OnCreateSceneNode()
@@ -66,7 +72,10 @@ namespace PixelGraph.UI.Helix.Controls
             n.TintColor = ColorHelper.RGBFromHex(TintColor)?.ToColor4().ToVector3() ?? Vector3.One;
             n.ParallaxDepth = ParallaxDepth;
             n.ParallaxSamples = ParallaxSamples;
+            n.EnableLinearSampling = EnableLinearSampling;
+            n.EnableSlopeNormals = EnableSlopeNormals;
             n.WaterMode = WaterMode;
+            n.SubSurfaceBlur = SubSurfaceBlur;
         }
 
         public static readonly DependencyProperty BlendModeProperty = DependencyProperty
@@ -97,10 +106,28 @@ namespace PixelGraph.UI.Helix.Controls
                     meshNode.ParallaxSamples = (int)e.NewValue;
             }));
 
+        public static readonly DependencyProperty EnableLinearSamplingProperty = DependencyProperty
+            .Register(nameof(EnableLinearSampling), typeof(bool), typeof(MinecraftMesh3D), new PropertyMetadata(false, (d, e) => {
+                if (d is Element3DCore {SceneNode: MinecraftMeshNode sceneNode})
+                    sceneNode.EnableLinearSampling = (bool)e.NewValue;
+            }));
+
+        public static readonly DependencyProperty EnableSlopeNormalsProperty = DependencyProperty
+            .Register(nameof(EnableSlopeNormals), typeof(bool), typeof(MinecraftMesh3D), new PropertyMetadata(false, (d, e) => {
+                if (d is Element3DCore {SceneNode: MinecraftMeshNode sceneNode})
+                    sceneNode.EnableSlopeNormals = (bool)e.NewValue;
+            }));
+
         public static readonly DependencyProperty WaterModeProperty = DependencyProperty
             .Register(nameof(WaterMode), typeof(int), typeof(MinecraftMesh3D), new PropertyMetadata(0, (d, e) => {
                 if (d is Element3DCore { SceneNode: MinecraftMeshNode meshNode })
                     meshNode.WaterMode = (int)e.NewValue;
+            }));
+
+        public static readonly DependencyProperty SubSurfaceBlurProperty = DependencyProperty
+            .Register(nameof(SubSurfaceBlur), typeof(float), typeof(MinecraftMesh3D), new PropertyMetadata((float)RenderPreviewSettings.Default_SubSurfaceBlur, (d, e) => {
+                if (d is Element3DCore { SceneNode: MinecraftMeshNode meshNode })
+                    meshNode.SubSurfaceBlur = (float)e.NewValue;
             }));
     }
 }

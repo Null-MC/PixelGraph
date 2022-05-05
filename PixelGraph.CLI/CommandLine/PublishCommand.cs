@@ -75,8 +75,8 @@ namespace PixelGraph.CLI.CommandLine
                     projectData = ProjectSerializer.Parse(stream);
                 }
                 
-                var context = new ResourcePackContext {
-                    Input = projectData.Input,
+                var context = new ProjectPublishContext {
+                    Project = projectData,
                     Profile = projectData.Profiles.Find(p => string.Equals(p.Name, profile, StringComparison.InvariantCultureIgnoreCase)),
                     LastUpdated = project.LastWriteTimeUtc,
                 };
@@ -118,7 +118,7 @@ namespace PixelGraph.CLI.CommandLine
         {
             private readonly IServiceBuilder serviceBuilder;
 
-            public ResourcePackContext Context {get; set;}
+            public ProjectPublishContext Context {get; set;}
             public bool CleanDestination {get; set;}
             public int Concurrency {get; set;} = 1;
             public bool AsArchive {get; set;}

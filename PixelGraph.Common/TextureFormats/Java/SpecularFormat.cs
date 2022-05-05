@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.Projects;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.TextureFormats.Java
@@ -8,7 +9,7 @@ namespace PixelGraph.Common.TextureFormats.Java
         public const string Description = "Uses a diffuse color map, normal XYZ, and legacy grayscale specular channels.";
 
 
-        public ResourcePackEncoding Create()
+        public PackEncoding Create()
         {
             return new() {
                 Opacity = new ResourcePackOpacityChannelProperties {

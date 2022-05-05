@@ -359,7 +359,8 @@ namespace PixelGraph.UI.Models
         {
             AddTextFile<string>("Texture", nameof(MaterialOpacityProperties.Texture));
             AddValue<decimal?>("Value", nameof(MaterialOpacityProperties.Value), 0m, 255m, 255m);
-            AddValue<decimal?>("Scale", nameof(MaterialOpacityProperties.Scale), 1m);
+            AddValue<decimal?>("Shift", nameof(MaterialOpacityProperties.Shift), -1m, 1m, 0m);
+            AddValue<decimal?>("Scale", nameof(MaterialOpacityProperties.Scale), 0m, 2m, 1m);
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
@@ -25,8 +26,8 @@ namespace PixelGraph.UI.Models
         //public bool AsGlobal {get; set;}
         public string SourceFormat {get; set;}
         public string OutputFormat {get; set;}
-        public ResourcePackOutputProperties PackOutput {get; set;}
-        public ResourcePackInputProperties PackInput {get; set;}
+        public IProjectDescription Project {get; set;}
+        public PackOutputEncoding PackOutput {get; set;}
         //public ResourcePackProfileProperties PackOutput {get; set;}
 
         public bool IsReady {
@@ -100,7 +101,7 @@ namespace PixelGraph.UI.Models
 
         public PackConvertModel()
         {
-            PackOutput = new ResourcePackOutputProperties();
+            PackOutput = new PackOutputEncoding();
 
             SourceFormat = TextureFormat.Format_Color;
             OutputFormat = TextureFormat.Format_Color;

@@ -30,9 +30,9 @@ namespace PixelGraph.Common.ImageProcessors
             var occlusionRowSampler = options.OcclusionSampler.ForRow(in fy);
             var emissiveRowSampler = options.EmissiveSampler?.ForRow(in fy);
 
-            for (var x = context.Bounds.Left; x < context.Bounds.Right; x++) {
+            for (var x = 0; x < context.Bounds.Width; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
-                GetTexCoord(in context, in x, out fx, out fy);
+                GetTexCoord(in context, context.Bounds.Left + x, out fx, out fy);
                 occlusionRowSampler.Sample(in fx, in fy, in options.OcclusionInputColor, out occlusionPixel);
 
                 if (!options.OcclusionMapping.TryUnmap(in occlusionPixel, out occlusionValue))

@@ -1,6 +1,7 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
@@ -16,13 +17,11 @@ namespace PixelGraph.Common.Textures.Graphing
     public interface ITextureGraphContext
     {
         MaterialProperties Material {get; set;}
-        ResourcePackInputProperties Input {get; set;}
-        ResourcePackProfileProperties Profile {get; set;}
-        List<ResourcePackChannelProperties> InputEncoding {get; set;}
-        List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        IProjectDescription Project {get; set;}
+        PublishProfileProperties Profile {get; set;}
+        List<PackEncodingChannel> InputEncoding {get; set;}
+        List<PackEncodingChannel> OutputEncoding {get; set;}
         IPublisherMapping Mapping {get; set;}
-
-        string Author {get; set;}
 
         DateTime PackWriteTime {get; set;}
         bool IsAnimated {get; set;}
@@ -59,10 +58,10 @@ namespace PixelGraph.Common.Textures.Graphing
         private static readonly Regex entityTextureExp = new(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
 
         public MaterialProperties Material {get; set;}
-        public ResourcePackInputProperties Input {get; set;}
-        public ResourcePackProfileProperties Profile {get; set;}
-        public List<ResourcePackChannelProperties> InputEncoding {get; set;}
-        public List<ResourcePackChannelProperties> OutputEncoding {get; set;}
+        public IProjectDescription Project {get; set;}
+        public PublishProfileProperties Profile {get; set;}
+        public List<PackEncodingChannel> InputEncoding {get; set;}
+        public List<PackEncodingChannel> OutputEncoding {get; set;}
         public IPublisherMapping Mapping {get; set;}
 
         public DateTime PackWriteTime {get; set;}
@@ -72,8 +71,6 @@ namespace PixelGraph.Common.Textures.Graphing
         public bool ApplyPostProcessing {get; set;}
         public bool IsImport {get; set;}
 
-        public string Author {get; set;}
-
         public bool MaterialWrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
         public bool MaterialWrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
         public bool IsMaterialMultiPart => Material.Parts?.Any() ?? false;
@@ -82,7 +79,7 @@ namespace PixelGraph.Common.Textures.Graphing
         public float? TextureScale => (float?)Profile?.TextureScale;
         public string DefaultSampler => Profile?.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
 
-        public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? ResourcePackProfileProperties.AutoGenerateOcclusionDefault;
+        public bool AutoGenerateOcclusion => Profile?.AutoGenerateOcclusion ?? PublishProfileProperties.AutoGenerateOcclusionDefault;
 
         public bool BakeOcclusionToColor {
             get {
@@ -90,31 +87,29 @@ namespace PixelGraph.Common.Textures.Graphing
                 var profileVal = Profile?.BakeOcclusionToColor;
 
                 if (!matVal.HasValue && !profileVal.HasValue)
-                    return ResourcePackProfileProperties.BakeOcclusionToColorDefault;
+                    return PublishProfileProperties.BakeOcclusionToColorDefault;
 
                 return (matVal ?? false) || (profileVal ?? false);
             }
         }
 
         public bool EnablePalette => Profile?.Encoding?.EnablePalette ?? false;
-        public int PaletteColors => Profile?.Encoding?.PaletteColors ?? ResourcePackOutputProperties.DefaultPaletteColors;
+        public int PaletteColors => Profile?.Encoding?.PaletteColors ?? PackOutputEncoding.DefaultPaletteColors;
 
 
         public TextureGraphContext()
         {
-            InputEncoding = new List<ResourcePackChannelProperties>();
-            OutputEncoding = new List<ResourcePackChannelProperties>();
+            InputEncoding = new List<PackEncodingChannel>();
+            OutputEncoding = new List<PackEncodingChannel>();
             ApplyPostProcessing = true;
             PublishAsGlobal = true;
             MaxFrameCount = 1;
-
-            Author = "Samael the Destroyer";
         }
 
         public void ApplyInputEncoding()
         {
-            var inputEncoding = BuildEncoding(Input.Format);
-            inputEncoding.Merge(Input);
+            var inputEncoding = BuildEncoding(Project.Input.Format);
+            inputEncoding.Merge(Project.Input);
             inputEncoding.Merge(Material);
 
             var outputEncoding = BuildEncoding(Profile.Encoding.Format);
@@ -129,8 +124,8 @@ namespace PixelGraph.Common.Textures.Graphing
             var inputEncoding = BuildEncoding(Profile.Encoding.Format);
             inputEncoding.Merge(Profile.Encoding);
 
-            var outputEncoding = BuildEncoding(Input.Format);
-            outputEncoding.Merge(Input);
+            var outputEncoding = BuildEncoding(Project.Input.Format);
+            outputEncoding.Merge(Project.Input);
             // TODO: layer material properties on top of pack encoding?
 
             InputEncoding = inputEncoding.GetMapped().ToList();
@@ -248,15 +243,15 @@ namespace PixelGraph.Common.Textures.Graphing
             return GetTextureSize(aspect);
         }
 
-        private static ResourcePackEncoding BuildEncoding(string format)
+        private static PackEncoding BuildEncoding(string format)
         {
-            ResourcePackEncoding encoding = null;
+            PackEncoding encoding = null;
             if (!string.IsNullOrWhiteSpace(format)) {
                 var formatFactory = TextureFormat.GetFactory(format);
                 encoding = formatFactory?.Create();
             }
 
-            return encoding ?? new ResourcePackEncoding();
+            return encoding ?? new PackEncoding();
         }
     }
 }

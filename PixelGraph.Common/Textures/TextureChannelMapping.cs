@@ -52,7 +52,7 @@ namespace PixelGraph.Common.Textures
         //public bool IsF0ToMetal;
 
 
-        public void ApplyInputChannel(ResourcePackChannelProperties channel)
+        public void ApplyInputChannel(PackEncodingChannel channel)
         {
             if (channel == null) throw new ArgumentNullException(nameof(channel));
 
@@ -69,7 +69,7 @@ namespace PixelGraph.Common.Textures
             Sampler = channel.Sampler;
         }
 
-        public void ApplyOutputChannel(ResourcePackChannelProperties channel)
+        public void ApplyOutputChannel(PackEncodingChannel channel)
         {
             OutputChannelID = channel.ID;
             OutputColor = channel.Color ?? ColorChannel.None;

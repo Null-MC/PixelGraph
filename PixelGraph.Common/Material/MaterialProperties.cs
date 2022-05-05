@@ -12,7 +12,6 @@ namespace PixelGraph.Common.Material
     {
         public const bool DefaultWrap = true;
         public const string DefaultInputFormat = TextureFormat.Format_Raw;
-        //public const string DefaultModelType = Models.ModelType.Cube;
         public const bool DefaultPublish = true;
         public const bool DefaultPublishItem = false;
 
@@ -28,11 +27,11 @@ namespace PixelGraph.Common.Material
         [YamlIgnore]
         public string LocalPath {get; set;}
 
-        [YamlIgnore]
-        public string Alias {get; internal set;}
+        //[YamlIgnore]
+        //public string Alias {get; internal set;}
 
         [YamlIgnore]
-        public string DisplayName => Alias != null ? $"{Alias}:{Name}" : Name;
+        public string DisplayName => Name; //Alias != null ? $"{Alias}:{Name}" : Name;
 
         [YamlMember(Order = -100)]
         public string InputFormat {get; set;}
@@ -61,9 +60,9 @@ namespace PixelGraph.Common.Material
         [YamlMember(Order = -92)]
         public bool? WrapY {get; set;}
 
-        public int? RangeMin {get; set;}
+        //public int? RangeMin {get; set;}
 
-        public int? RangeMax {get; set;}
+        //public int? RangeMax {get; set;}
 
         public MaterialOpacityProperties Opacity {get; set;}
 
@@ -224,14 +223,14 @@ namespace PixelGraph.Common.Material
             return MaterialType.Automatic;
         }
 
-        public MaterialProperties Clone()
-        {
-            var clone = (MaterialProperties)MemberwiseClone();
+        //public MaterialProperties Clone()
+        //{
+        //    var clone = (MaterialProperties)MemberwiseClone();
 
-            // TODO: clone child data
+        //    // TODO: clone child data
 
-            return clone;
-        }
+        //    return clone;
+        //}
 
         public bool TryGetChannelValue(string encodingChannel, out decimal value)
         {
@@ -306,16 +305,16 @@ namespace PixelGraph.Common.Material
 
         private static readonly Dictionary<string, Func<MaterialProperties, decimal>> shiftMap = new(StringComparer.OrdinalIgnoreCase) {
             [EncodingChannel.Opacity] = mat => mat.Opacity?.Shift ?? 0m,
-            [EncodingChannel.ColorRed] = mat => 0m,
-            [EncodingChannel.ColorGreen] = mat => 0m,
-            [EncodingChannel.ColorBlue] = mat => 0m,
+            [EncodingChannel.ColorRed] = _ => 0m,
+            [EncodingChannel.ColorGreen] = _ => 0m,
+            [EncodingChannel.ColorBlue] = _ => 0m,
             [EncodingChannel.Height] = mat => mat.Height?.Shift ?? 0m,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Shift ?? 0m,
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Shift ?? 0m,
             [EncodingChannel.Specular] = mat => mat.Specular?.Shift ?? 0m,
             [EncodingChannel.Rough] = mat => mat.Rough?.Shift ?? 0m,
             [EncodingChannel.Metal] = mat => mat.Metal?.Shift ?? 0m,
-            [EncodingChannel.HCM] = mat => 0m,
+            [EncodingChannel.HCM] = _ => 0m,
             [EncodingChannel.F0] = mat => mat.F0?.Shift ?? 0m,
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Shift ?? 0m,
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Shift ?? 0m,
@@ -333,7 +332,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.Smooth] = mat => mat.Smooth?.Scale ?? 1m,
             [EncodingChannel.Rough] = mat => mat.Rough?.Scale ?? 1m,
             [EncodingChannel.Metal] = mat => mat.Metal?.Scale ?? 1m,
-            [EncodingChannel.HCM] = mat => 1m,
+            [EncodingChannel.HCM] = _ => 1m,
             [EncodingChannel.F0] = mat => mat.F0?.Scale ?? 1m,
             [EncodingChannel.Porosity] = mat => mat.Porosity?.Scale ?? 1m,
             [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Scale ?? 1m,
@@ -347,15 +346,6 @@ namespace PixelGraph.Common.Material
             get => null;
             set => PublishItem = value;
         }
-
-        //[Obsolete("Replace usages of ColorTint with Color.ColorTint")]
-        //public string ColorTint {
-        //    get => null;
-        //    set {
-        //        Color ??= new MaterialColorProperties();
-        //        Color.PreviewTint = value;
-        //    }
-        //}
 
         [Obsolete("Replace usages of BakeOcclusionToColor with Color.BakeOcclusion")]
         public bool? BakeOcclusionToColor {
@@ -375,37 +365,10 @@ namespace PixelGraph.Common.Material
             }
         }
         
-        [Obsolete("Replace usages of CreateInventory with PublishInventory")]
+        [Obsolete("Replace usages of CreateInventory with PublishItem")]
         [YamlMember] public bool? CreateInventory {
             get => null;
             set => PublishItem = value;
-        }
-
-        [Obsolete("Replace usages of CtmType with CTM.Type")]
-        public string CtmType {
-            get => null;
-            set {
-                CTM ??= new MaterialConnectionProperties();
-                CTM.Type = value;
-            }
-        }
-
-        [Obsolete("Replace usages of CtmCountX with CTM.CountX")]
-        public int? CtmCountX {
-            get => null;
-            set {
-                CTM ??= new MaterialConnectionProperties();
-                CTM.CountX = value;
-            }
-        }
-
-        [Obsolete("Replace usages of CtmCountY with CTM.CountY")]
-        public int? CtmCountY {
-            get => null;
-            set {
-                CTM ??= new MaterialConnectionProperties();
-                CTM.CountY = value;
-            }
         }
 
         [Obsolete("Replace usages of Alpha with Opacity")]
@@ -424,25 +387,6 @@ namespace PixelGraph.Common.Material
         public MaterialColorProperties Diffuse {
             get => null;
             set => Color = value;
-        }
-
-        [Obsolete("Replace usages of ModelType with Model")]
-        public string ModelType {
-            get => null;
-            set {}
-            //set => Model = value;
-        }
-
-        [Obsolete("Replace usages of ModelFile with Model")]
-        public string ModelFile {
-            get => null;
-            set => Model = value;
-        }
-
-        [Obsolete("Replace usages of ColorTint with TintColor")]
-        public string ColorTint {
-            get => null;
-            set => TintColor = value;
         }
 
         #endregion

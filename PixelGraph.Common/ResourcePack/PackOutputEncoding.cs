@@ -2,7 +2,7 @@
 
 namespace PixelGraph.Common.ResourcePack
 {
-    public class ResourcePackOutputProperties : ResourcePackEncoding
+    public class PackOutputEncoding : PackEncoding
     {
         public const string ImageDefault = ImageExtensions.Png;
         public const int DefaultPaletteColors = 256;
@@ -19,7 +19,18 @@ namespace PixelGraph.Common.ResourcePack
 
         public string Sampler {get; set;}
 
-        public bool EnablePalette {get; set;}
+        public bool? EnablePalette {get; set;}
         public int? PaletteColors {get; set;}
+
+
+        public override bool HasAnyData()
+        {
+            if (!string.IsNullOrWhiteSpace(Image)) return true;
+            if (!string.IsNullOrWhiteSpace(Format)) return true;
+            if (!string.IsNullOrWhiteSpace(Sampler)) return true;
+            if (EnablePalette.HasValue) return true;
+            if (PaletteColors.HasValue) return true;
+            return base.HasAnyData();
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using System;
@@ -15,9 +16,9 @@ namespace PixelGraph.UI.Internal.Preview.Textures
             TagMap = tagMap;
         }
         
-        private static readonly Dictionary<string, Func<ResourcePackProfileProperties, MaterialProperties, ResourcePackChannelProperties[]>> tagMap =
+        private static readonly Dictionary<string, Func<PublishProfileProperties, MaterialProperties, PackEncodingChannel[]>> tagMap =
             new(StringComparer.InvariantCultureIgnoreCase) {
-                [TextureTags.Color] = (profile, mat) => new ResourcePackChannelProperties[] {
+                [TextureTags.Color] = (profile, mat) => new PackEncodingChannel[] {
                     new ResourcePackColorRedChannelProperties(TextureTags.Color, ColorChannel.Red) {
                         //Sampler = mat?.Color?.InputRed?.Sampler ?? profile?.Encoding?.ColorRed?.Sampler,
                         MaxValue = 255,
@@ -36,7 +37,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         DefaultValue = 255m,
                     },
                 },
-                [TextureTags.Emissive] = (profile, mat) => new ResourcePackChannelProperties[] {
+                [TextureTags.Emissive] = (profile, mat) => new PackEncodingChannel[] {
                     new ResourcePackEmissiveChannelProperties(TextureTags.Emissive, ColorChannel.Red) {
                         //Sampler = mat?.Emissive?.Input?.Sampler ?? profile?.Encoding?.Emissive?.Sampler,
                     },

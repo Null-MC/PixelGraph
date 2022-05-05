@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
@@ -11,8 +12,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
 {
     public class NormalTests : ImageTestBase
     {
-        private readonly ResourcePackInputProperties packInput;
-        private readonly ResourcePackProfileProperties packProfile;
+        private readonly PublishProfileProperties packProfile;
 
 
         public NormalTests(ITestOutputHelper output) : base(output)
@@ -20,31 +20,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
             Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
             Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
 
-            packInput = new ResourcePackInputProperties {
-                NormalX = {
-                    Texture = TextureTags.Normal,
-                    Color = ColorChannel.Red,
-                    MinValue = -1m,
-                    MaxValue = 1m,
-                    DefaultValue = 0m,
-                },
-                NormalY = {
-                    Texture = TextureTags.Normal,
-                    Color = ColorChannel.Green,
-                    MinValue = -1m,
-                    MaxValue = 1m,
-                    DefaultValue = 0m,
-                },
-                NormalZ = {
-                    Texture = TextureTags.Normal,
-                    Color = ColorChannel.Blue,
-                    MinValue = -1m,
-                    MaxValue = 1m,
-                    DefaultValue = 1m,
-                },
-            };
-
-            packProfile = new ResourcePackProfileProperties {
+            packProfile = new PublishProfileProperties {
                 Encoding = {
                     NormalX = {
                         Texture = TextureTags.Normal,
@@ -80,7 +56,32 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = new ProjectData {
+                Input = new PackInputEncoding {
+                    NormalX = {
+                        Texture = TextureTags.Normal,
+                        Color = ColorChannel.Red,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
+                    },
+                    NormalY = {
+                        Texture = TextureTags.Normal,
+                        Color = ColorChannel.Green,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
+                    },
+                    NormalZ = {
+                        Texture = TextureTags.Normal,
+                        Color = ColorChannel.Blue,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 1m,
+                    },
+                },
+            };
+            
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -103,20 +104,22 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = new ResourcePackInputProperties {
-                NormalX = {
-                    Texture = TextureTags.Normal,
-                    Color = ColorChannel.Red,
-                    MinValue = -1m,
-                    MaxValue = 1m,
-                    DefaultValue = 0m,
-                },
-                NormalY = {
-                    Texture = TextureTags.Normal,
-                    Color = ColorChannel.Green,
-                    MinValue = -1m,
-                    MaxValue = 1m,
-                    DefaultValue = 0m,
+            graph.Project = new ProjectData {
+                Input = new PackInputEncoding {
+                    NormalX = {
+                        Texture = TextureTags.Normal,
+                        Color = ColorChannel.Red,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
+                    },
+                    NormalY = {
+                        Texture = TextureTags.Normal,
+                        Color = ColorChannel.Green,
+                        MinValue = -1m,
+                        MaxValue = 1m,
+                        DefaultValue = 0m,
+                    },
                 },
             };
 

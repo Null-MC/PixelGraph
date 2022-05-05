@@ -3,6 +3,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Importing;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
@@ -14,8 +15,8 @@ namespace PixelGraph.Tests.ImportTests
 {
     public class JavaOldPbrImportTests : ImageTestBase
     {
-        private readonly ResourcePackInputProperties packInput;
-        private readonly ResourcePackProfileProperties packProfile;
+        private readonly ProjectData project;
+        private readonly PublishProfileProperties packProfile;
 
 
         public JavaOldPbrImportTests(ITestOutputHelper output) : base(output)
@@ -24,12 +25,14 @@ namespace PixelGraph.Tests.ImportTests
             Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
             Builder.AddImporter(GameEditions.Java);
 
-            packInput = new ResourcePackInputProperties {
-                Edition = GameEdition.Java,
-                Format = TextureFormat.Format_Raw,
+            project = new ProjectData {
+                Input = new PackInputEncoding {
+                    Edition = GameEdition.Java,
+                    Format = TextureFormat.Format_Raw,
+                },
             };
 
-            packProfile = new ResourcePackProfileProperties {
+            packProfile = new PublishProfileProperties {
                 Edition = GameEdition.Java,
                 Encoding = {
                     Format = TextureFormat.Format_OldPbr,
@@ -47,7 +50,7 @@ namespace PixelGraph.Tests.ImportTests
             await graph.CreateImageAsync("assets/minecraft/textures/block/bricks_s.png", 16, 0, 0);
 
             var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
-            importer.PackInput = packInput;
+            importer.Project = project;
             importer.PackProfile = packProfile;
             importer.AsGlobal = false;
 

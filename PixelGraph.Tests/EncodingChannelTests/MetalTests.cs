@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
@@ -11,8 +12,8 @@ namespace PixelGraph.Tests.EncodingChannelTests
 {
     public class MetalTests : ImageTestBase
     {
-        private readonly ResourcePackInputProperties packInput;
-        private readonly ResourcePackProfileProperties packProfile;
+        private readonly ProjectData project;
+        private readonly PublishProfileProperties packProfile;
 
 
         public MetalTests(ITestOutputHelper output) : base(output)
@@ -20,14 +21,16 @@ namespace PixelGraph.Tests.EncodingChannelTests
             Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
             Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
 
-            packInput = new ResourcePackInputProperties {
-                Metal = {
-                    Texture = TextureTags.Metal,
-                    Color = ColorChannel.Red,
+            project = new ProjectData {
+                Input = new PackInputEncoding {
+                    Metal = {
+                        Texture = TextureTags.Metal,
+                        Color = ColorChannel.Red,
+                    },
                 },
             };
 
-            packProfile = new ResourcePackProfileProperties {
+            packProfile = new PublishProfileProperties {
                 Encoding = {
                     Metal = {
                         Texture = TextureTags.Metal,
@@ -45,7 +48,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -97,7 +100,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = packInput;
+            graph.Project = project;
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",
@@ -123,17 +126,20 @@ namespace PixelGraph.Tests.EncodingChannelTests
         {
             await using var graph = Graph();
 
-            graph.PackInput = new ResourcePackInputProperties {
-                HCM = {
-                    Texture = TextureTags.HCM,
-                    Color = ColorChannel.Red,
-                    MinValue = 230m,
-                    MaxValue = 255m,
-                    RangeMin = 230,
-                    RangeMax = 255,
-                    EnableClipping = true,
+            graph.Project = new ProjectData {
+                Input = new PackInputEncoding {
+                    HCM = {
+                        Texture = TextureTags.HCM,
+                        Color = ColorChannel.Red,
+                        MinValue = 230m,
+                        MaxValue = 255m,
+                        RangeMin = 230,
+                        RangeMax = 255,
+                        EnableClipping = true,
+                    },
                 },
             };
+
             graph.PackProfile = packProfile;
             graph.Material = new MaterialProperties {
                 Name = "test",

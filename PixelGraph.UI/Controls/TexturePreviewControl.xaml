@@ -3,12 +3,12 @@
               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
               xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-              xmlns:models="clr-namespace:PixelGraph.UI.Models"
               xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" d:DataContext="{x:Null}">
-    <DockPanel>
+              xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+              d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d">
+    <DockPanel d:DataContext="{d:DesignInstance vm:TexturePreviewDesignerViewModel, IsDesignTimeCreatable=True}">
         <DockPanel.DataContext>
-            <models:TexturePreviewModel x:Name="model"/>
+            <vm:TexturePreviewViewModel x:Name="Model"/>
         </DockPanel.DataContext>
         <Border DockPanel.Dock="Top" Height="34"
                 Background="{DynamicResource MahApps.Brushes.Accent4}">
@@ -55,9 +55,9 @@
                             <Style TargetType="Image">
                                 <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor"/>
                                 <Setter Property="Stretch" Value="Uniform"/>
-                                <Setter Property="Source" Value="{Binding Texture, Mode=OneWay}"/>
-                                <Setter Property="Width" Value="{Binding Texture.PixelWidth, Mode=OneWay}"/>
-                                <Setter Property="Height" Value="{Binding Texture.PixelHeight, Mode=OneWay}"/>
+                                <Setter Property="Source" Value="{Binding TexturePreviewData.Texture, Mode=OneWay}"/>
+                                <Setter Property="Width" Value="{Binding TexturePreviewData.Texture.PixelWidth, Mode=OneWay}"/>
+                                <Setter Property="Height" Value="{Binding TexturePreviewData.Texture.PixelHeight, Mode=OneWay}"/>
                                 <Setter Property="SnapsToDevicePixels" Value="True"/>
                                 <Setter Property="LayoutTransform">
                                     <Setter.Value>
@@ -80,14 +80,14 @@
 
                         <Rectangle Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" 
                                    SnapsToDevicePixels="True" Stroke="#90FF0000" StrokeThickness="1"
-                                   Width="{Binding OutlineWidth, Mode=OneWay}"
-                                   Height="{Binding OutlineHeight, Mode=OneWay}"
-                                   Visibility="{Binding ShowOutline, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                                   Width="{Binding TexturePreviewData.OutlineWidth, Mode=OneWay}"
+                                   Height="{Binding TexturePreviewData.OutlineHeight, Mode=OneWay}"
+                                   Visibility="{Binding TexturePreviewData.HasOutline, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                             <Rectangle.RenderTransform>
                                 <TransformGroup>
                                     <TranslateTransform
-                                        X="{Binding OutlineMargin.Left}"
-                                        Y="{Binding OutlineMargin.Top}"/>
+                                        X="{Binding TexturePreviewData.OutlineX, Mode=OneWay}"
+                                        Y="{Binding TexturePreviewData.OutlineY, Mode=OneWay}"/>
                                     <ScaleTransform CenterX="0" CenterY="0"
                                         ScaleX="{Binding Zoom, Mode=OneWay}"
                                         ScaleY="{Binding Zoom, Mode=OneWay}"/>

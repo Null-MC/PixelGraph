@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.Common.Projects;
 
 namespace PixelGraph.Common.Textures.Graphing
 {
@@ -64,7 +65,7 @@ namespace PixelGraph.Common.Textures.Graphing
             var builder = scope.ServiceProvider.GetRequiredService<ITextureBuilder>();
 
             // make image from normal X & Y; z if found
-            heightContext.Input = context.Input;
+            heightContext.Project = context.Project;
             heightContext.Profile = context.Profile;
             heightContext.Material = context.Material;
             heightContext.IsImport = context.IsImport;
@@ -73,7 +74,7 @@ namespace PixelGraph.Common.Textures.Graphing
             
             builder.InputChannels = new [] {heightChannel};
 
-            builder.OutputChannels = new ResourcePackChannelProperties[] {
+            builder.OutputChannels = new PackEncodingChannel[] {
                 new ResourcePackHeightChannelProperties {
                     Texture = TextureTags.Height,
                     Color = ColorChannel.Red,

@@ -7,7 +7,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
-using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Projects;
 using PixelGraph.Rendering;
 using PixelGraph.Rendering.Models;
 using PixelGraph.Rendering.Shaders;
@@ -287,32 +287,23 @@ namespace PixelGraph.UI.Helix.Models
 
         private IMaterialBuilder CreateMaterialBuilder(RenderPreviewModes renderMode)
         {
-            switch (renderMode) {
-                case RenderPreviewModes.Diffuse:
-                    return new DiffuseMaterialBuilder(provider);
-
-                case RenderPreviewModes.Normals:
-                    return new NormalsMaterialBuilder(provider);
-
-                case RenderPreviewModes.PbrFilament:
-                    return new OldPbrMaterialBuilder(provider);
-
-                case RenderPreviewModes.PbrJessie:
-                case RenderPreviewModes.PbrNull:
-                    return new LabPbrMaterialBuilder(provider);
-
-                default:
-                    throw new ApplicationException($"Unknown render mode '{renderMode}'!");
-            }
+            return renderMode switch {
+                RenderPreviewModes.Diffuse => new DiffuseMaterialBuilder(provider),
+                RenderPreviewModes.Normals => new NormalsMaterialBuilder(provider),
+                RenderPreviewModes.PbrFilament => new OldPbrMaterialBuilder(provider),
+                RenderPreviewModes.PbrJessie => new LabPbrMaterialBuilder(provider),
+                RenderPreviewModes.PbrNull => new LabPbrMaterialBuilder(provider),
+                _ => throw new ApplicationException($"Unknown render mode '{renderMode}'!")
+            };
         }
 
         private IMaterialBuilder UpdateMaterial(IRenderContext renderContext, MaterialProperties material)
         {
             var materialBuilder = CreateMaterialBuilder(renderContext.RenderMode);
 
-            materialBuilder.PackContext = new ResourcePackContext {
+            materialBuilder.PackContext = new ProjectPublishContext {
                 //RootPath = projectContext.RootDirectory,
-                Input = renderContext.PackInput,
+                Project = renderContext.Project,
                 Profile = renderContext.PackProfile,
             };
 

@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.Projects;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.TextureFormats.Java
@@ -8,7 +9,7 @@ namespace PixelGraph.Common.TextureFormats.Java
         public const string Description = "The latest LabPbr standard.";
 
 
-        public ResourcePackEncoding Create()
+        public PackEncoding Create()
         {
             return new() {
                 Opacity = new ResourcePackOpacityChannelProperties {

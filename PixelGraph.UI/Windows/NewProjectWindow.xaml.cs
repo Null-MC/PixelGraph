@@ -45,7 +45,7 @@ namespace PixelGraph.UI.Windows
             var projectContext = new ProjectContext {
                 Project = new ProjectData {
                     Name = Model.PackName,
-                    Input = new ResourcePackInputProperties {
+                    Input = new PackInputEncoding {
                         Format = TextureFormat.Format_Raw,
                     },
                 },
@@ -53,7 +53,7 @@ namespace PixelGraph.UI.Windows
                 RootDirectory = Path.GetDirectoryName(Model.ProjectFilename),
             };
 
-            var packProfile = new ResourcePackProfileProperties {
+            var packProfile = new PublishProfileProperties {
                 Name = $"{Model.PackName}-LabPbr",
                 Description = "A short description of the RP content.",
                 Encoding = {
@@ -103,6 +103,8 @@ namespace PixelGraph.UI.Windows
                 await this.ShowMessageAsync("Error!", "Please select the type of source you would like to import project content from!");
                 return;
             }
+
+            //...
 
             DialogResult = true;
         }

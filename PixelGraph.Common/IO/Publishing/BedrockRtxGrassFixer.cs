@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using PixelGraph.Common.ImageProcessors;
-using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
@@ -29,7 +29,7 @@ namespace PixelGraph.Common.IO.Publishing
             this.imgWriter = imgWriter;
         }
 
-        public async Task FixAsync(ResourcePackContext packContext, CancellationToken token)
+        public async Task FixAsync(ProjectPublishContext packContext, CancellationToken token)
         {
             var ext = NamingStructure.GetExtension(packContext.Profile);
 
