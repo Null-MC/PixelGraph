@@ -76,8 +76,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          repository: null511/PixelGraph
-          token: ${{ secrets.PG_TOKEN }}
           submodules: recursive
       - name: Publish Windows-UI-x64 Binary
         run: |
