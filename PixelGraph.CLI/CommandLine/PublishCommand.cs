@@ -6,7 +6,6 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Projects;
-using PixelGraph.Common.ResourcePack;
 using Serilog;
 using System;
 using System.CommandLine;
@@ -41,15 +40,15 @@ namespace PixelGraph.CLI.CommandLine
             };
 
             Command.AddOption(new Option<FileInfo>(
-                new [] {"-f", "--project"}, () => new FileInfo("project.yml"),
+                new [] {"-p", "--project-file"}, () => new FileInfo("project.yml"),
                 "The filename of the project to publish."));
 
             Command.AddOption(new Option<FileInfo>(
-                new [] {"-p", "--profile"},
+                new [] {"-n", "--profile-name"},
                 "The filename of the project to publish."));
 
             Command.AddOption(new Option<DirectoryInfo>(
-                new[] { "-d", "--destination" },
+                new[] { "-o", "--output" },
                 "The target directory to publish the resource pack to."));
 
             Command.AddOption(new Option<string>(
