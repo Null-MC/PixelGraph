@@ -1,6 +1,22 @@
+#define TONEMAP_HejlBurgess 1
+#define TONEMAP_AcesFilm 2
+#define TONEMAP_Reinhard 3
+#define TONEMAP_ReinhardJodie 4
+#define TONEMAP_Uncharted2 5
+#define TONEMAP_ACESFit 6
+#define TONEMAP_ACESFit2 7
+#define TONEMAP_FilmicHejl2015 8
+#define TONEMAP_Burgess 9
+#define TONEMAP_BurgessModified 11
+#define TONEMAP_ReinhardExtendedLuminance 10
+#define TONEMAP_Tech 12
+
+#define TONEMAP TONEMAP_ACESFit2
+
+
 //====  Stuff from Jessie ====//
 
-float3 tonemap_HejlBurgess(const float3 color)
+float3 tonemap_HejlBurgess(const in float3 color)
 {
     static const float f = rcp(1.1);
 
@@ -8,7 +24,7 @@ float3 tonemap_HejlBurgess(const float3 color)
 	return color * (6.2f * t + 0.5f) / (t * (6.2f * t + 1.7f) + 0.06f);
 }
 
-float3 tonemap_AcesFilm(const float3 color)
+float3 tonemap_AcesFilm(const in float3 color)
 {
     return saturate(color * (2.51f * color + 0.03f) / (color * (2.43f * color + 0.59f) + 0.14f));
 }
@@ -107,20 +123,9 @@ float3 tonemap_ReinhardExtendedLuminance(const in float3 color, const in float m
     return _ChangeLuma(color, luma_new);
 }
 
-//#define TONEMAP_EXPOSURE 4.0
-//#define TONEMAP_WHITE_CURVE 1.5
-//#define TONEMAP_LOWER_CURVE 1.0
-//#define TONEMAP_UPPER_CURVE 1.5
-//
-//void BSLTonemap(inout float3 color){
-//    color = TONEMAP_EXPOSURE * color;
-//    color = color / pow(pow(color, float3(TONEMAP_WHITE_CURVE)) + 1.0, float3(1.0 / TONEMAP_WHITE_CURVE));
-//    color = pow(color, lerp(float3(TONEMAP_LOWER_CURVE), float3(TONEMAP_UPPER_CURVE), sqrt(color)));
-//}
-
 // Original by Dawson Burgess
 // Modified by: https://github.com/TechDevOnGithub/
-float3 tonemap_Burgess_Modified(const in float3 color)
+float3 tonemap_BurgessModified(const in float3 color)
 {
 	const float3 max_color = color * min(1.0f, 1.0f - exp(-1.0f / (luminance(color) * 0.1f) * color));
     return max_color * (6.2f * max_color + 0.5f) / (max_color * (6.2f * max_color + 1.7f) + 0.06f);
@@ -134,14 +139,34 @@ float3 tonemap_Tech(const in float3 color)
     return a / (a + 0.6f);
 }
 
-//float3 _LinearTosRGB(const in float3 x)
-//{
-//    if (step(x, 0.0031308f) == 1.0f) return x * 12.92f;
-//    return pow(abs(x), 1.0f / 2.4f) * 1.055f - 0.055f;
-//}
-//
-//float3 _SRGBToLinear(const in float3 x)
-//{
-//    if(step(x, 0.04045f) == 1.0f) return x / 12.92f;
-//    return pow((x + 0.055f) / 1.055f, 2.4f);
-//}
+
+//====  compile-time global switch ====//
+
+float3 apply_tonemap(const in float3 color)
+{
+#if TONEMAP == TONEMAP_HejlBurgess
+    return tonemap_HejlBurgess(color);
+#elif TONEMAP == TONEMAP_AcesFilm
+    return tonemap_AcesFilm(color);
+#elif TONEMAP == TONEMAP_Reinhard
+    return tonemap_Reinhard(color);
+#elif TONEMAP == TONEMAP_ReinhardJodie
+    return tonemap_ReinhardJodie(color);
+#elif TONEMAP == TONEMAP_Uncharted2
+    return tonemap_Uncharted2(color);
+#elif TONEMAP == TONEMAP_ACESFit
+    return tonemap_ACESFit(color);
+#elif TONEMAP == TONEMAP_ACESFit2
+    return tonemap_ACESFit2(color);
+#elif TONEMAP == TONEMAP_FilmicHejl2015
+    return tonemap_FilmicHejl2015(color, 1.f);
+#elif TONEMAP == TONEMAP_Burgess
+    return tonemap_Burgess(color);
+#elif TONEMAP == TONEMAP_BurgessModified
+    return tonemap_BurgessModified(color);
+#elif TONEMAP == TONEMAP_ReinhardExtendedLuminance
+    return tonemap_ReinhardExtendedLuminance(color, 4.f);
+#elif TONEMAP == TONEMAP_Tech
+    return tonemap_Tech(color);
+#endif
+}

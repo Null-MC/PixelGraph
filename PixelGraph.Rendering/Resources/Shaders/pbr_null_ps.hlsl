@@ -81,14 +81,8 @@ float4 main(const ps_input input) : SV_TARGET
 
     const float wet_depth = saturate((water_levelMax - shadow_tex.z) * WATER_DEPTH_SCALE);
 
-    float roughP = 1.0 - mat.smooth; // * roughP;
+    float roughP = 1.0 - mat.smooth;
     float roughL = max(pow2(roughP), MIN_ROUGH);
-    //const float roughP = sqrt(roughL); // * roughP;
-    //const float roughL = clamp(1.0 - pow2(mat.smooth), MIN_ROUGH, 1.0f);
-    //const float roughP = sqrt(roughL); // * roughP;
-
-    //roughL = roughP;
-    //roughP = sqrt(roughP);
     
     //const float porosityL = srgb_to_linear(mat.porosity);
 	
@@ -340,13 +334,7 @@ float4 main(const ps_input input) : SV_TARGET
 	final_color += final_sss;
 
 	float alpha = saturate(mat.opacity + spec_strength);
-	//if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
-
-	//final_color *= 0.3f;
-	final_color = tonemap_ACESFit2(final_color);
-	//final_color = tonemap_Uncharted2(final_color);
-	//final_color = tonemap_HejlBurgess(final_color);
-	//final_color = linear_to_srgb(final_color);
+    final_color = apply_tonemap(final_color);
 
 	if (BlendMode == BLEND_TRANSPARENT) {
         const float ior = f0_to_ior(clamp(mat.f0_hcm, 0.0f, 0.9f));
@@ -364,10 +352,8 @@ float4 main(const ps_input input) : SV_TARGET
 			blendColor = pow(abs(blendColor), 1.f + 2.5f * ErpExposure);
 			blendColor *= 16.f;
 
-			blendColor = tonemap_ACESFit2(blendColor);
-	        //final_color = lerp(blendColor, final_color, alpha);
+			blendColor = apply_tonemap(blendColor);
 	        final_color = final_color*alpha + blendColor*lerp(1.f, final_color, alpha)*(1.f - alpha);
-	        //final_color = blendColor * lerp(1.f, final_color, alpha);
         }
 	}
 

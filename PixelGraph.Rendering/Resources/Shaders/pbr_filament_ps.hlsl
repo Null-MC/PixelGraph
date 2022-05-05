@@ -147,11 +147,6 @@ float4 main(const ps_input input) : SV_TARGET
 	float alpha = mat.opacity + spec_strength;
     if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
-	final_color = tonemap_ACESFit2(final_color);
-	//final_color = tonemap_Uncharted2(final_color);
-	//final_color = linear_to_srgb(final_color);
-	//final_color = tonemap_HejlBurgess(final_color);
-	//final_color = tonemap_Reinhard(final_color);
-	
+    final_color = apply_tonemap(final_color);
     return float4(final_color, alpha);
 }

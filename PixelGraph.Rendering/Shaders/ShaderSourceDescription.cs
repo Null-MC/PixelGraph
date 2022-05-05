@@ -14,7 +14,7 @@ namespace PixelGraph.Rendering.Shaders
 
         public string RawFileName {get; set;}
         public string CompiledResourceName {get; set;}
-        public ShaderBytecode Code {get; set;}
+        public ShaderBytecode Code {get; private set;}
 
 
         public void Dispose()
@@ -65,7 +65,7 @@ namespace PixelGraph.Rendering.Shaders
             Code = ShaderBytecode.FromStream(stream);
         }
 
-        public static string GetResourcePath(string resourceName)
+        private static string GetResourcePath(string resourceName)
         {
             return $"PixelGraph.Rendering.Resources.Shaders.compiled.{resourceName}";
         }
@@ -73,13 +73,14 @@ namespace PixelGraph.Rendering.Shaders
 
     internal class CustomShaderFileInclude : Include
     {
-        public string SourcePath {get;}
+        private readonly string _sourcePath;
+
         public IDisposable Shadow {get; set;}
 
 
         public CustomShaderFileInclude(string sourcePath)
         {
-            SourcePath = sourcePath;
+            _sourcePath = sourcePath;
         }
 
         public void Dispose()
@@ -89,7 +90,7 @@ namespace PixelGraph.Rendering.Shaders
 
         public Stream Open(IncludeType type, string fileName, Stream parentStream)
         {
-            var path = SourcePath;
+            var path = _sourcePath;
 
             if (parentStream is FileStream fileStream) {
                 var p = Path.GetDirectoryName(fileStream.Name);
