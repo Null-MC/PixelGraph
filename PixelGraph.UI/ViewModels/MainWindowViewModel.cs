@@ -32,7 +32,9 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-#if !NORENDER
+#if NORENDER
+using PixelGraph.UI.Models.MockScene;
+#else
 using PixelGraph.Rendering.Models;
 using PixelGraph.UI.Models.Scene;
 #endif

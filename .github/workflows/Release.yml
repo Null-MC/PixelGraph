@@ -37,9 +37,9 @@ jobs:
           submodules: recursive
       - name: Publish CLI Binaries
         run: |
-          dotnet publish PixelGraph.CLI -c Release -r win-x64 -o ../publish/win-cli-x64 -p:PublishSingleFile=true --self-contained false
-          dotnet publish PixelGraph.CLI -c Release -r linux-x64 -o ../publish/linux-cli-x64 -p:PublishSingleFile=true --self-contained false
-          dotnet publish PixelGraph.CLI -c Release -r osx-x64 -o ../publish/osx-cli-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish PixelGraph.CLI -c Release -r win-x64 -o publish/win-cli-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish PixelGraph.CLI -c Release -r linux-x64 -o publish/linux-cli-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish PixelGraph.CLI -c Release -r osx-x64 -o publish/osx-cli-x64 -p:PublishSingleFile=true --self-contained false
       - name: Release Windows-CLI-x64 Binary
         uses: actions/upload-release-asset@v1
         env:

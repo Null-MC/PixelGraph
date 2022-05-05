@@ -61,11 +61,12 @@ namespace PixelGraph.UI.Windows
             Model.Initialize(provider);
 
             RecentProjects.Initialize(provider);
-            scenePropertiesPanel.Initialize(provider);
             MatPropertiesPanel.Initialize(provider);
             FilterEditor.Initialize(provider);
 
 #if !NORENDER
+            scenePropertiesPanel.Initialize(provider);
+
             Model.SceneProperties.DynamicSkyChanged += OnScenePropertiesDynamicSkyChanged;
             Model.SceneProperties.EnvironmentChanged += OnScenePropertiesEnvironmentChanged;
 

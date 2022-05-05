@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='ReleaseNoRender'">
-    <DefineConstants>$(DefineConstants);NORENDER</DefineConstants>
+    <DefineConstants>NORENDER</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -132,18 +132,5 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\unknown_pack.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Windows\TermsOfServiceWindow.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Windows\TermsOfServiceWindow.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
-    </Page>
   </ItemGroup>
 </Project>

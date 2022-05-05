@@ -6,6 +6,7 @@
     <AssemblyName>PixelGraph</AssemblyName>
     <OutputType>Exe</OutputType>
     <Platforms>x64</Platforms>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

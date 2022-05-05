@@ -8,11 +8,10 @@ using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Windows;
 using Serilog;
+using Serilog.Events;
 using System;
 using System.Windows;
 using System.Windows.Threading;
-using PixelGraph.Common.Extensions;
-using Serilog.Events;
 
 #if !NORENDER
 using PixelGraph.Rendering.Models;

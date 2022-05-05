@@ -37,7 +37,7 @@ namespace PixelGraph.UI.Internal.Tabs
         {
             lockHandle = new object();
 
-#if !RELEASENORENDER
+#if !NORENDER
             Mesh = provider.GetRequiredService<MultiPartMeshBuilder>();
 #endif
         }
