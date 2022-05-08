@@ -460,7 +460,7 @@ namespace PixelGraph.UI.ViewModels
 
         private void OnSelectedProfileChanged()
         {
-            if (_isInitializing) return;
+            if (_isInitializing || isUpdatingProfiles) return;
 
             var context = projectContextMgr.GetContext();
             if (context != null) context.SelectedProfile = SelectedProfile?.Profile;
@@ -645,18 +645,27 @@ namespace PixelGraph.UI.ViewModels
                 string.Equals(l.DisplayName, publishLocationMgr.SelectedLocation, StringComparison.InvariantCultureIgnoreCase));
         }
 
+        private volatile bool isUpdatingProfiles;
+
         public void UpdatePublishProfiles()
         {
             var projectContext = projectContextMgr.GetContext();
 
-            ProfileList.Clear();
-            
-            foreach (var profile in projectContext.Project.Profiles)
-                ProfileList.Add(new PublishProfileDisplayRow(profile) {
-                    DefaultName = projectContext.Project.Name,
-                });
+            isUpdatingProfiles = true;
 
-            SelectedProfile = ProfileList.FirstOrDefault(p => p.Profile == projectContext.SelectedProfile);
+            try {
+                ProfileList.Clear();
+
+                foreach (var profile in projectContext.Project.Profiles)
+                    ProfileList.Add(new PublishProfileDisplayRow(profile) {
+                        DefaultName = projectContext.Project.Name,
+                    });
+
+                SelectedProfile = ProfileList.FirstOrDefault(p => p.Profile == projectContext.SelectedProfile);
+            }
+            finally {
+                isUpdatingProfiles = false;
+            }
         }
 
         public async Task UpdateTabPreviewAsync(Dispatcher dispatcher, CancellationToken token = default)
@@ -682,20 +691,20 @@ namespace PixelGraph.UI.ViewModels
             try {
                 if (SelectedTab is MaterialTabModel materialTab) {
                     var material = materialTab.MaterialRegistration.Value;
-                    if (material == null || context.IsMaterialValid) return;
+                    if (material == null) return;
 
 #if !NORENDER
                     if (IsViewModeRender) {
-                        //if (!context.IsMaterialBuilderValid)
-                        //    await context.BuildModelMeshAsync(material, token);
-
-                        try {
-                            var renderContext = BuildRenderContext();
-                            await context.BuildModelMeshAsync(renderContext, token);
-                        }
-                        catch (Exception error) {
-                            logger.LogError(error, "Failed to build model mesh!");
-                            // TODO: show error modal!
+                        if (!context.IsMaterialBuilderValid) {
+                            try {
+                                var renderContext = BuildRenderContext();
+                                await context.BuildModelMeshAsync(renderContext, token);
+                            }
+                            catch (Exception error) {
+                                logger.LogError(error, "Failed to build model mesh!");
+                                // TODO: show error modal!
+                                return;
+                            }
                         }
 
                         await dispatcher.BeginInvoke(() => {
@@ -716,7 +725,8 @@ namespace PixelGraph.UI.ViewModels
 
                             //RenderModel.BlockMesh = context.UpdateModel(Model);
                             //RenderModel.ModelMaterial = context.UpdateMaterial(Model, SceneModel, RenderModel);
-                            context.UpdateModelParts();
+                            if (!context.IsMaterialValid) context.UpdateModelParts();
+
                             RenderProperties.MeshParts = context.Mesh.ModelParts;
                             //RenderModel.SetModel();
                             
@@ -725,33 +735,37 @@ namespace PixelGraph.UI.ViewModels
                     }
 #endif
                     if (!IsViewModeRender) {
-                        if (context.IsLayerValid) return;
+                        if (!context.IsLayerValid) {
+                            var image = await Task.Run(async () => {
+                                using var previewBuilder = _provider.GetRequiredService<ILayerPreviewBuilder>();
+                                var projectContext = projectContextMgr.GetContext();
 
-                        var image = await Task.Run(async () => {
-                            using var previewBuilder = _provider.GetRequiredService<ILayerPreviewBuilder>();
-                            var projectContext = projectContextMgr.GetContext();
+                                previewBuilder.Project = projectContext.Project;
+                                previewBuilder.Profile = projectContext.SelectedProfile;
+                                previewBuilder.Material = material;
+                                previewBuilder.TargetFrame = 0;
 
-                            previewBuilder.Project = projectContext.Project;
-                            previewBuilder.Profile = projectContext.SelectedProfile;
-                            previewBuilder.Material = material;
-                            previewBuilder.TargetFrame = 0;
+                                var tag = SelectedTag;
+                                if (TextureTags.Is(tag, TextureTags.General))
+                                    tag = TextureTags.Color;
 
-                            var tag = SelectedTag;
-                            if (TextureTags.Is(tag, TextureTags.General))
-                                tag = TextureTags.Color;
+                                return await previewBuilder.BuildAsync(tag, token);
 
-                            return await previewBuilder.BuildAsync(tag, token);
+                                //return await context.BuildLayerAsync(packContext, material, Model.SelectedTag, token);
+                            }, token);
 
-                            //return await context.BuildLayerAsync(packContext, material, Model.SelectedTag, token);
-                        }, token);
+                            await dispatcher.BeginInvoke(() => context.SetImageSource(image));
+                        }
 
+                        //if (context.IsLayerValid) return;
+                        
                         await dispatcher.BeginInvoke(() => {
-                            context.SetImageSource(image);
+                            //context.SetImageSource(image);
 
                             if (SelectedTab == null || SelectedTab.Id != context.Id) return;
 
 #if !NORENDER
-                            RenderProperties.MeshParts.Clear();
+                            RenderProperties.MeshParts = null;
 #endif
 
                             TextureModel.Texture = context.GetLayerImageSource();
@@ -769,7 +783,7 @@ namespace PixelGraph.UI.ViewModels
                         if (SelectedTab == null || SelectedTab.Id != context.Id) return;
 
 #if !NORENDER
-                        RenderProperties.MeshParts.Clear();
+                        RenderProperties.MeshParts = null;
 #endif
 
                         TextureModel.Texture = context.GetLayerImageSource();
@@ -1006,6 +1020,11 @@ namespace PixelGraph.UI.ViewModels
         public void InvalidateAllTabs()
         {
             tabPreviewMgr.InvalidateAll(true);
+        }
+
+        public void InvalidateAllTabLayers()
+        {
+            tabPreviewMgr.InvalidateAllLayers(true);
         }
 
 #if !NORENDER

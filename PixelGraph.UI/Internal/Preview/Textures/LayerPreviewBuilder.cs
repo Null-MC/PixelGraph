@@ -21,22 +21,22 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 [TextureTags.Opacity] = (profile, mat) => new PackEncodingChannel[] {
                     new ResourcePackOpacityChannelProperties(TextureTags.Opacity, ColorChannel.Red) {
                         //Sampler = mat?.Opacity?.Input?.Sampler ?? profile?.Encoding?.Opacity?.Sampler,
-                        MaxValue = 255,
-                        DefaultValue = 255m,
+                        //Power = 2.2m,
+                        DefaultValue = 1m,
                     },
                 },
                 [TextureTags.Color] = (profile, mat) => new PackEncodingChannel[] {
                     new ResourcePackColorRedChannelProperties(TextureTags.Color, ColorChannel.Red) {
                         //Sampler = mat?.Color?.InputRed?.Sampler ?? profile?.Encoding?.ColorRed?.Sampler,
-                        MaxValue = 255,
+                        //Power = 2.2m,
                     },
                     new ResourcePackColorGreenChannelProperties(TextureTags.Color, ColorChannel.Green) {
                         //Sampler = mat?.Color?.InputGreen?.Sampler ?? profile?.Encoding?.ColorGreen?.Sampler,
-                        MaxValue = 255,
+                        //Power = 2.2m,
                     },
                     new ResourcePackColorBlueChannelProperties(TextureTags.Color, ColorChannel.Blue) {
                         //Sampler = mat?.Color?.InputBlue?.Sampler ?? profile?.Encoding?.ColorBlue?.Sampler,
-                        MaxValue = 255,
+                        //Power = 2.2m,
                     },
                 },
                 [TextureTags.Height] = (profile, mat) => new PackEncodingChannel[] {
@@ -68,7 +68,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                     },
                     new ResourcePackNormalZChannelProperties(TextureTags.Normal, ColorChannel.Blue) {
                         //Sampler = mat?.Normal?.InputZ?.Sampler ?? profile?.Encoding?.NormalZ?.Sampler,
-                        MinValue = -1m,
+                        MinValue = 0m,
                         MaxValue = 1m,
                         DefaultValue = 1m,
                     },
@@ -101,7 +101,6 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         MaxValue = 255m,
                         RangeMin = 230,
                         RangeMax = 255,
-                        Perceptual = false,
                         EnableClipping = true,
                     },
                 },

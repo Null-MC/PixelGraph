@@ -78,10 +78,11 @@ namespace PixelGraph.UI.ViewModels
                     RenderProperties.RenderMode = renderMode;
         }
 
-        public Task SaveRenderStateAsync(CancellationToken token = default)
+        public async Task SaveRenderStateAsync(CancellationToken token = default)
         {
             appSettings.Data.RenderPreview.SelectedMode = RenderPreviewMode.GetString(RenderProperties.RenderMode);
-            return appSettings.SaveAsync(token);
+
+            await appSettings.SaveAsync(token);
         }
 
         public void ReloadShaders()

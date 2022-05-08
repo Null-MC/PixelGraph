@@ -57,7 +57,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/occlusion.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/occlusion.png", value);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_ao.png");
@@ -113,7 +113,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 },
             };
 
-            await graph.CreateImageAsync("assets/test/occlusion.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/occlusion.png", value);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_ao.png");

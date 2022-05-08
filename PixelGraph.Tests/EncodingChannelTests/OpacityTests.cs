@@ -26,7 +26,6 @@ namespace PixelGraph.Tests.EncodingChannelTests
                     Opacity = {
                         Texture = TextureTags.Opacity,
                         Color = ColorChannel.Red,
-                        MaxValue = 255m,
                     },
                 },
             };
@@ -36,8 +35,6 @@ namespace PixelGraph.Tests.EncodingChannelTests
                     Opacity = {
                         Texture = TextureTags.Color,
                         Color = ColorChannel.Alpha,
-                        MaxValue = 255m,
-                        Power = 1m,
                     },
                 },
             };

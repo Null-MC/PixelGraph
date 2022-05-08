@@ -30,8 +30,10 @@
                             Style="{StaticResource MahApps.Styles.Button}">
                         <iconPacks:FontAwesome Kind="SyncSolid" Width="14" Height="14"/>
                     </Button>
-                    <ComboBox DockPanel.Dock="Left" Margin="2,0" Padding="4,0" BorderThickness="0" ToolTip="Shader"
-                              DisplayMemberPath="Text" SelectedValuePath="Value" SelectionChanged="OnRenderModeSelectionChanged"
+                    <ComboBox DockPanel.Dock="Left" Margin="2,0" Padding="4,0"
+                              BorderThickness="0" Width="140" ToolTip="Shader"
+                              DisplayMemberPath="Text" SelectedValuePath="Value"
+                              SelectionChanged="OnRenderModeSelectionChanged"
                               ItemsSource="{StaticResource RenderModes}"
                               SelectedValue="{Binding RenderProperties.RenderMode, Mode=TwoWay}"/>
                     <CheckBox DockPanel.Dock="Left" Content="Tile" Margin="6,0" FontWeight="Bold"

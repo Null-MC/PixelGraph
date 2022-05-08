@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Projects;
 
 namespace PixelGraph.Common.Textures.Graphing
 {
@@ -61,20 +60,9 @@ namespace PixelGraph.Common.Textures.Graphing
             if (!HasOutputNormals()) return;
 
             if (await normalGraph.TryBuildNormalMapAsync(token)) {
-                UpsertInputChannel<ResourcePackNormalXChannelProperties>(channel => {
-                    channel.Texture = TextureTags.NormalGenerated;
-                    channel.Color = ColorChannel.Red;
-                });
-
-                UpsertInputChannel<ResourcePackNormalYChannelProperties>(channel => {
-                    channel.Texture = TextureTags.NormalGenerated;
-                    channel.Color = ColorChannel.Green;
-                });
-
-                UpsertInputChannel<ResourcePackNormalZChannelProperties>(channel => {
-                    channel.Texture = TextureTags.NormalGenerated;
-                    channel.Color = ColorChannel.Blue;
-                });
+                UpsertInputChannel(normalGraph.ChannelX);
+                UpsertInputChannel(normalGraph.ChannelY);
+                UpsertInputChannel(normalGraph.ChannelZ);
 
                 context.InputEncoding
                     .Where(c => TextureTags.Is(c.Texture, TextureTags.Normal))
@@ -118,20 +106,10 @@ namespace PixelGraph.Common.Textures.Graphing
             return Math.Max(min, builderMax);
         }
 
-        private void UpsertInputChannel<T>(Action<T> channelAction)
+        private void UpsertInputChannel<T>(T newChannel)
             where T : PackEncodingChannel, new()
         {
-            var hasChannel = false;
-            foreach (var channel in context.InputEncoding.OfType<T>()) {
-                channel.Reset();
-                channelAction(channel);
-                hasChannel = true;
-            }
-
-            if (hasChannel) return;
-
-            var newChannel = new T();
-            channelAction(newChannel);
+            context.InputEncoding.RemoveAll(e => e is T);
             context.InputEncoding.Add(newChannel);
         }
     }

@@ -21,20 +21,16 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 [TextureTags.Color] = (profile, mat) => new PackEncodingChannel[] {
                     new ResourcePackColorRedChannelProperties(TextureTags.Color, ColorChannel.Red) {
                         //Sampler = mat?.Color?.InputRed?.Sampler ?? profile?.Encoding?.ColorRed?.Sampler,
-                        MaxValue = 255,
                     },
                     new ResourcePackColorGreenChannelProperties(TextureTags.Color, ColorChannel.Green) {
                         //Sampler = mat?.Color?.InputGreen?.Sampler ?? profile?.Encoding?.ColorGreen?.Sampler,
-                        MaxValue = 255,
                     },
                     new ResourcePackColorBlueChannelProperties(TextureTags.Color, ColorChannel.Blue) {
                         //Sampler = mat?.Color?.InputBlue?.Sampler ?? profile?.Encoding?.ColorBlue?.Sampler,
-                        MaxValue = 255,
                     },
                     new ResourcePackOpacityChannelProperties(TextureTags.Color, ColorChannel.Alpha) {
                         //Sampler = mat?.Opacity?.Input?.Sampler ?? profile?.Encoding?.Opacity?.Sampler,
-                        MaxValue = 255,
-                        DefaultValue = 255m,
+                        DefaultValue = 1m,
                     },
                 },
                 [TextureTags.Emissive] = (profile, mat) => new PackEncodingChannel[] {

@@ -26,17 +26,14 @@ namespace PixelGraph.Tests.EncodingChannelTests
                     ColorRed = {
                         Texture = TextureTags.Color,
                         Color = ColorChannel.Red,
-                        MaxValue = 255m,
                     },
                     ColorGreen = {
                         Texture = TextureTags.Color,
                         Color = ColorChannel.Green,
-                        MaxValue = 255m,
                     },
                     ColorBlue = {
                         Texture = TextureTags.Color,
                         Color = ColorChannel.Blue,
-                        MaxValue = 255m,
                     },
                 },
             };
@@ -46,17 +43,14 @@ namespace PixelGraph.Tests.EncodingChannelTests
                     ColorRed = {
                         Texture = TextureTags.Color,
                         Color = ColorChannel.Red,
-                        MaxValue = 255m,
                     },
                     ColorGreen = {
                         Texture = TextureTags.Color,
                         Color = ColorChannel.Green,
-                        MaxValue = 255m,
                     },
                     ColorBlue = {
                         Texture = TextureTags.Color,
                         Color = ColorChannel.Blue,
-                        MaxValue = 255m,
                     },
                 },
             };

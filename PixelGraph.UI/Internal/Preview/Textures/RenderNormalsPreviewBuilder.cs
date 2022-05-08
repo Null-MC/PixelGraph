@@ -21,8 +21,8 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                 [TextureTags.Color] = (profile, mat) => new PackEncodingChannel[] {
                     new ResourcePackOpacityChannelProperties(TextureTags.Color, ColorChannel.Alpha) {
                         //Sampler = mat?.Opacity?.Input?.Sampler ?? profile?.Encoding?.Opacity?.Sampler,
-                        MaxValue = 255m,
-                        DefaultValue = 255m,
+                        //Power = 2.2m,
+                        DefaultValue = 1m,
                     },
                 },
                 [TextureTags.Normal] = (profile, mat) => new PackEncodingChannel[] {
@@ -37,7 +37,7 @@ namespace PixelGraph.UI.Internal.Preview.Textures
                         DefaultValue = 0m,
                     },
                     new ResourcePackNormalZChannelProperties(TextureTags.Normal, ColorChannel.Blue) {
-                        MinValue = -1m,
+                        MinValue = 0m,
                         MaxValue = 1m,
                         DefaultValue = 1m,
                     },

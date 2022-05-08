@@ -270,6 +270,8 @@ namespace PixelGraph.Common.IO.Publishing
             "source.txt",
             "readme.txt",
             "readme.md",
+            "desktop.ini",
+            "thumbs.db",
         };
     }
 }

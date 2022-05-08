@@ -5,6 +5,7 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Linq;
+using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -26,17 +27,17 @@ namespace PixelGraph.Common.ImageProcessors
             var rowSamplers = options.Samplers.Select(sampler => sampler.Sampler.ForRow(rfy)).ToArray();
 
             double fx, fy;
-            var pixelOut = new Rgba32();
+            Vector4 pixelOut;
 
             for (var x = 0; x < context.Bounds.Width; x++) {
-                row[x].ToRgba32(ref pixelOut);
+                pixelOut = row[x].ToScaledVector4();
 
                 for (var i = 0; i < samplerCount; i++) {
                     var samplerOptions = options.Samplers[i];
                     var mapping = samplerOptions.PixelMap;
 
                     GetTexCoord(in context, context.Bounds.Left + x, out fx, out fy);
-                    rowSamplers[i].Sample(fx, fy, in samplerOptions.InputColor, out var pixelValue);
+                    rowSamplers[i].SampleScaled(fx, fy, in samplerOptions.InputColor, out var pixelValue);
 
                     if (!mapping.TryUnmap(in pixelValue, out var value)) continue;
 
@@ -44,26 +45,24 @@ namespace PixelGraph.Common.ImageProcessors
 
                     if (!mapping.TryMap(ref value, out var finalValue)) continue;
 
-                    if (mapping.OutputClipValue.HasValue && value.NearEqual(mapping.OutputClipValue.Value)) continue;
+                    if (mapping.OutputClipValue.HasValue && value.NearEqual(mapping.OutputClipValue.Value / 255f)) continue;
 
                     if (options.IsGrayscale) {
-                        pixelOut.R = finalValue;
-                        pixelOut.G = finalValue;
-                        pixelOut.B = finalValue;
+                        pixelOut.X = pixelOut.Y = pixelOut.Z = finalValue;
                     }
                     else {
                         pixelOut.SetChannelValue(samplerOptions.OutputColor, finalValue);
                     }
                 }
 
-                row[x].FromRgba32(pixelOut);
+                row[x].FromScaledVector4(pixelOut);
             }
         }
 
         private static bool ProcessConversions(PixelMapping map, ref float value)
         {
             if (map.Convert_HcmToMetal) {
-                value = value >= 230f
+                value = value >= 230f - float.Epsilon
                     ? map.OutputMaxValue
                     : map.OutputMinValue;
             }

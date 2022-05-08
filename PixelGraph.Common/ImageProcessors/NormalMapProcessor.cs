@@ -12,47 +12,37 @@ namespace PixelGraph.Common.ImageProcessors
     internal class NormalMapProcessor<THeight> : PixelProcessor
         where THeight : unmanaged, IPixel<THeight>
     {
-        private const float hp = 0.5f / 255;
-
         private readonly Options options;
         private readonly float[,] _operator;
         private readonly byte kernelSize;
-
-        public bool EnableFloatingPoint {get; set;} = true;
 
 
         public NormalMapProcessor(Options options)
         {
             this.options = options;
 
-            switch (options.Method) {
-                case NormalMapMethods.Sobel9:
-                    BuildSobelOperator(out _operator, 9);
-                    break;
-                case NormalMapMethods.Sobel5:
-                    BuildSobelOperator(out _operator, 5);
-                    break;
-                default:
-                    BuildSobelOperator(out _operator, 3);
-                    break;
-            }
-
             kernelSize = options.Method switch {
                 NormalMapMethods.Sobel9 => 9,
                 NormalMapMethods.Sobel5 => 5,
                 _ => 3,
             };
+
+            SobelHelper.BuildOperator(out _operator, kernelSize);
         }
 
         protected override void ProcessPixel<TPixel>(ref TPixel pixel, in PixelContext context)
         {
             ProcessPixelNormal(in context, out var normal);
 
-            var tp = new Vector4();
-            tp.SetChannelValue(ColorChannel.Red, normal.X * 0.5f + 0.5f - hp);
-            tp.SetChannelValue(ColorChannel.Green, normal.Y * 0.5f + 0.5f - hp);
-            tp.SetChannelValue(ColorChannel.Blue, normal.Z * 0.5f + 0.5f - hp);
-            pixel.FromScaledVector4(tp);
+            NormalEncoding.EncodeNormal(in normal, out var result);
+
+            Vector4 pixelOut;
+            pixelOut.X = result.X * 0.5f + 0.5f;
+            pixelOut.Y = result.Y * 0.5f + 0.5f;
+            pixelOut.Z = result.Z;
+            pixelOut.W = 1f;
+
+            pixel.FromScaledVector4(pixelOut);
         }
 
         private void ProcessPixelNormal(in PixelContext context, out Vector3 normal)
@@ -81,15 +71,15 @@ namespace PixelGraph.Common.ImageProcessors
                 ApplyLowPass(ref k[2,2], in k[1,1]);
             }
 
-            ApplyOperator(ref k, in _operator);
-            GetSobelDerivative(ref k, out var derivative);
-            CalculateNormal(in derivative, out normal);
+            var strength = options.Strength / MathF.Pow(kernelSize, 2f) * 10f;
+
+            SobelHelper.ApplyOperator(ref k, in kernelSize, in _operator);
+            SobelHelper.GetDerivative(ref k, in kernelSize, out var derivative);
+            SobelHelper.CalculateNormal(in derivative, in strength, out normal);
         }
 
         private void PopulateKernel(ref float[,] kernel, in PixelContext context)
         {
-            var p = new Rgba32();
-
             var ox = (kernelSize - 1) / 2;
             var oy = (kernelSize - 1) / 2;
 
@@ -99,7 +89,8 @@ namespace PixelGraph.Common.ImageProcessors
                 if (options.WrapY) context.WrapY(ref pY);
                 else context.ClampY(ref pY);
 
-                var row = options.Source.DangerousGetPixelRowMemory(pY).Span;
+                var row = options.Source.DangerousGetPixelRowMemory(pY)
+                    .Slice(context.Bounds.X, context.Bounds.Width).Span;
 
                 for (byte kX = 0; kX < kernelSize; kX++) {
                     var pX = context.X + kX - ox;
@@ -107,27 +98,71 @@ namespace PixelGraph.Common.ImageProcessors
                     if (options.WrapX) context.WrapX(ref pX);
                     else context.ClampX(ref pX);
 
-                    if (EnableFloatingPoint) {
-                        var pixel = row[pX].ToScaledVector4();
-                        pixel.GetChannelValue(in options.HeightChannel, out kernel[kX, kY]);
-                    }
-                    else {
-                        row[pX].ToRgba32(ref p);
-                        p.GetChannelValueScaled(in options.HeightChannel, out kernel[kX, kY]);
-                    }
+                    var pixel = row[pX - context.Bounds.X].ToScaledVector4();
+                    pixel.GetChannelValue(in options.HeightChannel, out kernel[kX, kY]);
                 }
             }
         }
 
-        private void CalculateNormal(in Vector2 derivative, out Vector3 normal)
+        private static void ApplyHighPass(ref float value, in float level)
         {
-            normal.X = derivative.X;
-            normal.Y = derivative.Y;
-            normal.Z = 1f / options.Strength;
-            MathEx.Normalize(ref normal);
+            if (value < level) value = level;
         }
 
-        private void GetSobelDerivative(ref float[,] kernel, out Vector2 derivative)
+        private static void ApplyLowPass(ref float value, in float level)
+        {
+            if (value > level) value = level;
+        }
+
+        public class Options
+        {
+            public Image<THeight> Source;
+            public ColorChannel HeightChannel;
+            public NormalMapMethods Method;
+            public float Strength = 1f;
+            public bool WrapX = true;
+            public bool WrapY = true;
+        }
+    }
+
+    internal static class SobelHelper
+    {
+        public static void BuildOperator(out float[,] kernel, in byte size)
+        {
+            if (size < 1) throw new ArgumentOutOfRangeException(nameof(size));
+            
+            kernel = new float[size, size];
+            var c = (size - 1) / 2;
+
+            byte kX, kY;
+            float i, j, f;
+            for (kY = 0; kY < size; kY++) {
+                for (kX = 0; kX < size; kX++) {
+                    if (kX == c && kY == c) continue;
+
+                    i = MathF.Abs(kX - c);
+                    j = MathF.Abs(kY - c);
+                    f = i > j ? i : j;
+                    kernel[kX, kY] = f / (i * i + j * j);
+                }
+            }
+        }
+
+        public static void ApplyOperator(ref float[,] kernel, in byte kernelSize, in float[,] @operator)
+        {
+            var c = (kernelSize - 1) / 2;
+
+            byte kX, kY;
+            for (kY = 0; kY < kernelSize; kY++) {
+                for (kX = 0; kX < kernelSize; kX++) {
+                    if (kX == c && kY == c) continue;
+
+                    kernel[kX, kY] *= @operator[kX, kY];
+                }
+            }
+        }
+
+        public static void GetDerivative(ref float[,] kernel, in byte kernelSize, out Vector2 derivative)
         {
             byte i;
             float value;
@@ -154,56 +189,6 @@ namespace PixelGraph.Common.ImageProcessors
             }
         }
 
-        private static void BuildSobelOperator(out float[,] kernel, in byte size)
-        {
-            if (size < 1) throw new ArgumentOutOfRangeException(nameof(size));
-            
-            kernel = new float[size, size];
-            var c = (size - 1) / 2;
-
-            byte kX, kY;
-            float i, j, f;
-            for (kY = 0; kY < size; kY++) {
-                for (kX = 0; kX < size; kX++) {
-                    if (kX == c && kY == c) continue;
-
-                    i = MathF.Abs(kX - c);
-                    j = MathF.Abs(kY - c);
-                    f = i > j ? i : j;
-                    kernel[kX, kY] = f / (i * i + j * j);
-                }
-            }
-        }
-
-        private void ApplyOperator(ref float[,] kernel, in float[,] @operator)
-        {
-            var c = (kernelSize - 1) / 2;
-
-            byte kX, kY;
-            for (kY = 0; kY < kernelSize; kY++) {
-                for (kX = 0; kX < kernelSize; kX++) {
-                    if (kX == c && kY == c) continue;
-
-                    kernel[kX, kY] *= @operator[kX, kY];
-                }
-            }
-        }
-
-        //private static void ApplyHighPass(ref float[,] kernel, in byte size)
-        //{
-        //    if (kernel == null) throw new ArgumentNullException(nameof(kernel));
-        //    if (size < 1) throw new ArgumentOutOfRangeException(nameof(size));
-
-        //    var c = (size - 1) / 2;
-
-        //    for (byte kY = 0; kY < size; kY++) {
-        //        for (byte kX = 0; kX < size; kX++) {
-        //            if (kX == c && kY == c) continue;
-        //            ApplyHighPass(ref kernel[kX, kY], in kernel[c, c]);
-        //        }
-        //    }
-        //}
-
         private static void GetRowSum(in float[,] kernel, in byte size, in byte row, out float value)
         {
             value = 0f;
@@ -218,24 +203,12 @@ namespace PixelGraph.Common.ImageProcessors
                 value += kernel[col, i];
         }
 
-        private static void ApplyHighPass(ref float value, in float level)
+        public static void CalculateNormal(in Vector2 derivative, in float strength, out Vector3 normal)
         {
-            if (value < level) value = level;
-        }
-
-        private static void ApplyLowPass(ref float value, in float level)
-        {
-            if (value > level) value = level;
-        }
-
-        public class Options
-        {
-            public Image<THeight> Source;
-            public ColorChannel HeightChannel;
-            public NormalMapMethods Method;
-            public float Strength = 1f;
-            public bool WrapX = true;
-            public bool WrapY = true;
+            normal.X = derivative.X;
+            normal.Y = derivative.Y;
+            normal.Z = 1f / strength;
+            MathEx.Normalize(ref normal);
         }
     }
 }

@@ -5,9 +5,10 @@
 #include "lib/parallax.hlsl"
 #include "lib/oldPbr_material.hlsl"
 #include "lib/pbr_filament.hlsl"
+#include "lib/normals.hlsl"
 #include "lib/tonemap.hlsl"
 
-#define MIN_ROUGH 0.002
+#define MIN_ROUGH 0.004f
 
 #pragma pack_matrix(row_major)
 
@@ -26,8 +27,12 @@ float4 main(const ps_input input) : SV_TARGET
 
     const float SNoV = saturate(dot(normal, view));
 	const float2 tex = get_parallax_texcoord(input.tex, input.vTS, shadow_tex, tex_depth);
+
 	float3 src_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
-	src_normal = mul(normalize(src_normal * 2.0f - 1.0f), mTBN);
+    //src_normal = normalize(src_normal * 2.0f - 1.0f);
+    src_normal = decodeNormal(src_normal);
+	src_normal = mul(src_normal, mTBN);
+
 	const pbr_material mat = get_pbr_material(tex);
 	
     if (BlendMode == BLEND_CUTOUT)
@@ -37,17 +42,19 @@ float4 main(const ps_input input) : SV_TARGET
 
     //-- Slope Normals --
     float3 tex_normal = src_normal;
+    bool isSlope = false;
+
     if (EnableSlopeNormals && !EnableLinearSampling) {
 		if (tex_depth - shadow_tex.z > 0.002f) {
 			const float3 slope = apply_slope_normal(tex, input.vTS, shadow_tex.z);
 			tex_normal = mul(slope, mTBN);
+            isSlope = true;
         }
     }
 
 	const float reflectance = 0.5f; // 4%
-	//const float metal = mat.metal;
-    const float roughP = clamp(1.0 - mat.smooth, MIN_ROUGH, 1.0f);
-    const float roughL = roughP * roughP;
+	const float roughP = max(1.0 - mat.smooth, MIN_ROUGH);
+	const float roughL = roughP * roughP;
 
 	//const float roughP = max(mat.rough, MIN_ROUGH);
 	//const float roughL = roughP * roughP;
@@ -128,25 +135,53 @@ float4 main(const ps_input input) : SV_TARGET
 
         // Diffuse & specular factors
         light_diffuse = Diffuse_Burley(NoL, NoV, LoH, roughL) * c_diff;
-		light_specular = Specular_BRDF(roughL, c_spec, NoV, NoL, LoH, NoH, tex_normal, H);
+		light_specular = Specular_BRDF(roughL, c_spec, LoH, NoH, tex_normal, H);
 
         const float3 light_factor = NoL * light_color * light_att;
 		acc_light += light_factor * (light_diffuse + light_specular);
         spec_strength += luminance(light_factor * light_specular);
     }
 
+	const float3 ref = reflect(-view, tex_normal);
+
 	float3 ibl_ambient, ibl_specular;
 	IBL(tex_normal, view, c_diff, c_spec, 1.0f, roughP, ibl_ambient, ibl_specular);
 
-    spec_strength += luminance(ibl_specular);
+    // Fix for reflected IBL passing through object
+    if (isSlope) ibl_specular *= saturate(dot(ref, normal) * 4.f + 1.f);
+
+    spec_strength += luminance(ibl_specular) * 3.f;
 
 	const float3 emissive = mat.emissive * mat.diffuse * PI;
 	
     float3 final_color = ibl_ambient + acc_light + ibl_specular + emissive;
 
 	float alpha = mat.opacity + spec_strength;
-    if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
+    //if (BlendMode != BLEND_TRANSPARENT) alpha = 1.0f;
 
     final_color = apply_tonemap(final_color);
-    return float4(final_color, alpha);
+
+	if (BlendMode == BLEND_TRANSPARENT) {
+        const float ior = f0_to_ior(clamp(0.04f, 0.0f, 0.9f));
+        const float eta = IOR_N_AIR / ior;
+        float3 refractDir = refract(-view, tex_normal, eta);
+
+        if (lengthSq(refractDir) >= EPSILON) {
+	        const float exit_eta = ior / IOR_N_AIR;
+	        refractDir = refract(refractDir, normal, exit_eta);
+        }
+
+        if (lengthSq(refractDir) >= EPSILON) {
+			const float2 refractTex = getErpCoord(refractDir);
+			float3 blendColor = tex_equirectangular.Sample(sampler_surface, refractTex);
+			blendColor = pow(abs(blendColor), 1.f + 2.5f * ErpExposure);
+			blendColor *= 16.f;
+
+			blendColor = apply_tonemap(blendColor);
+            const float3 srcMul = (1.0 - alpha) + final_color * alpha;
+	        final_color = final_color*alpha + blendColor*srcMul*(1.f - alpha);
+        }
+	}
+
+    return float4(final_color, 1.f);
 }

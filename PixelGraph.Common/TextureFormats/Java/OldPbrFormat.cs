@@ -1,5 +1,4 @@
-﻿using PixelGraph.Common.Projects;
-using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.TextureFormats.Java
@@ -15,50 +14,26 @@ namespace PixelGraph.Common.TextureFormats.Java
                 Opacity = new ResourcePackOpacityChannelProperties {
                     Texture = TextureTags.Color,
                     Color = ColorChannel.Alpha,
-                    MinValue = 0,
-                    MaxValue = 255,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
-                    DefaultValue = 255,
+                    //Power = 2.2m,
+                    DefaultValue = 1m,
                 },
 
                 ColorRed = new ResourcePackColorRedChannelProperties {
                     Texture = TextureTags.Color,
                     Color = ColorChannel.Red,
-                    MinValue = 0,
-                    MaxValue = 255,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
+                    //Power = 2.2m,
                 },
 
                 ColorGreen = new ResourcePackColorGreenChannelProperties {
                     Texture = TextureTags.Color,
                     Color = ColorChannel.Green,
-                    MinValue = 0,
-                    MaxValue = 255,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
+                    //Power = 2.2m,
                 },
 
                 ColorBlue = new ResourcePackColorBlueChannelProperties {
                     Texture = TextureTags.Color,
                     Color = ColorChannel.Blue,
-                    MinValue = 0,
-                    MaxValue = 255,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
+                    //Power = 2.2m,
                 },
 
                 NormalX = new ResourcePackNormalXChannelProperties {
@@ -66,11 +41,6 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Color = ColorChannel.Red,
                     MinValue = -1m,
                     MaxValue = 1m,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
                 },
 
                 NormalY = new ResourcePackNormalYChannelProperties {
@@ -78,71 +48,34 @@ namespace PixelGraph.Common.TextureFormats.Java
                     Color = ColorChannel.Green,
                     MinValue = -1m,
                     MaxValue = 1m,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
                 },
 
                 NormalZ = new ResourcePackNormalZChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Blue,
-                    MinValue = -1m,
+                    MinValue = 0m,
                     MaxValue = 1m,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
                 },
 
                 Height = new ResourcePackHeightChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Alpha,
-                    MinValue = 0,
-                    MaxValue = 1,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
                     Invert = true,
                 },
 
                 Smooth = new ResourcePackSmoothChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Red,
-                    MinValue = 0,
-                    MaxValue = 1,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
                 },
 
                 Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Green,
-                    MinValue = 0m,
-                    MaxValue = 1m,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
                 },
 
                 Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Specular,
                     Color = ColorChannel.Blue,
-                    MinValue = 0,
-                    MaxValue = 1,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
                 },
             };
         }

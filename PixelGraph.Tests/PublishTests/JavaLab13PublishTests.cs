@@ -81,12 +81,13 @@ namespace PixelGraph.Tests.PublishTests
             PixelAssert.BlueEquals(blue, image);
         }
 
-        [InlineData(127, 127, 255)]
-        [InlineData(127,   0, 127)]
-        [InlineData(127, 255, 127)]
-        [InlineData(  0, 127, 127)]
-        [InlineData(255, 127, 127)]
-        [Theory] public async Task NormalTextureTest(byte red, byte green, byte blue)
+        [InlineData(new byte[]{127, 127, 255}, new byte[]{127, 127})]
+        [InlineData(new byte[]{127,   0, 127}, new byte[]{127,   0})]
+        //[InlineData(127,   0, 127)]
+        //[InlineData(127, 255, 127)]
+        //[InlineData(  0, 127, 127)]
+        //[InlineData(255, 127, 127)]
+        [Theory] public async Task NormalTextureTest(byte[] normalIn, byte[] normalOut)
         {
             await using var graph = Graph();
 
@@ -97,13 +98,13 @@ namespace PixelGraph.Tests.PublishTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/normal.png", red, green, blue);
+            await graph.CreateImageAsync("assets/test/normal.png", normalIn[0], normalIn[1], normalIn[2]);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_n.png");
-            PixelAssert.RedEquals(red, image);
-            PixelAssert.GreenEquals(green, image);
-            PixelAssert.BlueEquals(255, image);
+            PixelAssert.RedEquals(normalOut[0], image);
+            PixelAssert.GreenEquals(normalOut[1], image);
+            //PixelAssert.BlueEquals(255, image);
         }
 
         [InlineData(  0)]

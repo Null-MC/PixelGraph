@@ -6,6 +6,7 @@
 #include "lib/parallax.hlsl"
 #include "lib/labPbr_material.hlsl"
 #include "lib/pbr_jessie.hlsl"
+#include "lib/normals.hlsl"
 #include "lib/tonemap.hlsl"
 
 #pragma pack_matrix(row_major)
@@ -173,9 +174,11 @@ float4 main(const ps_input input) : SV_TARGET
 
     const float3x3 mTBN = float3x3(tangent, bitangent, in_normal);
 	float3 normal = tex_normal_height.Sample(sampler_height, tex).xyz;
-	normal = mul(normalize(normal * 2.0f - 1.0f), mTBN);
-	
-	float3 lightDir = SunDirection;
+    //normal = normalize(normal * 2.0f - 1.0f);
+    normal = decodeNormal(normal);
+	normal = mul(normal, mTBN);
+
+	const float3 lightDir = SunDirection;
 
 	const float nDotV = dot(normal, view);
 	const float nDotL = saturate(dot(normal, lightDir));
@@ -188,9 +191,9 @@ float4 main(const ps_input input) : SV_TARGET
 
 	//float attenuation = 1.0 / pow(length(Lights[0].vLightPos.xyz), 2.0f);
 
-	float3 lightColor = float3(2.0f, 2.0f, 2.0f);
+	const float3 lightColor = 2.0f;
 
-	float3 BRDF = specularBRDF(nDotL, nDotV, nDotH, vDotH, mat.f0_hcm, alpha);
+	const float3 BRDF = specularBRDF(nDotL, nDotV, nDotH, vDotH, mat.f0_hcm, alpha);
 
 	float3 lit  = lightColor * hammonDiffuse(mat.albedo, mat.f0_hcm, nDotV, nDotL, nDotH, lDotV, alpha);
 		   lit += pi * diffuseIBL(mat.albedo, normal, view, mat.f0_hcm, alpha);
@@ -200,9 +203,10 @@ float4 main(const ps_input input) : SV_TARGET
     //if (bRenderShadowMap)
     //    lit *= shadow_strength(input.sp);
 
-	lit = tonemap_HejlBurgess(lit);
+	//lit = tonemap_HejlBurgess(lit);
 	//lit = tonemap_Uncharted2(lit);
 	//lit = linear_to_srgb(lit);
+	lit = apply_tonemap(lit);
 	
     return float4(lit, mat.opacity);
 }

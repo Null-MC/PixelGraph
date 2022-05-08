@@ -5,6 +5,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.Linq;
 using System.Numerics;
+using PixelGraph.Common.Samplers;
 
 namespace PixelGraph.Common.ImageProcessors
 {
@@ -25,6 +26,33 @@ namespace PixelGraph.Common.ImageProcessors
                 }
             });
         }
+
+        //public static void SampleRegion<TPixelSrc, TPixelDest>(Image<TPixelSrc> srcImage, Rectangle srcBounds, Image<TPixelDest> destImage, Rectangle destBounds, ISampler<TPixelSrc> sampler)
+        //    where TPixelSrc : unmanaged, IPixel<TPixelSrc>
+        //    where TPixelDest : unmanaged, IPixel<TPixelDest>
+        //{
+        //    srcImage.ProcessPixelRows(destImage, (src, dest) => {
+        //        for (var y = 0; y < destBounds.Height; y++) {
+        //            var pY = 0d;
+        //            var rowSampler = sampler.ForRowType(pY);
+
+        //            for (var x = 0; x < destBounds.Width; x++) {
+        //                var pX = 0d;
+        //                rowSampler.SampleScaled(in pX, in pY, );
+        //            }
+
+
+
+        //            var srcRow = src.GetRowSpan(srcY + y);
+        //            var destRow = dest.GetRowSpan(destBounds.Y + y);
+
+        //            var srcSlice = srcRow.Slice(srcX, destBounds.Width);
+        //            var destSlice = destRow.Slice(destBounds.X, destBounds.Width);
+                    
+        //            srcSlice.CopyTo(destSlice);
+        //        }
+        //    });
+        //}
 
         public static float GetMaxValue(Image srcImage, ColorChannel color)
         {

@@ -171,7 +171,7 @@ namespace PixelGraph.UI.ViewModels
             tokenSource?.Cancel();
         }
 
-        private async Task<IPublishSummary> PublishInternalAsync(ProjectContext projectContext, CancellationToken token)
+        private async Task<IPublishSummary> PublishInternalAsync(IProjectContext projectContext, CancellationToken token)
         {
             var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
 

@@ -18,10 +18,10 @@ namespace PixelGraph.Common.ImageProcessors
 
         public void Apply(Image image)
         {
-            image.Mutate(c => c.ProcessPixelRowsAsVector4(ProcessPixel, Bounds));
+            image.Mutate(c => c.ProcessPixelRowsAsVector4(ProcessRow, Bounds));
         }
 
-        private void ProcessPixel(Span<Vector4> row, Point pos)
+        private void ProcessRow(Span<Vector4> row, Point pos)
         {
             var count = Colors.Length;
 

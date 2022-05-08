@@ -6,9 +6,10 @@
 #include "lib/labPbr_material.hlsl"
 #include "lib/pbr_filament2.hlsl"
 #include "lib/pbr_hcm.hlsl"
+#include "lib/normals.hlsl"
 #include "lib/tonemap.hlsl"
 
-#define MIN_ROUGH 0.002f
+#define MIN_ROUGH 0.004f
 #define WET_DARKEN 0.86f
 #define WATER_DEPTH_SCALE 20.0f
 #define WATER_ABS_SCALE 80.0f
@@ -21,6 +22,9 @@ static const float3 absorption_factor = float3(0.0035f, 0.0004f, 0.0f);
 
 float4 main(const ps_input input) : SV_TARGET
 {
+    //float2 col = tex_dielectric_brdf_lut.SampleLevel(sampler_brdf_lut, input.tex, 0);
+    //return float4(col, 0.f, 1.f);
+
 	const float3 normal = normalize(input.nor);
     const float3 tangent = normalize(input.tan);
     const float3 bitangent = normalize(input.bin);
@@ -81,8 +85,10 @@ float4 main(const ps_input input) : SV_TARGET
 
     const float wet_depth = saturate((water_levelMax - shadow_tex.z) * WATER_DEPTH_SCALE);
 
-    float roughP = 1.0 - mat.smooth;
-    float roughL = max(pow2(roughP), MIN_ROUGH);
+	const float roughP = max(1.0 - mat.smooth, MIN_ROUGH);
+	const float roughL = roughP * roughP;
+
+    //return float4(roughP, roughP, roughP, 1.f);
     
     //const float porosityL = srgb_to_linear(mat.porosity);
 	
@@ -92,7 +98,9 @@ float4 main(const ps_input input) : SV_TARGET
     float3 diffuse = mat.albedo * tint * (1.0f - metal);
 
 	float3 src_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
-	src_normal = mul(normalize(src_normal * 2.0f - 1.0f), matTBN);
+    //src_normal = normalize(src_normal * 2.0f - 1.0f);
+    src_normal = decodeNormal(src_normal);
+	src_normal = mul(src_normal, matTBN);
 
 	//-- Wetness --
     float surface_water = 0.0f;
@@ -108,7 +116,9 @@ float4 main(const ps_input input) : SV_TARGET
         float water_lod = surface_water * lodLevels * WATER_BLUR * surface_NoV;
 
 		wet_normal = tex_normal_height.SampleBias(sampler_height, tex, water_lod).xyz;
-		wet_normal = mul(normalize(wet_normal * 2.0f - 1.0f), matTBN);
+	    //wet_normal = normalize(wet_normal * 2.0f - 1.0f);
+	    wet_normal = decodeNormal(wet_normal);
+		wet_normal = mul(wet_normal, matTBN);
     }
 
     //-- Slope Normals --
@@ -287,13 +297,13 @@ float4 main(const ps_input input) : SV_TARGET
         }
     }
 
-    const float3 ibl_f90 = 1.f;
+    //const float3 ibl_f90 = 1.f;
 	const float3 r = reflect(-view, wet_normal);
     const float3 ibl_f0 = ior_to_f0_complex(ior_in, ior_n, ior_k);
 	const float3 ibl_F = F_schlick_roughness(ibl_f0, NoV, roughL);
-	const float3 ibl_ambient = IBL_ambient(ibl_F, tex_normal) * diffuse * mat.occlusion * (1.0f - mat.sss);
 
-	float3 ibl_specular = IBL_specular(ibl_F, ibl_f90, NoV, r, mat.occlusion, roughP) * metal_albedo;
+	const float3 ibl_ambient = IBL_ambient(ibl_F, tex_normal) * diffuse * mat.occlusion * (1.0f - mat.sss);
+	float3 ibl_specular = IBL_specular(ibl_F, NoV, r, mat.occlusion, roughP) * metal_albedo;
 	float3 ibl_sss = SSS_IBL(view, mat.sss);
 
     // Fix for reflected IBL passing through object
@@ -314,7 +324,7 @@ float4 main(const ps_input input) : SV_TARGET
 
         ibl_specular *= 1.0f + water * (T12 * T21 * absorption - 1.0f);
 
-		ibl_specular += IBL_specular(ibl_F_water, ibl_f90, NoV_wet, r, mat.occlusion, wet_roughP) * water;
+		ibl_specular += IBL_specular(ibl_F_water, NoV_wet, r, mat.occlusion, wet_roughP) * water;
     }
 
     spec_strength += luminance(ibl_specular) * 3.f;
@@ -353,7 +363,8 @@ float4 main(const ps_input input) : SV_TARGET
 			blendColor *= 16.f;
 
 			blendColor = apply_tonemap(blendColor);
-	        final_color = final_color*alpha + blendColor*lerp(1.f, final_color, alpha)*(1.f - alpha);
+            const float3 srcMul = (1.0 - alpha) + final_color * alpha;
+	        final_color = final_color*alpha + blendColor*srcMul*(1.f - alpha);
         }
 	}
 

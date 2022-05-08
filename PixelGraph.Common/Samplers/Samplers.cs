@@ -6,5 +6,6 @@
         public const string Bilinear = "bilinear";
         public const string Bicubic = "bicubic";
         public const string Average = "average";
+        public const string WeightedAverage = "weighted-average";
     }
 }

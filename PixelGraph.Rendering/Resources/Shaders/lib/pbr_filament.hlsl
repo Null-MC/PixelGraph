@@ -1,6 +1,4 @@
-//#include "common_funcs.hlsl"
-
-#define MEDIUMP_FLT_MAX    65504.0
+#define MEDIUMP_FLT_MAX 65504.0
 #define saturateMediump(x) min(x, MEDIUMP_FLT_MAX)
 
 #pragma pack_matrix(row_major)
@@ -47,13 +45,13 @@ float G_Shlick_Smith_Hable(const float alpha, const float LdotH)
     return rcp(lerp(LdotH * LdotH, 1.0, alpha * alpha * 0.25f));
 }
 
-float3 Specular_BRDF(const in float alpha, const in float3 f0, in float NdotV, in float NdotL, const in float LdotH, const in float NdotH, const in float3 N, const in float3 H)
+float3 Specular_BRDF(const in float alpha, const in float3 f0, const in float LdotH, const in float NdotH, const in float3 N, const in float3 H)
 {
     // Specular D (microfacet normal distribution) component
-    const float specular_d = Filament_D_GGX(alpha, NdotH, N, H);//Specular_D_GGX(alpha, NdotH);
+    const float specular_d = Filament_D_GGX(alpha, NdotH, N, H);
 
     // Specular Fresnel
-    const float3 specular_f = Filament_F_Schlick(f0, LdotH);//Fresnel_Shlick(specularColor, 1, LdotH);
+    const float3 specular_f = Filament_F_Schlick(f0, LdotH);
 
     // Specular G (visibility) component
     const float specular_g = G_Shlick_Smith_Hable(alpha, LdotH);
@@ -76,36 +74,36 @@ float get_specular_occlusion(float NoV, float ao, float rough) {
     return saturate(x1 - 1.0 + ao);
 }
 
-float3 diffuse_IBL(const in float3 normal, const in float3 kS)
+float3 diffuse_IBL(const in float3 normal)
 {
-	const float3 irradiance = tex_irradiance.SampleLevel(sampler_irradiance, normal, 0);
-	return (1.0 - kS) * irradiance;
+	if (bHasCubeMap) {
+		return tex_irradiance.SampleLevel(sampler_irradiance, normal, 0);
+	}
+	else {
+		return srgb_to_linear(vLightAmbient.rgb);
+	}
 }
 
-float3 specular_IBL(const in float3 ref, const in float3 kS, const in float roughP)
+float3 specular_IBL(const in float3 ref, const in float rough)
 {
-	const float mip = roughP * NumEnvironmentMapMipLevels;
-    return tex_environment.SampleLevel(sampler_environment, ref, mip) * kS;
-}
-
-void IBL(float3 n, float3 v, float3 diffuse, float3 f0, float occlusion, float roughP, out float3 ambient, out float3 specular)
-{
-    float3 indirect_diffuse = srgb_to_linear(vLightAmbient.rgb);
-    float3 indirect_specular = indirect_diffuse;
-    float3 specular_occlusion = 1.0;
-		
-	const float NoV = max(dot(n, v), 0.0);
-	const float3 kS = fresnelSchlickRoughness(f0, NoV, roughP);
-    const float3 specular_color = lerp(f0, 1.0, kS); // WARN: wrong af
-	
     if (bHasCubeMap) {
-		const float3 ref = reflect(-v, n);
-    	
-    	indirect_diffuse = diffuse_IBL(n, kS);
-		indirect_specular = specular_IBL(ref, kS, roughP);
-		specular_occlusion = get_specular_occlusion(NoV, occlusion, roughP);
+		const float mip = rough * NumEnvironmentMapMipLevels;
+	    return tex_environment.SampleLevel(sampler_environment, ref, mip);
     }
+	else {
+		return srgb_to_linear(vLightAmbient.rgb);
+	}
+}
+
+void IBL(float3 n, float3 v, float3 diffuse, float3 f0, float occlusion, float rough, out float3 ambient, out float3 specular)
+{
+	const float a = rough * rough;
+	const float NoV = max(dot(n, v), 0.0);
+	const float3 kS = fresnelSchlickRoughness(f0, NoV, a);
 	
-    ambient = diffuse * indirect_diffuse * occlusion;
-	specular = indirect_specular * specular_color * specular_occlusion;
+	const float3 ref = reflect(-v, n);
+	const float specularOcclusion = get_specular_occlusion(NoV, occlusion, a);
+
+    ambient = diffuse_IBL(n) * (1.0 - kS) * diffuse * occlusion;
+	specular = specular_IBL(ref, rough) * kS * specularOcclusion;
 }

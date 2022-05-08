@@ -3,6 +3,7 @@
 #include "lib/common_structs.hlsl"
 #include "lib/common_funcs.hlsl"
 #include "lib/parallax.hlsl"
+#include "lib/normals.hlsl"
 #include "lib/labPbr_material.hlsl"
 
 #pragma pack_matrix(row_major)
@@ -26,8 +27,10 @@ float4 main(const ps_input input) : SV_TARGET
 		clip(mat.opacity - EPSILON);
 
 	const float3x3 matTBN = float3x3(tangent, bitangent, normal);
-	float3 tex_normal = tex_normal_height.Sample(sampler_height, tex).xyz * 2.0f - 1.0f;
-	tex_normal = mul(normalize(tex_normal), matTBN);
+	float3 tex_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
+    //tex_normal = normalize(tex_normal * 2.0f - 1.0f);
+    tex_normal = decodeNormal(tex_normal);
+	tex_normal = mul(tex_normal, matTBN);
 
     if (EnableSlopeNormals && !EnableLinearSampling && tex_depth - shadow_tex.z > 0.002f) {
 	    const float3 slope = apply_slope_normal(tex, input.vTS, shadow_tex.z);

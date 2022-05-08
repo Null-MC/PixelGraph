@@ -56,7 +56,8 @@ namespace PixelGraph.UI.Internal.Tabs
             await Mesh.BuildAsync(renderContext, mergedToken);
             //Mesh.UpdateModelParts();
 
-            //IsMaterialBuilderValid = true;
+            IsMaterialBuilderValid = true;
+            IsMaterialValid = false;
         }
 
         public void UpdateMaterials(IRenderContext renderContext)
@@ -69,7 +70,7 @@ namespace PixelGraph.UI.Internal.Tabs
         public void UpdateModelParts()
         {
             Mesh.UpdateModelParts();
-            IsMaterialBuilderValid = true;
+            IsMaterialValid = true;
         }
 #endif
 

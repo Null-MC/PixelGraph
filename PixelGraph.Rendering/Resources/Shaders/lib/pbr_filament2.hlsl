@@ -141,29 +141,25 @@ float3 IBL_ambient(const in float3 F, const in float3 reflect)
 		? tex_irradiance.SampleLevel(sampler_irradiance, reflect, 0)
 		: srgb_to_linear(vLightAmbient.rgb);
 
-    return irradiance * (1.0f - F);// * InvPI;
+    return irradiance * (1.0f - F);
 }
 
-float3 IBL_specular(const in float3 f0, const in float3 f90, const in float NoV, const in float3 r, const in float occlusion, const in float roughP)
+float3 IBL_specular(const in float3 f0, const in float NoV, const in float3 r, const in float occlusion, const in float rough)
 {
-	//const float roughL = pow2(roughP);
-	const float3 specular_occlusion = IBL_SpecularOcclusion(NoV, occlusion, roughP);
+	const float3 specular_occlusion = IBL_SpecularOcclusion(NoV, occlusion, rough);
 
     float3 indirect_specular;
     if (bHasCubeMap) {
-		const float mip = roughP * NumEnvironmentMapMipLevels;
+		const float mip = rough * NumEnvironmentMapMipLevels;
 	    indirect_specular = tex_environment.SampleLevel(sampler_environment, r, mip);
-		//if (!EnableAtmosphere) indirect_specular = srgb_to_linear(indirect_specular);
-		//return indirect_specular;
     }
 	else {
 		indirect_specular = srgb_to_linear(vLightAmbient.rgb);
 	}
 	
-	const float2 lut_tex = float2(NoV, roughP);
+	const float2 lut_tex = float2(NoV, rough);
 	const float2 DFG = tex_dielectric_brdf_lut.SampleLevel(sampler_brdf_lut, lut_tex, 0);
-	//return indirect_specular * (f0 * DFG.x + f90 * DFG.y) * specular_occlusion;
-	return indirect_specular * lerp(DFG.xxx, DFG.yyy, f0) * specular_occlusion;
+	return indirect_specular * specular_occlusion * (f0 * DFG.x + DFG.y);
 }
 
 

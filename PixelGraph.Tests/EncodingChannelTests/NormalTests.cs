@@ -47,11 +47,11 @@ namespace PixelGraph.Tests.EncodingChannelTests
             };
         }
 
-        [InlineData(127, 127, 255)]
-        [InlineData(  0, 127, 127)]
-        [InlineData(255, 127, 127)]
-        [InlineData(127,   0, 127)]
-        [InlineData(127, 255, 127)]
+        [InlineData(128, 128, 255)]
+        [InlineData(  0, 128, 128)]
+        [InlineData(255, 128, 128)]
+        [InlineData(128,   0, 128)]
+        [InlineData(128, 255, 128)]
         [Theory] public async Task Passthrough(byte valueX, byte valueY, byte valueZ)
         {
             await using var graph = Graph();

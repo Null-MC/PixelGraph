@@ -55,6 +55,7 @@ namespace PixelGraph.Common.Textures
                 FrameCount = 1,
                 Width = info.Width,
                 Height = info.Height,
+                Gamma = GetImageGamma(info),
             };
 
             if (context.IsAnimated) {
@@ -70,6 +71,14 @@ namespace PixelGraph.Common.Textures
 
             return sourceMap[localFile] = source;
         }
+
+        private float GetImageGamma(IImageInfo info)
+        {
+            var pngMeta = info.Metadata.GetPngMetadata();
+            if (pngMeta is {Gamma: > float.Epsilon}) return pngMeta.Gamma;
+
+            return 1.0f;
+        }
     }
 
     public class TextureSource
@@ -78,5 +87,6 @@ namespace PixelGraph.Common.Textures
         public int FrameCount {get; set;}
         public int Width {get; set;}
         public int Height {get; set;}
+        public float Gamma {get; set;}
     }
 }

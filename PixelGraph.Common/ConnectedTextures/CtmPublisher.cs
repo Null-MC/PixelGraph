@@ -63,7 +63,7 @@ namespace PixelGraph.Common.ConnectedTextures
             }
 
             if (!properties.ContainsKey("tiles")) {
-                var minTile = context.Material?.CTM?.TileStartIndex ??
+                var minTile = context.Material.CTM?.TileStartIndex ??
                               context.Profile?.TileStartIndex ?? 1;
 
                 var hasPlaceholder = context.Material.CTM?.Placeholder ?? false;

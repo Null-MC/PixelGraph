@@ -14,6 +14,7 @@ namespace PixelGraph.Common.Textures
         public int InputChannelShift;
         public float InputChannelPower;
         public bool InputChannelInverted;
+        //public bool InputPerceptual;
         public float InputValueScale = 1f;
         public float InputValueShift;
         //public byte? InputValueDefault;
@@ -30,6 +31,7 @@ namespace PixelGraph.Common.Textures
         public int OutputChannelShift;
         public float OutputChannelPower;
         public bool OutputChannelInverted;
+        //public bool OutputPerceptual;
         public float OutputValueScale = 1f;
         public float OutputValueShift;
         public float? OutputValueDefault;
@@ -64,6 +66,7 @@ namespace PixelGraph.Common.Textures
             InputChannelShift = channel.Shift ?? 0;
             InputChannelPower = (float?)channel.Power ?? 1f;
             InputChannelInverted = channel.Invert ?? false;
+            //InputPerceptual = channel.Perceptual ?? false;
             InputEnableClipping = channel.EnableClipping ?? false;
 
             Sampler = channel.Sampler;
@@ -80,6 +83,7 @@ namespace PixelGraph.Common.Textures
             OutputChannelShift = channel.Shift ?? 0;
             OutputChannelPower = (float?)channel.Power ?? 1f;
             OutputChannelInverted = channel.Invert ?? false;
+            //OutputPerceptual = channel.Perceptual ?? false;
             //OutputApplyOcclusion = channel.ApplyOcclusion ?? false;
             OutputEnableClipping = channel.EnableClipping ?? false;
 

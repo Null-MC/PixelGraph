@@ -1,5 +1,4 @@
-﻿using PixelGraph.Common.Projects;
-using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 
 namespace PixelGraph.Common.TextureFormats
@@ -15,50 +14,26 @@ namespace PixelGraph.Common.TextureFormats
                 Opacity = new ResourcePackOpacityChannelProperties {
                     Texture = TextureTags.Color,
                     Color = ColorChannel.Alpha,
-                    MinValue = 0,
-                    MaxValue = 255,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
-                    DefaultValue = 255,
+                    //Power = 2.2m,
+                    DefaultValue = 1m,
                 },
 
                 ColorRed = new ResourcePackColorRedChannelProperties {
                     Texture = TextureTags.Color,
                     Color = ColorChannel.Red,
-                    MinValue = 0,
-                    MaxValue = 255,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
+                    //Power = 2.2m,
                 },
 
                 ColorGreen = new ResourcePackColorGreenChannelProperties {
                     Texture = TextureTags.Color,
                     Color = ColorChannel.Green,
-                    MinValue = 0,
-                    MaxValue = 255,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
+                    //Power = 2.2m,
                 },
 
                 ColorBlue = new ResourcePackColorBlueChannelProperties {
                     Texture = TextureTags.Color,
                     Color = ColorChannel.Blue,
-                    MinValue = 0,
-                    MaxValue = 255,
-                    RangeMin = 0,
-                    RangeMax = 255,
-                    Shift = 0,
-                    Power = 1m,
-                    Invert = false,
+                    //Power = 2.2m,
                 },
             };
         }

@@ -103,9 +103,9 @@ namespace PixelGraph.Rendering.LUTs
 
         public override void Render(RenderContext context, DeviceContextProxy deviceContext)
         {
-            if (!context.UpdateSceneGraphRequested && !context.UpdatePerFrameRenderableRequested) return;
+            //if (! && !context.UpdatePerFrameRenderableRequested) return;
 
-            if (isRenderValid) return;
+            if (isRenderValid && !context.UpdateSceneGraphRequested) return;
 
             if (CreateLutMapResources()) {
                 RaiseInvalidateRender();

@@ -15,6 +15,7 @@ using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,7 +44,7 @@ namespace PixelGraph.Common.Textures
         private readonly ITextureNormalGraph normalGraph;
         private readonly ITextureOcclusionGraph occlusionGraph;
         private readonly List<TextureChannelMapping> mappings;
-        private Rgba32 defaultValues;
+        private Vector4 defaultValues;
         private Dictionary<ColorChannel, int> defaultPriorityValues;
         private Size bufferSize;
         private bool isGrayscale;
@@ -74,13 +75,13 @@ namespace PixelGraph.Common.Textures
             this.occlusionGraph = occlusionGraph;
 
             mappings = new List<TextureChannelMapping>();
-            defaultValues = new Rgba32();
+            defaultValues = new Vector4();
         }
 
         public async Task MapAsync(bool createEmpty, CancellationToken token = default)
         {
             defaultPriorityValues = new Dictionary<ColorChannel, int>();
-            defaultValues.R = defaultValues.G = defaultValues.B = defaultValues.A = 0;
+            defaultValues.X = defaultValues.Y = defaultValues.Z = defaultValues.W = 0;
             mappings.Clear();
 
             HasMappedSources = false;
@@ -130,7 +131,7 @@ namespace PixelGraph.Common.Textures
             if (!createEmpty && mappings.Count == 0) return null;
 
             isGrayscale = mappings.All(x => x.OutputColor == ColorChannel.Red);
-            if (isGrayscale) defaultValues.B = defaultValues.G = defaultValues.R;
+            if (isGrayscale) defaultValues.Z = defaultValues.Y = defaultValues.X;
 
             var autoLevel = context.Material.Height?.AutoLevel
                 ?? context.Profile?.AutoLevelHeight
@@ -189,7 +190,7 @@ namespace PixelGraph.Common.Textures
             if (width == 0 || height == 0) return null;
 
             var pixel = new TPixel();
-            pixel.FromRgba32(defaultValues);
+            pixel.FromScaledVector4(defaultValues);
             var imageResult = new Image<TPixel>(Configuration.Default, width, height, pixel);
 
             var mappingsWithSources = mappings
@@ -377,6 +378,7 @@ namespace PixelGraph.Common.Textures
                         mapping.InputValueShift = (float)context.Material.GetChannelShift(EncodingChannel.Smooth);
                         mapping.OutputMinValue = (float?)outputChannel.MaxValue ?? 1f;
                         mapping.OutputMaxValue = (float?)outputChannel.MinValue ?? 0f;
+                        //mapping.Convert_SmoothToRough = true;
                         return true;
                     }
 
@@ -696,9 +698,9 @@ namespace PixelGraph.Common.Textures
             if (!pixelMap.TryMap(ref value, out var finalValue)) return;
 
             if (isGrayscale) {
-                defaultValues.R = finalValue;
-                defaultValues.G = finalValue;
-                defaultValues.B = finalValue;
+                defaultValues.X = finalValue;
+                defaultValues.Y = finalValue;
+                defaultValues.Z = finalValue;
 
                 if (mapping.InputValue.HasValue) {
                     defaultPriorityValues[ColorChannel.Red] = mapping.Priority;
@@ -714,23 +716,31 @@ namespace PixelGraph.Common.Textures
             }
         }
 
-        private async Task<Image<Rgba32>> GetSourceImageAsync(string filename, CancellationToken token)
+        private async Task<Image<TPixel>> GetSourceImageAsync<TPixel>(string filename, CancellationToken token)
+            where TPixel : unmanaged, IPixel<TPixel>
         {
             if (string.Equals(filename, "<missing>", StringComparison.InvariantCultureIgnoreCase))
-                return BuildMissingImage(2);
+                return BuildMissingImage<TPixel>(2);
 
             await using var sourceStream = reader.Open(filename);
-            var sourceImage = await Image.LoadAsync<Rgba32>(Configuration.Default, sourceStream, token);
+            var sourceImage = await Image.LoadAsync<TPixel>(Configuration.Default, sourceStream, token);
             return sourceImage;
         }
 
-        private Image<Rgba32> BuildMissingImage(int size)
+        private static Image<TPixel> BuildMissingImage<TPixel>(int size)
+            where TPixel : unmanaged, IPixel<TPixel>
         {
             // TODO: Use a loop to populate full bounds
 
-            return new Image<Rgba32>(Configuration.Default, size, size, new Rgba32(0, 0, 0, 255)) {
-                [1, 0] = new(248, 0, 248, 255),
-                [0, 1] = new(248, 0, 248, 255),
+            var defaultValue = new TPixel();
+            defaultValue.FromRgba32(new Rgba32(0, 0, 0, 255));
+
+            var pixel = new TPixel();
+            pixel.FromRgb24(new Rgb24(248, 0, 248));
+
+            return new Image<TPixel>(Configuration.Default, size, size, defaultValue) {
+                [1, 0] = pixel,
+                [0, 1] = pixel,
             };
         }
 
@@ -752,9 +762,9 @@ namespace PixelGraph.Common.Textures
                 if (info == null) return;
             }
 
-            using var sourceImage = await GetSourceImageAsync(sourceFilename, token);
+            using var sourceImage = await GetSourceImageAsync<TPixel>(sourceFilename, token);
 
-            var options = new OverlayProcessor<Rgba32>.Options {
+            var options = new OverlayProcessor<TPixel>.Options {
                 IsGrayscale = isGrayscale,
                 Samplers = mappingGroup
                     .Where(m => {
@@ -768,7 +778,7 @@ namespace PixelGraph.Common.Textures
                         sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
                         sampler.RangeY = (float)(sourceImage.Height / info.FrameCount) / bufferSize.Height;
 
-                        return new OverlayProcessor<Rgba32>.SamplerOptions {
+                        return new OverlayProcessor<TPixel>.SamplerOptions {
                             PixelMap = new PixelMapping(m),
                             InputColor = m.InputColor,
                             OutputColor = m.OutputColor,
@@ -779,7 +789,7 @@ namespace PixelGraph.Common.Textures
                     }).ToArray(),
             };
 
-            var processor = new OverlayProcessor<Rgba32>(options);
+            var processor = new OverlayProcessor<TPixel>(options);
             var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = info.FrameCount;
 

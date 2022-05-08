@@ -22,7 +22,6 @@ namespace PixelGraph.Common.ImageProcessors
         protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
         {
             double fx, fy;
-            byte occlusionPixel;
             float occlusionValue;
             var colorCount = options.MappingColors.Length;
 
@@ -33,7 +32,7 @@ namespace PixelGraph.Common.ImageProcessors
             for (var x = 0; x < context.Bounds.Width; x++) {
                 var albedoPixel = row[x].ToScaledVector4();
                 GetTexCoord(in context, context.Bounds.Left + x, out fx, out fy);
-                occlusionRowSampler.Sample(in fx, in fy, in options.OcclusionInputColor, out occlusionPixel);
+                occlusionRowSampler.SampleScaled(in fx, in fy, in options.OcclusionInputColor, out var occlusionPixel);
 
                 if (!options.OcclusionMapping.TryUnmap(in occlusionPixel, out occlusionValue))
                     occlusionValue = 0f;
@@ -41,7 +40,7 @@ namespace PixelGraph.Common.ImageProcessors
                 occlusionValue *= options.OcclusionMapping.OutputValueScale;
 
                 if (emissiveRowSampler != null) {
-                    emissiveRowSampler.Sample(in fx, in fy, in options.EmissiveInputColor, out var emissivePixel);
+                    emissiveRowSampler.SampleScaled(in fx, in fy, in options.EmissiveInputColor, out var emissivePixel);
 
                     if (options.EmissiveMapping.TryUnmap(in emissivePixel, out var emissiveValue))
                         occlusionValue = MathF.Max(occlusionValue - emissiveValue, 0f);

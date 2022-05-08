@@ -113,18 +113,26 @@ namespace PixelGraph.UI.Windows
 
         private async Task ImportPackAsync(string source, bool isArchive)
         {
-            using var window = new ImportPackWindow(provider) {
-                Owner = this,
-                Model = {
-                    //RootDirectory = Model.RootDirectory,
-                    //PackInput = Model.PackInput,
-                    ImportSource = source,
-                    IsArchive = isArchive,
-                },
-            };
+            try {
+                using var window = new ImportPackWindow(provider) {
+                    Owner = this,
+                    Model = {
+                        //RootDirectory = Model.RootDirectory,
+                        //PackInput = Model.PackInput,
+                        ImportSource = source,
+                        IsArchive = isArchive,
+                    },
+                };
 
-            if (window.ShowDialog() != null)
-                await Model.LoadRootDirectoryAsync(Dispatcher);
+                if (window.ShowDialog() != true) return;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in ImportPackWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+                return;
+            }
+
+            await Model.LoadRootDirectoryAsync(Dispatcher);
         }
 
         private string GetArchiveFilename(bool isBedrock)
@@ -213,9 +221,8 @@ namespace PixelGraph.UI.Windows
 
         private async Task<bool> ShowLicenseAgreementAsync()
         {
-            var window = new EndUserLicenseAgreementWindow(provider) {Owner = this};
-
             try {
+                var window = new EndUserLicenseAgreementWindow(provider) {Owner = this};
                 return window.ShowDialog() ?? false;
             }
             catch (Exception error) {
@@ -227,9 +234,8 @@ namespace PixelGraph.UI.Windows
 
         private async Task<bool> ShowTermsOfServiceAsync()
         {
-            var window = new TermsOfServiceWindow(provider) {Owner = this};
-
             try {
+                var window = new TermsOfServiceWindow(provider) {Owner = this};
                 return window.ShowDialog() ?? false;
             }
             catch (Exception error) {
@@ -468,30 +474,34 @@ namespace PixelGraph.UI.Windows
             await ShowImportArchiveAsync();
         }
 
-        private void OnInputEncodingClick(object sender, RoutedEventArgs e)
+        private async void OnEditProjectConfigClick(object sender, RoutedEventArgs e)
         {
-            var window = new ProjectConfigWindow(provider) {
-                Owner = this,
-            };
-
-            window.ShowDialog();
+            try {
+                var window = new ProjectConfigWindow(provider) {Owner = this};
+                window.ShowDialog();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in ProjectConfigWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+            }
         }
 
-        private async void OnProfilesClick(object sender, RoutedEventArgs e)
+        private async void OnEditPublishProfilesClick(object sender, RoutedEventArgs e)
         {
-            var window = new PackProfilesWindow(provider) {
-                Owner = this,
-            };
-
             try {
+                var window = new PackProfilesWindow(provider) {Owner = this};
                 if (window.ShowDialog() != true) return;
-
-                Model.UpdatePublishProfiles();
             }
             catch (Exception error) {
                 logger.LogError(error, "An unhandled exception occurred in PackProfilesWindow!");
                 await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+                return;
             }
+
+            Model.UpdatePublishProfiles();
+
+            Model.InvalidateAllTabs();
+            await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
         private void OnTreeViewError(object sender, UnhandledExceptionEventArgs e)
@@ -502,36 +512,36 @@ namespace PixelGraph.UI.Windows
 
         private async void OnLocationsClick(object sender, RoutedEventArgs e)
         {
-            var window = new PublishLocationsWindow(provider) {Owner = this};
-
             try {
+                var window = new PublishLocationsWindow(provider) {Owner = this};
                 if (window.ShowDialog() != true) return;
-
-                Model.UpdatePublishLocations();
             }
             catch (Exception error) {
                 logger.LogError(error, "An unhandled exception occurred in PublishLocationsWindow!");
                 await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+                return;
             }
+
+            Model.UpdatePublishLocations();
         }
 
-        private void OnSettingsClick(object sender, RoutedEventArgs e)
+        private async void OnSettingsClick(object sender, RoutedEventArgs e)
         {
-            var window = new SettingsWindow(provider) {Owner = this};
-
             try {
+                var window = new SettingsWindow(provider) {Owner = this};
                 if (window.ShowDialog() != true) return;
-
-                themeHelper.ApplyCurrent(this);
-
-#if !NORENDER
-                renderPreview.ViewModel.LoadAppSettings();
-#endif
             }
             catch (Exception error) {
                 logger.LogError(error, "An unhandled exception occurred in SettingsWindow!");
-                ShowError($"An unknown error has occurred! {error.UnfoldMessageString()}");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+                return;
             }
+
+            themeHelper.ApplyCurrent(this);
+
+#if !NORENDER
+            renderPreview.ViewModel.LoadAppSettings();
+#endif
         }
 
         private async void OnNewMaterialMenuClick(object sender, RoutedEventArgs e)
@@ -599,30 +609,36 @@ namespace PixelGraph.UI.Windows
                 await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private void OnHelpDocumentationClick(object sender, RoutedEventArgs e)
+        private async void OnHelpDocumentationClick(object sender, RoutedEventArgs e)
         {
             var info = new ProcessStartInfo {
                 FileName = @"https://github.com/null511/PixelGraph-Release/wiki",
                 UseShellExecute = true,
             };
 
-            using var process = Process.Start(info);
-            process?.WaitForInputIdle(3_000);
+            try {
+                using var process = Process.Start(info);
+                process?.WaitForInputIdle(3_000);
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to launch wiki link url!");
+                await this.ShowMessageAsync("Error!", $"Failed to launch wiki! {error.UnfoldMessageString()}");
+            }
         }
 
-        private void OnHelpAboutClick(object sender, RoutedEventArgs e)
+        private async void OnHelpAboutClick(object sender, RoutedEventArgs e)
         {
-            var window = new AboutWindow(provider) {Owner = this};
-
             try {
+                var window = new AboutWindow(provider) {Owner = this};
                 window.ShowDialog();
             }
             catch (Exception error) {
-                logger.LogError(error, "An unhandled exception occurred in AboutWindow!");
+                logger.LogError(error, "An unhandled exception occurred in SettingsWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
             }
         }
 
-        private void OnHelpViewLogsClick(object sender, RoutedEventArgs e)
+        private async void OnHelpViewLogsClick(object sender, RoutedEventArgs e)
         {
             var info = new ProcessStartInfo {
                 FileName = "explorer",
@@ -630,39 +646,51 @@ namespace PixelGraph.UI.Windows
                 UseShellExecute = true,
             };
 
-            using var process = Process.Start(info);
-            process?.WaitForInputIdle(3_000);
+            try {
+                using var process = Process.Start(info);
+                process?.WaitForInputIdle(3_000);
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to open logging directory!");
+                await this.ShowMessageAsync("Error!", $"Failed to open log folder! {error.UnfoldMessageString()}");
+            }
         }
 
-        private void OnPublishMenuItemClick(object sender, RoutedEventArgs e)
+        private async void OnPublishMenuItemClick(object sender, RoutedEventArgs e)
         {
             var projectContext = projectContextMgr.GetContext();
             if (projectContext.SelectedProfile == null) return;
 
-            using var window = new PublishOutputWindow(provider) {
-                Owner = this,
-                Model = {
-                    Clean = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
-                },
-            };
+            try {
+                using var window = new PublishOutputWindow(provider) {
+                    Owner = this,
+                    Model = {
+                        Clean = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
+                    },
+                };
 
-            if (Model.SelectedLocation != null && !Model.SelectedLocation.IsManualSelect) {
-                var name = projectContext.SelectedProfile.Name;
-                if (name == null) throw new ApplicationException("Unable to determine profile name!");
+                if (Model.SelectedLocation != null && !Model.SelectedLocation.IsManualSelect) {
+                    var name = projectContext.SelectedProfile.Name;
+                    if (name == null) throw new ApplicationException("Unable to determine profile name!");
 
-                window.Model.Destination = Path.Combine(Model.SelectedLocation.Path, name);
-                window.Model.Archive = Model.SelectedLocation.Archive;
+                    window.Model.Destination = Path.Combine(Model.SelectedLocation.Path, name);
+                    window.Model.Archive = Model.SelectedLocation.Archive;
+                }
+                else {
+                    var isBedrock = GameEdition.Is(projectContext.SelectedProfile.Edition, GameEdition.Bedrock);
+
+                    window.Model.Destination = GetArchiveFilename(isBedrock);
+                    window.Model.Archive = true;
+
+                    if (window.Model.Destination == null) return;
+                }
+
+                window.ShowDialog();
             }
-            else {
-                var isBedrock = GameEdition.Is(projectContext.SelectedProfile.Edition, GameEdition.Bedrock);
-
-                window.Model.Destination = GetArchiveFilename(isBedrock);
-                window.Model.Archive = true;
-
-                if (window.Model.Destination == null) return;
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in PublishOutputWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
             }
-
-            window.ShowDialog();
         }
 
         private async Task UpdateMaterialProperties(MaterialPropertyChangedEventArgs e)
@@ -1154,7 +1182,7 @@ namespace PixelGraph.UI.Windows
         {
             if (Model.SelectedTab == null) return;
 
-            Model.InvalidateTabLayer();
+            Model.InvalidateAllTabLayers();
             await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
@@ -1162,7 +1190,7 @@ namespace PixelGraph.UI.Windows
         {
             if (Model.SelectedTab == null) return;
 
-            Model.InvalidateTabLayer();
+            //Model.InvalidateTabLayer();
             await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 

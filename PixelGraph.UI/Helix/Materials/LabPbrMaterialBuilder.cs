@@ -7,12 +7,12 @@ using System;
 
 namespace PixelGraph.UI.Helix.Materials
 {
-    internal interface IPbrMaterialBuilder
-    {
-        //
-    }
+    //internal interface IPbrMaterialBuilder
+    //{
+    //    //
+    //}
 
-    internal class LabPbrMaterialBuilder : MaterialBuilderBase<IRenderLabPbrPreviewBuilder>, IPbrMaterialBuilder
+    internal class LabPbrMaterialBuilder : MaterialBuilderBase<IRenderLabPbrPreviewBuilder>//, IPbrMaterialBuilder
     {
         public LabPbrMaterialBuilder(IServiceProvider provider) : base(provider)
         {

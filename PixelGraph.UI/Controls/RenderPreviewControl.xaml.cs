@@ -128,6 +128,7 @@ namespace PixelGraph.UI.Controls
         {
             if (!Model.IsLoaded) return;
 
+            OnRefreshClick();
             await Task.Run(() => ViewModel.SaveRenderStateAsync());
         }
 

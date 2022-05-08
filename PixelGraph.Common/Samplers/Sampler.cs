@@ -26,6 +26,7 @@ namespace PixelGraph.Common.Samplers
             [Samplers.Bilinear] = () => new BilinearSampler<TPixel>(),
             [Samplers.Bicubic] = () => new BicubicSampler<TPixel>(),
             [Samplers.Average] = () => new AverageSampler<TPixel>(),
+            [Samplers.WeightedAverage] = () => new WeightedAverageSampler<TPixel>(),
         };
     }
 

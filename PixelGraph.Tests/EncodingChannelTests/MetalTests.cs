@@ -55,7 +55,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/metal.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/metal.png", value);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_metal.png");
@@ -110,7 +110,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 },
             };
 
-            await graph.CreateImageAsync("assets/test/metal.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/metal.png", value);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_metal.png");
@@ -146,7 +146,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/hcm.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/hcm.png", value);
             await graph.ProcessAsync();
             
             using var image = await graph.GetImageAsync("assets/test_metal.png");

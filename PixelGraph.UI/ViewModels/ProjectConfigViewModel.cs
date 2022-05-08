@@ -52,19 +52,6 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        //public ResourcePackInputProperties PackInput {
-        //    get => _packInput;
-        //    set {
-        //        if (_packInput == value) return;
-        //        _packInput = value;
-        //        OnPropertyChanged();
-
-        //        OnPropertyChanged(nameof(Format));
-        //        //UpdateChannels();
-        //        //UpdateDefaultValues();
-        //    }
-        //}
-
         public string Format {
             get => Project?.Input?.Format;
             set {
@@ -73,8 +60,6 @@ namespace PixelGraph.UI.ViewModels
                 if (Project.Input.Format == value) return;
                 Project.Input.Format = value;
                 OnPropertyChanged();
-
-                //UpdateDefaultValues();
             }
         }
 
@@ -83,35 +68,15 @@ namespace PixelGraph.UI.ViewModels
         {
             projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
             Project = (ProjectData)projectContextMgr.GetContext()?.Project.Clone();
-
-            //PackInput = (ResourcePackInputProperties)projectContext.Project.Input.Clone();
         }
 
         public async Task SaveAsync()
         {
             var projectContext = projectContextMgr.GetContext();
+
             projectContext.Project = Project;
 
             await projectContextMgr.SaveAsync();
         }
-
-        //public async Task SavePackInputAsync()
-        //{
-        //    var projectContext = provider.GetRequiredService<IProjectContext>();
-        //    var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
-
-        //    serviceBuilder.Initialize();
-        //    serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
-
-        //    await using var scope = serviceBuilder.Build();
-
-        //    try {
-        //        var packWriter = scope.GetRequiredService<IResourcePackWriter>();
-        //        await packWriter.WriteAsync("input.yml", Model.PackInput);
-        //    }
-        //    catch (Exception error) {
-        //        throw new ApplicationException("Failed to save pack input!", error);
-        //    }
-        //}
     }
 }

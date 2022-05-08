@@ -117,10 +117,10 @@
                           Icon="{iconPacks:FontAwesome FolderSolid}"/>
             </MenuItem>
             <MenuItem Header="Project" Background="Transparent">
-                <MenuItem Header="Configuration" Click="OnInputEncodingClick"
+                <MenuItem Header="Configuration" Click="OnEditProjectConfigClick"
                           Icon="{iconPacks:FontAwesome PaletteSolid}"
                           IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
-                <MenuItem Header="Publish Profiles" Click="OnProfilesClick"
+                <MenuItem Header="Publish Profiles" Click="OnEditPublishProfilesClick"
                           Icon="{iconPacks:FontAwesome BookSolid}"
                           IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
             </MenuItem>

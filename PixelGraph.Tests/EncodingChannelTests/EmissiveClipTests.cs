@@ -26,7 +26,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                     Emissive = {
                         Texture = TextureTags.Emissive,
                         Color = ColorChannel.Red,
-                        Shift = -1,
+                        //Shift = -1,
                     },
                 },
             };
@@ -36,7 +36,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                     Emissive = {
                         Texture = TextureTags.Emissive,
                         Color = ColorChannel.Red,
-                        Shift = -1,
+                        //Shift = -1,
                     },
                 },
             };
@@ -57,7 +57,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/emissive.png", value);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_e.png");
@@ -92,13 +92,13 @@ namespace PixelGraph.Tests.EncodingChannelTests
         //    PixelAssert.RedEquals(expected, image);
         //}
 
-        [InlineData(255, 0.00, 255)]
-        [InlineData(  0, 0.00, 255)]
+        [InlineData(255, 0.00,   0)]
+        [InlineData(  0, 0.00,   0)]
         [InlineData( 99, 1.00,  99)]
-        [InlineData( 99, 0.50,  49)]
-        [InlineData( 99, 2.00, 199)]
-        [InlineData( 99, 3.00, 254)]
-        [InlineData(199, 0.01,   1)]
+        [InlineData( 99, 0.50,  50)]
+        [InlineData( 99, 2.00, 198)]
+        [InlineData( 99, 3.00, 255)]
+        [InlineData(199, 0.01,   2)]
         [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
         {
             await using var graph = Graph();
@@ -113,7 +113,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 },
             };
 
-            await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/emissive.png", value);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_e.png");
@@ -124,7 +124,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
         [InlineData(  1,   0)]
         [InlineData(128, 127)]
         [InlineData(255, 254)]
-        [Theory] public async Task ConvertsEmissiveToEmissiveClipped(byte value, byte expected)
+        [Theory] public async Task ShiftDown(byte value, byte expected)
         {
             await using var graph = Graph();
 
@@ -137,13 +137,61 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 },
             };
 
-            graph.PackProfile = packProfile;
+            graph.PackProfile = new PublishProfileProperties {
+                Encoding = {
+                    Emissive = {
+                        Texture = TextureTags.Emissive,
+                        Color = ColorChannel.Red,
+                        Shift = -1,
+                    },
+                },
+            };
+
             graph.Material = new MaterialProperties {
                 Name = "test",
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/emissive.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/emissive.png", value);
+            await graph.ProcessAsync();
+
+            using var image = await graph.GetImageAsync("assets/test_e.png");
+            PixelAssert.RedEquals(expected, image);
+        }
+
+        [InlineData(  0,   1)]
+        [InlineData(127, 128)]
+        [InlineData(254, 255)]
+        [InlineData(255,   0)]
+        [Theory] public async Task ShiftUp(byte value, byte expected)
+        {
+            await using var graph = Graph();
+
+            graph.Project = new ProjectData {
+                Input = new PackInputEncoding {
+                    Emissive = {
+                        Texture = TextureTags.Emissive,
+                        Color = ColorChannel.Red,
+                    },
+                },
+            };
+
+            graph.PackProfile = new PublishProfileProperties {
+                Encoding = {
+                    Emissive = {
+                        Texture = TextureTags.Emissive,
+                        Color = ColorChannel.Red,
+                        Shift = 1,
+                    },
+                },
+            };
+
+            graph.Material = new MaterialProperties {
+                Name = "test",
+                LocalPath = "assets",
+            };
+
+            await graph.CreateImageAsync("assets/test/emissive.png", value);
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_e.png");

@@ -5,48 +5,48 @@ namespace PixelGraph.Common.Textures
 {
     internal struct PixelMapping
     {
-        private readonly bool hasInputChannelShift;
-        private readonly int pixelInputRange;
-        private readonly float valueInputRange;
-        private readonly bool hasInputChannelPower;
-        private readonly float inputPowerInv;
+        private bool hasInputChannelShift;
+        private int pixelInputRange;
+        private float valueInputRange;
+        private bool hasInputChannelPower;
+        private float inputPowerInv;
         //private readonly float inputValueScaleInv;
 
-        private readonly bool hasOutputShift;
-        private readonly int pixelOutputRange;
-        private readonly float valueOutputRange;
-        private readonly bool hasOutputPower;
+        private bool hasOutputShift;
+        private int pixelOutputRange;
+        private float valueOutputRange;
+        private bool hasOutputPower;
 
         //public readonly ColorChannel InputColor;
-        public readonly float? InputValue;
-        public readonly float InputMinValue;
-        public readonly float InputMaxValue;
-        public readonly byte InputRangeMin;
-        public readonly byte InputRangeMax;
-        public readonly int InputChannelShift;
-        public readonly float InputChannelPower;
-        public readonly bool InputChannelInverted;
-        public readonly float InputValueScale;
-        public readonly float InputValueShift;
+        public float? InputValue;
+        public float InputMinValue;
+        public float InputMaxValue;
+        public byte InputRangeMin;
+        public byte InputRangeMax;
+        public int InputChannelShift;
+        public float InputChannelPower;
+        public bool InputChannelInverted;
+        public float InputValueScale;
+        public float InputValueShift;
 
-        public readonly bool InputEnableClipping;
+        public bool InputEnableClipping;
 
         //public readonly ColorChannel OutputColor;
         //public readonly string OutputSampler;
-        public readonly float OutputMinValue;
-        public readonly float OutputMaxValue;
-        public readonly byte OutputRangeMin;
-        public readonly byte OutputRangeMax;
-        public readonly int OutputChannelShift;
-        public readonly float OutputChannelPower;
-        public readonly bool OutputInverted;
+        public float OutputMinValue;
+        public float OutputMaxValue;
+        public byte OutputRangeMin;
+        public byte OutputRangeMax;
+        public int OutputChannelShift;
+        public float OutputChannelPower;
+        public bool OutputChannelInverted;
         //public readonly bool OutputApplyOcclusion;
-        public readonly float OutputValueScale;
-        public readonly float OutputValueShift;
+        public float OutputValueScale;
+        public float OutputValueShift;
         //public readonly float? OutputDefaultValue;
-        public readonly float? OutputClipValue;
+        public float? OutputClipValue;
 
-        public readonly bool OutputEnableClipping;
+        public bool OutputEnableClipping;
 
         //public readonly string Sampler;
         //public string SourceTag;
@@ -70,6 +70,7 @@ namespace PixelGraph.Common.Textures
             InputChannelShift = mapping.InputChannelShift;
             InputChannelPower = mapping.InputChannelPower;
             InputChannelInverted = mapping.InputChannelInverted;
+            //InputPerceptual = mapping.InputPerceptual;
             InputValueScale = mapping.InputValueScale;
             InputValueShift = mapping.InputValueShift;
 
@@ -83,7 +84,8 @@ namespace PixelGraph.Common.Textures
             OutputRangeMax = mapping.OutputRangeMax;
             OutputChannelShift = mapping.OutputChannelShift;
             OutputChannelPower = mapping.OutputChannelPower;
-            OutputInverted = mapping.OutputChannelInverted;
+            OutputChannelInverted = mapping.OutputChannelInverted;
+            //OutputPerceptual = mapping.OutputPerceptual;
             OutputValueScale = mapping.OutputValueScale;
             OutputValueShift = mapping.OutputValueShift;
             //OutputApplyOcclusion = mapping.OutputApplyOcclusion;
@@ -116,49 +118,6 @@ namespace PixelGraph.Common.Textures
             //Convert_RoughToSpecular = mapping.Convert_RoughToSpecular;
         }
 
-        public readonly bool TryUnmap(in byte pixelValue, out float value)
-        {
-            if (InputValue.HasValue) {
-                value = InputValue.Value;
-                return true;
-            }
-
-            // Discard operation if source value outside bounds
-            if (InputEnableClipping && (pixelValue < InputRangeMin || pixelValue > InputRangeMax)) {
-                value = 0f;
-                return false;
-            }
-
-            // Input: cycle
-            var valueIn = pixelValue;
-            if (hasInputChannelShift) MathEx.Cycle(ref valueIn, -InputChannelShift, in InputRangeMin, in InputRangeMax);
-
-            value = valueIn - InputRangeMin;
-
-            // Convert from pixel-space to value-space
-            //var pixelInputRange = InputRangeMax - InputRangeMin;
-
-            if (pixelInputRange > 0) {
-                //if (!valueInputRange.Equal(pixelInputRange))
-                value *= valueInputRange / pixelInputRange;
-            }
-            else value = 0f;
-
-            value += InputMinValue;
-
-            if (InputChannelInverted) MathEx.InvertRef(ref value, InputMinValue, InputMaxValue);
-
-            if (hasInputChannelPower) value = MathF.Pow(value, inputPowerInv);
-
-            // WARN: Which should come first?!
-            value *= InputValueScale;
-            value += InputValueShift;
-
-            MathEx.Clamp(ref value, in InputMinValue, in InputMaxValue);
-
-            return true;
-        }
-
         public readonly bool TryUnmap(in float rawValue, out float value)
         {
             if (InputValue.HasValue) {
@@ -166,17 +125,20 @@ namespace PixelGraph.Common.Textures
                 return true;
             }
 
-            var pixelValue = rawValue * 255f;
+            //var pixelValue = rawValue * 255f;
+            var rangeMin = InputRangeMin / 255f;
+            var rangeMax = InputRangeMax / 255f;
 
             // Discard operation if source value outside bounds
-            if (InputEnableClipping && (pixelValue < InputRangeMin || pixelValue > InputRangeMax)) {
+            if (InputEnableClipping && (rawValue < rangeMin || rawValue > rangeMax)) {
                 value = 0f;
                 return false;
             }
 
-            // Input: cycle
             value = rawValue;
-            if (hasInputChannelShift) MathEx.Cycle(ref value, -InputChannelShift, in InputRangeMin, in InputRangeMax);
+
+            // Input: cycle
+            if (hasInputChannelShift) MathEx.Cycle(ref value, -InputChannelShift, in rangeMin, in rangeMax);
 
             value -= InputRangeMin / 255f;
 
@@ -203,35 +165,7 @@ namespace PixelGraph.Common.Textures
             return true;
         }
 
-        //public readonly void Map(ref float value, out byte finalValue)
-        //{
-        //    value += OutputValueShift;
-        //    value *= OutputValueScale;
-
-        //    if (hasOutputPower) value = MathF.Pow(value, OutputChannelPower);
-
-        //    if (OutputInverted) MathEx.Invert(ref value, OutputMinValue, OutputMaxValue);
-
-        //    // convert from value-space to pixel-space
-        //    //var valueRange = OutputMaxValue - OutputMinValue;
-        //    //var pixelRange = OutputRangeMax - OutputRangeMin;
-
-        //    var valueOut = value - OutputMinValue;
-
-        //    if (pixelOutputRange == 0 || valueOutputRange == 0) {
-        //        valueOut = 0f;
-        //    }
-        //    else if (!valueOutputRange.NearEqual(pixelOutputRange))
-        //        valueOut *= pixelOutputRange / valueOutputRange;
-
-        //    valueOut += OutputRangeMin;
-
-        //    finalValue = MathEx.ClampRound(valueOut, OutputRangeMin, OutputRangeMax);
-
-        //    if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputChannelShift, in OutputRangeMin, in OutputRangeMax);
-        //}
-
-        public readonly bool TryMap(ref float value, out byte finalValue)
+        public readonly bool TryMap(ref float value, out float finalValue)
         {
             // WARN: Which should come first?!
             value += OutputValueShift;
@@ -239,46 +173,35 @@ namespace PixelGraph.Common.Textures
 
             if (hasOutputPower) value = MathF.Pow(value, OutputChannelPower);
 
-            if (OutputInverted) MathEx.InvertRef(ref value, OutputMinValue, OutputMaxValue);
+            if (OutputChannelInverted) MathEx.InvertRef(ref value, OutputMinValue, OutputMaxValue);
 
             // convert from value-space to pixel-space
             //var valueRange = OutputMaxValue - OutputMinValue;
-            //var pixelRange = OutputRangeMax - OutputRangeMin;
+            var _pixelRange = pixelOutputRange / 255f;
 
-            var valueOut = value - OutputMinValue;
+            finalValue = value - OutputMinValue;
 
-            if (pixelOutputRange == 0 || valueOutputRange == 0) {
-                //valueOut = 0f;
+            if (_pixelRange == 0 || valueOutputRange == 0)
+                finalValue = 0f;
+            else if (!valueOutputRange.NearEqual(_pixelRange))
+                finalValue *= _pixelRange / valueOutputRange;
 
-                // WARN: This is not working for metals
-                // TODO: but i think turning it off will break VPBR opacity
-                //if (!valueOut.NearEqual(0f)) {
-                //    finalValue = 0;
-                //    return false;
-                //}
+            finalValue += OutputRangeMin / 255f;
 
-                if (valueOut > OutputMaxValue) {
-                    finalValue = 0;
-                    return false;
-                }
-
-                valueOut = 0f;
-            }
-            else if (!valueOutputRange.NearEqual(pixelOutputRange))
-                valueOut *= pixelOutputRange / valueOutputRange;
-
-            valueOut += OutputRangeMin;
+            var rangeMin = OutputRangeMin / 255f;
+            var rangeMax = OutputRangeMax / 255f;
 
             if (OutputEnableClipping) {
-                if (valueOut < OutputRangeMin || valueOut > OutputRangeMax) {
-                    finalValue = 0;
+                if (finalValue < rangeMin || finalValue > rangeMax) {
+                    //finalValue = 0;
                     return false;
                 } 
             }
 
-            finalValue = MathEx.ClampRound(valueOut, OutputRangeMin, OutputRangeMax);
+            MathEx.Clamp(ref finalValue, rangeMin, rangeMax);
 
-            if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputChannelShift, in OutputRangeMin, in OutputRangeMax);
+            if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputChannelShift, in rangeMin, in rangeMax);
+
             return true;
         }
 
@@ -290,7 +213,7 @@ namespace PixelGraph.Common.Textures
 
             if (hasOutputPower) value = MathF.Pow(value, OutputChannelPower);
 
-            if (OutputInverted) MathEx.InvertRef(ref value, OutputMinValue, OutputMaxValue);
+            if (OutputChannelInverted) MathEx.InvertRef(ref value, OutputMinValue, OutputMaxValue);
 
             // convert from value-space to pixel-space
             //var valueRange = OutputMaxValue - OutputMinValue;
@@ -309,7 +232,7 @@ namespace PixelGraph.Common.Textures
             var rangeMax = OutputRangeMax / 255f;
             MathEx.Clamp(ref finalValue, rangeMin, rangeMax);
 
-            if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputChannelShift, in OutputRangeMin, in OutputRangeMax);
+            if (hasOutputShift) MathEx.Cycle(ref finalValue, in OutputChannelShift, in rangeMin, in rangeMax);
         }
     }
 }

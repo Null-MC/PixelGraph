@@ -1,6 +1,7 @@
 ﻿using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal.Utilities;
@@ -10,7 +11,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using PixelGraph.Common.Projects;
 
 namespace PixelGraph.UI.Windows
 {
@@ -98,26 +98,32 @@ namespace PixelGraph.UI.Windows
             Model.EditImageEncoding = null;
         }
 
-        private void OnEditEncodingClick(object sender, RoutedEventArgs e)
+        private async void OnEditEncodingClick(object sender, RoutedEventArgs e)
         {
             var profile = Model.SelectedProfile?.Profile;
             if (profile == null) return;
 
             var formatFactory = TextureFormat.GetFactory(Model.SelectedProfile.TextureFormat);
 
-            var window = new TextureFormatWindow {
-                Owner = this,
-                Model = {
-                    Encoding = (PackEncoding)profile.Encoding.Clone(),
-                    DefaultEncoding = formatFactory.Create(),
-                    DefaultSampler = Model.EditEncodingSampler,
-                    EnableSampler = true,
-                },
-            };
+            try {
+                var window = new TextureFormatWindow {
+                    Owner = this,
+                    Model = {
+                        Encoding = (PackEncoding)profile.Encoding.Clone(),
+                        DefaultEncoding = formatFactory.Create(),
+                        DefaultSampler = Model.EditEncodingSampler,
+                        EnableSampler = true,
+                    },
+                };
 
-            if (window.ShowDialog() != true) return;
+                if (window.ShowDialog() != true) return;
 
-            profile.Encoding = (PackOutputEncoding)window.Model.Encoding;
+                profile.Encoding = (PackOutputEncoding)window.Model.Encoding;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in TextureFormatWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+            }
         }
 
         private async void OnSaveButtonClick(object sender, RoutedEventArgs e)

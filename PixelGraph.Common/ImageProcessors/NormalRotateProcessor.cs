@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common.Extensions;
-using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System;
@@ -7,7 +6,7 @@ using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class NormalRotateProcessor //: PixelRowProcessor
+    internal class NormalRotateProcessor
     {
         private bool hasRotation, hasNoise;
         private float offsetTop, offsetBottom, offsetLeft, offsetRight;
@@ -74,27 +73,21 @@ namespace PixelGraph.Common.ImageProcessors
                 GenerateNoise(Bounds.Width, out noiseY);
             }
 
-            var v = new Vector3();
+            Vector3 vec, normal;
             for (var x = 0; x < Bounds.Width; x++) {
-                //if (x < 0 || x >= row.Length) continue;
+                vec.X = row[x].X * 2f - 1f;
+                vec.Y = row[x].Y * 2f - 1f;
+                vec.Z = row[x].Z;
 
-                row[x].GetChannelValue(ColorChannel.Red, out var normalX);
-                row[x].GetChannelValue(ColorChannel.Green, out var normalY);
+                NormalEncoding.DecodeNormal(in vec, RestoreNormalZ, out normal);
 
-                v.X = Math.Clamp(normalX * 2f - 1f, -1f, 1f);
-                v.Y = Math.Clamp(normalY * 2f - 1f, -1f, 1f);
+                ProcessPixel(x, pos.Y - Bounds.Y, ref normal, in noiseX, in noiseY);
 
-                if (!RestoreNormalZ) {
-                    row[x].GetChannelValue(ColorChannel.Blue, out var normalZ);
-                    v.Z = Math.Clamp(normalZ * 2f - 1f, -1f, 1f);
-                    MathEx.Normalize(ref v);
-                }
+                NormalEncoding.EncodeNormal(in normal, out vec);
 
-                ProcessPixel(x, pos.Y - Bounds.Y, ref v, in noiseX, in noiseY);
-
-                row[x].SetChannelValue(ColorChannel.Red, v.X * 0.5f + 0.5f);
-                row[x].SetChannelValue(ColorChannel.Green, v.Y * 0.5f + 0.5f);
-                row[x].SetChannelValue(ColorChannel.Blue, v.Z * 0.5f + 0.5f);
+                row[x].X = vec.X * 0.5f + 0.5f;
+                row[x].Y = vec.Y * 0.5f + 0.5f;
+                row[x].Z = vec.Z * 0.5f + 0.5f;
             }
         }
 
@@ -140,14 +133,14 @@ namespace PixelGraph.Common.ImageProcessors
 
                 v = Vector3.Transform(v, q);
             }
-            else if (RestoreNormalZ) {
-                var v2 = new Vector2(v.X, v.Y);
-                var d = Vector2.Dot(v2, v2);
-                MathEx.Clamp(ref d, 0f, 1f);
-                v.Z = MathF.Sqrt(1f - d);
-            }
+            //else if (RestoreNormalZ) {
+            //    var v2 = new Vector2(v.X, v.Y);
+            //    var d = Vector2.Dot(v2, v2);
+            //    MathEx.Clamp(ref d, 0f, 1f);
+            //    v.Z = MathF.Sqrt(1f - d);
+            //}
 
-            MathEx.Normalize(ref v);
+            //MathEx.Normalize(ref v);
         }
 
         private static void GenerateNoise(in int size, out byte[] buffer)

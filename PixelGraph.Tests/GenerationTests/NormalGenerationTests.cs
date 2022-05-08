@@ -84,8 +84,8 @@ namespace PixelGraph.Tests.GenerationTests
             await graph.ProcessAsync();
 
             using var image = await graph.GetImageAsync("assets/test_n.png");
-            PixelAssert.RedEquals(127, image);
-            PixelAssert.GreenEquals(127, image);
+            PixelAssert.RedEquals(128, image);
+            PixelAssert.GreenEquals(128, image);
             PixelAssert.BlueEquals(255, image);
         }
 

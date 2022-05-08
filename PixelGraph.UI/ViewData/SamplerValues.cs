@@ -11,6 +11,7 @@ namespace PixelGraph.UI.ViewData
             Add(new Item {Text = "Bilinear", Value = Samplers.Bilinear});
             Add(new Item {Text = "Bicubic", Value = Samplers.Bicubic});
             Add(new Item {Text = "Average", Value = Samplers.Average});
+            Add(new Item {Text = "Weighted Average", Value = Samplers.WeightedAverage});
         }
 
         public class Item

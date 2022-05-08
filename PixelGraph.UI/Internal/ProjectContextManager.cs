@@ -7,8 +7,8 @@ namespace PixelGraph.UI.Internal
 {
     public interface IProjectContextManager
     {
-        ProjectContext GetContext();
-        void SetContext(ProjectContext context);
+        IProjectContext GetContext();
+        void SetContext(IProjectContext context);
         Task SaveAsync();
     }
 
@@ -16,7 +16,7 @@ namespace PixelGraph.UI.Internal
     {
         private readonly ProjectSerializer serializer;
         private readonly ReaderWriterLockSlim _lock;
-        private ProjectContext _context;
+        private IProjectContext _context;
 
 
         public ProjectContextManager()
@@ -30,7 +30,7 @@ namespace PixelGraph.UI.Internal
             _lock?.Dispose();
         }
 
-        public ProjectContext GetContext()
+        public IProjectContext GetContext()
         {
             _lock.EnterReadLock();
 
@@ -42,7 +42,7 @@ namespace PixelGraph.UI.Internal
             }
         }
 
-        public void SetContext(ProjectContext context)
+        public void SetContext(IProjectContext context)
         {
             _lock.EnterWriteLock();
 

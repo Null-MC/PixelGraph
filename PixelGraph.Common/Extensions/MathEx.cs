@@ -30,6 +30,44 @@ namespace PixelGraph.Common.Extensions
         //    return Math.Abs(valueA - valueB) < double.Epsilon;
         //}
 
+        public static void Normalize(in Vector3 value, out Vector3 result)
+        {
+            float lengthF;
+            if (Vector.IsHardwareAccelerated) {
+                lengthF = 1f / value.Length();
+            }
+            else {
+                var ls = value.X * value.X + value.Y * value.Y + value.Z * value.Z;
+                lengthF = 1f / MathF.Sqrt(ls);
+            }
+
+            if (lengthF.NearEqual(1f)) {
+                result = value;
+                return;
+            }
+
+            result.X = value.X * lengthF;
+            result.Y = value.Y * lengthF;
+            result.Z = value.Z * lengthF;
+        }
+
+        public static void Normalize(ref Vector2 value)
+        {
+            float lengthF;
+            if (Vector.IsHardwareAccelerated) {
+                lengthF = 1f / value.Length();
+            }
+            else {
+                var ls = value.X * value.X + value.Y * value.Y;
+                lengthF = 1f / MathF.Sqrt(ls);
+            }
+
+            if (lengthF.NearEqual(1f)) return;
+
+            value.X *= lengthF;
+            value.Y *= lengthF;
+        }
+
         public static void Normalize(ref Vector3 value)
         {
             float lengthF;
@@ -226,21 +264,21 @@ namespace PixelGraph.Common.Extensions
         //    value = (byte)x;
         //}
 
-        public static void Cycle(ref byte value, in int offset, in byte min, in byte max)
-        {
-            var x = value + offset;
-            while (x < min) x += max - min + 1;
-            while (x > max) x -= max - min + 1;
-            value = (byte)x;
-        }
+        //public static void Cycle(ref byte value, in int offset, in byte min, in byte max)
+        //{
+        //    var x = value + offset;
+        //    while (x < min) x += max - min + 1;
+        //    while (x > max) x -= max - min + 1;
+        //    value = (byte)x;
+        //}
 
-        public static void Cycle(ref float value, in int offset, in byte min, in byte max)
+        public static void Cycle(ref float value, in int offset, in float min, in float max)
         {
             //const float r = (float)(256d / 255d);
 
             value += offset / 255f;
-            while (value < min) value += (max - min) / 255f;
-            while (value > max) value -= (max - min) / 255f;
+            while (value < min) value += max - min + (1f/255f);
+            while (value > max) value -= max - min + (1f/255f);
         }
 
         //public static void PerceptualToLinear(ref double value)

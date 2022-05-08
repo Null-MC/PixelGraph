@@ -30,6 +30,10 @@ namespace PixelGraph.Common.Textures.Graphing
         int MagnitudeFrameHeight {get;}
         bool HasMagnitudeTexture {get;}
 
+        ResourcePackNormalXChannelProperties ChannelX {get;}
+        ResourcePackNormalYChannelProperties ChannelY {get;}
+        ResourcePackNormalZChannelProperties ChannelZ {get;}
+
         Task<bool> TryBuildNormalMapAsync(CancellationToken token = default);
         Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default);
 
@@ -56,6 +60,10 @@ namespace PixelGraph.Common.Textures.Graphing
         public int MagnitudeFrameHeight {get; private set;}
         public bool HasMagnitudeTexture => MagnitudeTexture != null;
 
+        public ResourcePackNormalXChannelProperties ChannelX {get; set;}
+        public ResourcePackNormalYChannelProperties ChannelY {get; set;}
+        public ResourcePackNormalZChannelProperties ChannelZ {get; set;}
+
 
         public TextureNormalGraph(
             ILogger<TextureNormalGraph> logger,
@@ -70,6 +78,30 @@ namespace PixelGraph.Common.Textures.Graphing
 
             NormalFrameCount = 1;
             MagnitudeFrameCount = 1;
+
+            ChannelX = new ResourcePackNormalXChannelProperties {
+                Texture = TextureTags.NormalGenerated,
+                Color = ColorChannel.Red,
+                MinValue = -1m,
+                MaxValue = 1m,
+                DefaultValue = 0m,
+            };
+
+            ChannelY = new ResourcePackNormalYChannelProperties {
+                Texture = TextureTags.NormalGenerated,
+                Color = ColorChannel.Green,
+                MinValue = -1m,
+                MaxValue = 1m,
+                DefaultValue = 0m,
+            };
+
+            ChannelZ = new ResourcePackNormalZChannelProperties {
+                Texture = TextureTags.NormalGenerated,
+                Color = ColorChannel.Blue,
+                MinValue = 0m,
+                MaxValue = 1m,
+                DefaultValue = 1m,
+            };
         }
 
         public void Dispose()
@@ -81,18 +113,17 @@ namespace PixelGraph.Common.Textures.Graphing
         public async Task<bool> TryBuildNormalMapAsync(CancellationToken token = default)
         {
             // Try to compose from existing channels first
-            var normalXChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
-            var normalYChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
-            var normalZChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalZ));
+            var inputChannelX = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
+            var inputChannelY = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
+            var inputChannelZ = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalZ));
 
-            var hasNormalX = normalXChannel?.HasMapping ?? false;
-            var hasNormalY = normalYChannel?.HasMapping ?? false;
-            var hasNormalZ = normalZChannel?.HasMapping ?? false;
+            var hasNormalX = inputChannelX?.HasMapping ?? false;
+            var hasNormalY = inputChannelY?.HasMapping ?? false;
+            var hasNormalZ = inputChannelZ?.HasMapping ?? false;
 
             if (hasNormalX && hasNormalY) {
                 using var scope = provider.CreateScope();
                 var normalContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-                var builder = scope.ServiceProvider.GetRequiredService<ITextureBuilder>();
 
                 // make image from normal X & Y; z if found
                 normalContext.Project = context.Project;
@@ -101,33 +132,16 @@ namespace PixelGraph.Common.Textures.Graphing
                 normalContext.IsImport = context.IsImport;
                 normalContext.IsAnimated = context.IsAnimated;
                 normalContext.PackWriteTime = DateTime.UtcNow;
-                
-                builder.InputChannels = new [] {normalXChannel, normalYChannel, normalZChannel}
-                    .Where(x => x != null).ToArray();
 
-                builder.OutputChannels = new PackEncodingChannel[] {
-                    new ResourcePackNormalXChannelProperties {
-                        Texture = TextureTags.Normal,
-                        Color = ColorChannel.Red,
-                        MinValue = -1m,
-                        MaxValue = 1m,
-                        DefaultValue = 0m,
-                    },
-                    new ResourcePackNormalYChannelProperties {
-                        Texture = TextureTags.Normal,
-                        Color = ColorChannel.Green,
-                        MinValue = -1m,
-                        MaxValue = 1m,
-                        DefaultValue = 0m,
-                    },
-                    new ResourcePackNormalZChannelProperties {
-                        Texture = TextureTags.Normal,
-                        Color = ColorChannel.Blue,
-                        MinValue = -1m,
-                        MaxValue = 1m,
-                        DefaultValue = 1m,
-                    },
-                };
+                // WARN: Not sure if this is a good idea
+                //if (hasNormalZ) {
+                //    ChannelZ.MinValue = inputChannelZ.MinValue;
+                //    ChannelZ.MaxValue = inputChannelZ.MaxValue;
+                //}
+
+                var builder = scope.ServiceProvider.GetRequiredService<ITextureBuilder>();
+                builder.InputChannels = new [] {inputChannelX, inputChannelY, inputChannelZ}.Where(x => x != null).ToArray();
+                builder.OutputChannels = new PackEncodingChannel[] {ChannelX, ChannelY, ChannelZ};
 
                 await builder.MapAsync(false, token);
 

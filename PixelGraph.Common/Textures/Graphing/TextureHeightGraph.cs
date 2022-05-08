@@ -9,7 +9,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Projects;
 
 namespace PixelGraph.Common.Textures.Graphing
 {
@@ -108,7 +107,7 @@ namespace PixelGraph.Common.Textures.Graphing
             var scaledWidth = (int)MathF.Ceiling(heightTexture.Width * HeightScaleFactor);
             var scaledHeight = (int)MathF.Ceiling(heightTexture.Height * HeightScaleFactor);
 
-            var samplerName = context?.Material?.Height?.Input?.Sampler
+            var samplerName = context.Material?.Height?.Input?.Sampler
                               ?? context.Profile?.Encoding?.Height?.Sampler
                               ?? context.DefaultSampler;
 
