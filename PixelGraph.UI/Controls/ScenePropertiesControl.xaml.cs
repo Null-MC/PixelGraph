@@ -104,7 +104,8 @@ namespace PixelGraph.UI.Controls
             settings.Data.RenderPreview.IblFilename = SceneProperties.ErpFilename;
             settings.Data.RenderPreview.IblIntensity = SceneProperties.ErpIntensity;
 
-            Dispatcher.Invoke(() => settings.SaveAsync(), DispatcherPriority.Background);
+            // ERROR: This is saving WAY too frequently because sliders!
+            Dispatcher.Invoke(() => settings.SaveAsync(), DispatcherPriority.DataBind);
         }
 
         private async void OnControlLoaded(object sender, RoutedEventArgs e)

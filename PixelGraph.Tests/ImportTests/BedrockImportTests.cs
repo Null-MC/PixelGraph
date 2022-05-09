@@ -7,6 +7,7 @@ using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -27,13 +28,11 @@ namespace PixelGraph.Tests.ImportTests
 
             project = new ProjectData {
                 Input = new PackInputEncoding {
-                    //Edition = GameEditions.Java,
                     Format = TextureFormat.Format_Raw,
                 },
             };
 
             packProfile = new PublishProfileProperties {
-                //Edition = GameEditions.Bedrock,
                 Encoding = {
                     Format = TextureFormat.Format_Color,
                 },
@@ -45,7 +44,7 @@ namespace PixelGraph.Tests.ImportTests
         {
             await using var graph = Graph();
 
-            await graph.CreateImageAsync("textures/blocks/brick.png", 31, 156, 248);
+            await graph.CreateImageAsync("textures/blocks/brick.png", 31, 156, 248, 250);
 
             var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
 
@@ -53,33 +52,19 @@ namespace PixelGraph.Tests.ImportTests
             importer.PackProfile = packProfile;
             importer.AsGlobal = false;
 
-            //var localPath = PathEx.Localize("textures/blocks");
-            
-            //var srcMaterial = await importer.CreateMaterialAsync(localPath, "brick");
-            //var matFile = AsGlobal
-            //    ? PathEx.Join(localPath, $"{name}.mat.yml")
-            //    : PathEx.Join(localPath, name, "mat.yml");
-
             var material = new MaterialProperties {
                 Name = "brick",
                 LocalPath = PathEx.Localize("textures/blocks"),
-                //LocalFilename = matFile,
                 UseGlobalMatching = true,
             };
 
-            //await MaterialWriter.WriteAsync(material);
-
-
             await importer.ImportAsync(material);
 
-            //await using var material = graph.GetFile("assets/minecraft/textures/block/bricks/mat.yml");
-            //Assert.NotNull(material);
-
-            using var colorImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/color.png");
+            using var colorImage = await graph.GetImageAsync<Rgb24>("assets/minecraft/textures/block/bricks/color.png");
             PixelAssert.Equals(31, 156, 248, colorImage);
 
-            using var opacityImage = await graph.GetImageAsync("assets/minecraft/textures/block/bricks/opacity.png");
-            PixelAssert.Equals(255, opacityImage);
+            using var opacityImage = await graph.GetImageAsync<L8>("assets/minecraft/textures/block/bricks/opacity.png");
+            PixelAssert.Equals(250, opacityImage);
         }
     }
 }

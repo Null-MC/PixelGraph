@@ -23,6 +23,7 @@ static const float ETA_WATER_TO_AIR = IOR_N_AIR / IOR_N_WATER;
 static const float InvPI = 1.0f / PI;
 static const float InvGamma = 1.0f / GAMMA;
 //static const float3 lum_factor = float3(0.299f, 0.587f, 0.114f);
+static const float3 luma_factor = float3(0.2126f, 0.7152f, 0.0722f);
 
 
 float pow2(const in float x) {return x*x;}
@@ -102,10 +103,10 @@ float lengthSq(const in float3 vec)
 	return dot(vec, vec); // vec.x*vec.x + vec.y*vec.y + vec.z*vec.z;
 }
 
-//float lum(const in float3 color)
-//{
-//    return dot(color, lum_factor);
-//}
+float luminance(const in float3 color)
+{
+    return dot(color, luma_factor);
+}
 
 
 // Shadows

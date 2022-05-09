@@ -1,10 +1,11 @@
 ﻿using PixelGraph.Common;
 using PixelGraph.Common.Material;
+using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
-using PixelGraph.Common.Projects;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -69,8 +70,8 @@ namespace PixelGraph.Tests.EncodingChannelTests
             await graph.CreateImageAsync("assets/test/hcm.png", actualValue);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_hcm.png");
-            PixelAssert.RedEquals(expectedValue, image);
+            using var image = await graph.GetImageAsync<L8>("assets/test_hcm.png");
+            PixelAssert.Equals(expectedValue, image);
         }
 
         //[InlineData(0.000, 0.00,   0)]
@@ -154,8 +155,8 @@ namespace PixelGraph.Tests.EncodingChannelTests
             await graph.CreateImageAsync("assets/test/metal.png", value);
             await graph.ProcessAsync();
             
-            using var image = await graph.GetImageAsync("assets/test_hcm.png");
-            PixelAssert.RedEquals(expected, image);
+            using var image = await graph.GetImageAsync<L8>("assets/test_hcm.png");
+            PixelAssert.Equals(expected, image);
         }
     }
 }

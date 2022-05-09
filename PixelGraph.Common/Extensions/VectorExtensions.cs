@@ -71,9 +71,21 @@ namespace PixelGraph.Common.Extensions
             vector.Z += addVector.Z;
         }
 
-        public static float Length3(this ref Vector4 vector)
+        public static void Add(this ref Vector3 vector, in float addValue)
         {
-            return MathF.Sqrt(vector.X*vector.X + vector.Y*vector.Y + vector.Z*vector.Z);
+            vector.X += addValue;
+            vector.Y += addValue;
+            vector.Z += addValue;
         }
+
+        //public static float Length3(this ref Vector4 vector)
+        //{
+        //    return MathF.Sqrt(vector.X*vector.X + vector.Y*vector.Y + vector.Z*vector.Z);
+        //}
+
+        //public static Vector3 operator +(Vector3 a, Vector3 b)
+        //{
+        //    return new Vector3(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+        //}
     }
 }

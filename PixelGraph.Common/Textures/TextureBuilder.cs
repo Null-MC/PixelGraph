@@ -762,9 +762,66 @@ namespace PixelGraph.Common.Textures
                 if (info == null) return;
             }
 
-            using var sourceImage = await GetSourceImageAsync<TPixel>(sourceFilename, token);
+            switch (info.BitDepth) {
+                case 4:
+                    using (var sourceImage = await GetSourceImageAsync<Byte4>(sourceFilename, token)) {
+                        ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                    }
+                    return;
+                case 8:
+                    if (info.HasColor) {
+                        if (info.HasOpacity) {
+                            using var sourceImage = await GetSourceImageAsync<Rgba32>(sourceFilename, token);
+                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                        }
+                        else {
+                            using var sourceImage = await GetSourceImageAsync<Rgb24>(sourceFilename, token);
+                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                        }
+                    }
+                    else {
+                        if (info.HasOpacity) {
+                            using var sourceImage = await GetSourceImageAsync<La16>(sourceFilename, token);
+                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                        }
+                        else {
+                            using var sourceImage = await GetSourceImageAsync<L8>(sourceFilename, token);
+                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                        }
+                    }
+                    return;
+                case 16:
+                    if (info.HasColor) {
+                        if (info.HasOpacity) {
+                            using var sourceImage = await GetSourceImageAsync<Rgba64>(sourceFilename, token);
+                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                        }
+                        else {
+                            using var sourceImage = await GetSourceImageAsync<Rgb48>(sourceFilename, token);
+                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                        }
+                    }
+                    else {
+                        if (info.HasOpacity) {
+                            using var sourceImage = await GetSourceImageAsync<La32>(sourceFilename, token);
+                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                        }
+                        else {
+                            using var sourceImage = await GetSourceImageAsync<L16>(sourceFilename, token);
+                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                        }
+                    }
+                    return;
+            }
 
-            var options = new OverlayProcessor<TPixel>.Options {
+            throw new ApplicationException($"Unsupported image encoding! [bits={info.BitDepth}, color={info.HasColor}, alpha={info.HasOpacity}]");
+        }
+
+        private void ApplySourceMappingInternal<TPixel, TSource>(Image<TPixel> image, Image<TSource> sourceImage, TextureSource info, IEnumerable<TextureChannelMapping> mappingGroup)
+            where TPixel : unmanaged, IPixel<TPixel>
+            where TSource : unmanaged, IPixel<TSource>
+        {
+            var options = new OverlayProcessor<TSource>.Options {
                 IsGrayscale = isGrayscale,
                 Samplers = mappingGroup
                     .Where(m => {
@@ -778,7 +835,7 @@ namespace PixelGraph.Common.Textures
                         sampler.RangeX = (float)sourceImage.Width / bufferSize.Width;
                         sampler.RangeY = (float)(sourceImage.Height / info.FrameCount) / bufferSize.Height;
 
-                        return new OverlayProcessor<TPixel>.SamplerOptions {
+                        return new OverlayProcessor<TSource>.SamplerOptions {
                             PixelMap = new PixelMapping(m),
                             InputColor = m.InputColor,
                             OutputColor = m.OutputColor,
@@ -789,7 +846,7 @@ namespace PixelGraph.Common.Textures
                     }).ToArray(),
             };
 
-            var processor = new OverlayProcessor<TPixel>(options);
+            var processor = new OverlayProcessor<TSource>(options);
             var regions = provider.GetRequiredService<TextureRegionEnumerator>();
             regions.SourceFrameCount = info.FrameCount;
 

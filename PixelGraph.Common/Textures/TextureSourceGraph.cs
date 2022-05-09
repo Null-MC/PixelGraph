@@ -55,8 +55,13 @@ namespace PixelGraph.Common.Textures
                 FrameCount = 1,
                 Width = info.Width,
                 Height = info.Height,
-                Gamma = GetImageGamma(info),
             };
+
+            var ext = System.IO.Path.GetExtension(localFile);
+            if (!ImageFormat.TryParse(ext, out var format))
+                throw new ApplicationException($"Unsupported image encoding '{ext}'!");
+
+            source.PopulateMetadata(format, info);
 
             if (context.IsAnimated) {
                 var frameHeight = source.Width;
@@ -71,22 +76,5 @@ namespace PixelGraph.Common.Textures
 
             return sourceMap[localFile] = source;
         }
-
-        private float GetImageGamma(IImageInfo info)
-        {
-            var pngMeta = info.Metadata.GetPngMetadata();
-            if (pngMeta is {Gamma: > float.Epsilon}) return pngMeta.Gamma;
-
-            return 1.0f;
-        }
-    }
-
-    public class TextureSource
-    {
-        public string LocalFile {get; set;}
-        public int FrameCount {get; set;}
-        public int Width {get; set;}
-        public int Height {get; set;}
-        public float Gamma {get; set;}
     }
 }

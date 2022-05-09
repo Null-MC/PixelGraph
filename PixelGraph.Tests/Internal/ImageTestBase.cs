@@ -2,7 +2,6 @@
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Projects;
-using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
 using PixelGraph.Tests.Internal.Mocks;
@@ -63,7 +62,16 @@ namespace PixelGraph.Tests.Internal
             return content.AddAsync(localFile, image);
         }
 
-        public Task CreateImageAsync(string localFile, byte r, byte g, byte b, byte alpha = 255)
+        public Task CreateImageAsync(string localFile, byte r, byte g, byte b)
+        {
+            var content = provider.GetRequiredService<MockFileContent>();
+
+            var color = new Rgb24(r, g, b);
+            using var image = new Image<Rgb24>(Configuration.Default, 1, 1, color);
+            return content.AddAsync(localFile, image);
+        }
+
+        public Task CreateImageAsync(string localFile, byte r, byte g, byte b, byte alpha)
         {
             var content = provider.GetRequiredService<MockFileContent>();
 
@@ -109,7 +117,14 @@ namespace PixelGraph.Tests.Internal
         public Task<Image<Rgba32>> GetImageAsync(string localFile)
         {
             var content = provider.GetRequiredService<MockFileContent>();
-            return content.OpenImageAsync(localFile);
+            return content.OpenImageAsync<Rgba32>(localFile);
+        }
+
+        public Task<Image<TPixel>> GetImageAsync<TPixel>(string localFile)
+            where TPixel : unmanaged, IPixel<TPixel>
+        {
+            var content = provider.GetRequiredService<MockFileContent>();
+            return content.OpenImageAsync<TPixel>(localFile);
         }
 
         public Stream GetFile(string localFile)

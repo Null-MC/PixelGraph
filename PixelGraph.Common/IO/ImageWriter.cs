@@ -27,37 +27,12 @@ namespace PixelGraph.Common.IO
         Task<long> WriteAsync(Image image, ImageChannels type, string localFile, CancellationToken token);
     }
 
-    public enum ImageFormats
-    {
-        Unknown,
-        Bitmap,
-        Png,
-        Tga,
-        Jpeg,
-        Gif,
-        WebP,
-    }
-
     internal class ImageWriter : IImageWriter
     {
-        private static readonly Dictionary<string, ImageFormats> imageFormatMap;
         private readonly Dictionary<ImageFormats, Func<ImageChannels, IImageEncoder>> decoderMap;
         private readonly ITextureGraphContext context;
         private readonly IOutputWriter writer;
 
-
-        static ImageWriter()
-        {
-            imageFormatMap = new Dictionary<string, ImageFormats>(StringComparer.InvariantCultureIgnoreCase) {
-                ["bmp"] = ImageFormats.Bitmap,
-                ["png"] = ImageFormats.Png,
-                ["tga"] = ImageFormats.Tga,
-                ["jpg"] = ImageFormats.Jpeg,
-                ["jpeg"] = ImageFormats.Jpeg,
-                ["gif"] = ImageFormats.Gif,
-                ["webp"] = ImageFormats.WebP,
-            };
-        }
 
         public ImageWriter(
             ITextureGraphContext context,
@@ -83,7 +58,7 @@ namespace PixelGraph.Common.IO
 
             var ext = Path.GetExtension(localFile)?.TrimStart('.');
 
-            if (!imageFormatMap.TryGetValue(ext, out var format))
+            if (!ImageFormat.TryParse(ext, out var format))
                 throw new ApplicationException($"Unsupported image encoding '{ext}'!");
 
             var encoder = GetEncoder(format, type);
@@ -159,7 +134,7 @@ namespace PixelGraph.Common.IO
 
         public static ImageFormats GetFormat(string ext)
         {
-            if (imageFormatMap.TryGetValue(ext, out var format)) return format;
+            if (ImageFormat.TryParse(ext, out var format)) return format;
             throw new ApplicationException($"Unsupported image encoding '{ext}'!");
         }
 

@@ -76,12 +76,13 @@ namespace PixelGraph.Tests.Internal.Mocks
             }
         }
 
-        public async Task<Image<Rgba32>> OpenImageAsync(string filename)
+        public async Task<Image<TPixel>> OpenImageAsync<TPixel>(string filename)
+            where TPixel : unmanaged, IPixel<TPixel>
         {
             await using var stream = OpenRead(filename);
             if (stream == null) throw new FileNotFoundException("Image not found!", filename);
 
-            return await Image.LoadAsync<Rgba32>(Configuration.Default, stream);
+            return await Image.LoadAsync<TPixel>(Configuration.Default, stream);
         }
 
         public void Dispose()

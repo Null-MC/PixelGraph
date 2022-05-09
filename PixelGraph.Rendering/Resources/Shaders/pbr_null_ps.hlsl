@@ -9,7 +9,7 @@
 #include "lib/normals.hlsl"
 #include "lib/tonemap.hlsl"
 
-#define MIN_ROUGH 0.004f
+#define MIN_ROUGH 0.04f
 #define WET_DARKEN 0.86f
 #define WATER_DEPTH_SCALE 20.0f
 #define WATER_ABS_SCALE 80.0f
@@ -304,7 +304,8 @@ float4 main(const ps_input input) : SV_TARGET
 
 	const float3 ibl_ambient = IBL_ambient(ibl_F, tex_normal) * diffuse * mat.occlusion * (1.0f - mat.sss);
 	float3 ibl_specular = IBL_specular(ibl_F, NoV, r, mat.occlusion, roughP) * metal_albedo;
-	float3 ibl_sss = SSS_IBL(view, mat.sss);
+	float3 ibl_sss = SSS_IBL(view, ibl_F, mat.sss);
+    //return float4(1.0 - ibl_F, 1.0);
 
     // Fix for reflected IBL passing through object
     if (isSlope) ibl_specular *= saturate(dot(r, normal) * 4.f + 1.f);

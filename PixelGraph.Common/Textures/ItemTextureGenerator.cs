@@ -12,9 +12,9 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-using PixelGraph.Common.Projects;
 
 namespace PixelGraph.Common.Textures
 {
@@ -77,7 +77,10 @@ namespace PixelGraph.Common.Textures
                     NormalSampler = normalGraph.GetNormalSampler(),
                     OcclusionInputColor = ColorChannel.Red,
                     OcclusionSampler = await occlusionGraph.GetSamplerAsync(token),
+                    LightDirection = new Vector3(-1f, -3f, 5f),
                 };
+
+                MathEx.Normalize(ref inventoryOptions.LightDirection);
 
                 if (occlusionGraph.HasTexture) {
                     var occlusionMapping = new TextureChannelMapping();

@@ -4,6 +4,7 @@ using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -74,7 +75,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
             await graph.CreateImageAsync("assets/test/color.png", value, 0, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test.png");
+            using var image = await graph.GetImageAsync<Rgb24>("assets/test.png");
             PixelAssert.RedEquals(value, image);
         }
 
@@ -96,7 +97,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
             await graph.CreateImageAsync("assets/test/color.png", 0, value, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test.png");
+            using var image = await graph.GetImageAsync<Rgb24>("assets/test.png");
             PixelAssert.GreenEquals(value, image);
         }
 
@@ -150,7 +151,7 @@ namespace PixelGraph.Tests.EncodingChannelTests
             await graph.CreateImageAsync("assets/test/color.png", value, 0, 0);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test.png");
+            using var image = await graph.GetImageAsync<Rgb24>("assets/test.png");
             PixelAssert.RedEquals(expected, image);
         }
 
@@ -164,17 +165,14 @@ namespace PixelGraph.Tests.EncodingChannelTests
                     ColorRed = {
                         Texture = TextureTags.Color,
                         Color = ColorChannel.Green,
-                        MaxValue = 255m,
                     },
                     ColorGreen = {
                         Texture = TextureTags.Color,
                         Color = ColorChannel.Blue,
-                        MaxValue = 255m,
                     },
                     ColorBlue = {
                         Texture = TextureTags.Color,
                         Color = ColorChannel.Red,
-                        MaxValue = 255m,
                     },
                 },
             };
@@ -188,10 +186,8 @@ namespace PixelGraph.Tests.EncodingChannelTests
             await graph.CreateImageAsync("assets/test/color.png", 60, 120, 180);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test.png");
-            PixelAssert.RedEquals(120, image);
-            PixelAssert.GreenEquals(180, image);
-            PixelAssert.BlueEquals(60, image);
+            using var image = await graph.GetImageAsync<Rgb24>("assets/test.png");
+            PixelAssert.Equals(120, 180, 60, image);
         }
     }
 }

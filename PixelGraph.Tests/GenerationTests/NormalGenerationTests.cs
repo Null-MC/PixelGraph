@@ -80,10 +80,10 @@ namespace PixelGraph.Tests.GenerationTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/height.png", height, 0, 0);
+            await graph.CreateImageAsync("assets/test/height.png", height);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_n.png");
+            using var image = await graph.GetImageAsync<Rgb24>("assets/test_n.png");
             PixelAssert.RedEquals(128, image);
             PixelAssert.GreenEquals(128, image);
             PixelAssert.BlueEquals(255, image);
@@ -93,9 +93,9 @@ namespace PixelGraph.Tests.GenerationTests
         public async Task GenerateSobel3HighPass()
         {
             var heightFile = PathEx.Join(AssemblyPath, "Data", "output-height.png");
-            using var heightImage = await Image.LoadAsync<Rgba32>(Configuration.Default, heightFile);
+            using var heightImage = await Image.LoadAsync<L8>(Configuration.Default, heightFile);
 
-            var options = new NormalMapProcessor<Rgba32>.Options {
+            var options = new NormalMapProcessor<L8>.Options {
                 Source = heightImage,
                 HeightChannel = ColorChannel.Red,
                 Method = NormalMapMethods.SobelHigh,
@@ -104,7 +104,7 @@ namespace PixelGraph.Tests.GenerationTests
                 WrapY = true,
             };
 
-            var processor = new NormalMapProcessor<Rgba32>(options);
+            var processor = new NormalMapProcessor<L8>(options);
             using var normalImage = new Image<Rgb24>(Configuration.Default, heightImage.Width, heightImage.Height);
             normalImage.Mutate(c => c.ApplyProcessor(processor));
 
@@ -115,9 +115,9 @@ namespace PixelGraph.Tests.GenerationTests
         public async Task GenerateSobel3LowPass()
         {
             var heightFile = PathEx.Join(AssemblyPath, "Data", "output-height.png");
-            using var heightImage = await Image.LoadAsync<Rgba32>(Configuration.Default, heightFile);
+            using var heightImage = await Image.LoadAsync<L8>(Configuration.Default, heightFile);
 
-            var options = new NormalMapProcessor<Rgba32>.Options {
+            var options = new NormalMapProcessor<L8>.Options {
                 Source = heightImage,
                 HeightChannel = ColorChannel.Red,
                 Method = NormalMapMethods.SobelLow,
@@ -126,7 +126,7 @@ namespace PixelGraph.Tests.GenerationTests
                 WrapY = true,
             };
 
-            var processor = new NormalMapProcessor<Rgba32>(options);
+            var processor = new NormalMapProcessor<L8>(options);
             using var normalImage = new Image<Rgb24>(Configuration.Default, heightImage.Width, heightImage.Height);
             normalImage.Mutate(c => c.ApplyProcessor(processor));
 
@@ -137,12 +137,12 @@ namespace PixelGraph.Tests.GenerationTests
         public async Task GenerateVariance()
         {
             var heightFile = PathEx.Join(AssemblyPath, "Data", "height.png");
-            using var heightImage = await Image.LoadAsync<Rgba32>(Configuration.Default, heightFile);
+            using var heightImage = await Image.LoadAsync<L8>(Configuration.Default, heightFile);
 
             var context = new TextureGraphContext();
             var regions = new TextureRegionEnumerator(context);
 
-            using var builder = new NormalMapBuilder<Rgba32>(regions) {
+            using var builder = new NormalMapBuilder<L8>(regions) {
                 HeightImage = heightImage,
                 HeightChannel = ColorChannel.Red,
                 Method = NormalMapMethods.Variance,

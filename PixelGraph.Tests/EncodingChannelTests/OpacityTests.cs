@@ -4,6 +4,7 @@ using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -40,11 +41,11 @@ namespace PixelGraph.Tests.EncodingChannelTests
             };
         }
 
-        [InlineData(  0)]
-        [InlineData(100)]
-        [InlineData(155)]
-        [InlineData(255)]
-        [Theory] public async Task PassthroughValue(byte value)
+        [InlineData(0.00,   0)]
+        [InlineData(0.40, 102)]
+        [InlineData(0.60, 153)]
+        [InlineData(1.00, 255)]
+        [Theory] public async Task PassthroughValue(decimal actualValue, byte expectedValue)
         {
             await using var graph = Graph();
 
@@ -54,14 +55,14 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 Name = "test",
                 LocalPath = "assets",
                 Opacity = new MaterialOpacityProperties {
-                    Value = value,
+                    Value = actualValue,
                 },
             };
 
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test.png");
-            PixelAssert.AlphaEquals(value, image);
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test.png");
+            PixelAssert.AlphaEquals(expectedValue, image);
         }
 
         [InlineData(  0)]
@@ -79,10 +80,10 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 LocalPath = "assets",
             };
 
-            await graph.CreateImageAsync("assets/test/opacity.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/opacity.png", value);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test.png");
             PixelAssert.AlphaEquals(value, image);
         }
 
@@ -133,10 +134,10 @@ namespace PixelGraph.Tests.EncodingChannelTests
                 },
             };
 
-            await graph.CreateImageAsync("assets/test/opacity.png", value, 0, 0);
+            await graph.CreateImageAsync("assets/test/opacity.png", value);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test.png");
             PixelAssert.AlphaEquals(expected, image);
         }
     }

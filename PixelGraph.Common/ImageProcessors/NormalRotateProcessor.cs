@@ -87,7 +87,7 @@ namespace PixelGraph.Common.ImageProcessors
 
                 row[x].X = vec.X * 0.5f + 0.5f;
                 row[x].Y = vec.Y * 0.5f + 0.5f;
-                row[x].Z = vec.Z * 0.5f + 0.5f;
+                row[x].Z = vec.Z;
             }
         }
 

@@ -1,6 +1,6 @@
 //#define PI 3.14159265f
 #define F0_WATER 0.02f
-#define WATER_ROUGH 0.002f
+#define WATER_ROUGH 0.005f
 
 #pragma pack_matrix(row_major)
 
@@ -211,7 +211,7 @@ float SSS_Light(const in float3 normal, const in float3 view, const in float3 li
 	return saturate(sss * s);
 }
 
-float3 SSS_IBL(const in float3 view, const in float sss)
+float3 SSS_IBL(const in float3 view, const in float3 Fr, const in float sss)
 {
 	const float3 SSS_Indirect = bHasCubeMap
 		? tex_irradiance.SampleLevel(sampler_irradiance, -view, 0)
@@ -227,5 +227,8 @@ float3 SSS_IBL(const in float3 view, const in float sss)
 		//SSS_Direct *= 16.f;
 	}
 
-	return sss * (SSS_Indirect + SSS_Direct);
+	//return sss * (SSS_Indirect + SSS_Direct * (1.0 - Fr));
+	const float3 direct_sss = SSS_Direct * (1.0 - Fr);
+	return sss * (SSS_Indirect + direct_sss);
+	//return direct_sss;
 }

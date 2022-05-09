@@ -4,6 +4,7 @@ using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Drawing;
 using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
@@ -13,18 +14,28 @@ namespace PixelGraph.Common.ImageProcessors
         where TEmissive : unmanaged, IPixel<TEmissive>
     {
         private readonly Options options;
+        private readonly Vector3 ambientColor, lightColor;
 
 
         public ItemProcessor(in Options options)
         {
             this.options = options;
+
+            ambientColor.X = options.AmbientColor.R / 255f;
+            ambientColor.Y = options.AmbientColor.G / 255f;
+            ambientColor.Z = options.AmbientColor.B / 255f;
+
+            lightColor.X = options.LightColor.R / 255f;
+            lightColor.Y = options.LightColor.G / 255f;
+            lightColor.Z = options.LightColor.B / 255f;
         }
 
         protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
         {
             double fx, fy;
             float occlusionValue;
-            Vector4 albedoPixel;
+            Vector3 normal;
+            Vector4 albedoPixel, normalPixel;
 
             GetTexCoordY(in context, out fy);
             var normalRowSampler = options.NormalSampler?.ForRow(in fy);
@@ -43,25 +54,30 @@ namespace PixelGraph.Common.ImageProcessors
 
                 var litNormal = 1f;
                 if (normalRowSampler != null) {
-                    normalRowSampler.SampleScaled(in fx, in fy, out var normal);
-                    normal.X = normal.X * 2f - 1f;
-                    normal.Y = normal.Y * 2f - 1f;
-                    normal.Z = normal.Z * 2f - 1f;
+                    normalRowSampler.SampleScaled(in fx, in fy, out normalPixel);
+
+                    normal.X = normalPixel.X * 2f - 1f;
+                    normal.Y = normalPixel.Y * 2f - 1f;
+                    normal.Z = normalPixel.Z;
                     MathEx.Normalize(ref normal);
 
-                    litNormal = Vector4.Dot(normal, options.LightDirection);
-                    litNormal = options.Ambient + litNormal * (1f - options.Ambient);
+                    litNormal = Vector3.Dot(normal, options.LightDirection);
+                    //litNormal = litNormal * (1f - options.Ambient);
                 }
 
                 var emissiveValue = 0f;
                 emissiveRowSampler?.SampleScaled(in fx, in fy, in options.EmissiveColor, out emissiveValue);
 
-                var lit = MathF.Min(litNormal, 1f - occlusionValue);
-                lit = MathF.Max(lit, emissiveValue);
+                var lit = ambientColor * (1f - occlusionValue);
+                lit.Add(lightColor * litNormal);
+                lit.Add(in emissiveValue);
 
-                albedoPixel.X *= lit;
-                albedoPixel.Y *= lit;
-                albedoPixel.Z *= lit;
+                //var lit = MathF.Min(litNormal, 1f - occlusionValue);
+                //lit = MathF.Max(lit, emissiveValue);
+
+                albedoPixel.X *= lit.X;
+                albedoPixel.Y *= lit.Y;
+                albedoPixel.Z *= lit.Z;
                 
                 row[x].FromScaledVector4(albedoPixel);
             }
@@ -69,8 +85,9 @@ namespace PixelGraph.Common.ImageProcessors
 
         public class Options
         {
-            public float Ambient = 0.3f;
-            public Vector4 LightDirection = Vector4.UnitZ;
+            public Color AmbientColor = Color.FromArgb(76, 76, 76);
+            public Color LightColor = Color.FromArgb(200, 200, 200);
+            public Vector3 LightDirection = Vector3.UnitZ;
 
             public ISampler<Rgb24> NormalSampler;
 

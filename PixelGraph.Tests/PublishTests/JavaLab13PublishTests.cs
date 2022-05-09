@@ -53,7 +53,7 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/opacity.png", value);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test.png");
             PixelAssert.AlphaEquals(value, image);
         }
 
@@ -75,18 +75,15 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/color.png", red, green, blue);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test.png");
+            using var image = await graph.GetImageAsync<Rgb24>("assets/test.png");
             PixelAssert.RedEquals(red, image);
             PixelAssert.GreenEquals(green, image);
             PixelAssert.BlueEquals(blue, image);
         }
 
         [InlineData(new byte[]{127, 127, 255}, new byte[]{127, 127})]
-        [InlineData(new byte[]{127,   0, 127}, new byte[]{127,   0})]
-        //[InlineData(127,   0, 127)]
-        //[InlineData(127, 255, 127)]
-        //[InlineData(  0, 127, 127)]
-        //[InlineData(255, 127, 127)]
+        [InlineData(new byte[]{127,   0,   0}, new byte[]{127,   0})]
+        [InlineData(new byte[]{  0, 127,   0}, new byte[]{  0, 127})]
         [Theory] public async Task NormalTextureTest(byte[] normalIn, byte[] normalOut)
         {
             await using var graph = Graph();
@@ -101,7 +98,7 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/normal.png", normalIn[0], normalIn[1], normalIn[2]);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_n.png");
+            using var image = await graph.GetImageAsync<Rgb24>("assets/test_n.png");
             PixelAssert.RedEquals(normalOut[0], image);
             PixelAssert.GreenEquals(normalOut[1], image);
             //PixelAssert.BlueEquals(255, image);
@@ -125,7 +122,7 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/occlusion.png", value);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_n.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test_n.png");
             PixelAssert.BlueEquals(value, image);
         }
 
@@ -147,7 +144,7 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/height.png", value);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_n.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test_n.png");
             PixelAssert.AlphaEquals(value, image);
         }
 
@@ -169,7 +166,7 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/smooth.png", value);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_s.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test_s.png");
             PixelAssert.RedEquals(value, image);
         }
 
@@ -194,7 +191,7 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/f0.png", actualValue);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_s.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test_s.png");
             PixelAssert.GreenEquals(expectedValue, image);
         }
 
@@ -218,7 +215,7 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/hcm.png", inputValue);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_s.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test_s.png");
             PixelAssert.GreenEquals(outputValue, image);
         }
 
@@ -244,7 +241,7 @@ namespace PixelGraph.Tests.PublishTests
 
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_s.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test_s.png");
             PixelAssert.GreenEquals(outputValue, image);
         }
 
@@ -266,7 +263,7 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/porosity.png", actualValue);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_s.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test_s.png");
             PixelAssert.BlueEquals(expectedValue, image);
         }
 
@@ -288,7 +285,7 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/sss.png", actualValue);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_s.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test_s.png");
             PixelAssert.BlueEquals(expectedValue, image);
         }
 
@@ -311,7 +308,7 @@ namespace PixelGraph.Tests.PublishTests
             await graph.CreateImageAsync("assets/test/emissive.png", actualValue);
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_s.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test_s.png");
             PixelAssert.AlphaEquals(expectedValue, image);
         }
 
@@ -352,7 +349,7 @@ namespace PixelGraph.Tests.PublishTests
 
             await graph.ProcessAsync();
 
-            using var image = await graph.GetImageAsync("assets/test_s.png");
+            using var image = await graph.GetImageAsync<Rgba32>("assets/test_s.png");
 
             PixelAssert.Equals(  0,  10,   0, 255, image);
             PixelAssert.Equals(200,  10,   0, 255, image, 1);

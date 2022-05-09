@@ -7,7 +7,7 @@
              xmlns:converters="clr-namespace:PixelGraph.UI.Converters"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:viewData="clr-namespace:PixelGraph.UI.ViewData"
-             d:DesignHeight="450" d:DesignWidth="800" mc:Ignorable="d" x:Name="Control"
+             d:DesignHeight="450" d:DesignWidth="260" mc:Ignorable="d" x:Name="Control"
              Loaded="OnControlLoaded"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
     <UserControl.Resources>
@@ -36,7 +36,8 @@
                     </DockPanel>
                     <TextBlock Text="Wetness" VerticalAlignment="Center" Margin="0,4,0,0" FontWeight="Bold"/>
                     <Slider Margin="0,4,0,4" Minimum="0" Maximum="100"
-                        Style="{StaticResource MahApps.Styles.Slider.Flat}"
+                            Delay="500" Interval="500" SmallChange="2" LargeChange="10"
+                            Style="{StaticResource MahApps.Styles.Slider.Flat}"
                         Value="{Binding Wetness, Mode=TwoWay}"/>
                 </StackPanel>
             </Expander>

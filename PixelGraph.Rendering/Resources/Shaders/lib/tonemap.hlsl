@@ -32,13 +32,13 @@ float3 tonemap_AcesFilm(const in float3 color)
 
 //====  Stuff from Tech ====//
 
-static const float3 luma_factor = float3(0.2126f, 0.7152f, 0.0722f);
-
-
-float luminance(const in float3 color)
-{
-    return dot(color, luma_factor);
-}
+//static const float3 luma_factor = float3(0.2126f, 0.7152f, 0.0722f);
+//
+//
+//float luminance(const in float3 color)
+//{
+//    return dot(color, luma_factor);
+//}
 
 float3 tonemap_Reinhard(const in float3 color)
 {

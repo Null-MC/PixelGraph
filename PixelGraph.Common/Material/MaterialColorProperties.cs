@@ -2,7 +2,6 @@
 using PixelGraph.Common.ResourcePack;
 using System;
 using System.Globalization;
-using PixelGraph.Common.Projects;
 
 namespace PixelGraph.Common.Material
 {
@@ -25,26 +24,9 @@ namespace PixelGraph.Common.Material
         public decimal? ScaleBlue {get; set;}
 
 
-        public byte? GetValueRed()
-        {
-            var trimValue = Value?.Trim('#', ' ');
-            if (string.IsNullOrEmpty(trimValue) || trimValue.Length != 6) return null;
-            return byte.Parse(trimValue[0..2], NumberStyles.HexNumber);
-        }
-
-        public byte? GetValueGreen()
-        {
-            var trimValue = Value?.Trim('#', ' ');
-            if (string.IsNullOrEmpty(trimValue) || trimValue.Length != 6) return null;
-            return byte.Parse(trimValue[2..4], NumberStyles.HexNumber);
-        }
-
-        public byte? GetValueBlue()
-        {
-            var trimValue = Value?.Trim('#', ' ');
-            if (string.IsNullOrEmpty(trimValue) || trimValue.Length != 6) return null;
-            return byte.Parse(trimValue[4..6], NumberStyles.HexNumber);
-        }
+        public decimal? GetValueRed() => ParseHexRange(Value, 0);
+        public decimal? GetValueGreen() => ParseHexRange(Value, 2);
+        public decimal? GetValueBlue() => ParseHexRange(Value, 4);
 
         public bool HasAnyData()
         {
@@ -61,6 +43,14 @@ namespace PixelGraph.Common.Material
             if (ScaleBlue.HasValue) return true;
             
             return false;
+        }
+
+        private static decimal? ParseHexRange(string hex, int start)
+        {
+            var trimValue = hex?.Trim('#', ' ');
+            if (string.IsNullOrEmpty(trimValue) || trimValue.Length != 6) return null;
+            var byteValue = byte.Parse(trimValue.Substring(start, 2), NumberStyles.HexNumber);
+            return decimal.Round(new decimal(byteValue / 255f), 3);
         }
 
         #region Deprecated
