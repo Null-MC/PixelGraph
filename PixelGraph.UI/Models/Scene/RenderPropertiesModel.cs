@@ -27,6 +27,8 @@ namespace PixelGraph.UI.Models.Scene
         private ObservableElement3DCollection _meshParts;
         private PerspectiveCamera _camera;
         private MaterialProperties _missingMaterial;
+        private FXAALevel _fxaa;
+        private bool _enableSwapChain;
         private bool _enableTiling;
         private RenderPreviewModes _renderMode;
         private float _parallaxDepth;
@@ -127,6 +129,22 @@ namespace PixelGraph.UI.Models.Scene
             get => _effectsManager;
             set {
                 _effectsManager = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public FXAALevel FXAA {
+            get => _fxaa;
+            set {
+                _fxaa = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool EnableSwapChain {
+            get => _enableSwapChain;
+            set {
+                _enableSwapChain = value;
                 OnPropertyChanged();
             }
         }

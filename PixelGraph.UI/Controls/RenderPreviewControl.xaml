@@ -42,12 +42,12 @@
                 </DockPanel>
             </StackPanel>
         </Border>
-        <hx:Viewport3DX x:Name="viewport3D" EnableDeferredRendering="True"
-            BackgroundColor="{Binding SceneProperties.AmbientColor}"
-            Camera="{Binding RenderProperties.Camera}"
-            EffectsManager="{Binding RenderProperties.EffectsManager}"
-            EnableD2DRendering="False"
-            EnableSwapChainRendering="True"
+        <hx:Viewport3DX x:Name="viewport3D" SnapsToDevicePixels="True"
+            EnableDeferredRendering="False"
+            BackgroundColor="{Binding SceneProperties.AmbientColor, Mode=OneWay}"
+            Camera="{Binding RenderProperties.Camera, Mode=OneWay}"
+            EffectsManager="{Binding RenderProperties.EffectsManager, Mode=OneWay}"
+            EnableD2DRendering="{Binding RenderProperties.EnableSwapChain, Mode=OneWay, Converter={StaticResource boolInverseConverter}}"
             EnableRenderFrustum="False"
             IsShadowMappingEnabled="True"
             ModelUpDirection="0,1,0"
@@ -56,6 +56,8 @@
             TextBrush="White"
             UseDefaultGestures="False"
             ZoomExtentsWhenLoaded="True"
+            FXAALevel="{Binding RenderProperties.FXAA, Mode=OneWay}"
+            EnableSwapChainRendering="{Binding RenderProperties.EnableSwapChain, Mode=OneWay}"
             FrameRateText="{Binding FrameRateText, Mode=OneWayToSource, RelativeSource={RelativeSource AncestorType={x:Type controls:RenderPreviewControl}}}">
             <hx:Viewport3DX.InputBindings>
                 <!--<KeyBinding Key="B" Command="hx:ViewportCommands.BackView" />
@@ -195,7 +197,7 @@
                     <Color R="120" G="120" B="120"/>
                 </hx:PostEffectBloom.ThresholdColor>
             </hx:PostEffectBloom>
-            <hx:ContinuousRender3D/>
+            <!--<hx:ContinuousRender3D/>-->
         </hx:Viewport3DX>
     </DockPanel>
 </UserControl>

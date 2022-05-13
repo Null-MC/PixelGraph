@@ -30,6 +30,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using PixelGraph.UI.Windows.Modals;
 
 #if !NORENDER
 using System.Windows.Media.Imaging;
@@ -200,6 +201,110 @@ namespace PixelGraph.UI.Windows
             return null;
         }
 
+        private async Task<bool> GenerateNormalMap(MaterialProperties material, CancellationToken token)
+        {
+            var projectContext = projectContextMgr.GetContext();
+            var outputName = TextureTags.Get(material, TextureTags.Normal);
+
+            if (string.IsNullOrWhiteSpace(outputName)) {
+                var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+                serviceBuilder.Initialize();
+                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+                await using var scope = serviceBuilder.Build();
+
+                var texWriter = scope.GetRequiredService<ITextureWriter>();
+                outputName = texWriter.TryGet(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
+
+                if (outputName == null) throw new ApplicationException("Unable to determine filename for normal generation output!");
+            }
+
+            var path = PathEx.Join(projectContext.RootDirectory, material.LocalPath);
+            if (!material.UseGlobalMatching) path = PathEx.Join(path, material.Name);
+            var fullName = PathEx.Join(path, outputName);
+
+            if (File.Exists(fullName)) {
+                var result = MessageBox.Show(this, "A normal texture already exists! Would you like to overwrite it?", "Warning", MessageBoxButton.OKCancel);
+                if (result != MessageBoxResult.OK) return false;
+            }
+
+            var startResult = false;
+            await Dispatcher.BeginInvoke(() => {
+                startResult = Model.TryStartBusy();
+            });
+
+            if (!startResult) {
+                ShowError("Failed to start normal generation! A task is already running.");
+                return false;
+            }
+
+            try {
+                await await Task.Factory.StartNew(async () => await Model.GenerateNormalAsync(material, fullName, token), token);
+                return true;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to generate normal texture!");
+                ShowError($"Failed to generate normal texture! {error.UnfoldMessageString()}");
+                return false;
+            }
+            finally {
+                await Dispatcher.BeginInvoke(() => Model.EndBusy());
+            }
+        }
+
+        private async Task<bool> GenerateOcclusionMap(MaterialProperties material, CancellationToken token)
+        {
+            var projectContext = projectContextMgr.GetContext();
+            var outputName = TextureTags.Get(material, TextureTags.Occlusion);
+
+            if (string.IsNullOrWhiteSpace(outputName)) {
+                var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+                serviceBuilder.Initialize();
+                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+                await using var scope = serviceBuilder.Build();
+
+                var texWriter = scope.GetRequiredService<ITextureWriter>();
+                outputName = texWriter.TryGet(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
+
+                if (outputName == null) throw new ApplicationException("Unable to determine filename for occlusion generation output!");
+            }
+
+            var path = PathEx.Join(projectContext.RootDirectory, material.LocalPath);
+            if (!material.UseGlobalMatching) path = PathEx.Join(path, material.Name);
+            var fullName = PathEx.Join(path, outputName);
+
+            if (File.Exists(fullName)) {
+                var result = MessageBox.Show(this, "An occlusion texture already exists! Would you like to overwrite it?", "Warning", MessageBoxButton.OKCancel);
+                if (result != MessageBoxResult.OK) return false;
+            }
+
+            var startResult = false;
+            await Dispatcher.BeginInvoke(() => {
+                startResult = Model.TryStartBusy();
+            });
+
+            if (!startResult) {
+                ShowError("Failed to start occlusion generation! A task is already running.");
+                return false;
+            }
+
+            try {
+                await await Task.Factory.StartNew(async () => await Model.GenerateOcclusionAsync(material, fullName, token), token);
+                return true;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to generate occlusion texture!");
+                ShowError($"Failed to generate occlusion texture! {error.UnfoldMessageString()}");
+                return false;
+            }
+            finally {
+                await Dispatcher.BeginInvoke(() => Model.EndBusy());
+            }
+        }
+
         private static ITabModel BuildTabModel(ContentTreeNode node)
         {
             return node switch {
@@ -217,6 +322,19 @@ namespace PixelGraph.UI.Windows
                 },
                 _ => null,
             };
+        }
+
+        private async Task<bool> ShowPatreonNotificationAsync()
+        {
+            try {
+                var window = new PatreonNotificationWindow(provider) {Owner = this};
+                return window.ShowDialog() ?? false;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in PatreonNotificationWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+                return false;
+            }
         }
 
         private async Task<bool> ShowLicenseAgreementAsync()
@@ -256,6 +374,11 @@ namespace PixelGraph.UI.Windows
 
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            if (!Model.HasAcceptedPatreonNotification() && !await ShowPatreonNotificationAsync()) {
+                await Dispatcher.BeginInvoke(Close);
+                return;
+            }
+
             if (!Model.HasAcceptedLicenseAgreement() && !await ShowLicenseAgreementAsync()) {
                 await Dispatcher.BeginInvoke(Close);
                 return;
@@ -611,14 +734,8 @@ namespace PixelGraph.UI.Windows
 
         private async void OnHelpDocumentationClick(object sender, RoutedEventArgs e)
         {
-            var info = new ProcessStartInfo {
-                FileName = @"https://github.com/null511/PixelGraph-Release/wiki",
-                UseShellExecute = true,
-            };
-
             try {
-                using var process = Process.Start(info);
-                process?.WaitForInputIdle(3_000);
+                ProcessHelper.Start(@"https://github.com/null511/PixelGraph-Release/wiki");
             }
             catch (Exception error) {
                 logger.LogError(error, "Failed to launch wiki link url!");
@@ -831,49 +948,17 @@ namespace PixelGraph.UI.Windows
             var material = materialTab.MaterialRegistration.Value;
             if (material == null) return;
 
-            var projectContext = projectContextMgr.GetContext();
-            var outputName = TextureTags.Get(material, TextureTags.Normal);
+            if (!await GenerateNormalMap(material, CancellationToken.None)) return;
 
-            if (string.IsNullOrWhiteSpace(outputName)) {
-                var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
-
-                serviceBuilder.Initialize();
-                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
-
-                await using var scope = serviceBuilder.Build();
-
-                var texWriter = scope.GetRequiredService<ITextureWriter>();
-                outputName = texWriter.TryGet(TextureTags.Normal, material.Name, "png", material.UseGlobalMatching);
-                if (outputName == null) {
-                    // WARN: WHAT DO WE DO?!
-                    throw new NotImplementedException();
-                }
-            }
-
-            var path = PathEx.Join(projectContext.RootDirectory, material.LocalPath);
-            if (!material.UseGlobalMatching) path = PathEx.Join(path, material.Name);
-            var fullName = PathEx.Join(path, outputName);
-
-            if (File.Exists(fullName)) {
-                var result = MessageBox.Show(this, "A normal texture already exists! Would you like to overwrite it?", "Warning", MessageBoxButton.OKCancel);
-                if (result != MessageBoxResult.OK) return;
-            }
-
-            try {
-                await Model.GenerateNormalAsync(material, fullName);
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to generate normal texture!");
-                ShowError($"Failed to generate normal texture! {error.UnfoldMessageString()}");
-                return;
-            }
-
-            await Dispatcher.BeginInvoke(async () => {
+            await Dispatcher.BeginInvoke(() => {
                 if (Model.SelectedTab != materialTab) return;
                 if (!TextureTags.Is(Model.SelectedTag, TextureTags.Normal)) return;
 
-                await RefreshPreview();
+                Model.InvalidateTab(Model.SelectedTab.Id);
             });
+
+            if (Model.SelectedTab == materialTab)
+                await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
         private async void OnGenerateOcclusion(object sender, EventArgs e)
@@ -883,50 +968,17 @@ namespace PixelGraph.UI.Windows
             var material = materialTab.MaterialRegistration.Value;
             if (material == null) return;
 
-            var projectContext = projectContextMgr.GetContext();
-            var outputName = TextureTags.Get(material, TextureTags.Occlusion);
+            if (!await GenerateOcclusionMap(material, CancellationToken.None)) return;
 
-            if (string.IsNullOrWhiteSpace(outputName)) {
-                var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
-
-                serviceBuilder.Initialize();
-                serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
-
-                await using var scope = serviceBuilder.Build();
-
-                var texWriter = scope.GetRequiredService<ITextureWriter>();
-                outputName = texWriter.TryGet(TextureTags.Occlusion, material.Name, "png", material.UseGlobalMatching);
-
-                if (outputName == null) {
-                    // WARN: WHAT DO WE DO?!
-                    throw new NotImplementedException();
-                }
-            }
-
-            var path = PathEx.Join(projectContext.RootDirectory, material.LocalPath);
-            if (!material.UseGlobalMatching) path = PathEx.Join(path, material.Name);
-            var fullName = PathEx.Join(path, outputName);
-
-            if (File.Exists(fullName)) {
-                var result = MessageBox.Show(this, "An occlusion texture already exists! Would you like to overwrite it?", "Warning", MessageBoxButton.OKCancel);
-                if (result != MessageBoxResult.OK) return;
-            }
-
-            try {
-                await Model.GenerateOcclusionAsync(material, fullName);
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to generate occlusion texture!");
-                ShowError($"Failed to generate occlusion texture! {error.UnfoldMessageString()}");
-                return;
-            }
-
-            await Dispatcher.BeginInvoke(async () => {
+            await Dispatcher.BeginInvoke(() => {
                 if (Model.SelectedTab != materialTab) return;
                 if (!TextureTags.Is(Model.SelectedTag, TextureTags.Occlusion)) return;
 
-                await RefreshPreview();
+                Model.InvalidateTab(Model.SelectedTab.Id);
             });
+
+            if (Model.SelectedTab == materialTab)
+                await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
         private async void OnImportMaterialClick(object sender, RoutedEventArgs e)
@@ -1070,7 +1122,7 @@ namespace PixelGraph.UI.Windows
                 }
             }
 
-            if (Model.IsViewModeRender) {
+            if (Model.EnableRenderPreview) {
                 if (e.Key == Key.PrintScreen) {
                     var screenshot = renderPreview.TakeScreenshot();
                     e.Handled = true;

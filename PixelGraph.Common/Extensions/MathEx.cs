@@ -12,9 +12,11 @@ namespace PixelGraph.Common.Extensions
 
 
         public static float CosD(float d) => MathF.Cos(d * Deg2RadF);
+        public static void CosD(in float d, out float result) => result = MathF.Cos(d * Deg2RadF);
         public static double CosD(double d) => Math.Cos(d * Deg2Rad);
 
         public static float SinD(float d) => MathF.Sin(d * Deg2RadF);
+        public static void SinD(in float d, out float result) => result = MathF.Sin(d * Deg2RadF);
         public static double SinD(double d) => Math.Sin(d * Deg2Rad);
 
         public static float AsinD(float d) => MathF.Asin(d) * Rad2DegF;
@@ -244,10 +246,10 @@ namespace PixelGraph.Common.Extensions
 
         #endregion
 
-        public static void Wrap(ref int value, in int min, in int max)
+        public static void WrapExclusive(ref int value, in int min, in int max)
         {
             while (value < min) value += max - min;
-            while (value > max) value -= max - min;
+            while (value >= max) value -= max - min;
         }
 
         public static void Wrap(ref float value, in float min, in float max)

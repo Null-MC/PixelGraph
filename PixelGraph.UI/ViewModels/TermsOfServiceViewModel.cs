@@ -2,10 +2,7 @@
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Documents;
 
 namespace PixelGraph.UI.ViewModels
 {
@@ -16,7 +13,7 @@ namespace PixelGraph.UI.ViewModels
 
         public bool HasNotAccepted {
             get => _hasNotAccepted;
-            set {
+            private set {
                 _hasNotAccepted = value;
                 OnPropertyChanged();
             }
@@ -26,29 +23,15 @@ namespace PixelGraph.UI.ViewModels
         public void Initialize(IServiceProvider provider)
         {
             appSettings = provider.GetRequiredService<IAppSettings>();
-            HasNotAccepted = !(appSettings.Data.HasAcceptedTermsOfService ?? false);
+            HasNotAccepted = appSettings.Data.AcceptedTermsOfServiceVersion != AppSettingsDataModel.CurrentTermsVersion;
         }
 
         public async Task SetResultAsync(bool result)
         {
-            appSettings.Data.HasAcceptedTermsOfService = result;
+            appSettings.Data.AcceptedTermsOfServiceVersion = result
+                ? AppSettingsDataModel.CurrentTermsVersion : null;
+
             await appSettings.SaveAsync();
-        }
-
-        public FlowDocument LoadDocument()
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream("PixelGraph.UI.Resources.TOS.rtf");
-            if (stream == null) throw new ApplicationException("Failed to load TOS document!");
-
-            var document = new FlowDocument();
-            document.BeginInit();
-            document.TextAlignment = TextAlignment.Justify;
-            var range = new TextRange(document.ContentStart, document.ContentEnd);
-            range.Load(stream, DataFormats.Rtf);
-            document.EndInit();
-            
-            return document;
         }
     }
 }

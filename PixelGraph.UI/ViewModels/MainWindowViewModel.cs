@@ -66,7 +66,7 @@ namespace PixelGraph.UI.ViewModels
         private ITabModel _tabListSelection;
         private ITabModel _previewTab;
         private bool _isPreviewTabSelected;
-        private ViewModes _viewMode;
+        private bool _enableRenderPreview;
         private EditModes _editMode;
         private string _selectedTag;
 
@@ -148,24 +148,12 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public bool IsViewModeLayer {
-            get => _viewMode == ViewModes.Layer;
+        public bool EnableRenderPreview {
+            get => _enableRenderPreview;
             set {
-                if (!value) return;
-                _viewMode = ViewModes.Layer;
+                _enableRenderPreview = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(IsViewModeRender));
-                OnViewModeChanged();
-            }
-        }
 
-        public bool IsViewModeRender {
-            get => _viewMode == ViewModes.Render;
-            set {
-                if (!value) return;
-                _viewMode = ViewModes.Render;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(IsViewModeLayer));
                 OnViewModeChanged();
             }
         }
@@ -176,6 +164,7 @@ namespace PixelGraph.UI.ViewModels
                 if (!value) return;
                 _editMode = EditModes.Material;
                 OnPropertyChanged();
+
                 OnPropertyChanged(nameof(IsEditModeFilters));
                 OnPropertyChanged(nameof(IsEditModeConnections));
                 OnPropertyChanged(nameof(IsEditModeScene));
@@ -334,7 +323,7 @@ namespace PixelGraph.UI.ViewModels
 
         public bool IsImageEditorOpen {
             get => _isImageEditorOpen;
-            set {
+            private set {
                 _isImageEditorOpen = value;
                 OnPropertyChanged();
             }
@@ -394,7 +383,7 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(IsBusy));
         }
 
-        private bool TryStartBusy()
+        public bool TryStartBusy()
         {
             lock (busyLock) {
                 if (_isBusy) return false;
@@ -405,7 +394,7 @@ namespace PixelGraph.UI.ViewModels
             return true;
         }
 
-        private void EndBusy()
+        public void EndBusy()
         {
             lock (busyLock) {
                 _isBusy = false;
@@ -623,16 +612,22 @@ namespace PixelGraph.UI.ViewModels
             TabListSelection = newTab;
         }
 
+        public bool HasAcceptedPatreonNotification()
+        {
+            var settings = _provider.GetRequiredService<IAppSettings>();
+            return settings.Data.HasAcceptedPatreonNotification ?? false;
+        }
+
         public bool HasAcceptedLicenseAgreement()
         {
             var settings = _provider.GetRequiredService<IAppSettings>();
-            return settings.Data.HasAcceptedLicenseAgreement ?? false;
+            return settings.Data.AcceptedLicenseAgreementVersion == AppSettingsDataModel.CurrentLicenseVersion;
         }
 
         public bool HasAcceptedTermsOfService()
         {
             var settings = _provider.GetRequiredService<IAppSettings>();
-            return settings.Data.HasAcceptedTermsOfService ?? false;
+            return settings.Data.AcceptedTermsOfServiceVersion == AppSettingsDataModel.CurrentTermsVersion;
         }
 
         public void UpdatePublishLocations()
@@ -671,6 +666,8 @@ namespace PixelGraph.UI.ViewModels
         public async Task UpdateTabPreviewAsync(Dispatcher dispatcher, CancellationToken token = default)
         {
             var tab = SelectedTab;
+            if (tab == null) return;
+
             var context = tabPreviewMgr.Get(tab.Id);
             if (context == null) return;
 
@@ -694,7 +691,7 @@ namespace PixelGraph.UI.ViewModels
                     if (material == null) return;
 
 #if !NORENDER
-                    if (IsViewModeRender) {
+                    if (EnableRenderPreview) {
                         if (!context.IsMaterialBuilderValid) {
                             try {
                                 var renderContext = BuildRenderContext();
@@ -734,7 +731,7 @@ namespace PixelGraph.UI.ViewModels
                         });
                     }
 #endif
-                    if (!IsViewModeRender) {
+                    if (!EnableRenderPreview) {
                         if (!context.IsLayerValid) {
                             var image = await Task.Run(async () => {
                                 using var previewBuilder = _provider.GetRequiredService<ILayerPreviewBuilder>();
@@ -837,63 +834,57 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task GenerateOcclusionAsync(MaterialProperties material, string filename, CancellationToken token = default)
         {
-            if (!TryStartBusy()) return;
+            //if (!TryStartBusy()) return;
 
             var projectContext = projectContextMgr.GetContext();
 
-            try {
-                var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
-                var inputEncoding = inputFormat?.Create() ?? new PackEncoding();
-                inputEncoding.Merge(projectContext.Project.Input);
-                inputEncoding.Merge(material);
+            var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
+            var inputEncoding = inputFormat?.Create() ?? new PackEncoding();
+            inputEncoding.Merge(projectContext.Project.Input);
+            inputEncoding.Merge(material);
 
-                await Task.Factory.StartNew(async () => {
-                    var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
+            var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
 
-                    serviceBuilder.Initialize();
-                    serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
-                    
-                    await using var scope = serviceBuilder.Build();
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+            
+            await using var scope = serviceBuilder.Build();
 
-                    var context = scope.GetRequiredService<ITextureGraphContext>();
-                    var graph = scope.GetRequiredService<ITextureOcclusionGraph>();
-                    var reader = scope.GetRequiredService<IInputReader>();
+            var context = scope.GetRequiredService<ITextureGraphContext>();
+            var graph = scope.GetRequiredService<ITextureOcclusionGraph>();
+            var reader = scope.GetRequiredService<IInputReader>();
 
-                    context.Project = (IProjectDescription)projectContext.Project.Clone();
-                    context.Material = material;
+            context.Project = (IProjectDescription)projectContext.Project.Clone();
+            context.Profile = projectContext.SelectedProfile;
+            context.Material = material;
 
-                    var matMetaFileIn = NamingStructure.GetInputMetaName(material);
-                    context.IsAnimated = reader.FileExists(matMetaFileIn);
+            var matMetaFileIn = NamingStructure.GetInputMetaName(material);
+            context.IsAnimated = reader.FileExists(matMetaFileIn);
 
-                    context.InputEncoding = inputEncoding.GetMapped().ToList();
-                    context.OutputEncoding = inputEncoding.GetMapped().ToList();
+            context.InputEncoding = inputEncoding.GetMapped().ToList();
+            context.OutputEncoding = inputEncoding.GetMapped().ToList();
 
-                    using var occlusionImage = await graph.GenerateAsync(token);
+            using var occlusionImage = await graph.GenerateAsync(token);
 
-                    if (occlusionImage == null)
-                        throw new ApplicationException("Unable to generate occlusion texture!");
+            if (occlusionImage == null)
+                throw new ApplicationException("Unable to generate occlusion texture!");
 
-                    // WARN: This only allows separate images!
-                    // TODO: Support writing to the channel of an existing image?
-                    // This could cause issues if the existing image is not the correct size
-                    await occlusionImage.SaveAsync(filename, token);
+            // WARN: This only allows separate images!
+            // TODO: Support writing to the channel of an existing image?
+            // This could cause issues if the existing image is not the correct size
+            await occlusionImage.SaveAsync(filename, token);
 
-                    var inputChannel = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Occlusion));
-                    
-                    if (inputChannel != null && !TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
-                        //material.Occlusion ??= new MaterialOcclusionProperties();
-                        material.Occlusion.Texture = Path.GetFileName(filename);
+            var inputChannel = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Occlusion));
+            
+            if (inputChannel != null && !TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
+                //material.Occlusion ??= new MaterialOcclusionProperties();
+                material.Occlusion.Texture = Path.GetFileName(filename);
 
-                        material.Occlusion.Input ??= new ResourcePackOcclusionChannelProperties();
-                        material.Occlusion.Input.Texture = TextureTags.Occlusion;
-                        material.Occlusion.Input.Invert = true;
+                material.Occlusion.Input ??= new ResourcePackOcclusionChannelProperties();
+                material.Occlusion.Input.Texture = TextureTags.Occlusion;
+                material.Occlusion.Input.Invert = true;
 
-                        await SaveMaterialAsync(material);
-                    }
-                }, token);
-            }
-            finally {
-                EndBusy();
+                await SaveMaterialAsync(material);
             }
         }
 

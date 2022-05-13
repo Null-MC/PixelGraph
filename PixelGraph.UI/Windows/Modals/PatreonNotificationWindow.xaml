@@ -1,0 +1,27 @@
+﻿<mah:MetroWindow x:Class="PixelGraph.UI.Windows.Modals.PatreonNotificationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:vm="clr-namespace:PixelGraph.UI.ViewModels"
+        Title="PixelGraph Patreon" Width="420" Height="240" mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen" TitleCharacterCasing="Normal" Loaded="OnWindowLoaded"
+        Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
+        Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}">
+    <mah:MetroWindow.DataContext>
+        <vm:PatreonNotificationViewModel x:Name="Model"/>
+    </mah:MetroWindow.DataContext>
+    <DockPanel>
+        <Grid DockPanel.Dock="Bottom"
+              Background="{DynamicResource MahApps.Brushes.Accent4}">
+            <Button Content="OK" HorizontalAlignment="Right" Margin="6"
+                    Click="OnAcceptButtonClick" Width="80" IsDefault="True"/>
+        </Grid>
+        <Grid Background="LightGray">
+            <FlowDocumentScrollViewer x:Name="Document"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Visible"/>
+        </Grid>
+    </DockPanel>
+</mah:MetroWindow>

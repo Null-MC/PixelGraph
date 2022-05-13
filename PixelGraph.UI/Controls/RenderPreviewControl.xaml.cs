@@ -52,6 +52,7 @@ namespace PixelGraph.UI.Controls
 
             // ERROR: HOW TF DO I SET THE BUFFER FORMAT!?!?!?!
             //viewport3D.RenderHost.RenderBuffer.Format = Format.R16G16B16A16_Float;
+            //viewport3D.RenderContext.RenderHost.GetHashCode();
         }
 
         public async Task InitializeAsync(IServiceProvider provider, CancellationToken token = default)
@@ -73,12 +74,12 @@ namespace PixelGraph.UI.Controls
 
             ViewModel.Initialize();
 
-            try {
-                DeviceNameText = ViewModel.GetDeviceName();
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to retrieve display device description!");
-            }
+            //try {
+            //    DeviceNameText = ViewModel.GetDeviceName();
+            //}
+            //catch (Exception error) {
+            //    logger.LogError(error, "Failed to retrieve display device description!");
+            //}
 
             ViewModel.ShaderCompileErrors += OnShaderCompileErrors;
 
@@ -92,6 +93,8 @@ namespace PixelGraph.UI.Controls
             
             await Dispatcher.BeginInvoke(() => {
                 try {
+                    //viewport3D.RenderHost.RenderConfiguration.EnableVSync = false;
+
                     ViewModel.Prepare();
 
                     try {

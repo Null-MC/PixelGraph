@@ -15,7 +15,7 @@ namespace PixelGraph.Common.Samplers
         public float NearestWeight = 0.5f;
 
 
-        public override IRowSampler<TPixel> ForRow(in double y)
+        public override IRowSampler ForRow(in double y)
         {
             GetTexCoordY(in y, out var fy);
 
@@ -85,7 +85,7 @@ namespace PixelGraph.Common.Samplers
         }
     }
 
-    internal struct WeightedAverageRowSampler<TPixel> : IRowSampler<TPixel>
+    internal struct WeightedAverageRowSampler<TPixel> : IRowSampler
         where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly Memory<TPixel>[] rows;

@@ -29,7 +29,7 @@ namespace PixelGraph.Common.Samplers
             Bounds = region.ScaleTo(Image.Width, Image.Height);
         }
 
-        public abstract IRowSampler<TPixel> ForRow(in double y);
+        public abstract IRowSampler ForRow(in double y);
 
         public abstract void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue);
 

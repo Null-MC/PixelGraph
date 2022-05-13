@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using HelixToolkit.SharpDX.Core;
+using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.IO;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
@@ -90,11 +91,31 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public bool? RenderPreview_EnableSwapChain {
+            get => data?.RenderPreview.EnableSwapChain;
+            set {
+                if (data == null) return;
+                data.RenderPreview.EnableSwapChain = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
         public int? RenderPreview_WaterMode {
             get => data?.RenderPreview.WaterMode;
             set {
                 if (data == null) return;
                 data.RenderPreview.WaterMode = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public FXAALevel? RenderPreview_FXAA {
+            get => data?.RenderPreview.FXAA;
+            set {
+                if (data == null) return;
+                data.RenderPreview.FXAA = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
@@ -183,10 +204,13 @@ namespace PixelGraph.UI.ViewModels
         {
             RenderPreview_Enabled = RenderPreviewSettings.Default_Enabled;
             RenderPreview_EnableBloom = RenderPreviewSettings.Default_EnableBloom;
-            RenderPreview_SubSurfaceBlur = RenderPreviewSettings.Default_SubSurfaceBlur;
+            RenderPreview_EnableSwapChain = RenderPreviewSettings.Default_EnableSwapChain;
+            RenderPreview_WaterMode = RenderPreviewSettings.Default_WaterMode;
+            RenderPreview_FXAA = RenderPreviewSettings.Default_FXAA;
+
             RenderPreview_EnvironmentCubeSize = RenderPreviewSettings.Default_EnvironmentCubeSize;
             RenderPreview_IrradianceCubeSize = RenderPreviewSettings.Default_IrradianceCubeSize;
-            RenderPreview_WaterMode = RenderPreviewSettings.Default_WaterMode;
+            RenderPreview_SubSurfaceBlur = RenderPreviewSettings.Default_SubSurfaceBlur;
         }
 
         public void ResetPreviewParallax()
@@ -210,7 +234,9 @@ namespace PixelGraph.UI.ViewModels
             OnPropertyChanged(nameof(Texture_ImageEditorArgs));
             OnPropertyChanged(nameof(RenderPreview_Enabled));
             OnPropertyChanged(nameof(RenderPreview_EnableBloom));
+            OnPropertyChanged(nameof(RenderPreview_EnableSwapChain));
             OnPropertyChanged(nameof(RenderPreview_WaterMode));
+            OnPropertyChanged(nameof(RenderPreview_FXAA));
             OnPropertyChanged(nameof(RenderPreview_EnvironmentCubeSize));
             OnPropertyChanged(nameof(RenderPreview_IrradianceCubeSize));
             OnPropertyChanged(nameof(RenderPreview_ParallaxDepth));

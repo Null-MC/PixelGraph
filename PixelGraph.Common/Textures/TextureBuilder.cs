@@ -763,12 +763,17 @@ namespace PixelGraph.Common.Textures
             }
 
             switch (info.BitDepth) {
-                case 4:
-                    using (var sourceImage = await GetSourceImageAsync<Byte4>(sourceFilename, token)) {
-                        ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                    }
-                    return;
-                case 8:
+                //case 1:
+                //    using (var sourceImage = await GetSourceImageAsync<SixLabors.ImageSharp.PixelFormats.>(sourceFilename, token)) {
+                //        ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                //    }
+                //    return;
+                //case 4:
+                //    using (var sourceImage = await GetSourceImageAsync<Byte4>(sourceFilename, token)) {
+                //        ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
+                //    }
+                //    return;
+                case <= 8:
                     if (info.HasColor) {
                         if (info.HasOpacity) {
                             using var sourceImage = await GetSourceImageAsync<Rgba32>(sourceFilename, token);

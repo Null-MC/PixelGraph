@@ -11,9 +11,9 @@ namespace PixelGraph.Common.IO.Texture
         private static readonly Dictionary<string, string> localExp = new(StringComparer.InvariantCultureIgnoreCase) {
             [TextureTags.Opacity] = @"(^|[\s-_.])(opacity|alpha)($|[\s-_.])",
             [TextureTags.Color] = @"(^|[\s-_.])((base)?color|albedo|diffuse)($|[\s-_.])",
-            [TextureTags.Height] = @"(^|[\s-_.])height($|[\s-_.])",
+            [TextureTags.Height] = @"(^|[\s-_.])(height|displacement)($|[\s-_.])",
             [TextureTags.Bump] = @"(^|[\s-_.])bump($|[\s-_.])",
-            [TextureTags.Normal] = @"(^|[\s-_.])normal($|[\s-_.])",
+            [TextureTags.Normal] = @"(^|[\s-_.])normal(DX|GL)?($|[\s-_.])",
             [TextureTags.Occlusion] = @"(^|[\s-_.])((ambient)?occlusion|ao)($|[\s-_.])",
             [TextureTags.Specular] = @"^specular$",
             [TextureTags.Smooth] = @"(^|[\s-_.])smooth(ness)?($|[\s-_.])",

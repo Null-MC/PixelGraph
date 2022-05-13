@@ -11,7 +11,7 @@ namespace PixelGraph.Common.Samplers
     internal class NearestSampler<TPixel> : SamplerBase<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        public override IRowSampler<TPixel> ForRow(in double y)
+        public override IRowSampler ForRow(in double y)
         {
             GetTexCoordY(in y, out var fy);
             var py = (int)MathF.Floor(fy);
@@ -44,7 +44,7 @@ namespace PixelGraph.Common.Samplers
         }
     }
 
-    internal struct NearestRowSampler<TPixel> : IRowSampler<TPixel>
+    internal struct NearestRowSampler<TPixel> : IRowSampler
         where TPixel : unmanaged, IPixel<TPixel>
     {
         public Memory<TPixel> Row;

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.10.2-dev</Version>
+    <Version>1.10.3</Version>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>PixelGraph</AssemblyName>
@@ -49,6 +49,7 @@
     <Compile Remove="ViewData\JavaTextureFormatValues.cs" />
     <Compile Remove="ViewData\ModelTypeValues.cs" />
     <Compile Remove="ViewData\ProfileItem.cs" />
+    <Compile Remove="ViewData\ViewModes.cs" />
     <Compile Remove="ViewModels\ImportEntityFiltersViewModel.cs" />
     <Compile Remove="ViewModels\InputVMX.cs" />
     <Compile Remove="ViewModels\LogListVM.cs" />
@@ -64,8 +65,8 @@
 
   <ItemGroup>
     <None Remove="icon.ico" />
-    <None Remove="Resources\EULA.htm" />
     <None Remove="Resources\EULA.rtf" />
+    <None Remove="Resources\Patreon.rtf" />
     <None Remove="Resources\tiled_bg.png" />
     <None Remove="Resources\TOS.rtf" />
     <None Remove="Resources\unknown_pack.png" />
@@ -100,11 +101,8 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\EULA.rtf" />
+    <EmbeddedResource Include="Resources\Patreon.rtf" />
     <EmbeddedResource Include="Resources\TOS.rtf" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Resources\tiled_bg.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -131,6 +129,14 @@
     <Resource Include="icon.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Resources\tiled_bg.png" />
     <Resource Include="Resources\unknown_pack.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Windows\Modals\PatreonNotificationWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 </Project>

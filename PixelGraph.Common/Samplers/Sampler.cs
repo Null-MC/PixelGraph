@@ -30,28 +30,26 @@ namespace PixelGraph.Common.Samplers
         };
     }
 
-    public interface ISampler<TPixel>
-        where TPixel : unmanaged, IPixel<TPixel>
+    public interface ISampler
     {
-        Image<TPixel> Image {get; set;}
         float RangeX {get; set;}
         float RangeY {get; set;}
         bool WrapX {get; set;}
         bool WrapY {get; set;}
-        //Rectangle Bounds {get; set;}
 
         void SetBounds(in UVRegion region);
-        IRowSampler<TPixel> ForRow(in double y);
+        IRowSampler ForRow(in double y);
 
-        //void Sample(in double x, in double y, ref Rgba32 pixel);
-        //void SampleScaled(in double x, in double y, out Vector4 pixel);
-
-        //void Sample(in double x, in double y, in ColorChannel color, out byte pixelValue);
         void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue);
     }
 
-    public interface IRowSampler<TPixel>
+    public interface ISampler<TPixel> : ISampler
         where TPixel : unmanaged, IPixel<TPixel>
+    {
+        Image<TPixel> Image {get; set;}
+    }
+
+    public interface IRowSampler
     {
         void Sample(in double x, in double y, ref Rgba32 pixel);
         void SampleScaled(in double x, in double y, out Vector4 pixel);

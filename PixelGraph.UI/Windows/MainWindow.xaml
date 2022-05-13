@@ -196,39 +196,60 @@
                 </controls:ContentTreeView>
                 <GridSplitter Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" ShowsPreview="True" HorizontalAlignment="Stretch"
                               Background="{DynamicResource MahApps.Brushes.Accent3}"/>
-                <ToolBarTray Grid.Column="2" Grid.Row="0" Margin="4,0">
-                    <ToolBar ToolBarTray.IsLocked="True">
-                        <RadioButton GroupName="View" ToolTip="View 2D Layers"
-                                     IsChecked="{Binding IsViewModeLayer, Mode=TwoWay}">
-                            <iconPacks:PackIconFontAwesome Kind="ImageSolid"/>
-                        </RadioButton>
-                        <RadioButton GroupName="View" ToolTip="View 3D Render"
-                                     Visibility="{Binding SupportsRender, Mode=OneTime, Converter={StaticResource VisibilityConverter}}"
-                                     IsChecked="{Binding IsViewModeRender, Mode=TwoWay}">
-                            <iconPacks:PackIconFontAwesome Kind="CubeSolid"/>
-                        </RadioButton>
-                    </ToolBar>
-                    <ToolBar ToolBarTray.IsLocked="True">
-                        <Separator/>
-                        <RadioButton GroupName="Edit" ToolTip="Edit Material"
-                                     IsChecked="{Binding IsEditModeMaterial, Mode=TwoWay}">
-                            <iconPacks:PackIconFontAwesome Kind="PaletteSolid"/>
-                        </RadioButton>
-                        <RadioButton GroupName="Edit" ToolTip="Edit Filters"
-                                     IsChecked="{Binding IsEditModeFilters, Mode=TwoWay}">
-                            <iconPacks:PackIconFontAwesome Kind="FilterSolid"/>
-                        </RadioButton>
-                        <RadioButton GroupName="Edit" ToolTip="Edit Connections"
-                                     IsChecked="{Binding IsEditModeConnections, Mode=TwoWay}">
-                            <iconPacks:PackIconFontAwesome Kind="PuzzlePieceSolid"/>
-                        </RadioButton>
-                        <RadioButton GroupName="Edit" ToolTip="Edit Scene"
-                                     IsChecked="{Binding IsEditModeScene, Mode=TwoWay}"
-                                     Visibility="{Binding SupportsRender, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <iconPacks:PackIconFontAwesome Kind="CloudMoonRainSolid"/>
-                        </RadioButton>
-                    </ToolBar>
-                </ToolBarTray>
+                <DockPanel Grid.Column="2" Grid.Row="0">
+                    <mah:ToggleSwitch DockPanel.Dock="Right" Content="3D Render"
+                                      IsOn="{Binding EnableRenderPreview, Mode=TwoWay}"/>
+                    <ToolBarTray Margin="4,0">
+                        <ToolBar ToolBarTray.IsLocked="True">
+                            <RadioButton GroupName="Edit" ToolTip="Edit Material"
+                                         IsChecked="{Binding IsEditModeMaterial, Mode=TwoWay}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconFontAwesome Kind="PaletteSolid" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Channels" FontWeight="Bold" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton GroupName="Edit" ToolTip="Edit Filters"
+                                         IsChecked="{Binding IsEditModeFilters, Mode=TwoWay}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconFontAwesome Kind="FilterSolid" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Filters" FontWeight="Bold" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton GroupName="Edit" ToolTip="Edit Connections"
+                                         IsChecked="{Binding IsEditModeConnections, Mode=TwoWay}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconFontAwesome Kind="PuzzlePieceSolid" VerticalAlignment="Center"/>
+                                    <TextBlock Text="CTM" FontWeight="Bold" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton GroupName="Edit" ToolTip="Edit Scene"
+                                         IsChecked="{Binding IsEditModeScene, Mode=TwoWay}"
+                                         Visibility="{Binding SupportsRender, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconFontAwesome Kind="CloudMoonRainSolid" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Preview" FontWeight="Bold" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </RadioButton>
+                        </ToolBar>
+                        <!--<ToolBar ToolBarTray.IsLocked="True" HorizontalAlignment="Right">
+                            <RadioButton GroupName="View" ToolTip="View 2D Layers" Padding="8,2"
+                                         IsChecked="{Binding IsViewModeLayer, Mode=TwoWay}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconFontAwesome Kind="ImageSolid" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Layer" FontWeight="Bold" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton GroupName="View" ToolTip="View 3D Render" Padding="8,2"
+                                         Visibility="{Binding SupportsRender, Mode=OneTime, Converter={StaticResource VisibilityConverter}}"
+                                         IsChecked="{Binding IsViewModeRender, Mode=TwoWay}">
+                                <StackPanel Orientation="Horizontal">
+                                    <iconPacks:PackIconFontAwesome Kind="CubeSolid" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Render" FontWeight="Bold" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </RadioButton>
+                        </ToolBar>-->
+                    </ToolBarTray>
+                </DockPanel>
                 <DockPanel Grid.Column="2" Grid.Row="1">
                     <controls:DocumentTabControl DockPanel.Dock="Top" Height="34"
                                                  CloseAllTabs="OnCloseAllDocumentTabs"
@@ -291,11 +312,11 @@
                                         RefreshClick="OnPreviewRefreshClick"
                                         TexturePreviewModel="{Binding TextureModel, Mode=OneWay}"
                                         ShowOutline="{Binding IsEditModeFilters, Mode=OneWay}"
-                                        Visibility="{Binding IsViewModeLayer, Converter={StaticResource VisibilityConverter}}"/>
+                                        Visibility="{Binding EnableRenderPreview, Converter={StaticResource VisibilityInverseConverter}}"/>
                                     <controls:RenderPreviewControl x:Name="renderPreview"
                                         SceneProperties="{Binding SceneProperties, Mode=OneWay}"
                                         RenderProperties="{Binding RenderProperties, Mode=OneWay}"
-                                        Visibility="{Binding IsViewModeRender, Converter={StaticResource VisibilityConverter}}"/>
+                                        Visibility="{Binding EnableRenderPreview, Converter={StaticResource VisibilityConverter}}"/>
                                     <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                 Visibility="{Binding Preview.IsLoading, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                         <Button Width="20" Height="20" Margin="0,0,4,0" ToolTip="Cancel" Click="OnPreviewCancelClick" Padding="0" VerticalAlignment="Center"
@@ -359,17 +380,17 @@
                     Text="{Binding ProjectFilename, Mode=OneWay}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Center"
-                           Visibility="{Binding IsViewModeLayer, Converter={StaticResource BooleanToVisibilityConverter}}">
+                           Visibility="{Binding EnableRenderPreview, Converter={StaticResource VisibilityInverseConverter}}">
                 <TextBlock FontFamily="Consolas" Margin="4,0"
                            Text="{Binding TexturePreviewModel.MousePixel, Mode=OneWay, ElementName=texturePreview}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" HorizontalContentAlignment="Center"
-                           Visibility="{Binding IsViewModeRender, Converter={StaticResource BooleanToVisibilityConverter}}">
+                           Visibility="{Binding EnableRenderPreview, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock FontFamily="Consolas"
                            Text="{Binding DeviceNameText, Mode=OneWay, ElementName=renderPreview}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="3" Width="90" HorizontalContentAlignment="Center"
-                           Visibility="{Binding IsViewModeRender, Converter={StaticResource BooleanToVisibilityConverter}}">
+                           Visibility="{Binding EnableRenderPreview, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock FontFamily="Consolas"
                            Text="{Binding FrameRateText, Mode=OneWay, ElementName=renderPreview}"/>
             </StatusBarItem>

@@ -12,7 +12,7 @@ namespace PixelGraph.Common.Samplers
     internal class BicubicSampler<TPixel> : SamplerBase<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        public override IRowSampler<TPixel> ForRow(in double y)
+        public override IRowSampler ForRow(in double y)
         {
             GetTexCoordY(in y, out var fy);
             var pyMin = (int)MathF.Floor(fy - 1.5f);
@@ -91,7 +91,7 @@ namespace PixelGraph.Common.Samplers
         }
     }
 
-    internal struct BicubicRowSampler<TPixel> : IRowSampler<TPixel>
+    internal struct BicubicRowSampler<TPixel> : IRowSampler
         where TPixel : unmanaged, IPixel<TPixel>
     {
         public Memory<TPixel>[] Rows;

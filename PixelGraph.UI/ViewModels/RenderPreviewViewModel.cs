@@ -64,14 +64,17 @@ namespace PixelGraph.UI.ViewModels
 
         public void LoadAppSettings()
         {
+            RenderProperties.EnableBloom = appSettings.Data.RenderPreview.EnableBloom ?? RenderPreviewSettings.Default_EnableBloom;
+            RenderProperties.EnableSwapChain = appSettings.Data.RenderPreview.EnableSwapChain ?? RenderPreviewSettings.Default_EnableSwapChain;
+            RenderProperties.WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
+            RenderProperties.FXAA = appSettings.Data.RenderPreview.FXAA ?? RenderPreviewSettings.Default_FXAA;
+
             RenderProperties.ParallaxDepth = (float)(appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth);
             RenderProperties.ParallaxSamples = appSettings.Data.RenderPreview.ParallaxSamples ?? RenderPreviewSettings.Default_ParallaxSamples;
-            RenderProperties.EnableBloom = appSettings.Data.RenderPreview.EnableBloom ?? RenderPreviewSettings.Default_EnableBloom;
-            RenderProperties.WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
-            RenderProperties.SubSurfaceBlur = (float)(appSettings.Data.RenderPreview.SubSurfaceBlur ?? RenderPreviewSettings.Default_SubSurfaceBlur);
 
             RenderProperties.EnvironmentMapSize = appSettings.Data.RenderPreview.EnvironmentCubeSize ?? RenderPreviewSettings.Default_EnvironmentCubeSize;
             RenderProperties.IrradianceMapSize = appSettings.Data.RenderPreview.IrradianceCubeSize ?? RenderPreviewSettings.Default_IrradianceCubeSize;
+            RenderProperties.SubSurfaceBlur = (float)(appSettings.Data.RenderPreview.SubSurfaceBlur ?? RenderPreviewSettings.Default_SubSurfaceBlur);
 
             if (appSettings.Data.RenderPreview.SelectedMode != null)
                 if (RenderPreviewMode.TryParse(appSettings.Data.RenderPreview.SelectedMode, out var renderMode))

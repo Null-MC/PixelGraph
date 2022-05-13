@@ -12,7 +12,7 @@ namespace PixelGraph.Common.Samplers
     internal class AverageSampler<TPixel> : SamplerBase<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        public override IRowSampler<TPixel> ForRow(in double y)
+        public override IRowSampler ForRow(in double y)
         {
             GetTexCoordY(in y, out var fy);
 
@@ -71,7 +71,7 @@ namespace PixelGraph.Common.Samplers
         }
     }
 
-    internal struct AverageRowSampler<TPixel> : IRowSampler<TPixel>
+    internal struct AverageRowSampler<TPixel> : IRowSampler
         where TPixel : unmanaged, IPixel<TPixel>
     {
         public Memory<TPixel>[] Rows;

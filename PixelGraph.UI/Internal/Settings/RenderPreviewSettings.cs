@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HelixToolkit.SharpDX.Core;
+using System;
 
 namespace PixelGraph.UI.Internal.Settings
 {
@@ -6,26 +7,30 @@ namespace PixelGraph.UI.Internal.Settings
     {
         public const bool Default_Enabled = true;
         public const bool Default_EnableBloom = false;
+        public const bool Default_EnableSwapChain = false;
         public const decimal Default_ParallaxDepth = 0.25m;
         public const int Default_ParallaxSamples = 128;
         public const int Default_WaterMode = 0;
+        public const FXAALevel Default_FXAA = FXAALevel.None;
         public const int Default_EnvironmentCubeSize = 512;
         public const int Default_IrradianceCubeSize = 64;
         public const decimal Default_SubSurfaceBlur = 0.5m;
 
         public bool? Enabled {get; set;}
         public bool? EnableBloom {get; set;}
-        public int? WaterMode {get; set;}
+        public bool? EnableSwapChain {get; set;}
         public string SelectedMode {get; set;}
-        public string PomType {get; set;}
-        public decimal? SubSurfaceBlur {get; set;}
+        public int? WaterMode {get; set;}
+        public FXAALevel? FXAA {get; set;}
 
+        public string PomType {get; set;}
         public decimal? ParallaxDepth {get; set;}
         public int? ParallaxSamples {get; set;}
 
         public bool? EnableAtmosphere {get; set;}
         public int? EnvironmentCubeSize {get; set;}
         public int? IrradianceCubeSize {get; set;}
+        public decimal? SubSurfaceBlur {get; set;}
         public string IblFilename {get; set;}
         public float? IblIntensity {get; set;}
 

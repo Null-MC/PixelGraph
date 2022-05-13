@@ -5,7 +5,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.Linq;
 using System.Numerics;
-using PixelGraph.Common.Samplers;
 
 namespace PixelGraph.Common.ImageProcessors
 {

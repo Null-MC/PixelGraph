@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Projects;
-using PixelGraph.Common.ResourcePack;
 using System;
 using System.Collections.Generic;
 using System.IO;

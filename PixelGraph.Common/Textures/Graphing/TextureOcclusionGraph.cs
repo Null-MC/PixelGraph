@@ -128,7 +128,7 @@ namespace PixelGraph.Common.Textures.Graphing
             if (bufferSize.HasValue)
                 heightScale = (float)bufferSize.Value.Width / heightImage.Width;
 
-            var heightSampler = context.CreateSampler(heightImage, Samplers.Samplers.Bilinear);
+            var heightSampler = context.CreateSampler(heightImage, Samplers.Samplers.Nearest);
 
             heightSampler.RangeX = (float)heightImage.Width / occlusionWidth;
             heightSampler.RangeY = (float)heightImage.Height / occlusionHeight;
@@ -152,41 +152,29 @@ namespace PixelGraph.Common.Textures.Graphing
 
             heightMapping.OutputValueScale = (float)context.Material.GetChannelScale(EncodingChannel.Height);
 
-            OcclusionProcessor<L16>.Options options = null;
-            OcclusionProcessor<L16> processor = null;
             //OcclusionGpuProcessor<Rgba32>.Options gpuOptions = null;
             //OcclusionGpuProcessor<Rgba32> gpuProcessor = null;
-            var enableGpu = false; //Gpu.IsSupported;
 
-            if (enableGpu) {
-                //gpuOptions = new OcclusionGpuProcessor<Rgba32>.Options {
-                //    HeightImage = heightTexture,
-                //    HeightMapping = heightMapping,
-                //    Quality = quality,
-                //    ZScale = zScale,
-                //    ZBias = zBias,
-                //};
+            var size = GetTileSize(in occlusionWidth);
 
-                //gpuProcessor = new OcclusionGpuProcessor<Rgba32>(gpuOptions);
-            }
-            else {
-                options = new OcclusionProcessor<L16>.Options {
-                    HeightInputColor = heightMapping.InputColor,
-                    HeightMapping = new PixelMapping(heightMapping),
-                    HeightSampler = heightSampler,
-                    Quality = quality,
-                    ZScale = zScale,
-                    ZBias = zBias,
-                    HitPower = hitPower,
-                    Token = token,
-                };
+            var options = new OcclusionProcessorOptions {
+                HeightInputColor = heightMapping.InputColor,
+                HeightMapping = new PixelMapping(heightMapping),
+                HeightSampler = heightSampler,
+                Quality = quality,
+                ZScale = zScale,
+                ZBias = zBias,
+                HitPower = hitPower,
+                Token = token,
 
-                // adjust volume height with texture scale
-                options.ZBias *= heightScale;
-                options.ZScale *= heightScale;
+                StepCount = (int) MathF.Max(size * stepDistance, 1f),
+            };
 
-                processor = new OcclusionProcessor<L16>(options);
-            }
+            // adjust volume height with texture scale
+            options.ZBias *= heightScale;
+            options.ZScale *= heightScale;
+
+            var processor = new OcclusionProcessor<L16>(options);
 
             var occlusionTexture = new Image<L8>(Configuration.Default, occlusionWidth, occlusionHeight);
             var outputChannel = context.OutputEncoding.GetChannel(EncodingChannel.Occlusion);
@@ -204,24 +192,14 @@ namespace PixelGraph.Common.Textures.Graphing
             //regions.TargetPart = TargetPart;
 
             try {
-                var size = GetTileSize(in occlusionWidth);
-                options.StepCount = (int) MathF.Max(size * stepDistance, 1f);
-
                 foreach (var frame in regions.GetAllRenderRegions()) {
                     foreach (var tile in frame.Tiles) {
+                        heightSampler.SetBounds(tile.SourceBounds);
+
                         var outBounds = tile.DestBounds.ScaleTo(occlusionWidth, occlusionHeight);
+                        processor.PopulateNearField(heightImage, outBounds);
 
-                        if (enableGpu) {
-                            //gpuOptions.StepCount = (int)MathF.Max(outBounds.Width * stepDistance, 1f);
-                            //gpuOptions.HeightWidth = (int)(tile.Bounds.Width * heightTexture.Width);
-                            //gpuOptions.HeightHeight = (int)(tile.Bounds.Height * heightTexture.Height);
-
-                            //gpuProcessor.Process(occlusionTexture, outBounds);
-                        }
-                        else {
-                            heightSampler.SetBounds(tile.SourceBounds);
-                            occlusionTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
-                        }
+                        occlusionTexture.Mutate(c => c.ApplyProcessor(processor, outBounds));
                     }
                 }
 

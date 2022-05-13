@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.IconPacks;
+using PixelGraph.UI.ViewData;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -8,22 +9,18 @@ namespace PixelGraph.UI.ViewModels
 {
     public class ContentTreeNode : INotifyPropertyChanged
     {
-        protected ObservableCollection<ContentTreeNode> _nodes;
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         public string Name {get; set;}
         public string LocalPath {get; set;}
         public ContentTreeNode Parent {get;}
 
-        public ObservableCollection<ContentTreeNode> Nodes {
-            get => _nodes;
-            set {
-                _nodes = value;
-                OnPropertyChanged();
-            }
-        }
+        public ObservableCollection<ContentTreeNode> Nodes {get;}
 
+        //set {
+        //    _nodes = value;
+        //    OnPropertyChanged();
+        //}
         private bool _visible;
         public bool Visible {
             get => _visible;
@@ -38,7 +35,7 @@ namespace PixelGraph.UI.ViewModels
         {
             Parent = parent;
 
-            _nodes = new ObservableCollection<ContentTreeNode>();
+            Nodes = new ObservableCollection<ContentTreeNode>();
             Visible = true;
         }
 
@@ -46,31 +43,31 @@ namespace PixelGraph.UI.ViewModels
         {
             Visible = true;
 
-            foreach (var node in _nodes)
+            foreach (var node in Nodes)
                 node.UpdateVisibility(search);
         }
 
-        public virtual void SetVisibility(bool visible)
+        public void SetVisibility(bool visible)
         {
             Visible = visible;
 
-            foreach (var node in _nodes)
+            foreach (var node in Nodes)
                 node.SetVisibility(visible);
         }
 
-        public ContentTreeNode FindNode(Func<ContentTreeNode, bool> predicate)
-        {
-            if (predicate(this)) return this;
+        //public ContentTreeNode FindNode(Func<ContentTreeNode, bool> predicate)
+        //{
+        //    if (predicate(this)) return this;
 
-            foreach (var node in _nodes) {
-                var result = node.FindNode(predicate);
-                if (result != null) return result;
-            }
+        //    foreach (var node in _nodes) {
+        //        var result = node.FindNode(predicate);
+        //        if (result != null) return result;
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -91,7 +88,7 @@ namespace PixelGraph.UI.ViewModels
                 }
             }
 
-            foreach (var node in _nodes) {
+            foreach (var node in Nodes) {
                 node.UpdateVisibility(search);
                 anyVisible |= node.Visible;
             }
@@ -115,7 +112,7 @@ namespace PixelGraph.UI.ViewModels
                 Visible = Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase);
             }
 
-            foreach (var node in _nodes) {
+            foreach (var node in Nodes) {
                 if (!search.ShowAllFiles)
                     node.SetVisibility(false);
                 else

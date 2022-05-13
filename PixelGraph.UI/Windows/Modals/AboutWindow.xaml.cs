@@ -7,7 +7,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace PixelGraph.UI.Windows
+namespace PixelGraph.UI.Windows.Modals
 {
     public partial class AboutWindow
     {
@@ -24,6 +24,20 @@ namespace PixelGraph.UI.Windows
 
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
             themeHelper.ApplyCurrent(this);
+        }
+
+        private async Task<bool> ShowPatreonNotificationAsync()
+        {
+            var window = new PatreonNotificationWindow(provider) {Owner = this};
+
+            try {
+                return window.ShowDialog() ?? false;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in PatreonNotificationWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+                return false;
+            }
         }
 
         private async Task<bool> ShowLicenseAgreementAsync()
@@ -52,6 +66,11 @@ namespace PixelGraph.UI.Windows
                 await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
                 return false;
             }
+        }
+
+        private async void OnViewPatreonClicked(object sender, RoutedEventArgs e)
+        {
+            await ShowPatreonNotificationAsync();
         }
 
         private async void OnViewEulaClicked(object sender, RoutedEventArgs e)
