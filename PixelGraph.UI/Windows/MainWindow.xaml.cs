@@ -240,7 +240,7 @@ namespace PixelGraph.UI.Windows
             }
 
             try {
-                await await Task.Factory.StartNew(async () => await Model.GenerateNormalAsync(material, fullName, token), token);
+                await Task.Run(() => Model.GenerateNormalAsync(material, fullName, token), token);
                 return true;
             }
             catch (Exception error) {
@@ -292,7 +292,7 @@ namespace PixelGraph.UI.Windows
             }
 
             try {
-                await await Task.Factory.StartNew(async () => await Model.GenerateOcclusionAsync(material, fullName, token), token);
+                await Task.Run(() => Model.GenerateOcclusionAsync(material, fullName, token), token);
                 return true;
             }
             catch (Exception error) {
@@ -661,6 +661,8 @@ namespace PixelGraph.UI.Windows
             }
 
             themeHelper.ApplyCurrent(this);
+
+            Model.LoadAppSettings();
 
 #if !NORENDER
             renderPreview.ViewModel.LoadAppSettings();
@@ -1035,7 +1037,7 @@ namespace PixelGraph.UI.Windows
         {
             if (Model.IsInitializing) return;
 
-            var settings = provider.GetRequiredService<IAppSettings>();
+            var settings = provider.GetRequiredService<IAppSettingsManager>();
             var hasSelection = !(Model.SelectedLocation?.IsManualSelect ?? true);
 
             settings.Data.SelectedPublishLocation = hasSelection
@@ -1122,7 +1124,7 @@ namespace PixelGraph.UI.Windows
                 }
             }
 
-            if (Model.EnableRenderPreview) {
+            if (Model.IsRenderPreviewOn) {
                 if (e.Key == Key.PrintScreen) {
                     var screenshot = renderPreview.TakeScreenshot();
                     e.Handled = true;

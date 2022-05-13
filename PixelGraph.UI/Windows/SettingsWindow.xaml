@@ -107,7 +107,8 @@
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Header="Preview" MinWidth="160">
+            <TabItem Header="Preview" MinWidth="160"
+                     Visibility="{Binding SupportsRenderPreview, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <ScrollViewer Background="{DynamicResource MahApps.Brushes.Gray10}">
                     <StackPanel Orientation="Vertical" Margin="8">
                         <DockPanel>

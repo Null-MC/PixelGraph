@@ -20,7 +20,7 @@ namespace PixelGraph.UI.ViewModels
         private readonly CancellationTokenSource tokenSource;
         private ILogger<PublishOutputViewModel> logger;
         private IServiceProvider _provider;
-        private IAppSettings settings;
+        private IAppSettingsManager settings;
         private IProjectContextManager projectContextMgr;
         private double _progress;
         private bool _closeOnComplete;
@@ -101,7 +101,7 @@ namespace PixelGraph.UI.ViewModels
 
             logger = provider.GetRequiredService<ILogger<PublishOutputViewModel>>();
             projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
-            settings = provider.GetRequiredService<IAppSettings>();
+            settings = provider.GetRequiredService<IAppSettingsManager>();
 
             isInitializing = false;
         }

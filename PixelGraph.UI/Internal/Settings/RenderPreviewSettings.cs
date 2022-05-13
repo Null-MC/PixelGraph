@@ -1,5 +1,4 @@
-﻿using HelixToolkit.SharpDX.Core;
-using System;
+﻿using System;
 
 namespace PixelGraph.UI.Internal.Settings
 {
@@ -11,7 +10,7 @@ namespace PixelGraph.UI.Internal.Settings
         public const decimal Default_ParallaxDepth = 0.25m;
         public const int Default_ParallaxSamples = 128;
         public const int Default_WaterMode = 0;
-        public const FXAALevel Default_FXAA = FXAALevel.None;
+        public const int Default_FXAA = 0;
         public const int Default_EnvironmentCubeSize = 512;
         public const int Default_IrradianceCubeSize = 64;
         public const decimal Default_SubSurfaceBlur = 0.5m;
@@ -21,7 +20,7 @@ namespace PixelGraph.UI.Internal.Settings
         public bool? EnableSwapChain {get; set;}
         public string SelectedMode {get; set;}
         public int? WaterMode {get; set;}
-        public FXAALevel? FXAA {get; set;}
+        public int? FXAA {get; set;}
 
         public string PomType {get; set;}
         public decimal? ParallaxDepth {get; set;}

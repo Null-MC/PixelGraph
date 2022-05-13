@@ -35,7 +35,7 @@ namespace PixelGraph.UI
             services.AddLogging(builder => builder
                 .AddSerilog());
 
-            services.AddSingleton<IAppSettings, AppSettings>();
+            services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
             services.AddSingleton<IProjectContextManager, ProjectContextManager>();
             services.AddSingleton<IRecentPathManager, RecentPathManager>();
             services.AddSingleton<IPublishLocationManager, PublishLocationManager>();
@@ -71,7 +71,7 @@ namespace PixelGraph.UI
 
             AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
 
-            var settings = provider.GetRequiredService<IAppSettings>();
+            var settings = provider.GetRequiredService<IAppSettingsManager>();
 
             try {
                 settings.Load();

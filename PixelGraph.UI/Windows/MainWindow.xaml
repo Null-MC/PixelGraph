@@ -198,7 +198,8 @@
                               Background="{DynamicResource MahApps.Brushes.Accent3}"/>
                 <DockPanel Grid.Column="2" Grid.Row="0">
                     <mah:ToggleSwitch DockPanel.Dock="Right" Content="3D Render"
-                                      IsOn="{Binding EnableRenderPreview, Mode=TwoWay}"/>
+                                      IsOn="{Binding IsRenderPreviewOn, Mode=TwoWay}"
+                                      Visibility="{Binding IsRenderPreviewEnabled, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
                     <ToolBarTray Margin="4,0">
                         <ToolBar ToolBarTray.IsLocked="True">
                             <RadioButton GroupName="Edit" ToolTip="Edit Material"
@@ -224,7 +225,7 @@
                             </RadioButton>
                             <RadioButton GroupName="Edit" ToolTip="Edit Scene"
                                          IsChecked="{Binding IsEditModeScene, Mode=TwoWay}"
-                                         Visibility="{Binding SupportsRender, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                         Visibility="{Binding IsRenderPreviewEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <StackPanel Orientation="Horizontal">
                                     <iconPacks:PackIconFontAwesome Kind="CloudMoonRainSolid" VerticalAlignment="Center"/>
                                     <TextBlock Text="Preview" FontWeight="Bold" Margin="6,0,0,0"/>
@@ -312,11 +313,11 @@
                                         RefreshClick="OnPreviewRefreshClick"
                                         TexturePreviewModel="{Binding TextureModel, Mode=OneWay}"
                                         ShowOutline="{Binding IsEditModeFilters, Mode=OneWay}"
-                                        Visibility="{Binding EnableRenderPreview, Converter={StaticResource VisibilityInverseConverter}}"/>
+                                        Visibility="{Binding IsRenderPreviewOn, Converter={StaticResource VisibilityInverseConverter}}"/>
                                     <controls:RenderPreviewControl x:Name="renderPreview"
                                         SceneProperties="{Binding SceneProperties, Mode=OneWay}"
                                         RenderProperties="{Binding RenderProperties, Mode=OneWay}"
-                                        Visibility="{Binding EnableRenderPreview, Converter={StaticResource VisibilityConverter}}"/>
+                                        Visibility="{Binding IsRenderPreviewOn, Converter={StaticResource VisibilityConverter}}"/>
                                     <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                 Visibility="{Binding Preview.IsLoading, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                                         <Button Width="20" Height="20" Margin="0,0,4,0" ToolTip="Cancel" Click="OnPreviewCancelClick" Padding="0" VerticalAlignment="Center"
@@ -380,17 +381,17 @@
                     Text="{Binding ProjectFilename, Mode=OneWay}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Center"
-                           Visibility="{Binding EnableRenderPreview, Converter={StaticResource VisibilityInverseConverter}}">
+                           Visibility="{Binding IsRenderPreviewOn, Converter={StaticResource VisibilityInverseConverter}}">
                 <TextBlock FontFamily="Consolas" Margin="4,0"
                            Text="{Binding TexturePreviewModel.MousePixel, Mode=OneWay, ElementName=texturePreview}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" HorizontalContentAlignment="Center"
-                           Visibility="{Binding EnableRenderPreview, Converter={StaticResource BooleanToVisibilityConverter}}">
+                           Visibility="{Binding IsRenderPreviewOn, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock FontFamily="Consolas"
                            Text="{Binding DeviceNameText, Mode=OneWay, ElementName=renderPreview}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="3" Width="90" HorizontalContentAlignment="Center"
-                           Visibility="{Binding EnableRenderPreview, Converter={StaticResource BooleanToVisibilityConverter}}">
+                           Visibility="{Binding IsRenderPreviewOn, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock FontFamily="Consolas"
                            Text="{Binding FrameRateText, Mode=OneWay, ElementName=renderPreview}"/>
             </StatusBarItem>

@@ -14,7 +14,7 @@ namespace PixelGraph.UI.Windows
         public PublishOutputWindow(IServiceProvider provider)
         {
             var themeHelper = provider.GetRequiredService<IThemeHelper>();
-            var appSettings = provider.GetRequiredService<IAppSettings>();
+            var appSettings = provider.GetRequiredService<IAppSettingsManager>();
 
             InitializeComponent();
 

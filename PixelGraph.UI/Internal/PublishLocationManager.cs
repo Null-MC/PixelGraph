@@ -30,7 +30,7 @@ namespace PixelGraph.UI.Internal
 
 
         public PublishLocationManager(
-            IAppSettings appSettings,
+            IAppSettingsManager appSettings,
             IAppDataUtility appData)
         {
             this.appData = appData;

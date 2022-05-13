@@ -15,7 +15,7 @@ namespace PixelGraph.UI.Controls
 {
     public partial class ScenePropertiesControl
     {
-        private IAppSettings settings;
+        private IAppSettingsManager settings;
         private bool isInitializing;
 
         public ScenePropertiesModel SceneProperties {
@@ -34,7 +34,7 @@ namespace PixelGraph.UI.Controls
         public void Initialize(IServiceProvider provider)
         {
             var logger = provider.GetRequiredService<ILogger<ScenePropertiesControl>>();
-            settings = provider.GetRequiredService<IAppSettings>();
+            settings = provider.GetRequiredService<IAppSettingsManager>();
 
             SceneProperties.AppSettingsChanged += OnSceneAppSettingsChanged;
 

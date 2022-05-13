@@ -9,6 +9,7 @@ using SharpDX.DXGI;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HelixToolkit.SharpDX.Core;
 using Media3D = System.Windows.Media.Media3D;
 
 namespace PixelGraph.UI.ViewModels
@@ -18,7 +19,7 @@ namespace PixelGraph.UI.ViewModels
         private static readonly Lazy<Factory1> deviceFactory;
 
         private readonly IServiceProvider provider;
-        private readonly IAppSettings appSettings;
+        private readonly IAppSettingsManager appSettings;
         private readonly ITabPreviewManager tabPreviewMgr;
 
         public event EventHandler RenderModelChanged;
@@ -37,7 +38,7 @@ namespace PixelGraph.UI.ViewModels
         {
             this.provider = provider;
 
-            appSettings = provider.GetRequiredService<IAppSettings>();
+            appSettings = provider.GetRequiredService<IAppSettingsManager>();
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
         }
 
@@ -67,7 +68,7 @@ namespace PixelGraph.UI.ViewModels
             RenderProperties.EnableBloom = appSettings.Data.RenderPreview.EnableBloom ?? RenderPreviewSettings.Default_EnableBloom;
             RenderProperties.EnableSwapChain = appSettings.Data.RenderPreview.EnableSwapChain ?? RenderPreviewSettings.Default_EnableSwapChain;
             RenderProperties.WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
-            RenderProperties.FXAA = appSettings.Data.RenderPreview.FXAA ?? RenderPreviewSettings.Default_FXAA;
+            RenderProperties.FXAA = (FXAALevel)(appSettings.Data.RenderPreview.FXAA ?? RenderPreviewSettings.Default_FXAA);
 
             RenderProperties.ParallaxDepth = (float)(appSettings.Data.RenderPreview.ParallaxDepth ?? RenderPreviewSettings.Default_ParallaxDepth);
             RenderProperties.ParallaxSamples = appSettings.Data.RenderPreview.ParallaxSamples ?? RenderPreviewSettings.Default_ParallaxSamples;

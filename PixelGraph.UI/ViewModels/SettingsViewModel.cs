@@ -1,5 +1,4 @@
-﻿using HelixToolkit.SharpDX.Core;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.IO;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
@@ -11,7 +10,7 @@ namespace PixelGraph.UI.ViewModels
 {
     internal class SettingsViewModel : ModelBase
     {
-        private IAppSettings appSettings;
+        private IAppSettingsManager appSettings;
         private AppSettingsDataModel data;
         private bool isLoading;
 
@@ -19,6 +18,7 @@ namespace PixelGraph.UI.ViewModels
 
         public int DefaultConcurrency {get;}
         public string RenderPreview_SubSurfaceBlurText => (RenderPreview_SubSurfaceBlur ?? 0m).ToString("P0");
+        public bool SupportsRenderPreview => RenderPreview.IsSupported;
 
         public int? App_Concurrency {
             get => data?.Concurrency;
@@ -111,7 +111,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public FXAALevel? RenderPreview_FXAA {
+        public int? RenderPreview_FXAA {
             get => data?.RenderPreview.FXAA;
             set {
                 if (data == null) return;
@@ -182,7 +182,7 @@ namespace PixelGraph.UI.ViewModels
 
         public void Initialize(IServiceProvider provider)
         {
-            appSettings = provider.GetRequiredService<IAppSettings>();
+            appSettings = provider.GetRequiredService<IAppSettingsManager>();
             data = (AppSettingsDataModel)appSettings.Data.Clone();
             UpdateAllProperties();
             isLoading = false;

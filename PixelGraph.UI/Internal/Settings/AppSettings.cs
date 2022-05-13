@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal.Settings
 {
-    public interface IAppSettings
+    public interface IAppSettingsManager
     {
         AppSettingsDataModel Data {get; set;}
 
@@ -13,7 +13,7 @@ namespace PixelGraph.UI.Internal.Settings
         Task SaveAsync(CancellationToken token = default);
     }
 
-    internal class AppSettings : IAppSettings
+    internal class AppSettingsManager : IAppSettingsManager
     {
         private const string FileName = "Settings.json";
 
@@ -22,7 +22,7 @@ namespace PixelGraph.UI.Internal.Settings
         public AppSettingsDataModel Data {get; set;}
 
 
-        public AppSettings(IAppDataUtility appData)
+        public AppSettingsManager(IAppDataUtility appData)
         {
             this.appData = appData;
 

@@ -1,5 +1,4 @@
-﻿using HelixToolkit.SharpDX.Core;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData
 {
@@ -8,17 +7,17 @@ namespace PixelGraph.UI.ViewData
     {
         public FxaaLevelValues()
         {
-            Add(new Item {Text = "Ultra", Value = FXAALevel.Ultra});
-            Add(new Item {Text = "High", Value = FXAALevel.High});
-            Add(new Item {Text = "Medium", Value = FXAALevel.Medium});
-            Add(new Item {Text = "Low", Value = FXAALevel.Low});
-            Add(new Item {Text = "None", Value = FXAALevel.None});
+            Add(new Item {Text = "Ultra", Value = 4});
+            Add(new Item {Text = "High", Value = 3});
+            Add(new Item {Text = "Medium", Value = 2});
+            Add(new Item {Text = "Low", Value = 1});
+            Add(new Item {Text = "None", Value = 0});
         }
 
         public class Item
         {
             public string Text {get; set;}
-            public FXAALevel Value {get; set;}
+            public int Value {get; set;}
         }
     }
 }

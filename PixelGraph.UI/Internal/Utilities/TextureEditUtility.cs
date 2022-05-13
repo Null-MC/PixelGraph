@@ -23,7 +23,7 @@ namespace PixelGraph.UI.Internal.Utilities
     {
         private readonly ILogger<TextureEditUtility> logger;
         private readonly IServiceProvider provider;
-        private readonly IAppSettings appSettings;
+        private readonly IAppSettingsManager appSettingsMgr;
         private readonly IProjectContextManager projectContextMgr;
 
         private CancellationTokenSource mergedTokenSource;
@@ -32,10 +32,10 @@ namespace PixelGraph.UI.Internal.Utilities
         public TextureEditUtility(
             ILogger<TextureEditUtility> logger,
             IServiceProvider provider,
-            IAppSettings appSettings,
+            IAppSettingsManager appSettingsMgr,
             IProjectContextManager projectContextMgr)
         {
-            this.appSettings = appSettings;
+            this.appSettingsMgr = appSettingsMgr;
             this.provider = provider;
             this.projectContextMgr = projectContextMgr;
             this.logger = logger;
@@ -74,8 +74,8 @@ namespace PixelGraph.UI.Internal.Utilities
 
                 var info = new ProcessStartInfo {
                     UseShellExecute = false,
-                    FileName = appSettings.Data.TextureEditorExecutable,
-                    Arguments = appSettings.Data.TextureEditorArguments
+                    FileName = appSettingsMgr.Data.TextureEditorExecutable,
+                    Arguments = appSettingsMgr.Data.TextureEditorArguments
                         .Replace("$1", tempFile),
                 };
 

@@ -11,10 +11,10 @@ namespace PixelGraph.UI.Internal.Utilities
 
     internal class ThemeHelper : IThemeHelper
     {
-        private readonly IAppSettings settings;
+        private readonly IAppSettingsManager settings;
 
 
-        public ThemeHelper(IAppSettings settings)
+        public ThemeHelper(IAppSettingsManager settings)
         {
             this.settings = settings;
         }

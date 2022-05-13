@@ -8,7 +8,7 @@ namespace PixelGraph.UI.ViewModels
 {
     internal class TermsOfServiceViewModel : ModelBase
     {
-        private IAppSettings appSettings;
+        private IAppSettingsManager appSettings;
         private bool _hasNotAccepted;
 
         public bool HasNotAccepted {
@@ -22,7 +22,7 @@ namespace PixelGraph.UI.ViewModels
 
         public void Initialize(IServiceProvider provider)
         {
-            appSettings = provider.GetRequiredService<IAppSettings>();
+            appSettings = provider.GetRequiredService<IAppSettingsManager>();
             HasNotAccepted = appSettings.Data.AcceptedTermsOfServiceVersion != AppSettingsDataModel.CurrentTermsVersion;
         }
 

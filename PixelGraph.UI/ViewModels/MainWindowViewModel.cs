@@ -46,6 +46,7 @@ namespace PixelGraph.UI.ViewModels
         private readonly object busyLock;
 
         private ILogger<MainWindowViewModel> logger;
+        private IAppSettingsManager appSettingsMgr;
         private ITabPreviewManager tabPreviewMgr;
         private IProjectContextManager projectContextMgr;
         private IPublishLocationManager publishLocationMgr;
@@ -66,7 +67,8 @@ namespace PixelGraph.UI.ViewModels
         private ITabModel _tabListSelection;
         private ITabModel _previewTab;
         private bool _isPreviewTabSelected;
-        private bool _enableRenderPreview;
+        private bool _isRenderPreviewOn;
+        private bool _isRenderPreviewEnabled;
         private EditModes _editMode;
         private string _selectedTag;
 
@@ -80,7 +82,6 @@ namespace PixelGraph.UI.ViewModels
         public TexturePreviewModel TextureModel {get;}
         public ObservableCollection<ITabModel> TabList {get;}
         public ICommand TabCloseButtonCommand {get;}
-        public bool SupportsRender {get;}
 
 #if NORENDER
         public MockScenePropertiesModel SceneProperties {get;}
@@ -148,10 +149,23 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public bool EnableRenderPreview {
-            get => _enableRenderPreview;
+        public bool IsRenderPreviewEnabled {
+            get => _isRenderPreviewEnabled && RenderPreview.IsSupported;
+            private set {
+                if (_isRenderPreviewEnabled == value) return;
+                _isRenderPreviewEnabled = value;
+                OnPropertyChanged();
+
+                OnPropertyChanged(nameof(IsRenderPreviewOn));
+                OnViewModeChanged();
+            }
+        }
+
+        public bool IsRenderPreviewOn {
+            get => _isRenderPreviewOn && _isRenderPreviewEnabled && RenderPreview.IsSupported;
             set {
-                _enableRenderPreview = value;
+                if (_isRenderPreviewOn == value) return;
+                _isRenderPreviewOn = value;
                 OnPropertyChanged();
 
                 OnViewModeChanged();
@@ -344,7 +358,6 @@ namespace PixelGraph.UI.ViewModels
             _selectedTag = TextureTags.Color;
 
 #if !NORENDER
-            SupportsRender = true;
             SceneProperties = new ScenePropertiesModel();
             RenderProperties = new RenderPropertiesModel();
 #endif
@@ -357,6 +370,7 @@ namespace PixelGraph.UI.ViewModels
             _provider = provider;
 
             logger = provider.GetRequiredService<ILogger<MainWindowViewModel>>();
+            appSettingsMgr = provider.GetRequiredService<IAppSettingsManager>();
             tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
             projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
             publishLocationMgr = provider.GetRequiredService<IPublishLocationManager>();
@@ -368,10 +382,8 @@ namespace PixelGraph.UI.ViewModels
         {
             UpdatePublishLocations();
 
-            var settings = _provider.GetRequiredService<IAppSettings>();
-
-            if (settings.Data.SelectedPublishLocation != null) {
-                var location = PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, settings.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
+            if (appSettingsMgr.Data.SelectedPublishLocation != null) {
+                var location = PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, appSettingsMgr.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
                 if (location != null) SelectedLocation = location;
             }
         }
@@ -574,6 +586,11 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
+        public void LoadAppSettings()
+        {
+            IsRenderPreviewEnabled = appSettingsMgr.Data.RenderPreview?.Enabled ?? RenderPreviewSettings.Default_Enabled;
+        }
+
         public void ClearPreviewTab()
         {
             if (PreviewTab == null) return;
@@ -614,20 +631,17 @@ namespace PixelGraph.UI.ViewModels
 
         public bool HasAcceptedPatreonNotification()
         {
-            var settings = _provider.GetRequiredService<IAppSettings>();
-            return settings.Data.HasAcceptedPatreonNotification ?? false;
+            return appSettingsMgr.Data.HasAcceptedPatreonNotification ?? false;
         }
 
         public bool HasAcceptedLicenseAgreement()
         {
-            var settings = _provider.GetRequiredService<IAppSettings>();
-            return settings.Data.AcceptedLicenseAgreementVersion == AppSettingsDataModel.CurrentLicenseVersion;
+            return appSettingsMgr.Data.AcceptedLicenseAgreementVersion == AppSettingsDataModel.CurrentLicenseVersion;
         }
 
         public bool HasAcceptedTermsOfService()
         {
-            var settings = _provider.GetRequiredService<IAppSettings>();
-            return settings.Data.AcceptedTermsOfServiceVersion == AppSettingsDataModel.CurrentTermsVersion;
+            return appSettingsMgr.Data.AcceptedTermsOfServiceVersion == AppSettingsDataModel.CurrentTermsVersion;
         }
 
         public void UpdatePublishLocations()
@@ -691,7 +705,7 @@ namespace PixelGraph.UI.ViewModels
                     if (material == null) return;
 
 #if !NORENDER
-                    if (EnableRenderPreview) {
+                    if (IsRenderPreviewOn) {
                         if (!context.IsMaterialBuilderValid) {
                             try {
                                 var renderContext = BuildRenderContext();
@@ -731,7 +745,7 @@ namespace PixelGraph.UI.ViewModels
                         });
                     }
 #endif
-                    if (!EnableRenderPreview) {
+                    if (!IsRenderPreviewOn) {
                         if (!context.IsLayerValid) {
                             var image = await Task.Run(async () => {
                                 using var previewBuilder = _provider.GetRequiredService<ILayerPreviewBuilder>();
@@ -792,50 +806,39 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task GenerateNormalAsync(MaterialProperties material, string filename, CancellationToken token = default)
         {
-            if (!TryStartBusy()) return;
-
             var projectContext = projectContextMgr.GetContext();
 
-            try {
-                var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
-                var inputEncoding = inputFormat?.Create() ?? new PackEncoding();
-                inputEncoding.Merge(projectContext.Project.Input);
-                inputEncoding.Merge(material);
+            var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
+            var inputEncoding = inputFormat?.Create() ?? new PackEncoding();
+            inputEncoding.Merge(projectContext.Project.Input);
+            inputEncoding.Merge(material);
 
-                await Task.Factory.StartNew(async () => {
-                    var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
+            var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
 
-                    serviceBuilder.Initialize();
-                    serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+            serviceBuilder.Initialize();
+            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
 
-                    await using var scope = serviceBuilder.Build();
+            await using var scope = serviceBuilder.Build();
 
-                    var context = scope.GetRequiredService<ITextureGraphContext>();
-                    var graph = scope.GetRequiredService<ITextureNormalGraph>();
-                    var reader = scope.GetRequiredService<IInputReader>();
+            var context = scope.GetRequiredService<ITextureGraphContext>();
+            var graph = scope.GetRequiredService<ITextureNormalGraph>();
+            var reader = scope.GetRequiredService<IInputReader>();
 
-                    context.Project = (IProjectDescription)projectContext.Project.Clone();
-                    context.Material = material;
+            context.Project = (IProjectDescription)projectContext.Project.Clone();
+            context.Material = material;
 
-                    var matMetaFileIn = NamingStructure.GetInputMetaName(material);
-                    context.IsAnimated = reader.FileExists(matMetaFileIn);
+            var matMetaFileIn = NamingStructure.GetInputMetaName(material);
+            context.IsAnimated = reader.FileExists(matMetaFileIn);
 
-                    context.InputEncoding = inputEncoding.GetMapped().ToList();
-                    context.OutputEncoding = inputEncoding.GetMapped().ToList();
+            context.InputEncoding = inputEncoding.GetMapped().ToList();
+            context.OutputEncoding = inputEncoding.GetMapped().ToList();
 
-                    using var normalImage = await graph.GenerateAsync(token);
-                    await normalImage.SaveAsync(filename, token);
-                }, token);
-            }
-            finally {
-                EndBusy();
-            }
+            using var normalImage = await graph.GenerateAsync(token);
+            await normalImage.SaveAsync(filename, token);
         }
 
         public async Task GenerateOcclusionAsync(MaterialProperties material, string filename, CancellationToken token = default)
         {
-            //if (!TryStartBusy()) return;
-
             var projectContext = projectContextMgr.GetContext();
 
             var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
