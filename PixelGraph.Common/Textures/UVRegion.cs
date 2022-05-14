@@ -26,10 +26,10 @@ namespace PixelGraph.Common.Textures
 
         public readonly void ScaleTo(in int width, in int height, ref Rectangle region)
         {
-            region.X = (int)Math.Floor(Left * width + 0.25f);
-            region.Y = (int)Math.Floor(Top * height + 0.25f);
-            region.Width = (int)Math.Floor((Right - Left) * width + 0.25f);
-            region.Height = (int)Math.Floor((Bottom - Top) * height + 0.25f);
+            region.X = (int)Math.Round(Left * width);
+            region.Y = (int)Math.Round(Top * height);
+            region.Width = (int)Math.Round((Right - Left) * width);
+            region.Height = (int)Math.Round((Bottom - Top) * height);
         }
 
         public readonly Rectangle ScaleTo(in int width, in int height)
@@ -39,11 +39,11 @@ namespace PixelGraph.Common.Textures
             return region;
         }
 
-        public readonly void GetTexCoord(in double x, in double y, out double fx, out double fy)
-        {
-            fx = Left * (1d - x) + Right * x;
-            fy = Top * (1d - y) + Bottom * y;
-        }
+        //public readonly void GetTexCoord(in double x, in double y, out double fx, out double fy)
+        //{
+        //    fx = Left * (1d - x) + Right * x;
+        //    fy = Top * (1d - y) + Bottom * y;
+        //}
 
         public static readonly UVRegion Empty = new();
         public static readonly UVRegion Full = new(0f, 0f, 1f, 1f);

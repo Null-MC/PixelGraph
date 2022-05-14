@@ -376,6 +376,8 @@ namespace PixelGraph.UI.ViewModels
             publishLocationMgr = provider.GetRequiredService<IPublishLocationManager>();
             materialCache = provider.GetRequiredService<MaterialPropertiesCache>();
             editUtility = provider.GetRequiredService<TextureEditUtility>();
+
+            LoadAppSettings();
         }
 
         public void Initialize()

@@ -1,4 +1,5 @@
-﻿using PixelGraph.Common.ConnectedTextures;
+﻿using System;
+using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Textures.Graphing;
 using System.Collections.Generic;
 using System.Linq;
@@ -108,7 +109,7 @@ namespace PixelGraph.Common.Textures
                 if (TargetFrame.HasValue) return new [] {GetPublishPartFrame(TargetFrame.Value, partIndex)};
 
                 return Enumerable.Range(0, DestFrameCount)
-                    .Select(f => GetPublishPartFrame(f, partIndex));
+                    .Select(i => GetPublishPartFrame(i, partIndex));
             }
 
             if (TargetPart.HasValue) {
@@ -157,10 +158,10 @@ namespace PixelGraph.Common.Textures
             var frame = new TexturePublishFrame {
                 //SourceBounds = GetFrameTileBounds(frameIndex, SourceFrameCount, tileIndex),
                 DestBounds = new UVRegion {
-                    Left = 0f,
-                    Top = (float)(frameIndex * frameHeight),
-                    Right = 1f,
-                    Bottom = (float)((frameIndex + 1) * frameHeight),
+                    Left = 0d,
+                    Top = frameIndex * frameHeight,
+                    Right = 1d,
+                    Bottom = (frameIndex + 1) * frameHeight,
                 },
             };
 
@@ -181,19 +182,19 @@ namespace PixelGraph.Common.Textures
 
         private static void GetFrameBounds(in int frame, in int frameCount, out UVRegion region)
         {
-            var frameHeight = 1f;
+            var frameHeight = 1d;
             if (frameCount > 1) frameHeight /= frameCount;
             var wrappedIndex = frame % frameCount;
 
-            region.Left = 0f;
+            region.Left = 0d;
             region.Top = wrappedIndex * frameHeight;
-            region.Right = 1f;
+            region.Right = 1d;
             region.Bottom = (wrappedIndex + 1) * frameHeight;
         }
 
         public void GetFrameTileBounds(in int frameIndex, in int frameCount, in int tileIndex, out UVRegion region)
         {
-            var frameHeight = 1f;
+            var frameHeight = 1d;
             if (frameCount > 1) frameHeight /= frameCount;
             var wrappedIndex = frameIndex % frameCount;
 
@@ -206,10 +207,10 @@ namespace PixelGraph.Common.Textures
                     return;
                 }
 
-                region.Left = (float)(part.Left ?? 0) / maxWidth;
-                region.Top = (float)(part.Top ?? 0) / maxHeight * frameHeight + wrappedIndex * frameHeight;
-                region.Right = (float)((part.Left ?? 0) + (part.Width ?? 1)) / maxWidth;
-                region.Bottom = (float)((part.Top ?? 0) + (part.Height ?? 1)) / maxHeight * frameHeight;
+                region.Left = (part.Left ?? 0) / (double)maxWidth;
+                region.Top = (part.Top ?? 0) / (double)maxHeight * frameHeight + wrappedIndex * frameHeight;
+                region.Right = ((part.Left ?? 0) + (part.Width ?? 1)) / (double)maxWidth;
+                region.Bottom = ((part.Top ?? 0) + (part.Height ?? 1)) / (double)maxHeight * frameHeight;
                 return;
             }
 
@@ -218,11 +219,11 @@ namespace PixelGraph.Common.Textures
                 var tileCountX = bounds?.Width ?? 1;
                 var tileCountY = bounds?.Height ?? 1;
 
-                var tileWidth = 1f / tileCountX;
+                var tileWidth = 1d / tileCountX;
                 var tileHeight = frameHeight / tileCountY;
 
                 var col = tileIndex % tileCountX;
-                var row = (int)(tileIndex / tileCountX + 0.25f);
+                var row = (int)Math.Floor(tileIndex / (double)tileCountX + double.Epsilon);
 
                 region.Left = col * tileWidth;
                 region.Top = wrappedIndex * frameHeight + row * tileHeight;

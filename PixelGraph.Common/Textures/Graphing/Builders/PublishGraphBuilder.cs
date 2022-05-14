@@ -313,11 +313,12 @@ namespace PixelGraph.Common.Textures.Graphing.Builders
                     ImageProcessors.ImageProcessors.CopyRegion(image, sourceX, sourceY, regionImage, outBounds);
                 }
                 else {
+                    var outBounds = new Rectangle();
                     foreach (var frame in part.Frames) {
-                        var sourceX = (int) (frame.SourceBounds.Left * srcWidth);
-                        var sourceY = (int) (frame.SourceBounds.Top * srcHeight);
+                        var sourceX = (int)Math.Round(frame.SourceBounds.Left * srcWidth);
+                        var sourceY = (int)Math.Round(frame.SourceBounds.Top * srcHeight);
 
-                        var outBounds = frame.DestBounds.ScaleTo(partWidth, partHeight);
+                        frame.DestBounds.ScaleTo(partWidth, partHeight, ref outBounds);
                         ImageProcessors.ImageProcessors.CopyRegion(image, sourceX, sourceY, regionImage, outBounds);
                     }
                 }

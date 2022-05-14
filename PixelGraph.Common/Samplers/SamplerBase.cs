@@ -35,14 +35,16 @@ namespace PixelGraph.Common.Samplers
 
         protected void GetTexCoord(in double x, in double y, out float fx, out float fy)
         {
-            fx = (float)(Bounds.Left + x * Bounds.Width);
-            fy = (float)(Bounds.Top + y * Bounds.Height);
+            //fx = (float)(Bounds.Left + x * Bounds.Width);
+            //fy = (float)(Bounds.Top + y * Bounds.Height);
+            GetTexCoordX(in x, out fx);
+            GetTexCoordY(in y, out fy);
         }
 
-        //protected void GetTexCoordX(in double x, out float fx)
-        //{
-        //    fx = (float)(Bounds.Left + x * Bounds.Width);
-        //}
+        protected void GetTexCoordX(in double x, out float fx)
+        {
+            fx = (float)(Bounds.Left + x * Bounds.Width);
+        }
 
         protected void GetTexCoordY(in double y, out float fy)
         {

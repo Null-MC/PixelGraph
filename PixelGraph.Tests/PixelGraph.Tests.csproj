@@ -10,6 +10,7 @@
     <Compile Remove="EncodingChannelTests\PerceptualSmoothTests.cs" />
     <Compile Remove="EncodingChannelTests\PorositySSSTests.cs" />
     <Compile Remove="ImportTests\RawImportTests.cs" />
+    <Compile Remove="PixelContextTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

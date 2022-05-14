@@ -9,7 +9,7 @@ using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors
 {
-    internal class NormalMapProcessor<THeight> : PixelProcessor
+    internal class NormalMapProcessor<THeight> : PixelRowProcessor
         where THeight : unmanaged, IPixel<THeight>
     {
         private readonly Options options;
@@ -30,61 +30,67 @@ namespace PixelGraph.Common.ImageProcessors
             SobelHelper.BuildOperator(out _operator, kernelSize);
         }
 
-        protected override void ProcessPixel<TPixel>(ref TPixel pixel, in PixelContext context)
+        protected override void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> row)
         {
-            ProcessPixelNormal(in context, out var normal);
-
-            NormalEncoding.EncodeNormal(in normal, out var result);
-
+            Vector3 normal, result;
             Vector4 pixelOut;
-            pixelOut.X = result.X * 0.5f + 0.5f;
-            pixelOut.Y = result.Y * 0.5f + 0.5f;
-            pixelOut.Z = result.Z;
-            pixelOut.W = 1f;
+            Vector2 derivative;
+            float strength;
 
-            pixel.FromScaledVector4(pixelOut);
-        }
-
-        private void ProcessPixelNormal(in PixelContext context, out Vector3 normal)
-        {
             var k = new float[kernelSize, kernelSize];
-            PopulateKernel(ref k, in context);
+            for (var x = 0; x < context.Bounds.Width; x++) {
+                //ProcessPixelNormal(ref k, in context, in x, out normal);
+                PopulateKernel(ref k, in context, in x);
 
-            if (options.Method == NormalMapMethods.SobelHigh) {
-                ApplyHighPass(ref k[0,0], in k[1,1]);
-                ApplyHighPass(ref k[1,0], in k[1,1]);
-                ApplyHighPass(ref k[2,0], in k[1,1]);
-                ApplyHighPass(ref k[0,1], in k[1,1]);
-                ApplyHighPass(ref k[2,1], in k[1,1]);
-                ApplyHighPass(ref k[0,2], in k[1,1]);
-                ApplyHighPass(ref k[1,2], in k[1,1]);
-                ApplyHighPass(ref k[2,2], in k[1,1]);
+                if (options.Method == NormalMapMethods.SobelHigh) {
+                    ApplyHighPass(ref k[0,0], in k[1,1]);
+                    ApplyHighPass(ref k[1,0], in k[1,1]);
+                    ApplyHighPass(ref k[2,0], in k[1,1]);
+                    ApplyHighPass(ref k[0,1], in k[1,1]);
+                    ApplyHighPass(ref k[2,1], in k[1,1]);
+                    ApplyHighPass(ref k[0,2], in k[1,1]);
+                    ApplyHighPass(ref k[1,2], in k[1,1]);
+                    ApplyHighPass(ref k[2,2], in k[1,1]);
+                }
+                else if (options.Method == NormalMapMethods.SobelLow) {
+                    ApplyLowPass(ref k[0,0], in k[1,1]);
+                    ApplyLowPass(ref k[1,0], in k[1,1]);
+                    ApplyLowPass(ref k[2,0], in k[1,1]);
+                    ApplyLowPass(ref k[0,1], in k[1,1]);
+                    ApplyLowPass(ref k[2,1], in k[1,1]);
+                    ApplyLowPass(ref k[0,2], in k[1,1]);
+                    ApplyLowPass(ref k[1,2], in k[1,1]);
+                    ApplyLowPass(ref k[2,2], in k[1,1]);
+                }
+
+                strength = options.Strength / MathF.Pow(kernelSize, 2f) * 10f;
+
+                SobelHelper.ApplyOperator(ref k, in kernelSize, in _operator);
+                SobelHelper.GetDerivative(ref k, in kernelSize, out derivative);
+                SobelHelper.CalculateNormal(in derivative, in strength, out normal);
+
+                NormalEncoding.EncodeNormal(in normal, out result);
+
+                pixelOut.X = result.X * 0.5f + 0.5f;
+                pixelOut.Y = result.Y * 0.5f + 0.5f;
+                pixelOut.Z = result.Z;
+                pixelOut.W = 1f;
+
+                row[x].FromScaledVector4(pixelOut);
             }
-            else if (options.Method == NormalMapMethods.SobelLow) {
-                ApplyLowPass(ref k[0,0], in k[1,1]);
-                ApplyLowPass(ref k[1,0], in k[1,1]);
-                ApplyLowPass(ref k[2,0], in k[1,1]);
-                ApplyLowPass(ref k[0,1], in k[1,1]);
-                ApplyLowPass(ref k[2,1], in k[1,1]);
-                ApplyLowPass(ref k[0,2], in k[1,1]);
-                ApplyLowPass(ref k[1,2], in k[1,1]);
-                ApplyLowPass(ref k[2,2], in k[1,1]);
-            }
-
-            var strength = options.Strength / MathF.Pow(kernelSize, 2f) * 10f;
-
-            SobelHelper.ApplyOperator(ref k, in kernelSize, in _operator);
-            SobelHelper.GetDerivative(ref k, in kernelSize, out var derivative);
-            SobelHelper.CalculateNormal(in derivative, in strength, out normal);
         }
 
-        private void PopulateKernel(ref float[,] kernel, in PixelContext context)
+        private void PopulateKernel(ref float[,] kernel, in PixelRowContext context, in int x)
         {
             var ox = (kernelSize - 1) / 2;
             var oy = (kernelSize - 1) / 2;
 
-            for (byte kY = 0; kY < kernelSize; kY++) {
-                var pY = context.Y + kY - oy;
+            byte kX, kY;
+            int pX, pY;
+            Vector4 pixel;
+
+            for (kY = 0; kY < kernelSize; kY++) {
+                pY = context.Y + kY - oy;
 
                 if (options.WrapY) context.WrapY(ref pY);
                 else context.ClampY(ref pY);
@@ -92,13 +98,13 @@ namespace PixelGraph.Common.ImageProcessors
                 var row = options.Source.DangerousGetPixelRowMemory(pY)
                     .Slice(context.Bounds.X, context.Bounds.Width).Span;
 
-                for (byte kX = 0; kX < kernelSize; kX++) {
-                    var pX = context.X + kX - ox;
+                for (kX = 0; kX < kernelSize; kX++) {
+                    pX = x + kX - ox;
 
                     if (options.WrapX) context.WrapX(ref pX);
                     else context.ClampX(ref pX);
 
-                    var pixel = row[pX - context.Bounds.X].ToScaledVector4();
+                    pixel = row[pX - context.Bounds.X].ToScaledVector4();
                     pixel.GetChannelValue(in options.HeightChannel, out kernel[kX, kY]);
                 }
             }

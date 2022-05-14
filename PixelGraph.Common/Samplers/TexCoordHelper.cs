@@ -6,12 +6,22 @@ namespace PixelGraph.Common.Samplers
     {
         public static void WrapCoordX(ref int x, in Rectangle bounds)
         {
+            if (bounds.Width <= 0) {
+                x = bounds.X;
+                return;
+            }
+
             while (x < bounds.Left) x += bounds.Width;
             while (x >= bounds.Right) x -= bounds.Width;
         }
 
         public static void WrapCoordY(ref int y, in Rectangle bounds)
         {
+            if (bounds.Height <= 0) {
+                y = bounds.Y;
+                return;
+            }
+
             while (y < bounds.Top) y += bounds.Height;
             while (y >= bounds.Bottom) y -= bounds.Height;
         }

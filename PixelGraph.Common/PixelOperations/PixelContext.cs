@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp;
+﻿using PixelGraph.Common.Samplers;
+using SixLabors.ImageSharp;
 
 namespace PixelGraph.Common.PixelOperations
 {
@@ -51,14 +52,12 @@ namespace PixelGraph.Common.PixelOperations
 
         public readonly void ClampX(ref int x)
         {
-            if (x < Bounds.Left) x = Bounds.Left;
-            if (x >= Bounds.Right) x = Bounds.Right - 1;
+            TexCoordHelper.ClampCoordX(ref x, in Bounds);
         }
 
         public readonly void ClampY(ref int y)
         {
-            if (y < Bounds.Top) y = Bounds.Top;
-            if (y >= Bounds.Bottom) y = Bounds.Bottom - 1;
+            TexCoordHelper.ClampCoordY(ref y, in Bounds);
         }
 
         public readonly void Clamp(ref int x, ref int y)
