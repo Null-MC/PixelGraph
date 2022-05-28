@@ -36,16 +36,16 @@ namespace PixelGraph.CLI.CommandLine
             this.logger = logger;
 
             Command = new Command("publish", "Publishes the specified profile.") {
-                Handler = CommandHandler.Create<FileInfo, DirectoryInfo, FileInfo, string, bool, int>(RunAsync),
+                Handler = CommandHandler.Create<FileInfo, string, DirectoryInfo, FileInfo, bool, int>(RunAsync),
             };
 
             Command.AddOption(new Option<FileInfo>(
                 new [] {"-p", "--project-file"}, () => new FileInfo("project.yml"),
                 "The filename of the project to publish."));
 
-            Command.AddOption(new Option<FileInfo>(
+            Command.AddOption(new Option<string>(
                 new [] {"-n", "--profile-name"},
-                "The filename of the project to publish."));
+                "The name of the publish-profile within the project to publish."));
 
             Command.AddOption(new Option<DirectoryInfo>(
                 new[] { "-o", "--output" },
@@ -64,29 +64,38 @@ namespace PixelGraph.CLI.CommandLine
                 "Sets the level of concurrency for importing/publishing files. Default value is half of the system processor count."));
         }
 
-        private async Task<int> RunAsync(FileInfo project, DirectoryInfo destination, FileInfo zip, string profile, bool clean, int concurrency)
+        private async Task<int> RunAsync(FileInfo projectFile, string profileName, DirectoryInfo destination, FileInfo zip, bool clean, int concurrency)
         {
             var destPath = zip?.FullName ?? destination.FullName;
 
             try {
+                if (projectFile?.Exists != true)
+                    throw new ApplicationException($"Project file not found! [{projectFile?.FullName}]");
+
+                if (string.IsNullOrWhiteSpace(profileName))
+                    throw new ApplicationException("Profile name is undefined!");
+
                 ProjectData projectData;
-                await using (var stream = project.OpenRead()) {
+                await using (var stream = projectFile.OpenRead()) {
                     projectData = ProjectSerializer.Parse(stream);
                 }
-                
+
+                var profile = projectData.Profiles.Find(p => string.Equals(p.Name, profileName, StringComparison.InvariantCultureIgnoreCase));
+                if (profile == null) throw new ApplicationException($"Profile not found in project! [{profileName}]");
+
                 var context = new ProjectPublishContext {
                     Project = projectData,
-                    Profile = projectData.Profiles.Find(p => string.Equals(p.Name, profile, StringComparison.InvariantCultureIgnoreCase)),
-                    LastUpdated = project.LastWriteTimeUtc,
+                    Profile = profile,
+                    LastUpdated = projectFile.LastWriteTimeUtc,
                 };
 
                 ConsoleEx.WriteLine("\nPublishing...", ConsoleColor.White);
                 ConsoleEx.Write("  Project     : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(project.FullName, ConsoleColor.Cyan);
+                ConsoleEx.WriteLine(projectFile.FullName, ConsoleColor.Cyan);
                 ConsoleEx.Write("  Destination : ", ConsoleColor.Gray);
                 ConsoleEx.WriteLine(destPath, ConsoleColor.Cyan);
                 ConsoleEx.Write("  Profile     : ", ConsoleColor.Gray);
-                ConsoleEx.WriteLine(profile, ConsoleColor.Cyan);
+                ConsoleEx.WriteLine(profileName, ConsoleColor.Cyan);
                 ConsoleEx.Write("  Concurrency : ", ConsoleColor.Gray);
                 ConsoleEx.WriteLine(concurrency.ToString("N0"), ConsoleColor.Cyan);
                 ConsoleEx.WriteLine();
@@ -98,7 +107,7 @@ namespace PixelGraph.CLI.CommandLine
                 executor.CleanDestination = clean;
                 executor.AsArchive = zip != null;
 
-                await executor.ExecuteAsync(project.DirectoryName, destPath, lifetime.Token);
+                await executor.ExecuteAsync(projectFile.DirectoryName, destPath, lifetime.Token);
 
                 return 0;
             }
