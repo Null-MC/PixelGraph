@@ -1,6 +1,6 @@
 ﻿using PixelGraph.Common.Projects;
 
-namespace PixelGraph.UI.Internal
+namespace PixelGraph.UI.Internal.Projects
 {
     public interface IProjectContext
     {

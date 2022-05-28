@@ -7,6 +7,7 @@ using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal.Extensions;
+using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Settings;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;

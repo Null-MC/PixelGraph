@@ -8,10 +8,6 @@ static const float sqrt2 = sqrt(2.0f);
 float get_parallax_length(const in float2 uv_size)
 {
 	return sqrt(lengthSq(uv_size) * 0.5f) * ParallaxDepth;
-	//float2 r;
-	//r.y = min(uv_size.x / uv_size.y, 1.0f);
-	//r.x = min(uv_size.y / uv_size.x, 1.0f);
-	//return r * ParallaxDepth;
 }
 
 float2 get_parallax_offset(const in float3 lightT)
@@ -166,8 +162,10 @@ float3 apply_slope_normal(const in float2 tex, const in float2 step_dir, const i
 	const float2 pixel_size = rcp(tex_size.xy);
 
 	const float2 tex_snapped = floor(tex * tex_size.xy) * pixel_size;
-    const float2 tex_offset = tex - tex_snapped - 0.5f * pixel_size;
+    float2 tex_offset = tex - tex_snapped - 0.5f * pixel_size;
 	const float2 step_sign = sign(step_dir);
+
+    tex_offset.x *= tex_size.x / tex_size.y;
 
 	const float2 tex_x = tex_snapped + float2(pixel_size.x * step_sign.x, 0.0f);
 	const float height_x = tex_normal_height.SampleLevel(sampler_height, tex_x, 0).a;

@@ -9,11 +9,11 @@ using PixelGraph.Rendering;
 using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.Rendering.LUTs;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.Internal.Models;
 using SharpDX;
 using System;
 using System.Linq;
 using System.Windows.Media.Media3D;
+using PixelGraph.UI.Internal.IO.Models;
 using OrthographicCamera = HelixToolkit.Wpf.SharpDX.OrthographicCamera;
 using PerspectiveCamera = HelixToolkit.Wpf.SharpDX.PerspectiveCamera;
 

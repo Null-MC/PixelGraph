@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Material;
-using PixelGraph.UI.Internal.Models;
 using PixelGraph.UI.Models;
 using System;
 using System.Collections.Generic;
@@ -9,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using PixelGraph.UI.Internal.IO.Models;
 
 namespace PixelGraph.UI.Controls
 {

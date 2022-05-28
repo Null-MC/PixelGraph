@@ -11,7 +11,8 @@ namespace PixelGraph.Common.ImageProcessors
     {
         public Rectangle Bounds;
         public ColorChannel[] Colors;
-        public float SizeX, SizeY;
+        public float SizeTop, SizeBottom;
+        public float SizeLeft, SizeRight;
         public float Strength = 1f;
         public bool IsGrayscale;
 
@@ -51,28 +52,76 @@ namespace PixelGraph.Common.ImageProcessors
         {
             var hasChanges = false;
 
-            if (SizeX > float.Epsilon) {
-                var right = Bounds.Width - 1;
-                var sizeX = (int) MathF.Ceiling(SizeX * Bounds.Width);
-                var skipX = x > sizeX && x < right - sizeX;
+            //if (SizeX > float.Epsilon) {
+            //    var right = Bounds.Width - 1;
+            //    var sizeX = (int) MathF.Ceiling(SizeX * Bounds.Width);
+            //    var skipX = x > sizeX && x < right - sizeX;
 
-                if (!skipX) {
-                    var fLeft = 1f - Math.Clamp(x / (float)sizeX, 0f, 1f);
-                    var fRight = 1f - Math.Clamp((right - x) / (float)sizeX, 0f, 1f);
-                    fx = MathF.Max(fLeft, fRight);
+            //    if (!skipX) {
+            //        var fLeft = 1f - Math.Clamp(x / (float)sizeX, 0f, 1f);
+            //        var fRight = 1f - Math.Clamp((right - x) / (float)sizeX, 0f, 1f);
+            //        fx = MathF.Max(fLeft, fRight);
+            //        hasChanges = true;
+            //    }
+            //}
+
+            if (SizeLeft > float.Epsilon) {
+                //var right = Bounds.Width - 1;
+                var sizeLeft = (int) MathF.Ceiling(SizeLeft * Bounds.Width);
+                var skipLeft = x > sizeLeft;
+
+                if (!skipLeft) {
+                    var fLeft = 1f - Math.Clamp(x / (float)sizeLeft, 0f, 1f);
+                    fx = MathF.Max(fLeft, fx);
                     hasChanges = true;
                 }
             }
 
-            if (SizeY > float.Epsilon) {
-                var bottom = Bounds.Height - 1;
-                var sizeY = (int) MathF.Ceiling(SizeY * Bounds.Height);
-                var skipY = y > 0 + sizeY && y < bottom - sizeY;
+            // ERROR: There seems to be a bug with only the right edge! test: right=0.01
+            if (SizeRight > float.Epsilon) {
+                var right = Bounds.Width - 1;
+                var sizeRight = (int)MathF.Ceiling(SizeRight * Bounds.Width);
+                var skipRight = x < right - sizeRight;
 
-                if (!skipY) {
-                    var fTop = 1f - Math.Clamp(y / (float) sizeY, 0f, 1f);
-                    var fBottom = 1f - Math.Clamp((bottom - y) / (float) sizeY, 0f, 1f);
-                    fy = MathF.Max(fTop, fBottom);
+                if (!skipRight) {
+                    var fRight = 1f - Math.Clamp((right - x) / (float)sizeRight, 0f, 1f);
+                    fx = MathF.Max(fx, fRight);
+                    hasChanges = true;
+                }
+            }
+
+            //if (SizeY > float.Epsilon) {
+            //    var bottom = Bounds.Height - 1;
+            //    var sizeY = (int) MathF.Ceiling(SizeY * Bounds.Height);
+            //    var skipY = y > 0 + sizeY && y < bottom - sizeY;
+
+            //    if (!skipY) {
+            //        var fTop = 1f - Math.Clamp(y / (float) sizeY, 0f, 1f);
+            //        var fBottom = 1f - Math.Clamp((bottom - y) / (float) sizeY, 0f, 1f);
+            //        fy = MathF.Max(fTop, fBottom);
+            //        hasChanges = true;
+            //    }
+            //}
+
+            if (SizeTop > float.Epsilon) {
+                var sizeTop = (int) MathF.Ceiling(SizeTop * Bounds.Height);
+                var skipTop = y > sizeTop;
+
+                if (!skipTop) {
+                    var fTop = 1f - Math.Clamp(y / (float) sizeTop, 0f, 1f);
+                    fy = MathF.Max(fTop, fy);
+                    hasChanges = true;
+                }
+            }
+
+            if (SizeBottom > float.Epsilon) {
+                var bottom = Bounds.Height - 1;
+                var sizeBottom = (int) MathF.Ceiling(SizeBottom * Bounds.Height);
+                var skipBottom = y < bottom - sizeBottom;
+
+                if (!skipBottom) {
+                    var fBottom = 1f - Math.Clamp((bottom - y) / (float) sizeBottom, 0f, 1f);
+                    fy = MathF.Max(fy, fBottom);
                     hasChanges = true;
                 }
             }

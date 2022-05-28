@@ -5,6 +5,7 @@ using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewModels;
 using System;
+using PixelGraph.UI.Internal.Logging;
 
 namespace PixelGraph.UI.Models
 {

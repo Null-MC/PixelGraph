@@ -49,7 +49,14 @@
                                      ToolTip="The maximum number of concurrent operations to perform during import/publishing. Default value is the number of system cores."
                                      mah:TextBoxHelper.Watermark="{Binding DefaultConcurrency, Mode=OneWay}"
                                      Text="{Binding App_Concurrency, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
-                            <TextBlock Text="Concurrency" Margin="8,0" FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="Publishing Concurrency" Margin="8,0" FontSize="14" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="8">
+                            <TextBox Width="80" HorizontalContentAlignment="Center"
+                                     ToolTip="The maximum number of recently opened projects to keep track of."
+                                     mah:TextBoxHelper.Watermark="{Binding DefaultMaxRecent, Mode=OneWay}"
+                                     Text="{Binding App_MaxRecent, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                            <TextBlock Text="Max Recent Projects" Margin="8,0" FontSize="14" VerticalAlignment="Center"/>
                         </StackPanel>
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Width="60" VerticalAlignment="Bottom"

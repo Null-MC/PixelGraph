@@ -7,11 +7,13 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.Projects;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Extensions;
+using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Settings;
 using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.UI.Internal.Logging;
 
 namespace PixelGraph.UI.ViewModels
 {

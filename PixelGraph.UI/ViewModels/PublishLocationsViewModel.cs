@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.IO.Publishing;
 using PixelGraph.UI.Models;
 using System;
 using System.Collections.ObjectModel;
@@ -11,8 +12,8 @@ namespace PixelGraph.UI.ViewModels
     public class PublishLocationsViewModel : ModelBase
     {
         private readonly IPublishLocationManager publishLocationMgr;
-        private ObservableCollection<LocationDisplayModel> _locations;
-        private LocationDisplayModel _selectedLocationItem;
+        private ObservableCollection<PublishLocationDisplayModel> _locations;
+        private PublishLocationDisplayModel _selectedLocationItem;
 
         public bool HasChanges {get; set;}
 
@@ -51,15 +52,15 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public ObservableCollection<LocationDisplayModel> Locations {
+        public ObservableCollection<PublishLocationDisplayModel> Locations {
             get => _locations;
-            set {
+            private set {
                 _locations = value;
                 OnPropertyChanged();
             }
         }
 
-        public LocationDisplayModel SelectedLocationItem {
+        public PublishLocationDisplayModel SelectedLocationItem {
             get => _selectedLocationItem;
             set {
                 _selectedLocationItem = value;
@@ -79,14 +80,16 @@ namespace PixelGraph.UI.ViewModels
 
             publishLocationMgr = provider.GetRequiredService<IPublishLocationManager>();
 
-            var locations = publishLocationMgr.GetLocations().Select(l => new LocationDisplayModel(l)).ToArray();
-            Locations = new ObservableCollection<LocationDisplayModel>(locations);
-            SelectedLocationItem = locations.FirstOrDefault(l => string.Equals(l.DisplayName, publishLocationMgr.SelectedLocation, StringComparison.InvariantCultureIgnoreCase));
+            var locations = publishLocationMgr.GetLocations() ?? Enumerable.Empty<PublishLocation>();
+            var displayLocations = locations.Select(l => new PublishLocationDisplayModel(l)).ToArray();
+            Locations = new ObservableCollection<PublishLocationDisplayModel>(displayLocations);
+
+            SelectedLocationItem = displayLocations.FirstOrDefault(l => string.Equals(l.DisplayName, publishLocationMgr.SelectedLocation, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public void AddNew()
         {
-            var newLocation = new LocationDisplayModel();
+            var newLocation = new PublishLocationDisplayModel();
             Locations.Add(newLocation);
             SelectedLocationItem = newLocation;
             HasChanges = true;
@@ -105,8 +108,8 @@ namespace PixelGraph.UI.ViewModels
         {
             if (!HasSelectedLocation) return;
 
-            var newLocationData = (LocationDataModel)SelectedLocationItem.DataSource.Clone();
-            var newLocation = new LocationDisplayModel(newLocationData);
+            var newLocationData = (PublishLocation)SelectedLocationItem.DataSource.Clone();
+            var newLocation = new PublishLocationDisplayModel(newLocationData);
 
             Locations.Add(newLocation);
             SelectedLocationItem = newLocation;

@@ -1,4 +1,4 @@
-﻿namespace PixelGraph.UI.Internal
+﻿namespace PixelGraph.UI.Internal.Utilities
 {
     internal static class ZoomHelper
     {

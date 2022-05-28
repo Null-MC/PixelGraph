@@ -15,27 +15,24 @@ ps_input main(const vs_input_ex input)
 	output.wp = mul(input.pos, mWorld);
     output.pos = mul(output.wp, mViewProjection);
     output.eye = vEyePos - output.wp.xyz;
-	
-	output.nor = mul(input.nor, (float3x3) mWorld);
-	output.tan = mul(input.tan, (float3x3) mWorld);
-	output.bin = mul(input.bin, (float3x3) mWorld);
 
 	output.tex_min = input.tex_min;
 	output.tex_max = input.tex_max;
 
-
-	output.bin = -output.bin;
+	float3 nor =  normalize(input.nor);
+	float3 tan =  normalize(input.tan);
+	float3 bin = -normalize(input.bin);
 
 	float2 uv_size = input.tex_max - input.tex_min;
-	if (uv_size.x < 0.0f && uv_size.y < 0.0f) {}
-	else if (uv_size.x < 0.0f) output.bin = -output.bin;
-	else if (uv_size.y < 0.0f) output.bin = -output.bin;
-
-	//if (uv_size.x < 0.0f) output.bin = -output.bin;
-	//if (uv_size.y < 0.0f) output.bin = -output.bin;
-
-
 	output.pDepth = get_parallax_length(uv_size);
+
+	//if ((uv_size.x < 0.0f && uv_size.y > 0.0f) || (uv_size.x > 0.0f && uv_size.y < 0.0f)) bin = -bin;
+	//if (sign(uv_size.x) != sign(uv_size.y)) bin = -bin;
+	bin *= sign(uv_size.x * uv_size.y);
+
+	output.tan = mul(tan, (float3x3) mWorld);
+	output.bin = mul(bin, (float3x3) mWorld);
+	output.nor = mul(nor, (float3x3) mWorld);
 
 	const float3x3 mTBN = float3x3(output.tan, output.bin, output.nor);
     output.vT = mul(mTBN, normalize(output.eye.xyz));

@@ -22,7 +22,7 @@ namespace PixelGraph.Common.IO.Texture
             [TextureTags.HCM] = @"(^|[\s-_.])hcm($|[\s-_.])",
             [TextureTags.F0] = @"(^|[\s-_.])f0($|[\s-_.])",
             [TextureTags.Porosity] = @"(^|[\s-_.])porosity($|[\s-_.])",
-            [TextureTags.SubSurfaceScattering] = @"(^|[\s-_.])(sss|scattering)($|[\s-_.])",
+            [TextureTags.SubSurfaceScattering] = @"(^|[\s-_.])(sss|subsurface|scattering)($|[\s-_.])",
             [TextureTags.Emissive] = @"(^|[\s-_.])emissi(ve|on)($|[\s-_.])",
             //[TextureTags.MER] = @"^mer$",
                 

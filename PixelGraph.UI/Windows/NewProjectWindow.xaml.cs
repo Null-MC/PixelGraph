@@ -5,7 +5,7 @@ using Ookii.Dialogs.Wpf;
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
-using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.ViewModels;
@@ -14,6 +14,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.UI.Windows
 {
@@ -42,6 +43,9 @@ namespace PixelGraph.UI.Windows
 
         private ProjectContext BuildProjectContext()
         {
+            if (!(Model.ProjectFilename.EndsWith(".yml") || Model.ProjectFilename.EndsWith(".yaml")))
+                Model.ProjectFilename = PathEx.Join(Model.ProjectFilename, "project.yml");
+
             var projectContext = new ProjectContext {
                 Project = new ProjectData {
                     Name = Model.PackName,

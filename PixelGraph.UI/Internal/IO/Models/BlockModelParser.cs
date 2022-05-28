@@ -3,13 +3,12 @@ using MinecraftMappings.Internal.Models.Block;
 using MinecraftMappings.Minecraft;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PixelGraph.Common.IO;
 using SharpDX;
 using System;
 using System.IO;
 using System.Linq;
 
-namespace PixelGraph.UI.Internal.Models
+namespace PixelGraph.UI.Internal.IO.Models
 {
     //internal interface IBlockModelParser
     //{
@@ -53,8 +52,15 @@ namespace PixelGraph.UI.Internal.Models
             if (!modelFile.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
                 modelFile = $"{modelFile}.json";
 
-            if (locator.FindBlockModel(modelFile, out var localFile)) {
-                var json = ParseModelJson(localFile);
+            JObject json = null;
+            var result = locator.FindBlockModel(modelFile, stream => {
+                using var reader = new StreamReader(stream);
+                using var jsonReader = new JsonTextReader(reader);
+                json = JObject.Load(jsonReader);
+            });
+
+            if (result) {
+                //var json = ParseModelJson(localFile);
                 return ParseModelFile(json);
             }
             
@@ -140,11 +146,11 @@ namespace PixelGraph.UI.Internal.Models
                     throw new ApplicationException($"Unknown element face '{face}'!");
 
                 var elementFace = new ModelFace {
-                    Texture = faceData.Value<string>("texture"),
-                    Rotation = faceData.Value<int?>("rotation") ?? 0,
+                    Texture = faceData?.Value<string>("texture"),
+                    Rotation = faceData?.Value<int?>("rotation") ?? 0,
                 };
 
-                var uv_array = faceData.Value<JArray>("uv")?.ToObject<float[]>();
+                var uv_array = faceData?.Value<JArray>("uv")?.ToObject<float[]>();
                 if (uv_array != null) {
                     if (uv_array.Length != 4)
                         throw new ApplicationException($"Element face '{faceName}' uv must contain 4 values!");
@@ -174,12 +180,12 @@ namespace PixelGraph.UI.Internal.Models
             editModel.Parent = parentModel.Parent;
         }
 
-        private static JObject ParseModelJson(string filename)
-        {
-            using var stream = File.Open(filename, FileMode.Open, FileAccess.Read);
-            using var reader = new StreamReader(stream);
-            using var jsonReader = new JsonTextReader(reader);
-            return JObject.Load(jsonReader);
-        }
+        //private static JObject ParseModelJson(string filename)
+        //{
+        //    using var stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+        //    using var reader = new StreamReader(stream);
+        //    using var jsonReader = new JsonTextReader(reader);
+        //    return JObject.Load(jsonReader);
+        //}
     }
 }

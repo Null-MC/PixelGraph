@@ -16,6 +16,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using PixelGraph.UI.Internal.Logging;
 
 namespace PixelGraph.UI.Windows
 {

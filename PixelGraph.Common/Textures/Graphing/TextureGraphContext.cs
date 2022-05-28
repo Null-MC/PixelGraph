@@ -44,6 +44,7 @@ namespace PixelGraph.Common.Textures.Graphing
         void ApplyOutputEncoding();
         ISampler<T> CreateSampler<T>(Image<T> image, string name) where T : unmanaged, IPixel<T>;
         float? GetExpectedAspect();
+        Size? GetMaterialSize(float? defaultAspect = null);
         Size? GetTextureSize(float? defaultAspect);
         Size? GetBufferSize(float aspect);
         MaterialType GetFinalMaterialType();
@@ -174,7 +175,7 @@ namespace PixelGraph.Common.Textures.Graphing
             return null;
         }
 
-        public Size? GetTextureSize(float? defaultAspect)
+        public Size? GetMaterialSize(float? defaultAspect = null)
         {
             if (Material.TextureWidth.HasValue) {
                 if (Material.TextureHeight.HasValue) {
@@ -223,6 +224,62 @@ namespace PixelGraph.Common.Textures.Graphing
 
                 return new Size(width, height);
             }
+
+            return null;
+        }
+
+        public Size? GetTextureSize(float? defaultAspect)
+        {
+            //if (Material.TextureWidth.HasValue) {
+            //    if (Material.TextureHeight.HasValue) {
+            //        var width = Material.TextureWidth.Value;
+            //        var height = Material.TextureHeight.Value;
+
+            //        if (Profile != null && Profile.TextureScale.HasValue) {
+            //            var scale = (float)Profile.TextureScale.Value;
+            //            width = (int)MathF.Ceiling(width * scale);
+            //            height = (int)MathF.Ceiling(height * scale);
+            //        }
+
+            //        return new Size(width, height);
+            //    }
+
+            //    if (defaultAspect.HasValue) {
+            //        // TODO: return width, width*aspect
+            //        var width = Material.TextureWidth.Value;
+            //        var height = (int)(width * defaultAspect);
+
+            //        if (Profile != null && Profile.TextureScale.HasValue) {
+            //            var scale = (float)Profile.TextureScale.Value;
+            //            width = (int)MathF.Ceiling(width * scale);
+            //            height = (int)MathF.Ceiling(height * scale);
+            //        }
+
+            //        return new Size(width, height);
+            //    }
+            //}
+            //else if (Material.TextureHeight.HasValue) {
+            //    if (defaultAspect.HasValue) {
+            //        // TODO: return height/aspect, height
+            //    }
+            //}
+
+            //if (Material.TextureSize.HasValue) {
+            //    var aspect = defaultAspect ?? 1f;
+            //    var width = Material.TextureSize.Value;
+            //    var height = (int)MathF.Ceiling(width * aspect);
+
+            //    if (Profile?.TextureScale.HasValue ?? false) {
+            //        var scale = (float)Profile.TextureScale.Value;
+            //        width = (int)MathF.Ceiling(width * scale);
+            //        height = (int)MathF.Ceiling(height * scale);
+            //    }
+
+            //    return new Size(width, height);
+            //}
+
+            var size = GetMaterialSize(defaultAspect);
+            if (size.HasValue) return size;
 
             var type = GetFinalMaterialType();
             if (Profile != null)

@@ -16,6 +16,9 @@ namespace PixelGraph.Common.IO.Publishing
             data.Merge(LegacyEntityMappings.Instance);
             data.Merge(LegacyItemMappings.Instance);
             data.Merge(LegacyOtherMappings.Instance);
+
+            data.Merge(CustomLegacyJavaBlockMappings.Instance);
+
             return data;
         }
     }

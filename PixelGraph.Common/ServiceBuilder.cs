@@ -57,7 +57,6 @@ namespace PixelGraph.Common
 
             Services.AddScoped<GenericTexturePublisher>();
 
-            Services.AddTransient<MinecraftResourceLocator>();
             Services.AddTransient<TextureRegionEnumerator>();
             Services.AddTransient<BedrockRtxGrassFixer>();
         }

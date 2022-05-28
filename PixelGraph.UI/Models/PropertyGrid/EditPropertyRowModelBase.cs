@@ -86,17 +86,6 @@ namespace PixelGraph.UI.Models.PropertyGrid
             Enabled = true;
         }
 
-        //protected EditPropertyRowModelBase(string name, string propertyName, Func<object> defaultFunc)
-        //{
-        //    this.propertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
-        //    Name = name ?? throw new ArgumentNullException(nameof(name));
-
-        //    info = typeof(TProperty).GetProperty(propertyName);
-        //    if (info == null) throw new ApplicationException($"Property '{typeof(TProperty).Name}.{propertyName}' not found!");
-
-        //    _defaultFunc = defaultFunc;
-        //}
-
         protected virtual T FormatValue<T>(object value)
         {
             if (value is string stringValue) {

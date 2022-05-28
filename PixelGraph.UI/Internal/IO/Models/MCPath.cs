@@ -1,8 +1,8 @@
-﻿using PixelGraph.Common.Extensions;
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
+using PixelGraph.Common.Extensions;
 
-namespace PixelGraph.UI.Internal.Models
+namespace PixelGraph.UI.Internal.IO.Models
 {
     internal static class MCPath
     {

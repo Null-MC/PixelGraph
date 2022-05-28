@@ -1,4 +1,4 @@
-﻿namespace PixelGraph.UI.Internal
+﻿namespace PixelGraph.UI.Internal.Preview
 {
     public static class RenderPreview
     {

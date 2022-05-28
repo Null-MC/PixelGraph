@@ -1,7 +1,6 @@
 ﻿using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal.Utilities;
-using PixelGraph.UI.ViewModels;
 using System;
 using System.Windows;
 
@@ -9,32 +8,25 @@ namespace PixelGraph.UI.Windows
 {
     public partial class NewMaterialWindow
     {
-        private readonly NewMaterialViewModel viewModel;
+        private readonly IServiceProvider provider;
 
 
         public NewMaterialWindow(IServiceProvider provider)
         {
-            var themeHelper = provider.GetRequiredService<IThemeHelper>();
+            this.provider = provider;
 
             InitializeComponent();
+
+            var themeHelper = provider.GetRequiredService<IThemeHelper>();
             themeHelper.ApplyCurrent(this);
 
-            viewModel = new NewMaterialViewModel {
-                Model = Model,
-            };
-
-            viewModel.UpdateBlockList();
-            viewModel.UpdateLocation();
+            Model.UpdateBlockList();
+            Model.UpdateLocation();
         }
 
-        private void OnGameObjectTypeChanged(object sender, EventArgs e)
+        private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-            viewModel.UpdateBlockList();
-        }
-
-        private void OnGameObjectLocationChanged(object sender, EventArgs e)
-        {
-            viewModel.UpdateLocation();
+            Model.Initialize(provider);
         }
 
         private void OnCancelButtonClick(object sender, RoutedEventArgs e)

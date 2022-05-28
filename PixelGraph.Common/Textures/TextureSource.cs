@@ -2,6 +2,8 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
+using System;
 
 namespace PixelGraph.Common.Textures
 {
@@ -24,22 +26,31 @@ namespace PixelGraph.Common.Textures
                     //var bmpMeta = info.Metadata.GetBmpMetadata();
 
                     BitDepth = 8; //(int)bmpMeta.BitsPerPixel;
+                    HasColor = true;
+                    HasOpacity = false;
                     break;
 
                 case ImageFormats.Png:
                     var pngMeta = info.Metadata.GetPngMetadata();
 
-                    //HasOpacity = pngMeta.HasTransparency;
-                    HasOpacity = pngMeta.ColorType is PngColorType.RgbWithAlpha or PngColorType.GrayscaleWithAlpha;
+                    if (pngMeta.ColorType == PngColorType.Palette) {
+                        HasOpacity = true;
+                        HasColor = true;
+                        BitDepth = 8;
+                    }
+                    else {
+                        //HasOpacity = pngMeta.HasTransparency;
+                        HasOpacity = pngMeta.ColorType is PngColorType.RgbWithAlpha or PngColorType.GrayscaleWithAlpha;
 
-                    if (pngMeta.BitDepth.HasValue)
-                        BitDepth = (int)pngMeta.BitDepth;
+                        if (pngMeta.BitDepth.HasValue)
+                            BitDepth = (int)pngMeta.BitDepth;
+
+                        if (pngMeta.ColorType.HasValue)
+                            HasColor = pngMeta.ColorType is not (PngColorType.Grayscale or PngColorType.GrayscaleWithAlpha);
+                    }
 
                     if (pngMeta.Gamma > float.Epsilon)
                         Gamma = pngMeta.Gamma;
-
-                    if (pngMeta.ColorType.HasValue)
-                        HasColor = pngMeta.ColorType is not (PngColorType.Grayscale or PngColorType.GrayscaleWithAlpha);
 
                     break;
 
@@ -54,7 +65,7 @@ namespace PixelGraph.Common.Textures
                     var jpegMeta = info.Metadata.GetJpegMetadata();
 
                     BitDepth = 8;
-                    HasColor = jpegMeta.ColorType == JpegColorType.Rgb;
+                    HasColor = jpegMeta.ColorType != JpegColorType.Luminance;
                     HasOpacity = false;
                     break;
 
@@ -73,6 +84,26 @@ namespace PixelGraph.Common.Textures
                     HasColor = true;
                     HasOpacity = false;
                     break;
+            }
+        }
+
+        public Type GetPixelType()
+        {
+            switch (BitDepth) {
+                case <= 8:
+                    if (HasColor)
+                        return HasOpacity ? typeof(Rgba32) : typeof(Rgb24);
+
+                    return HasOpacity ? typeof(La16) : typeof(L8);
+
+                case 16:
+                    if (HasColor)
+                        return HasOpacity ? typeof(Rgba64) : typeof(Rgb48);
+
+                    return HasOpacity ? typeof(La32) : typeof(L16);
+
+                default:
+                    throw new ApplicationException($"Unsupported image encoding! [bits={BitDepth}, color={HasColor}, alpha={HasOpacity}]");
             }
         }
     }

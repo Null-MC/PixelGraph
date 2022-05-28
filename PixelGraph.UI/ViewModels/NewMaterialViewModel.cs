@@ -1,25 +1,93 @@
-﻿using MinecraftMappings.Minecraft;
-using PixelGraph.UI.Models;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MinecraftMappings.Minecraft;
+using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.IO;
 using PixelGraph.UI.ViewData;
+using System;
+using System.Collections.ObjectModel;
 
 namespace PixelGraph.UI.ViewModels
 {
-    internal class NewMaterialViewModel
+    internal class NewMaterialViewModel : ModelBase
     {
-        public NewMaterialModel Model {get; set;}
+        protected GameObjectTypes _gameObjectType;
+        protected string _gameObjectName;
+        protected string _gameNamespace;
+        protected string _location;
 
+        public ObservableCollection<string> GameNamespaces {get;}
+        public ObservableCollection<GameObjectOption> GameObjectNames {get;}
+
+        public GameObjectTypes GameObjectType {
+            get => _gameObjectType;
+            set {
+                _gameObjectType = value;
+                OnPropertyChanged();
+
+                UpdateBlockList();
+                UpdateLocation();
+            }
+        }
+
+        public string GameNamespace {
+            get => _gameNamespace;
+            set {
+                _gameNamespace = value;
+                OnPropertyChanged();
+
+                UpdateLocation();
+            }
+        }
+
+        public string GameObjectName {
+            get => _gameObjectName;
+            set {
+                _gameObjectName = value;
+                OnPropertyChanged();
+
+                UpdateLocation();
+            }
+        }
+
+        public string Location {
+            get => _location;
+            private set {
+                _location = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        public NewMaterialViewModel()
+        {
+            GameObjectNames = new ObservableCollection<GameObjectOption>();
+            GameNamespaces = new ObservableCollection<string>(new [] {"minecraft"});
+
+            _gameObjectType = GameObjectTypes.Block;
+            _gameNamespace = "minecraft";
+        }
+
+        public void Initialize(IServiceProvider provider)
+        {
+            var locator = provider.GetRequiredService<MinecraftResourceLocator>();
+
+            foreach (var @namespace in locator.FindAllNamespaces()) {
+                if (string.Equals(@namespace, "minecraft", StringComparison.InvariantCultureIgnoreCase)) continue;
+                GameNamespaces.Add(@namespace);
+            }
+        }
 
         public void UpdateBlockList()
         {
-            Model.GameObjectNames.Clear();
+            GameObjectNames.Clear();
 
-            switch (Model.GameObjectType) {
+            switch (GameObjectType) {
                 case GameObjectTypes.Block:
                 case GameObjectTypes.Optifine_CTM:
                     foreach (var block in Minecraft.Java.AllBlockTextures) {
                         var latest = block.GetLatestVersion();
 
-                        Model.GameObjectNames.Add(new GameObjectOption {
+                        GameObjectNames.Add(new GameObjectOption {
                             Id = latest.Id,
                         });
                     }
@@ -29,7 +97,7 @@ namespace PixelGraph.UI.ViewModels
                     foreach (var item in Minecraft.Java.AllItems) {
                         var latest = item.GetLatestVersion();
 
-                        Model.GameObjectNames.Add(new GameObjectOption {
+                        GameObjectNames.Add(new GameObjectOption {
                             Id = latest.Id,
                         });
                     }
@@ -45,7 +113,7 @@ namespace PixelGraph.UI.ViewModels
                         if (latest.Path != null)
                             e.Path = $"{latest.Path}/{latest.Id}";
 
-                        Model.GameObjectNames.Add(e);
+                        GameObjectNames.Add(e);
                     }
                     break;
             }
@@ -53,18 +121,18 @@ namespace PixelGraph.UI.ViewModels
 
         public void UpdateLocation()
         {
-            Model.Location = GetLocation();
+            Location = GetLocation();
         }
 
         private string GetLocation()
         {
-            var pathExt = GetPathForType(Model.GameObjectType);
+            var pathExt = GetPathForType(GameObjectType);
             if (pathExt == null) return null;
             
-            var path = $"assets/{Model.GameNamespace}/{pathExt}";
-            if (Model.GameObjectName == null) return path;
+            var path = $"assets/{GameNamespace}/{pathExt}";
+            if (GameObjectName == null) return path;
 
-            return $"{path}/{Model.GameObjectName}";
+            return $"{path}/{GameObjectName}";
         }
 
         private static string GetPathForType(GameObjectTypes objType)
@@ -72,11 +140,31 @@ namespace PixelGraph.UI.ViewModels
             return objType switch {
                 GameObjectTypes.Block => "textures/block",
                 GameObjectTypes.Item => "textures/item",
-                GameObjectTypes.Entity => "textures",
+                GameObjectTypes.Entity => "textures/entity",
                 GameObjectTypes.Optifine_CTM => "optifine/ctm",
                 GameObjectTypes.Optifine_CIT => "optifine/cit",
                 _ => null,
             };
+        }
+    }
+
+    internal class NewMaterialDesignerViewModel : NewMaterialViewModel
+    {
+        public NewMaterialDesignerViewModel()
+        {
+            _gameObjectName = "bricks";
+        }
+    }
+
+    public class GameObjectOption
+    {
+        private string _path;
+
+        public string Id {get; set;}
+
+        public string Path {
+            get => _path ?? Id;
+            set => _path = value;
         }
     }
 }

@@ -1,13 +1,13 @@
-﻿using MinecraftMappings.Internal.Models.Entity;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using MinecraftMappings.Internal.Models.Entity;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PixelGraph.Common.IO;
 using SharpDX;
-using System;
-using System.Collections.Generic;
-using System.IO;
 
-namespace PixelGraph.UI.Internal.Models
+namespace PixelGraph.UI.Internal.IO.Models
 {
     //internal interface IEntityModelParser
     //{

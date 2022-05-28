@@ -3,6 +3,7 @@ using PixelGraph.Common;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.UI.Internal.Caching;
+using PixelGraph.UI.Internal.Projects;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

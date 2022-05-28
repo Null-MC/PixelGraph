@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
+using PixelGraph.UI.Internal.Logging;
 using Serilog;
 
 namespace PixelGraph.UI.Internal.Extensions

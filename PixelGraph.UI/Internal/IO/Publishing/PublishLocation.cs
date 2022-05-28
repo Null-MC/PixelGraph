@@ -1,6 +1,6 @@
-﻿namespace PixelGraph.UI.Internal
+﻿namespace PixelGraph.UI.Internal.IO.Publishing
 {
-    public class LocationDataModel
+    public class PublishLocation
     {
         public string Name {get; set;}
         public string Path {get; set;}
@@ -10,7 +10,7 @@
 
         public object Clone()
         {
-            var clone = (LocationDataModel)MemberwiseClone();
+            var clone = (PublishLocation)MemberwiseClone();
             //...
             return clone;
         }

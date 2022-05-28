@@ -287,7 +287,7 @@ namespace PixelGraph.Common.Material
             [EncodingChannel.ColorRed] = mat => mat.Color?.GetValueRed(),
             [EncodingChannel.ColorGreen] = mat => mat.Color?.GetValueGreen(),
             [EncodingChannel.ColorBlue] = mat => mat.Color?.GetValueBlue(),
-            [EncodingChannel.Height] = mat => mat.Height?.Value,
+            [EncodingChannel.Height] = mat => null,
             [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Value,
             [EncodingChannel.NormalX] = mat => mat.Normal?.ValueX,
             [EncodingChannel.NormalY] = mat => mat.Normal?.ValueY,

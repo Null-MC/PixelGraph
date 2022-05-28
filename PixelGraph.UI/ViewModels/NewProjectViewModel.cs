@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Models;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using PixelGraph.UI.Internal.IO;
 
 namespace PixelGraph.UI.ViewModels
 {

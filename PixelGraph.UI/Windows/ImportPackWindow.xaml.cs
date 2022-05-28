@@ -9,6 +9,7 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Extensions;
+using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
 using System;
@@ -17,6 +18,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using PixelGraph.UI.Internal.Logging;
 
 namespace PixelGraph.UI.Windows
 {

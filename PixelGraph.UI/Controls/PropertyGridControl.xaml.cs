@@ -110,6 +110,21 @@ namespace PixelGraph.UI.Controls
         }
     }
 
+    public class PropertyGridRowStyleSelector : StyleSelector
+    {
+        public Style DefaultStyle {get; set;}
+        public Style SeparatorStyle {get; set;}
+
+
+        public override Style SelectStyle(object item, DependencyObject container)
+        {
+            return item switch {
+                ISeparatorPropertyRow => SeparatorStyle,
+                _ => DefaultStyle,
+            };
+        }
+    }
+
     public class PropertyGridCellTemplateSelector : DataTemplateSelector
     {
         public DataTemplate TextBoxTemplate {get; set;}

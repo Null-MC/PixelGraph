@@ -1,8 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.Internal.Models;
+using PixelGraph.UI.Internal.IO;
+using PixelGraph.UI.Internal.IO.Models;
+using PixelGraph.UI.Internal.IO.Publishing;
+using PixelGraph.UI.Internal.IO.Resources;
 using PixelGraph.UI.Internal.Preview.Textures;
+using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
@@ -37,8 +41,9 @@ namespace PixelGraph.UI
 
             services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
             services.AddSingleton<IProjectContextManager, ProjectContextManager>();
-            services.AddSingleton<IRecentPathManager, RecentPathManager>();
             services.AddSingleton<IPublishLocationManager, PublishLocationManager>();
+            services.AddSingleton<IResourceLocationManager, ResourceLocationManager>();
+            services.AddSingleton<IRecentPathManager, RecentPathManager>();
             services.AddSingleton<ITabPreviewManager, TabPreviewManager>();
             services.AddSingleton<MaterialPropertiesCache>();
             services.AddSingleton<TextureEditUtility>();
@@ -47,6 +52,9 @@ namespace PixelGraph.UI
             services.AddTransient<ILayerPreviewBuilder, LayerPreviewBuilder>();
             services.AddTransient<IAppDataUtility, AppDataUtility>();
             services.AddTransient<IThemeHelper, ThemeHelper>();
+            services.AddTransient<MinecraftResourceLocator>();
+            services.AddTransient<BlockModelParser>();
+            services.AddTransient<EntityModelParser>();
             services.AddTransient<ModelLoader>();
 
 #if !NORENDER

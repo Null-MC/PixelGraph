@@ -14,7 +14,9 @@ using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Preview.Textures;
+using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
@@ -31,6 +33,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
+using PixelGraph.UI.Internal.IO;
+using PixelGraph.UI.Internal.IO.Publishing;
 
 #if NORENDER
 using PixelGraph.UI.Models.MockScene;
@@ -56,13 +60,13 @@ namespace PixelGraph.UI.ViewModels
         private IServiceProvider _provider;
         private volatile bool _isBusy, _isInitializing;
         private volatile bool _isImageEditorOpen;
-        private List<LocationDisplayModel> _publishLocations;
+        private List<PublishLocationDisplayModel> _publishLocations;
         private PublishProfileDisplayRow _selectedProfile;
         private string _projectFilename;
         private string _searchText;
         private bool _showAllFiles;
         private ContentTreeNode _selectedNode;
-        private LocationDisplayModel _selectedLocation;
+        private PublishLocationDisplayModel _selectedLocation;
         private ContentTreeNode _treeRoot;
         private ITabModel _tabListSelection;
         private ITabModel _previewTab;
@@ -272,7 +276,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
         
-        public List<LocationDisplayModel> PublishLocations {
+        public List<PublishLocationDisplayModel> PublishLocations {
             get => _publishLocations;
             private set {
                 _publishLocations = value;
@@ -319,7 +323,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public LocationDisplayModel SelectedLocation {
+        public PublishLocationDisplayModel SelectedLocation {
             get => _selectedLocation;
             set {
                 _selectedLocation = value;
@@ -346,7 +350,7 @@ namespace PixelGraph.UI.ViewModels
 
         public MainWindowViewModel()
         {
-            _publishLocations = new List<LocationDisplayModel>();
+            _publishLocations = new List<PublishLocationDisplayModel>();
             _treeRoot = new ContentTreeNode(null);
             busyLock = new object();
 
@@ -388,14 +392,18 @@ namespace PixelGraph.UI.ViewModels
                 var location = PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, appSettingsMgr.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
                 if (location != null) SelectedLocation = location;
             }
-        }
 
-        public void EndInit()
-        {
             _isInitializing = false;
             OnPropertyChanged(nameof(IsInitializing));
             OnPropertyChanged(nameof(IsBusy));
         }
+
+        //public void EndInit()
+        //{
+        //    _isInitializing = false;
+        //    OnPropertyChanged(nameof(IsInitializing));
+        //    OnPropertyChanged(nameof(IsBusy));
+        //}
 
         public bool TryStartBusy()
         {
@@ -648,11 +656,11 @@ namespace PixelGraph.UI.ViewModels
 
         public void UpdatePublishLocations()
         {
-            PublishLocations = publishLocationMgr.GetLocations()
-                .Select(l => new LocationDisplayModel(l)).ToList();
+            PublishLocations = publishLocationMgr.GetLocations()?
+                .Select(l => new PublishLocationDisplayModel(l)).ToList();
 
             // TODO: this should probably be lock-wrapped as well...
-            SelectedLocation = PublishLocations.FirstOrDefault(l =>
+            SelectedLocation = PublishLocations?.FirstOrDefault(l =>
                 string.Equals(l.DisplayName, publishLocationMgr.SelectedLocation, StringComparison.InvariantCultureIgnoreCase));
         }
 

@@ -4,7 +4,6 @@ using MinecraftMappings.Internal.Models.Entity;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.Internal.Models;
 using PixelGraph.UI.ViewModels;
 using SharpDX;
 using System;
@@ -13,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using PixelGraph.UI.Internal.IO.Models;
 
 namespace PixelGraph.UI.Models
 {

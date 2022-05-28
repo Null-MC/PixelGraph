@@ -4,7 +4,6 @@ using MinecraftMappings.Internal.Models;
 using MinecraftMappings.Internal.Models.Block;
 using MinecraftMappings.Internal.Models.Entity;
 using PixelGraph.Common;
-using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Projects;
@@ -13,8 +12,9 @@ using PixelGraph.Rendering.Models;
 using PixelGraph.Rendering.Shaders;
 using PixelGraph.UI.Helix.Controls;
 using PixelGraph.UI.Helix.Materials;
-using PixelGraph.UI.Internal;
-using PixelGraph.UI.Internal.Models;
+using PixelGraph.UI.Internal.IO;
+using PixelGraph.UI.Internal.IO.Models;
+using PixelGraph.UI.Internal.Projects;
 using SharpDX;
 using SharpDX.Direct3D11;
 using System;
@@ -32,6 +32,7 @@ namespace PixelGraph.UI.Helix.Models
 
         private readonly IServiceProvider provider;
         private readonly IProjectContextManager projectContextMgr;
+        private readonly MinecraftResourceLocator locator;
         private readonly ModelLoader modelLoader;
         private readonly Dictionary<string, IMaterialBuilder> materialMap;
         private readonly List<(IModelBuilder, IMaterialBuilder)> partsList;
@@ -43,10 +44,12 @@ namespace PixelGraph.UI.Helix.Models
         public MultiPartMeshBuilder(
             IServiceProvider provider,
             IProjectContextManager projectContextMgr,
+            MinecraftResourceLocator locator,
             ModelLoader modelLoader)
         {
             this.provider = provider;
             this.projectContextMgr = projectContextMgr;
+            this.locator = locator;
             this.modelLoader = modelLoader;
 
             materialMap = new Dictionary<string, IMaterialBuilder>();
@@ -230,7 +233,6 @@ namespace PixelGraph.UI.Helix.Models
             await using var scope = serviceBuilder.Build();
 
             var matReader = scope.GetRequiredService<IMaterialReader>();
-            var locator = scope.GetRequiredService<MinecraftResourceLocator>();
 
             foreach (var (textureId, textureFile) in textureMap) {
                 if (string.Equals(textureId, "particle", StringComparison.InvariantCultureIgnoreCase)) continue;

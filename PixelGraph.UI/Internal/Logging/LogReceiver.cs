@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using Microsoft.Extensions.Logging;
 using Serilog.Events;
-using System;
 
-namespace PixelGraph.UI.Internal
+namespace PixelGraph.UI.Internal.Logging
 {
     internal interface ILogReceiver
     {

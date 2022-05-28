@@ -201,13 +201,16 @@ namespace PixelGraph.Common.Textures
                 aspect = (float)height / width;
             }
 
-            Size? targetSize = null;
-            if (TextureSizeUtility.TryGetItemSize(context.Profile, out var itemSize, aspect))
-                targetSize = itemSize;
-            else if (TextureSizeUtility.TryGetBlockSize(context.Profile, out var blockSize, aspect))
-                targetSize = blockSize;
-            else if (TextureSizeUtility.TryGetTextureSize(context.Profile, out var texSize, aspect))
-                targetSize = texSize;
+            var targetSize = context.GetMaterialSize();
+
+            if (!targetSize.HasValue) {
+                if (TextureSizeUtility.TryGetItemSize(context.Profile, out var itemSize, aspect))
+                    targetSize = itemSize;
+                else if (TextureSizeUtility.TryGetBlockSize(context.Profile, out var blockSize, aspect))
+                    targetSize = blockSize;
+                else if (TextureSizeUtility.TryGetTextureSize(context.Profile, out var texSize, aspect))
+                    targetSize = texSize;
+            }
 
             Image<Rgba32> image = null;
             try {

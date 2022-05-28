@@ -1,11 +1,11 @@
-﻿using PixelGraph.Common.Extensions;
+﻿using System.IO;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
-using System.IO;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace PixelGraph.UI.Internal
+namespace PixelGraph.UI.Internal.IO
 {
     public static class ResourcePackReader
     {

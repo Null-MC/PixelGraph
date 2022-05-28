@@ -38,9 +38,7 @@ float3 decodeNormal(const in float3 normal) {
 		result.z = 1.0 - abs(result.x) - abs(result.y);
 		return normalize(result);
 	#else
-		float3 result;
-		result.xy = normal.xy * 2.f - 1.f;
-		result.z = normal.z;
+		float3 result = float3(normal.xy * 2.f - 1.f, normal.z);
 		return normalize(result);
 	#endif
 }

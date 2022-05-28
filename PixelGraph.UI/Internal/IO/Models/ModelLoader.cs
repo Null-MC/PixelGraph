@@ -4,26 +4,21 @@ using MinecraftMappings.Internal.Models.Entity;
 using MinecraftMappings.Internal.Textures.Block;
 using MinecraftMappings.Internal.Textures.Entity;
 using MinecraftMappings.Minecraft;
-using PixelGraph.Common;
 using PixelGraph.Common.Material;
 using System;
 using System.IO;
 using System.Linq;
 
-namespace PixelGraph.UI.Internal.Models
+namespace PixelGraph.UI.Internal.IO.Models
 {
     public class ModelLoader
     {
         private readonly IServiceProvider provider;
-        private readonly IProjectContextManager projectContextMgr;
 
 
-        public ModelLoader(
-            IServiceProvider provider,
-            IProjectContextManager projectContextMgr)
+        public ModelLoader(IServiceProvider provider)
         {
             this.provider = provider;
-            this.projectContextMgr = projectContextMgr;
         }
 
         public JavaEntityModelVersion GetJavaEntityModel(MaterialProperties material)
@@ -45,11 +40,7 @@ namespace PixelGraph.UI.Internal.Models
             if (baseModel == null) return null;
 
             if (modelFile != null) {
-                var serviceBuilder = BuildServiceContainer();
-                serviceBuilder.Services.AddTransient<EntityModelParser>();
-
-                using var scope = serviceBuilder.Build();
-                var entityParser = scope.GetRequiredService<EntityModelParser>();
+                var entityParser = provider.GetRequiredService<EntityModelParser>();
                 entityParser.Build(baseModel, modelFile);
             }
 
@@ -66,32 +57,24 @@ namespace PixelGraph.UI.Internal.Models
                 modelFile = modelData?.GetLatestVersion()?.Id;
             }
 
-            var serviceBuilder = BuildServiceContainer();
-            serviceBuilder.Services.AddTransient<BlockModelParser>();
+            var blockParser = provider.GetRequiredService<BlockModelParser>();
 
-            using var scope = serviceBuilder.Build();
-            var blockParser = scope.GetRequiredService<BlockModelParser>();
-
-            if (modelFile == null && defaultCube) {
-                var model = blockParser.LoadRecursive("block/cube_all");
-
-                if (model != null) {
-                    model.Textures["all"] = material.LocalFilename;
-                    return model;
+            if (modelFile == null) {
+                if (!defaultCube) throw new ApplicationException("Model file is undefined!");
+            }
+            else {
+                try {
+                    return blockParser.LoadRecursive(modelFile);
+                }
+                catch (Exception) when (defaultCube) {
+                    // log load failure
                 }
             }
 
-            return blockParser.LoadRecursive(modelFile);
-        }
+            var model = blockParser.LoadRecursive("block/cube_all");
+            if (model != null) model.Textures["all"] = material.LocalFilename;
 
-        private IServiceBuilder BuildServiceContainer()
-        {
-            var projectContext = projectContextMgr.GetContext();
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
-
-            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
-
-            return serviceBuilder;
+            return model;
         }
     }
 }

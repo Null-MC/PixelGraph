@@ -172,10 +172,8 @@ float4 main(const ps_input input) : SV_TARGET
         }
 
         if (lengthSq(refractDir) >= EPSILON) {
-			const float2 refractTex = getErpCoord(refractDir);
-			float3 blendColor = tex_equirectangular.Sample(sampler_surface, refractTex);
-			blendColor = pow(abs(blendColor), 1.f + 2.5f * ErpExposure);
-			blendColor *= 16.f;
+			const float mip = roughP * NumEnvironmentMapMipLevels;
+			float3 blendColor = tex_environment.SampleLevel(sampler_environment, refractDir, mip);
 
 			blendColor = apply_tonemap(blendColor);
             const float3 srcMul = (1.0 - alpha) + final_color * alpha;

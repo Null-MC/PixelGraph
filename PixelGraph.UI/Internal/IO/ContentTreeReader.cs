@@ -1,14 +1,14 @@
-﻿using MahApps.Metro.IconPacks;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using MahApps.Metro.IconPacks;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.UI.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
-namespace PixelGraph.UI.Internal
+namespace PixelGraph.UI.Internal.IO
 {
     internal class ContentTreeReader
     {

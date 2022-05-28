@@ -6,6 +6,7 @@ using PixelGraph.UI.Internal.Utilities;
 using System;
 using System.Windows;
 using System.Windows.Threading;
+using PixelGraph.UI.Internal.Logging;
 
 namespace PixelGraph.UI.Windows
 {

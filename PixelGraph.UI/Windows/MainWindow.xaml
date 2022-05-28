@@ -54,7 +54,7 @@
                       SelectionChanged="OnPublishLocationSelectionChanged">
                 <ComboBox.ItemsSource>
                     <CompositeCollection>
-                        <models:LocationDisplayModel x:Name="ManualLocation" DisplayName="Manual" IsManualSelect="True"/>
+                        <models:PublishLocationDisplayModel x:Name="ManualLocation" DisplayName="Manual" IsManualSelect="True"/>
                         <CollectionContainer Collection="{Binding Source={StaticResource PublishLocationsView}}"/>
                     </CompositeCollection>
                 </ComboBox.ItemsSource>
@@ -108,12 +108,11 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="Edit" Background="Transparent">
-                <MenuItem Header="App Settings" Click="OnSettingsClick">
-                    <MenuItem.Icon>
-                        <iconPacks:PackIconFontAwesome Kind="CogSolid"/>
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Publish Locations" Click="OnLocationsClick"
+                <MenuItem Header="App Settings" Click="OnSettingsClick"
+                          Icon="{iconPacks:FontAwesome CogSolid}"/>
+                <MenuItem Header="Publish Locations" Click="OnPublishLocationsClick"
+                          Icon="{iconPacks:FontAwesome FolderSolid}"/>
+                <MenuItem Header="Resource Locations" Click="OnResourceLocationsClick"
                           Icon="{iconPacks:FontAwesome FolderSolid}"/>
             </MenuItem>
             <MenuItem Header="Project" Background="Transparent">

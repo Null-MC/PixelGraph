@@ -2,7 +2,7 @@
 using Ookii.Dialogs.Wpf;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
-using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Models;
 using System;
 using System.IO;

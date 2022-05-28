@@ -266,6 +266,7 @@ namespace PixelGraph.Common.IO.Publishing
         };
 
         private static readonly HashSet<string> fileIgnoreList = new(StringComparer.InvariantCultureIgnoreCase) {
+            "project.yml",
             "input.yml",
             "source.txt",
             "readme.txt",

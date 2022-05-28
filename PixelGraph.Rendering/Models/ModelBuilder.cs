@@ -62,7 +62,7 @@ namespace PixelGraph.Rendering.Models
                 var texcoords = GetRotatedTexcoords(in uv, in uvRotation);
                 Builder.TextureCoordinates.AddRange(texcoords);
 
-                var (texMin, texMax) = GetTexMinMax(in uv, in uvRotation);
+                GetTexMinMax(in uv, in uvRotation, out var texMin, out var texMax);
                 Builder.AddTextureCoordinateMin4x(texMin);
                 Builder.AddTextureCoordinateMax4x(texMax);
 
@@ -109,15 +109,36 @@ namespace PixelGraph.Rendering.Models
             };
         }
 
-        private static (Vector2 min, Vector2 max) GetTexMinMax(in RectangleF uv, in int uvRotation)
+        private static void GetTexMinMax(in RectangleF uv, in int uvRotation, out Vector2 min, out Vector2 max)
         {
-            return uvRotation switch {
-                0 => (uv.TopLeft, uv.BottomRight),
-                90 => (uv.BottomLeft, uv.TopRight),
-                180 => (uv.BottomRight, uv.TopLeft),
-                270 => (uv.TopRight, uv.BottomLeft),
-                _ => throw new ApplicationException($"Invalid block model texture rotation value '{uvRotation}'!")
-            };
+            switch (uvRotation) {
+                case 0:
+                    min.X = uv.Left;
+                    min.Y = uv.Top;
+                    max.X = uv.Right;
+                    max.Y = uv.Bottom;
+                    break;
+                case 90:
+                    min.X = 1f - uv.Bottom;
+                    min.Y = uv.Left;
+                    max.X = 1f - uv.Top;
+                    max.Y = uv.Right;
+                    break;
+                case 180:
+                    min.X = 1f - uv.Right;
+                    min.Y = 1f - uv.Bottom;
+                    max.X = 1f - uv.Left;
+                    max.Y = 1f - uv.Top;
+                    break;
+                case 270:
+                    min.X = uv.Top;
+                    min.Y = 1f - uv.Right;
+                    max.X = uv.Bottom;
+                    max.Y = 1f - uv.Left;
+                    break;
+                default:
+                    throw new ApplicationException($"Invalid block model texture rotation value '{uvRotation}'!");
+            }
         }
 
         private static void CrossProduct(in Vector3 vector1, in Vector3 vector2, out Vector3 result)

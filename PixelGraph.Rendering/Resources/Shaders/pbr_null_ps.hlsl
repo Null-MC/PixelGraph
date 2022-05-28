@@ -20,14 +20,14 @@
 static const float3 absorption_factor = float3(0.0035f, 0.0004f, 0.0f);
 
 
-float4 main(const ps_input input) : SV_TARGET
+float4 main(const ps_input input, const in bool face : SV_IsFrontFace) : SV_TARGET
 {
     //float2 col = tex_dielectric_brdf_lut.SampleLevel(sampler_brdf_lut, input.tex, 0);
     //return float4(col, 0.f, 1.f);
 
 	const float3 normal = normalize(input.nor);
-    const float3 tangent = normalize(input.tan);
-    const float3 bitangent = normalize(input.bin);
+    float3 tangent = normalize(input.tan);
+    float3 bitangent = normalize(input.bin);
 	const float3 view = normalize(input.eye);
 
     const float surface_NoV = saturate(dot(normal, view));
@@ -40,7 +40,14 @@ float4 main(const ps_input input) : SV_TARGET
     float water_levelMin = 0.0f, water_levelMax = 0.0f;
 	water_levelMin = pow(abs(Wetness), 0.4f) * saturate(water_fillFactor);
 	water_levelMax = water_levelMin + rcp(WATER_DEPTH_SCALE) + EPSILON;
-    
+
+	float2 vTS = input.vTS;
+	if (!face) {
+		vTS = -vTS;
+		tangent = -tangent;
+		bitangent = -bitangent;
+	}
+
     pbr_material mat;
     float tex_depth = 0;
     float2 tex = 0, water_tex = 0;
@@ -55,7 +62,7 @@ float4 main(const ps_input input) : SV_TARGET
         const float3 refractDirT = mul(matTBN, refractDir);
 		const float2 refractParallaxOffset = get_parallax_offset(refractDirT) * input.pDepth;// * aspect;
 
-		tex = get_parallax_texcoord_wet(input.tex, input.vTS, refractParallaxOffset, water_levelMin, water_tex, shadow_tex, tex_depth);
+		tex = get_parallax_texcoord_wet(input.tex, vTS, refractParallaxOffset, water_levelMin, water_tex, shadow_tex, tex_depth);
 
 	    const float h1 = 1.0f - min(max(shadow_tex.z, water_levelMin), 1.0f);
 	    float pom_depth = rcp(max(surface_NoV, EPSILON)) * h1 * BLOCK_SIZE * ParallaxDepth;
@@ -69,7 +76,7 @@ float4 main(const ps_input input) : SV_TARGET
 	    pom_wp = water_pom_wp + water_trace_dist * refractDir;
     }
     else {
-		tex = get_parallax_texcoord(input.tex, input.vTS, shadow_tex, tex_depth);
+		tex = get_parallax_texcoord(input.tex, vTS, shadow_tex, tex_depth);
         water_tex = tex;
 
 	    const float pom_depth = rcp(max(surface_NoV, EPSILON)) * (1.0f - shadow_tex.z) * BLOCK_SIZE * ParallaxDepth;
@@ -93,18 +100,18 @@ float4 main(const ps_input input) : SV_TARGET
     //const float porosityL = srgb_to_linear(mat.porosity);
 	
     // Blend base colors
-	const float metal = mat.f0_hcm > 0.9f ? 1.0f : 0.0f;
+	const float metal = mat.f0_hcm > 0.8999f ? 1.0f : 0.0f;
 	const float3 tint = srgb_to_linear(TintColor);
     float3 diffuse = mat.albedo * tint * (1.0f - metal);
 
-	float3 src_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
+	float3 tex_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
     //src_normal = normalize(src_normal * 2.0f - 1.0f);
-    src_normal = decodeNormal(src_normal);
-	src_normal = mul(src_normal, matTBN);
+    tex_normal = decodeNormal(tex_normal);
+	//src_normal = mul(src_normal, matTBN);
 
 	//-- Wetness --
     float surface_water = 0.0f;
-    float3 wet_normal = src_normal;
+    float3 wet_normal = tex_normal;
 
     if (Wetness > EPSILON) {
 		diffuse *= 1.0f - mat.porosity * WET_DARKEN * max(pow(Wetness, 2), wet_depth);
@@ -118,19 +125,24 @@ float4 main(const ps_input input) : SV_TARGET
 		wet_normal = tex_normal_height.SampleBias(sampler_height, tex, water_lod).xyz;
 	    //wet_normal = normalize(wet_normal * 2.0f - 1.0f);
 	    wet_normal = decodeNormal(wet_normal);
-		wet_normal = mul(wet_normal, matTBN);
+		//wet_normal = mul(wet_normal, matTBN);
     }
 
     //-- Slope Normals --
-    float3 tex_normal = src_normal;
+    //float3 tex_normal = src_normal;
     bool isSlope = false;
 
     if (EnableSlopeNormals && !EnableLinearSampling && tex_depth - shadow_tex.z > 0.002f) {
-	    const float3 slope = apply_slope_normal(tex, input.vTS, shadow_tex.z);
+	    const float3 slope = apply_slope_normal(tex, vTS, shadow_tex.z);
 
-	    wet_normal = tex_normal = mul(slope, matTBN);
+	    //wet_normal = tex_normal = mul(slope, matTBN);
+	    wet_normal = tex_normal = slope;
         isSlope = true;
     }
+
+	//src_normal = mul(src_normal, matTBN);
+	tex_normal = mul(tex_normal, matTBN);
+	wet_normal = mul(wet_normal, matTBN);
 
     float water = max(surface_water, wet_depth);
 	float wet_roughL = lerp(roughL, WATER_ROUGH, water);
@@ -145,7 +157,7 @@ float4 main(const ps_input input) : SV_TARGET
 
     //-- HCM --
 	float3 ior_n, ior_k;
-	get_hcm_ior(mat.f0_hcm, ior_n, ior_k);
+	get_hcm_ior(mat.f0_hcm, mat.albedo, ior_n, ior_k);
 	float3 metal_albedo = lerp(1.0f, mat.albedo * tint, metal);
 
     float3 acc_light = 0.0;
@@ -358,10 +370,8 @@ float4 main(const ps_input input) : SV_TARGET
         }
 
         if (lengthSq(refractDir) >= EPSILON) {
-			const float2 refractTex = getErpCoord(refractDir);
-			float3 blendColor = tex_equirectangular.Sample(sampler_surface, refractTex);
-			blendColor = pow(abs(blendColor), 1.f + 2.5f * ErpExposure);
-			blendColor *= 16.f;
+			const float mip = roughP * NumEnvironmentMapMipLevels;
+			float3 blendColor = tex_environment.SampleLevel(sampler_environment, refractDir, mip);
 
 			blendColor = apply_tonemap(blendColor);
             const float3 srcMul = (1.0 - alpha) + final_color * alpha;

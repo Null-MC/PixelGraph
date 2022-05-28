@@ -11,10 +11,12 @@ namespace PixelGraph.UI.Internal.Settings
         public const string DefaultImageEditorArgs = "\"$1\"";
         public const string DefaultThemeBaseColor = "dark";
         public const string DefaultThemeAccentColor = "emerald";
+        public const int DefaultMaxRecentProjects = 12;
 
         public int? AcceptedLicenseAgreementVersion {get; set;}
         public int? AcceptedTermsOfServiceVersion {get; set;}
         public bool? HasAcceptedPatreonNotification {get; set;}
+        public int? MaxRecentProjects {get; set;}
         public int? Concurrency {get; set;}
 
         public string SelectedPublishLocation {get; set;}
@@ -35,6 +37,7 @@ namespace PixelGraph.UI.Internal.Settings
             TextureEditorArguments = DefaultImageEditorArgs;
             ThemeBaseColor = DefaultThemeBaseColor;
             ThemeAccentColor = DefaultThemeAccentColor;
+            MaxRecentProjects = DefaultMaxRecentProjects;
 
             RenderPreview = new RenderPreviewSettings();
         }

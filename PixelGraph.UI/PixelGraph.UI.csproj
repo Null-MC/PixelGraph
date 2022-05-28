@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.10.4</Version>
+    <Version>1.10.5</Version>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>PixelGraph</AssemblyName>
@@ -38,6 +38,7 @@
     <Compile Remove="Internal\Utilities\ResourceLoader.cs" />
     <Compile Remove="Models\MainWindowModel.cs" />
     <Compile Remove="Models\MaterialContextModel.cs" />
+    <Compile Remove="Models\NewMaterialModel.cs" />
     <Compile Remove="Models\PreviewContextModel.cs" />
     <Compile Remove="Models\ProfileContextModel.cs" />
     <Compile Remove="Models\PublishLocationsModel.cs" />
@@ -46,6 +47,7 @@
     <Compile Remove="Models\SettingsWindowModel.cs" />
     <Compile Remove="Models\ShaderErrorWindowModel.cs" />
     <Compile Remove="ViewData\BedrockTextureFormatValues.cs" />
+    <Compile Remove="ViewData\GameNamespaceValues.cs" />
     <Compile Remove="ViewData\JavaTextureFormatValues.cs" />
     <Compile Remove="ViewData\ModelTypeValues.cs" />
     <Compile Remove="ViewData\ProfileItem.cs" />
@@ -134,7 +136,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Windows\ResourceLocationsWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
     <Page Update="Windows\Modals\PatreonNotificationWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Windows\ResourceLocationsWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>

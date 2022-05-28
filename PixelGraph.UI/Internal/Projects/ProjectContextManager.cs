@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal
+namespace PixelGraph.UI.Internal.Projects
 {
     public interface IProjectContextManager
     {

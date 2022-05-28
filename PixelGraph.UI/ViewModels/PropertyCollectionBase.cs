@@ -110,11 +110,11 @@ namespace PixelGraph.UI.ViewModels
         //    return row;
         //}
 
-        //public void AddSeparator()
-        //{
-        //    var row = new SeparatorPropertyRowModel();
-        //    Add(row);
-        //}
+        protected void AddSeparator()
+        {
+            var row = new SeparatorPropertyRowModel();
+            Add(row);
+        }
 
         protected virtual void OnRowValueChanged(string propertyName)
         {

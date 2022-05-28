@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.IO;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Settings;
 using System;
 using System.Threading;
@@ -17,6 +18,7 @@ namespace PixelGraph.UI.ViewModels
         public event EventHandler DataChanged;
 
         public int DefaultConcurrency {get;}
+        public int DefaultMaxRecent {get;}
         public string RenderPreview_SubSurfaceBlurText => (RenderPreview_SubSurfaceBlur ?? 0m).ToString("P0");
         public bool SupportsRenderPreview => RenderPreview.IsSupported;
 
@@ -26,6 +28,17 @@ namespace PixelGraph.UI.ViewModels
                 if (data == null) return;
                 if (value is < 1) throw new ArgumentOutOfRangeException(nameof(App_Concurrency), "value must be greater than 0!");
                 data.Concurrency = value;
+                OnPropertyChanged();
+                OnDataChanged();
+            }
+        }
+
+        public int? App_MaxRecent {
+            get => data?.MaxRecentProjects;
+            set {
+                if (data == null) return;
+                if (value is < 0) throw new ArgumentOutOfRangeException(nameof(App_MaxRecent), "value must be greater than or equal to 0!");
+                data.MaxRecentProjects = value;
                 OnPropertyChanged();
                 OnDataChanged();
             }
@@ -177,6 +190,7 @@ namespace PixelGraph.UI.ViewModels
         public SettingsViewModel()
         {
             DefaultConcurrency = ConcurrencyHelper.GetDefaultValue();
+            DefaultMaxRecent = AppSettingsDataModel.DefaultMaxRecentProjects;
             isLoading = true;
         }
 
@@ -228,6 +242,7 @@ namespace PixelGraph.UI.ViewModels
         private void UpdateAllProperties()
         {
             OnPropertyChanged(nameof(App_Concurrency));
+            OnPropertyChanged(nameof(App_MaxRecent));
             OnPropertyChanged(nameof(App_ThemeBaseColor));
             OnPropertyChanged(nameof(App_ThemeAccentColor));
             OnPropertyChanged(nameof(Texture_ImageEditorExe));

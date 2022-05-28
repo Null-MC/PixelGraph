@@ -14,6 +14,12 @@
     </UserControl.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Orientation="Vertical">
+            <StackPanel.Resources>
+                <Style TargetType="Separator">
+                    <Setter Property="Margin" Value="6,0"/>
+                    <Setter Property="Opacity" Value="0.4"/>
+                </Style>
+            </StackPanel.Resources>
             <StackPanel.DataContext>
                 <models:MaterialPropertiesModel x:Name="Model" DataChanged="OnDataChanged" ModelChanged="OnPropertyGridModelChanged"/>
             </StackPanel.DataContext>
@@ -75,6 +81,7 @@
                 <StackPanel Orientation="Vertical">
                     <TextBlock Margin="8,2" Text="Preview" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                    <Separator/>
                     <local:PropertyGridControl SelectFile="OnSelectFile"
                                                Style="{StaticResource MahApps.Styles.DataGrid}"
                                                ItemsSource="{Binding GeneralModelProperties, Mode=OneWay}"/>
@@ -85,6 +92,7 @@
                 <StackPanel Orientation="Vertical">
                     <TextBlock Margin="8,2" Text="Other" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                    <Separator/>
                     <local:PropertyGridControl SelectFile="OnSelectFile"
                                                Style="{StaticResource MahApps.Styles.DataGrid}"
                                                ItemsSource="{Binding ColorOtherProperties, Mode=OneWay}"/>
@@ -93,8 +101,10 @@
             <Border Margin="0,28,0,0" Background="{DynamicResource MahApps.Brushes.ThemeBackground}"
                     Visibility="{Binding IsHeightSelected, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                 <StackPanel Orientation="Vertical">
-                    <TextBlock Margin="8,2" Text="Edge Fading" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                    <TextBlock Margin="8,2" VerticalAlignment="Center"
+                               Text="Edge Fading" FontWeight="Bold" FontSize="14"
                                Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                    <Separator/>
                     <local:PropertyGridControl SelectFile="OnSelectFile"
                                                Style="{StaticResource MahApps.Styles.DataGrid}"
                                                ItemsSource="{Binding HeightEdgeProperties, Mode=OneWay}"/>
@@ -105,6 +115,7 @@
                 <StackPanel Orientation="Vertical">
                     <TextBlock Margin="8,2" Text="Filtering" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                    <Separator/>
                     <local:PropertyGridControl SelectFile="OnSelectFile"
                                                Style="{StaticResource MahApps.Styles.DataGrid}"
                                                ItemsSource="{Binding NormalFilterProperties, Mode=OneWay}"/>
@@ -117,8 +128,11 @@
                         <Button DockPanel.Dock="Right" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Center" BorderThickness="0"
                                 Content="Bake" ToolTip="Generates the normal texture and saves the result to the project source content." Click="OnGenerateNormalClick"
                                 Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
-                        <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                            <Separator/>
+                        </StackPanel>
                     </DockPanel>
                     <local:PropertyGridControl SelectFile="OnSelectFile"
                                                Style="{StaticResource MahApps.Styles.DataGrid}"
@@ -130,9 +144,13 @@
                 <StackPanel Orientation="Vertical">
                     <DockPanel>
                         <Button DockPanel.Dock="Right" Padding="8,0" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                Content="Bake" Click="OnGenerateOcclusionClick" Style="{DynamicResource MahApps.Styles.Button.Flat}"/>
-                        <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                                Content="Bake" Click="OnGenerateOcclusionClick" BorderThickness="0"
+                                Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Margin="8,2" Text="Generate from Height" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
+                            <Separator/>
+                        </StackPanel>
                     </DockPanel>
                     <local:PropertyGridControl SelectFile="OnSelectFile"
                                                Style="{StaticResource MahApps.Styles.DataGrid}"
@@ -151,7 +169,7 @@
                     <TextBlock Margin="8,2" Text="IOR" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"
                                Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                     <TextBox Grid.Column="1" HorizontalContentAlignment="Center" KeyUp="OnF0ConverterTextBoxKeyUp"
-                        Text="{Binding IorEditValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}">
+                             Text="{Binding IorEditValue, Mode=TwoWay, Converter={StaticResource NullableConverter}}">
                         <TextBox.Style>
                             <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
                                 <Style.Triggers>

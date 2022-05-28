@@ -6,7 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal.Utilities
+namespace PixelGraph.UI.Internal.IO
 {
     public interface IAppDataUtility
     {

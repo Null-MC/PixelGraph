@@ -1,10 +1,11 @@
 ﻿using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.IO.Publishing;
 
 namespace PixelGraph.UI.Models
 {
-    public class LocationDisplayModel : ModelBase
+    public class PublishLocationDisplayModel : ModelBase
     {
-        public LocationDataModel DataSource {get;}
+        public PublishLocation DataSource {get;}
         private bool _isManualSelect {get; set;}
 
         public string DisplayName {
@@ -40,12 +41,12 @@ namespace PixelGraph.UI.Models
         }
 
 
-        public LocationDisplayModel()
+        public PublishLocationDisplayModel()
         {
-            DataSource = new LocationDataModel();
+            DataSource = new PublishLocation();
         }
 
-        public LocationDisplayModel(LocationDataModel location)
+        public PublishLocationDisplayModel(PublishLocation location)
         {
             DataSource = location;
         }

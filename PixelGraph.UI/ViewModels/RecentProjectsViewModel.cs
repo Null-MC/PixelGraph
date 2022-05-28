@@ -4,6 +4,7 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Projects;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.IO;
 using PixelGraph.UI.Models;
 using System;
 using System.Collections.Generic;
@@ -100,6 +101,8 @@ namespace PixelGraph.UI.ViewModels
 
         private async IAsyncEnumerable<(string filename, ProjectData project)> LoadProjectsAsync()
         {
+            var removeItems = new List<string>();
+
             foreach (var filename in recentMgr.Items) {
                 ProjectData project;
                 try {
@@ -107,11 +110,15 @@ namespace PixelGraph.UI.ViewModels
                 }
                 catch (Exception error) {
                     logger.LogError(error, "Failed to load data for recent project '{filename}'!", filename);
+                    removeItems.Add(filename);
                     continue;
                 }
 
                 yield return (filename, project);
             }
+
+            foreach (var filename in removeItems)
+                recentMgr.Remove(filename);
         }
     }
 }

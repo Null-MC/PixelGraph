@@ -12,12 +12,16 @@ using PixelGraph.Common.Projects;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Controls;
-using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.IO;
+using PixelGraph.UI.Internal.IO.Publishing;
+using PixelGraph.UI.Internal.IO.Resources;
+using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewModels;
+using PixelGraph.UI.Windows.Modals;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,7 +34,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using PixelGraph.UI.Windows.Modals;
 
 #if !NORENDER
 using System.Windows.Media.Imaging;
@@ -45,6 +48,7 @@ namespace PixelGraph.UI.Windows
         private readonly IThemeHelper themeHelper;
         private readonly IProjectContextManager projectContextMgr;
         private readonly IPublishLocationManager publishLocationMgr;
+        private readonly IResourceLocationManager resourceLocationMgr;
 
 
         public MainWindow(IServiceProvider provider)
@@ -54,6 +58,7 @@ namespace PixelGraph.UI.Windows
             themeHelper = provider.GetRequiredService<IThemeHelper>();
             projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
             publishLocationMgr = provider.GetRequiredService<IPublishLocationManager>();
+            resourceLocationMgr = provider.GetRequiredService<IResourceLocationManager>();
             logger = provider.GetRequiredService<ILogger<MainWindow>>();
 
             InitializeComponent();
@@ -389,9 +394,10 @@ namespace PixelGraph.UI.Windows
                 return;
             }
 
-            var taskList = new List<Task>();
-
-            taskList.Add(LoadWindowAsync());
+            var taskList = new List<Task> {
+                LoadPublishLocationsAsync(),
+                LoadResourceLocationsAsync(),
+            };
 
 #if !NORENDER
             taskList.Add(renderPreview.InitializeAsync(provider));
@@ -400,7 +406,7 @@ namespace PixelGraph.UI.Windows
             await Task.WhenAll(taskList);
 
             await Dispatcher.BeginInvoke(() => {
-                Model.EndInit();
+                Model.Initialize();
 
 #if !NORENDER
                 renderPreview.Model.IsLoaded = true;
@@ -408,7 +414,7 @@ namespace PixelGraph.UI.Windows
             });
         }
 
-        private async Task LoadWindowAsync()
+        private async Task LoadPublishLocationsAsync()
         {
             var publishLocationsTask = Task.Run(() => publishLocationMgr.LoadAsync());
 
@@ -419,17 +425,19 @@ namespace PixelGraph.UI.Windows
                 logger.LogError(error, "Failed to load publishing locations!");
                 ShowError($"Failed to load publishing locations! {error.UnfoldMessageString()}");
             }
+        }
 
-            await Dispatcher.BeginInvoke(() => {
-                try {
-                    Model.UpdatePublishLocations();
-                    Model.Initialize();
-                }
-                catch (Exception error) {
-                    logger.LogError(error, "Failed to initialize main window!");
-                    ShowError($"Failed to initialize main window! {error.UnfoldMessageString()}");
-                }
-            });
+        private async Task LoadResourceLocationsAsync()
+        {
+            var resourceLocationsTask = Task.Run(() => resourceLocationMgr.LoadAsync());
+
+            try {
+                await resourceLocationsTask;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to load resource locations!");
+                ShowError($"Failed to load resource locations! {error.UnfoldMessageString()}");
+            }
         }
 
         private async Task LoadCurrentProject()
@@ -471,7 +479,15 @@ namespace PixelGraph.UI.Windows
             Model.CloseAllTabs();
             Model.Clear();
 
-            await window.BuildProjectAsync();
+            try {
+                await window.BuildProjectAsync();
+            }
+            catch (Exception error) {
+                logger.LogError(error, "Failed to create new project!");
+                await this.ShowMessageAsync("Error!", $"Failed to create new project! {error.UnfoldMessageString()}");
+                return;
+            }
+
             await LoadCurrentProject();
 
             if (window.Model.EnablePackImport) {
@@ -633,7 +649,7 @@ namespace PixelGraph.UI.Windows
             ShowError($"Failed to update content tree! {error.Message}");
         }
 
-        private async void OnLocationsClick(object sender, RoutedEventArgs e)
+        private async void OnPublishLocationsClick(object sender, RoutedEventArgs e)
         {
             try {
                 var window = new PublishLocationsWindow(provider) {Owner = this};
@@ -646,6 +662,21 @@ namespace PixelGraph.UI.Windows
             }
 
             Model.UpdatePublishLocations();
+        }
+
+        private async void OnResourceLocationsClick(object sender, RoutedEventArgs e)
+        {
+            try {
+                var window = new ResourceLocationsWindow(provider) {Owner = this};
+                if (window.ShowDialog() != true) return;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in ResourceLocationsWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+                //return;
+            }
+
+            //Model.UpdatePublishLocations();
         }
 
         private async void OnSettingsClick(object sender, RoutedEventArgs e)
@@ -671,11 +702,16 @@ namespace PixelGraph.UI.Windows
 
         private async void OnNewMaterialMenuClick(object sender, RoutedEventArgs e)
         {
-            var window = new NewMaterialWindow(provider) {
-                Owner = this,
-            };
+            var window = new NewMaterialWindow(provider) {Owner = this};
 
-            if (window.ShowDialog() != true) return;
+            try {
+                if (window.ShowDialog() != true) return;
+            }
+            catch (Exception error) {
+                logger.LogError(error, "An unhandled exception occurred in NewMaterialWindow!");
+                await this.ShowMessageAsync("Error!", $"An unknown error has occurred! {error.UnfoldMessageString()}");
+                return;
+            }
 
             try {
                 if (string.IsNullOrWhiteSpace(window.Model.Location))

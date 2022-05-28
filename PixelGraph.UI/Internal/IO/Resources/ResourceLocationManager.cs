@@ -1,42 +1,33 @@
-﻿using PixelGraph.UI.Internal.Settings;
-using PixelGraph.UI.Internal.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal
+namespace PixelGraph.UI.Internal.IO.Resources
 {
-    internal interface IPublishLocationManager
+    internal interface IResourceLocationManager
     {
-        string SelectedLocation {get; set;}
-
-        LocationDataModel[] GetLocations();
-        void SetLocations(IEnumerable<LocationDataModel> locations);
+        ResourceLocation[] GetLocations();
+        void SetLocations(IEnumerable<ResourceLocation> locations);
         Task LoadAsync(CancellationToken token = default);
         Task SaveAsync(CancellationToken token = default);
     }
 
-    internal class PublishLocationManager : IPublishLocationManager, IDisposable
+    internal class ResourceLocationManager : IResourceLocationManager, IDisposable
     {
-        private const string FileName = "PublishLocations.txt";
+        private const string FileName = "Resources.json";
 
         private readonly IAppDataUtility appData;
         private readonly ReaderWriterLockSlim _lock;
-        private LocationDataModel[] _locations;
-
-        public string SelectedLocation {get; set;}
+        private ResourceLocation[] _locations;
 
 
-        public PublishLocationManager(
-            IAppSettingsManager appSettings,
-            IAppDataUtility appData)
+        public ResourceLocationManager(IAppDataUtility appData)
         {
             this.appData = appData;
 
             _lock = new ReaderWriterLockSlim();
-            SelectedLocation = appSettings.Data.SelectedPublishLocation;
         }
 
         public void Dispose()
@@ -44,7 +35,7 @@ namespace PixelGraph.UI.Internal
             _lock?.Dispose();
         }
 
-        public LocationDataModel[] GetLocations()
+        public ResourceLocation[] GetLocations()
         {
             _lock.EnterReadLock();
 
@@ -56,12 +47,12 @@ namespace PixelGraph.UI.Internal
             }
         }
 
-        public void SetLocations(IEnumerable<LocationDataModel> locations)
+        public void SetLocations(IEnumerable<ResourceLocation> locations)
         {
             _lock.EnterWriteLock();
 
             try {
-                _locations = locations as LocationDataModel[] ?? locations?.ToArray();
+                _locations = locations as ResourceLocation[] ?? locations?.ToArray();
             }
             finally {
                 _lock.ExitWriteLock();
@@ -70,7 +61,7 @@ namespace PixelGraph.UI.Internal
 
         public async Task LoadAsync(CancellationToken token = default)
         {
-            var locations = await appData.ReadJsonAsync<LocationDataModel[]>(FileName, token);
+            var locations = await appData.ReadJsonAsync<ResourceLocation[]>(FileName, token);
             SetLocations(locations);
         }
 

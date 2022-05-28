@@ -10,7 +10,7 @@
              xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
              mc:Ignorable="d" d:DesignHeight="120" d:DesignWidth="240"
              AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="None"
-             PreparingCellForEdit="OnPreparingCellForEdit" PreviewKeyUp="OnPreviewKeyUp"
+             PreparingCellForEdit="OnPreparingCellForEdit" PreviewKeyUp="OnPreviewKeyUp" RowStyle="{x:Null}"
              BeginningEdit="OnBeginningEdit" CellEditEnding="OnCellEditEnding" CurrentCellChanged="OnCurrentCellChanged">
     <DataGrid.Resources>
         <convert:NullableConverter x:Key="NullableConverter"/>
@@ -137,12 +137,20 @@
                 </DataTemplate>
             </controls:PropertyGridEditCellTemplateSelector.ComboBoxTemplate>
             <controls:PropertyGridEditCellTemplateSelector.SeparatorTemplate>
-                <DataTemplate DataType="{x:Type propertyGrid:ISeparatorPropertyRow}">
-                    <Rectangle Height="3" Fill="Black"/>
-                </DataTemplate>
+                <DataTemplate DataType="{x:Type propertyGrid:ISeparatorPropertyRow}"/>
             </controls:PropertyGridEditCellTemplateSelector.SeparatorTemplate>
         </controls:PropertyGridEditCellTemplateSelector>
     </DataGrid.Resources>
+    <DataGrid.RowStyleSelector>
+        <controls:PropertyGridRowStyleSelector DefaultStyle="{StaticResource MahApps.Styles.DataGridRow}">
+            <controls:PropertyGridRowStyleSelector.SeparatorStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Height" Value="8"/>
+                    <Setter Property="IsEnabled" Value="False"/>
+                </Style>
+            </controls:PropertyGridRowStyleSelector.SeparatorStyle>
+        </controls:PropertyGridRowStyleSelector>
+    </DataGrid.RowStyleSelector>
     <DataGrid.Columns>
         <DataGridTextColumn Width="Auto" IsReadOnly="True"
                             Foreground="{DynamicResource MahApps.Brushes.Gray4}"

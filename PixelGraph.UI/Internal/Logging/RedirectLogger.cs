@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
+using Microsoft.Extensions.Logging;
 
-namespace PixelGraph.UI.Internal
+namespace PixelGraph.UI.Internal.Logging
 {
     internal class RedirectLogger : RedirectLogger<object>
     {

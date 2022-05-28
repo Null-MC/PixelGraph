@@ -762,64 +762,25 @@ namespace PixelGraph.Common.Textures
                 if (info == null) return;
             }
 
-            switch (info.BitDepth) {
-                //case 1:
-                //    using (var sourceImage = await GetSourceImageAsync<SixLabors.ImageSharp.PixelFormats.>(sourceFilename, token)) {
-                //        ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                //    }
-                //    return;
-                //case 4:
-                //    using (var sourceImage = await GetSourceImageAsync<Byte4>(sourceFilename, token)) {
-                //        ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                //    }
-                //    return;
-                case <= 8:
-                    if (info.HasColor) {
-                        if (info.HasOpacity) {
-                            using var sourceImage = await GetSourceImageAsync<Rgba32>(sourceFilename, token);
-                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                        }
-                        else {
-                            using var sourceImage = await GetSourceImageAsync<Rgb24>(sourceFilename, token);
-                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                        }
-                    }
-                    else {
-                        if (info.HasOpacity) {
-                            using var sourceImage = await GetSourceImageAsync<La16>(sourceFilename, token);
-                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                        }
-                        else {
-                            using var sourceImage = await GetSourceImageAsync<L8>(sourceFilename, token);
-                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                        }
-                    }
-                    return;
-                case 16:
-                    if (info.HasColor) {
-                        if (info.HasOpacity) {
-                            using var sourceImage = await GetSourceImageAsync<Rgba64>(sourceFilename, token);
-                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                        }
-                        else {
-                            using var sourceImage = await GetSourceImageAsync<Rgb48>(sourceFilename, token);
-                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                        }
-                    }
-                    else {
-                        if (info.HasOpacity) {
-                            using var sourceImage = await GetSourceImageAsync<La32>(sourceFilename, token);
-                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                        }
-                        else {
-                            using var sourceImage = await GetSourceImageAsync<L16>(sourceFilename, token);
-                            ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
-                        }
-                    }
-                    return;
+            async Task DoItAsync<T>()
+                where T : unmanaged, IPixel<T>
+            {
+                using var sourceImage = await GetSourceImageAsync<T>(sourceFilename, token);
+                ApplySourceMappingInternal(image, sourceImage, info, mappingGroup);
             }
 
-            throw new ApplicationException($"Unsupported image encoding! [bits={info.BitDepth}, color={info.HasColor}, alpha={info.HasOpacity}]");
+            var map = new Dictionary<Type, Func<Task>> {
+                [typeof(Rgba64)] = DoItAsync<Rgba64>,
+                [typeof(Rgba32)] = DoItAsync<Rgba32>,
+                [typeof(Rgb48)] = DoItAsync<Rgb48>,
+                [typeof(Rgb24)] = DoItAsync<Rgb24>,
+                [typeof(La32)] = DoItAsync<La32>,
+                [typeof(La16)] = DoItAsync<La16>,
+                [typeof(L16)] = DoItAsync<L16>,
+                [typeof(L8)] = DoItAsync<L8>,
+            };
+
+            await map[info.GetPixelType()]();
         }
 
         private void ApplySourceMappingInternal<TPixel, TSource>(Image<TPixel> image, Image<TSource> sourceImage, TextureSource info, IEnumerable<TextureChannelMapping> mappingGroup)

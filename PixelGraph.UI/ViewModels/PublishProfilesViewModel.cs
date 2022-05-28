@@ -5,6 +5,7 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Models;
 using System;
 using System.Collections.ObjectModel;

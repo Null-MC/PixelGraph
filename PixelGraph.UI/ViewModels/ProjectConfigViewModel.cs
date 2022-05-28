@@ -2,6 +2,7 @@
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Projects;
 using System;
 using System.Threading.Tasks;
 
