@@ -448,6 +448,11 @@ namespace PixelGraph.UI.Models
             AddSelect("Method", nameof(MaterialNormalProperties.Method), methodOptions, "sobel3");
             AddValue<decimal?>("Strength", nameof(MaterialNormalProperties.Strength), 0m, 10m, MaterialNormalProperties.DefaultStrength);
         }
+
+        public override void SetData(MaterialNormalProperties data)
+        {
+            base.SetData(data);
+        }
     }
 
     public class OcclusionPropertyCollection : PropertyCollectionBase<MaterialOcclusionProperties>

@@ -61,11 +61,8 @@ void get_hcm_ior(const in float f0, const in float3 albedo, out float3 n, out fl
 	}
 	else if (i >= 8) {
 		// albedo-only conductor
-		n = f0_to_ior(1.0f);
-		//k = 0.0f;
+		n = f0_to_ior(albedo);
 		k = albedo;
-
-		// TODO: use albedo for K
 	}
 	else {
 		// HCM conductor

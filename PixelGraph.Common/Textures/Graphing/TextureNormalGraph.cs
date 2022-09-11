@@ -204,6 +204,9 @@ namespace PixelGraph.Common.Textures.Graphing
             var magnitudeOutputChannel = magnitudeOutputChannels.FirstOrDefault();
             if (magnitudeOutputChannel != null) await ApplyMagnitudeAsync(magnitudeOutputChannel, token);
 
+            // WARN: FOR TESTING ONLY!!!
+            //await NormalTexture.SaveAsPngAsync("test-normal.png", token);
+
             return true;
         }
 

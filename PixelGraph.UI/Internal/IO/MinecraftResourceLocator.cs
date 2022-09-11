@@ -86,19 +86,20 @@ namespace PixelGraph.UI.Internal.IO
             return false;
         }
 
-        public bool FindEntityModel(string searchFile, out string localPath)
+        public bool FindEntityModel(string searchFile, Action<Stream> readAction)
         {
             foreach (var builder in EnumerateScopes()) {
                 using var scope = builder.Build();
                 var reader = scope.GetRequiredService<IInputReader>();
 
-                if (!FindLocalEntityModel(reader, searchFile, out localPath)) continue;
+                if (!FindLocalEntityModel(reader, searchFile, out var localPath)) continue;
 
-                localPath = reader.GetFullPath(localPath);
+                using var stream = reader.Open(localPath);
+                readAction(stream);
                 return true;
             }
 
-            localPath = null;
+            //fullPath = null;
             return false;
         }
 

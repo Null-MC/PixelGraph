@@ -22,7 +22,7 @@ namespace PixelGraph.Common.PixelOperations
 
         public void WrapY(ref int y)
         {
-            TexCoordHelper.ClampCoordY(ref y, in Bounds);
+            TexCoordHelper.WrapCoordY(ref y, in Bounds);
         }
 
         public void Wrap(ref int x, ref int y)

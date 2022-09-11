@@ -64,6 +64,8 @@ namespace PixelGraph.Common.Textures
                 foreach (var frame in regions.GetAllRenderRegions()) {
                     foreach (var tile in frame.Tiles) {
                         var outBounds = tile.DestBounds.ScaleTo(HeightImage.Width, HeightImage.Height);
+                        //options.SourceBounds = ;
+                        
                         resultImage.Mutate(c => c.ApplyProcessor(processor, outBounds));
                     }
                 }

@@ -100,7 +100,7 @@ float4 main(const ps_input input, const in bool face : SV_IsFrontFace) : SV_TARG
     //const float porosityL = srgb_to_linear(mat.porosity);
 	
     // Blend base colors
-	const float metal = mat.f0_hcm > 0.8999f ? 1.0f : 0.0f;
+	const float metal = step(0.8999f, mat.f0_hcm);
 	const float3 tint = srgb_to_linear(TintColor);
     float3 diffuse = mat.albedo * tint * (1.0f - metal);
 
@@ -158,7 +158,7 @@ float4 main(const ps_input input, const in bool face : SV_IsFrontFace) : SV_TARG
     //-- HCM --
 	float3 ior_n, ior_k;
 	get_hcm_ior(mat.f0_hcm, mat.albedo, ior_n, ior_k);
-	float3 metal_albedo = lerp(1.0f, mat.albedo * tint, metal);
+	float3 metal_albedo = lerp(1.0f, mat.albedo * tint, mat.f0_hcm > 0.8999 && mat.f0_hcm < 0.999);
 
     float3 acc_light = 0.0;
     float3 acc_sss = 0.0;

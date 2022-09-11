@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using MinecraftMappings.Internal.Models.Entity;
+﻿using MinecraftMappings.Internal.Models.Entity;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PixelGraph.Common.IO;
 using SharpDX;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace PixelGraph.UI.Internal.IO.Models
 {
@@ -49,10 +48,15 @@ namespace PixelGraph.UI.Internal.IO.Models
             if (!modelFile.Contains('/', StringComparison.InvariantCulture))
                 modelFile = $"assets/minecraft/optifine/cem/{modelFile}";
 
-            if (locator.FindEntityModel(modelFile, out var localFile)) {
-                var json = ParseModelJson(localFile);
-                return ParseModelFile<T>(json);
-            }
+            JObject json = null;
+            var result = locator.FindEntityModel(modelFile, stream => {
+                using var reader = new StreamReader(stream);
+                using var jsonReader = new JsonTextReader(reader);
+                json = JObject.Load(jsonReader);
+
+            });
+
+            if (result) return ParseModelFile<T>(json);
 
             return null;
             //var name = Path.GetFileName(searchFile);
@@ -73,10 +77,14 @@ namespace PixelGraph.UI.Internal.IO.Models
             if (!modelFile.Contains("/", StringComparison.InvariantCulture))
                 modelFile = $"assets/minecraft/optifine/cem/{modelFile}";
 
-            if (locator.FindEntityModel(modelFile, out var localFile)) {
-                var json = ParseModelJson(localFile);
-                return ParseModelPartFile(json);
-            }
+            JObject json = null;
+            var result = locator.FindEntityModel(modelFile, stream => {
+                using var reader = new StreamReader(stream);
+                using var jsonReader = new JsonTextReader(reader);
+                json = JObject.Load(jsonReader);
+            });
+
+            if (result) return ParseModelPartFile(json);
             
             var name = Path.GetFileName(searchFile);
 
@@ -146,8 +154,15 @@ namespace PixelGraph.UI.Internal.IO.Models
 
             var model_file = element.Value<string>("model");
             if (model_file != null) {
-                var partModel = FindModelPart(model_file);
-                if (partModel == null) throw new ApplicationException($"Unable to locate entity model part '{model_file}'!");
+                try {
+                    var partModel = FindModelPart(model_file);
+                    if (partModel == null) throw new ApplicationException($"Unable to locate entity model part '{model_file}'!");
+
+                    modelElement.Model = partModel;
+                }
+                catch (Exception) {
+                    // TODO: log?
+                }
 
                 //var elementDataList = jsonData.Value<JArray>("models");
                 //if (elementDataList != null) {
@@ -157,21 +172,22 @@ namespace PixelGraph.UI.Internal.IO.Models
                 //        model.Elements.Add(element);
                 //    }
                 //}
-                modelElement.Model = partModel;
+                //modelElement.Model = partModel;
 
                 // TODO: Add support for loading JPM model parts
                 //throw new NotImplementedException("JPM is not currently supported!");
                 //return;
             }
-
-
+            
             var translate_array = element.Value<JArray>("translate")?.ToObject<float[]>();
-            if (translate_array is not {Length: 3})
-                throw new ApplicationException("Element 'translate' must contain 3 values!");
+            if (translate_array != null) {
+                if (translate_array != null && translate_array is not {Length: 3})
+                    throw new ApplicationException("Element 'translate' must contain 3 values!");
 
-            modelElement.Translate.X = translate_array[0];
-            modelElement.Translate.Y = translate_array[1];
-            modelElement.Translate.Z = translate_array[2];
+                modelElement.Translate.X = translate_array[0];
+                modelElement.Translate.Y = translate_array[1];
+                modelElement.Translate.Z = translate_array[2];
+            }
 
             var rotate_array = element.Value<JArray>("rotate")?.ToObject<float[]>();
             if (rotate_array != null) {
@@ -251,14 +267,6 @@ namespace PixelGraph.UI.Internal.IO.Models
                     modelElement.Submodels.Add(modelSub);
                 }
             }
-        }
-
-        private static JObject ParseModelJson(string filename)
-        {
-            using var stream = File.Open(filename, FileMode.Open, FileAccess.Read);
-            using var reader = new StreamReader(stream);
-            using var jsonReader = new JsonTextReader(reader);
-            return JObject.Load(jsonReader);
         }
 
         private static RectangleF UVMap(IReadOnlyList<float> region)

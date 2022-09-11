@@ -167,6 +167,22 @@ namespace PixelGraph.UI.Models
             }
         }
 
+        public string NormalMethodDefault {
+            get => Profile.NormalMethodDefault;
+            set {
+                Profile.NormalMethodDefault = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public decimal? NormalStrengthDefault {
+            get => Profile.NormalStrengthDefault;
+            set {
+                Profile.NormalStrengthDefault = value;
+                OnPropertyChanged();
+            }
+        }
+
         public decimal? OcclusionQuality {
             get => Profile.OcclusionQuality;
             set {

@@ -12,11 +12,13 @@ namespace PixelGraph.Common.IO
     {
         private readonly Stream fileStream;
         private readonly ZipArchive archive;
+        private readonly string filename;
 
 
         public ArchiveInputReader(IOptions<InputOptions> options)
         {
-            fileStream = File.Open(options.Value.Root, FileMode.Open, FileAccess.Read, FileShare.Read);
+            filename = options.Value.Root;
+            fileStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
             archive = new ZipArchive(fileStream, ZipArchiveMode.Read);
         }
 
@@ -53,8 +55,7 @@ namespace PixelGraph.Common.IO
 
         public override string GetFullPath(string localFile)
         {
-            // ERROR: This looks very fucking wrong but I don't want to break things rn
-            return Path.GetFullPath(localFile);
+            return $"{filename}|{localFile}";
         }
 
         public override string GetRelativePath(string fullPath)

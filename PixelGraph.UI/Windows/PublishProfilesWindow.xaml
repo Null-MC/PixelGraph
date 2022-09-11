@@ -18,6 +18,7 @@
         <vd:GameEditionValues x:Key="GameEditions"/>
         <vd:ImageEncodingValues x:Key="ImageEncodings"/>
         <vd:AllTextureFormatValues x:Key="AllTextureFormats"/>
+        <vd:NormalMethodValues x:Key="NormalMethodValues"/>
         <vd:SamplerValues x:Key="Samplers"/>
         <converters:NullableConverter x:Key="NullableConverter"/>
     </Window.Resources>
@@ -293,6 +294,31 @@
                                     </CheckBox>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                                Text="When enabled materials that are missing a normal texture will attempt to generate it from the height texture."/>
+                                    <TextBlock Text="Default Method" Style="{StaticResource FieldLabelStyle}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MaxWidth="120"/>
+                                        </Grid.ColumnDefinitions>
+                                        <controls:ComboBoxEx HorizontalContentAlignment="Center"
+                                                             DisplayMemberPath="Text" SelectedValuePath="Value"
+                                                             Placeholder="{Binding NormalMethodDefault, Mode=OneTime}"
+                                                             SelectedValue="{Binding SelectedProfile.NormalMethodDefault, Mode=TwoWay, Converter={StaticResource NullableConverter}}"
+                                                             ItemsSource="{StaticResource NormalMethodValues}"
+                                                             Style="{StaticResource MahApps.Styles.ComboBox}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="The default method to use for normal mapping."/>
+                                    <TextBlock Text="Default Strength" Style="{StaticResource FieldLabelStyle}"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MaxWidth="120"/>
+                                        </Grid.ColumnDefinitions>
+                                        <controls:TextBoxEx TextAlignment="Center"
+                                            Placeholder="{Binding NormalStrengthDefault, Mode=OneTime}"
+                                            Text="{Binding SelectedProfile.NormalStrengthDefault, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource DescriptionTextStyle}"
+                                               Text="The default strength value to use for normal mapping."/>
                                 </StackPanel>
                             </ScrollViewer>
                         </TabItem>

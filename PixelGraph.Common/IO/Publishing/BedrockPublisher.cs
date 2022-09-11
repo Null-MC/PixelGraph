@@ -58,9 +58,11 @@ namespace PixelGraph.Common.IO.Publishing
             try {
                 var grassFixer = Provider.GetRequiredService<BedrockRtxGrassFixer>();
                 await grassFixer.FixAsync(context, token);
+
+                Logger.LogInformation("Successfully generated grass_side texture!");
             }
             catch (Exception error) {
-                Logger.LogError(error, "Failed to generate grass_side texture!");
+                Logger.LogError(error, $"Failed to generate grass_side texture! {error.UnfoldMessageString()}");
             }
         }
 

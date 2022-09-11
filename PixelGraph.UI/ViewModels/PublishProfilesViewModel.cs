@@ -23,6 +23,8 @@ namespace PixelGraph.UI.ViewModels
         public bool HasSelectedProfile => _selectedProfile != null;
         public bool IsSelectedProfileJava => SelectedProfile?.IsJavaProfile ?? false;
         public bool IsSelectedProfileBedrock => SelectedProfile?.IsBedrockProfile ?? false;
+        public string NormalMethodDefault => PublishProfileProperties.DefaultNormalMethod;
+        public decimal NormalStrengthDefault => PublishProfileProperties.DefaultNormalStrength;
         public decimal OcclusionQualityDefault => PublishProfileProperties.DefaultOcclusionQuality;
         public decimal OcclusionPowerDefault => PublishProfileProperties.DefaultOcclusionPower;
 

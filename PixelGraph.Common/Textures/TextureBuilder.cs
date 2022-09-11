@@ -817,7 +817,8 @@ namespace PixelGraph.Common.Textures
             regions.SourceFrameCount = info.FrameCount;
 
             //regions.DestFrameCount = info.FrameCount;
-            regions.DestFrameCount = context.MaxFrameCount;
+            regions.DestFrameCount = TargetFrame.HasValue ? 1 :
+                Math.Max(context.MaxFrameCount, info.FrameCount);
 
             regions.TargetFrame = TargetFrame;
             regions.TargetPart = TargetPart;

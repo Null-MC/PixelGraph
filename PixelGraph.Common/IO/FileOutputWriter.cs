@@ -23,13 +23,13 @@ namespace PixelGraph.Common.IO
                 Directory.CreateDirectory(options.Value.Root);
         }
 
-        public async Task OpenReadAsync(string localFilename, Func<Stream, Task> readFunc, CancellationToken token = default)
+        public async Task<T> OpenReadAsync<T>(string localFilename, Func<Stream, Task<T>> readFunc, CancellationToken token = default)
         {
             var filename = PathEx.Join(options.Value.Root, localFilename);
             filename = PathEx.Localize(filename);
 
             await using var stream = File.Open(filename, FileMode.Open, FileAccess.Read);
-            await readFunc(stream);
+            return await readFunc(stream);
         }
 
         public async Task<long> OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)

@@ -53,9 +53,15 @@ float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, out f
 		trace_depth -= step_size;
 	}
 
-	const float t = (prev_trace_depth - prev_tex_depth) / max(tex_depth - prev_tex_depth + prev_trace_depth - trace_depth, EPSILON);
-	shadow_tex.xy = lerp(prev_trace_offset, trace_offset, t);
-	shadow_tex.z = lerp(prev_trace_depth, trace_depth, t);
+	if (EnableLinearSampling) {
+		const float t = (prev_trace_depth - prev_tex_depth) / max(tex_depth - prev_tex_depth + prev_trace_depth - trace_depth, EPSILON);
+		shadow_tex.xy = lerp(prev_trace_offset, trace_offset, t);
+		shadow_tex.z = lerp(prev_trace_depth, trace_depth, t);
+	}
+	else {
+		shadow_tex.xy = prev_trace_offset;
+		shadow_tex.z = prev_trace_depth;
+	}
 
 	//float afterDepth  = prev_tex_depth - tex_depth;
 	//float beforeDepth = prev_tex_depth - tex_depth + trace_depth;

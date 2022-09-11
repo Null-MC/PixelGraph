@@ -1,6 +1,7 @@
 ﻿using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
+using PixelGraph.Common.Textures;
 using System;
 using YamlDotNet.Serialization;
 
@@ -10,6 +11,8 @@ namespace PixelGraph.Common.Projects
     {
         public const int DefaultJavaFormat = 6;
         public const int DefaultBedrockFormat = 2;
+        public const string DefaultNormalMethod = NormalMapMethod.Sobel3;
+        public const decimal DefaultNormalStrength = 1.0m;
         public const decimal DefaultDiffuseOcclusionStrength = 1.0m;
         public const decimal DefaultOcclusionQuality = 0.06m;
         public const decimal DefaultOcclusionPower = 1.0m;
@@ -82,6 +85,7 @@ namespace PixelGraph.Common.Projects
         public int? TextureSize {get; set;}
         public int? BlockTextureSize {get; set;}
         public int? ItemTextureSize {get; set;}
+        public decimal? GuiTextureScale {get; set;}
         public decimal? TextureScale {get; set;}
 
         public decimal? DiffuseOcclusionStrength {get; set;}
@@ -93,6 +97,10 @@ namespace PixelGraph.Common.Projects
         public bool? AutoGenerateOcclusion {get; set;}
 
         public bool? BakeOcclusionToColor {get; set;}
+
+        public string NormalMethodDefault {get; set;}
+
+        public decimal? NormalStrengthDefault {get; set;}
 
         public decimal? OcclusionQuality {get; set;}
 
@@ -130,12 +138,15 @@ namespace PixelGraph.Common.Projects
             if (TextureSize.HasValue) return true;
             if (BlockTextureSize.HasValue) return true;
             if (ItemTextureSize.HasValue) return true;
+            if (GuiTextureScale.HasValue) return true;
             if (TextureScale.HasValue) return true;
             if (DiffuseOcclusionStrength.HasValue) return true;
             if (AutoLevelHeight.HasValue) return true;
             if (AutoGenerateNormal.HasValue) return true;
             if (AutoGenerateOcclusion.HasValue) return true;
             if (BakeOcclusionToColor.HasValue) return true;
+            if (!string.IsNullOrWhiteSpace(NormalMethodDefault)) return true;
+            if (NormalStrengthDefault.HasValue) return true;
             if (OcclusionQuality.HasValue) return true;
             if (OcclusionPower.HasValue) return true;
             if (PublishInventory.HasValue) return true;

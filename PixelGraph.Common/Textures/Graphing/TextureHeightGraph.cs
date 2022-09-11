@@ -93,6 +93,9 @@ namespace PixelGraph.Common.Textures.Graphing
                 }
             }
 
+            // WARN: FOR TESTING ONLY!!!
+            //await heightTexture.SaveAsPngAsync("test-height.png", token);
+
             return heightTexture;
         }
 

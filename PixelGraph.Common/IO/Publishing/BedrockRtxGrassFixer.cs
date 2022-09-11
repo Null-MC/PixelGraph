@@ -33,130 +33,143 @@ namespace PixelGraph.Common.IO.Publishing
         {
             var ext = NamingStructure.GetExtension(packContext.Profile);
 
-            if (!writer.FileExists($"textures/blocks/grass_side.{ext}")) {
-                logger.LogWarning("Unable to build grass_side texture, missing grass_side!");
+            var grass_side_file = $"textures/blocks/grass_side.{ext}";
+            if (!writer.FileExists(grass_side_file)) {
+                logger.LogWarning("Unable to build grass_side texture, missing '{grass_side_file}'!", grass_side_file);
                 return;
             }
 
-            if (!writer.FileExists($"textures/blocks/grass_side_carried.{ext}")) {
-                logger.LogWarning("Unable to build grass_side texture, missing grass_side_carried!");
+            var grass_side_carried_file = $"textures/blocks/grass_side_carried.{ext}";
+            if (!writer.FileExists(grass_side_carried_file)) {
+                logger.LogWarning("Unable to build grass_side texture, missing '{grass_side_carried_file}'!", grass_side_carried_file);
                 return;
             }
 
             var format = ImageWriter.GetFormat(ext);
             var encoder = imgWriter.GetEncoder(format, ImageChannels.ColorAlpha);
 
-            await writer.OpenReadWriteAsync($"textures/blocks/grass_side.{ext}", async writeStream => {
-                using var colorTex = await Image.LoadAsync<Rgba32>(Configuration.Default, writeStream, token);
+            //var colorFile = $"textures/blocks/grass_side.{ext}";
+            using var overlayColorTex = await writer.OpenReadAsync(grass_side_carried_file,
+                async stream => await Image.LoadAsync<Rgba32>(Configuration.Default, stream, token), token);
 
-                await writer.OpenReadAsync($"textures/blocks/grass_side_carried.{ext}", async readStream => {
-                    using var overlayColorTex = await Image.LoadAsync<Rgb24>(Configuration.Default, readStream, token);
+            await writer.OpenReadWriteAsync(grass_side_file, async stream => {
+                using var colorTex = await Image.LoadAsync<Rgb24>(Configuration.Default, stream, token);
 
-                    colorTex.Mutate(imgContext => {
+                colorTex.Mutate(imgContext => {
+                    var options = new BedrockGrassOpacityProcessor<Rgba32>.Options {
+                        SamplerOverlay = new NearestSampler<Rgba32> {
+                            Image = overlayColorTex,
+                        },
+                    };
+
+                    options.SamplerOverlay.SetBounds(UVRegion.Full);
+
+                    // overlay RGB from overlayColorTex where colorTex opacity = 0
+                    var processor = new BedrockGrassOpacityProcessor<Rgba32>(options);
+                    imgContext.ApplyProcessor(processor);
+                });
+
+                stream.Seek(0, SeekOrigin.Begin);
+                stream.SetLength(0);
+                await colorTex.SaveAsync(stream, encoder, token);
+            }, token);
+
+            // apply other layers using existing opacity mask
+            var normalInputFile = $"textures/blocks/grass_side_carried_normal.{ext}";
+            if (writer.FileExists(normalInputFile)) {
+                using var overlayNormalTex = await writer.OpenReadAsync(normalInputFile,
+                    stream => Image.LoadAsync<Rgb24>(Configuration.Default, stream, token), token);
+
+                await writer.OpenReadWriteAsync($"textures/blocks/grass_side_normal.{ext}", async stream => {
+                    using var normalTex = await Image.LoadAsync<Rgb24>(Configuration.Default, stream, token);
+
+                    normalTex.Mutate(imgContext => {
                         var options = new BedrockGrassOpacityProcessor<Rgb24>.Options {
-                            SamplerOverlay = new NearestSampler<Rgb24> {
+                            SamplerOpacity = new NearestSampler<Rgba32> {
                                 Image = overlayColorTex,
                             },
+                            SamplerOverlay = new NearestSampler<Rgb24> {
+                                Image = overlayNormalTex,
+                            },
                         };
+
+                        options.SamplerOpacity.SetBounds(UVRegion.Full);
+                        options.SamplerOverlay.SetBounds(UVRegion.Full);
 
                         // overlay RGB from overlayColorTex where colorTex opacity = 0
                         var processor = new BedrockGrassOpacityProcessor<Rgb24>(options);
                         imgContext.ApplyProcessor(processor);
                     });
+
+                    stream.Seek(0, SeekOrigin.Begin);
+                    stream.SetLength(0);
+                    await normalTex.SaveAsync(stream, encoder, token);
                 }, token);
+            }
 
-                writeStream.Seek(0, SeekOrigin.Begin);
-                writeStream.SetLength(0);
-                await colorTex.SaveAsync(writeStream, encoder, token);
+            var heightInputFile = $"textures/blocks/grass_side_carried_heightmap.{ext}";
+            if (writer.FileExists(heightInputFile)) {
+                using var overlayHeightTex = await writer.OpenReadAsync(heightInputFile,
+                    stream => Image.LoadAsync<L8>(Configuration.Default, stream, token), token);
 
-                // apply other layers using existing opacity mask
-                if (writer.FileExists($"textures/blocks/grass_side_carried_normal.{ext}")) {
-                    await writer.OpenReadWriteAsync($"textures/blocks/grass_side_normal.{ext}", async writeStream2 => {
-                        using var normalTex = await Image.LoadAsync<Rgb24>(Configuration.Default, writeStream2, token);
+                await writer.OpenReadWriteAsync($"textures/blocks/grass_side_heightmap.{ext}", async stream => {
+                    using var heightTex = await Image.LoadAsync<L8>(Configuration.Default, stream, token);
 
-                        await writer.OpenWriteAsync($"textures/blocks/grass_side_carried_normal.{ext}", async readStream => {
-                            using var overlayNormalTex = await Image.LoadAsync<Rgb24>(Configuration.Default, readStream, token);
+                    heightTex.Mutate(imgContext => {
+                        var options = new BedrockGrassOpacityProcessor<L8>.Options {
+                            SamplerOpacity = new NearestSampler<Rgba32> {
+                                Image = overlayColorTex,
+                            },
+                            SamplerOverlay = new NearestSampler<L8> {
+                                Image = overlayHeightTex,
+                            },
+                        };
 
-                            normalTex.Mutate(imgContext => {
-                                var options = new BedrockGrassOpacityProcessor<Rgb24>.Options {
-                                    SamplerOpacity = new NearestSampler<Rgba32> {
-                                        Image = colorTex,
-                                    },
-                                    SamplerOverlay = new NearestSampler<Rgb24> {
-                                        Image = overlayNormalTex,
-                                    },
-                                };
+                        options.SamplerOpacity.SetBounds(UVRegion.Full);
+                        options.SamplerOverlay.SetBounds(UVRegion.Full);
 
-                                // overlay RGB from overlayColorTex where colorTex opacity = 0
-                                var processor = new BedrockGrassOpacityProcessor<Rgb24>(options);
-                                imgContext.ApplyProcessor(processor);
-                            });
-                        }, token);
+                        // overlay RGB from overlayColorTex where colorTex opacity = 0
+                        var processor = new BedrockGrassOpacityProcessor<L8>(options);
+                        imgContext.ApplyProcessor(processor);
+                    });
 
-                        writeStream2.Seek(0, SeekOrigin.Begin);
-                        writeStream2.SetLength(0);
-                        await normalTex.SaveAsync(writeStream2, encoder, token);
-                    }, token);
-                }
+                    stream.Seek(0, SeekOrigin.Begin);
+                    stream.SetLength(0);
+                    await heightTex.SaveAsync(stream, encoder, token);
+                }, token);
+            }
 
-                if (writer.FileExists($"textures/blocks/grass_side_carried_heightmap.{ext}")) {
-                    await writer.OpenReadWriteAsync($"textures/blocks/grass_side_heightmap.{ext}", async writeStream2 => {
-                        using var heightTex = await Image.LoadAsync<L8>(Configuration.Default, writeStream2, token);
+            var merInputFile = $"textures/blocks/grass_side_carried_mer.{ext}";
+            if (writer.FileExists(merInputFile)) {
+                using var overlayMerTex = await writer.OpenReadAsync(merInputFile,
+                    stream => Image.LoadAsync<Rgb24>(Configuration.Default, stream, token), token);
 
-                        await writer.OpenWriteAsync($"textures/blocks/grass_side_carried_heightmap.{ext}", async readStream => {
-                            using var overlayHeightTex = await Image.LoadAsync<L8>(Configuration.Default, readStream, token);
+                await writer.OpenReadWriteAsync($"textures/blocks/grass_side_mer.{ext}", async stream => {
+                    using var merTex = await Image.LoadAsync<Rgb24>(Configuration.Default, stream, token);
 
-                            heightTex.Mutate(imgContext => {
-                                var options = new BedrockGrassOpacityProcessor<L8>.Options {
-                                    SamplerOpacity = new NearestSampler<Rgba32> {
-                                        Image = colorTex,
-                                    },
-                                    SamplerOverlay = new NearestSampler<L8> {
-                                        Image = overlayHeightTex,
-                                    },
-                                };
+                    merTex.Mutate(imgContext => {
+                        var options = new BedrockGrassOpacityProcessor<Rgb24>.Options {
+                            SamplerOpacity = new NearestSampler<Rgba32> {
+                                Image = overlayColorTex,
+                            },
+                            SamplerOverlay = new NearestSampler<Rgb24> {
+                                Image = overlayMerTex,
+                            },
+                        };
 
-                                // overlay RGB from overlayColorTex where colorTex opacity = 0
-                                var processor = new BedrockGrassOpacityProcessor<L8>(options);
-                                imgContext.ApplyProcessor(processor);
-                            });
-                        }, token);
+                        options.SamplerOpacity.SetBounds(UVRegion.Full);
+                        options.SamplerOverlay.SetBounds(UVRegion.Full);
 
-                        writeStream2.Seek(0, SeekOrigin.Begin);
-                        writeStream2.SetLength(0);
-                        await colorTex.SaveAsync(writeStream2, encoder, token);
-                    }, token);
-                }
+                        // overlay RGB from overlayColorTex where colorTex opacity = 0
+                        var processor = new BedrockGrassOpacityProcessor<Rgb24>(options);
+                        imgContext.ApplyProcessor(processor);
+                    });
 
-                if (writer.FileExists($"textures/blocks/grass_side_carried_mer.{ext}")) {
-                    await writer.OpenReadWriteAsync($"textures/blocks/grass_side_mer.{ext}", async writeStream2 => {
-                        using var merTex = await Image.LoadAsync<Rgb24>(Configuration.Default, writeStream2, token);
-
-                        await writer.OpenWriteAsync($"textures/blocks/grass_side_carried_mer.{ext}", async readStream => {
-                            using var overlayMerTex = await Image.LoadAsync<Rgb24>(Configuration.Default, readStream, token);
-
-                            merTex.Mutate(imgContext => {
-                                var options = new BedrockGrassOpacityProcessor<Rgb24>.Options {
-                                    SamplerOpacity = new NearestSampler<Rgba32> {
-                                        Image = colorTex,
-                                    },
-                                    SamplerOverlay = new NearestSampler<Rgb24> {
-                                        Image = overlayMerTex,
-                                    },
-                                };
-
-                                // overlay RGB from overlayColorTex where colorTex opacity = 0
-                                var processor = new BedrockGrassOpacityProcessor<Rgb24>(options);
-                                imgContext.ApplyProcessor(processor);
-                            });
-                        }, token);
-
-                        writeStream2.Seek(0, SeekOrigin.Begin);
-                        writeStream2.SetLength(0);
-                        await colorTex.SaveAsync(writeStream2, encoder, token);
-                    }, token);
-                }
-            }, token);
+                    stream.Seek(0, SeekOrigin.Begin);
+                    stream.SetLength(0);
+                    await merTex.SaveAsync(stream, encoder, token);
+                }, token);
+            }
         }
     }
 }
