@@ -94,10 +94,14 @@ namespace PixelGraph.Common.Material
             GetRectangle(out var bounds);
 
             region = new Rectangle {
-                X = (int)(bounds.X * width + 0.5f),
-                Y = (int)(bounds.Y * height + 0.5f),
-                Width = (int)(bounds.Width * width + 0.5f),
-                Height = (int)(bounds.Height * height + 0.5f),
+                X = (int)(bounds.X * width),
+                Y = (int)(bounds.Y * height),
+                Width = (int)(bounds.Width * width),
+                Height = (int)(bounds.Height * height),
+                //X = (int)(bounds.X * width + 0.5f),
+                //Y = (int)(bounds.Y * height + 0.5f),
+                //Width = (int)(bounds.Width * width + 0.5f),
+                //Height = (int)(bounds.Height * height + 0.5f),
             };
         }
         

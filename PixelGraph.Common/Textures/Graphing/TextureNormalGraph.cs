@@ -284,17 +284,24 @@ namespace PixelGraph.Common.Textures.Graphing
                         var h = frame.SourceBounds.Height * filterRegion.Height;
 
                         var region = new Rectangle(
-                            (int)(x * NormalTexture.Width + 0.5f),
-                            (int)(y * NormalTexture.Height + 0.5f),
-                            (int)(w * NormalTexture.Width + 0.5f),
-                            (int)(h * NormalTexture.Height + 0.5f));
+                            (int)(x * NormalTexture.Width),
+                            (int)(y * NormalTexture.Height),
+                            (int)(w * NormalTexture.Width),
+                            (int)(h * NormalTexture.Height));
+                            //(int)(x * NormalTexture.Width + 0.5f),
+                            //(int)(y * NormalTexture.Height + 0.5f),
+                            //(int)(w * NormalTexture.Width + 0.5f),
+                            //(int)(h * NormalTexture.Height + 0.5f));
 
-                        ApplyFilterRegion(filter, region);
+                        if (region.Width > 0 && region.Height > 0)
+                            ApplyFilterRegion(filter, region);
                     }
                 }
                 else {
                     filter.GetRectangle(NormalTexture.Width, NormalTexture.Height, out var region);
-                    ApplyFilterRegion(filter, region);
+
+                    if (region.Width > 0 && region.Height > 0)
+                        ApplyFilterRegion(filter, region);
                 }
             }
         }

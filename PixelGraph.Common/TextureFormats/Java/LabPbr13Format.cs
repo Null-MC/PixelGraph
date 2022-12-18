@@ -62,9 +62,9 @@ namespace PixelGraph.Common.TextureFormats.Java
                 Height = new ResourcePackHeightChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Alpha,
+                    DefaultValue = 0,
                     MinValue = 0m,
                     MaxValue = 1m,
-                    DefaultValue = 0,
                     Invert = true,
                 },
 

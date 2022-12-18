@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PixelGraph.Common;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
@@ -13,14 +14,18 @@ namespace PixelGraph.UI.Internal.IO
 {
     public class MinecraftResourceLocator
     {
+        private readonly ILogger<MinecraftResourceLocator> logger;
         private readonly IServiceProvider provider;
         private readonly IProjectContextManager projectContextMgr;
         private readonly IResourceLocationManager resourceMgr;
 
 
-        public MinecraftResourceLocator(IServiceProvider provider)
+        public MinecraftResourceLocator(
+            ILogger<MinecraftResourceLocator> logger,
+            IServiceProvider provider)
         {
             this.provider = provider;
+            this.logger = logger;
 
             projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
             resourceMgr = provider.GetRequiredService<IResourceLocationManager>();
@@ -185,10 +190,11 @@ namespace PixelGraph.UI.Internal.IO
             return FindAllNamespaceDirectories(reader).Select(Path.GetFileName);
         }
 
-        private IEnumerable<string> FindAllNamespaceDirectories(IInputReader reader, string @namespace = null)
+        private static IEnumerable<string> FindAllNamespaceDirectories(IInputReader reader, string @namespace = null)
         {
-            if (@namespace != null) return new[] { $"assets/{@namespace}" };
-            return reader.EnumerateDirectories("assets");
+            return @namespace != null
+                ? new[] { $"assets/{@namespace}" }
+                : reader.EnumerateDirectories("assets");
         }
 
         private IEnumerable<IServiceBuilder> EnumerateScopes()
@@ -198,6 +204,11 @@ namespace PixelGraph.UI.Internal.IO
             if (locations == null) yield break;
 
             foreach (var resourceFile in locations) {
+                if (!File.Exists(resourceFile.File)) {
+                    logger.LogWarning("Unable to locate linked external resource '{File}'!", resourceFile.File);
+                    continue;
+                }
+
                 var resourceBuilder = provider.GetRequiredService<IServiceBuilder>();
                 resourceBuilder.ConfigureReader(ContentTypes.Archive, GameEditions.Java, resourceFile.File);
                 yield return resourceBuilder;
