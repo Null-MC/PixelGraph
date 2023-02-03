@@ -95,7 +95,7 @@ namespace PixelGraph.UI.Internal.IO
                 if (!Directory.Exists(finalPath))
                     Directory.CreateDirectory(finalPath);
 
-                stream = File.OpenWrite(fullFile);
+                stream = File.Open(fullFile, FileMode.Create, FileAccess.Write, FileShare.None);
                 return new StreamWriter(stream);
             }
             catch {
