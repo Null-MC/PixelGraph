@@ -3,70 +3,69 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 
-namespace PixelGraph.Common.Samplers
+namespace PixelGraph.Common.Samplers;
+
+internal abstract class SamplerBase<TPixel> : ISampler<TPixel>
+    where TPixel : unmanaged, IPixel<TPixel>
 {
-    internal abstract class SamplerBase<TPixel> : ISampler<TPixel>
-        where TPixel : unmanaged, IPixel<TPixel>
+    protected Rectangle Bounds;
+
+    public Image<TPixel> Image {get; set;}
+    public float RangeX {get; set;}
+    public float RangeY {get; set;}
+    public bool WrapX {get; set;}
+    public bool WrapY {get; set;}
+
+
+    protected SamplerBase()
     {
-        protected Rectangle Bounds;
+        Bounds = Rectangle.Empty;
+    }
 
-        public Image<TPixel> Image {get; set;}
-        public float RangeX {get; set;}
-        public float RangeY {get; set;}
-        public bool WrapX {get; set;}
-        public bool WrapY {get; set;}
+    public void SetBounds(in UVRegion region)
+    {
+        if (Image == null) throw new ApplicationException("Unable to set bounds when image is undefined!");
 
+        Bounds = region.ScaleTo(Image.Width, Image.Height);
+    }
 
-        protected SamplerBase()
-        {
-            Bounds = Rectangle.Empty;
-        }
+    public abstract IRowSampler ForRow(in double y);
 
-        public void SetBounds(in UVRegion region)
-        {
-            if (Image == null) throw new ApplicationException("Unable to set bounds when image is undefined!");
+    public abstract void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue);
 
-            Bounds = region.ScaleTo(Image.Width, Image.Height);
-        }
+    protected void GetTexCoord(in double x, in double y, out float fx, out float fy)
+    {
+        //fx = (float)(Bounds.Left + x * Bounds.Width);
+        //fy = (float)(Bounds.Top + y * Bounds.Height);
+        GetTexCoordX(in x, out fx);
+        GetTexCoordY(in y, out fy);
+    }
 
-        public abstract IRowSampler ForRow(in double y);
+    protected void GetTexCoordX(in double x, out float fx)
+    {
+        fx = (float)(Bounds.Left + x * Bounds.Width);
+    }
 
-        public abstract void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue);
+    protected void GetTexCoordY(in double y, out float fy)
+    {
+        fy = (float)(Bounds.Top + y * Bounds.Height);
+    }
 
-        protected void GetTexCoord(in double x, in double y, out float fx, out float fy)
-        {
-            //fx = (float)(Bounds.Left + x * Bounds.Width);
-            //fy = (float)(Bounds.Top + y * Bounds.Height);
-            GetTexCoordX(in x, out fx);
-            GetTexCoordY(in y, out fy);
-        }
+    protected void NormalizeTexCoordX(ref int px)
+    {
+        if (WrapX) TexCoordHelper.WrapCoordX(ref px, in Bounds);
+        else TexCoordHelper.ClampCoordX(ref px, in Bounds);
+    }
 
-        protected void GetTexCoordX(in double x, out float fx)
-        {
-            fx = (float)(Bounds.Left + x * Bounds.Width);
-        }
+    protected void NormalizeTexCoordY(ref int py)
+    {
+        if (WrapY) TexCoordHelper.WrapCoordY(ref py, in Bounds);
+        else TexCoordHelper.ClampCoordY(ref py, in Bounds);
+    }
 
-        protected void GetTexCoordY(in double y, out float fy)
-        {
-            fy = (float)(Bounds.Top + y * Bounds.Height);
-        }
-
-        protected void NormalizeTexCoordX(ref int px)
-        {
-            if (WrapX) TexCoordHelper.WrapCoordX(ref px, in Bounds);
-            else TexCoordHelper.ClampCoordX(ref px, in Bounds);
-        }
-
-        protected void NormalizeTexCoordY(ref int py)
-        {
-            if (WrapY) TexCoordHelper.WrapCoordY(ref py, in Bounds);
-            else TexCoordHelper.ClampCoordY(ref py, in Bounds);
-        }
-
-        protected void NormalizeTexCoord(ref int px, ref int py)
-        {
-            NormalizeTexCoordX(ref px);
-            NormalizeTexCoordY(ref py);
-        }
+    protected void NormalizeTexCoord(ref int px, ref int py)
+    {
+        NormalizeTexCoordX(ref px);
+        NormalizeTexCoordY(ref py);
     }
 }

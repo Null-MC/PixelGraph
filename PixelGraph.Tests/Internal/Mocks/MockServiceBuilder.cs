@@ -11,56 +11,55 @@ using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.Internal.Mocks
+namespace PixelGraph.Tests.Internal.Mocks;
+
+internal class MockServiceBuilder : ServiceBuilder
 {
-    internal class MockServiceBuilder : ServiceBuilder
+    private readonly ITestOutputHelper output;
+
+
+    public MockServiceBuilder(ITestOutputHelper output)
     {
-        private readonly ITestOutputHelper output;
+        this.output = output;
+    }
 
+    public override void Initialize()
+    {
+        Services.AddSingleton(output);
+        Services.AddSingleton(typeof(ILogger<>), typeof(TestLogger<>));
+        Services.AddSingleton<ILogger, TestLogger>();
+        Services.AddSingleton<MockFileContent>();
 
-        public MockServiceBuilder(ITestOutputHelper output)
-        {
-            this.output = output;
-        }
+        Services.AddTransient<IServiceBuilder, MockServiceBuilder>();
 
-        public override void Initialize()
-        {
-            Services.AddSingleton(output);
-            Services.AddSingleton(typeof(ILogger<>), typeof(TestLogger<>));
-            Services.AddSingleton<ILogger, TestLogger>();
-            Services.AddSingleton<MockFileContent>();
+        Services.AddSingleton<IPublishReader, PublishReader>();
 
-            Services.AddTransient<IServiceBuilder, MockServiceBuilder>();
+        Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
+        Services.AddScoped<ITextureGraph, TextureGraph>();
+        Services.AddScoped<ITextureSourceGraph, TextureSourceGraph>();
+        Services.AddScoped<ITextureHeightGraph, TextureHeightGraph>();
+        Services.AddScoped<ITextureNormalGraph, TextureNormalGraph>();
+        Services.AddScoped<ITextureOcclusionGraph, TextureOcclusionGraph>();
+        Services.AddScoped<IImportGraphBuilder, ImportGraphBuilder>();
+        Services.AddScoped<IPublishGraphBuilder, PublishGraphBuilder>();
+        Services.AddScoped<IEdgeFadeImageEffect, EdgeFadeImageEffect>();
+        Services.AddScoped<IImageWriter, ImageWriter>();
 
-            Services.AddSingleton<IPublishReader, PublishReader>();
+        Services.AddTransient<IMaterialReader, MaterialReader>();
+        Services.AddTransient<IMaterialWriter, MaterialWriter>();
+        Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
+        Services.AddTransient<IItemTextureGenerator, ItemTextureGenerator>();
+        Services.AddTransient<ITextureBuilder, TextureBuilder>();
+        //Services.AddTransient<ProjectSerializer>();
+    }
 
-            Services.AddScoped<ITextureGraphContext, TextureGraphContext>();
-            Services.AddScoped<ITextureGraph, TextureGraph>();
-            Services.AddScoped<ITextureSourceGraph, TextureSourceGraph>();
-            Services.AddScoped<ITextureHeightGraph, TextureHeightGraph>();
-            Services.AddScoped<ITextureNormalGraph, TextureNormalGraph>();
-            Services.AddScoped<ITextureOcclusionGraph, TextureOcclusionGraph>();
-            Services.AddScoped<IImportGraphBuilder, ImportGraphBuilder>();
-            Services.AddScoped<IPublishGraphBuilder, PublishGraphBuilder>();
-            Services.AddScoped<IEdgeFadeImageEffect, EdgeFadeImageEffect>();
-            Services.AddScoped<IImageWriter, ImageWriter>();
+    protected override void AddContentReader(ContentTypes contentType)
+    {
+        Services.AddSingleton<IInputReader, MockInputReader>();
+    }
 
-            Services.AddTransient<IMaterialReader, MaterialReader>();
-            Services.AddTransient<IMaterialWriter, MaterialWriter>();
-            Services.AddTransient<IResourcePackImporter, ResourcePackImporter>();
-            Services.AddTransient<IItemTextureGenerator, ItemTextureGenerator>();
-            Services.AddTransient<ITextureBuilder, TextureBuilder>();
-            //Services.AddTransient<ProjectSerializer>();
-        }
-
-        protected override void AddContentReader(ContentTypes contentType)
-        {
-            Services.AddSingleton<IInputReader, MockInputReader>();
-        }
-
-        protected override void AddContentWriter(ContentTypes contentType)
-        {
-            Services.AddSingleton<IOutputWriter, MockOutputWriter>();
-        }
+    protected override void AddContentWriter(ContentTypes contentType)
+    {
+        Services.AddSingleton<IOutputWriter, MockOutputWriter>();
     }
 }

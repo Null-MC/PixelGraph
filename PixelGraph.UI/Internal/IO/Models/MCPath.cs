@@ -2,34 +2,33 @@
 using System.Text.RegularExpressions;
 using PixelGraph.Common.Extensions;
 
-namespace PixelGraph.UI.Internal.IO.Models
+namespace PixelGraph.UI.Internal.IO.Models;
+
+internal static class MCPath
 {
-    internal static class MCPath
+    private static readonly Regex entityPathExp = new(@"assets\/[\w-_.]+\/textures\/(?:entity|models)(?:$|\/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex blockPathExp = new(@"assets\/[\w-_.]+\/textures\/block(?:$|\/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex itemPathExp = new(@"assets\/[\w-_.]+\/textures\/item(?:$|\/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+
+    public static bool IsEntityPath(string materialPath)
     {
-        private static readonly Regex entityPathExp = new(@"assets\/[\w-_.]+\/textures\/(?:entity|models)(?:$|\/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex blockPathExp = new(@"assets\/[\w-_.]+\/textures\/block(?:$|\/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex itemPathExp = new(@"assets\/[\w-_.]+\/textures\/item(?:$|\/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        if (materialPath == null) throw new ArgumentNullException(nameof(materialPath));
 
+        return entityPathExp.IsMatch(PathEx.Normalize(materialPath));
+    }
 
-        public static bool IsEntityPath(string materialPath)
-        {
-            if (materialPath == null) throw new ArgumentNullException(nameof(materialPath));
+    public static bool IsBlockPath(string materialPath)
+    {
+        if (materialPath == null) throw new ArgumentNullException(nameof(materialPath));
 
-            return entityPathExp.IsMatch(PathEx.Normalize(materialPath));
-        }
+        return blockPathExp.IsMatch(PathEx.Normalize(materialPath));
+    }
 
-        public static bool IsBlockPath(string materialPath)
-        {
-            if (materialPath == null) throw new ArgumentNullException(nameof(materialPath));
+    public static bool IsItemPath(string materialPath)
+    {
+        if (materialPath == null) throw new ArgumentNullException(nameof(materialPath));
 
-            return blockPathExp.IsMatch(PathEx.Normalize(materialPath));
-        }
-
-        public static bool IsItemPath(string materialPath)
-        {
-            if (materialPath == null) throw new ArgumentNullException(nameof(materialPath));
-
-            return itemPathExp.IsMatch(PathEx.Normalize(materialPath));
-        }
+        return itemPathExp.IsMatch(PathEx.Normalize(materialPath));
     }
 }

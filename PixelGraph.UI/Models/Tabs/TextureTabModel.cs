@@ -1,7 +1,6 @@
-﻿namespace PixelGraph.UI.Models.Tabs
+﻿namespace PixelGraph.UI.Models.Tabs;
+
+public class TextureTabModel : TabModelBase
 {
-    public class TextureTabModel : TabModelBase
-    {
-        public string ImageFilename {get; set;}
-    }
+    public string ImageFilename {get; set;}
 }

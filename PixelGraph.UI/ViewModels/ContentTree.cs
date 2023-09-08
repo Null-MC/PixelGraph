@@ -5,153 +5,152 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace PixelGraph.UI.ViewModels
+namespace PixelGraph.UI.ViewModels;
+
+public class ContentTreeNode : INotifyPropertyChanged
 {
-    public class ContentTreeNode : INotifyPropertyChanged
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    public string Name {get; set;}
+    public string LocalPath {get; set;}
+    public ContentTreeNode Parent {get;}
+
+    public ObservableCollection<ContentTreeNode> Nodes {get;}
+
+    //set {
+    //    _nodes = value;
+    //    OnPropertyChanged();
+    //}
+    private bool _visible;
+    public bool Visible {
+        get => _visible;
+        set {
+            _visible = value;
+            OnPropertyChanged();
+        }
+    }
+
+
+    public ContentTreeNode(ContentTreeNode parent)
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        Parent = parent;
 
-        public string Name {get; set;}
-        public string LocalPath {get; set;}
-        public ContentTreeNode Parent {get;}
+        Nodes = new ObservableCollection<ContentTreeNode>();
+        Visible = true;
+    }
 
-        public ObservableCollection<ContentTreeNode> Nodes {get;}
+    public virtual void UpdateVisibility(ISearchParameters search)
+    {
+        Visible = true;
 
-        //set {
-        //    _nodes = value;
-        //    OnPropertyChanged();
-        //}
-        private bool _visible;
-        public bool Visible {
-            get => _visible;
-            set {
-                _visible = value;
-                OnPropertyChanged();
+        foreach (var node in Nodes)
+            node.UpdateVisibility(search);
+    }
+
+    public void SetVisibility(bool visible)
+    {
+        Visible = visible;
+
+        foreach (var node in Nodes)
+            node.SetVisibility(visible);
+    }
+
+    //public ContentTreeNode FindNode(Func<ContentTreeNode, bool> predicate)
+    //{
+    //    if (predicate(this)) return this;
+
+    //    foreach (var node in _nodes) {
+    //        var result = node.FindNode(predicate);
+    //        if (result != null) return result;
+    //    }
+
+    //    return null;
+    //}
+
+    private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
+internal class ContentTreeDirectory : ContentTreeNode
+{
+    public ContentTreeDirectory(ContentTreeNode parent) : base(parent) {}
+
+    public override void UpdateVisibility(ISearchParameters search)
+    {
+        var anyVisible = false;
+
+        if (!string.IsNullOrEmpty(search.SearchText)) {
+            if (Name != null && Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase)) {
+                SetVisibility(true);
+                return;
             }
         }
 
-
-        public ContentTreeNode(ContentTreeNode parent)
-        {
-            Parent = parent;
-
-            Nodes = new ObservableCollection<ContentTreeNode>();
-            Visible = true;
+        foreach (var node in Nodes) {
+            node.UpdateVisibility(search);
+            anyVisible |= node.Visible;
         }
 
-        public virtual void UpdateVisibility(ISearchParameters search)
-        {
-            Visible = true;
+        Visible = anyVisible;
+    }
+}
 
-            foreach (var node in Nodes)
+internal class ContentTreeMaterialDirectory : ContentTreeDirectory
+{
+    public string MaterialFilename {get; set;}
+
+
+    public ContentTreeMaterialDirectory(ContentTreeNode parent) : base(parent) {}
+
+    public override void UpdateVisibility(ISearchParameters search)
+    {
+        Visible = true;
+
+        if (!string.IsNullOrEmpty(search.SearchText)) {
+            Visible = Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        foreach (var node in Nodes) {
+            if (!search.ShowAllFiles)
+                node.SetVisibility(false);
+            else
                 node.UpdateVisibility(search);
         }
-
-        public void SetVisibility(bool visible)
-        {
-            Visible = visible;
-
-            foreach (var node in Nodes)
-                node.SetVisibility(visible);
-        }
-
-        //public ContentTreeNode FindNode(Func<ContentTreeNode, bool> predicate)
-        //{
-        //    if (predicate(this)) return this;
-
-        //    foreach (var node in _nodes) {
-        //        var result = node.FindNode(predicate);
-        //        if (result != null) return result;
-        //    }
-
-        //    return null;
-        //}
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
+}
 
-    internal class ContentTreeDirectory : ContentTreeNode
+internal class ContentTreeFile : ContentTreeNode
+{
+    public string Filename {get; set;}
+    public ContentNodeType Type {get; set;}
+    public PackIconFontAwesomeKind Icon {get; set;}
+
+
+    public ContentTreeFile(ContentTreeNode parent) : base(parent)
     {
-        public ContentTreeDirectory(ContentTreeNode parent) : base(parent) {}
-
-        public override void UpdateVisibility(ISearchParameters search)
-        {
-            var anyVisible = false;
-
-            if (!string.IsNullOrEmpty(search.SearchText)) {
-                if (Name != null && Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase)) {
-                    SetVisibility(true);
-                    return;
-                }
-            }
-
-            foreach (var node in Nodes) {
-                node.UpdateVisibility(search);
-                anyVisible |= node.Visible;
-            }
-
-            Visible = anyVisible;
-        }
+        Icon = PackIconFontAwesomeKind.FileSolid;
     }
 
-    internal class ContentTreeMaterialDirectory : ContentTreeDirectory
+    public override void UpdateVisibility(ISearchParameters search)
     {
-        public string MaterialFilename {get; set;}
+        if (search.ShowAllFiles) Visible = true;
+        else Visible = Type == ContentNodeType.Material;
+        if (!Visible) return;
 
-
-        public ContentTreeMaterialDirectory(ContentTreeNode parent) : base(parent) {}
-
-        public override void UpdateVisibility(ISearchParameters search)
-        {
-            Visible = true;
-
-            if (!string.IsNullOrEmpty(search.SearchText)) {
-                Visible = Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase);
-            }
-
-            foreach (var node in Nodes) {
-                if (!search.ShowAllFiles)
-                    node.SetVisibility(false);
-                else
-                    node.UpdateVisibility(search);
-            }
+        if (!string.IsNullOrEmpty(search.SearchText)) {
+            Visible = Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase);
         }
     }
+}
 
-    internal class ContentTreeFile : ContentTreeNode
-    {
-        public string Filename {get; set;}
-        public ContentNodeType Type {get; set;}
-        public PackIconFontAwesomeKind Icon {get; set;}
-
-
-        public ContentTreeFile(ContentTreeNode parent) : base(parent)
-        {
-            Icon = PackIconFontAwesomeKind.FileSolid;
-        }
-
-        public override void UpdateVisibility(ISearchParameters search)
-        {
-            if (search.ShowAllFiles) Visible = true;
-            else Visible = Type == ContentNodeType.Material;
-            if (!Visible) return;
-
-            if (!string.IsNullOrEmpty(search.SearchText)) {
-                Visible = Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase);
-            }
-        }
-    }
-
-    public enum ContentNodeType
-    {
-        Unknown,
-        PackInput,
-        PackProfile,
-        Material,
-        Texture,
-        //Model,
-    }
+public enum ContentNodeType
+{
+    Unknown,
+    PackInput,
+    PackProfile,
+    Material,
+    Texture,
+    //Model,
 }

@@ -2,31 +2,30 @@
 using System.Windows;
 using System.Windows.Input;
 
-namespace PixelGraph.UI.Windows
+namespace PixelGraph.UI.Windows;
+
+public partial class TextureFormatWindow
 {
-    public partial class TextureFormatWindow
+    public TextureFormatWindow()
     {
-        public TextureFormatWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+    }
 
-        private void OnDataGridKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key != Key.Delete) return;
-            if (TextureEncodingDataGrid.SelectedValue is not TextureChannelMapping channel) return;
+    private void OnDataGridKeyUp(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Delete) return;
+        if (TextureEncodingDataGrid.SelectedValue is not TextureChannelMapping channel) return;
 
-            channel.Clear();
-        }
+        channel.Clear();
+    }
 
-        //private void OnCancelButtonClick(object sender, RoutedEventArgs e)
-        //{
-        //    DialogResult = false;
-        //}
+    //private void OnCancelButtonClick(object sender, RoutedEventArgs e)
+    //{
+    //    DialogResult = false;
+    //}
 
-        private void OnOkButtonClick(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-        }
+    private void OnOkButtonClick(object sender, RoutedEventArgs e)
+    {
+        DialogResult = true;
     }
 }

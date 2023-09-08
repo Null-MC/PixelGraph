@@ -12,59 +12,58 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.ImportTests
+namespace PixelGraph.Tests.ImportTests;
+
+public class BedrockImportTests : ImageTestBase
 {
-    public class BedrockImportTests : ImageTestBase
+    private readonly ProjectData project;
+    private readonly PublishProfileProperties packProfile;
+
+
+    public BedrockImportTests(ITestOutputHelper output) : base(output)
     {
-        private readonly ProjectData project;
-        private readonly PublishProfileProperties packProfile;
+        Builder.ConfigureReader(ContentTypes.File, GameEditions.Bedrock, null);
+        Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
+        Builder.AddImporter(GameEditions.Bedrock);
 
+        project = new ProjectData {
+            Input = new PackInputEncoding {
+                Format = TextureFormat.Format_Raw,
+            },
+        };
 
-        public BedrockImportTests(ITestOutputHelper output) : base(output)
-        {
-            Builder.ConfigureReader(ContentTypes.File, GameEditions.Bedrock, null);
-            Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
-            Builder.AddImporter(GameEditions.Bedrock);
+        packProfile = new PublishProfileProperties {
+            Encoding = {
+                Format = TextureFormat.Format_Color,
+            },
+        };
+    }
 
-            project = new ProjectData {
-                Input = new PackInputEncoding {
-                    Format = TextureFormat.Format_Raw,
-                },
-            };
+    [Fact]
+    public async Task CanImportLocal()
+    {
+        await using var graph = Graph();
 
-            packProfile = new PublishProfileProperties {
-                Encoding = {
-                    Format = TextureFormat.Format_Color,
-                },
-            };
-        }
+        await graph.CreateImageAsync("textures/blocks/brick.png", 31, 156, 248, 250);
 
-        [Fact]
-        public async Task CanImportLocal()
-        {
-            await using var graph = Graph();
+        var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
 
-            await graph.CreateImageAsync("textures/blocks/brick.png", 31, 156, 248, 250);
+        importer.Project = project;
+        importer.PackProfile = packProfile;
+        importer.AsGlobal = false;
 
-            var importer = graph.Provider.GetRequiredService<IMaterialImporter>();
+        var material = new MaterialProperties {
+            Name = "brick",
+            LocalPath = PathEx.Localize("textures/blocks"),
+            UseGlobalMatching = true,
+        };
 
-            importer.Project = project;
-            importer.PackProfile = packProfile;
-            importer.AsGlobal = false;
+        await importer.ImportAsync(material);
 
-            var material = new MaterialProperties {
-                Name = "brick",
-                LocalPath = PathEx.Localize("textures/blocks"),
-                UseGlobalMatching = true,
-            };
+        using var colorImage = await graph.GetImageAsync<Rgb24>("assets/minecraft/textures/block/bricks/color.png");
+        PixelAssert.Equals(31, 156, 248, colorImage);
 
-            await importer.ImportAsync(material);
-
-            using var colorImage = await graph.GetImageAsync<Rgb24>("assets/minecraft/textures/block/bricks/color.png");
-            PixelAssert.Equals(31, 156, 248, colorImage);
-
-            using var opacityImage = await graph.GetImageAsync<L8>("assets/minecraft/textures/block/bricks/opacity.png");
-            PixelAssert.Equals(250, opacityImage);
-        }
+        using var opacityImage = await graph.GetImageAsync<L8>("assets/minecraft/textures/block/bricks/opacity.png");
+        PixelAssert.Equals(250, opacityImage);
     }
 }

@@ -4,69 +4,68 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace PixelGraph.Common.IO
+namespace PixelGraph.Common.IO;
+
+internal class FileInputReader : BaseInputReader
 {
-    internal class FileInputReader : BaseInputReader
+    private readonly IOptions<InputOptions> options;
+
+
+    public FileInputReader(IOptions<InputOptions> options)
     {
-        private readonly IOptions<InputOptions> options;
+        this.options = options;
+    }
 
+    public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null)
+    {
+        var fullPath = GetFullPath(localPath);
+        if (!Directory.Exists(fullPath)) yield break;
 
-        public FileInputReader(IOptions<InputOptions> options)
-        {
-            this.options = options;
+        foreach (var directory in Directory.EnumerateDirectories(fullPath, pattern ?? "*", SearchOption.TopDirectoryOnly)) {
+            var directoryName = Path.GetFileName(directory);
+            yield return PathEx.Join(localPath, directoryName);
         }
+    }
 
-        public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null)
-        {
-            var fullPath = GetFullPath(localPath);
-            if (!Directory.Exists(fullPath)) yield break;
+    public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = null)
+    {
+        var fullPath = GetFullPath(localPath);
+        if (!Directory.Exists(fullPath)) yield break;
 
-            foreach (var directory in Directory.EnumerateDirectories(fullPath, pattern ?? "*", SearchOption.TopDirectoryOnly)) {
-                var directoryName = Path.GetFileName(directory);
-                yield return PathEx.Join(localPath, directoryName);
-            }
+        foreach (var file in Directory.EnumerateFiles(fullPath, pattern ?? "*.*", SearchOption.TopDirectoryOnly)) {
+            var fileName = Path.GetFileName(file);
+            yield return PathEx.Join(localPath, fileName);
         }
+    }
 
-        public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = null)
-        {
-            var fullPath = GetFullPath(localPath);
-            if (!Directory.Exists(fullPath)) yield break;
+    public override Stream Open(string localFile)
+    {
+        var fullFile = GetFullPath(localFile);
+        return File.Open(fullFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+    }
 
-            foreach (var file in Directory.EnumerateFiles(fullPath, pattern ?? "*.*", SearchOption.TopDirectoryOnly)) {
-                var fileName = Path.GetFileName(file);
-                yield return PathEx.Join(localPath, fileName);
-            }
-        }
+    public override bool FileExists(string localFile)
+    {
+        var fullFile = GetFullPath(localFile);
+        return File.Exists(fullFile);
+    }
 
-        public override Stream Open(string localFile)
-        {
-            var fullFile = GetFullPath(localFile);
-            return File.Open(fullFile, FileMode.Open, FileAccess.Read, FileShare.Read);
-        }
+    public override string GetFullPath(string localFile)
+    {
+        var fullFile = PathEx.Join(options.Value.Root, localFile);
+        fullFile = PathEx.Localize(fullFile);
+        return Path.GetFullPath(fullFile);
+    }
 
-        public override bool FileExists(string localFile)
-        {
-            var fullFile = GetFullPath(localFile);
-            return File.Exists(fullFile);
-        }
+    public override string GetRelativePath(string fullPath)
+    {
+        return PathEx.TryGetRelative(options.Value.Root, fullPath, out var localPath) ? localPath : fullPath;
+    }
 
-        public override string GetFullPath(string localFile)
-        {
-            var fullFile = PathEx.Join(options.Value.Root, localFile);
-            fullFile = PathEx.Localize(fullFile);
-            return Path.GetFullPath(fullFile);
-        }
-
-        public override string GetRelativePath(string fullPath)
-        {
-            return PathEx.TryGetRelative(options.Value.Root, fullPath, out var localPath) ? localPath : fullPath;
-        }
-
-        public override DateTime? GetWriteTime(string localFile)
-        {
-            var fullFile = PathEx.Join(options.Value.Root, localFile);
-            if (!File.Exists(fullFile)) return null;
-            return File.GetLastWriteTime(fullFile);
-        }
+    public override DateTime? GetWriteTime(string localFile)
+    {
+        var fullFile = PathEx.Join(options.Value.Root, localFile);
+        if (!File.Exists(fullFile)) return null;
+        return File.GetLastWriteTime(fullFile);
     }
 }

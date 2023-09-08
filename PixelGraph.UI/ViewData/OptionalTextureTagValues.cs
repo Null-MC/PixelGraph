@@ -1,12 +1,11 @@
 ﻿using PixelGraph.Common.Textures;
 
-namespace PixelGraph.UI.ViewData
+namespace PixelGraph.UI.ViewData;
+
+internal class OptionalTextureTagValues : TextureTagValues
 {
-    internal class OptionalTextureTagValues : TextureTagValues
+    public OptionalTextureTagValues()
     {
-        public OptionalTextureTagValues()
-        {
-            Insert(0, new Item {Text = "None", Value = TextureTags.None});
-        }
+        Insert(0, new Item {Text = "None", Value = TextureTags.None});
     }
 }

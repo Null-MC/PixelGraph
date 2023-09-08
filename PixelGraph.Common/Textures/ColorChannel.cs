@@ -1,30 +1,29 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace PixelGraph.Common.Textures
+namespace PixelGraph.Common.Textures;
+
+[Flags]
+public enum ColorChannel
 {
-    [Flags]
-    public enum ColorChannel
-    {
-        [EnumMember(Value = "none")]
-        None,
+    [EnumMember(Value = "none")]
+    None,
 
-        [EnumMember(Value = "red")]
-        Red,
+    [EnumMember(Value = "red")]
+    Red,
 
-        [EnumMember(Value = "green")]
-        Green,
+    [EnumMember(Value = "green")]
+    Green,
 
-        [EnumMember(Value = "blue")]
-        Blue,
+    [EnumMember(Value = "blue")]
+    Blue,
 
-        [EnumMember(Value = "alpha")]
-        Alpha,
+    [EnumMember(Value = "alpha")]
+    Alpha,
 
-        //[EnumMember(Value = "gray")]
-        //Gray,
+    //[EnumMember(Value = "gray")]
+    //Gray,
 
-        [EnumMember(Value = "magnitude")]
-        Magnitude,
-    }
+    [EnumMember(Value = "magnitude")]
+    Magnitude,
 }

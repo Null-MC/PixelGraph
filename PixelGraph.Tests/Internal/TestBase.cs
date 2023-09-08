@@ -5,35 +5,34 @@ using System.IO;
 using System.Reflection;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.Internal
+namespace PixelGraph.Tests.Internal;
+
+public abstract class TestBase
 {
-    public abstract class TestBase
+    private static readonly Lazy<string> assemblyPathFunc;
+
+    protected IServiceBuilder Builder {get;}
+    protected ITestOutputHelper Output {get;}
+
+    protected static string AssemblyPath => assemblyPathFunc.Value;
+
+
+    static TestBase()
     {
-        private static readonly Lazy<string> assemblyPathFunc;
+        assemblyPathFunc = new Lazy<string>(GetAssemblyPath);
+    }
 
-        protected IServiceBuilder Builder {get;}
-        protected ITestOutputHelper Output {get;}
+    protected TestBase(ITestOutputHelper output)
+    {
+        Output = output;
 
-        protected static string AssemblyPath => assemblyPathFunc.Value;
+        Builder = new MockServiceBuilder(output);
+        Builder.Initialize();
+    }
 
-
-        static TestBase()
-        {
-            assemblyPathFunc = new Lazy<string>(GetAssemblyPath);
-        }
-
-        protected TestBase(ITestOutputHelper output)
-        {
-            Output = output;
-
-            Builder = new MockServiceBuilder(output);
-            Builder.Initialize();
-        }
-
-        private static string GetAssemblyPath()
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            return Path.GetDirectoryName(assembly.Location);
-        }
+    private static string GetAssemblyPath()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        return Path.GetDirectoryName(assembly.Location);
     }
 }

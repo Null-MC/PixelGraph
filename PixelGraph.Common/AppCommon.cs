@@ -1,17 +1,16 @@
 ﻿using System.Reflection;
 
-namespace PixelGraph.Common
+namespace PixelGraph.Common;
+
+public static class AppCommon
 {
-    public static class AppCommon
+    public static string Version {get;}
+
+
+    static AppCommon()
     {
-        public static string Version {get;}
-
-
-        static AppCommon()
-        {
-            Version = Assembly.GetExecutingAssembly()
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-                .InformationalVersion;
-        }
+        Version = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion;
     }
 }

@@ -824,16 +824,19 @@ namespace PixelGraph.UI.Windows
                     },
                 };
 
+                var isBedrock = GameEdition.Is(projectContext.SelectedProfile.Edition, GameEdition.Bedrock);
+
                 if (Model.SelectedLocation != null && !Model.SelectedLocation.IsManualSelect) {
                     var name = projectContext.SelectedProfile.Name;
                     if (name == null) throw new ApplicationException("Unable to determine profile name!");
+
+                    if (Model.SelectedLocation.Archive)
+                        name += isBedrock ? ".mcpack" : ".zip";
 
                     window.Model.Destination = Path.Combine(Model.SelectedLocation.Path, name);
                     window.Model.Archive = Model.SelectedLocation.Archive;
                 }
                 else {
-                    var isBedrock = GameEdition.Is(projectContext.SelectedProfile.Edition, GameEdition.Bedrock);
-
                     window.Model.Destination = GetArchiveFilename(isBedrock);
                     window.Model.Archive = true;
 

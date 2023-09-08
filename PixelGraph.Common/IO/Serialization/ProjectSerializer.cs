@@ -5,57 +5,55 @@ using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace PixelGraph.Common.IO.Serialization
+namespace PixelGraph.Common.IO.Serialization;
+//public interface IProjectSerializer
+//{
+//    Task<ProjectData> LoadAsync(string filename);
+//    Task SaveAsync(ProjectData data, string filename);
+//}
+
+public class ProjectSerializer //: IProjectSerializer
 {
-    //public interface IProjectSerializer
-    //{
-    //    Task<ProjectData> LoadAsync(string filename);
-    //    Task SaveAsync(ProjectData data, string filename);
-    //}
+    private static readonly ISerializer serializer;
+    private static readonly IDeserializer deserializer;
 
-    public class ProjectSerializer //: IProjectSerializer
+
+    static ProjectSerializer()
     {
-        private static readonly ISerializer serializer;
-        private static readonly IDeserializer deserializer;
+        serializer = new SerializerBuilder()
+            .WithTypeConverter(new YamlStringEnumConverter())
+            .WithNamingConvention(HyphenatedNamingConvention.Instance)
+            .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults)
+            .WithEmissionPhaseObjectGraphVisitor(args => new CustomGraphVisitor(args.InnerVisitor))
+            .Build();
 
+        deserializer = new DeserializerBuilder()
+            .WithTypeConverter(new YamlStringEnumConverter())
+            .WithNamingConvention(HyphenatedNamingConvention.Instance)
+            .Build();
+    }
 
-        static ProjectSerializer()
-        {
-            serializer = new SerializerBuilder()
-                .WithTypeConverter(new YamlStringEnumConverter())
-                .WithNamingConvention(HyphenatedNamingConvention.Instance)
-                .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults)
-                .WithEmissionPhaseObjectGraphVisitor(args => new CustomGraphVisitor(args.InnerVisitor))
-                .Build();
+    public async Task<ProjectData> LoadAsync(string localFile)
+    {
+        await using var stream = File.OpenRead(localFile);
+        return Parse(stream);
+    }
 
-            deserializer = new DeserializerBuilder()
-                .WithTypeConverter(new YamlStringEnumConverter())
-                .WithNamingConvention(HyphenatedNamingConvention.Instance)
-                .Build();
-        }
+    public async Task SaveAsync(ProjectData data, string filename)
+    {
+        await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
+        Write(stream, data);
+    }
 
-        public async Task<ProjectData> LoadAsync(string localFile)
-        {
-            await using var stream = File.OpenRead(localFile);
-            return Parse(stream);
-        }
+    public static ProjectData Parse(Stream stream)
+    {
+        using var streamReader = new StreamReader(stream);
+        return deserializer.Deserialize<ProjectData>(streamReader);
+    }
 
-        public async Task SaveAsync(ProjectData data, string filename)
-        {
-            await using var stream = File.Open(filename, FileMode.Create, FileAccess.Write);
-            Write(stream, data);
-        }
-
-        public static ProjectData Parse(Stream stream)
-        {
-            using var streamReader = new StreamReader(stream);
-            return deserializer.Deserialize<ProjectData>(streamReader);
-        }
-
-        public static void Write(Stream stream, ProjectData data)
-        {
-            using var streamWriter = new StreamWriter(stream);
-            serializer.Serialize(streamWriter, data);
-        }
+    public static void Write(Stream stream, ProjectData data)
+    {
+        using var streamWriter = new StreamWriter(stream);
+        serializer.Serialize(streamWriter, data);
     }
 }

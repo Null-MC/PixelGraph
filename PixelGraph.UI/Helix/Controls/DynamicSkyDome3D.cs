@@ -2,13 +2,12 @@
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Rendering.Sky;
 
-namespace PixelGraph.UI.Helix.Controls
+namespace PixelGraph.UI.Helix.Controls;
+
+public class DynamicSkyDome3D : Element3D
 {
-    public class DynamicSkyDome3D : Element3D
+    protected override SceneNode OnCreateSceneNode()
     {
-        protected override SceneNode OnCreateSceneNode()
-        {
-            return new DynamicSkyDomeNode();
-        }
+        return new DynamicSkyDomeNode();
     }
 }

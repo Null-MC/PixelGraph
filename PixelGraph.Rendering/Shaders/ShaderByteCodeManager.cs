@@ -7,97 +7,96 @@ using System.IO;
 using System.Reflection;
 using ShaderDescription = HelixToolkit.SharpDX.Core.Shaders.ShaderDescription;
 
-namespace PixelGraph.Rendering.Shaders
+namespace PixelGraph.Rendering.Shaders;
+
+public interface IShaderByteCodeManager
 {
-    public interface IShaderByteCodeManager
+    void Add(string name, ShaderSourceDescription shader);
+    bool LoadAll(out ShaderCompileError[] compileErrors);
+    ShaderBytecode GetCode(string name);
+    ShaderDescription BuildDescription(string name, ShaderStage type);
+}
+
+public class ShaderByteCodeManager : IShaderByteCodeManager, IDisposable
+{
+    private readonly Dictionary<string, ShaderSourceDescription> map;
+
+
+    protected ShaderByteCodeManager()
     {
-        void Add(string name, ShaderSourceDescription shader);
-        bool LoadAll(out ShaderCompileError[] compileErrors);
-        ShaderBytecode GetCode(string name);
-        ShaderDescription BuildDescription(string name, ShaderStage type);
+        map = new Dictionary<string, ShaderSourceDescription>(StringComparer.InvariantCultureIgnoreCase);
     }
 
-    public class ShaderByteCodeManager : IShaderByteCodeManager, IDisposable
+    public void Dispose()
     {
-        private readonly Dictionary<string, ShaderSourceDescription> map;
+        foreach (var shader in map.Values)
+            shader.Dispose();
 
+        map.Clear();
+    }
 
-        protected ShaderByteCodeManager()
-        {
-            map = new Dictionary<string, ShaderSourceDescription>(StringComparer.InvariantCultureIgnoreCase);
-        }
+    public void Add(string name, ShaderSourceDescription shader)
+    {
+        map[name] = shader;
+    }
 
-        public void Dispose()
-        {
-            foreach (var shader in map.Values)
-                shader.Dispose();
+    public void Add(string profile, string entryName, string fileName)
+    {
+        map[entryName] = new ShaderSourceDescription {
+            RawFileName = $"{fileName}.hlsl",
+            CompiledResourceName = $"{fileName}.cso",
+            Profile = profile,
+        };
+    }
 
-            map.Clear();
-        }
-
-        public void Add(string name, ShaderSourceDescription shader)
-        {
-            map[name] = shader;
-        }
-
-        public void Add(string profile, string entryName, string fileName)
-        {
-            map[entryName] = new ShaderSourceDescription {
-                RawFileName = $"{fileName}.hlsl",
-                CompiledResourceName = $"{fileName}.cso",
-                Profile = profile,
-            };
-        }
-
-        public bool LoadAll(out ShaderCompileError[] compileErrors)
-        {
-            var shaderPath = Path.GetFullPath("shaders");
+    public bool LoadAll(out ShaderCompileError[] compileErrors)
+    {
+        var shaderPath = Path.GetFullPath("shaders");
 
 #if DEBUG
-            if (Debugger.IsAttached) {
-                var a = Assembly.GetExecutingAssembly();
-                var p = Path.GetDirectoryName(a.Location);
+        if (Debugger.IsAttached) {
+            var a = Assembly.GetExecutingAssembly();
+            var p = Path.GetDirectoryName(a.Location);
 
-                //var p = Path.GetDirectoryName(Environment.CurrentDirectory);
+            //var p = Path.GetDirectoryName(Environment.CurrentDirectory);
 
-                while (p != null) {
-                    var t = Path.Combine(p, "PixelGraph.Rendering", "Resources", "Shaders");
-                    if (Directory.Exists(t)) {
-                        shaderPath = t;
-                        break;
-                    }
-
-                    p = Path.GetDirectoryName(p);
+            while (p != null) {
+                var t = Path.Combine(p, "PixelGraph.Rendering", "Resources", "Shaders");
+                if (Directory.Exists(t)) {
+                    shaderPath = t;
+                    break;
                 }
+
+                p = Path.GetDirectoryName(p);
             }
+        }
 #endif
 
-            var hasShaderFolder = Directory.Exists(shaderPath);
-            var _errors = new List<ShaderCompileError>();
+        var hasShaderFolder = Directory.Exists(shaderPath);
+        var _errors = new List<ShaderCompileError>();
 
-            foreach (var shader in map.Values) {
-                if (hasShaderFolder && shader.TryLoadFromPath(shaderPath, _errors)) {
-                    continue;
-                }
-
-                shader.LoadFromAssembly();
+        foreach (var shader in map.Values) {
+            if (hasShaderFolder && shader.TryLoadFromPath(shaderPath, _errors)) {
+                continue;
             }
 
-            compileErrors = _errors.ToArray();
-            return compileErrors.Length == 0;
+            shader.LoadFromAssembly();
         }
 
-        public ShaderBytecode GetCode(string name)
-        {
-            if (!map.TryGetValue(name, out var shader))
-                throw new ApplicationException($"Shader '{name}' not found!");
+        compileErrors = _errors.ToArray();
+        return compileErrors.Length == 0;
+    }
 
-            return shader.Code;
-        }
+    public ShaderBytecode GetCode(string name)
+    {
+        if (!map.TryGetValue(name, out var shader))
+            throw new ApplicationException($"Shader '{name}' not found!");
 
-        public ShaderDescription BuildDescription(string name, ShaderStage type)
-        {
-            return new(name, type, GetCode(name));
-        }
+        return shader.Code;
+    }
+
+    public ShaderDescription BuildDescription(string name, ShaderStage type)
+    {
+        return new(name, type, GetCode(name));
     }
 }

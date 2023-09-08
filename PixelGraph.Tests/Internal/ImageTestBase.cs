@@ -13,124 +13,123 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.Internal
-{
-    public abstract class ImageTestBase : TestBase
-    {
-        protected ImageTestBase(ITestOutputHelper output) : base(output) {}
+namespace PixelGraph.Tests.Internal;
 
-        protected ImageTestGraph Graph()
-        {
-            var provider = Builder.Build();
-            return new ImageTestGraph(provider);
-        }
+public abstract class ImageTestBase : TestBase
+{
+    protected ImageTestBase(ITestOutputHelper output) : base(output) {}
+
+    protected ImageTestGraph Graph()
+    {
+        var provider = Builder.Build();
+        return new ImageTestGraph(provider);
+    }
+}
+
+public class ImageTestGraph : IDisposable, IAsyncDisposable
+{
+    private readonly ServiceProvider provider;
+
+    public IServiceProvider Provider => provider;
+    public IProjectDescription Project {get; set;}
+    public PublishProfileProperties PackProfile {get; set;}
+    public MaterialProperties Material {get; set;}
+
+
+    public ImageTestGraph(ServiceProvider provider)
+    {
+        this.provider = provider;
     }
 
-    public class ImageTestGraph : IDisposable, IAsyncDisposable
+    public void Dispose()
     {
-        private readonly ServiceProvider provider;
+        provider?.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
-        public IServiceProvider Provider => provider;
-        public IProjectDescription Project {get; set;}
-        public PublishProfileProperties PackProfile {get; set;}
-        public MaterialProperties Material {get; set;}
+    public async ValueTask DisposeAsync()
+    {
+        if (provider != null)
+            await provider.DisposeAsync();
+    }
 
+    public Task CreateImageAsync(string localFile, byte gray)
+    {
+        var content = provider.GetRequiredService<MockFileContent>();
 
-        public ImageTestGraph(ServiceProvider provider)
-        {
-            this.provider = provider;
-        }
+        var color = new L8(gray);
+        using var image = new Image<L8>(Configuration.Default, 1, 1, color);
+        return content.AddAsync(localFile, image);
+    }
 
-        public void Dispose()
-        {
-            provider?.Dispose();
-            GC.SuppressFinalize(this);
-        }
+    public Task CreateImageAsync(string localFile, byte r, byte g, byte b)
+    {
+        var content = provider.GetRequiredService<MockFileContent>();
 
-        public async ValueTask DisposeAsync()
-        {
-            if (provider != null)
-                await provider.DisposeAsync();
-        }
+        var color = new Rgb24(r, g, b);
+        using var image = new Image<Rgb24>(Configuration.Default, 1, 1, color);
+        return content.AddAsync(localFile, image);
+    }
 
-        public Task CreateImageAsync(string localFile, byte gray)
-        {
-            var content = provider.GetRequiredService<MockFileContent>();
+    public Task CreateImageAsync(string localFile, byte r, byte g, byte b, byte alpha)
+    {
+        var content = provider.GetRequiredService<MockFileContent>();
 
-            var color = new L8(gray);
-            using var image = new Image<L8>(Configuration.Default, 1, 1, color);
-            return content.AddAsync(localFile, image);
-        }
+        var color = new Rgba32(r, g, b, alpha);
+        using var image = new Image<Rgba32>(Configuration.Default, 1, 1, color);
+        return content.AddAsync(localFile, image);
+    }
 
-        public Task CreateImageAsync(string localFile, byte r, byte g, byte b)
-        {
-            var content = provider.GetRequiredService<MockFileContent>();
+    public Task CreateImageAsync<TPixel>(string localFile, int width, int height, Action<Image<TPixel>> initAction)
+        where TPixel : unmanaged, IPixel<TPixel>
+    {
+        var content = provider.GetRequiredService<MockFileContent>();
 
-            var color = new Rgb24(r, g, b);
-            using var image = new Image<Rgb24>(Configuration.Default, 1, 1, color);
-            return content.AddAsync(localFile, image);
-        }
+        using var image = new Image<TPixel>(Configuration.Default, width, height);
 
-        public Task CreateImageAsync(string localFile, byte r, byte g, byte b, byte alpha)
-        {
-            var content = provider.GetRequiredService<MockFileContent>();
+        initAction(image);
 
-            var color = new Rgba32(r, g, b, alpha);
-            using var image = new Image<Rgba32>(Configuration.Default, 1, 1, color);
-            return content.AddAsync(localFile, image);
-        }
+        return content.AddAsync(localFile, image);
+    }
 
-        public Task CreateImageAsync<TPixel>(string localFile, int width, int height, Action<Image<TPixel>> initAction)
-            where TPixel : unmanaged, IPixel<TPixel>
-        {
-            var content = provider.GetRequiredService<MockFileContent>();
+    public Task CreateFileAsync(string localFile, string text)
+    {
+        var content = provider.GetRequiredService<MockFileContent>();
+        return content.AddAsync(localFile, text);
+    }
 
-            using var image = new Image<TPixel>(Configuration.Default, width, height);
+    public async Task ProcessAsync(CancellationToken token = default)
+    {
+        using var scope = provider.CreateScope();
+        var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+        var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
 
-            initAction(image);
+        graphContext.Project = Project;
+        graphContext.Profile = PackProfile;
+        graphContext.Material = Material;
+        graphContext.Mapping = new DefaultPublishMapping();
+        graphContext.PackWriteTime = DateTime.UtcNow;
 
-            return content.AddAsync(localFile, image);
-        }
+        await graphBuilder.PublishAsync(token);
+        await graphBuilder.PublishInventoryAsync(token);
+    }
 
-        public Task CreateFileAsync(string localFile, string text)
-        {
-            var content = provider.GetRequiredService<MockFileContent>();
-            return content.AddAsync(localFile, text);
-        }
+    public Task<Image<Rgba32>> GetImageAsync(string localFile)
+    {
+        var content = provider.GetRequiredService<MockFileContent>();
+        return content.OpenImageAsync<Rgba32>(localFile);
+    }
 
-        public async Task ProcessAsync(CancellationToken token = default)
-        {
-            using var scope = provider.CreateScope();
-            var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-            var graphBuilder = scope.ServiceProvider.GetRequiredService<IPublishGraphBuilder>();
+    public Task<Image<TPixel>> GetImageAsync<TPixel>(string localFile)
+        where TPixel : unmanaged, IPixel<TPixel>
+    {
+        var content = provider.GetRequiredService<MockFileContent>();
+        return content.OpenImageAsync<TPixel>(localFile);
+    }
 
-            graphContext.Project = Project;
-            graphContext.Profile = PackProfile;
-            graphContext.Material = Material;
-            graphContext.Mapping = new DefaultPublishMapping();
-            graphContext.PackWriteTime = DateTime.UtcNow;
-
-            await graphBuilder.PublishAsync(token);
-            await graphBuilder.PublishInventoryAsync(token);
-        }
-
-        public Task<Image<Rgba32>> GetImageAsync(string localFile)
-        {
-            var content = provider.GetRequiredService<MockFileContent>();
-            return content.OpenImageAsync<Rgba32>(localFile);
-        }
-
-        public Task<Image<TPixel>> GetImageAsync<TPixel>(string localFile)
-            where TPixel : unmanaged, IPixel<TPixel>
-        {
-            var content = provider.GetRequiredService<MockFileContent>();
-            return content.OpenImageAsync<TPixel>(localFile);
-        }
-
-        public Stream GetFile(string localFile)
-        {
-            var content = provider.GetRequiredService<MockFileContent>();
-            return content.OpenRead(localFile);
-        }
+    public Stream GetFile(string localFile)
+    {
+        var content = provider.GetRequiredService<MockFileContent>();
+        return content.OpenRead(localFile);
     }
 }

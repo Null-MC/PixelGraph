@@ -1,9 +1,8 @@
-﻿namespace PixelGraph.Common.Textures
+﻿namespace PixelGraph.Common.Textures;
+
+public enum ImageChannels
 {
-    public enum ImageChannels
-    {
-        ColorAlpha,
-        Color,
-        Gray,
-    }
+    ColorAlpha,
+    Color,
+    Gray,
 }

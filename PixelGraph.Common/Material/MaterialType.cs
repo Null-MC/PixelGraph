@@ -1,11 +1,10 @@
-﻿namespace PixelGraph.Common.Material
+﻿namespace PixelGraph.Common.Material;
+
+public enum MaterialType
 {
-    public enum MaterialType
-    {
-        None,
-        Automatic,
-        Block,
-        Entity,
-        Item,
-    }
+    None,
+    Automatic,
+    Block,
+    Entity,
+    Item,
 }

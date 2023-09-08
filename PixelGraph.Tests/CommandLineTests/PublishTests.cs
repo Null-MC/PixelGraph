@@ -10,83 +10,82 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.CommandLineTests
+namespace PixelGraph.Tests.CommandLineTests;
+
+public class PublishTests : TestBase, IAsyncDisposable, IDisposable
 {
-    public class PublishTests : TestBase, IAsyncDisposable, IDisposable
+    private readonly ServiceProvider provider;
+
+
+    public PublishTests(ITestOutputHelper output) : base(output)
     {
-        private readonly ServiceProvider provider;
+        Builder.Services.AddScoped<PublishCommand.Executor>();
 
+        provider = Builder.Build();
+    }
 
-        public PublishTests(ITestOutputHelper output) : base(output)
-        {
-            Builder.Services.AddScoped<PublishCommand.Executor>();
+    public void Dispose()
+    {
+        provider?.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
-            provider = Builder.Build();
-        }
+    public async ValueTask DisposeAsync()
+    {
+        if (provider != null)
+            await provider.DisposeAsync();
+    }
 
-        public void Dispose()
-        {
-            provider?.Dispose();
-            GC.SuppressFinalize(this);
-        }
+    [Fact]
+    public async Task CanPublishToDirectoryTest()
+    {
+        var executor = provider.GetRequiredService<PublishCommand.Executor>();
 
-        public async ValueTask DisposeAsync()
-        {
-            if (provider != null)
-                await provider.DisposeAsync();
-        }
-
-        [Fact]
-        public async Task CanPublishToDirectoryTest()
-        {
-            var executor = provider.GetRequiredService<PublishCommand.Executor>();
-
-            executor.Context = new ProjectPublishContext {
-                Project = new ProjectData {
-                    Input = new PackInputEncoding {
-                        Edition = null,
-                        Format = TextureFormat.Format_Raw,
-                        //...
-                    },
+        executor.Context = new ProjectPublishContext {
+            Project = new ProjectData {
+                Input = new PackInputEncoding {
+                    Edition = null,
+                    Format = TextureFormat.Format_Raw,
+                    //...
                 },
-                Profile = new PublishProfileProperties {
-                    Edition = GameEdition.Java,
-                    Encoding = {
-                        Format = TextureFormat.Format_Lab13,
-                    },
+            },
+            Profile = new PublishProfileProperties {
+                Edition = GameEdition.Java,
+                Encoding = {
+                    Format = TextureFormat.Format_Lab13,
                 },
-            };
+            },
+        };
 
-            await executor.ExecuteAsync("sourceDir", "destDir");
+        await executor.ExecuteAsync("sourceDir", "destDir");
 
-            //...
-        }
+        //...
+    }
 
-        [Fact]
-        public async Task CanPublishToArchiveTest()
-        {
-            var executor = provider.GetRequiredService<PublishCommand.Executor>();
-            executor.AsArchive = true;
+    [Fact]
+    public async Task CanPublishToArchiveTest()
+    {
+        var executor = provider.GetRequiredService<PublishCommand.Executor>();
+        executor.AsArchive = true;
 
-            executor.Context = new ProjectPublishContext {
-                Project = new ProjectData {
-                    Input = new PackInputEncoding {
-                        Edition = null,
-                        Format = TextureFormat.Format_Raw,
-                        //...
-                    },
+        executor.Context = new ProjectPublishContext {
+            Project = new ProjectData {
+                Input = new PackInputEncoding {
+                    Edition = null,
+                    Format = TextureFormat.Format_Raw,
+                    //...
                 },
-                Profile = new PublishProfileProperties {
-                    Edition = GameEdition.Java,
-                    Encoding = {
-                        Format = TextureFormat.Format_Lab13,
-                    },
+            },
+            Profile = new PublishProfileProperties {
+                Edition = GameEdition.Java,
+                Encoding = {
+                    Format = TextureFormat.Format_Lab13,
                 },
-            };
+            },
+        };
 
-            await executor.ExecuteAsync("sourceDir", "destDir");
+        await executor.ExecuteAsync("sourceDir", "destDir");
 
-            //...
-        }
+        //...
     }
 }

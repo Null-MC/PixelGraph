@@ -1,46 +1,45 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 
-namespace PixelGraph.UI.Internal.Logging
+namespace PixelGraph.UI.Internal.Logging;
+
+internal class RedirectLogger : RedirectLogger<object>
 {
-    internal class RedirectLogger : RedirectLogger<object>
+    public RedirectLogger(ILogReceiver receiver) : base(receiver) {}
+}
+
+internal class RedirectLogger<T> : ILogger<T>
+{
+    private readonly ILogReceiver receiver;
+
+
+    public RedirectLogger(ILogReceiver receiver)
     {
-        public RedirectLogger(ILogReceiver receiver) : base(receiver) {}
+        this.receiver = receiver;
     }
 
-    internal class RedirectLogger<T> : ILogger<T>
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
     {
-        private readonly ILogReceiver receiver;
-
-
-        public RedirectLogger(ILogReceiver receiver)
-        {
-            this.receiver = receiver;
-        }
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-            var message = formatter(state, exception);
-            receiver.Log(logLevel, message);
-        }
-
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            throw new NotImplementedException();
-        }
+        var message = formatter(state, exception);
+        receiver.Log(logLevel, message);
     }
 
-    internal class LogEventArgs : EventArgs
-    {
-        public LogLevel Level {get; set;}
-        public string Message {get; set;}
+    public bool IsEnabled(LogLevel logLevel) => true;
 
-        public LogEventArgs(LogLevel level, string message)
-        {
-            Level = level;
-            Message = message;
-        }
+    public IDisposable BeginScope<TState>(TState state)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+internal class LogEventArgs : EventArgs
+{
+    public LogLevel Level {get; set;}
+    public string Message {get; set;}
+
+    public LogEventArgs(LogLevel level, string message)
+    {
+        Level = level;
+        Message = message;
     }
 }

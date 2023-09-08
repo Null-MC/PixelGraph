@@ -1,10 +1,9 @@
 ﻿using HelixToolkit.SharpDX.Core.Utilities;
 
-namespace PixelGraph.Rendering.CubeMaps
+namespace PixelGraph.Rendering.CubeMaps;
+
+public interface ICubeMapSource
 {
-    public interface ICubeMapSource
-    {
-        ShaderResourceViewProxy CubeMap {get;}
-        long LastUpdated {get;}
-    }
+    ShaderResourceViewProxy CubeMap {get;}
+    long LastUpdated {get;}
 }

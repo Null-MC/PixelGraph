@@ -8,79 +8,78 @@ using System.Windows;
 using System.Windows.Threading;
 using PixelGraph.UI.Internal.Logging;
 
-namespace PixelGraph.UI.Windows
+namespace PixelGraph.UI.Windows;
+
+public partial class PublishOutputWindow : IDisposable
 {
-    public partial class PublishOutputWindow : IDisposable
+    public PublishOutputWindow(IServiceProvider provider)
     {
-        public PublishOutputWindow(IServiceProvider provider)
-        {
-            var themeHelper = provider.GetRequiredService<IThemeHelper>();
-            var appSettings = provider.GetRequiredService<IAppSettingsManager>();
+        var themeHelper = provider.GetRequiredService<IThemeHelper>();
+        var appSettings = provider.GetRequiredService<IAppSettingsManager>();
 
-            InitializeComponent();
+        InitializeComponent();
 
-            themeHelper.ApplyCurrent(this);
+        themeHelper.ApplyCurrent(this);
             
-            Model.StateChanged += OnStatusChanged;
-            Model.LogAppended += OnLogAppended;
+        Model.StateChanged += OnStatusChanged;
+        Model.LogAppended += OnLogAppended;
 
-            Model.IsLoading = true;
-            Model.CloseOnComplete = appSettings.Data.PublishCloseOnComplete;
+        Model.IsLoading = true;
+        Model.CloseOnComplete = appSettings.Data.PublishCloseOnComplete;
 
-            Model.Initialize(provider);
-            Model.IsLoading = false;
+        Model.Initialize(provider);
+        Model.IsLoading = false;
+    }
+
+    private void OnStatusChanged(object sender, PublishStatus e)
+    {
+        Dispatcher.BeginInvoke(() => {
+            Model.IsAnalyzing = e.IsAnalyzing;
+            Model.Progress = e.Progress;
+        }, DispatcherPriority.DataBind);
+    }
+
+    public void Dispose()
+    {
+        Model?.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    private async void OnWindowLoaded(object sender, RoutedEventArgs e)
+    {
+        Model.IsActive = true;
+
+        try {
+            var success = await Model.PublishAsync();
+            if (success && Model.CloseOnComplete) DialogResult = true;
         }
-
-        private void OnStatusChanged(object sender, PublishStatus e)
-        {
-            Dispatcher.BeginInvoke(() => {
-                Model.IsAnalyzing = e.IsAnalyzing;
-                Model.Progress = e.Progress;
-            }, DispatcherPriority.DataBind);
+        catch (OperationCanceledException) {
+            if (IsLoaded) DialogResult = false;
         }
-
-        public void Dispose()
-        {
-            Model?.Dispose();
-            GC.SuppressFinalize(this);
+        finally {
+            await Dispatcher.BeginInvoke(() => Model.IsActive = false);
         }
+    }
 
-        private async void OnWindowLoaded(object sender, RoutedEventArgs e)
-        {
-            Model.IsActive = true;
+    private void OnWindowClosed(object sender, EventArgs e)
+    {
+        Model.Cancel();
+        Model.Dispose();
+    }
 
-            try {
-                var success = await Model.PublishAsync();
-                if (success && Model.CloseOnComplete) DialogResult = true;
-            }
-            catch (OperationCanceledException) {
-                if (IsLoaded) DialogResult = false;
-            }
-            finally {
-                await Dispatcher.BeginInvoke(() => Model.IsActive = false);
-            }
-        }
+    private void OnLogAppended(object sender, LogEventArgs e)
+    {
+        LogList.Append(e.Level, e.Message);
+    }
 
-        private void OnWindowClosed(object sender, EventArgs e)
-        {
-            Model.Cancel();
-            Model.Dispose();
-        }
+    private void OnCancelButtonClick(object sender, RoutedEventArgs e)
+    {
+        Model.Cancel();
+    }
 
-        private void OnLogAppended(object sender, LogEventArgs e)
-        {
-            LogList.Append(e.Level, e.Message);
-        }
-
-        private void OnCancelButtonClick(object sender, RoutedEventArgs e)
-        {
-            Model.Cancel();
-        }
-
-        private void OnCloseButtonClick(object sender, RoutedEventArgs e)
-        {
-            Model.Cancel();
-            DialogResult = true;
-        }
+    private void OnCloseButtonClick(object sender, RoutedEventArgs e)
+    {
+        Model.Cancel();
+        DialogResult = true;
     }
 }

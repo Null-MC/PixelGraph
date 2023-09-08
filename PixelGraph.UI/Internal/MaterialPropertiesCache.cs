@@ -8,44 +8,43 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal
+namespace PixelGraph.UI.Internal;
+
+internal class MaterialPropertiesCache : AsyncRegistrationCounterCache<string, MaterialProperties>
 {
-    internal class MaterialPropertiesCache : AsyncRegistrationCounterCache<string, MaterialProperties>
+    private readonly IServiceProvider provider;
+    private readonly IProjectContextManager projectContextMgr;
+
+
+    public MaterialPropertiesCache(
+        IServiceProvider provider,
+        IProjectContextManager projectContextMgr) : base(StringComparer.InvariantCultureIgnoreCase)
     {
-        private readonly IServiceProvider provider;
-        private readonly IProjectContextManager projectContextMgr;
+        this.provider = provider;
+        this.projectContextMgr = projectContextMgr;
+    }
 
+    public Task<CacheRegistration<string, MaterialProperties>> RegisterAsync(string localFile, CancellationToken token = default)
+    {
+        return RegisterAsync(localFile, key => LoadMaterial(key, token));
+    }
 
-        public MaterialPropertiesCache(
-            IServiceProvider provider,
-            IProjectContextManager projectContextMgr) : base(StringComparer.InvariantCultureIgnoreCase)
-        {
-            this.provider = provider;
-            this.projectContextMgr = projectContextMgr;
-        }
+    public new void Release(CacheRegistration<string, MaterialProperties> registration)
+    {
+        base.Release(registration);
+    }
 
-        public Task<CacheRegistration<string, MaterialProperties>> RegisterAsync(string localFile, CancellationToken token = default)
-        {
-            return RegisterAsync(localFile, key => LoadMaterial(key, token));
-        }
+    private async Task<MaterialProperties> LoadMaterial(string localFile, CancellationToken token)
+    {
+        var projectContext = projectContextMgr.GetContext();
+        var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
-        public new void Release(CacheRegistration<string, MaterialProperties> registration)
-        {
-            base.Release(registration);
-        }
+        serviceBuilder.Initialize();
+        serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
 
-        private async Task<MaterialProperties> LoadMaterial(string localFile, CancellationToken token)
-        {
-            var projectContext = projectContextMgr.GetContext();
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+        await using var scope = serviceBuilder.Build();
 
-            serviceBuilder.Initialize();
-            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
-
-            await using var scope = serviceBuilder.Build();
-
-            var materialReader = scope.GetRequiredService<IMaterialReader>();
-            return await materialReader.LoadAsync(localFile, token);
-        }
+        var materialReader = scope.GetRequiredService<IMaterialReader>();
+        return await materialReader.LoadAsync(localFile, token);
     }
 }

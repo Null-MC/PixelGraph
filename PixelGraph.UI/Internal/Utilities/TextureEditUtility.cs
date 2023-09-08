@@ -18,153 +18,152 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal.Utilities
+namespace PixelGraph.UI.Internal.Utilities;
+
+internal class TextureEditUtility
 {
-    internal class TextureEditUtility
+    private readonly ILogger<TextureEditUtility> logger;
+    private readonly IServiceProvider provider;
+    private readonly IAppSettingsManager appSettingsMgr;
+    private readonly IProjectContextManager projectContextMgr;
+
+    private CancellationTokenSource mergedTokenSource;
+
+
+    public TextureEditUtility(
+        ILogger<TextureEditUtility> logger,
+        IServiceProvider provider,
+        IAppSettingsManager appSettingsMgr,
+        IProjectContextManager projectContextMgr)
     {
-        private readonly ILogger<TextureEditUtility> logger;
-        private readonly IServiceProvider provider;
-        private readonly IAppSettingsManager appSettingsMgr;
-        private readonly IProjectContextManager projectContextMgr;
+        this.appSettingsMgr = appSettingsMgr;
+        this.provider = provider;
+        this.projectContextMgr = projectContextMgr;
+        this.logger = logger;
+    }
 
-        private CancellationTokenSource mergedTokenSource;
+    public Task<bool> EditLayerAsync(MaterialProperties material, string textureTag, CancellationToken token = default)
+    {
+        mergedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
 
-
-        public TextureEditUtility(
-            ILogger<TextureEditUtility> logger,
-            IServiceProvider provider,
-            IAppSettingsManager appSettingsMgr,
-            IProjectContextManager projectContextMgr)
-        {
-            this.appSettingsMgr = appSettingsMgr;
-            this.provider = provider;
-            this.projectContextMgr = projectContextMgr;
-            this.logger = logger;
+        try {
+            return EditLayerInternalAsync(material, textureTag, mergedTokenSource.Token);
         }
+        finally {
+            mergedTokenSource.Dispose();
+            mergedTokenSource = null;
+        }
+    }
 
-        public Task<bool> EditLayerAsync(MaterialProperties material, string textureTag, CancellationToken token = default)
-        {
-            mergedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+    private async Task<bool> EditLayerInternalAsync(MaterialProperties material, string textureTag, CancellationToken token = default)
+    {
+        var inputFileFull = GetInputFilename(material, textureTag);
+
+        var ext = Path.GetExtension(inputFileFull);
+        var tempFile = $"{Path.GetTempFileName()}{ext}";
+
+        try {
+            if (File.Exists(inputFileFull)) {
+                File.Copy(inputFileFull, tempFile);
+            }
+            else {
+                // create new file
+                // TODO: detect hasColor and hasAlpha from input encoding
+                using var newImage = CreateImage(1, 1, true, true);
+                await newImage.SaveAsPngAsync(tempFile, token);
+            }
+
+            var info = new ProcessStartInfo {
+                UseShellExecute = false,
+                FileName = appSettingsMgr.Data.TextureEditorExecutable,
+                Arguments = appSettingsMgr.Data.TextureEditorArguments
+                    .Replace("$1", tempFile),
+            };
+
+            var srcTime = File.GetLastWriteTimeUtc(tempFile);
+            using var process = Process.Start(info);
+
+            if (process == null)
+                throw new ApplicationException($"Failed to start process '{info.FileName}'!");
 
             try {
-                return EditLayerInternalAsync(material, textureTag, mergedTokenSource.Token);
+                await process.WaitForExitAsync(token);
             }
-            finally {
-                mergedTokenSource.Dispose();
-                mergedTokenSource = null;
-            }
+            catch (OperationCanceledException) {}
+
+            if (!File.Exists(tempFile))
+                throw new ApplicationException("Unable to locate edited temp file!");
+
+            var editTime = File.GetLastWriteTimeUtc(tempFile);
+
+            if (editTime <= srcTime) return false;
+
+            File.Copy(tempFile, inputFileFull, true);
+            return true;
         }
-
-        private async Task<bool> EditLayerInternalAsync(MaterialProperties material, string textureTag, CancellationToken token = default)
-        {
-            var inputFileFull = GetInputFilename(material, textureTag);
-
-            var ext = Path.GetExtension(inputFileFull);
-            var tempFile = $"{Path.GetTempFileName()}{ext}";
-
-            try {
-                if (File.Exists(inputFileFull)) {
-                    File.Copy(inputFileFull, tempFile);
-                }
-                else {
-                    // create new file
-                    // TODO: detect hasColor and hasAlpha from input encoding
-                    using var newImage = CreateImage(1, 1, true, true);
-                    await newImage.SaveAsPngAsync(tempFile, token);
-                }
-
-                var info = new ProcessStartInfo {
-                    UseShellExecute = false,
-                    FileName = appSettingsMgr.Data.TextureEditorExecutable,
-                    Arguments = appSettingsMgr.Data.TextureEditorArguments
-                        .Replace("$1", tempFile),
-                };
-
-                var srcTime = File.GetLastWriteTimeUtc(tempFile);
-                using var process = Process.Start(info);
-
-                if (process == null)
-                    throw new ApplicationException($"Failed to start process '{info.FileName}'!");
-
+        finally {
+            if (File.Exists(tempFile)) {
                 try {
-                    await process.WaitForExitAsync(token);
+                    File.Delete(tempFile);
                 }
-                catch (OperationCanceledException) {}
-
-                if (!File.Exists(tempFile))
-                    throw new ApplicationException("Unable to locate edited temp file!");
-
-                var editTime = File.GetLastWriteTimeUtc(tempFile);
-
-                if (editTime <= srcTime) return false;
-
-                File.Copy(tempFile, inputFileFull, true);
-                return true;
-            }
-            finally {
-                if (File.Exists(tempFile)) {
-                    try {
-                        File.Delete(tempFile);
-                    }
-                    catch (Exception error) {
-                        logger.LogWarning(error, "Failed to delete temporary image file!");
-                    }
+                catch (Exception error) {
+                    logger.LogWarning(error, "Failed to delete temporary image file!");
                 }
             }
         }
+    }
 
-        public void Cancel()
-        {
-            mergedTokenSource?.Cancel();
+    public void Cancel()
+    {
+        mergedTokenSource?.Cancel();
+    }
+
+    private string GetInputFilename(MaterialProperties material, string textureTag)
+    {
+        var inputFile = TextureTags.Get(material, textureTag);
+
+        var projectContext = projectContextMgr.GetContext();
+        var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+        serviceBuilder.Initialize();
+        serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+        serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+
+        using var scope = serviceBuilder.Build();
+
+        var reader = scope.GetRequiredService<IInputReader>();
+        var texReader = scope.GetRequiredService<ITextureReader>();
+        var texWriter = scope.GetRequiredService<ITextureWriter>();
+
+        if (string.IsNullOrWhiteSpace(inputFile))
+            inputFile = texReader.EnumerateInputTextures(material, textureTag).FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(inputFile)) {
+            // TODO: determine filename from naming convention
+            var matchName = texWriter.GetInputTextureName(material, textureTag);
+            var srcPath = material.UseGlobalMatching
+                ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
+
+            inputFile = PathEx.Join(srcPath, matchName.Replace("*", "png"));
         }
 
-        private string GetInputFilename(MaterialProperties material, string textureTag)
-        {
-            var inputFile = TextureTags.Get(material, textureTag);
+        if (string.IsNullOrWhiteSpace(inputFile))
+            throw new ApplicationException("Unable to determine texture filename!");
 
-            var projectContext = projectContextMgr.GetContext();
-            var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+        return reader.GetFullPath(inputFile);
+    }
 
-            serviceBuilder.Initialize();
-            serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
-            serviceBuilder.ConfigureWriter(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
+    private Image CreateImage(int width, int height, bool hasColor, bool hasAlpha)
+    {
+        if (hasColor) {
+            if (hasAlpha)
+                return new Image<Rgba32>(Configuration.Default, width, height);
 
-            using var scope = serviceBuilder.Build();
-
-            var reader = scope.GetRequiredService<IInputReader>();
-            var texReader = scope.GetRequiredService<ITextureReader>();
-            var texWriter = scope.GetRequiredService<ITextureWriter>();
-
-            if (string.IsNullOrWhiteSpace(inputFile))
-                inputFile = texReader.EnumerateInputTextures(material, textureTag).FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(inputFile)) {
-                // TODO: determine filename from naming convention
-                var matchName = texWriter.GetInputTextureName(material, textureTag);
-                var srcPath = material.UseGlobalMatching
-                    ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
-
-                inputFile = PathEx.Join(srcPath, matchName.Replace("*", "png"));
-            }
-
-            if (string.IsNullOrWhiteSpace(inputFile))
-                throw new ApplicationException("Unable to determine texture filename!");
-
-            return reader.GetFullPath(inputFile);
+            return new Image<Rgb24>(Configuration.Default, width, height);
         }
 
-        private Image CreateImage(int width, int height, bool hasColor, bool hasAlpha)
-        {
-            if (hasColor) {
-                if (hasAlpha)
-                    return new Image<Rgba32>(Configuration.Default, width, height);
+        if (hasAlpha) throw new ApplicationException("Transparent greyscale textures not supported!");
 
-                return new Image<Rgb24>(Configuration.Default, width, height);
-            }
-
-            if (hasAlpha) throw new ApplicationException("Transparent greyscale textures not supported!");
-
-            return new Image<L8>(Configuration.Default, width, height);
-        }
+        return new Image<L8>(Configuration.Default, width, height);
     }
 }

@@ -1,8 +1,7 @@
-﻿namespace PixelGraph.UI.ViewData
+﻿namespace PixelGraph.UI.ViewData;
+
+public interface ISearchParameters
 {
-    public interface ISearchParameters
-    {
-        string SearchText {get;}
-        bool ShowAllFiles {get;}
-    }
+    string SearchText {get;}
+    bool ShowAllFiles {get;}
 }

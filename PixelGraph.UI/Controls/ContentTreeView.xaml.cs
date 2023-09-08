@@ -1,10 +1,9 @@
-﻿namespace PixelGraph.UI.Controls
+﻿namespace PixelGraph.UI.Controls;
+
+public partial class ContentTreeView
 {
-    public partial class ContentTreeView
+    public ContentTreeView()
     {
-        public ContentTreeView()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

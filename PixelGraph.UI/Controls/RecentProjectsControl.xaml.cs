@@ -12,117 +12,116 @@ using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace PixelGraph.UI.Controls
+namespace PixelGraph.UI.Controls;
+
+public class TileClickedEventArgs
 {
-    public class TileClickedEventArgs
+    public string Filename {get; set;}
+}
+
+public partial class RecentProjectsControl
+{
+    private ILogger<RecentProjectsControl> logger;
+
+    public event EventHandler<TileClickedEventArgs> TileClicked;
+
+
+    public RecentProjectsControl()
     {
-        public string Filename {get; set;}
+        InitializeComponent();
     }
 
-    public partial class RecentProjectsControl
+    public void Initialize(IServiceProvider provider)
     {
-        private ILogger<RecentProjectsControl> logger;
+        logger = provider.GetRequiredService<ILogger<RecentProjectsControl>>();
 
-        public event EventHandler<TileClickedEventArgs> TileClicked;
+        Model.MissingImage = CreateMissingImage();
 
+        Model.Initialize(provider);
+    }
 
-        public RecentProjectsControl()
-        {
-            InitializeComponent();
+    public async Task AppendAsync(string filename, CancellationToken token = default)
+    {
+        await Model.AppendProjectAsync(filename, token);
+        await Model.UpdateModelListAsync(Dispatcher, token);
+    }
+
+    private async Task OpenProjectAsync(string filename)
+    {
+        if (!File.Exists(filename)) {
+            var window = Window.GetWindow(this);
+            if (window != null) MessageBox.Show(window, "The selected project file could not be found!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            await Model.RemoveAsync(filename);
+            await Model.UpdateModelListAsync(Dispatcher);
+            return;
         }
 
-        public void Initialize(IServiceProvider provider)
-        {
-            logger = provider.GetRequiredService<ILogger<RecentProjectsControl>>();
+        TileClicked?.Invoke(this, new TileClickedEventArgs {Filename = filename});
+    }
 
-            Model.MissingImage = CreateMissingImage();
-
-            Model.Initialize(provider);
+    private async void OnControlLoaded(object sender, RoutedEventArgs e)
+    {
+        try {
+            await Task.Run(() => Model.LoadAsync());
+        }
+        catch (Exception error) {
+            logger.LogError(error, "Failed to load recent projects!");
+            var window = Window.GetWindow(this);
+            if (window != null) await Dispatcher.BeginInvoke(() => MessageBox.Show(window, "Failed to load recent project list!", "Error"));
         }
 
-        public async Task AppendAsync(string filename, CancellationToken token = default)
-        {
-            await Model.AppendProjectAsync(filename, token);
-            await Model.UpdateModelListAsync(Dispatcher, token);
-        }
+        await Task.Run(() => Model.UpdateModelListAsync(Dispatcher));
+    }
 
-        private async Task OpenProjectAsync(string filename)
-        {
-            if (!File.Exists(filename)) {
-                var window = Window.GetWindow(this);
-                if (window != null) MessageBox.Show(window, "The selected project file could not be found!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+    private void OnTileClick(object sender, RoutedEventArgs e)
+    {
+        if ((e.Source as Tile)?.DataContext is not ProjectTileModel project) return;
 
-                await Model.RemoveAsync(filename);
-                await Model.UpdateModelListAsync(Dispatcher);
-                return;
-            }
+        OnTileClicked(project.Filename);
+    }
 
-            TileClicked?.Invoke(this, new TileClickedEventArgs {Filename = filename});
-        }
+    private async void OnTileClicked(string filename)
+    {
+        await OpenProjectAsync(filename);
+    }
 
-        private async void OnControlLoaded(object sender, RoutedEventArgs e)
-        {
-            try {
-                await Task.Run(() => Model.LoadAsync());
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to load recent projects!");
-                var window = Window.GetWindow(this);
-                if (window != null) await Dispatcher.BeginInvoke(() => MessageBox.Show(window, "Failed to load recent project list!", "Error"));
-            }
+    private static ImageSource CreateMissingImage()
+    {
+        var image = new BitmapImage();
+        image.BeginInit();
+        image.CreateOptions = BitmapCreateOptions.DelayCreation;
+        image.DecodePixelWidth = 64;
+        image.DecodePixelHeight = 64;
+        image.UriSource = new Uri("pack://application:,,,/Resources/unknown_pack.png");
+        image.EndInit();
 
-            await Task.Run(() => Model.UpdateModelListAsync(Dispatcher));
-        }
+        if (image.CanFreeze) image.Freeze();
 
-        private void OnTileClick(object sender, RoutedEventArgs e)
-        {
-            if ((e.Source as Tile)?.DataContext is not ProjectTileModel project) return;
+        return image;
+    }
 
-            OnTileClicked(project.Filename);
-        }
-
-        private async void OnTileClicked(string filename)
-        {
-            await OpenProjectAsync(filename);
-        }
-
-        private static ImageSource CreateMissingImage()
-        {
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.CreateOptions = BitmapCreateOptions.DelayCreation;
-            image.DecodePixelWidth = 64;
-            image.DecodePixelHeight = 64;
-            image.UriSource = new Uri("pack://application:,,,/Resources/unknown_pack.png");
-            image.EndInit();
-
-            if (image.CanFreeze) image.Freeze();
-
-            return image;
-        }
-
-        private ProjectTileModel GetContextModel(object sender)
-        {
-            return sender is not MenuItem {
-                Parent: ContextMenu {
-                    PlacementTarget: Tile {
-                        DataContext: ProjectTileModel model,
-                    }
+    private ProjectTileModel GetContextModel(object sender)
+    {
+        return sender is not MenuItem {
+            Parent: ContextMenu {
+                PlacementTarget: Tile {
+                    DataContext: ProjectTileModel model,
                 }
-            } ? null : model;
-        }
+            }
+        } ? null : model;
+    }
 
-        private async void OnContextMenuOpenClick(object sender, RoutedEventArgs e)
-        {
-            var model = GetContextModel(sender);
-            await OpenProjectAsync(model.Filename);
-        }
+    private async void OnContextMenuOpenClick(object sender, RoutedEventArgs e)
+    {
+        var model = GetContextModel(sender);
+        await OpenProjectAsync(model.Filename);
+    }
 
-        private async void OnContextMenuRemoveClick(object sender, RoutedEventArgs e)
-        {
-            var projectModel = GetContextModel(sender);
-            Model.Tiles.Remove(projectModel);
-            await Model.RemoveAsync(projectModel.Filename);
-        }
+    private async void OnContextMenuRemoveClick(object sender, RoutedEventArgs e)
+    {
+        var projectModel = GetContextModel(sender);
+        Model.Tiles.Remove(projectModel);
+        await Model.RemoveAsync(projectModel.Filename);
     }
 }

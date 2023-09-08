@@ -2,47 +2,46 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal.Settings
-{
-    public interface IAppSettingsManager
-    {
-        AppSettingsDataModel Data {get; set;}
+namespace PixelGraph.UI.Internal.Settings;
 
-        void Load();
-        //Task LoadAsync(CancellationToken token = default);
-        Task SaveAsync(CancellationToken token = default);
+public interface IAppSettingsManager
+{
+    AppSettingsDataModel Data {get; set;}
+
+    void Load();
+    //Task LoadAsync(CancellationToken token = default);
+    Task SaveAsync(CancellationToken token = default);
+}
+
+internal class AppSettingsManager : IAppSettingsManager
+{
+    private const string FileName = "Settings.json";
+
+    private readonly IAppDataUtility appData;
+
+    public AppSettingsDataModel Data {get; set;}
+
+
+    public AppSettingsManager(IAppDataUtility appData)
+    {
+        this.appData = appData;
+
+        Data = new AppSettingsDataModel();
     }
 
-    internal class AppSettingsManager : IAppSettingsManager
+    public void Load()
     {
-        private const string FileName = "Settings.json";
+        Data = appData.ReadJson<AppSettingsDataModel>(FileName) ?? new AppSettingsDataModel();
+    }
 
-        private readonly IAppDataUtility appData;
+    //public async Task LoadAsync(CancellationToken token = default)
+    //{
+    //    Data = await appData.ReadJsonAsync<SettingsDataModel>(FileName, token) ?? new SettingsDataModel();
+    //}
 
-        public AppSettingsDataModel Data {get; set;}
-
-
-        public AppSettingsManager(IAppDataUtility appData)
-        {
-            this.appData = appData;
-
-            Data = new AppSettingsDataModel();
-        }
-
-        public void Load()
-        {
-            Data = appData.ReadJson<AppSettingsDataModel>(FileName) ?? new AppSettingsDataModel();
-        }
-
-        //public async Task LoadAsync(CancellationToken token = default)
-        //{
-        //    Data = await appData.ReadJsonAsync<SettingsDataModel>(FileName, token) ?? new SettingsDataModel();
-        //}
-
-        public Task SaveAsync(CancellationToken token = default)
-        {
-            if (Data == null) return Task.CompletedTask;
-            return appData.WriteJsonAsync(FileName, Data, token);
-        }
+    public Task SaveAsync(CancellationToken token = default)
+    {
+        if (Data == null) return Task.CompletedTask;
+        return appData.WriteJsonAsync(FileName, Data, token);
     }
 }

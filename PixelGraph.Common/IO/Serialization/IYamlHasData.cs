@@ -1,7 +1,6 @@
-﻿namespace PixelGraph.Common.IO.Serialization
+﻿namespace PixelGraph.Common.IO.Serialization;
+
+internal interface IHaveData
 {
-    internal interface IHaveData
-    {
-        public bool HasAnyData();
-    }
+    public bool HasAnyData();
 }

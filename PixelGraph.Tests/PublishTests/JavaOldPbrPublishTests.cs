@@ -9,184 +9,183 @@ using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.PublishTests
+namespace PixelGraph.Tests.PublishTests;
+
+public class JavaOldPbrPublishTests : ImageTestBase
 {
-    public class JavaOldPbrPublishTests : ImageTestBase
+    private readonly ProjectData project;
+    private readonly PublishProfileProperties packProfile;
+
+
+    public JavaOldPbrPublishTests(ITestOutputHelper output) : base(output)
     {
-        private readonly ProjectData project;
-        private readonly PublishProfileProperties packProfile;
+        Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
+        Builder.ConfigureWriter(ContentTypes.File, GameEditions.Java, null);
 
+        project = new ProjectData {
+            Input = new PackInputEncoding {
+                Format = TextureFormat.Format_Raw,
+            },
+        };
 
-        public JavaOldPbrPublishTests(ITestOutputHelper output) : base(output)
-        {
-            Builder.ConfigureReader(ContentTypes.File, GameEditions.None, null);
-            Builder.ConfigureWriter(ContentTypes.File, GameEditions.Java, null);
+        packProfile = new PublishProfileProperties {
+            Encoding = {
+                Format = TextureFormat.Format_OldPbr,
+            },
+        };
+    }
 
-            project = new ProjectData {
-                Input = new PackInputEncoding {
-                    Format = TextureFormat.Format_Raw,
-                },
-            };
+    [InlineData(  0)]
+    [InlineData(100)]
+    [InlineData(155)]
+    [InlineData(255)]
+    [Theory] public async Task OpacityTextureTest(byte value)
+    {
+        await using var graph = Graph();
 
-            packProfile = new PublishProfileProperties {
-                Encoding = {
-                    Format = TextureFormat.Format_OldPbr,
-                },
-            };
-        }
+        graph.Project = project;
+        graph.PackProfile = packProfile;
+        graph.Material = new MaterialProperties {
+            Name = "test",
+            LocalPath = "assets",
+        };
 
-        [InlineData(  0)]
-        [InlineData(100)]
-        [InlineData(155)]
-        [InlineData(255)]
-        [Theory] public async Task OpacityTextureTest(byte value)
-        {
-            await using var graph = Graph();
+        await graph.CreateImageAsync("assets/test/opacity.png", value);
+        await graph.ProcessAsync();
 
-            graph.Project = project;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
+        using var image = await graph.GetImageAsync<Rgba32>("assets/test.png");
+        PixelAssert.AlphaEquals(value, image);
+    }
 
-            await graph.CreateImageAsync("assets/test/opacity.png", value);
-            await graph.ProcessAsync();
+    [InlineData(  0,   0,  0)]
+    [InlineData(100, 101, 102)]
+    [InlineData(155, 160, 165)]
+    [InlineData(255, 255, 255)]
+    [Theory] public async Task ColorTextureTest(byte red, byte green, byte blue)
+    {
+        await using var graph = Graph();
 
-            using var image = await graph.GetImageAsync<Rgba32>("assets/test.png");
-            PixelAssert.AlphaEquals(value, image);
-        }
+        graph.Project = project;
+        graph.PackProfile = packProfile;
+        graph.Material = new MaterialProperties {
+            Name = "test",
+            LocalPath = "assets",
+        };
 
-        [InlineData(  0,   0,  0)]
-        [InlineData(100, 101, 102)]
-        [InlineData(155, 160, 165)]
-        [InlineData(255, 255, 255)]
-        [Theory] public async Task ColorTextureTest(byte red, byte green, byte blue)
-        {
-            await using var graph = Graph();
+        await graph.CreateImageAsync("assets/test/color.png", red, green, blue);
+        await graph.ProcessAsync();
 
-            graph.Project = project;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
+        using var image = await graph.GetImageAsync<Rgb24>("assets/test.png");
+        PixelAssert.Equals(red, green, blue, image);
+    }
 
-            await graph.CreateImageAsync("assets/test/color.png", red, green, blue);
-            await graph.ProcessAsync();
+    [InlineData(127, 127, 255)]
+    [InlineData(127,   0, 0)]
+    [InlineData(127, 255, 0)]
+    [InlineData(  0, 127, 0)]
+    [InlineData(255, 127, 0)]
+    [Theory] public async Task NormalTextureTest(byte red, byte green, byte blue)
+    {
+        await using var graph = Graph();
 
-            using var image = await graph.GetImageAsync<Rgb24>("assets/test.png");
-            PixelAssert.Equals(red, green, blue, image);
-        }
+        graph.Project = project;
+        graph.PackProfile = packProfile;
+        graph.Material = new MaterialProperties {
+            Name = "test",
+            LocalPath = "assets",
+        };
 
-        [InlineData(127, 127, 255)]
-        [InlineData(127,   0, 0)]
-        [InlineData(127, 255, 0)]
-        [InlineData(  0, 127, 0)]
-        [InlineData(255, 127, 0)]
-        [Theory] public async Task NormalTextureTest(byte red, byte green, byte blue)
-        {
-            await using var graph = Graph();
+        await graph.CreateImageAsync("assets/test/normal.png", red, green, blue);
+        await graph.ProcessAsync();
 
-            graph.Project = project;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
+        using var image = await graph.GetImageAsync<Rgb24>("assets/test_n.png");
+        PixelAssert.Equals(red, green, blue, image);
+    }
 
-            await graph.CreateImageAsync("assets/test/normal.png", red, green, blue);
-            await graph.ProcessAsync();
+    [InlineData(  0)]
+    [InlineData(100)]
+    [InlineData(155)]
+    [InlineData(255)]
+    [Theory] public async Task HeightTextureTest(byte value)
+    {
+        await using var graph = Graph();
 
-            using var image = await graph.GetImageAsync<Rgb24>("assets/test_n.png");
-            PixelAssert.Equals(red, green, blue, image);
-        }
+        graph.Project = project;
+        graph.PackProfile = packProfile;
+        graph.Material = new MaterialProperties {
+            Name = "test",
+            LocalPath = "assets",
+        };
 
-        [InlineData(  0)]
-        [InlineData(100)]
-        [InlineData(155)]
-        [InlineData(255)]
-        [Theory] public async Task HeightTextureTest(byte value)
-        {
-            await using var graph = Graph();
+        await graph.CreateImageAsync("assets/test/height.png", value);
+        await graph.ProcessAsync();
 
-            graph.Project = project;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
+        using var image = await graph.GetImageAsync<Rgba32>("assets/test_n.png");
+        PixelAssert.AlphaEquals(value, image);
+    }
 
-            await graph.CreateImageAsync("assets/test/height.png", value);
-            await graph.ProcessAsync();
+    [InlineData(  0)]
+    [InlineData(100)]
+    [InlineData(155)]
+    [InlineData(255)]
+    [Theory] public async Task SmoothTextureTest(byte value)
+    {
+        await using var graph = Graph();
 
-            using var image = await graph.GetImageAsync<Rgba32>("assets/test_n.png");
-            PixelAssert.AlphaEquals(value, image);
-        }
+        graph.Project = project;
+        graph.PackProfile = packProfile;
+        graph.Material = new MaterialProperties {
+            Name = "test",
+            LocalPath = "assets",
+        };
 
-        [InlineData(  0)]
-        [InlineData(100)]
-        [InlineData(155)]
-        [InlineData(255)]
-        [Theory] public async Task SmoothTextureTest(byte value)
-        {
-            await using var graph = Graph();
+        await graph.CreateImageAsync("assets/test/smooth.png", value);
+        await graph.ProcessAsync();
 
-            graph.Project = project;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
+        using var image = await graph.GetImageAsync<Rgb24>("assets/test_s.png");
+        PixelAssert.RedEquals(value, image);
+    }
 
-            await graph.CreateImageAsync("assets/test/smooth.png", value);
-            await graph.ProcessAsync();
+    [InlineData(0)]
+    [InlineData(255)]
+    [Theory] public async Task MetalTextureTest(byte value)
+    {
+        await using var graph = Graph();
 
-            using var image = await graph.GetImageAsync<Rgb24>("assets/test_s.png");
-            PixelAssert.RedEquals(value, image);
-        }
+        graph.Project = project;
+        graph.PackProfile = packProfile;
+        graph.Material = new MaterialProperties {
+            Name = "test",
+            LocalPath = "assets",
+        };
 
-        [InlineData(0)]
-        [InlineData(255)]
-        [Theory] public async Task MetalTextureTest(byte value)
-        {
-            await using var graph = Graph();
+        await graph.CreateImageAsync("assets/test/metal.png", value);
+        await graph.ProcessAsync();
 
-            graph.Project = project;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
+        using var image = await graph.GetImageAsync<Rgb24>("assets/test_s.png");
+        PixelAssert.GreenEquals(value, image);
+    }
 
-            await graph.CreateImageAsync("assets/test/metal.png", value);
-            await graph.ProcessAsync();
+    [InlineData(  0)]
+    [InlineData(  1)]
+    [InlineData(100)]
+    [InlineData(155)]
+    [InlineData(255)]
+    [Theory] public async Task EmissiveTextureTest(byte value)
+    {
+        await using var graph = Graph();
 
-            using var image = await graph.GetImageAsync<Rgb24>("assets/test_s.png");
-            PixelAssert.GreenEquals(value, image);
-        }
+        graph.Project = project;
+        graph.PackProfile = packProfile;
+        graph.Material = new MaterialProperties {
+            Name = "test",
+            LocalPath = "assets",
+        };
 
-        [InlineData(  0)]
-        [InlineData(  1)]
-        [InlineData(100)]
-        [InlineData(155)]
-        [InlineData(255)]
-        [Theory] public async Task EmissiveTextureTest(byte value)
-        {
-            await using var graph = Graph();
+        await graph.CreateImageAsync("assets/test/emissive.png", value);
+        await graph.ProcessAsync();
 
-            graph.Project = project;
-            graph.PackProfile = packProfile;
-            graph.Material = new MaterialProperties {
-                Name = "test",
-                LocalPath = "assets",
-            };
-
-            await graph.CreateImageAsync("assets/test/emissive.png", value);
-            await graph.ProcessAsync();
-
-            using var image = await graph.GetImageAsync<Rgb24>("assets/test_s.png");
-            PixelAssert.BlueEquals(value, image);
-        }
+        using var image = await graph.GetImageAsync<Rgb24>("assets/test_s.png");
+        PixelAssert.BlueEquals(value, image);
     }
 }

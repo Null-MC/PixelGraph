@@ -4,53 +4,52 @@ using PixelGraph.UI.Internal.Utilities;
 using System;
 using System.Windows;
 
-namespace PixelGraph.UI.Windows
+namespace PixelGraph.UI.Windows;
+
+public partial class NewMaterialWindow
 {
-    public partial class NewMaterialWindow
+    private readonly IServiceProvider provider;
+
+
+    public NewMaterialWindow(IServiceProvider provider)
     {
-        private readonly IServiceProvider provider;
+        this.provider = provider;
 
+        InitializeComponent();
 
-        public NewMaterialWindow(IServiceProvider provider)
-        {
-            this.provider = provider;
+        var themeHelper = provider.GetRequiredService<IThemeHelper>();
+        themeHelper.ApplyCurrent(this);
 
-            InitializeComponent();
+        Model.UpdateBlockList();
+        Model.UpdateLocation();
+    }
 
-            var themeHelper = provider.GetRequiredService<IThemeHelper>();
-            themeHelper.ApplyCurrent(this);
+    private void OnWindowLoaded(object sender, RoutedEventArgs e)
+    {
+        Model.Initialize(provider);
+    }
 
-            Model.UpdateBlockList();
-            Model.UpdateLocation();
+    private void OnCancelButtonClick(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+    }
+
+    private async void OnCreateButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(Model.GameNamespace)) {
+            NamespaceComboBox.Focus();
+            //MessageBox.Show(this, "Namespace cannot be empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            await this.ShowMessageAsync("Error", "Namespace cannot be empty!");
+            return;
         }
 
-        private void OnWindowLoaded(object sender, RoutedEventArgs e)
-        {
-            Model.Initialize(provider);
+        if (string.IsNullOrWhiteSpace(Model.GameObjectName)) {
+            NameComboBox.Focus();
+            //MessageBox.Show(this, "Name cannot be empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            await this.ShowMessageAsync("Error", "Name cannot be empty!");
+            return;
         }
 
-        private void OnCancelButtonClick(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
-
-        private async void OnCreateButtonClick(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(Model.GameNamespace)) {
-                NamespaceComboBox.Focus();
-                //MessageBox.Show(this, "Namespace cannot be empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                await this.ShowMessageAsync("Error", "Namespace cannot be empty!");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(Model.GameObjectName)) {
-                NameComboBox.Focus();
-                //MessageBox.Show(this, "Name cannot be empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                await this.ShowMessageAsync("Error", "Name cannot be empty!");
-                return;
-            }
-
-            DialogResult = true;
-        }
+        DialogResult = true;
     }
 }

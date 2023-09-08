@@ -2,32 +2,31 @@
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Render;
 
-namespace PixelGraph.Rendering.BlockMesh
+namespace PixelGraph.Rendering.BlockMesh;
+
+internal class BlockMeshRenderCore : MeshRenderCore
 {
-    internal class BlockMeshRenderCore : MeshRenderCore
+    protected override void OnRenderShadow(RenderContext context, DeviceContextProxy deviceContext)
     {
-        protected override void OnRenderShadow(RenderContext context, DeviceContextProxy deviceContext)
-        {
-            //...
+        //...
 
-            //base.OnRenderShadow(context, deviceContext);
-            var pass = MaterialVariables.GetShadowPass(RenderType, context);
+        //base.OnRenderShadow(context, deviceContext);
+        var pass = MaterialVariables.GetShadowPass(RenderType, context);
 
-            if (pass.IsNULL) return;
+        if (pass.IsNULL) return;
 
-            var v = new SimpleMeshStruct {
-                World = ModelMatrix,
-                HasInstances = InstanceBuffer.HasElements ? 1 : 0
-            };
+        var v = new SimpleMeshStruct {
+            World = ModelMatrix,
+            HasInstances = InstanceBuffer.HasElements ? 1 : 0
+        };
 
-            if (!MaterialVariables.UpdateNonMaterialStruct(deviceContext, ref v, SimpleMeshStruct.SizeInBytes)) return;
+        if (!MaterialVariables.UpdateNonMaterialStruct(deviceContext, ref v)) return;
 
-            pass.BindShader(deviceContext);
-            pass.BindStates(deviceContext, ShadowStateBinding);
+        pass.BindShader(deviceContext);
+        pass.BindStates(deviceContext, ShadowStateBinding);
 
-            if (!MaterialVariables.BindMaterialResources(context, deviceContext, pass)) return;
+        if (!MaterialVariables.BindMaterialResources(context, deviceContext, pass)) return;
 
-            MaterialVariables.Draw(deviceContext, GeometryBuffer, InstanceBuffer.ElementCount);
-        }
+        MaterialVariables.Draw(deviceContext, GeometryBuffer, InstanceBuffer.ElementCount);
     }
 }

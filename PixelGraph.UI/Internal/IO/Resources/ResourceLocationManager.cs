@@ -4,71 +4,70 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal.IO.Resources
+namespace PixelGraph.UI.Internal.IO.Resources;
+
+internal interface IResourceLocationManager
 {
-    internal interface IResourceLocationManager
+    ResourceLocation[] GetLocations();
+    void SetLocations(IEnumerable<ResourceLocation> locations);
+    Task LoadAsync(CancellationToken token = default);
+    Task SaveAsync(CancellationToken token = default);
+}
+
+internal class ResourceLocationManager : IResourceLocationManager, IDisposable
+{
+    private const string FileName = "Resources.json";
+
+    private readonly IAppDataUtility appData;
+    private readonly ReaderWriterLockSlim _lock;
+    private ResourceLocation[] _locations;
+
+
+    public ResourceLocationManager(IAppDataUtility appData)
     {
-        ResourceLocation[] GetLocations();
-        void SetLocations(IEnumerable<ResourceLocation> locations);
-        Task LoadAsync(CancellationToken token = default);
-        Task SaveAsync(CancellationToken token = default);
+        this.appData = appData;
+
+        _lock = new ReaderWriterLockSlim();
     }
 
-    internal class ResourceLocationManager : IResourceLocationManager, IDisposable
+    public void Dispose()
     {
-        private const string FileName = "Resources.json";
+        _lock?.Dispose();
+    }
 
-        private readonly IAppDataUtility appData;
-        private readonly ReaderWriterLockSlim _lock;
-        private ResourceLocation[] _locations;
+    public ResourceLocation[] GetLocations()
+    {
+        _lock.EnterReadLock();
 
-
-        public ResourceLocationManager(IAppDataUtility appData)
-        {
-            this.appData = appData;
-
-            _lock = new ReaderWriterLockSlim();
+        try {
+            return _locations;
         }
-
-        public void Dispose()
-        {
-            _lock?.Dispose();
+        finally {
+            _lock.ExitReadLock();
         }
+    }
 
-        public ResourceLocation[] GetLocations()
-        {
-            _lock.EnterReadLock();
+    public void SetLocations(IEnumerable<ResourceLocation> locations)
+    {
+        _lock.EnterWriteLock();
 
-            try {
-                return _locations;
-            }
-            finally {
-                _lock.ExitReadLock();
-            }
+        try {
+            _locations = locations as ResourceLocation[] ?? locations?.ToArray();
         }
-
-        public void SetLocations(IEnumerable<ResourceLocation> locations)
-        {
-            _lock.EnterWriteLock();
-
-            try {
-                _locations = locations as ResourceLocation[] ?? locations?.ToArray();
-            }
-            finally {
-                _lock.ExitWriteLock();
-            }
+        finally {
+            _lock.ExitWriteLock();
         }
+    }
 
-        public async Task LoadAsync(CancellationToken token = default)
-        {
-            var locations = await appData.ReadJsonAsync<ResourceLocation[]>(FileName, token);
-            SetLocations(locations);
-        }
+    public async Task LoadAsync(CancellationToken token = default)
+    {
+        var locations = await appData.ReadJsonAsync<ResourceLocation[]>(FileName, token);
+        SetLocations(locations);
+    }
 
-        public Task SaveAsync(CancellationToken token = default)
-        {
-            var locations = GetLocations();
-            return appData.WriteJsonAsync(FileName, locations, token);
-        }
+    public Task SaveAsync(CancellationToken token = default)
+    {
+        var locations = GetLocations();
+        return appData.WriteJsonAsync(FileName, locations, token);
     }
 }

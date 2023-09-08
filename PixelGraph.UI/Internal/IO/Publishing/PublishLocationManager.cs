@@ -7,83 +7,82 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal.IO.Publishing
-{
-    internal interface IPublishLocationManager
-    {
-        string SelectedLocation {get; set;}
+namespace PixelGraph.UI.Internal.IO.Publishing;
 
-        PublishLocation[] GetLocations();
-        void SetLocations(IEnumerable<PublishLocation> locations);
-        Task LoadAsync(CancellationToken token = default);
-        Task SaveAsync(CancellationToken token = default);
+internal interface IPublishLocationManager
+{
+    string SelectedLocation {get; set;}
+
+    PublishLocation[] GetLocations();
+    void SetLocations(IEnumerable<PublishLocation> locations);
+    Task LoadAsync(CancellationToken token = default);
+    Task SaveAsync(CancellationToken token = default);
+}
+
+internal class PublishLocationManager : IPublishLocationManager, IDisposable
+{
+    private const string FileName = "PublishLocations.json";
+
+    private readonly IAppDataUtility appData;
+    private readonly ReaderWriterLockSlim _lock;
+    private PublishLocation[] _locations;
+
+    public string SelectedLocation {get; set;}
+
+
+    public PublishLocationManager(
+        IAppSettingsManager appSettings,
+        IAppDataUtility appData)
+    {
+        this.appData = appData;
+
+        _lock = new ReaderWriterLockSlim();
+        SelectedLocation = appSettings.Data.SelectedPublishLocation;
     }
 
-    internal class PublishLocationManager : IPublishLocationManager, IDisposable
+    public void Dispose()
     {
-        private const string FileName = "PublishLocations.json";
+        _lock?.Dispose();
+    }
 
-        private readonly IAppDataUtility appData;
-        private readonly ReaderWriterLockSlim _lock;
-        private PublishLocation[] _locations;
+    public PublishLocation[] GetLocations()
+    {
+        _lock.EnterReadLock();
 
-        public string SelectedLocation {get; set;}
-
-
-        public PublishLocationManager(
-            IAppSettingsManager appSettings,
-            IAppDataUtility appData)
-        {
-            this.appData = appData;
-
-            _lock = new ReaderWriterLockSlim();
-            SelectedLocation = appSettings.Data.SelectedPublishLocation;
+        try {
+            return _locations;
         }
-
-        public void Dispose()
-        {
-            _lock?.Dispose();
+        finally {
+            _lock.ExitReadLock();
         }
+    }
 
-        public PublishLocation[] GetLocations()
-        {
-            _lock.EnterReadLock();
+    public void SetLocations(IEnumerable<PublishLocation> locations)
+    {
+        _lock.EnterWriteLock();
 
-            try {
-                return _locations;
-            }
-            finally {
-                _lock.ExitReadLock();
-            }
+        try {
+            _locations = locations as PublishLocation[] ?? locations?.ToArray();
         }
-
-        public void SetLocations(IEnumerable<PublishLocation> locations)
-        {
-            _lock.EnterWriteLock();
-
-            try {
-                _locations = locations as PublishLocation[] ?? locations?.ToArray();
-            }
-            finally {
-                _lock.ExitWriteLock();
-            }
+        finally {
+            _lock.ExitWriteLock();
         }
+    }
 
-        public async Task LoadAsync(CancellationToken token = default)
-        {
-            // Patch for renaming old txt files to new json filename
-            var txtFile = Path.Join(AppDataHelper.AppDataPath, "PublishLocations.txt");
-            var jsonFile = Path.Join(AppDataHelper.AppDataPath, FileName);
-            if (File.Exists(txtFile) && !File.Exists(jsonFile)) File.Move(txtFile, jsonFile);
+    public async Task LoadAsync(CancellationToken token = default)
+    {
+        // Patch for renaming old txt files to new json filename
+        var txtFile = Path.Join(AppDataHelper.AppDataPath, "PublishLocations.txt");
+        var jsonFile = Path.Join(AppDataHelper.AppDataPath, FileName);
+        if (File.Exists(txtFile) && !File.Exists(jsonFile)) File.Move(txtFile, jsonFile);
 
-            var locations = await appData.ReadJsonAsync<PublishLocation[]>(FileName, token);
-            SetLocations(locations);
-        }
+        var locations = await appData.ReadJsonAsync<PublishLocation[]>(FileName, token);
+        SetLocations(locations);
+    }
 
-        public Task SaveAsync(CancellationToken token = default)
-        {
-            var locations = GetLocations();
-            return appData.WriteJsonAsync(FileName, locations, token);
-        }
+    public Task SaveAsync(CancellationToken token = default)
+    {
+        var locations = GetLocations();
+        return appData.WriteJsonAsync(FileName, locations, token);
     }
 }

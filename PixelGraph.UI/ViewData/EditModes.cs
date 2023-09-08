@@ -1,10 +1,9 @@
-﻿namespace PixelGraph.UI.ViewData
+﻿namespace PixelGraph.UI.ViewData;
+
+public enum EditModes
 {
-    public enum EditModes
-    {
-        Material,
-        Filters,
-        Connections,
-        Scene,
-    }
+    Material,
+    Filters,
+    Connections,
+    Scene,
 }

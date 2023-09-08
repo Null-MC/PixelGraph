@@ -11,99 +11,98 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.Common.IO.Importing
+namespace PixelGraph.Common.IO.Importing;
+
+internal interface IMaterialImporter
 {
-    internal interface IMaterialImporter
+    /// <summary>
+    /// Gets or sets whether imported materials should be global or local.
+    /// </summary>
+    bool AsGlobal {get; set;}
+
+    IProjectDescription Project {get; set;}
+
+    PublishProfileProperties PackProfile {get; set;}
+
+    bool IsMaterialFile(string filename, out string name);
+
+    Task<MaterialProperties> CreateMaterialAsync(string localPath, string name);
+    Task ImportAsync(MaterialProperties material, CancellationToken token = default);
+}
+
+internal abstract class MaterialImporterBase : IMaterialImporter
+{
+    private readonly IServiceProvider provider;
+    private readonly IMaterialWriter matWriter;
+
+    protected IInputReader Reader {get;}
+
+    /// <inheritdoc />
+    public bool AsGlobal {get; set;}
+
+    public IProjectDescription Project {get; set;}
+
+    public PublishProfileProperties PackProfile {get; set;}
+
+
+    protected MaterialImporterBase(IServiceProvider provider)
     {
-        /// <summary>
-        /// Gets or sets whether imported materials should be global or local.
-        /// </summary>
-        bool AsGlobal {get; set;}
+        this.provider = provider;
 
-        IProjectDescription Project {get; set;}
-
-        PublishProfileProperties PackProfile {get; set;}
-
-        bool IsMaterialFile(string filename, out string name);
-
-        Task<MaterialProperties> CreateMaterialAsync(string localPath, string name);
-        Task ImportAsync(MaterialProperties material, CancellationToken token = default);
+        matWriter = provider.GetRequiredService<IMaterialWriter>();
+        Reader = provider.GetRequiredService<IInputReader>();
     }
 
-    internal abstract class MaterialImporterBase : IMaterialImporter
+    public abstract bool IsMaterialFile(string filename, out string name);
+
+    public async Task<MaterialProperties> CreateMaterialAsync(string localPath, string name)
     {
-        private readonly IServiceProvider provider;
-        private readonly IMaterialWriter matWriter;
+        var matFile = AsGlobal
+            ? PathEx.Join(localPath, $"{name}.mat.yml")
+            : PathEx.Join(localPath, name, "mat.yml");
 
-        protected IInputReader Reader {get;}
+        var material = new MaterialProperties {
+            Name = name,
+            LocalPath = localPath,
+            LocalFilename = matFile,
+            UseGlobalMatching = AsGlobal,
+        };
 
-        /// <inheritdoc />
-        public bool AsGlobal {get; set;}
+        await matWriter.WriteAsync(material);
+        return material;
+    }
 
-        public IProjectDescription Project {get; set;}
+    public async Task ImportAsync(MaterialProperties material, CancellationToken token = default)
+    {
+        using var scope = provider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
 
-        public PublishProfileProperties PackProfile {get; set;}
+        context.PackWriteTime = DateTime.Now;
+        context.Project = (IProjectDescription)Project.Clone();
+        context.Profile = (PublishProfileProperties)PackProfile.Clone();
+        context.PublishAsGlobal = AsGlobal;
+        context.Material = material;
+        context.IsImport = true;
 
+        context.Mapping = new DefaultPublishMapping();
 
-        protected MaterialImporterBase(IServiceProvider provider)
-        {
-            this.provider = provider;
+        context.ApplyOutputEncoding();
 
-            matWriter = provider.GetRequiredService<IMaterialWriter>();
-            Reader = provider.GetRequiredService<IInputReader>();
-        }
+        await OnImportMaterialAsync(scope.ServiceProvider, token);
 
-        public abstract bool IsMaterialFile(string filename, out string name);
+        if (!context.Mapping.TryMap(material.LocalPath, material.Name, out var destPath, out var destName)) return;
 
-        public async Task<MaterialProperties> CreateMaterialAsync(string localPath, string name)
-        {
-            var matFile = AsGlobal
-                ? PathEx.Join(localPath, $"{name}.mat.yml")
-                : PathEx.Join(localPath, name, "mat.yml");
+        var fileName = AsGlobal ? $"{destName}.mat.yml" : "mat.yml";
+        material.LocalPath = AsGlobal ? destPath : PathEx.Join(destPath, destName);
+        material.LocalFilename = PathEx.Join(material.LocalPath, fileName);
 
-            var material = new MaterialProperties {
-                Name = name,
-                LocalPath = localPath,
-                LocalFilename = matFile,
-                UseGlobalMatching = AsGlobal,
-            };
+        await matWriter.WriteAsync(material, token);
+    }
 
-            await matWriter.WriteAsync(material);
-            return material;
-        }
+    protected virtual Task OnImportMaterialAsync(IServiceProvider scope, CancellationToken token = default)
+    {
+        var graphBuilder = scope.GetRequiredService<IImportGraphBuilder>();
 
-        public async Task ImportAsync(MaterialProperties material, CancellationToken token = default)
-        {
-            using var scope = provider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-
-            context.PackWriteTime = DateTime.Now;
-            context.Project = (IProjectDescription)Project.Clone();
-            context.Profile = (PublishProfileProperties)PackProfile.Clone();
-            context.PublishAsGlobal = AsGlobal;
-            context.Material = material;
-            context.IsImport = true;
-
-            context.Mapping = new DefaultPublishMapping();
-
-            context.ApplyOutputEncoding();
-
-            await OnImportMaterialAsync(scope.ServiceProvider, token);
-
-            if (!context.Mapping.TryMap(material.LocalPath, material.Name, out var destPath, out var destName)) return;
-
-            var fileName = AsGlobal ? $"{destName}.mat.yml" : "mat.yml";
-            material.LocalPath = AsGlobal ? destPath : PathEx.Join(destPath, destName);
-            material.LocalFilename = PathEx.Join(material.LocalPath, fileName);
-
-            await matWriter.WriteAsync(material, token);
-        }
-
-        protected virtual Task OnImportMaterialAsync(IServiceProvider scope, CancellationToken token = default)
-        {
-            var graphBuilder = scope.GetRequiredService<IImportGraphBuilder>();
-
-            return graphBuilder.ImportAsync(token);
-        }
+        return graphBuilder.ImportAsync(token);
     }
 }

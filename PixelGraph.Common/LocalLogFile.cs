@@ -3,27 +3,26 @@ using Serilog;
 using Serilog.Core;
 using System.IO;
 
-namespace PixelGraph.Common
+namespace PixelGraph.Common;
+
+public static class LocalLogFile
 {
-    public static class LocalLogFile
+    public static string LogPath {get;}
+    public static Logger FileLogger {get;}
+
+
+    static LocalLogFile()
     {
-        public static string LogPath {get;}
-        public static Logger FileLogger {get;}
+        LogPath = Path.Join(AppDataHelper.AppDataPath, "logs");
+        var logFile = Path.Join(LogPath, "log_.txt");
 
-
-        static LocalLogFile()
-        {
-            LogPath = Path.Join(AppDataHelper.AppDataPath, "logs");
-            var logFile = Path.Join(LogPath, "log_.txt");
-
-            FileLogger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.File(logFile,
-                    rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 3,
-                    //buffered: true,
-                    shared: true)
-                .CreateLogger();
-        }
+        FileLogger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.File(logFile,
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 3,
+                //buffered: true,
+                shared: true)
+            .CreateLogger();
     }
 }

@@ -8,48 +8,47 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PixelGraph.Tests.InputTests
+namespace PixelGraph.Tests.InputTests;
+
+public class JavaMaterialReaderTests : TestBase, IDisposable, IAsyncDisposable
 {
-    public class JavaMaterialReaderTests : TestBase, IDisposable, IAsyncDisposable
+    private readonly ServiceProvider provider;
+
+
+    public JavaMaterialReaderTests(ITestOutputHelper output) : base(output)
     {
-        private readonly ServiceProvider provider;
+        Builder.ConfigureReader(ContentTypes.File, GameEditions.Java, null);
 
+        provider = Builder.Build();
+    }
 
-        public JavaMaterialReaderTests(ITestOutputHelper output) : base(output)
-        {
-            Builder.ConfigureReader(ContentTypes.File, GameEditions.Java, null);
+    public void Dispose()
+    {
+        provider?.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
-            provider = Builder.Build();
-        }
+    public async ValueTask DisposeAsync()
+    {
+        if (provider != null)
+            await provider.DisposeAsync();
+    }
 
-        public void Dispose()
-        {
-            provider?.Dispose();
-            GC.SuppressFinalize(this);
-        }
+    [InlineData("~/basecolor.png", TextureTags.Color)]
+    [InlineData("~/normal.png", TextureTags.Normal)]
+    [InlineData("~/specular.png", TextureTags.Specular)]
+    [Theory] public void ReadsLocalFile(string filename, string type)
+    {
+        var reader = provider.GetRequiredService<ITextureReader>();
+        Assert.True(reader.IsLocalFile(filename, type));
+    }
 
-        public async ValueTask DisposeAsync()
-        {
-            if (provider != null)
-                await provider.DisposeAsync();
-        }
-
-        [InlineData("~/basecolor.png", TextureTags.Color)]
-        [InlineData("~/normal.png", TextureTags.Normal)]
-        [InlineData("~/specular.png", TextureTags.Specular)]
-        [Theory] public void ReadsLocalFile(string filename, string type)
-        {
-            var reader = provider.GetRequiredService<ITextureReader>();
-            Assert.True(reader.IsLocalFile(filename, type));
-        }
-
-        [InlineData("~/test.png", TextureTags.Color)]
-        [InlineData("~/test_n.png", TextureTags.Normal)]
-        [InlineData("~/test_s.png", TextureTags.Specular)]
-        [Theory] public void ReadsGlobalType(string filename, string type)
-        {
-            var reader = provider.GetRequiredService<ITextureReader>();
-            Assert.True(reader.IsGlobalFile(filename, "test", type));
-        }
+    [InlineData("~/test.png", TextureTags.Color)]
+    [InlineData("~/test_n.png", TextureTags.Normal)]
+    [InlineData("~/test_s.png", TextureTags.Specular)]
+    [Theory] public void ReadsGlobalType(string filename, string type)
+    {
+        var reader = provider.GetRequiredService<ITextureReader>();
+        Assert.True(reader.IsGlobalFile(filename, "test", type));
     }
 }

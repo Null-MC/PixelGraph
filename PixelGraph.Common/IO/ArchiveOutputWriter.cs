@@ -7,107 +7,106 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.Common.IO
+namespace PixelGraph.Common.IO;
+
+internal class ArchiveOutputWriter : IOutputWriter
 {
-    internal class ArchiveOutputWriter : IOutputWriter
+    private readonly AsyncReaderWriterLock locker;
+    private readonly Stream fileStream;
+    private readonly ZipArchive archive;
+
+
+    public ArchiveOutputWriter(IOptions<OutputOptions> options)
     {
-        private readonly AsyncReaderWriterLock locker;
-        private readonly Stream fileStream;
-        private readonly ZipArchive archive;
+        locker = new AsyncReaderWriterLock();
 
+        fileStream = File.Open(options.Value.Root, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        archive = new ZipArchive(fileStream, ZipArchiveMode.Update);
+    }
 
-        public ArchiveOutputWriter(IOptions<OutputOptions> options)
-        {
-            locker = new AsyncReaderWriterLock();
+    public void Dispose()
+    {
+        archive?.Dispose();
+        fileStream?.Dispose();
+    }
 
-            fileStream = File.Open(options.Value.Root, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-            archive = new ZipArchive(fileStream, ZipArchiveMode.Update);
-        }
+    public async ValueTask DisposeAsync()
+    {
+        archive?.Dispose();
 
-        public void Dispose()
-        {
-            archive?.Dispose();
-            fileStream?.Dispose();
-        }
+        if (fileStream != null)
+            await fileStream.DisposeAsync();
+    }
 
-        public async ValueTask DisposeAsync()
-        {
-            archive?.Dispose();
+    public void Prepare() {}
 
-            if (fileStream != null)
-                await fileStream.DisposeAsync();
-        }
+    public async Task<T> OpenReadAsync<T>(string localFilename, Func<Stream, Task<T>> readFunc, CancellationToken token = default)
+    {
+        if (Path.DirectorySeparatorChar != '/')
+            localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
 
-        public void Prepare() {}
+        using var readLock = await locker.ReaderLockAsync();
+        var entry = archive.GetEntry(localFilename);
+        if (entry == null) throw new FileNotFoundException("File not found!", localFilename);
 
-        public async Task<T> OpenReadAsync<T>(string localFilename, Func<Stream, Task<T>> readFunc, CancellationToken token = default)
-        {
-            if (Path.DirectorySeparatorChar != '/')
-                localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
+        await using var stream = entry.Open();
+        return await readFunc(stream);
+    }
 
-            using var readLock = await locker.ReaderLockAsync();
-            var entry = archive.GetEntry(localFilename);
-            if (entry == null) throw new FileNotFoundException("File not found!", localFilename);
+    public async Task<long> OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
+    {
+        if (Path.DirectorySeparatorChar != '/')
+            localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
 
-            await using var stream = entry.Open();
-            return await readFunc(stream);
-        }
+        using var @lock = await locker.WriterLockAsync(token);
+        var entry = archive.CreateEntry(localFilename);
 
-        public async Task<long> OpenWriteAsync(string localFilename, Func<Stream, Task> writeFunc, CancellationToken token = default)
-        {
-            if (Path.DirectorySeparatorChar != '/')
-                localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
+        await using var stream = new MemoryStream();
+        await writeFunc(stream);
+        await stream.FlushAsync(token);
+        var size = stream.Length;
 
-            using var @lock = await locker.WriterLockAsync(token);
-            var entry = archive.CreateEntry(localFilename);
+        stream.Seek(0, SeekOrigin.Begin);
+        await using var entryStream = entry.Open();
+        await stream.CopyToAsync(entryStream, token);
 
-            await using var stream = new MemoryStream();
-            await writeFunc(stream);
-            await stream.FlushAsync(token);
-            var size = stream.Length;
+        // ERROR: Cannot get length of ArchiveEntry after writing!
+        return size; //entry.Length;
+    }
 
-            stream.Seek(0, SeekOrigin.Begin);
-            await using var entryStream = entry.Open();
-            await stream.CopyToAsync(entryStream, token);
+    public async Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> readWriteFunc, CancellationToken token = default)
+    {
+        if (Path.DirectorySeparatorChar != '/')
+            localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
 
-            // ERROR: Cannot get length of ArchiveEntry after writing!
-            return size; //entry.Length;
-        }
+        using var @lock = await locker.WriterLockAsync(token);
+        var entry = archive.GetEntry(localFilename)
+                    ?? archive.CreateEntry(localFilename);
 
-        public async Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> readWriteFunc, CancellationToken token = default)
-        {
-            if (Path.DirectorySeparatorChar != '/')
-                localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
+        await using var stream = entry.Open();
+        await readWriteFunc(stream);
+    }
 
-            using var @lock = await locker.WriterLockAsync(token);
-            var entry = archive.GetEntry(localFilename)
-                     ?? archive.CreateEntry(localFilename);
+    public bool FileExists(string localFile)
+    {
+        if (Path.DirectorySeparatorChar != '/')
+            localFile = localFile.Replace(Path.DirectorySeparatorChar, '/');
 
-            await using var stream = entry.Open();
-            await readWriteFunc(stream);
-        }
+        return archive.Entries.Any(e => string.Equals(e.FullName, localFile));
+        //return archive.GetEntry(localFile) != null;
+    }
 
-        public bool FileExists(string localFile)
-        {
-            if (Path.DirectorySeparatorChar != '/')
-                localFile = localFile.Replace(Path.DirectorySeparatorChar, '/');
+    public DateTime? GetWriteTime(string localFile) => null;
 
-            return archive.Entries.Any(e => string.Equals(e.FullName, localFile));
-            //return archive.GetEntry(localFile) != null;
-        }
+    public void Delete(string localFile)
+    {
+        using var @lock = locker.WriterLock();
+        archive.GetEntry(localFile)?.Delete();
+    }
 
-        public DateTime? GetWriteTime(string localFile) => null;
-
-        public void Delete(string localFile)
-        {
-            using var @lock = locker.WriterLock();
-            archive.GetEntry(localFile)?.Delete();
-        }
-
-        public void Clean()
-        {
-            var allEntries = archive.Entries.ToArray();
-            foreach (var entry in allEntries) entry.Delete();
-        }
+    public void Clean()
+    {
+        var allEntries = archive.Entries.ToArray();
+        foreach (var entry in allEntries) entry.Delete();
     }
 }

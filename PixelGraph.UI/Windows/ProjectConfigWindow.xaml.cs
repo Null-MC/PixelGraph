@@ -10,62 +10,61 @@ using System;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace PixelGraph.UI.Windows
+namespace PixelGraph.UI.Windows;
+
+public partial class ProjectConfigWindow
 {
-    public partial class ProjectConfigWindow
+    private readonly ILogger<ProjectConfigWindow> logger;
+
+
+    public ProjectConfigWindow(IServiceProvider provider)
     {
-        private readonly ILogger<ProjectConfigWindow> logger;
+        logger = provider.GetRequiredService<ILogger<ProjectConfigWindow>>();
 
+        InitializeComponent();
 
-        public ProjectConfigWindow(IServiceProvider provider)
-        {
-            logger = provider.GetRequiredService<ILogger<ProjectConfigWindow>>();
+        var themeHelper = provider.GetRequiredService<IThemeHelper>();
+        themeHelper.ApplyCurrent(this);
 
-            InitializeComponent();
+        Model.Initialize(provider);
+    }
 
-            var themeHelper = provider.GetRequiredService<IThemeHelper>();
-            themeHelper.ApplyCurrent(this);
+    private async void OnEditEncodingClick(object sender, RoutedEventArgs e)
+    {
+        var formatFactory = TextureFormat.GetFactory(Model.Format);
 
-            Model.Initialize(provider);
+        var window = new TextureFormatWindow {
+            Owner = this,
+            Model = {
+                Encoding = (PackEncoding)Model.Project.Input.Clone(),
+                DefaultEncoding = formatFactory.Create(),
+                EnableSampler = false,
+            },
+        };
+
+        try {
+            if (window.ShowDialog() != true) return;
+        }
+        catch (Exception error) {
+            logger.LogError(error, "An unhandled exception occurred showing TextureFormatWindow!");
+            await this.ShowMessageAsync("Error!", $"An unhandled error occurred! {error.UnfoldMessageString()}");
+            return;
         }
 
-        private async void OnEditEncodingClick(object sender, RoutedEventArgs e)
-        {
-            var formatFactory = TextureFormat.GetFactory(Model.Format);
+        Model.Project.Input = (PackInputEncoding)window.Model.Encoding;
+    }
 
-            var window = new TextureFormatWindow {
-                Owner = this,
-                Model = {
-                    Encoding = (PackEncoding)Model.Project.Input.Clone(),
-                    DefaultEncoding = formatFactory.Create(),
-                    EnableSampler = false,
-                },
-            };
-
-            try {
-                if (window.ShowDialog() != true) return;
-            }
-            catch (Exception error) {
-                logger.LogError(error, "An unhandled exception occurred showing TextureFormatWindow!");
-                await this.ShowMessageAsync("Error!", $"An unhandled error occurred! {error.UnfoldMessageString()}");
-                return;
-            }
-
-            Model.Project.Input = (PackInputEncoding)window.Model.Encoding;
+    private async void OnOkButtonClick(object sender, RoutedEventArgs e)
+    {
+        try {
+            await Model.SaveAsync();
+        }
+        catch (Exception error) {
+            logger.LogError(error, "Failed to save project data!");
+            await this.ShowMessageAsync("Error!", $"Failed to save project data! {error.UnfoldMessageString()}");
+            return;
         }
 
-        private async void OnOkButtonClick(object sender, RoutedEventArgs e)
-        {
-            try {
-                await Model.SaveAsync();
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to save project data!");
-                await this.ShowMessageAsync("Error!", $"Failed to save project data! {error.UnfoldMessageString()}");
-                return;
-            }
-
-            await Dispatcher.BeginInvoke(() => DialogResult = true);
-        }
+        await Dispatcher.BeginInvoke(() => DialogResult = true);
     }
 }

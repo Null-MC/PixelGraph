@@ -3,39 +3,38 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace PixelGraph.UI.Converters
+namespace PixelGraph.UI.Converters;
+
+[ValueConversion(typeof(bool), typeof(Visibility))]
+internal class VisibilityConverter : IValueConverter
 {
-    [ValueConversion(typeof(bool), typeof(Visibility))]
-    internal class VisibilityConverter : IValueConverter
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool boolValue)
-                return boolValue ? Visibility.Visible : Visibility.Collapsed;
+        if (value is bool boolValue)
+            return boolValue ? Visibility.Visible : Visibility.Collapsed;
 
-            return Visibility.Collapsed;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return Binding.DoNothing;
-        }
+        return Visibility.Collapsed;
     }
 
-    [ValueConversion(typeof(bool), typeof(Visibility))]
-    internal class VisibilityInverseConverter : IValueConverter
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool boolValue)
-                return boolValue ? Visibility.Collapsed : Visibility.Visible;
+        return Binding.DoNothing;
+    }
+}
 
-            return Visibility.Visible;
-        }
+[ValueConversion(typeof(bool), typeof(Visibility))]
+internal class VisibilityInverseConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool boolValue)
+            return boolValue ? Visibility.Collapsed : Visibility.Visible;
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return Binding.DoNothing;
-        }
+        return Visibility.Visible;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return Binding.DoNothing;
     }
 }

@@ -1,7 +1,6 @@
-﻿namespace PixelGraph.Tests.GenerationTests
+﻿namespace PixelGraph.Tests.GenerationTests;
+
+public class OcclusionGenerationTests
 {
-    public class OcclusionGenerationTests
-    {
-        // TODO
-    }
+    // TODO
 }

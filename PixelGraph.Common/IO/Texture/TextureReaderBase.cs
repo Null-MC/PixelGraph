@@ -8,164 +8,163 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace PixelGraph.Common.IO.Texture
+namespace PixelGraph.Common.IO.Texture;
+
+public interface ITextureReader
 {
-    public interface ITextureReader
+    bool TryGetByTag(string tag, out string localFile);
+    bool TryGetByName(in string name, out string localFile);
+
+    //IEnumerable<string> EnumerateInputTextures(string localPath, string filename);
+    IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag);
+    //IEnumerable<string> EnumerateOutputTextures(string destName, string destPath, string tag, bool global);
+    IEnumerable<string> EnumerateAllTextures(MaterialProperties material);
+
+    bool IsLocalFile(string localFile, string tag);
+    bool IsGlobalFile(string localFile, string name, string tag);
+}
+
+internal abstract class TextureReaderBase : ITextureReader
+{
+    protected ITextureGraphContext Context {get;}
+    protected IInputReader Reader {get;}
+
+
+    protected TextureReaderBase(IServiceProvider provider)
     {
-        bool TryGetByTag(string tag, out string localFile);
-        bool TryGetByName(in string name, out string localFile);
-
-        //IEnumerable<string> EnumerateInputTextures(string localPath, string filename);
-        IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag);
-        //IEnumerable<string> EnumerateOutputTextures(string destName, string destPath, string tag, bool global);
-        IEnumerable<string> EnumerateAllTextures(MaterialProperties material);
-
-        bool IsLocalFile(string localFile, string tag);
-        bool IsGlobalFile(string localFile, string name, string tag);
+        Context = provider.GetRequiredService<ITextureGraphContext>();
+        Reader = provider.GetRequiredService<IInputReader>();
     }
 
-    internal abstract class TextureReaderBase : ITextureReader
+    public virtual bool TryGetByTag(string tag, out string localFile)
     {
-        protected ITextureGraphContext Context {get;}
-        protected IInputReader Reader {get;}
+        if (tag == null) throw new ArgumentNullException(nameof(tag));
 
+        var textureList = Context.IsImport
+            ? EnumerateOutputTextures(Context.Material.Name, Context.Material.LocalPath, tag, true)
+            : EnumerateInputTextures(Context.Material, tag);
 
-        protected TextureReaderBase(IServiceProvider provider)
-        {
-            Context = provider.GetRequiredService<ITextureGraphContext>();
-            Reader = provider.GetRequiredService<IInputReader>();
+        // TODO: All enum files should exist, why are we checking?
+        localFile = textureList.FirstOrDefault(f => Reader.FileExists(f));
+        //localFile = textureList.FirstOrDefault();
+        return localFile != null;
+    }
+
+    public virtual bool TryGetByName(in string localName, out string localFile)
+    {
+        var localPath = Path.GetDirectoryName(localName);
+        var name = Path.GetFileName(localName);
+
+        var textureList = Context.IsImport
+            ? EnumerateOutputTextures(localPath, name)
+            : EnumerateInputTextures(localPath, name);
+
+        // TODO: All enum files should exist, why are we checking?
+        //filename = textureList.FirstOrDefault(f => Reader.FileExists(f));
+        localFile = textureList.FirstOrDefault();
+        return localFile != null;
+    }
+
+    public virtual IEnumerable<string> EnumerateInputTextures(string localPath, string name)
+    {
+        if (localPath == null) throw new ArgumentNullException(nameof(localPath));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+
+        foreach (var file in Reader.EnumerateFiles(localPath)) {
+            var ext = Path.GetExtension(file);
+            if (!ImageExtensions.Supports(ext)) continue;
+
+            var _name = Path.GetFileNameWithoutExtension(file);
+            if (!string.Equals(_name, name, StringComparison.InvariantCultureIgnoreCase)) continue;
+
+            yield return file;
+        }
+    }
+
+    public virtual IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag)
+    {
+        if (material == null) throw new ArgumentNullException(nameof(material));
+        if (tag == null) throw new ArgumentNullException(nameof(tag));
+
+        var srcPath = material.UseGlobalMatching
+            ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
+
+        var localName = TextureTags.Get(material, tag);
+
+        while (localName != null) {
+            var linkedFilename = TextureTags.Get(material, localName);
+            if (string.IsNullOrEmpty(linkedFilename)) break;
+
+            tag = localName;
+            localName = linkedFilename;
         }
 
-        public virtual bool TryGetByTag(string tag, out string localFile)
-        {
-            if (tag == null) throw new ArgumentNullException(nameof(tag));
-
-            var textureList = Context.IsImport
-                ? EnumerateOutputTextures(Context.Material.Name, Context.Material.LocalPath, tag, true)
-                : EnumerateInputTextures(Context.Material, tag);
-
-            // TODO: All enum files should exist, why are we checking?
-            localFile = textureList.FirstOrDefault(f => Reader.FileExists(f));
-            //localFile = textureList.FirstOrDefault();
-            return localFile != null;
+        if (!string.IsNullOrEmpty(localName)) {
+            localName = PathEx.Localize(localName);
+            yield return PathEx.Join(srcPath, localName);
         }
 
-        public virtual bool TryGetByName(in string localName, out string localFile)
-        {
-            var localPath = Path.GetDirectoryName(localName);
-            var name = Path.GetFileName(localName);
+        foreach (var file in Reader.EnumerateFiles(srcPath)) {
+            var ext = Path.GetExtension(file);
+            if (!ImageExtensions.Supports(ext)) continue;
 
-            var textureList = Context.IsImport
-                ? EnumerateOutputTextures(localPath, name)
-                : EnumerateInputTextures(localPath, name);
+            var isMatch = material.UseGlobalMatching
+                ? IsGlobalFile(file, material.Name, tag)
+                : IsLocalFile(file, tag);
 
-            // TODO: All enum files should exist, why are we checking?
-            //filename = textureList.FirstOrDefault(f => Reader.FileExists(f));
-            localFile = textureList.FirstOrDefault();
-            return localFile != null;
+            if (isMatch) yield return file;
         }
+    }
 
-        public virtual IEnumerable<string> EnumerateInputTextures(string localPath, string name)
-        {
-            if (localPath == null) throw new ArgumentNullException(nameof(localPath));
-            if (name == null) throw new ArgumentNullException(nameof(name));
+    public virtual IEnumerable<string> EnumerateOutputTextures(string localPath, string name)
+    {
+        if (localPath == null) throw new ArgumentNullException(nameof(localPath));
+        if (name == null) throw new ArgumentNullException(nameof(name));
 
-            foreach (var file in Reader.EnumerateFiles(localPath)) {
-                var ext = Path.GetExtension(file);
-                if (!ImageExtensions.Supports(ext)) continue;
+        foreach (var file in Reader.EnumerateFiles(localPath)) {
+            var ext = Path.GetExtension(file);
+            if (!ImageExtensions.Supports(ext)) continue;
 
-                var _name = Path.GetFileNameWithoutExtension(file);
-                if (!string.Equals(_name, name, StringComparison.InvariantCultureIgnoreCase)) continue;
+            var _name = Path.GetFileNameWithoutExtension(file);
+            if (!string.Equals(_name, name, StringComparison.InvariantCultureIgnoreCase)) continue;
 
-                yield return file;
-            }
+            yield return file;
         }
+    }
 
-        public virtual IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag)
-        {
-            if (material == null) throw new ArgumentNullException(nameof(material));
-            if (tag == null) throw new ArgumentNullException(nameof(tag));
+    public virtual IEnumerable<string> EnumerateOutputTextures(string destName, string destPath, string tag, bool global)
+    {
+        if (tag == null) throw new ArgumentNullException(nameof(tag));
 
-            var srcPath = material.UseGlobalMatching
-                ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
+        var srcPath = global
+            ? destPath : PathEx.Join(destPath, destName);
 
-            var localName = TextureTags.Get(material, tag);
+        foreach (var file in Reader.EnumerateFiles(srcPath)) {
+            var ext = Path.GetExtension(file);
+            if (!ImageExtensions.Supports(ext)) continue;
 
-            while (localName != null) {
-                var linkedFilename = TextureTags.Get(material, localName);
-                if (string.IsNullOrEmpty(linkedFilename)) break;
+            var isMatch = global
+                ? IsGlobalFile(file, destName, tag)
+                : IsLocalFile(file, tag);
 
-                tag = localName;
-                localName = linkedFilename;
-            }
-
-            if (!string.IsNullOrEmpty(localName)) {
-                localName = PathEx.Localize(localName);
-                yield return PathEx.Join(srcPath, localName);
-            }
-
-            foreach (var file in Reader.EnumerateFiles(srcPath)) {
-                var ext = Path.GetExtension(file);
-                if (!ImageExtensions.Supports(ext)) continue;
-
-                var isMatch = material.UseGlobalMatching
-                    ? IsGlobalFile(file, material.Name, tag)
-                    : IsLocalFile(file, tag);
-
-                if (isMatch) yield return file;
-            }
+            if (isMatch) yield return file;
         }
+    }
 
-        public virtual IEnumerable<string> EnumerateOutputTextures(string localPath, string name)
-        {
-            if (localPath == null) throw new ArgumentNullException(nameof(localPath));
-            if (name == null) throw new ArgumentNullException(nameof(name));
+    public abstract bool IsLocalFile(string localFile, string tag);
+    //{
+    //    return NamingStructure.IsLocalFileTag(localFile, tag);
+    //}
 
-            foreach (var file in Reader.EnumerateFiles(localPath)) {
-                var ext = Path.GetExtension(file);
-                if (!ImageExtensions.Supports(ext)) continue;
+    public abstract bool IsGlobalFile(string localFile, string name, string tag);
+    //{
+    //    return NamingStructure.IsGlobalFileTag(localFile, name, tag);
+    //}
 
-                var _name = Path.GetFileNameWithoutExtension(file);
-                if (!string.Equals(_name, name, StringComparison.InvariantCultureIgnoreCase)) continue;
-
-                yield return file;
-            }
-        }
-
-        public virtual IEnumerable<string> EnumerateOutputTextures(string destName, string destPath, string tag, bool global)
-        {
-            if (tag == null) throw new ArgumentNullException(nameof(tag));
-
-            var srcPath = global
-                ? destPath : PathEx.Join(destPath, destName);
-
-            foreach (var file in Reader.EnumerateFiles(srcPath)) {
-                var ext = Path.GetExtension(file);
-                if (!ImageExtensions.Supports(ext)) continue;
-
-                var isMatch = global
-                    ? IsGlobalFile(file, destName, tag)
-                    : IsLocalFile(file, tag);
-
-                if (isMatch) yield return file;
-            }
-        }
-
-        public abstract bool IsLocalFile(string localFile, string tag);
-        //{
-        //    return NamingStructure.IsLocalFileTag(localFile, tag);
-        //}
-
-        public abstract bool IsGlobalFile(string localFile, string name, string tag);
-        //{
-        //    return NamingStructure.IsGlobalFileTag(localFile, name, tag);
-        //}
-
-        public virtual IEnumerable<string> EnumerateAllTextures(MaterialProperties material)
-        {
-            return TextureTags.All
-                .SelectMany(tag => EnumerateInputTextures(material, tag))
-                .Where(file => file != null).Distinct();
-        }
+    public virtual IEnumerable<string> EnumerateAllTextures(MaterialProperties material)
+    {
+        return TextureTags.All
+            .SelectMany(tag => EnumerateInputTextures(material, tag))
+            .Where(file => file != null).Distinct();
     }
 }

@@ -1,10 +1,9 @@
-﻿namespace PixelGraph.UI.ViewData
+﻿namespace PixelGraph.UI.ViewData;
+
+internal class OptionalAllTextureFormatValues : AllTextureFormatValues
 {
-    internal class OptionalAllTextureFormatValues : AllTextureFormatValues
+    public OptionalAllTextureFormatValues()
     {
-        public OptionalAllTextureFormatValues()
-        {
-            Insert(0, new TextureFormatValueItem {Text = "None", Value = null});
-        }
+        Insert(0, new TextureFormatValueItem {Text = "None", Value = null});
     }
 }

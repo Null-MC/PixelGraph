@@ -389,7 +389,7 @@ namespace PixelGraph.UI.ViewModels
             UpdatePublishLocations();
 
             if (appSettingsMgr.Data.SelectedPublishLocation != null) {
-                var location = PublishLocations.FirstOrDefault(x => string.Equals(x.DisplayName, appSettingsMgr.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
+                var location = PublishLocations?.FirstOrDefault(x => string.Equals(x.DisplayName, appSettingsMgr.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
                 if (location != null) SelectedLocation = location;
             }
 
@@ -957,7 +957,13 @@ namespace PixelGraph.UI.ViewModels
                 }, token);
             }
 
-            writer.Delete(filename);
+            try {
+                writer.Delete(filename);
+            }
+            catch (IOException error) {
+                logger.LogWarning(error, "Failed to delete new material source file!");
+            }
+
             return material;
         }
 

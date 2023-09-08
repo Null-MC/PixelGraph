@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace PixelGraph.Common.Projects
+namespace PixelGraph.Common.Projects;
+
+public class ProjectPublishContext
 {
-    public class ProjectPublishContext
-    {
-        public IProjectDescription Project {get; set;}
-        public PublishProfileProperties Profile {get; set;}
-        public DateTime LastUpdated {get; set;}
-    }
+    public IProjectDescription Project {get; set;}
+    public PublishProfileProperties Profile {get; set;}
+    public DateTime LastUpdated {get; set;}
 }

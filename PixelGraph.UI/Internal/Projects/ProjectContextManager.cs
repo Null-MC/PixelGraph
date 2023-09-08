@@ -3,63 +3,62 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PixelGraph.UI.Internal.Projects
+namespace PixelGraph.UI.Internal.Projects;
+
+public interface IProjectContextManager
 {
-    public interface IProjectContextManager
+    IProjectContext GetContext();
+    void SetContext(IProjectContext context);
+    Task SaveAsync();
+}
+
+internal class ProjectContextManager : IProjectContextManager, IDisposable
+{
+    private readonly ProjectSerializer serializer;
+    private readonly ReaderWriterLockSlim _lock;
+    private IProjectContext _context;
+
+
+    public ProjectContextManager()
     {
-        IProjectContext GetContext();
-        void SetContext(IProjectContext context);
-        Task SaveAsync();
+        serializer = new ProjectSerializer();
+        _lock = new ReaderWriterLockSlim();
     }
 
-    internal class ProjectContextManager : IProjectContextManager, IDisposable
+    public void Dispose()
     {
-        private readonly ProjectSerializer serializer;
-        private readonly ReaderWriterLockSlim _lock;
-        private IProjectContext _context;
+        _lock?.Dispose();
+    }
 
+    public IProjectContext GetContext()
+    {
+        _lock.EnterReadLock();
 
-        public ProjectContextManager()
-        {
-            serializer = new ProjectSerializer();
-            _lock = new ReaderWriterLockSlim();
+        try {
+            return _context;
         }
-
-        public void Dispose()
-        {
-            _lock?.Dispose();
+        finally {
+            _lock.ExitReadLock();
         }
+    }
 
-        public IProjectContext GetContext()
-        {
-            _lock.EnterReadLock();
+    public void SetContext(IProjectContext context)
+    {
+        _lock.EnterWriteLock();
 
-            try {
-                return _context;
-            }
-            finally {
-                _lock.ExitReadLock();
-            }
+        try {
+            _context = context;
         }
-
-        public void SetContext(IProjectContext context)
-        {
-            _lock.EnterWriteLock();
-
-            try {
-                _context = context;
-            }
-            finally {
-                _lock.ExitWriteLock();
-            }
+        finally {
+            _lock.ExitWriteLock();
         }
+    }
 
-        public Task SaveAsync()
-        {
-            var context = GetContext();
-            if (context == null) return Task.CompletedTask;
+    public Task SaveAsync()
+    {
+        var context = GetContext();
+        if (context == null) return Task.CompletedTask;
 
-            return serializer.SaveAsync(context.Project, context.ProjectFilename);
-        }
+        return serializer.SaveAsync(context.Project, context.ProjectFilename);
     }
 }

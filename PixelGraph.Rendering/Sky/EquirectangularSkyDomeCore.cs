@@ -5,88 +5,91 @@ using HelixToolkit.SharpDX.Core.Shaders;
 using HelixToolkit.SharpDX.Core.Utilities;
 using PixelGraph.Rendering.Shaders;
 
-namespace PixelGraph.Rendering.Sky
+namespace PixelGraph.Rendering.Sky;
+
+internal class EquirectangularSkyDomeCore : GeometryRenderCore
 {
-    internal class EquirectangularSkyDomeCore : GeometryRenderCore
+    private ShaderResourceViewProxy textureView;
+    private SamplerStateProxy textureSampler;
+    private ShaderPass defaultShaderPass;
+    private TextureModel _texture;
+    private int textureSamplerSlot;
+    private int textureSlot;
+
+    public TextureModel Texture {
+        get => _texture;
+        set {
+            if (SetAffectsRender(ref _texture, value) && IsAttached) {
+                UpdateTexture();
+            }
+        }
+    }
+
+
+    public EquirectangularSkyDomeCore() : base(RenderType.Opaque)
     {
-        private ShaderResourceViewProxy textureView;
-        private SamplerStateProxy textureSampler;
-        private ShaderPass defaultShaderPass;
-        private TextureModel _texture;
-        private int textureSamplerSlot;
-        private int textureSlot;
+        RasterDescription = DefaultRasterDescriptions.RSSkyDome;
+        defaultShaderPass = ShaderPass.NullPass;
+    }
 
-        public TextureModel Texture {
-            get => _texture;
-            set {
-                if (SetAffectsRender(ref _texture, value) && IsAttached) {
-                    UpdateTexture();
-                }
-            }
-        }
+    protected override bool OnAttach(IRenderTechnique technique)
+    {
+        if (!base.OnAttach(technique)) return false;
 
+        GeometryBuffer = new SkyDomeBufferModel();
+        defaultShaderPass = technique[CustomPassNames.SkyFinal_ERP];
 
-        public EquirectangularSkyDomeCore() : base(RenderType.Opaque)
-        {
-            RasterDescription = DefaultRasterDescriptions.RSSkyDome;
-            defaultShaderPass = ShaderPass.NullPass;
-        }
+        OnDefaultPassChanged();
+        UpdateTexture();
 
-        protected override bool OnAttach(IRenderTechnique technique)
-        {
-            if (!base.OnAttach(technique)) return false;
+        textureSampler = technique.EffectsManager.StateManager.Register(DefaultSamplers.EnvironmentSampler);
+        return true;
+    }
 
-            GeometryBuffer = Collect(new SkyDomeBufferModel());
-            defaultShaderPass = technique[CustomPassNames.SkyFinal_ERP];
+    protected override void OnDetach()
+    {
+        RemoveAndDispose(ref defaultShaderPass);
+        RemoveAndDispose(ref textureSampler);
+        RemoveAndDispose(ref textureView);
 
-            OnDefaultPassChanged();
-            UpdateTexture();
+        RemoveAndDispose(GeometryBuffer);
+        GeometryBuffer = null;
 
-            textureSampler = technique.EffectsManager.StateManager.Register(DefaultSamplers.EnvironmentSampler);
-            return true;
-        }
+        base.OnDetach();
+    }
 
-        protected override void OnDetach()
-        {
-            RemoveAndDispose(ref textureSampler);
-            RemoveAndDispose(ref textureView);
-            GeometryBuffer = null;
-            base.OnDetach();
-        }
+    protected void OnDefaultPassChanged()
+    {
+        textureSlot = defaultShaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.EquirectangularTB);
+        textureSamplerSlot = defaultShaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.EnvironmentCubeSampler);
+    }
 
-        protected void OnDefaultPassChanged()
-        {
-            textureSlot = defaultShaderPass.PixelShader.ShaderResourceViewMapping.TryGetBindSlot(CustomBufferNames.EquirectangularTB);
-            textureSamplerSlot = defaultShaderPass.PixelShader.SamplerMapping.TryGetBindSlot(CustomSamplerStateNames.EnvironmentCubeSampler);
-        }
+    protected override void OnRender(RenderContext context, DeviceContextProxy deviceContext)
+    {
+        if (_texture == null) return;
 
-        protected override void OnRender(RenderContext context, DeviceContextProxy deviceContext)
-        {
-            if (_texture == null) return;
+        defaultShaderPass.BindShader(deviceContext);
+        defaultShaderPass.BindStates(deviceContext, StateType.BlendState | StateType.DepthStencilState);
+        defaultShaderPass.PixelShader.BindTexture(deviceContext, textureSlot, textureView);
+        defaultShaderPass.PixelShader.BindSampler(deviceContext, textureSamplerSlot, textureSampler);
+        deviceContext.DrawIndexed(GeometryBuffer.IndexBuffer.ElementCount, 0, 0);
+    }
 
-            defaultShaderPass.BindShader(deviceContext);
-            defaultShaderPass.BindStates(deviceContext, StateType.BlendState | StateType.DepthStencilState);
-            defaultShaderPass.PixelShader.BindTexture(deviceContext, textureSlot, textureView);
-            defaultShaderPass.PixelShader.BindSampler(deviceContext, textureSamplerSlot, textureSampler);
-            deviceContext.DrawIndexed(GeometryBuffer.IndexBuffer.ElementCount, 0, 0);
-        }
+    protected sealed override void OnRenderCustom(RenderContext context, DeviceContextProxy deviceContext) {}
 
-        protected sealed override void OnRenderCustom(RenderContext context, DeviceContextProxy deviceContext) {}
+    protected sealed override void OnRenderShadow(RenderContext context, DeviceContextProxy deviceContext) {}
 
-        protected sealed override void OnRenderShadow(RenderContext context, DeviceContextProxy deviceContext) {}
+    protected sealed override void OnRenderDepth(RenderContext context, DeviceContextProxy deviceContext, ShaderPass customPass) {}
 
-        protected sealed override void OnRenderDepth(RenderContext context, DeviceContextProxy deviceContext, ShaderPass customPass) {}
-
-        private void UpdateTexture()
-        {
-            RemoveAndDispose(ref textureView);
-            if (_texture == null) {
+    private void UpdateTexture()
+    {
+        RemoveAndDispose(ref textureView);
+        if (_texture == null) {
                 
-                return;
-            }
-
-            textureView = new ShaderResourceViewProxy(Device);
-            textureView.CreateView(_texture);
+            return;
         }
+
+        textureView = new ShaderResourceViewProxy(Device);
+        textureView.CreateView(_texture);
     }
 }

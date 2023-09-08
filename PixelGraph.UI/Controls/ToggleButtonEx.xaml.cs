@@ -1,10 +1,9 @@
-﻿namespace PixelGraph.UI.Controls
+﻿namespace PixelGraph.UI.Controls;
+
+public partial class ToggleButtonEx
 {
-    public partial class ToggleButtonEx
+    public ToggleButtonEx()
     {
-        public ToggleButtonEx()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

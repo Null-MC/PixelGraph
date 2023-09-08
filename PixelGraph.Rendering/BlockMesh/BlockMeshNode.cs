@@ -4,21 +4,20 @@ using HelixToolkit.SharpDX.Core.Model.Scene;
 using PixelGraph.Rendering.Models;
 using System;
 
-namespace PixelGraph.Rendering.BlockMesh
+namespace PixelGraph.Rendering.BlockMesh;
+
+public class BlockMeshNode : MeshNode
 {
-    public class BlockMeshNode : MeshNode
+    protected override RenderCore OnCreateRenderCore()
     {
-        protected override RenderCore OnCreateRenderCore()
-        {
-            return new BlockMeshRenderCore();
-        }
+        return new BlockMeshRenderCore();
+    }
 
-        protected override IAttachableBufferModel OnCreateBufferModel(Guid modelGuid, Geometry3D geometry)
-        {
-            if (geometry != null && geometry.IsDynamic)
-                throw new NotImplementedException("Dynamic block meshes not currently supported!");
+    protected override IAttachableBufferModel OnCreateBufferModel(Guid modelGuid, Geometry3D geometry)
+    {
+        if (geometry != null && geometry.IsDynamic)
+            throw new NotImplementedException("Dynamic block meshes not currently supported!");
 
-            return EffectsManager.GeometryBufferManager.Register<BlockMeshGeometryBufferModel>(modelGuid, geometry);
-        }
+        return EffectsManager.GeometryBufferManager.Register<BlockMeshGeometryBufferModel>(modelGuid, geometry);
     }
 }

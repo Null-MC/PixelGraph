@@ -10,55 +10,54 @@ using System.Windows.Documents;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 
-namespace PixelGraph.UI.Windows.Modals
+namespace PixelGraph.UI.Windows.Modals;
+
+public partial class TermsOfServiceWindow
 {
-    public partial class TermsOfServiceWindow
+    private readonly ILogger<TermsOfServiceWindow> logger;
+
+
+    public TermsOfServiceWindow(IServiceProvider provider)
     {
-        private readonly ILogger<TermsOfServiceWindow> logger;
+        logger = provider.GetRequiredService<ILogger<TermsOfServiceWindow>>();
 
+        InitializeComponent();
 
-        public TermsOfServiceWindow(IServiceProvider provider)
-        {
-            logger = provider.GetRequiredService<ILogger<TermsOfServiceWindow>>();
+        Model.Initialize(provider);
 
-            InitializeComponent();
+        var themeHelper = provider.GetRequiredService<IThemeHelper>();
+        themeHelper.ApplyCurrent(this);
+    }
 
-            Model.Initialize(provider);
+    private void OnWindowLoaded(object sender, RoutedEventArgs e)
+    {
+        Document.Document = RtfHelper.LoadDocument("PixelGraph.UI.Resources.TOS.rtf");
 
-            var themeHelper = provider.GetRequiredService<IThemeHelper>();
-            themeHelper.ApplyCurrent(this);
+        foreach (var hyperlink in RtfHelper.GetVisuals(Document.Document).OfType<Hyperlink>())
+            hyperlink.RequestNavigate += OnDocumentHyperlinkRequestNavigate;
+    }
+
+    private async void OnAcceptButtonClick(object sender, RoutedEventArgs e)
+    {
+        await Model.SetResultAsync(true);
+        await Dispatcher.BeginInvoke(() => DialogResult = true);
+    }
+
+    private async void OnDeclineButtonClick(object sender, RoutedEventArgs e)
+    {
+        await Model.SetResultAsync(false);
+        await Dispatcher.BeginInvoke(() => DialogResult = false);
+    }
+
+    private async void OnDocumentHyperlinkRequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        try {
+            ProcessHelper.Start(e.Uri.AbsoluteUri);
+            e.Handled = true;
         }
-
-        private void OnWindowLoaded(object sender, RoutedEventArgs e)
-        {
-            Document.Document = RtfHelper.LoadDocument("PixelGraph.UI.Resources.TOS.rtf");
-
-            foreach (var hyperlink in RtfHelper.GetVisuals(Document.Document).OfType<Hyperlink>())
-                hyperlink.RequestNavigate += OnDocumentHyperlinkRequestNavigate;
-        }
-
-        private async void OnAcceptButtonClick(object sender, RoutedEventArgs e)
-        {
-            await Model.SetResultAsync(true);
-            await Dispatcher.BeginInvoke(() => DialogResult = true);
-        }
-
-        private async void OnDeclineButtonClick(object sender, RoutedEventArgs e)
-        {
-            await Model.SetResultAsync(false);
-            await Dispatcher.BeginInvoke(() => DialogResult = false);
-        }
-
-        private async void OnDocumentHyperlinkRequestNavigate(object sender, RequestNavigateEventArgs e)
-        {
-            try {
-                ProcessHelper.Start(e.Uri.AbsoluteUri);
-                e.Handled = true;
-            }
-            catch (Exception error) {
-                logger.LogError(error, "Failed to open document link!");
-                await this.ShowMessageAsync("Error!", $"Failed to open document link! {error.UnfoldMessageString()}");
-            }
+        catch (Exception error) {
+            logger.LogError(error, "Failed to open document link!");
+            await this.ShowMessageAsync("Error!", $"Failed to open document link! {error.UnfoldMessageString()}");
         }
     }
 }

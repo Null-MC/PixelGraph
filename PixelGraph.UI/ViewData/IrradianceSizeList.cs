@@ -1,26 +1,25 @@
 ﻿using System.Collections.Generic;
 
-namespace PixelGraph.UI.ViewData
+namespace PixelGraph.UI.ViewData;
+
+public class IrradianceSizeList : List<IrradianceSizeList.Item>
 {
-    public class IrradianceSizeList : List<IrradianceSizeList.Item>
+    public IrradianceSizeList()
     {
-        public IrradianceSizeList()
-        {
-            Add(new Item("Low (32x)", 32));
-            Add(new Item("Medium (64x)", 64));
-            Add(new Item("High (128x)", 128));
-        }
+        Add(new Item("Low (32x)", 32));
+        Add(new Item("Medium (64x)", 64));
+        Add(new Item("High (128x)", 128));
+    }
 
-        public class Item
-        {
-            public string Name {get;}
-            public int Value {get;}
+    public class Item
+    {
+        public string Name {get;}
+        public int Value {get;}
 
-            public Item(string name, int value)
-            {
-                Name = name;
-                Value = value;
-            }
+        public Item(string name, int value)
+        {
+            Name = name;
+            Value = value;
         }
     }
 }

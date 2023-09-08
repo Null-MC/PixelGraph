@@ -6,116 +6,125 @@ using SixLabors.ImageSharp.Processing;
 using System.Linq;
 using System.Numerics;
 
-namespace PixelGraph.Common.ImageProcessors
+namespace PixelGraph.Common.ImageProcessors;
+
+internal static class ImageProcessors
 {
-    internal static class ImageProcessors
+    public static void CopyRegion<TPixel>(Image<TPixel> srcImage, int srcX, int srcY, Image<TPixel> destImage, Rectangle destBounds)
+        where TPixel : unmanaged, IPixel<TPixel>
     {
-        public static void CopyRegion<TPixel>(Image<TPixel> srcImage, int srcX, int srcY, Image<TPixel> destImage, Rectangle destBounds)
-            where TPixel : unmanaged, IPixel<TPixel>
-        {
-            srcImage.ProcessPixelRows(destImage, (src, dest) => {
-                for (var y = 0; y < destBounds.Height; y++) {
-                    var srcRow = src.GetRowSpan(srcY + y);
-                    var destRow = dest.GetRowSpan(destBounds.Y + y);
+        srcImage.ProcessPixelRows(destImage, (src, dest) => {
+            for (var y = 0; y < destBounds.Height; y++) {
+                var srcRow = src.GetRowSpan(srcY + y);
+                var destRow = dest.GetRowSpan(destBounds.Y + y);
 
-                    var srcSlice = srcRow.Slice(srcX, destBounds.Width);
-                    var destSlice = destRow.Slice(destBounds.X, destBounds.Width);
+                var srcSlice = srcRow.Slice(srcX, destBounds.Width);
+                var destSlice = destRow.Slice(destBounds.X, destBounds.Width);
                     
-                    srcSlice.CopyTo(destSlice);
+                srcSlice.CopyTo(destSlice);
+            }
+        });
+    }
+
+    //public static void SampleRegion<TPixelSrc, TPixelDest>(Image<TPixelSrc> srcImage, Rectangle srcBounds, Image<TPixelDest> destImage, Rectangle destBounds, ISampler<TPixelSrc> sampler)
+    //    where TPixelSrc : unmanaged, IPixel<TPixelSrc>
+    //    where TPixelDest : unmanaged, IPixel<TPixelDest>
+    //{
+    //    srcImage.ProcessPixelRows(destImage, (src, dest) => {
+    //        for (var y = 0; y < destBounds.Height; y++) {
+    //            var pY = 0d;
+    //            var rowSampler = sampler.ForRowType(pY);
+
+    //            for (var x = 0; x < destBounds.Width; x++) {
+    //                var pX = 0d;
+    //                rowSampler.SampleScaled(in pX, in pY, );
+    //            }
+
+
+
+    //            var srcRow = src.GetRowSpan(srcY + y);
+    //            var destRow = dest.GetRowSpan(destBounds.Y + y);
+
+    //            var srcSlice = srcRow.Slice(srcX, destBounds.Width);
+    //            var destSlice = destRow.Slice(destBounds.X, destBounds.Width);
+                    
+    //            srcSlice.CopyTo(destSlice);
+    //        }
+    //    });
+    //}
+
+    public static float GetMaxValue(Image srcImage, ColorChannel color)
+    {
+        var rowMaxValues = new float[srcImage.Height];
+
+        srcImage.Mutate(c => c.ProcessPixelRowsAsVector4((row, pos) => {
+            var rowMax = 0.0f;
+            for (var x = 0; x < srcImage.Width; x++) {
+                row[x].GetChannelValue(in color, out var value);
+                    
+                if (x == 0) rowMax = value;
+                else if (value > rowMax) rowMax = value;
+            }
+
+            rowMaxValues[pos.Y] = rowMax;
+        }));
+
+        return rowMaxValues.Max();
+    }
+
+    public static void Shift<TPixel>(Image<TPixel> srcImage, ColorChannel color, float offset)
+        where TPixel : unmanaged, IPixel<TPixel>
+    {
+        var isGrayscale = srcImage.IsGrayscale();
+
+        srcImage.Mutate(c => c.ProcessPixelRowsAsVector4(row => {
+            for (var x = 0; x < srcImage.Width; x++) {
+                row[x].GetChannelValue(in color, out var value);
+
+                value = MathEx.Saturate(value + offset);
+                    
+                if (isGrayscale) {
+                    row[x].SetChannelValue(ColorChannel.Red, in value);
+                    row[x].SetChannelValue(ColorChannel.Green, in value);
+                    row[x].SetChannelValue(ColorChannel.Blue, in value);
                 }
-            });
-        }
-
-        //public static void SampleRegion<TPixelSrc, TPixelDest>(Image<TPixelSrc> srcImage, Rectangle srcBounds, Image<TPixelDest> destImage, Rectangle destBounds, ISampler<TPixelSrc> sampler)
-        //    where TPixelSrc : unmanaged, IPixel<TPixelSrc>
-        //    where TPixelDest : unmanaged, IPixel<TPixelDest>
-        //{
-        //    srcImage.ProcessPixelRows(destImage, (src, dest) => {
-        //        for (var y = 0; y < destBounds.Height; y++) {
-        //            var pY = 0d;
-        //            var rowSampler = sampler.ForRowType(pY);
-
-        //            for (var x = 0; x < destBounds.Width; x++) {
-        //                var pX = 0d;
-        //                rowSampler.SampleScaled(in pX, in pY, );
-        //            }
-
-
-
-        //            var srcRow = src.GetRowSpan(srcY + y);
-        //            var destRow = dest.GetRowSpan(destBounds.Y + y);
-
-        //            var srcSlice = srcRow.Slice(srcX, destBounds.Width);
-        //            var destSlice = destRow.Slice(destBounds.X, destBounds.Width);
-                    
-        //            srcSlice.CopyTo(destSlice);
-        //        }
-        //    });
-        //}
-
-        public static float GetMaxValue(Image srcImage, ColorChannel color)
-        {
-            var rowMaxValues = new float[srcImage.Height];
-
-            srcImage.Mutate(c => c.ProcessPixelRowsAsVector4((row, pos) => {
-                var rowMax = 0.0f;
-                for (var x = 0; x < srcImage.Width; x++) {
-                    row[x].GetChannelValue(in color, out var value);
-                    
-                    if (x == 0) rowMax = value;
-                    else if (value > rowMax) rowMax = value;
-                }
-
-                rowMaxValues[pos.Y] = rowMax;
-            }));
-
-            return rowMaxValues.Max();
-        }
-
-        public static void Shift(Image srcImage, ColorChannel color, float offset)
-        {
-            srcImage.Mutate(c => c.ProcessPixelRowsAsVector4(row => {
-                for (var x = 0; x < srcImage.Width; x++) {
-                    row[x].GetChannelValue(in color, out var value);
-
-                    value = MathEx.Saturate(value + offset);
-                    
+                else {
                     row[x].SetChannelValue(in color, in value);
                 }
-            }));
-        }
+            }
+        }));
+    }
 
-        public static void ExtractMagnitude<TSrcPixel, TDestPixel>(Image<TSrcPixel> srcImage, Image<TDestPixel> destImage, PixelMapping mapping, Rectangle bounds)
-            where TSrcPixel : unmanaged, IPixel<TSrcPixel>
-            where TDestPixel : unmanaged, IPixel<TDestPixel>
-        {
-            srcImage.ProcessPixelRows(destImage, (src, dest) => {
-                var pixelMag = new Rgba32();
-                Vector3 normal;
+    public static void ExtractMagnitude<TSrcPixel, TDestPixel>(Image<TSrcPixel> srcImage, Image<TDestPixel> destImage, PixelMapping mapping, Rectangle bounds)
+        where TSrcPixel : unmanaged, IPixel<TSrcPixel>
+        where TDestPixel : unmanaged, IPixel<TDestPixel>
+    {
+        srcImage.ProcessPixelRows(destImage, (src, dest) => {
+            var pixelMag = new Rgba32();
+            Vector3 normal;
 
-                for (var y = 0; y < bounds.Height; y++) {
-                    var srcRow = src.GetRowSpan(bounds.Y + y);
-                    var destRow = dest.GetRowSpan(bounds.Y + y);
+            for (var y = 0; y < bounds.Height; y++) {
+                var srcRow = src.GetRowSpan(bounds.Y + y);
+                var destRow = dest.GetRowSpan(bounds.Y + y);
 
-                    var srcSlice = srcRow.Slice(bounds.X, bounds.Width);
-                    var destSlice = destRow.Slice(bounds.X, bounds.Width);
+                var srcSlice = srcRow.Slice(bounds.X, bounds.Width);
+                var destSlice = destRow.Slice(bounds.X, bounds.Width);
 
-                    for (var x = 0; x < bounds.Width; x++) {
-                        var normalPixel = srcSlice[x].ToScaledVector4();
-                        normal.X = normalPixel.X * 2f - 1f;
-                        normal.Y = normalPixel.Y * 2f - 1f;
-                        normal.Z = normalPixel.Z * 2f - 1f;
+                for (var x = 0; x < bounds.Width; x++) {
+                    var normalPixel = srcSlice[x].ToScaledVector4();
+                    normal.X = normalPixel.X * 2f - 1f;
+                    normal.Y = normalPixel.Y * 2f - 1f;
+                    normal.Z = normalPixel.Z * 2f - 1f;
 
-                        var magnitude = normal.Length();
-                        if (!mapping.TryUnmap(in magnitude, out var value)) continue;
+                    var magnitude = normal.Length();
+                    if (!mapping.TryUnmap(in magnitude, out var value)) continue;
 
-                        pixelMag.SetChannelValueScaled(ColorChannel.Red, in value);
-                        pixelMag.SetChannelValueScaled(ColorChannel.Green, in value);
-                        pixelMag.SetChannelValueScaled(ColorChannel.Blue, in value);
-                        destSlice[x].FromRgba32(pixelMag);
-                    }
+                    pixelMag.SetChannelValueScaled(ColorChannel.Red, in value);
+                    pixelMag.SetChannelValueScaled(ColorChannel.Green, in value);
+                    pixelMag.SetChannelValueScaled(ColorChannel.Blue, in value);
+                    destSlice[x].FromRgba32(pixelMag);
                 }
-            });
-        }
+            }
+        });
     }
 }
