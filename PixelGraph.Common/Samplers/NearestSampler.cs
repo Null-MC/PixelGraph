@@ -1,9 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Textures;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers;
