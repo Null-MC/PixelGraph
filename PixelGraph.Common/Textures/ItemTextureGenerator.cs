@@ -7,6 +7,9 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures.Graphing;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System.Numerics;
 
 namespace PixelGraph.Common.Textures;

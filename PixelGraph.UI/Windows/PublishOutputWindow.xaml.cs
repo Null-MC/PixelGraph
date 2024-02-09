@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.IO.Publishing;
-using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.Logging;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
-using System;
 using System.Windows;
 using System.Windows.Threading;
-using PixelGraph.UI.Internal.Logging;
 
 namespace PixelGraph.UI.Windows;
 

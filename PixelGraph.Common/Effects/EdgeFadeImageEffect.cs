@@ -3,6 +3,8 @@ using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace PixelGraph.Common.Effects;
 

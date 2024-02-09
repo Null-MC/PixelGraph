@@ -2,6 +2,7 @@
 using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Numerics;
 using Color = System.Drawing.Color;
 

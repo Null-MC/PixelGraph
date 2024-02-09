@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.IO;
 using PixelGraph.Common.Textures.Graphing;
+using SixLabors.ImageSharp;
 
 namespace PixelGraph.Common.Textures;
 
@@ -39,11 +40,11 @@ internal class TextureSourceGraph : ITextureSourceGraph
 
         if (sourceMap.TryGetValue(localFile, out var source)) return source;
 
-        await using var stream = fileReader.Open(localFile);
-        if (stream == null) throw new ApplicationException($"Failed to open image '{localFile}'!");
+        await using var stream = fileReader.Open(localFile)
+            ?? throw new ApplicationException($"Failed to open image '{localFile}'!");
 
-        var info = await Image.IdentifyAsync(stream, token);
-        if (info == null) throw new ApplicationException($"Unable to locate decoder for image '{localFile}'!");
+        var info = await Image.IdentifyAsync(stream, token)
+            ?? throw new ApplicationException($"Unable to locate decoder for image '{localFile}'!");
 
         source = new TextureSource {
             LocalFile = localFile,

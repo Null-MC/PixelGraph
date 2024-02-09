@@ -2,6 +2,9 @@
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace PixelGraph.Common.IO.Publishing;
 
@@ -77,7 +80,7 @@ public class GenericTexturePublisher
         }
         else {
             // scale all
-            var scale = (float)context.Profile.TextureScale.Value;
+            var scale = (float?)context.Profile.TextureScale ?? 1f;
             targetWidth = (int)Math.Max(width * scale, 1f);
             targetHeight = (int)Math.Max(height * scale, 1f);
             packSampler.RangeX = 1f / scale;

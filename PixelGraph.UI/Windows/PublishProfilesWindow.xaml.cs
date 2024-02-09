@@ -5,12 +5,10 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal.Utilities;
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows;
 
@@ -101,7 +99,7 @@ public partial class PackProfilesWindow
     private async void OnEditEncodingClick(object sender, RoutedEventArgs e)
     {
         var profile = Model.SelectedProfile?.Profile;
-        if (profile == null) return;
+        if (Model.SelectedProfile == null || profile == null) return;
 
         var formatFactory = TextureFormat.GetFactory(Model.SelectedProfile.TextureFormat);
 

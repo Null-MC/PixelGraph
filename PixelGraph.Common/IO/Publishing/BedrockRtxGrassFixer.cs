@@ -3,6 +3,9 @@ using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace PixelGraph.Common.IO.Publishing;
 

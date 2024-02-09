@@ -1,5 +1,6 @@
 ﻿using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.TextureFormats;
+using SixLabors.ImageSharp;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material;

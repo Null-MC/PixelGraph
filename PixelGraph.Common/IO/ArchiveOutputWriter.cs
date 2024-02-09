@@ -59,19 +59,22 @@ internal class ArchiveOutputWriter : IOutputWriter
             localFilename = localFilename.Replace(Path.DirectorySeparatorChar, '/');
 
         using var @lock = await locker.WriterLockAsync(token);
-        var entry = archive.CreateEntry(localFilename);
+
+        var entry = archive.GetEntry(localFilename)
+            ?? archive.CreateEntry(localFilename);
 
         await using var stream = new MemoryStream();
         await writeFunc(stream);
         await stream.FlushAsync(token);
         var size = stream.Length;
 
-        stream.Seek(0, SeekOrigin.Begin);
         await using var entryStream = entry.Open();
+        entryStream.Seek(0, SeekOrigin.Begin);
+
+        stream.Seek(0, SeekOrigin.Begin);
         await stream.CopyToAsync(entryStream, token);
 
-        // ERROR: Cannot get length of ArchiveEntry after writing!
-        return size; //entry.Length;
+        return size;
     }
 
     public async Task OpenReadWriteAsync(string localFilename, Func<Stream, Task> readWriteFunc, CancellationToken token = default)

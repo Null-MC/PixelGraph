@@ -73,7 +73,7 @@ internal class EntityModelParser //: IEntityModelParser
         if (!modelFile.EndsWith(".jpm", StringComparison.InvariantCultureIgnoreCase))
             modelFile = $"{modelFile}.jpm";
 
-        if (!modelFile.Contains("/", StringComparison.InvariantCulture))
+        if (!modelFile.Contains('/', StringComparison.InvariantCulture))
             modelFile = $"assets/minecraft/optifine/cem/{modelFile}";
 
         JObject json = null;
@@ -154,10 +154,8 @@ internal class EntityModelParser //: IEntityModelParser
         var model_file = element.Value<string>("model");
         if (model_file != null) {
             try {
-                var partModel = FindModelPart(model_file);
-                if (partModel == null) throw new ApplicationException($"Unable to locate entity model part '{model_file}'!");
-
-                modelElement.Model = partModel;
+                modelElement.Model = FindModelPart(model_file)
+                    ?? throw new ApplicationException($"Unable to locate entity model part '{model_file}'!");
             }
             catch (Exception) {
                 // TODO: log?
@@ -178,24 +176,24 @@ internal class EntityModelParser //: IEntityModelParser
             //return;
         }
             
-        var translate_array = element.Value<JArray>("translate")?.ToObject<float[]>();
-        if (translate_array != null) {
-            if (translate_array != null && translate_array is not {Length: 3})
+        var translateArray = element.Value<JArray>("translate")?.ToObject<float[]>();
+        if (translateArray != null) {
+            if (translateArray is not {Length: 3})
                 throw new ApplicationException("Element 'translate' must contain 3 values!");
 
-            modelElement.Translate.X = translate_array[0];
-            modelElement.Translate.Y = translate_array[1];
-            modelElement.Translate.Z = translate_array[2];
+            modelElement.Translate.X = translateArray[0];
+            modelElement.Translate.Y = translateArray[1];
+            modelElement.Translate.Z = translateArray[2];
         }
 
-        var rotate_array = element.Value<JArray>("rotate")?.ToObject<float[]>();
-        if (rotate_array != null) {
-            if (rotate_array is not {Length: 3})
+        var rotateArray = element.Value<JArray>("rotate")?.ToObject<float[]>();
+        if (rotateArray != null) {
+            if (rotateArray is not {Length: 3})
                 throw new ApplicationException("Element 'rotate' must contain 3 values!");
 
-            modelElement.RotationAngleX = rotate_array[0];
-            modelElement.RotationAngleY = rotate_array[1];
-            modelElement.RotationAngleZ = rotate_array[2];
+            modelElement.RotationAngleX = rotateArray[0];
+            modelElement.RotationAngleY = rotateArray[1];
+            modelElement.RotationAngleZ = rotateArray[2];
         }
 
         var invertAxis_data = element.Value<string>("invertAxis");
