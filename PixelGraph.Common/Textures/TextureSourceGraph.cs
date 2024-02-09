@@ -65,7 +65,7 @@ internal class TextureSourceGraph : ITextureSourceGraph
             if (expectedAspect.Value.HasValue)
                 frameHeight = (int)(source.Width / expectedAspect.Value.Value + 0.5f);
 
-            source.FrameCount = source.Height / frameHeight;
+            source.FrameCount = Math.Max(source.Height / frameHeight, 1);
             source.Height = frameHeight;
         }
 
