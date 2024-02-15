@@ -1,10 +1,6 @@
 using MinecraftMappings.Minecraft.LegacyJavaToBedrockMappings;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Publishing;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace PixelGraph.Common.IO.Importing;
 
@@ -22,20 +18,24 @@ internal class BedrockToJavaImportMapping : PublisherMappingBase
 
     public override bool Contains(string sourceFile)
     {
-        return Mappings.Keys.Any(sourceFile.EndsWith);
+        return Mappings?.Keys.Any(sourceFile.EndsWith) ?? false;
     }
 
-    public override bool TryMap(string sourcePath, string sourceName, out string destPath, out string destName)
+    public override bool TryMap(string sourcePath, string sourceName, out string? destPath, out string? destName)
     {
-        var sourceFile = PathEx.Join(sourcePath, sourceName);
-        sourceFile = PathEx.Normalize(sourceFile);
+        if (Mappings != null) {
+            var sourceFile = PathEx.Join(sourcePath, sourceName);
+            sourceFile = PathEx.Normalize(sourceFile);
 
-        foreach (var mapping in Mappings) {
-            if (!sourceFile.EndsWith(mapping.Key)) continue;
+            if (sourceFile != null) {
+                foreach (var mapping in Mappings) {
+                    if (!sourceFile.EndsWith(mapping.Key)) continue;
 
-            destName = Path.GetFileName(mapping.Value);
-            destPath = Path.GetDirectoryName(mapping.Value);
-            return true;
+                    destName = Path.GetFileName(mapping.Value);
+                    destPath = Path.GetDirectoryName(mapping.Value);
+                    return true;
+                }
+            }
         }
 
         destName = null;

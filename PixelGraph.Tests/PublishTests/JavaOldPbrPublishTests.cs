@@ -4,7 +4,6 @@ using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
-using System.Threading.Tasks;
 using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
 using Xunit.Abstractions;
@@ -29,7 +28,7 @@ public class JavaOldPbrPublishTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
+            Encoding = new PackOutputEncoding {
                 Format = TextureFormat.Format_OldPbr,
             },
         };

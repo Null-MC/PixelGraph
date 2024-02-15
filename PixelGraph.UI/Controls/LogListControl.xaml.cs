@@ -1,8 +1,6 @@
 ﻿using MahApps.Metro.Controls;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -15,9 +13,9 @@ public partial class LogListControl
     private const int LinesPerParagraph = 20;
 
     private readonly ConcurrentQueue<Message> queue;
-    private readonly Lazy<ScrollViewer> scrollViewerTask;
+    private readonly Lazy<ScrollViewer?> scrollViewerTask;
     private readonly Thickness marginSize;
-    private Paragraph currentParagraph;
+    private Paragraph? currentParagraph;
     private int paragraphLineCount;
 
 
@@ -26,7 +24,7 @@ public partial class LogListControl
         InitializeComponent();
 
         queue = new ConcurrentQueue<Message>();
-        scrollViewerTask = new Lazy<ScrollViewer>(GetScrollViewer);
+        scrollViewerTask = new Lazy<ScrollViewer?>(GetScrollViewer);
         marginSize = new Thickness(0);
     }
 
@@ -41,7 +39,7 @@ public partial class LogListControl
                 if (!any) any = true;
             }
 
-            if (any) scrollViewerTask.Value.ScrollToBottom();
+            if (any) scrollViewerTask.Value?.ScrollToBottom();
         });
     }
 
@@ -73,7 +71,7 @@ public partial class LogListControl
         }
     }
 
-    private ScrollViewer GetScrollViewer()
+    private ScrollViewer? GetScrollViewer()
     {
         DependencyObject obj = this;
 

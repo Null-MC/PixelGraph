@@ -6,17 +6,12 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
-using PixelGraph.UI.Internal.Extensions;
 using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Settings;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal.Utilities;
 
@@ -27,7 +22,7 @@ internal class TextureEditUtility
     private readonly IAppSettingsManager appSettingsMgr;
     private readonly IProjectContextManager projectContextMgr;
 
-    private CancellationTokenSource mergedTokenSource;
+    private CancellationTokenSource? mergedTokenSource;
 
 
     public TextureEditUtility(
@@ -76,7 +71,7 @@ internal class TextureEditUtility
             var info = new ProcessStartInfo {
                 UseShellExecute = false,
                 FileName = appSettingsMgr.Data.TextureEditorExecutable,
-                Arguments = appSettingsMgr.Data.TextureEditorArguments
+                Arguments = appSettingsMgr.Data.TextureEditorArguments?
                     .Replace("$1", tempFile),
             };
 
@@ -120,10 +115,10 @@ internal class TextureEditUtility
 
     private string GetInputFilename(MaterialProperties material, string textureTag)
     {
-        var inputFile = TextureTags.Get(material, textureTag);
-
-        var projectContext = projectContextMgr.GetContext();
+        var projectContext = projectContextMgr.GetContextRequired();
         var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+        var inputFile = TextureTags.Get(material, textureTag);
 
         serviceBuilder.Initialize();
         serviceBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);

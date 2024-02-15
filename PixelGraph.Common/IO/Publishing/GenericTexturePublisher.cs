@@ -49,9 +49,10 @@ public class GenericTexturePublisher
         summary.AddRawBytes(img.Width, img.Height);
     }
 
-    private Image Resize<TPixel>(Image<TPixel> source)
+    private Image? Resize<TPixel>(Image<TPixel> source)
         where TPixel : unmanaged, IPixel<TPixel>
     {
+        if (context.Profile == null) throw new ApplicationException("Context profile is undefined!");
         if (!context.Profile.TextureSize.HasValue && !context.Profile.TextureScale.HasValue) return null;
 
         var samplerName = context.Profile.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
@@ -104,6 +105,8 @@ public class GenericTexturePublisher
     {
         if (!string.IsNullOrEmpty(sourceFile)) {
             await using var stream = reader.Open(sourceFile);
+            if (stream == null) throw new ApplicationException("Failed to open source image stream!");
+
             return await Image.LoadAsync<Rgba32>(stream, token);
         }
 

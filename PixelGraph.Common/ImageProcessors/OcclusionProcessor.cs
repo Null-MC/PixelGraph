@@ -5,10 +5,7 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Linq;
 using System.Numerics;
-using System.Threading;
 
 namespace PixelGraph.Common.ImageProcessors;
 
@@ -26,7 +23,7 @@ internal class OcclusionGeneratorX
     private readonly float bias, zScale, hitPower;
     private readonly bool hasZScale, hasHitPower;
 
-    private float[] nearField;
+    private float[]? nearField;
     private int nearFieldWidth;
     private int nearFieldHeight;
 
@@ -45,11 +42,11 @@ internal class OcclusionGeneratorX
     public OcclusionGeneratorX(OcclusionProcessorOptions options)
     {
         token = options.Token;
-        heightSampler = options.HeightSampler;
+        heightSampler = options.HeightSampler ?? throw new ApplicationException("Height sampler is undefined!");
         heightInputColor = options.HeightInputColor;
         heightMapping = options.HeightMapping;
 
-        CreateRays(options, ref rayList);
+        CreateRays(options, out rayList);
 
         rayCount = rayList.Length;
         rayCountFactor = 1f / (rayCount + 1);
@@ -108,27 +105,24 @@ internal class OcclusionGeneratorX
         var position = new Vector3();
         var pixelOut = new L16(0);
 
-        GetTexCoordY(context.Y, out var rfy);
+        GetTexcoordY(context.Y, out var rfy);
         var heightRowSampler = heightSampler.ForRow(in rfy);
 
-        int i;
-        float hitFactor, heightPixel, heightValue;
-        double fx, fy;
         for (var x = 0; x < context.Bounds.Width; x++) {
             token.ThrowIfCancellationRequested();
 
-            GetTexCoordX(context.Bounds.Left + x, out fx);
-            GetTexCoordY(context.Y, out fy);
+            GetTexcoordX(context.Bounds.Left + x, out var fx);
+            GetTexcoordY(context.Y, out var fy);
 
-            heightRowSampler.SampleScaled(in fx, in fy, in heightInputColor, out heightPixel);
-            if (!heightMapping.TryUnmap(in heightPixel, out heightValue)) continue;
+            heightRowSampler.SampleScaled(in fx, in fy, in heightInputColor, out var heightPixel);
+            if (!heightMapping.TryUnmap(in heightPixel, out var heightValue)) continue;
 
             MathEx.InvertRef(ref heightValue, 0f, 1f);
             if (hasZScale) heightValue *= zScale;
             heightValue += bias * zScale;
 
-            hitFactor = 1f;
-            for (i = 0; i < rayCount; i++) {
+            var hitFactor = 1f;
+            for (var i = 0; i < rayCount; i++) {
                 //token.ThrowIfCancellationRequested();
 
                 position.X = context.Bounds.Left + x;
@@ -150,23 +144,21 @@ internal class OcclusionGeneratorX
 
     private bool RayTest(ref Vector3 position, in int rayIndex, out float factor)
     {
-        double fx, fy;
-        int nfIndex;
-        float heightPixel, heightValue;
+        ArgumentNullException.ThrowIfNull(nearField);
 
         for (var ray_step = 1; ray_step <= stepCount; ray_step++) {
             position.Add(in rayList[rayIndex]);
 
             if (position.Z >= zScale) break;
 
-            GetNearFieldIndex(in position.X, in position.Y, out nfIndex);
+            GetNearFieldIndex(in position.X, in position.Y, out var nfIndex);
             if (position.Z - nearField[nfIndex] > float.Epsilon) continue;
 
             //GetTexCoord(in context, in position.X, in position.Y, out fx, out fy);
-            GetTexCoordX(position.X, out fx);
-            GetTexCoordY(position.Y, out fy);
-            heightSampler.SampleScaled(in fx, in fy, heightInputColor, out heightPixel);
-            if (!heightMapping.TryUnmap(in heightPixel, out heightValue)) continue;
+            GetTexcoordX(position.X, out var fx);
+            GetTexcoordY(position.Y, out var fy);
+            heightSampler.SampleScaled(in fx, in fy, heightInputColor, out var heightPixel);
+            if (!heightMapping.TryUnmap(in heightPixel, out var heightValue)) continue;
 
             MathEx.InvertRef(ref heightValue, 0f, 1f);
             if (hasZScale) heightValue *= zScale;
@@ -185,12 +177,12 @@ internal class OcclusionGeneratorX
         return false;
     }
 
-    private void GetTexCoordX(in float x, out double fx)
+    private void GetTexcoordX(in float x, out double fx)
     {
         fx = (x - Bounds.X + 0.5f) / Bounds.Width;
     }
 
-    private void GetTexCoordY(in float y, out double fy)
+    private void GetTexcoordY(in float y, out double fy)
     {
         fy = (y - Bounds.Y + 0.5f) / Bounds.Height;
     }
@@ -206,7 +198,7 @@ internal class OcclusionGeneratorX
         index = ny * nearFieldWidth + nx;
     }
 
-    private static void CreateRays(OcclusionProcessorOptions options, ref Vector3[] rays)
+    private static void CreateRays(OcclusionProcessorOptions options, out Vector3[] rays)
     {
         if (options == null) throw new ArgumentNullException(nameof(options));
 
@@ -287,7 +279,7 @@ internal class OcclusionProcessorOptions
 {
     public CancellationToken Token;
 
-    public ISampler HeightSampler;
+    public ISampler? HeightSampler;
     public ColorChannel HeightInputColor;
     public PixelMapping HeightMapping;
 

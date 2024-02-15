@@ -1,29 +1,20 @@
 ﻿using MahApps.Metro.Controls;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PixelGraph.UI.Models;
-using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace PixelGraph.UI.Controls;
 
-public class TileClickedEventArgs
-{
-    public string Filename {get; set;}
-}
-
 public partial class RecentProjectsControl
 {
-    private ILogger<RecentProjectsControl> logger;
+    private ILogger<RecentProjectsControl>? logger;
 
-    public event EventHandler<TileClickedEventArgs> TileClicked;
+    public event EventHandler<TileClickedEventArgs>? TileClicked;
 
 
     public RecentProjectsControl()
@@ -35,15 +26,15 @@ public partial class RecentProjectsControl
     {
         logger = provider.GetRequiredService<ILogger<RecentProjectsControl>>();
 
-        Model.MissingImage = CreateMissingImage();
-
         Model.Initialize(provider);
+
+        Model.Data.MissingImage = CreateMissingImage();
     }
 
     public async Task AppendAsync(string filename, CancellationToken token = default)
     {
-        await Model.AppendProjectAsync(filename, token);
-        await Model.UpdateModelListAsync(Dispatcher, token);
+        await Model.Data.AppendProjectAsync(filename, token);
+        await Model.Data.UpdateModelListAsync(Dispatcher, token);
     }
 
     private async Task OpenProjectAsync(string filename)
@@ -52,8 +43,8 @@ public partial class RecentProjectsControl
             var window = Window.GetWindow(this);
             if (window != null) MessageBox.Show(window, "The selected project file could not be found!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            await Model.RemoveAsync(filename);
-            await Model.UpdateModelListAsync(Dispatcher);
+            await Model.Data.RemoveAsync(filename);
+            await Model.Data.UpdateModelListAsync(Dispatcher);
             return;
         }
 
@@ -63,22 +54,23 @@ public partial class RecentProjectsControl
     private async void OnControlLoaded(object sender, RoutedEventArgs e)
     {
         try {
-            await Task.Run(() => Model.LoadAsync());
+            await Task.Run(Model.Data.LoadAsync);
         }
         catch (Exception error) {
-            logger.LogError(error, "Failed to load recent projects!");
+            logger?.LogError(error, "Failed to load recent projects!");
             var window = Window.GetWindow(this);
             if (window != null) await Dispatcher.BeginInvoke(() => MessageBox.Show(window, "Failed to load recent project list!", "Error"));
         }
 
-        await Task.Run(() => Model.UpdateModelListAsync(Dispatcher));
+        await Task.Run(() => Model.Data.UpdateModelListAsync(Dispatcher));
     }
 
     private void OnTileClick(object sender, RoutedEventArgs e)
     {
         if ((e.Source as Tile)?.DataContext is not ProjectTileModel project) return;
 
-        OnTileClicked(project.Filename);
+        if (project.Filename != null)
+            OnTileClicked(project.Filename);
     }
 
     private async void OnTileClicked(string filename)
@@ -101,7 +93,7 @@ public partial class RecentProjectsControl
         return image;
     }
 
-    private ProjectTileModel GetContextModel(object sender)
+    private ProjectTileModel? GetContextModel(object sender)
     {
         return sender is not MenuItem {
             Parent: ContextMenu {
@@ -115,13 +107,24 @@ public partial class RecentProjectsControl
     private async void OnContextMenuOpenClick(object sender, RoutedEventArgs e)
     {
         var model = GetContextModel(sender);
+        if (model?.Filename == null) return;
+
         await OpenProjectAsync(model.Filename);
     }
 
     private async void OnContextMenuRemoveClick(object sender, RoutedEventArgs e)
     {
         var projectModel = GetContextModel(sender);
-        Model.Tiles.Remove(projectModel);
-        await Model.RemoveAsync(projectModel.Filename);
+        if (projectModel == null) return;
+
+        Model.Data.Tiles.Remove(projectModel);
+
+        if (projectModel.Filename != null)
+            await Model.Data.RemoveAsync(projectModel.Filename);
     }
+}
+
+public class TileClickedEventArgs
+{
+    public string? Filename {get; set;}
 }

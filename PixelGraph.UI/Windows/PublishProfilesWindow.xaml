@@ -25,7 +25,7 @@
     <Window.DataContext>
         <vm:PublishProfilesViewModel x:Name="Model"/>
     </Window.DataContext>
-    <DockPanel>
+    <DockPanel DataContext="{Binding Data, Mode=OneWay}">
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource MahApps.Brushes.Highlight}">
             <DockPanel Margin="4,4,4,4" LastChildFill="False">
                 <Button DockPanel.Dock="Left" Content="Cancel" Margin="4" IsCancel="True" Width="80"/>
@@ -71,11 +71,11 @@
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                                 <TextBox
                                         mah:TextBoxHelper.Watermark="{Binding DefaultPackName, Mode=OneWay}"
-                                        Text="{Binding SelectedProfile.Name, Mode=TwoWay}">
+                                        Text="{Binding SelectedProfile.Name, Mode=TwoWay, FallbackValue={x:Null}}">
                                     <TextBox.Style>
                                         <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SelectedProfile.Name}" Value="{x:Null}">
+                                                <DataTrigger Binding="{Binding SelectedProfile.Name, FallbackValue={x:Null}}" Value="{x:Null}">
                                                     <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
                                                     <Setter Property="FontStyle" Value="Italic"/>
                                                 </DataTrigger>
@@ -96,21 +96,21 @@
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
                                 <TextBox 
                                     mah:TextBoxHelper.Watermark="{Binding DefaultPackDescription, Mode=OneWay}"
-                                    Text="{Binding SelectedProfile.PackDescription}"/>
+                                    Text="{Binding SelectedProfile.PackDescription, FallbackValue={x:Null}}"/>
                                 <TextBlock Text="Tags" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"
                                            Visibility="{Binding IsSelectedProfileJava, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                <TextBox Text="{Binding SelectedProfile.PackTags}"
+                                <TextBox Text="{Binding SelectedProfile.PackTags, FallbackValue={x:Null}}"
                                          Visibility="{Binding IsSelectedProfileJava, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <TextBlock Text="Pack Version" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
-                                <TextBox Text="{Binding SelectedProfile.PackFormat}"/>
+                                <TextBox Text="{Binding SelectedProfile.PackFormat, FallbackValue={x:Null}}"/>
                                 <TextBlock Text="Header UUID" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"
                                            Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <DockPanel Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateHeaderUuid"/>
-                                    <TextBox Text="{Binding SelectedProfile.PackHeaderUuid, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    <TextBox Text="{Binding SelectedProfile.PackHeaderUuid, Mode=TwoWay, FallbackValue={x:Null}, Converter={StaticResource NullableConverter}}"/>
                                 </DockPanel>
                                 <TextBlock Text="Module UUID" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"
@@ -118,7 +118,7 @@
                                 <DockPanel Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <Button DockPanel.Dock="Right" Margin="6,0,0,0"
                                             Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateModuleUuid"/>
-                                    <TextBox Text="{Binding SelectedProfile.PackModuleUuid, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    <TextBox Text="{Binding SelectedProfile.PackModuleUuid, Mode=TwoWay, FallbackValue={x:Null}, Converter={StaticResource NullableConverter}}"/>
                                 </DockPanel>
                                 <TextBlock Text="Image Encoding" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"/>
@@ -128,7 +128,7 @@
                                     <ComboBox.Style>
                                         <Style TargetType="ComboBox" BasedOn="{StaticResource MahApps.Styles.ComboBox}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SelectedProfile.ImageEncoding}" Value="{x:Null}">
+                                                <DataTrigger Binding="{Binding SelectedProfile.ImageEncoding, FallbackValue={x:Null}}" Value="{x:Null}">
                                                     <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
                                                     <Setter Property="FontStyle" Value="Italic"/>
                                                 </DataTrigger>
@@ -151,7 +151,7 @@
                                     <TextBox.Style>
                                         <Style TargetType="TextBox" BasedOn="{StaticResource MahApps.Styles.TextBox}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SelectedProfile.PaletteColors}" Value="{x:Null}">
+                                                <DataTrigger Binding="{Binding SelectedProfile.PaletteColors, FallbackValue={x:Null}}" Value="{x:Null}">
                                                     <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
                                                     <Setter Property="FontStyle" Value="Italic"/>
                                                 </DataTrigger>
@@ -198,7 +198,7 @@
                                     <ComboBox.Style>
                                         <Style TargetType="ComboBox" BasedOn="{StaticResource MahApps.Styles.ComboBox}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SelectedProfile.EncodingSampler}" Value="{x:Null}">
+                                                <DataTrigger Binding="{Binding SelectedProfile.EncodingSampler, FallbackValue={x:Null}}" Value="{x:Null}">
                                                     <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent2}"/>
                                                     <Setter Property="FontStyle" Value="Italic"/>
                                                 </DataTrigger>
@@ -241,7 +241,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" MaxWidth="200"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBox Text="{Binding SelectedProfile.TextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                        <TextBox Text="{Binding SelectedProfile.TextureSize, Mode=TwoWay, FallbackValue={x:Null}, Converter={StaticResource NullableConverter}}"/>
                                     </Grid>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                                Text="When defined this value will be used as the target width when publishing textures. Height is preserved through aspect ratio."/>
@@ -250,7 +250,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" MaxWidth="200"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBox Text="{Binding SelectedProfile.BlockTextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                        <TextBox Text="{Binding SelectedProfile.BlockTextureSize, Mode=TwoWay, FallbackValue={x:Null}, Converter={StaticResource NullableConverter}}"/>
                                     </Grid>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                                Text="When defined this value will be used as the target width when publishing textures located in 'block' folders. Height is preserved through aspect ratio. This overrides the above 'Texture Size' value."/>
@@ -259,7 +259,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" MaxWidth="200"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBox Text="{Binding SelectedProfile.ItemTextureSize, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                        <TextBox Text="{Binding SelectedProfile.ItemTextureSize, Mode=TwoWay, FallbackValue={x:Null}, Converter={StaticResource NullableConverter}}"/>
                                     </Grid>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                                Text="When defined this value will be used as the target width when publishing textures located in 'item' folders. Height is preserved through aspect ratio. This overrides the above 'Texture Size' value."/>
@@ -268,7 +268,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" MaxWidth="200"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBox Text="{Binding SelectedProfile.TextureScale, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                        <TextBox Text="{Binding SelectedProfile.TextureScale, Mode=TwoWay, FallbackValue={x:Null}, Converter={StaticResource NullableConverter}}"/>
                                     </Grid>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                                Text="When defined this value will be used as the scale to apply when publishing textures. If block/texture-size is defined it will supersede this value."/>
@@ -278,7 +278,7 @@
                         <TabItem Header="Height">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="8" Orientation="Vertical">
-                                    <CheckBox IsChecked="{Binding SelectedProfile.AutoLevelHeight, Mode=TwoWay}">
+                                    <CheckBox IsChecked="{Binding SelectedProfile.AutoLevelHeight, Mode=TwoWay, FallbackValue={x:Null}}">
                                         <TextBlock Text="Auto-Level" Style="{StaticResource FieldLabelStyle}"/>
                                     </CheckBox>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"

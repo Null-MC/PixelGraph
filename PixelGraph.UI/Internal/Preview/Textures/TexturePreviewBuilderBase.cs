@@ -13,56 +13,49 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Quantization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal.Preview.Textures;
 
 public interface ITexturePreviewBuilder : IDisposable
 {
-    IProjectDescription Project {get; set;}
-    PublishProfileProperties Profile {get; set;}
-    MaterialProperties Material {get; set;}
+    IProjectDescription? Project {get; set;}
+    PublishProfileProperties? Profile {get; set;}
+    MaterialProperties? Material {get; set;}
     CancellationToken Token {get;}
     int? TargetFrame {get; set;}
     int? TargetPart {get; set;}
 
-    Task<Image> BuildAsync(string tag, CancellationToken token = default);
+    Task<Image?> BuildAsync(string tag, CancellationToken token = default);
 
     void Cancel();
 }
 
-internal abstract class TexturePreviewBuilderBase : ITexturePreviewBuilder
+internal abstract class TexturePreviewBuilderBase(IServiceProvider provider) : ITexturePreviewBuilder
 {
-    private readonly IServiceProvider provider;
-    private readonly IProjectContextManager projectContextMgr;
-    private readonly CancellationTokenSource tokenSource;
+    private readonly IProjectContextManager projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
+    private readonly CancellationTokenSource tokenSource = new();
 
-    public IProjectDescription Project {get; set;}
-    public PublishProfileProperties Profile {get; set;}
-    public MaterialProperties Material {get; set;}
-    public int? TargetFrame {get; set;}
+    public IProjectDescription? Project {get; set;}
+    public PublishProfileProperties? Profile {get; set;}
+    public MaterialProperties? Material {get; set;}
+    public int? TargetFrame {get; set;} = 0;
     public int? TargetPart {get; set;}
 
-    protected IDictionary<string, Func<PublishProfileProperties, MaterialProperties, PackEncodingChannel[]>> TagMap {get; set;}
+    protected IDictionary<string, Func<PublishProfileProperties, MaterialProperties, PackEncodingChannel[]>>? TagMap {get; set;}
     public CancellationToken Token => tokenSource.Token;
 
 
-    protected TexturePreviewBuilderBase(IServiceProvider provider)
+    public void Dispose()
     {
-        this.provider = provider;
-
-        TargetFrame = 0;
-        projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
-        tokenSource = new CancellationTokenSource();
+        tokenSource.Dispose();
     }
 
-    public async Task<Image> BuildAsync(string tag, CancellationToken token = default)
+    public async Task<Image?> BuildAsync(string tag, CancellationToken token = default)
     {
-        var projectContext = projectContextMgr.GetContext();
+        ArgumentNullException.ThrowIfNull(Project);
+        ArgumentNullException.ThrowIfNull(Material);
+
+        var projectContext = projectContextMgr.GetContextRequired();
         var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
             
         serviceBuilder.Initialize();
@@ -86,11 +79,12 @@ internal abstract class TexturePreviewBuilderBase : ITexturePreviewBuilder
         context.IsAnimated = reader.FileExists(matMetaFileIn);
 
         var inputEncoding = GetEncoding(Project.Input?.Format);
-        inputEncoding.Merge(Project.Input);
+        if (Project.Input != null) inputEncoding.Merge(Project.Input);
         inputEncoding.Merge(Material);
+
         context.InputEncoding = inputEncoding.GetMapped().ToList();
 
-        if (TryGetChannels(tag, out var channels))
+        if (TryGetChannels(tag, out var channels) && channels != null)
             context.OutputEncoding.AddRange(channels);
 
         if (TextureTags.Is(tag, TextureTags.Normal))
@@ -108,7 +102,7 @@ internal abstract class TexturePreviewBuilderBase : ITexturePreviewBuilder
         var hasAlpha = context.OutputEncoding.Any(c => c.Color == ColorChannel.Alpha);
         var hasColor = context.OutputEncoding.Any(c => c.Color != ColorChannel.Red);
 
-        Image image;
+        Image? image;
         if (hasAlpha) {
             image = await graph.CreateImageAsync<Rgba32>(tag, true, token);
         }
@@ -129,6 +123,8 @@ internal abstract class TexturePreviewBuilderBase : ITexturePreviewBuilder
 
             try {
                 foreach (var part in regions.GetAllPublishRegions()) {
+                    if (part.Frames == null) continue;
+
                     foreach (var frame in part.Frames) {
                         mergedToken.ThrowIfCancellationRequested();
 
@@ -158,13 +154,12 @@ internal abstract class TexturePreviewBuilderBase : ITexturePreviewBuilder
         tokenSource.Cancel();
     }
 
-    public void Dispose()
+    private bool TryGetChannels(string textureTag, out PackEncodingChannel[]? channels)
     {
-        tokenSource?.Dispose();
-    }
+        ArgumentNullException.ThrowIfNull(Profile);
+        ArgumentNullException.ThrowIfNull(Material);
+        ArgumentNullException.ThrowIfNull(TagMap);
 
-    private bool TryGetChannels(string textureTag, out PackEncodingChannel[] channels)
-    {
         if (TagMap.TryGetValue(textureTag, out var channelFunc)) {
             channels = channelFunc(Profile, Material);
             return true;
@@ -174,9 +169,9 @@ internal abstract class TexturePreviewBuilderBase : ITexturePreviewBuilder
         return false;
     }
 
-    private static PackEncoding GetEncoding(string format)
+    private static PackEncoding GetEncoding(string? format)
     {
-        PackEncoding encoding = null;
+        PackEncoding? encoding = null;
 
         if (format != null) {
             var factory = TextureFormat.GetFactory(format);

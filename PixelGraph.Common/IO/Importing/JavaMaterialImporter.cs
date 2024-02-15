@@ -1,6 +1,4 @@
 ﻿using PixelGraph.Common.Extensions;
-using System;
-using System.IO;
 using System.Text.RegularExpressions;
 
 namespace PixelGraph.Common.IO.Importing;
@@ -31,7 +29,7 @@ internal class JavaMaterialImporter : MaterialImporterBase
         }
 
         var path = Path.GetDirectoryName(filename);
-        path = PathEx.Normalize(path);
+        path = PathEx.NormalizeNullable(path);
         if (path == null) return false;
 
         return isPathMaterialExp.IsMatch(path);

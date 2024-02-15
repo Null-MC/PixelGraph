@@ -8,8 +8,6 @@ using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using System;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Rendering.CubeMaps;
 
@@ -22,22 +20,22 @@ internal abstract class CubeMapRenderCore : RenderCore, ICubeMapSource
     private readonly Vector3[] lookVector;
     private readonly Vector3[] upVectors;
     private readonly CubeFaceCamerasStruct cubeFaceCameras;
-    private readonly RenderTargetView[] renderTargetViews;
+    private readonly RenderTargetView?[] renderTargetViews;
     private readonly ConstantBufferComponent modelCB;
     private readonly CommandList[] commands;
 
-    private RasterizerStateProxy invertCullModeState;
-    private IDeviceContextPool contextPool;
+    private RasterizerStateProxy? invertCullModeState;
+    private IDeviceContextPool? contextPool;
     protected ShaderPass defaultShaderPass;
-    protected ShaderResourceViewProxy _cubeMap;
-    private RasterizerStateProxy rasterState;
+    protected ShaderResourceViewProxy? _cubeMap;
+    private RasterizerStateProxy? rasterState;
     private Viewport viewport;
     private int _faceSize;
     protected bool IsRenderValid;
     protected string PassName;
     protected Texture2DDescription TextureDesc;
 
-    public virtual ShaderResourceViewProxy CubeMap => _cubeMap;
+    public virtual ShaderResourceViewProxy? CubeMap => _cubeMap;
 
     public long LastUpdated {get; private set;}
         
@@ -98,10 +96,10 @@ internal abstract class CubeMapRenderCore : RenderCore, ICubeMapSource
 
         context.IsInvertCullMode = true;
 
-        Exception exception = null;
+        Exception? exception = null;
         Parallel.For(0, 6, index => {
             try {
-                var ctx = contextPool.Get();
+                var ctx = contextPool?.Get() ?? throw new ApplicationException("Failed to retrieve device context!");
 
                 ctx.SetRenderTarget(null, renderTargetViews[index]);
                 ctx.SetViewport(ref viewport);
@@ -138,7 +136,7 @@ internal abstract class CubeMapRenderCore : RenderCore, ICubeMapSource
         if (exception != null) throw exception;
             
         for (var i = 0; i < commands.Length; ++i) {
-            if (commands[i] == null) continue;
+            //if (commands[i] == null) continue;
 
             Device.ImmediateContext.ExecuteCommandList(commands[i], true);
             Disposer.RemoveAndDispose(ref commands[i]);

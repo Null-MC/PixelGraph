@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace PixelGraph.UI.Internal.Caching;
 
-namespace PixelGraph.UI.Internal.Caching;
-
-internal abstract class RegistrationCounterCache<TKey, TValue>
+internal abstract class RegistrationCounterCache<TKey, TValue> where TKey : notnull
 {
     private readonly Dictionary<TKey, CounterCacheItem<TValue>> map;
 

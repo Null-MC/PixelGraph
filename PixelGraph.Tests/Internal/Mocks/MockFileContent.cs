@@ -6,15 +6,10 @@ namespace PixelGraph.Tests.Internal.Mocks;
 
 public class MockFileContent : IDisposable, IAsyncDisposable
 {
-    public List<MockFile> Files {get; set;}
+    public List<MockFile> Files {get; set;} = new();
 
 
-    public MockFileContent()
-    {
-        Files = new List<MockFile>();
-    }
-
-    public void Add(string filename, MockStream content = null)
+    public void Add(string filename, MockStream? content = null)
     {
         var f = new MockFile {
             Filename = PathEx.Localize(filename),
@@ -24,7 +19,7 @@ public class MockFileContent : IDisposable, IAsyncDisposable
         Files.Add(f);
     }
 
-    public IEnumerable<string> EnumerateDirectories(string localPath, string pattern)
+    public IEnumerable<string> EnumerateDirectories(string localPath, string? pattern)
     {
         var subdirectories = Files.Select(f => Path.GetDirectoryName(f.Filename) ?? string.Empty)
             .Where(d => d.StartsWith(localPath, StringComparison.InvariantCultureIgnoreCase)).Distinct();
@@ -38,7 +33,7 @@ public class MockFileContent : IDisposable, IAsyncDisposable
         }
     }
 
-    public IEnumerable<MockFile> EnumerateFiles(string localPath, string pattern)
+    public IEnumerable<MockFile> EnumerateFiles(string localPath, string? pattern)
     {
         return Files.Where(f => string.Equals(Path.GetDirectoryName(f.Filename), localPath, StringComparison.InvariantCultureIgnoreCase))
             .Where(d => PathEx.MatchPattern(Path.GetFileName(d.Filename), pattern));
@@ -49,7 +44,7 @@ public class MockFileContent : IDisposable, IAsyncDisposable
         return Files.Select(f => f.Filename).Contains(filename, StringComparer.InvariantCultureIgnoreCase);
     }
 
-    public Stream OpenRead(string filename)
+    public Stream? OpenRead(string filename)
     {
         var file = PathEx.Localize(filename);
         bool Match(MockFile f) => string.Equals(f.Filename, file, StringComparison.InvariantCultureIgnoreCase);
@@ -74,8 +69,8 @@ public class MockFileContent : IDisposable, IAsyncDisposable
     public async Task<Image<TPixel>> OpenImageAsync<TPixel>(string filename)
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        await using var stream = OpenRead(filename);
-        if (stream == null) throw new FileNotFoundException("Image not found!", filename);
+        await using var stream = OpenRead(filename)
+            ?? throw new FileNotFoundException("Image not found!", filename);
 
         return await Image.LoadAsync<TPixel>(stream);
     }
@@ -84,12 +79,16 @@ public class MockFileContent : IDisposable, IAsyncDisposable
     {
         foreach (var file in Files)
             file.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     public async ValueTask DisposeAsync()
     {
         foreach (var file in Files)
             await file.DisposeAsync();
+
+        GC.SuppressFinalize(this);
     }
 
     public async Task AddAsync(string filename, string text = "")
@@ -112,18 +111,22 @@ public class MockFileContent : IDisposable, IAsyncDisposable
 
 public class MockFile : IDisposable, IAsyncDisposable
 {
-    public string Filename {get; set;}
-    public Stream Content {get; set;}
+    public string? Filename {get; set;}
+    public Stream? Content {get; set;}
 
 
     public void Dispose()
     {
         Content?.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     public async ValueTask DisposeAsync()
     {
         if (Content != null) await Content.DisposeAsync();
+
+        GC.SuppressFinalize(this);
     }
 
     public override string ToString() => $"File: {Filename}";

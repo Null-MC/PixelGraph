@@ -1,14 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
-using System;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.ViewModels;
 
 internal class PatreonNotificationViewModel : ModelBase
 {
-    private IAppSettingsManager appSettings;
+    private IAppSettingsManager? appSettings;
     //private bool _hasNotAccepted;
 
     //public bool HasNotAccepted {
@@ -28,6 +26,11 @@ internal class PatreonNotificationViewModel : ModelBase
 
     public async Task AcceptAsync()
     {
+        if (appSettings == null) {
+            // warn
+            return;
+        }
+
         appSettings.Data.HasAcceptedPatreonNotification = true;
 
         await appSettings.SaveAsync();

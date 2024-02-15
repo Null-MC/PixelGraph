@@ -4,23 +4,23 @@ namespace PixelGraph.UI.Internal.Projects;
 
 public interface IProjectContext
 {
-    public string ProjectFilename {get;}
-    public string RootDirectory {get;}
+    public string? ProjectFilename {get;}
+    public string? RootDirectory {get;}
 
-    public ProjectData Project {get; set;}
-    public PublishProfileProperties SelectedProfile {get; set;}
+    public ProjectData? Project {get; set;}
+    public PublishProfileProperties? SelectedProfile {get; set;}
 }
 
 public class ProjectContext : IProjectContext
 {
     private readonly object lockHandle = new();
-    private PublishProfileProperties _selectedProfile;
-    private ProjectData _project;
+    private PublishProfileProperties? _selectedProfile;
+    private ProjectData? _project;
 
-    public string ProjectFilename {get; set;}
-    public string RootDirectory {get; set;}
+    public string? ProjectFilename {get; set;}
+    public string? RootDirectory {get; set;}
 
-    public ProjectData Project {
+    public ProjectData? Project {
         get {
             lock (lockHandle) return _project;
         }
@@ -29,7 +29,7 @@ public class ProjectContext : IProjectContext
         }
     }
 
-    public PublishProfileProperties SelectedProfile {
+    public PublishProfileProperties? SelectedProfile {
         get {
             lock (lockHandle) return _selectedProfile;
         }

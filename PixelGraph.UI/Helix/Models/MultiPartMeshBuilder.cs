@@ -119,7 +119,7 @@ public class MultiPartMeshBuilder : IDisposable
     private static void FlattenBlockModelTextures(BlockModelVersion model)
     {
         var remappedKeys = model.Textures
-            .Where(p => p.Value.StartsWith('#'))
+            .Where(p => p.Value != null && p.Value.StartsWith('#'))
             .Select(p => p.Key).ToArray();
 
         foreach (var textureId in remappedKeys) {
@@ -219,7 +219,7 @@ public class MultiPartMeshBuilder : IDisposable
     {
         ClearTextureBuilders();
 
-        var projectContext = projectContextMgr.GetContext();
+        var projectContext = projectContextMgr.GetContextRequired();
         var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
         serviceBuilder.Initialize();

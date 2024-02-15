@@ -10,22 +10,31 @@ namespace PixelGraph.Rendering.CubeMaps;
 public class EquirectangularCubeMapNode : SceneNode, ICubeMapSource
 {
     public int FaceSize {
-        get => _renderCore.FaceSize;
-        set => _renderCore.FaceSize = value;
+        get => _renderCore?.FaceSize ?? 0;
+        set {
+            if (_renderCore != null)
+                _renderCore.FaceSize = value;
+        }
     }
 
-    public TextureModel Texture {
-        get => _renderCore.Texture;
-        set => _renderCore.Texture = value;
+    public TextureModel? Texture {
+        get => _renderCore?.Texture;
+        set {
+            if (_renderCore != null)
+                _renderCore.Texture = value;
+        }
     }
 
     public float Exposure {
-        get => _renderCore.Intensity;
-        set => _renderCore.Intensity = value;
+        get => _renderCore?.Intensity ?? 1f;
+        set {
+            if (_renderCore != null)
+                _renderCore.Intensity = value;
+        }
     }
 
-    private EquirectangularCubeMapCore _renderCore => RenderCore as EquirectangularCubeMapCore;
-    public ShaderResourceViewProxy CubeMap => _renderCore?.CubeMap;
+    private EquirectangularCubeMapCore? _renderCore => RenderCore as EquirectangularCubeMapCore;
+    public ShaderResourceViewProxy? CubeMap => _renderCore?.CubeMap;
     public long LastUpdated => _renderCore?.LastUpdated ?? 0;
 
 

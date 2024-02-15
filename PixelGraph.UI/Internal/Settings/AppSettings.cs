@@ -1,6 +1,5 @@
 ﻿using PixelGraph.UI.Internal.IO;
-using System.Threading;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace PixelGraph.UI.Internal.Settings;
 
@@ -31,7 +30,8 @@ internal class AppSettingsManager : IAppSettingsManager
 
     public void Load()
     {
-        Data = appData.ReadJson<AppSettingsDataModel>(FileName) ?? new AppSettingsDataModel();
+        var data = appData.ReadJson<AppSettingsDataModel>(FileName);
+        Data = data ?? new AppSettingsDataModel();
     }
 
     //public async Task LoadAsync(CancellationToken token = default)
@@ -41,7 +41,7 @@ internal class AppSettingsManager : IAppSettingsManager
 
     public Task SaveAsync(CancellationToken token = default)
     {
-        if (Data == null) return Task.CompletedTask;
+        //if (Data == null) return Task.CompletedTask;
         return appData.WriteJsonAsync(FileName, Data, token);
     }
 }

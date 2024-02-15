@@ -3,12 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.UI.Internal.Utilities;
-using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Navigation;
-using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows.Modals;
 
@@ -39,13 +36,17 @@ public partial class TermsOfServiceWindow
 
     private async void OnAcceptButtonClick(object sender, RoutedEventArgs e)
     {
-        await Model.SetResultAsync(true);
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
+        await Model.Data.SetResultAsync(true);
         await Dispatcher.BeginInvoke(() => DialogResult = true);
     }
 
     private async void OnDeclineButtonClick(object sender, RoutedEventArgs e)
     {
-        await Model.SetResultAsync(false);
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
+        await Model.Data.SetResultAsync(false);
         await Dispatcher.BeginInvoke(() => DialogResult = false);
     }
 

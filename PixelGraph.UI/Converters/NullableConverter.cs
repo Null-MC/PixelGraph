@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows.Data;
 
 namespace PixelGraph.UI.Converters;
@@ -11,7 +10,7 @@ internal class NullableConverter : IValueConverter
         return value;
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? ConvertBack(object? value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value == null || string.IsNullOrEmpty(value.ToString()))
             return null;

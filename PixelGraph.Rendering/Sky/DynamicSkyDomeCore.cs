@@ -8,9 +8,9 @@ namespace PixelGraph.Rendering.Sky;
 
 internal class DynamicSkyDomeCore : GeometryRenderCore
 {
-    private ShaderPass defaultShaderPass;
+    private ShaderPass? defaultShaderPass;
 
-    protected ShaderPass DefaultShaderPass {
+    protected ShaderPass? DefaultShaderPass {
         get => defaultShaderPass;
         private set => SetAffectsRender(ref defaultShaderPass, value);
     }
@@ -45,6 +45,8 @@ internal class DynamicSkyDomeCore : GeometryRenderCore
 
     protected override void OnRender(RenderContext context, DeviceContextProxy deviceContext)
     {
+        if (DefaultShaderPass == null) throw new ApplicationException("Default shader pass is undefined!");
+
         DefaultShaderPass.BindShader(deviceContext);
         DefaultShaderPass.BindStates(deviceContext, StateType.BlendState | StateType.DepthStencilState);
         deviceContext.DrawIndexed(GeometryBuffer.IndexBuffer.ElementCount, 0, 0);

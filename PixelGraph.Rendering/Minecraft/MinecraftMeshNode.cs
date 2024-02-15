@@ -2,13 +2,12 @@
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Model.Scene;
 using SharpDX;
-using System.Collections.Generic;
 
 namespace PixelGraph.Rendering.Minecraft;
 
 public class MinecraftMeshNode : SceneNode
 {
-    private MinecraftMeshCore MeshCore => RenderCore as MinecraftMeshCore;
+    private MinecraftMeshCore MeshCore => (MinecraftMeshCore)RenderCore;
 
     public int BlendMode {
         get => MeshCore.BlendMode;

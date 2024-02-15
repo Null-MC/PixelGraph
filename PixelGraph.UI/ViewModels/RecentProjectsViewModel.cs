@@ -6,53 +6,49 @@ using PixelGraph.Common.Projects;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.IO;
 using PixelGraph.UI.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace PixelGraph.UI.ViewModels;
 
-public class RecentProjectsViewModel : ModelBase
+public class RecentProjectsModel(
+    ILogger<RecentProjectsModel> logger,
+    IRecentPathManager recentMgr) : INotifyPropertyChanged
 {
-    private readonly ProjectSerializer serializer;
-    private ILogger<RecentProjectsViewModel> logger;
-    private IRecentPathManager recentMgr;
+    private readonly ILogger<RecentProjectsModel>? logger = logger;
+    private readonly IRecentPathManager? recentMgr = recentMgr;
+    private readonly ProjectSerializer serializer = new();
 
-    public ImageSource MissingImage {get; set;}
-    public ObservableCollection<ProjectTileModel> Tiles {get;}
+    public event PropertyChangedEventHandler? PropertyChanged;
 
+    public ObservableCollection<ProjectTileModel> Tiles {get;} = new();
+    public ImageSource? MissingImage {get; set;}
 
-    public RecentProjectsViewModel()
-    {
-        Tiles = new ObservableCollection<ProjectTileModel>();
-        serializer = new ProjectSerializer();
-    }
-
-    public void Initialize(IServiceProvider provider)
-    {
-        logger = provider.GetRequiredService<ILogger<RecentProjectsViewModel>>();
-        recentMgr = provider.GetRequiredService<IRecentPathManager>();
-    }
 
     public async Task LoadAsync()
     {
+        ArgumentNullException.ThrowIfNull(recentMgr);
+
         await recentMgr.LoadAsync();
     }
 
     public Task AppendProjectAsync(string filename, CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(recentMgr);
+
         recentMgr.Insert(filename);
         return recentMgr.SaveAsync(token);
     }
 
     public async Task RemoveAsync(string filename, CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(recentMgr);
+
         recentMgr.Remove(filename);
         await recentMgr.SaveAsync(token);
     }
@@ -63,6 +59,10 @@ public class RecentProjectsViewModel : ModelBase
 
         await foreach (var (filename, project) in LoadProjectsAsync().WithCancellation(token)) {
             var projectPath = Path.GetDirectoryName(filename);
+            if (string.IsNullOrEmpty(projectPath)) {
+                logger?.LogWarning("Skipping project with empty/missing path!");
+                continue;
+            }
 
             var tile = new ProjectTileModel {
                 Filename = filename,
@@ -74,14 +74,14 @@ public class RecentProjectsViewModel : ModelBase
                 tile.Icon = FindPackIcon(projectPath);
             }
             catch (Exception error) {
-                logger.LogError(error, "Failed to load icon for project '{filename}'!", filename);
+                logger?.LogError(error, "Failed to load icon for project '{filename}'!", filename);
             }
 
             await dispatcher.BeginInvoke(() => Tiles.Add(tile));
         }
     }
 
-    private ImageSource FindPackIcon(string projectPath)
+    private ImageSource? FindPackIcon(string projectPath)
     {
         foreach (var file in Directory.GetFiles(projectPath, "pack.*", SearchOption.TopDirectoryOnly)) {
             var ext = Path.GetExtension(file);
@@ -101,6 +101,8 @@ public class RecentProjectsViewModel : ModelBase
 
     private async IAsyncEnumerable<(string filename, ProjectData project)> LoadProjectsAsync()
     {
+        ArgumentNullException.ThrowIfNull(recentMgr);
+
         var removeItems = new List<string>();
 
         foreach (var filename in recentMgr.Items) {
@@ -109,7 +111,7 @@ public class RecentProjectsViewModel : ModelBase
                 project = await serializer.LoadAsync(filename);
             }
             catch (Exception error) {
-                logger.LogError(error, "Failed to load data for recent project '{filename}'!", filename);
+                logger?.LogError(error, "Failed to load data for recent project '{filename}'!", filename);
                 removeItems.Add(filename);
                 continue;
             }
@@ -119,5 +121,30 @@ public class RecentProjectsViewModel : ModelBase
 
         foreach (var filename in removeItems)
             recentMgr.Remove(filename);
+    }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    //protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    //{
+    //    if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+    //    field = value;
+    //    OnPropertyChanged(propertyName);
+    //    return true;
+    //}
+}
+
+public class RecentProjectsViewModel : ModelBase
+{
+    public RecentProjectsModel? Data {get; private set;}
+
+
+    public void Initialize(IServiceProvider provider)
+    {
+        Data = provider.GetRequiredService<RecentProjectsModel>();
+        OnPropertyChanged(nameof(Data));
     }
 }

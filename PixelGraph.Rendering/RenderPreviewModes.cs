@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PixelGraph.Rendering;
+﻿namespace PixelGraph.Rendering;
 
 public enum RenderPreviewModes
 {
@@ -30,7 +27,7 @@ public static class RenderPreviewMode
     };
 
 
-    public static string GetString(RenderPreviewModes mode)
+    public static string? GetString(RenderPreviewModes mode)
     {
         return mode switch {
             RenderPreviewModes.Diffuse => Diffuse,

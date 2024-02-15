@@ -4,9 +4,6 @@ using MinecraftMappings.Minecraft;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Tests.Internal;
 using PixelGraph.Tests.Internal.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -38,7 +35,9 @@ public class ConversionTests : TestBase
 
             var isMapped = false;
             foreach (var javaTexture in javaTextureList) {
-                var bedrockTexture = (BedrockBlockTexture)Activator.CreateInstance(javaTexture.MapsToBedrockBlock);
+                if (javaTexture.MapsToBedrockBlock == null) continue;
+
+                var bedrockTexture = (BedrockBlockTexture?)Activator.CreateInstance(javaTexture.MapsToBedrockBlock);
                 if (bedrockTexture == null) continue;
 
                 mappedCount++;

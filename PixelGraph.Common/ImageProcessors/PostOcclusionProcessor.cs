@@ -3,7 +3,6 @@ using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 
 namespace PixelGraph.Common.ImageProcessors;
 
@@ -16,25 +15,28 @@ internal class PostOcclusionProcessor<TOcclusion, TEmissive> : PixelRowProcessor
 
     public PostOcclusionProcessor(in Options options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         this.options = options;
     }
 
     protected override void ProcessRow<TSource>(in PixelRowContext context, Span<TSource> row)
     {
-        double fx, fy;
-        float occlusionValue;
+        ArgumentNullException.ThrowIfNull(options.MappingColors);
+        ArgumentNullException.ThrowIfNull(options.OcclusionSampler);
+
         var colorCount = options.MappingColors.Length;
 
-        GetTexCoordY(in context, out fy);
+        GetTexCoordY(in context, out var fy);
         var occlusionRowSampler = options.OcclusionSampler.ForRow(in fy);
         var emissiveRowSampler = options.EmissiveSampler?.ForRow(in fy);
 
         for (var x = 0; x < context.Bounds.Width; x++) {
             var albedoPixel = row[x].ToScaledVector4();
-            GetTexCoord(in context, context.Bounds.Left + x, out fx, out fy);
+            GetTexCoord(in context, context.Bounds.Left + x, out var fx, out fy);
             occlusionRowSampler.SampleScaled(in fx, in fy, in options.OcclusionInputColor, out var occlusionPixel);
 
-            if (!options.OcclusionMapping.TryUnmap(in occlusionPixel, out occlusionValue))
+            if (!options.OcclusionMapping.TryUnmap(in occlusionPixel, out var occlusionValue))
                 occlusionValue = 0f;
 
             occlusionValue *= options.OcclusionMapping.OutputValueScale;
@@ -63,13 +65,13 @@ internal class PostOcclusionProcessor<TOcclusion, TEmissive> : PixelRowProcessor
 
     public class Options
     {
-        public ColorChannel[] MappingColors;
+        public ColorChannel[]? MappingColors;
 
-        public ISampler<TOcclusion> OcclusionSampler;
+        public ISampler<TOcclusion>? OcclusionSampler;
         public ColorChannel OcclusionInputColor;
         public PixelMapping OcclusionMapping;
 
-        public ISampler<TEmissive> EmissiveSampler;
+        public ISampler<TEmissive>? EmissiveSampler;
         public ColorChannel EmissiveInputColor;
         public PixelMapping EmissiveMapping;
     }

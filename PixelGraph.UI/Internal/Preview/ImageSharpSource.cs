@@ -1,6 +1,5 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Media;
@@ -10,14 +9,14 @@ namespace PixelGraph.UI.Internal.Preview;
 
 public abstract class ImageSharpSource : BitmapSource
 {
-    public Type SourceFormat {get; set;}
+    public Type? SourceFormat {get; set;}
 }
 
 /// <remarks> https://github.com/jongleur1983/SharpImageSource </remarks>
 public sealed class ImageSharpSource<TPixel> : ImageSharpSource
     where TPixel : unmanaged, IPixel<TPixel>
 {
-    private readonly Image<TPixel> source;
+    private readonly Image<TPixel>? source;
 
     //public override event EventHandler<ExceptionEventArgs> DecodeFailed;
     //public override event EventHandler<DownloadProgressEventArgs> DownloadProgress;
@@ -25,11 +24,11 @@ public sealed class ImageSharpSource<TPixel> : ImageSharpSource
     //public override event EventHandler DownloadCompleted;
 
     public override PixelFormat Format => PixelFormats.Bgra32;
-    public override int PixelHeight => source.Height;
-    public override int PixelWidth => source.Width;
-    public override double DpiX => source.Metadata.HorizontalResolution;
-    public override double DpiY => source.Metadata.VerticalResolution;
-    public override BitmapPalette Palette => null;
+    public override int PixelHeight => source?.Height ?? throw new ArgumentNullException(nameof(source));
+    public override int PixelWidth => source?.Width ?? throw new ArgumentNullException(nameof(source));
+    public override double DpiX => source?.Metadata.HorizontalResolution ?? throw new ArgumentNullException(nameof(source));
+    public override double DpiY => source?.Metadata.VerticalResolution ?? throw new ArgumentNullException(nameof(source));
+    public override BitmapPalette? Palette => null;
     public override bool IsDownloading => false;
 
 

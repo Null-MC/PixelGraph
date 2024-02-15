@@ -3,8 +3,6 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Linq;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers;
@@ -14,12 +12,14 @@ internal class BicubicSampler<TPixel> : SamplerBase<TPixel>
 {
     public override IRowSampler ForRow(in double y)
     {
-        GetTexCoordY(in y, out var fy);
+        ArgumentNullException.ThrowIfNull(Image);
+
+        GetTexcoordY(in y, out var fy);
         var pyMin = (int)MathF.Floor(fy - 1.5f);
 
         return new BicubicRowSampler<TPixel> {
             Rows = Enumerable.Range(pyMin, 4).Select(i => {
-                NormalizeTexCoordY(ref i);
+                NormalizeTexcoordY(ref i);
                 return Image.DangerousGetPixelRowMemory(i)
                     .Slice(Bounds.X, Bounds.Width);
             }).ToArray(),
@@ -33,6 +33,8 @@ internal class BicubicSampler<TPixel> : SamplerBase<TPixel>
 
     public override void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue)
     {
+        ArgumentNullException.ThrowIfNull(Image);
+
         GetTexCoord(in x, in y, out var fx, out var fy);
 
         fx -= 1.5f;
@@ -50,14 +52,14 @@ internal class BicubicSampler<TPixel> : SamplerBase<TPixel>
             k[ky] = new Vector4[4];
             var ly = pyMin + ky;
 
-            NormalizeTexCoordY(ref ly);
+            NormalizeTexcoordY(ref ly);
 
             var row = Image.DangerousGetPixelRowMemory(ly).Span;
 
             for (var kx = 0; kx < 4; kx++) {
                 var lx = pxMin + kx;
 
-                NormalizeTexCoordX(ref lx);
+                NormalizeTexcoordX(ref lx);
 
                 k[ky][kx] = row[lx].ToScaledVector4();
             }

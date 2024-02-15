@@ -1,25 +1,22 @@
 ﻿using PixelGraph.Common.ResourcePack;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace PixelGraph.Common.Projects;
 
 public interface IProjectDescription : ICloneable
 {
-    string Name {get;}
-    string Description {get;}
-    string Author {get;}
-    PackInputEncoding Input {get;}
+    string? Name {get;}
+    string? Description {get;}
+    string? Author {get;}
+    PackInputEncoding? Input {get;}
 }
 
 public class ProjectData : IProjectDescription
 {
-    public string Name {get; set;}
-    public string Description {get; set;}
-    public string Author {get; set;}
-    public PackInputEncoding Input {get; set;}
-    public List<PublishProfileProperties> Profiles {get; set;}
+    public string? Name {get; set;}
+    public string? Description {get; set;}
+    public string? Author {get; set;}
+    public PackInputEncoding? Input {get; set;}
+    public List<PublishProfileProperties>? Profiles {get; set;}
 
 
     public ProjectData()
@@ -31,8 +28,8 @@ public class ProjectData : IProjectDescription
     public object Clone()
     {
         var data = (ProjectData)MemberwiseClone();
-        data.Input = (PackInputEncoding)Input.Clone();
-        data.Profiles = Profiles.Select(p => (PublishProfileProperties)p.Clone()).ToList();
+        data.Input = (PackInputEncoding?)Input?.Clone();
+        data.Profiles = Profiles?.Select(p => (PublishProfileProperties)p.Clone()).ToList();
         return data;
     }
 }

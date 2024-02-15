@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PixelGraph.Common.Extensions;
+﻿namespace PixelGraph.Common.Extensions;
 
 public static class DictionaryExtensions
 {
-    public static TValue Get<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default)
+    public static TValue? Get<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue? defaultValue = default)
     {
         return dictionary.TryGetValue(key, out var value) ? value : defaultValue;
     }

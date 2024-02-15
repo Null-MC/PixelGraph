@@ -1,13 +1,10 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace PixelGraph.Common.Extensions;
 
 public static class PathEx
 {
-    public static string Join(params string[] pathParts)
+    public static string Join(params string?[] pathParts)
     {
         var parts = pathParts.Where(p => p != null && p != ".").ToArray();
         return Path.Join(parts);
@@ -25,12 +22,23 @@ public static class PathEx
         return filename.Replace('/', Path.DirectorySeparatorChar);
     }
 
+    public static string? LocalizeNullable(string? filename)
+    {
+        if (Path.DirectorySeparatorChar == '/') return filename;
+        return filename?.Replace('/', Path.DirectorySeparatorChar);
+    }
+
     public static string Normalize(string filename)
     {
         return filename.Replace('\\', '/');
     }
 
-    public static bool MatchPattern(string name, string pattern = null)
+    public static string? NormalizeNullable(string? filename)
+    {
+        return filename?.Replace('\\', '/');
+    }
+
+    public static bool MatchPattern(string name, string? pattern = null)
     {
         if (pattern is null or "*") return true;
 

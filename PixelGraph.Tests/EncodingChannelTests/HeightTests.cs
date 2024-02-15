@@ -5,7 +5,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,7 +23,7 @@ public class HeightTests : ImageTestBase
 
         project = new ProjectData {
             Input = new PackInputEncoding {
-                Height = {
+                Height = new ResourcePackHeightChannelProperties {
                     Texture = TextureTags.Height,
                     Color = ColorChannel.Red,
                     Power = 1,
@@ -34,8 +33,8 @@ public class HeightTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
-                Height = {
+            Encoding = new PackOutputEncoding {
+                Height = new ResourcePackHeightChannelProperties {
                     Texture = TextureTags.Height,
                     Color = ColorChannel.Red,
                     Power = 1,

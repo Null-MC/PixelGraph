@@ -1,11 +1,6 @@
 ﻿using PixelGraph.Common.IO;
 using PixelGraph.UI.Internal.Settings;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal.IO.Publishing;
 
@@ -13,8 +8,8 @@ internal interface IPublishLocationManager
 {
     string SelectedLocation {get; set;}
 
-    PublishLocation[] GetLocations();
-    void SetLocations(IEnumerable<PublishLocation> locations);
+    PublishLocation[]? GetLocations();
+    void SetLocations(IEnumerable<PublishLocation>? locations);
     Task LoadAsync(CancellationToken token = default);
     Task SaveAsync(CancellationToken token = default);
 }
@@ -25,7 +20,7 @@ internal class PublishLocationManager : IPublishLocationManager, IDisposable
 
     private readonly IAppDataUtility appData;
     private readonly ReaderWriterLockSlim _lock;
-    private PublishLocation[] _locations;
+    private PublishLocation[]? _locations;
 
     public string SelectedLocation {get; set;}
 
@@ -42,10 +37,10 @@ internal class PublishLocationManager : IPublishLocationManager, IDisposable
 
     public void Dispose()
     {
-        _lock?.Dispose();
+        _lock.Dispose();
     }
 
-    public PublishLocation[] GetLocations()
+    public PublishLocation[]? GetLocations()
     {
         _lock.EnterReadLock();
 
@@ -57,7 +52,7 @@ internal class PublishLocationManager : IPublishLocationManager, IDisposable
         }
     }
 
-    public void SetLocations(IEnumerable<PublishLocation> locations)
+    public void SetLocations(IEnumerable<PublishLocation>? locations)
     {
         _lock.EnterWriteLock();
 
@@ -82,7 +77,7 @@ internal class PublishLocationManager : IPublishLocationManager, IDisposable
 
     public Task SaveAsync(CancellationToken token = default)
     {
-        var locations = GetLocations();
+        var locations = GetLocations() ?? Array.Empty<PublishLocation>();
         return appData.WriteJsonAsync(FileName, locations, token);
     }
 }

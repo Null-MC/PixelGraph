@@ -1,12 +1,12 @@
-﻿using System.Runtime.Serialization;
-using HelixToolkit.SharpDX.Core;
+﻿using HelixToolkit.SharpDX.Core;
+using System.Runtime.Serialization;
 
 namespace PixelGraph.Rendering.Models;
 
 public class BlockMeshGeometry3D : MeshGeometry3D
 {
-    private Vector2Collection textureCoordinateMins;
-    private Vector2Collection textureCoordinateMaxs;
+    private Vector2Collection textureCoordinateMins = new();
+    private Vector2Collection textureCoordinateMaxs = new();
 
     [DataMember]
     public Vector2Collection TextureCoordinateMins {
@@ -35,11 +35,11 @@ public class BlockMeshGeometry3D : MeshGeometry3D
     {
         base.OnClearAllGeometryData();
 
-        TextureCoordinateMins?.Clear();
-        TextureCoordinateMins?.TrimExcess();
+        TextureCoordinateMins.Clear();
+        TextureCoordinateMins.TrimExcess();
 
-        TextureCoordinateMaxs?.Clear();
-        TextureCoordinateMaxs?.TrimExcess();
+        TextureCoordinateMaxs.Clear();
+        TextureCoordinateMaxs.TrimExcess();
     }
 
     //public void Freeze()

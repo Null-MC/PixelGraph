@@ -7,17 +7,17 @@ namespace PixelGraph.Rendering.Materials;
 
 public class CustomNormalsMaterialCore : MaterialCore
 {
-    private TextureModel _opacityMap;
-    private TextureModel _normalHeightMap;
-    private SamplerStateDescription _surfaceMapSampler;
-    private SamplerStateDescription _heightMapSampler;
+    private TextureModel? _opacityMap;
+    private TextureModel? _normalHeightMap;
+    private SamplerStateDescription _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
+    private SamplerStateDescription _heightMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
 
-    public TextureModel OpacityMap {
+    public TextureModel? OpacityMap {
         get => _opacityMap;
         set => Set(ref _opacityMap, value);
     }
 
-    public TextureModel NormalHeightMap {
+    public TextureModel? NormalHeightMap {
         get => _normalHeightMap;
         set => Set(ref _normalHeightMap, value);
     }
@@ -32,12 +32,6 @@ public class CustomNormalsMaterialCore : MaterialCore
         set => Set(ref _heightMapSampler, value); 
     }
 
-
-    public CustomNormalsMaterialCore()
-    {
-        _surfaceMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
-        _heightMapSampler = DefaultSamplers.LinearSamplerWrapAni16;
-    }
 
     public override MaterialVariable CreateMaterialVariables(IEffectsManager manager, IRenderTechnique technique)
     {

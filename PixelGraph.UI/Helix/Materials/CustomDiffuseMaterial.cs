@@ -12,18 +12,18 @@ namespace PixelGraph.UI.Helix.Materials;
 
 public class CustomDiffuseMaterial : Material
 {
-    public TextureModel DiffuseAlphaMap {
-        get => (TextureModel)GetValue(DiffuseAlphaMapProperty);
+    public TextureModel? DiffuseAlphaMap {
+        get => (TextureModel?)GetValue(DiffuseAlphaMapProperty);
         set => SetValue(DiffuseAlphaMapProperty, value);
     }
 
-    public TextureModel EmissiveMap {
-        get => (TextureModel)GetValue(EmissiveMapProperty);
+    public TextureModel? EmissiveMap {
+        get => (TextureModel?)GetValue(EmissiveMapProperty);
         set => SetValue(EmissiveMapProperty, value);
     }
 
-    public ICubeMapSource IrradianceCubeMapSource {
-        get => (ICubeMapSource)GetValue(IrradianceCubeMapSourceProperty);
+    public ICubeMapSource? IrradianceCubeMapSource {
+        get => (ICubeMapSource?)GetValue(IrradianceCubeMapSourceProperty);
         set => SetValue(IrradianceCubeMapSourceProperty, value);
     }
 

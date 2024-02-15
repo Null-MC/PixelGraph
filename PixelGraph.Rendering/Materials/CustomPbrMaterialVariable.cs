@@ -32,11 +32,11 @@ internal class CustomPbrMaterialVariable : MaterialVariable
         ShadowSamplerIdx = 5,
         LightSamplerIdx = 6;
 
-    private readonly CustomPbrMaterialCore material;
+    private readonly CustomPbrMaterialCore? material;
 
     private readonly ITextureResourceManager textureManager;
     private readonly IStatePoolManager statePoolManager;
-    private readonly ShaderResourceViewProxy[] textureResources;
+    private readonly ShaderResourceViewProxy?[] textureResources;
     private readonly SamplerStateProxy[] samplerResources;
     private readonly ShaderPass materialPass;
     private readonly ShaderPass shadowPass;
@@ -81,13 +81,14 @@ internal class CustomPbrMaterialVariable : MaterialVariable
 
         for (var i = 0; i < NUMTEXTURES; ++i)
             RemoveAndDispose(ref textureResources[i]);
-
-
+        
         base.OnDispose(disposeManagedResources);
     }
 
     protected override void OnInitialPropertyBindings()
     {
+        ArgumentNullException.ThrowIfNull(material);
+
         AddPropertyBinding(nameof(CustomPbrMaterialCore.AlbedoAlphaMap), () => {
             CreateTextureView(material.AlbedoAlphaMap, AlbedoAlphaMapIdx);
         });
@@ -141,6 +142,8 @@ internal class CustomPbrMaterialVariable : MaterialVariable
 
     public override bool BindMaterialResources(RenderContext context, DeviceContextProxy deviceContext, ShaderPass shaderPass)
     {
+        ArgumentNullException.ThrowIfNull(material);
+
         if (HasTextures) {
             OnBindMaterialTextures(deviceContext, shaderPass.PixelShader);
         }
@@ -185,7 +188,7 @@ internal class CustomPbrMaterialVariable : MaterialVariable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void CreateTextureView(TextureModel texture, int index)
+    private void CreateTextureView(TextureModel? texture, int index)
     {
         var newTexture = texture == null
             ? null : textureManager.Register(texture);
@@ -278,6 +281,8 @@ internal class CustomPbrMaterialVariable : MaterialVariable
 
     private void CreateSamplers()
     {
+        ArgumentNullException.ThrowIfNull(material);
+
         var newSurfaceSampler = statePoolManager.Register(material.SurfaceMapSampler);
         var newHeightSampler = statePoolManager.Register(material.HeightMapSampler);
         var newShadowSampler = statePoolManager.Register(material.ShadowMapSampler);

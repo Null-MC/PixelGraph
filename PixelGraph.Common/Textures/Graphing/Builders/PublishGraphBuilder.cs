@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Nito.Disposables.Internals;
 using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Effects;
 using PixelGraph.Common.Extensions;
@@ -7,12 +8,6 @@ using PixelGraph.Common.IO;
 using PixelGraph.Common.Projects;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures.Graphing.Builders;
 
@@ -22,28 +17,19 @@ public interface IPublishGraphBuilder
     Task PublishInventoryAsync(CancellationToken token = default);
 }
 
-internal class PublishGraphBuilder : TextureGraphBuilder, IPublishGraphBuilder
+internal class PublishGraphBuilder(
+    ILogger<PublishGraphBuilder> logger,
+    IServiceProvider provider,
+    IEdgeFadeImageEffect edgeFadeEffect,
+    IItemTextureGenerator itemGenerator) : TextureGraphBuilder(provider, logger), IPublishGraphBuilder
 {
-    private readonly ILogger<PublishGraphBuilder> logger;
-    private readonly IEdgeFadeImageEffect edgeFadeEffect;
-    private readonly IItemTextureGenerator itemGenerator;
-    private string matMetaFileIn;
+    private string? matMetaFileIn;
 
-
-    public PublishGraphBuilder(
-        ILogger<PublishGraphBuilder> logger,
-        IServiceProvider provider,
-        IEdgeFadeImageEffect edgeFadeEffect,
-        IItemTextureGenerator itemGenerator)
-        : base(provider, logger)
-    {
-        this.edgeFadeEffect = edgeFadeEffect;
-        this.itemGenerator = itemGenerator;
-        this.logger = logger;
-    }
 
     public async Task PublishAsync(CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(Context.Material);
+
         Context.ApplyInputEncoding();
 
         matMetaFileIn = NamingStructure.GetInputMetaName(Context.Material);
@@ -72,6 +58,9 @@ internal class PublishGraphBuilder : TextureGraphBuilder, IPublishGraphBuilder
 
     public async Task PublishInventoryAsync(CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(Context.Profile);
+        ArgumentNullException.ThrowIfNull(Context.Material);
+
         var publish = Context.Profile.PublishInventory ?? PublishProfileProperties.PublishInventoryDefault;
 
         if (!publish) {
@@ -79,10 +68,13 @@ internal class PublishGraphBuilder : TextureGraphBuilder, IPublishGraphBuilder
             return;
         }
 
+        if (Context.Material.LocalFilename == null)
+            throw new FileNotFoundException("Material filename is undefined!");
+
         var sourceTime = Reader.GetWriteTime(Context.Material.LocalFilename);
             
         var ext = NamingStructure.GetExtension(Context.Profile);
-        if (!GetMappedInventoryName($"_inventory.{ext}", out var destFile)) return;
+        if (!GetMappedInventoryName($"_inventory.{ext}", out var destFile) || destFile == null) return;
 
         if (!IsInventoryUpToDate(destFile, sourceTime)) {
             await GenerateInventoryTextureAsync(destFile, token);
@@ -92,12 +84,15 @@ internal class PublishGraphBuilder : TextureGraphBuilder, IPublishGraphBuilder
         }
     }
 
-    protected override async Task ProcessTextureAsync<TPixel>(Image<TPixel> image, string textureTag, ImageChannels type, CancellationToken token = default)
+    protected override async Task ProcessTextureAsync<TPixel>(Image<TPixel>? image, string textureTag, ImageChannels type, CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(image);
+        ArgumentNullException.ThrowIfNull(Context.Profile);
+
         await base.ProcessTextureAsync(image, textureTag, type, token);
             
         var packPublishInventory = Context.Profile.PublishInventory ?? PublishProfileProperties.PublishInventoryDefault;
-        var matPublishItem = Context.Material.PublishItem ?? false;
+        var matPublishItem = Context.Material?.PublishItem ?? false;
 
         // WARN: hack for publishing inventory copies of non-color textures
         if (!TextureTags.Is(textureTag, TextureTags.Color) && packPublishInventory && matPublishItem) {
@@ -165,8 +160,8 @@ internal class PublishGraphBuilder : TextureGraphBuilder, IPublishGraphBuilder
     {
         DateTime? destinationTime = null;
 
-        var inputTags = Context.InputEncoding
-            .Select(e => e.Texture).Distinct().ToArray();
+        var inputTags = Context.InputEncoding?
+            .Select(e => e.Texture).WhereNotNull().Distinct().ToArray();
 
         foreach (var file in GetMaterialInputFiles(inputTags)) {
             var writeTime = Reader.GetWriteTime(file);
@@ -176,8 +171,8 @@ internal class PublishGraphBuilder : TextureGraphBuilder, IPublishGraphBuilder
                 sourceTime = writeTime;
         }
 
-        var outputTags = Context.OutputEncoding
-            .Select(e => e.Texture).Distinct().ToArray();
+        var outputTags = Context.OutputEncoding?
+            .Select(e => e.Texture).WhereNotNull().Distinct().ToArray();
 
         foreach (var file in GetMaterialOutputFiles(outputTags)) {
             var writeTime = Writer.GetWriteTime(file);
@@ -200,18 +195,24 @@ internal class PublishGraphBuilder : TextureGraphBuilder, IPublishGraphBuilder
 
     private IEnumerable<string> GetMaterialInputFiles(IEnumerable<string> textureTags)
     {
+        ArgumentNullException.ThrowIfNull(Context.Material);
+
         return textureTags.SelectMany(tag => TexReader.EnumerateInputTextures(Context.Material, tag));
     }
 
     private IEnumerable<string> GetMaterialOutputFiles(IEnumerable<string> textureTags)
     {
+        ArgumentNullException.ThrowIfNull(Context.Material);
+        ArgumentNullException.ThrowIfNull(Context.Profile);
+        ArgumentNullException.ThrowIfNull(Context.Mapping);
+
         var ext = NamingStructure.GetExtension(Context.Profile);
         var sourcePath = Context.Material.LocalPath;
         if (!Context.PublishAsGlobal || (Context.IsMaterialCtm && !Context.Material.UseGlobalMatching))
             sourcePath = PathEx.Join(sourcePath, Context.Material.Name);
 
         foreach (var tag in textureTags) {
-            if (Context.IsMaterialMultiPart) {
+            if (Context.IsMaterialMultiPart && Context.Material.Parts != null) {
                 foreach (var part in Context.Material.Parts) {
                     var sourceName = TexWriter.TryGet(tag, part.Name, null, true);
                     if (sourceName == null) {
@@ -270,8 +271,11 @@ internal class PublishGraphBuilder : TextureGraphBuilder, IPublishGraphBuilder
         return IsUpToDate(Context.PackWriteTime, sourceTime, destinationTime);
     }
 
-    private bool GetMappedInventoryName(in string suffix, out string destFile)
+    private bool GetMappedInventoryName(in string suffix, out string? destFile)
     {
+        ArgumentNullException.ThrowIfNull(Context.Material);
+        ArgumentNullException.ThrowIfNull(Context.Mapping);
+
         var sourcePath = Context.Material.LocalPath;
 
         if (Context.IsMaterialCtm)
@@ -295,6 +299,9 @@ internal class PublishGraphBuilder : TextureGraphBuilder, IPublishGraphBuilder
         var srcHeight = image.Height;
 
         if (srcWidth == 1 && srcHeight == 1) return image.Clone();
+
+        if (part.Frames == null || part.Frames.Length == 0)
+            throw new ApplicationException("Image does not have any frames!");
             
         var firstFrame = part.Frames.First();
         var frameCount = !targetFrame.HasValue ? part.Frames.Length : 1;

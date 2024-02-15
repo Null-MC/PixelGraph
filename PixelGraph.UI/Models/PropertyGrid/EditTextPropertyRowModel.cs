@@ -25,5 +25,5 @@ public class EditTextPropertyRowModel<TProperty, TValue> : EditPropertyRowModelB
     public decimal RangeMin {get; set;}
     public decimal RangeMax {get; set;}
         
-    public EditTextPropertyRowModel(string name, string propertyName, object defaultValue = null) : base(name, propertyName, defaultValue) {}
+    public EditTextPropertyRowModel(string name, string propertyName, object? defaultValue = null) : base(name, propertyName, defaultValue) {}
 }

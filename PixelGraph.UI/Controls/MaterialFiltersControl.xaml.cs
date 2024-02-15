@@ -1,23 +1,21 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Material;
+using PixelGraph.UI.Internal.IO.Models;
 using PixelGraph.UI.Models;
-using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PixelGraph.UI.Internal.IO.Models;
 
 namespace PixelGraph.UI.Controls;
 
 public partial class MaterialFiltersControl
 {
-    public event EventHandler DataChanged;
+    public event EventHandler? DataChanged;
 
-    private IServiceProvider provider;
-    private ILogger<MaterialFiltersControl> logger;
+    private IServiceProvider? provider;
+    private ILogger<MaterialFiltersControl>? logger;
 
     public ITexturePreviewModel TexturePreviewModel {
         get => (ITexturePreviewModel)GetValue(TexturePreviewModelProperty);
@@ -90,6 +88,8 @@ public partial class MaterialFiltersControl
         var window = Window.GetWindow(this);
         if (window == null) throw new ApplicationException("Unable to locate parent window handle!");
 
+        ArgumentNullException.ThrowIfNull(provider);
+
         material.Filters ??= new List<MaterialFilter>();
 
         if (material.Filters.Count > 0) {
@@ -106,7 +106,7 @@ public partial class MaterialFiltersControl
             Model.UpdateFilterList();
         }
         catch (Exception error) {
-            logger.LogError(error, "Failed to import UV mappings from entity model!");
+            logger?.LogError(error, "Failed to import UV mappings from entity model!");
             MessageBox.Show(window, "Failed to import UV mappings from entity model!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
@@ -114,7 +114,7 @@ public partial class MaterialFiltersControl
     private void OnFilterPropertyChanged(object sender, PropertyGridChangedEventArgs e)
     {
         var row = Model.SelectedFilter;
-        if (row == null) return;
+        if (row == null || e.PropertyName == null) return;
 
         row.NotifyPropertyChanged(e.PropertyName);
 

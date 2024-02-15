@@ -1,5 +1,4 @@
 ﻿using PixelGraph.UI.Internal.Preview;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData;
 
@@ -14,7 +13,7 @@ internal class WaterModeValues : List<WaterModeValues.Item>
 
     public class Item
     {
-        public string Text {get; set;}
+        public string? Text {get; set;}
         public int Value {get; set;}
     }
 }

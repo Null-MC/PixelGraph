@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using MahApps.Metro.IconPacks;
+﻿using MahApps.Metro.IconPacks;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.UI.ViewModels;
+using System.IO;
 
 namespace PixelGraph.UI.Internal.IO;
 
@@ -32,8 +29,8 @@ internal class ContentTreeReader
             var isMat = IsLocalMaterialPath(childPath, out var matFile);
 
             var existingNode = TryRemove(existingNodes, x => {
-                if (isMat && !(x is ContentTreeMaterialDirectory)) return false;
-                if (!isMat && !(x is ContentTreeDirectory)) return false;
+                if (isMat && x is not ContentTreeMaterialDirectory) return false;
+                if (!isMat && x is not ContentTreeDirectory) return false;
                 return string.Equals(x.LocalPath, childPath, StringComparison.InvariantCultureIgnoreCase);
             });
 
@@ -60,7 +57,7 @@ internal class ContentTreeReader
             if (isParentMat && string.Equals(fileName, "pbr.yml", StringComparison.InvariantCultureIgnoreCase)) continue;
 
             var existingNode = TryRemove(existingNodes, x => {
-                if (!(x is ContentTreeFile fileNode)) return false;
+                if (x is not ContentTreeFile fileNode) return false;
                 return string.Equals(fileNode.Filename, file, StringComparison.InvariantCultureIgnoreCase);
             });
 
@@ -82,7 +79,7 @@ internal class ContentTreeReader
             parentNode.Nodes.Remove(node);
     }
 
-    private static ContentTreeNode TryRemove(IList<ContentTreeNode> nodes, Func<ContentTreeNode, bool> filter)
+    private static ContentTreeNode? TryRemove(IList<ContentTreeNode> nodes, Func<ContentTreeNode, bool> filter)
     {
         for (var i = nodes.Count - 1; i >= 0; i--) {
             var node = nodes[i];

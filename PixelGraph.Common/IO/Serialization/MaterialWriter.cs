@@ -1,8 +1,5 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -36,6 +33,8 @@ internal class MaterialWriter : IMaterialWriter
         
     public Task WriteAsync(MaterialProperties material, CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(material.LocalFilename);
+
         return writer.OpenWriteAsync(material.LocalFilename, async stream => {
             await using var streamWriter = new StreamWriter(stream);
             serializer.Serialize(streamWriter, material);

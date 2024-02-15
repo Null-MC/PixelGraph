@@ -6,11 +6,6 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Texture;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using ImageExtensions = PixelGraph.Common.IO.ImageExtensions;
 
 namespace PixelGraph.Common.Textures.Graphing.Builders;
@@ -93,9 +88,12 @@ internal abstract class TextureGraphBuilder
         }
     }
 
-    protected virtual async Task ProcessTextureAsync<TPixel>(Image<TPixel> image, string textureTag, ImageChannels type, CancellationToken token = default)
+    protected virtual async Task ProcessTextureAsync<TPixel>(Image<TPixel>? image, string textureTag, ImageChannels type, CancellationToken token = default)
         where TPixel : unmanaged, IPixel<TPixel>
     {
+        ArgumentNullException.ThrowIfNull(Context.Material);
+        ArgumentNullException.ThrowIfNull(Context.Profile);
+
         if (image == null) {
             logger.LogWarning("No texture sources found for item {DisplayName} texture {textureTag}.", Context.Material.DisplayName, textureTag);
             return;
@@ -154,12 +152,16 @@ internal abstract class TextureGraphBuilder
 
     protected async Task CopyPropertiesAsync(CancellationToken token)
     {
+        ArgumentNullException.ThrowIfNull(Context.Material);
+
         var propsFileIn = NamingStructure.GetInputPropertiesName(Context.Material);
         if (!Reader.FileExists(propsFileIn)) return;
 
         var propsFileOut = NamingStructure.GetOutputPropertiesName(Context.Material, Context.PublishAsGlobal);
 
-        await using var sourceStream = Reader.Open(propsFileIn);
+        await using var sourceStream = Reader.Open(propsFileIn)
+            ?? throw new ApplicationException("Failed to open properties file stream!");
+
         await Writer.OpenWriteAsync(propsFileOut, async destStream => {
             await sourceStream.CopyToAsync(destStream, token);
         }, token);
@@ -167,6 +169,8 @@ internal abstract class TextureGraphBuilder
 
     protected async Task ImportMetaAsync(CancellationToken token)
     {
+        ArgumentNullException.ThrowIfNull(Context.Material);
+
         var path = Context.Material.LocalPath;
 
         foreach (var file in Reader.EnumerateFiles(path, "*.mcmeta")) {
@@ -176,7 +180,7 @@ internal abstract class TextureGraphBuilder
             if (!ImageExtensions.Supports(ext)) continue;
 
             name = Path.GetFileNameWithoutExtension(name);
-            if (!Context.Material.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)) continue;
+            if (!string.Equals(name, Context.Material.Name, StringComparison.InvariantCultureIgnoreCase)) continue;
 
             var metaFileOut = NamingStructure.GetInputMetaName(Context.Material);
             await CopyMetaFileAsync(file, metaFileOut, token);
@@ -185,6 +189,8 @@ internal abstract class TextureGraphBuilder
 
     protected async Task CopyMetaAsync(string tag, CancellationToken token)
     {
+        ArgumentNullException.ThrowIfNull(Context.Material);
+
         var metaFileIn = TexWriter.GetInputMetaName(Context.Material, tag);
 
         if (!Reader.FileExists(metaFileIn)) {
@@ -207,6 +213,8 @@ internal abstract class TextureGraphBuilder
     private async Task CopyMetaFileAsync(string metaFileIn, string metaFileOut, CancellationToken token)
     {
         await using var sourceStream = Reader.Open(metaFileIn);
+        if (sourceStream == null) throw new ApplicationException("Failed to open meta file stream!");
+
         await Writer.OpenWriteAsync(metaFileOut, async destStream => {
             await sourceStream.CopyToAsync(destStream, token);
         }, token);

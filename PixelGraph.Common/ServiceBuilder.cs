@@ -18,8 +18,8 @@ public interface IServiceBuilder
     ServiceCollection Services {get;}
 
     void Initialize();
-    void ConfigureReader(ContentTypes contentType, GameEditions gameEdition, string rootPath);
-    void ConfigureWriter(ContentTypes contentType, GameEditions gameEdition, string rootPath);
+    void ConfigureReader(ContentTypes contentType, GameEditions gameEdition, string? rootPath);
+    void ConfigureWriter(ContentTypes contentType, GameEditions gameEdition, string? rootPath);
     void AddImporter(GameEditions gameEdition);
     void AddPublisher(GameEditions gameEdition);
 
@@ -86,14 +86,14 @@ public class ServiceBuilder : IServiceBuilder
         //Services.AddTransient<ProjectSerializer>();
     }
 
-    public void ConfigureReader(ContentTypes contentType, GameEditions gameEdition, string rootPath)
+    public void ConfigureReader(ContentTypes contentType, GameEditions gameEdition, string? rootPath)
     {
         AddContentReader(contentType);
         AddTextureReader(gameEdition);
         Services.Configure<InputOptions>(options => options.Root = rootPath);
     }
 
-    public void ConfigureWriter(ContentTypes contentType, GameEditions gameEdition, string rootPath)
+    public void ConfigureWriter(ContentTypes contentType, GameEditions gameEdition, string? rootPath)
     {
         AddContentWriter(contentType);
         AddTextureWriter(gameEdition);

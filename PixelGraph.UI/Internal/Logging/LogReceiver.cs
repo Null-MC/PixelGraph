@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Serilog.Events;
 
 namespace PixelGraph.UI.Internal.Logging;
@@ -22,7 +21,7 @@ internal interface ILogReceiver
 
 internal class SerilogReceiver : ILogReceiver, Serilog.ILogger
 {
-    public event EventHandler<LogEventArgs> LogMessage;
+    public event EventHandler<LogEventArgs>? LogMessage;
 
 
     public void Log(LogLevel level, string message)

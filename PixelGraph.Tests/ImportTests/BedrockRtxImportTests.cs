@@ -11,7 +11,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -36,7 +35,7 @@ public class BedrockRtxImportTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
+            Encoding = new PackOutputEncoding {
                 Format = TextureFormat.Format_Rtx,
             },
         };

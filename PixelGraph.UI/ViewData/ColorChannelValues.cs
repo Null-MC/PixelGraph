@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common.Textures;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData;
 
@@ -15,7 +14,7 @@ internal class ColorChannelValues : List<ColorChannelValues.Item>
 
     public class Item
     {
-        public string Text {get; set;}
+        public string? Text {get; set;}
         public ColorChannel? Value {get; set;}
     }
 }

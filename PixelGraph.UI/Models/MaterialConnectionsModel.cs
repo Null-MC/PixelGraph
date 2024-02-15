@@ -4,16 +4,15 @@ using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.PropertyGrid;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
-using System;
 using System.ComponentModel;
 
 namespace PixelGraph.UI.Models;
 
 internal class MaterialConnectionsModel : ModelBase
 {
-    private MaterialProperties _material;
+    private MaterialProperties? _material;
 
-    public event EventHandler DataChanged;
+    public event EventHandler? DataChanged;
 
     public PrimaryConnectionPropertyCollection PrimaryProperties {get;}
     public CTMPropertyCollection ConnectionProperties {get;}
@@ -21,7 +20,7 @@ internal class MaterialConnectionsModel : ModelBase
     public bool HasMaterial => _material != null;
     public bool IsMethodNotNone => _material?.CTM?.Method != null;
 
-    public MaterialProperties Material {
+    public MaterialProperties? Material {
         get => _material;
         set {
             if (_material == value) return;
@@ -50,7 +49,7 @@ internal class MaterialConnectionsModel : ModelBase
         ConnectionProperties.PropertyChanged += OnPropertyValueChanged;
     }
 
-    private void OnPrimaryPropertyValueChanged(object sender, PropertyChangedEventArgs e)
+    private void OnPrimaryPropertyValueChanged(object? sender, PropertyChangedEventArgs e)
     {
         OnDataChanged();
 
@@ -58,7 +57,7 @@ internal class MaterialConnectionsModel : ModelBase
             OnPropertyChanged(nameof(IsMethodNotNone));
     }
 
-    private void OnPropertyValueChanged(object sender, PropertyChangedEventArgs e)
+    private void OnPropertyValueChanged(object? sender, PropertyChangedEventArgs e)
     {
         OnDataChanged();
     }
@@ -73,8 +72,7 @@ public class PrimaryConnectionPropertyCollection : PropertyCollectionBase<Materi
 {
     public PrimaryConnectionPropertyCollection()
     {
-        var methodValues = new CtmTypeValues();
-        var methodOptions = new SelectPropertyRowOptions(methodValues, "Text", "Value");
+        var methodOptions = new SelectPropertyRowOptions(new CtmTypeValues(), "Text", "Value");
         AddSelect<string>("Method", nameof(MaterialConnectionProperties.Method), methodOptions);
     }
 }
@@ -96,7 +94,7 @@ public class CTMPropertyCollection : PropertyCollectionBase<MaterialConnectionPr
         AddBool("Placeholder", nameof(MaterialConnectionProperties.Placeholder), false);
     }
 
-    public void SetData(MaterialProperties material)
+    public void SetData(MaterialProperties? material)
     {
         base.SetData(material?.CTM);
 

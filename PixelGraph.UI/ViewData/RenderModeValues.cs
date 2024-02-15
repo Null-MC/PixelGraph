@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Rendering;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData;
 
@@ -22,7 +21,7 @@ internal class RenderModeValues : List<RenderModeValues.Item>
 
     public class Item
     {
-        public string Text {get; set;}
+        public string? Text {get; set;}
         public RenderPreviewModes Value {get; set;}
     }
 }

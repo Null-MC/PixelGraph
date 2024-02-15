@@ -2,7 +2,6 @@
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
-using System;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Projects;
@@ -30,7 +29,7 @@ public class PublishProfileProperties : IHaveData, ICloneable
     /// See <see cref="GameEdition"/>.
     /// </remarks>
     [YamlMember(Order = -99)]
-    public string Edition {get; set;}
+    public string? Edition {get; set;}
 
     /// <summary>
     /// Gets or sets the Header UUID.
@@ -65,12 +64,12 @@ public class PublishProfileProperties : IHaveData, ICloneable
     /// Gets or sets the name that will be shown next to the RP in-game.
     /// For Bedrock only!
     /// </summary>
-    public string Name {get; set;}
+    public string? Name {get; set;}
 
     /// <summary>
     /// Gets or sets the text description that will be shown next to the RP in-game.
     /// </summary>
-    public string Description {get; set;}
+    public string? Description {get; set;}
 
     /// <summary>
     /// Gets or sets the tag text that will be shown next to the RP in-game.
@@ -78,9 +77,9 @@ public class PublishProfileProperties : IHaveData, ICloneable
     /// <remarks>
     /// This is the second line of the RP description in-game.
     /// </remarks>
-    public string Tags {get; set;}
+    public string? Tags {get; set;}
 
-    public PackOutputEncoding Encoding {get; set;}
+    public PackOutputEncoding? Encoding {get; set;} = new();
 
     public int? TextureSize {get; set;}
     public int? BlockTextureSize {get; set;}
@@ -98,7 +97,7 @@ public class PublishProfileProperties : IHaveData, ICloneable
 
     public bool? BakeOcclusionToColor {get; set;}
 
-    public string NormalMethodDefault {get; set;}
+    public string? NormalMethodDefault {get; set;}
 
     public decimal? NormalStrengthDefault {get; set;}
 
@@ -113,15 +112,16 @@ public class PublishProfileProperties : IHaveData, ICloneable
     public int? TileStartIndex {get; set;}
 
 
-    public PublishProfileProperties()
-    {
-        Encoding = new PackOutputEncoding();
-    }
+    //public string GetSampler(string encodingChannel)
+    //{
+    //    var shit = null;
+    //    return shit ?? Encoding?.Sampler;
+    //}
 
     public virtual object Clone()
     {
         var clone = (PublishProfileProperties)MemberwiseClone();
-        clone.Encoding = (PackOutputEncoding)Encoding.Clone();
+        clone.Encoding = (PackOutputEncoding?)Encoding?.Clone();
         return clone;
     }
 
@@ -134,7 +134,7 @@ public class PublishProfileProperties : IHaveData, ICloneable
         if (!string.IsNullOrWhiteSpace(Name)) return true;
         if (!string.IsNullOrWhiteSpace(Description)) return true;
         if (!string.IsNullOrWhiteSpace(Tags)) return true;
-        if (Encoding.HasAnyData()) return true;
+        if (Encoding != null && Encoding.HasAnyData()) return true;
         if (TextureSize.HasValue) return true;
         if (BlockTextureSize.HasValue) return true;
         if (ItemTextureSize.HasValue) return true;

@@ -10,7 +10,7 @@ namespace PixelGraph.Rendering.CubeMaps;
 
 public class IrradianceCubeNode : SceneNode, ICubeMapSource
 {
-    public ICubeMapSource EnvironmentCubeMapSource {
+    public ICubeMapSource? EnvironmentCubeMapSource {
         get => ((IrradianceCubeCore)RenderCore).EnvironmentCubeMapSource;
         set => ((IrradianceCubeCore)RenderCore).EnvironmentCubeMapSource = value;
     }
@@ -25,8 +25,8 @@ public class IrradianceCubeNode : SceneNode, ICubeMapSource
         set => ((IrradianceCubeCore)RenderCore).FaceSize = value;
     }
 
-    public ShaderResourceViewProxy CubeMap => ((IrradianceCubeCore)RenderCore).CubeMap;
-    public long LastUpdated => ((IrradianceCubeCore)RenderCore)?.LastUpdated ?? 0;
+    public ShaderResourceViewProxy? CubeMap => ((IrradianceCubeCore)RenderCore).CubeMap;
+    public long LastUpdated => ((IrradianceCubeCore)RenderCore).LastUpdated;
 
 
     //public IrradianceCubeNode()

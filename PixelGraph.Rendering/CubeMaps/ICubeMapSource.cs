@@ -4,6 +4,6 @@ namespace PixelGraph.Rendering.CubeMaps;
 
 public interface ICubeMapSource
 {
-    ShaderResourceViewProxy CubeMap {get;}
+    ShaderResourceViewProxy? CubeMap {get;}
     long LastUpdated {get;}
 }

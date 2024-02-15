@@ -1,6 +1,5 @@
 ﻿using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
-using System;
 
 namespace PixelGraph.Common.Material;
 
@@ -9,8 +8,8 @@ public class MaterialHeightProperties : IHaveData
     public const decimal DefaultEdgeFadeStrength = 1.0m;
     //public const bool DefaultAutoLevel = false;
 
-    public ResourcePackHeightChannelProperties Input {get; set;}
-    public string Texture {get; set;}
+    public ResourcePackHeightChannelProperties? Input {get; set;}
+    public string? Texture {get; set;}
     public decimal? Shift {get; set;}
     public decimal? Scale {get; set;}
     public decimal? EdgeFadeX {get; set;}

@@ -1,9 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using PixelGraph.Common.Extensions;
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO;
 
@@ -19,7 +15,7 @@ internal class FileOutputWriter : IOutputWriter
 
     public void Prepare()
     {
-        if (!Directory.Exists(options.Value.Root))
+        if (options.Value.Root != null && !Directory.Exists(options.Value.Root))
             Directory.CreateDirectory(options.Value.Root);
     }
 
@@ -70,7 +66,8 @@ internal class FileOutputWriter : IOutputWriter
 
     public void Clean()
     {
-        Directory.Delete(options.Value.Root, true);
+        if (options.Value.Root != null && Directory.Exists(options.Value.Root))
+            Directory.Delete(options.Value.Root, true);
     }
 
     public DateTime? GetWriteTime(string localFile)

@@ -1,10 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
+using Nito.Disposables.Internals;
 using PixelGraph.Common.Extensions;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
 
 namespace PixelGraph.Common.IO;
 
@@ -17,18 +14,18 @@ internal class ArchiveInputReader : BaseInputReader, IDisposable
 
     public ArchiveInputReader(IOptions<InputOptions> options)
     {
-        filename = options.Value.Root;
+        filename = options.Value.Root ?? throw new ApplicationException("Input filename is undefined!");
         fileStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
         archive = new ZipArchive(fileStream, ZipArchiveMode.Read);
     }
 
     public void Dispose()
     {
-        fileStream?.Dispose();
-        archive?.Dispose();
+        fileStream.Dispose();
+        archive.Dispose();
     }
 
-    public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null)
+    public override IEnumerable<string> EnumerateDirectories(string localPath, string? pattern = null)
     {
         var fullPath = localPath == "." ? string.Empty : localPath;
         var start = fullPath.Length;
@@ -36,10 +33,10 @@ internal class ArchiveInputReader : BaseInputReader, IDisposable
         return GetPathEntries(fullPath).Select(e => {
             var i = e.FullName.IndexOf('/', start + 1);
             return i < 0 ? null : e.FullName[..i].TrimStart('/');
-        }).Where(x => x != null).Distinct();
+        }).WhereNotNull().Distinct();
     }
 
-    public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = null)
+    public override IEnumerable<string> EnumerateFiles(string localPath, string? pattern = null)
     {
         var fullPath = localPath == "." ? string.Empty : localPath;
 
@@ -63,16 +60,18 @@ internal class ArchiveInputReader : BaseInputReader, IDisposable
         throw new NotImplementedException();
     }
 
-    public override Stream Open(string localFile)
+    public override Stream? Open(string localFile)
     {
         var file = PathEx.Normalize(localFile);
+        if (file == null) throw new FileNotFoundException();
+
         return archive.GetEntry(file)?.Open();
     }
 
     public override bool FileExists(string localFile)
     {
         var file = PathEx.Normalize(localFile);
-        return archive.GetEntry(file) != null;
+        return file != null && archive.GetEntry(file) != null;
     }
 
     public override DateTime? GetWriteTime(string localFile)
@@ -84,6 +83,7 @@ internal class ArchiveInputReader : BaseInputReader, IDisposable
     private IEnumerable<ZipArchiveEntry> GetPathEntries(string localPath)
     {
         var path = PathEx.Normalize(localPath);
+        if (path == null) throw new FileNotFoundException();
 
         foreach (var entry in archive.Entries) {
             if (string.IsNullOrEmpty(entry.Name)) continue;
@@ -95,7 +95,7 @@ internal class ArchiveInputReader : BaseInputReader, IDisposable
         }
     }
 
-    private static string GetDirectoryName(string path)
+    private static string? GetDirectoryName(string path)
     {
         var i = path.LastIndexOf('/');
         return i > 0 ? path[..i] : null;

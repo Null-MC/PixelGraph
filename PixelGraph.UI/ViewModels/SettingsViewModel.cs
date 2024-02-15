@@ -3,19 +3,16 @@ using PixelGraph.Common.IO;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Settings;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.ViewModels;
 
 internal class SettingsViewModel : ModelBase
 {
-    private IAppSettingsManager appSettings;
-    private AppSettingsDataModel data;
+    private IAppSettingsManager? appSettings;
+    private AppSettingsDataModel? data;
     private bool isLoading;
 
-    public event EventHandler DataChanged;
+    public event EventHandler? DataChanged;
 
     public int DefaultConcurrency {get;}
     public int DefaultMaxRecent {get;}
@@ -44,7 +41,7 @@ internal class SettingsViewModel : ModelBase
         }
     }
 
-    public string App_ThemeBaseColor {
+    public string? App_ThemeBaseColor {
         get => data?.ThemeBaseColor;
         set {
             if (data == null) return;
@@ -54,7 +51,7 @@ internal class SettingsViewModel : ModelBase
         }
     }
 
-    public string App_ThemeAccentColor {
+    public string? App_ThemeAccentColor {
         get => data?.ThemeAccentColor;
         set {
             if (data == null) return;
@@ -64,7 +61,7 @@ internal class SettingsViewModel : ModelBase
         }
     }
 
-    public string Texture_ImageEditorExe {
+    public string? Texture_ImageEditorExe {
         get => data?.TextureEditorExecutable;
         set {
             if (data == null) return;
@@ -74,7 +71,7 @@ internal class SettingsViewModel : ModelBase
         }
     }
 
-    public string Texture_ImageEditorArgs {
+    public string? Texture_ImageEditorArgs {
         get => data?.TextureEditorArguments;
         set {
             if (data == null) return;
@@ -235,7 +232,12 @@ internal class SettingsViewModel : ModelBase
 
     public async Task SaveSettingsAsync(CancellationToken token = default)
     {
-        appSettings.Data = data;
+        if (appSettings == null) {
+            // warn
+            return;
+        }
+
+        appSettings.Data = data ?? new AppSettingsDataModel();
         await appSettings.SaveAsync(token);
     }
 

@@ -5,7 +5,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,7 +23,7 @@ public class HcmTests : ImageTestBase
 
         project = new ProjectData {
             Input = new PackInputEncoding {
-                HCM = {
+                HCM = new ResourcePackHcmChannelProperties {
                     Texture = TextureTags.HCM,
                     Color = ColorChannel.Red,
                     MinValue = 230m,
@@ -37,8 +36,8 @@ public class HcmTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
-                HCM = {
+            Encoding = new PackOutputEncoding {
+                HCM = new ResourcePackHcmChannelProperties {
                     Texture = TextureTags.HCM,
                     Color = ColorChannel.Red,
                     MinValue = 230m,
@@ -139,7 +138,7 @@ public class HcmTests : ImageTestBase
 
         graph.Project = new ProjectData {
             Input = new PackInputEncoding {
-                Metal = {
+                Metal = new ResourcePackMetalChannelProperties {
                     Texture = TextureTags.Metal,
                     Color = ColorChannel.Red,
                 },

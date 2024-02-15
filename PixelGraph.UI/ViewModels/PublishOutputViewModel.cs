@@ -7,36 +7,37 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.Projects;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Extensions;
+using PixelGraph.UI.Internal.Logging;
 using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Settings;
-using System;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using PixelGraph.UI.Internal.Logging;
+using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.ViewModels;
 
-internal class PublishOutputViewModel : ModelBase, IDisposable
+internal class PublishOutputModel(
+    ILogger<PublishOutputViewModel> logger,
+    IProjectContextManager projectContextMgr,
+    IAppSettingsManager settings,
+    IServiceProvider provider)
+    : INotifyPropertyChanged
 {
-    private readonly CancellationTokenSource tokenSource;
-    private ILogger<PublishOutputViewModel> logger;
-    private IServiceProvider _provider;
-    private IAppSettingsManager settings;
-    private IProjectContextManager projectContextMgr;
     private double _progress;
     private bool _closeOnComplete;
-    private bool isInitializing;
 
     private volatile bool isRunning;
     private volatile bool _isLoading;
     private volatile bool _isActive;
     private volatile bool _isAnalyzing;
 
-    public event EventHandler<PublishStatus> StateChanged;
-    public event EventHandler<LogEventArgs> LogAppended;
+    public bool IsInitializing = true;
 
-    public string Destination {get; set;}
+    public event PropertyChangedEventHandler? PropertyChanged;
+    public event EventHandler<PublishStatus>? StateChanged;
+    public event EventHandler<LogEventArgs>? LogAppended;
+
+    public string? Destination {get; set;}
     public bool Archive {get; set;}
     public bool Clean {get; set;}
 
@@ -83,35 +84,13 @@ internal class PublishOutputViewModel : ModelBase, IDisposable
             _closeOnComplete = value;
             OnPropertyChanged();
 
-            if (!isInitializing) {
+            if (!IsInitializing) {
                 settings.Data.PublishCloseOnComplete = value;
                 settings.SaveAsync();
             }
         }
     }
 
-
-    public PublishOutputViewModel()
-    {
-        tokenSource = new CancellationTokenSource();
-        isInitializing = true;
-    }
-
-    public void Initialize(IServiceProvider provider)
-    {
-        _provider = provider;
-
-        logger = provider.GetRequiredService<ILogger<PublishOutputViewModel>>();
-        projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
-        settings = provider.GetRequiredService<IAppSettingsManager>();
-
-        isInitializing = false;
-    }
-
-    public void Dispose()
-    {
-        tokenSource?.Dispose();
-    }
 
     public async Task<bool> PublishAsync(CancellationToken token = default)
     {
@@ -124,14 +103,15 @@ internal class PublishOutputViewModel : ModelBase, IDisposable
 
         OnStateChanged(ref status);
 
-        var projectContext = projectContextMgr.GetContext();
+        var projectContext = projectContextMgr.GetContextRequired();
+        var profile = projectContext.SelectedProfile ?? throw new ApplicationException("Publishing profile is undefined!");
 
         var timer = Stopwatch.StartNew();
-        logger.LogInformation("Publishing profile '{Name}'...", projectContext.SelectedProfile.Name);
+        logger.LogInformation("Publishing profile '{Name}'...", profile.Name);
 
         var concurrency = settings.Data.Concurrency ?? ConcurrencyHelper.GetDefaultValue();
         OnLogAppended(LogLevel.Debug, $"  Concurrency: {concurrency:N0}");
-        IPublishSummary summary = null;
+        IPublishSummary? summary = null;
 
         try {
             summary = await Task.Run(() => PublishInternalAsync(projectContext, token), token);
@@ -170,14 +150,16 @@ internal class PublishOutputViewModel : ModelBase, IDisposable
         if (!isRunning) return;
 
         OnLogAppended(LogLevel.Warning, "Cancelling...");
-        tokenSource?.Cancel();
     }
 
     private async Task<IPublishSummary> PublishInternalAsync(IProjectContext projectContext, CancellationToken token)
     {
-        var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
+        var profile = projectContext.SelectedProfile ?? throw new ApplicationException("Publishing profile is undefined!");
+        if (profile.Edition == null) throw new ApplicationException("Game Edition is undefined!");
 
-        var edition = GameEdition.Parse(projectContext.SelectedProfile.Edition);
+        var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
+
+        var edition = GameEdition.Parse(profile.Edition);
         var contentType = Archive ? ContentTypes.Archive : ContentTypes.File;
 
         serviceBuilder.Initialize();
@@ -220,7 +202,7 @@ internal class PublishOutputViewModel : ModelBase, IDisposable
         return scope.GetRequiredService<IPublishSummary>();
     }
 
-    private void OnInternalLog(object sender, LogEventArgs e)
+    private void OnInternalLog(object? sender, LogEventArgs e)
     {
         OnLogAppended(e.Level, e.Message);
     }
@@ -235,13 +217,65 @@ internal class PublishOutputViewModel : ModelBase, IDisposable
         var e = new LogEventArgs(level, message);
         LogAppended?.Invoke(this, e);
     }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
+    }
 }
 
-internal class PublishOutputDesignerViewModel : PublishOutputViewModel
+internal class PublishOutputViewModel : ModelBase, IDisposable
+{
+    private readonly CancellationTokenSource tokenSource = new();
+
+    public PublishOutputModel? Data {get; private set;}
+
+
+    public void Dispose()
+    {
+        tokenSource.Dispose();
+    }
+
+    public void Initialize(IServiceProvider? provider)
+    {
+        if (provider == null) return;
+
+        Data = provider.GetRequiredService<PublishOutputModel>();
+        Data.IsInitializing = false;
+        OnPropertyChanged(nameof(Data));
+    }
+
+    public void Cancel()
+    {
+        Data?.Cancel();
+        tokenSource.Cancel();
+    }
+
+    internal class DesignerViewModel : PublishOutputViewModel
+    {
+        protected DesignerViewModel()
+        {
+            Initialize(null);
+        }
+    }
+}
+
+internal class PublishOutputDesignerViewModel : PublishOutputViewModel.DesignerViewModel
 {
     public PublishOutputDesignerViewModel()
     {
-        IsActive = true;
+        ArgumentNullException.ThrowIfNull(Data);
+
+        Data.IsActive = true;
+
         //OnAppendLog(LogLevel.Debug, "Hello World!");
         //AppendLog(LogLevel.Warning, "Something is wrong...");
         //AppendLog(LogLevel.Error, "DANGER Will Robinson");

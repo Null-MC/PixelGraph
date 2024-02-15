@@ -18,69 +18,51 @@ namespace PixelGraph.Common.Textures;
 
 public interface ITextureBuilder
 {
-    PackEncodingChannel[] InputChannels {get; set;}
-    PackEncodingChannel[] OutputChannels {get; set;}
+    PackEncodingChannel[]? InputChannels {get; set;}
+    PackEncodingChannel[]? OutputChannels {get; set;}
     bool HasMappedSources {get;}
     int FrameCount {get;}
     int? TargetFrame {get; set;}
     int? TargetPart {get; set;}
 
     Task MapAsync(bool createEmpty, CancellationToken token = default);
-    Task<Image<TPixel>>  BuildAsync<TPixel>(bool createEmpty, Size? targetSize = null, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
+    Task<Image<TPixel>?> BuildAsync<TPixel>(bool createEmpty, Size? targetSize = null, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
 }
 
-internal class TextureBuilder : ITextureBuilder
+internal class TextureBuilder(
+    IServiceProvider provider,
+    IInputReader reader,
+    ITextureReader matReader,
+    ITextureGraphContext context,
+    ITextureSourceGraph sourceGraph,
+    ITextureNormalGraph normalGraph,
+    ITextureOcclusionGraph occlusionGraph) : ITextureBuilder
 {
-    private readonly IServiceProvider provider;
-    private readonly IInputReader reader;
-    private readonly ITextureReader matReader;
-    private readonly ITextureGraphContext context;
-    private readonly ITextureSourceGraph sourceGraph;
-    private readonly ITextureNormalGraph normalGraph;
-    private readonly ITextureOcclusionGraph occlusionGraph;
-    private readonly List<TextureChannelMapping> mappings;
+    private readonly List<TextureChannelMapping> mappings = new();
+    private readonly Dictionary<ColorChannel, int> defaultPriorityValues = new();
     private Vector4 defaultValues;
-    private Dictionary<ColorChannel, int> defaultPriorityValues;
     private Size bufferSize;
     private bool isGrayscale;
 
-    public PackEncodingChannel[] InputChannels {get; set;}
-    public PackEncodingChannel[] OutputChannels {get; set;}
+    public PackEncodingChannel[]? InputChannels {get; set;}
+    public PackEncodingChannel[]? OutputChannels {get; set;}
     public bool HasMappedSources {get; private set;}
     public int FrameCount {get; private set;}
     public int? TargetFrame {get; set;}
     public int? TargetPart {get; set;}
 
 
-    public TextureBuilder(
-        IServiceProvider provider,
-        IInputReader reader,
-        ITextureReader matReader,
-        ITextureGraphContext context,
-        ITextureSourceGraph sourceGraph,
-        ITextureNormalGraph normalGraph,
-        ITextureOcclusionGraph occlusionGraph)
-    {
-        this.provider = provider;
-        this.reader = reader;
-        this.matReader = matReader;
-        this.context = context;
-        this.sourceGraph = sourceGraph;
-        this.normalGraph = normalGraph;
-        this.occlusionGraph = occlusionGraph;
-
-        mappings = new List<TextureChannelMapping>();
-        defaultValues = new Vector4();
-    }
-
     public async Task MapAsync(bool createEmpty, CancellationToken token = default)
     {
-        defaultPriorityValues = new Dictionary<ColorChannel, int>();
+        //defaultPriorityValues = new Dictionary<ColorChannel, int>();
+        defaultPriorityValues.Clear();
         defaultValues.X = defaultValues.Y = defaultValues.Z = defaultValues.W = 0;
         mappings.Clear();
 
         HasMappedSources = false;
         FrameCount = 1;
+
+        if (OutputChannels == null) throw new ApplicationException("No output channels defined!");
 
         foreach (var channel in OutputChannels.OrderBy(c => c.Priority ?? 0)) {
             if (TryBuildMapping(channel, createEmpty, out var mapping) || createEmpty) {
@@ -120,7 +102,7 @@ internal class TextureBuilder : ITextureBuilder
         }
     }
         
-    public async Task<Image<TPixel>> BuildAsync<TPixel>(bool createEmpty, Size? targetSize = null, CancellationToken token = default)
+    public async Task<Image<TPixel>?> BuildAsync<TPixel>(bool createEmpty, Size? targetSize = null, CancellationToken token = default)
         where TPixel : unmanaged, IPixel<TPixel>
     {
         if (!createEmpty && mappings.Count == 0) return null;
@@ -128,7 +110,7 @@ internal class TextureBuilder : ITextureBuilder
         isGrayscale = mappings.All(x => x.OutputColor == ColorChannel.Red);
         if (isGrayscale) defaultValues.Z = defaultValues.Y = defaultValues.X;
 
-        var autoLevel = context.Material.Height?.AutoLevel
+        var autoLevel = context.Material?.Height?.AutoLevel
                         ?? context.Profile?.AutoLevelHeight
                         ?? PublishProfileProperties.AutoLevelHeightDefault;
 
@@ -141,14 +123,11 @@ internal class TextureBuilder : ITextureBuilder
 
             var defaultSize = 16;
             if (!size.HasValue && context.Profile != null) {
-                switch (context.GetFinalMaterialType()) {
-                    case MaterialType.Block:
-                        defaultSize = context.Profile.BlockTextureSize ?? defaultSize;
-                        break;
-                    case MaterialType.Item:
-                        defaultSize = context.Profile.ItemTextureSize ?? defaultSize;
-                        break;
-                }
+                defaultSize = context.GetFinalMaterialType() switch {
+                    MaterialType.Block => context.Profile.BlockTextureSize ?? defaultSize,
+                    MaterialType.Item => context.Profile.ItemTextureSize ?? defaultSize,
+                    _ => defaultSize,
+                };
             }
 
             bufferSize = size ?? new Size(defaultSize);
@@ -237,8 +216,10 @@ internal class TextureBuilder : ITextureBuilder
 
     private bool TryBuildMapping(PackEncodingChannel outputChannel, bool createEmpty, out TextureChannelMapping mapping)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         mapping = new TextureChannelMapping {
-            Sampler = outputChannel.Sampler,
+            Sampler = outputChannel.Sampler ?? context.Profile?.Encoding?.GetSampler(outputChannel.ID),
         };
 
         mapping.ApplyOutputChannel(outputChannel);
@@ -260,7 +241,8 @@ internal class TextureBuilder : ITextureBuilder
                 mapping.OutputApplyOcclusion = true;
         }
 
-        var inputChannel = InputChannels.FirstOrDefault(i => EncodingChannel.Is(i.ID, outputChannel.ID));
+        var inputChannel = InputChannels?.FirstOrDefault(i => EncodingChannel.Is(i.ID, outputChannel.ID))
+            ?? throw new ApplicationException("Input channel is undefined!");
 
         if (context.Material.TryGetChannelValue(outputChannel.ID, out var value)) {
             mapping.InputValue = (float)value;
@@ -313,7 +295,7 @@ internal class TextureBuilder : ITextureBuilder
             // Rough > Smooth
             var hasOuputRough = context.OutputEncoding.HasChannel(EncodingChannel.Rough);
             if (!hasOuputRough) {
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel) && roughChannel?.Texture != null
                     && matReader.TryGetByTag(roughChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(roughChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
@@ -337,7 +319,7 @@ internal class TextureBuilder : ITextureBuilder
             // Specular > Smooth
             var hasOuputSpecular = context.OutputEncoding.HasChannel(EncodingChannel.Specular);
             if (!hasOuputSpecular) {
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.Specular, out var specularChannel)
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Specular, out var specularChannel) && specularChannel?.Texture != null
                     && matReader.TryGetByTag(specularChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(specularChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Specular);
@@ -366,7 +348,7 @@ internal class TextureBuilder : ITextureBuilder
             // Smooth > Rough
             var hasOuputSmooth = context.OutputEncoding.HasChannel(EncodingChannel.Smooth);
             if (!hasOuputSmooth) {
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel) && smoothChannel?.Texture != null
                     && matReader.TryGetByTag(smoothChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(smoothChannel);
                     mapping.InputValueScale = (float)context.Material.GetChannelScale(EncodingChannel.Smooth);
@@ -392,7 +374,7 @@ internal class TextureBuilder : ITextureBuilder
             // Specular > Rough
             var hasOuputSpecular = context.OutputEncoding.HasChannel(EncodingChannel.Specular);
             if (!hasOuputSpecular) {
-                if (context.InputEncoding.TryGetChannel(EncodingChannel.Specular, out var specularChannel)
+                if (context.InputEncoding.TryGetChannel(EncodingChannel.Specular, out var specularChannel) && specularChannel?.Texture != null
                     && matReader.TryGetByTag(specularChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(specularChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Specular);
@@ -422,8 +404,8 @@ internal class TextureBuilder : ITextureBuilder
         var isOutputSpecular = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Specular);
         if (isOutputSpecular && !context.IsImport) {
             // Smooth > Specular
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel)) {
-                if (matReader.TryGetByTag(smoothChannel.Texture, out mapping.SourceFilename)) {
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.Smooth, out var smoothChannel) && smoothChannel != null) {
+                if (smoothChannel.Texture != null && matReader.TryGetByTag(smoothChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(smoothChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
@@ -441,8 +423,8 @@ internal class TextureBuilder : ITextureBuilder
             }
 
             // Rough > Specular
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel)) {
-                if (matReader.TryGetByTag(roughChannel.Texture, out mapping.SourceFilename)) {
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.Rough, out var roughChannel) && roughChannel != null) {
+                if (roughChannel.Texture != null && matReader.TryGetByTag(roughChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(roughChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Rough);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Rough);
@@ -451,7 +433,7 @@ internal class TextureBuilder : ITextureBuilder
                 }
 
                 if (context.Material.TryGetChannelValue(EncodingChannel.Smooth, out value)) {
-                    mapping.ApplyInputChannel(smoothChannel);
+                    mapping.ApplyInputChannel(roughChannel);
                     mapping.InputValue = (float)value;
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Smooth);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Smooth);
@@ -462,8 +444,8 @@ internal class TextureBuilder : ITextureBuilder
             }
 
             // Metal > Specular
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel)) {
-                if (matReader.TryGetByTag(metalChannel.Texture, out mapping.SourceFilename)) {
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel) && metalChannel != null) {
+                if (metalChannel.Texture != null && matReader.TryGetByTag(metalChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(metalChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
@@ -485,8 +467,8 @@ internal class TextureBuilder : ITextureBuilder
         var isOutputMetal = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Metal);
         if (isOutputMetal && !context.IsImport) {
             // HCM > Metal
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.HCM, out var hcmChannel)) {
-                if (matReader.TryGetByTag(hcmChannel.Texture, out mapping.SourceFilename)) {
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.HCM, out var hcmChannel) && hcmChannel != null) {
+                if (hcmChannel.Texture != null && matReader.TryGetByTag(hcmChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(hcmChannel);
                     mapping.Convert_HcmToMetal = true;
                     return true;
@@ -504,8 +486,8 @@ internal class TextureBuilder : ITextureBuilder
             }
 
             // F0 > Metal
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.F0, out var f0Channel)) {
-                if (matReader.TryGetByTag(f0Channel.Texture, out mapping.SourceFilename)) {
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.F0, out var f0Channel) && f0Channel != null) {
+                if (f0Channel.Texture != null && matReader.TryGetByTag(f0Channel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(f0Channel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.F0);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.F0);
@@ -527,8 +509,8 @@ internal class TextureBuilder : ITextureBuilder
         var isOutputHCM = EncodingChannel.Is(outputChannel.ID, EncodingChannel.HCM);
         if (isOutputHCM && !context.IsImport) {
             // Metal > HCM
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel)) {
-                if (matReader.TryGetByTag(metalChannel.Texture, out mapping.SourceFilename)) {
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.Metal, out var metalChannel) && metalChannel != null) {
+                if (metalChannel.Texture != null && matReader.TryGetByTag(metalChannel.Texture, out mapping.SourceFilename)) {
                     mapping.ApplyInputChannel(metalChannel);
                     mapping.InputValueScale = (float) context.Material.GetChannelScale(EncodingChannel.Metal);
                     mapping.InputValueShift = (float) context.Material.GetChannelShift(EncodingChannel.Metal);
@@ -555,13 +537,17 @@ internal class TextureBuilder : ITextureBuilder
 
     private void ApplyNormalMapping(Image image, TextureChannelMapping mapping)
     {
-        var sampler = normalGraph.GetNormalSampler();
+        ArgumentNullException.ThrowIfNull(normalGraph.NormalTexture);
+
+        var sampler = normalGraph.GetNormalSampler()
+            ?? throw new ApplicationException("Sampler is undefined!");
+
         sampler.RangeX = (float)normalGraph.NormalTexture.Width / bufferSize.Width;
         sampler.RangeY = (float)normalGraph.NormalTexture.Height / bufferSize.Height / normalGraph.NormalFrameCount;
 
         var options = new OverlayProcessor<Rgb24>.Options {
             IsGrayscale = isGrayscale,
-            Samplers = new [] {
+            Samplers = [
                 new OverlayProcessor<Rgb24>.SamplerOptions {
                     PixelMap = new PixelMapping(mapping),
                     InputColor = mapping.InputColor,
@@ -569,8 +555,8 @@ internal class TextureBuilder : ITextureBuilder
                     //Invert = mapping.Invert,
                     //ValueShift = mapping.ValueShift,
                     Sampler = sampler,
-                },
-            },
+                }
+            ],
         };
 
         var processor = new OverlayProcessor<Rgb24>(options);
@@ -582,6 +568,8 @@ internal class TextureBuilder : ITextureBuilder
         regions.TargetPart = TargetPart;
 
         foreach (var frame in regions.GetAllRenderRegions()) {
+            if (frame.Tiles == null) continue;
+
             foreach (var tile in frame.Tiles) {
                 sampler.SetBounds(tile.SourceBounds);
 
@@ -594,13 +582,17 @@ internal class TextureBuilder : ITextureBuilder
 
     private void ApplyMagnitudeMapping(Image image, TextureChannelMapping mapping)
     {
-        var sampler = normalGraph.GetMagnitudeSampler();
+        ArgumentNullException.ThrowIfNull(normalGraph.MagnitudeTexture);
+
+        var sampler = normalGraph.GetMagnitudeSampler()
+            ?? throw new ApplicationException("Sampler is undefined!");
+
         sampler.RangeX = (float)normalGraph.MagnitudeTexture.Width / bufferSize.Width;
         sampler.RangeY = (float)normalGraph.MagnitudeTexture.Height / bufferSize.Height;
 
         var options = new OverlayProcessor<L8>.Options {
             IsGrayscale = isGrayscale,
-            Samplers = new [] {
+            Samplers = [
                 new OverlayProcessor<L8>.SamplerOptions {
                     PixelMap = new PixelMapping(mapping),
                     InputColor = mapping.InputColor,
@@ -608,8 +600,8 @@ internal class TextureBuilder : ITextureBuilder
                     //Invert = mapping.Invert,
                     //ValueShift = mapping.ValueShift,
                     Sampler = sampler,
-                },
-            },
+                }
+            ],
         };
 
         var processor = new OverlayProcessor<L8>(options);
@@ -621,6 +613,8 @@ internal class TextureBuilder : ITextureBuilder
         regions.TargetPart = TargetPart;
 
         foreach (var frame in regions.GetAllRenderRegions()) {
+            if (frame.Tiles == null) continue;
+
             foreach (var tile in frame.Tiles) {
                 sampler.SetBounds(tile.SourceBounds);
 
@@ -638,7 +632,7 @@ internal class TextureBuilder : ITextureBuilder
 
         var options = new OverlayProcessor<L8>.Options {
             IsGrayscale = isGrayscale,
-            Samplers = new []{
+            Samplers = [
                 new OverlayProcessor<L8>.SamplerOptions {
                     PixelMap = new PixelMapping(mapping),
                     InputColor = mapping.InputColor,
@@ -646,8 +640,8 @@ internal class TextureBuilder : ITextureBuilder
                     //Invert = mapping.Invert,
                     //ValueShift = mapping.ValueShift,
                     Sampler = occlusionSampler,
-                },
-            },
+                }
+            ],
         };
             
         var processor = new OverlayProcessor<L8>(options);
@@ -659,6 +653,8 @@ internal class TextureBuilder : ITextureBuilder
         regions.TargetPart = TargetPart;
 
         foreach (var frame in regions.GetAllRenderRegions()) {
+            if (frame.Tiles == null) continue;
+
             foreach (var tile in frame.Tiles) {
                 occlusionSampler.SetBounds(tile.SourceBounds);
 
@@ -717,7 +713,9 @@ internal class TextureBuilder : ITextureBuilder
         if (string.Equals(filename, "<missing>", StringComparison.InvariantCultureIgnoreCase))
             return BuildMissingImage<TPixel>(2);
 
-        await using var sourceStream = reader.Open(filename);
+        await using var sourceStream = reader.Open(filename)
+            ?? throw new ApplicationException("Failed to open file stream!");
+
         var sourceImage = await Image.LoadAsync<TPixel>(sourceStream, token);
         return sourceImage;
     }
@@ -744,7 +742,7 @@ internal class TextureBuilder : ITextureBuilder
     {
         if (sourceFilename == null) throw new ArgumentNullException(nameof(sourceFilename));
 
-        TextureSource info;
+        TextureSource? info;
         if (string.Equals(sourceFilename, "<missing>", StringComparison.InvariantCultureIgnoreCase)) {
             info = new TextureSource {
                 FrameCount = 1,
@@ -819,9 +817,11 @@ internal class TextureBuilder : ITextureBuilder
         regions.TargetPart = TargetPart;
 
         foreach (var frame in regions.GetAllRenderRegions()) {
+            if (frame.Tiles == null) continue;
+
             foreach (var tile in frame.Tiles) {
                 foreach (var samplerOptions in options.Samplers)
-                    samplerOptions.Sampler.SetBounds(tile.SourceBounds);
+                    samplerOptions.Sampler?.SetBounds(tile.SourceBounds);
 
                 var outBounds = tile.DestBounds.ScaleTo(image.Width, image.Height);
 
@@ -835,6 +835,8 @@ internal class TextureBuilder : ITextureBuilder
     {
         var occlusionSampler = await occlusionGraph.GetSamplerAsync(token);
         if (occlusionSampler == null) return;
+
+        ArgumentNullException.ThrowIfNull(context.Material);
 
         var occlusionMap = new TextureChannelMapping();
         occlusionMap.ApplyInputChannel(occlusionGraph.Channel);
@@ -850,19 +852,20 @@ internal class TextureBuilder : ITextureBuilder
             OcclusionSampler = occlusionSampler,
         };
 
-        TextureSource emissiveInfo;
-        Image<Rgba32> emissiveImage = null;
-        ISampler<Rgba32> emissiveSampler = null;
+        Image<Rgba32>? emissiveImage = null;
+        ISampler<Rgba32>? emissiveSampler = null;
         try {
-            if (context.InputEncoding.TryGetChannel(EncodingChannel.Emissive, out var emissiveChannel)
-                && matReader.TryGetByTag(emissiveChannel.Texture, out var emissiveFile)) {
-                emissiveInfo = await sourceGraph.GetOrCreateAsync(emissiveFile, token);
+            if (context.InputEncoding.TryGetChannel(EncodingChannel.Emissive, out var emissiveChannel) && emissiveChannel?.Texture != null
+                && matReader.TryGetByTag(emissiveChannel.Texture, out var emissiveFile) && emissiveFile != null) {
+                var emissiveInfo = await sourceGraph.GetOrCreateAsync(emissiveFile, token);
 
                 if (emissiveInfo != null) {
-                    await using var stream = reader.Open(emissiveFile);
+                    await using var stream = reader.Open(emissiveFile)
+                        ?? throw new ApplicationException("Failed to open file stream!");
+
                     emissiveImage = await Image.LoadAsync<Rgba32>(stream, token);
 
-                    var samplerName = context.Profile?.Encoding?.Emissive?.Sampler ?? context.DefaultSampler;
+                    var samplerName = context.Profile?.Encoding?.Emissive.Sampler ?? context.DefaultSampler;
                     options.EmissiveSampler = emissiveSampler = context.CreateSampler(emissiveImage, samplerName);
 
                     // TODO: set these properly
@@ -889,6 +892,8 @@ internal class TextureBuilder : ITextureBuilder
             regions.TargetPart = TargetPart;
 
             foreach (var frame in regions.GetAllRenderRegions()) {
+                if (frame.Tiles == null) continue;
+
                 foreach (var tile in frame.Tiles) {
                     emissiveSampler?.SetBounds(tile.SourceBounds);
 
@@ -916,6 +921,8 @@ internal class TextureBuilder : ITextureBuilder
 
     private async Task<Size?> GetBufferSizeAsync(CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         var scale = context.TextureScale;
         var blockSize = context.Profile?.BlockTextureSize;
 
@@ -959,7 +966,7 @@ internal class TextureBuilder : ITextureBuilder
 
         foreach (var mappingGroup in mappings.GroupBy(m => m.SourceFilename)) {
             if (mappingGroup.Key == null) continue;
-            if (!sourceGraph.TryGet(mappingGroup.Key, out var source)) continue;
+            if (!sourceGraph.TryGet(mappingGroup.Key, out var source) || source == null) continue;
 
             if (!hasBounds) {
                 maxWidth = source.Width;

@@ -28,6 +28,8 @@ internal class BedrockRtxGrassFixer
 
     public async Task FixAsync(ProjectPublishContext packContext, CancellationToken token)
     {
+        ArgumentNullException.ThrowIfNull(packContext.Profile);
+
         var ext = NamingStructure.GetExtension(packContext.Profile);
 
         var grass_side_file = $"textures/blocks/grass_side.{ext}";

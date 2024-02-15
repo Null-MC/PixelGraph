@@ -1,13 +1,12 @@
 ﻿using PixelGraph.Common.IO.Serialization;
-using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Material;
 
 public class MaterialOpacityProperties : IHaveData
 {
-    public ResourcePackOpacityChannelProperties Input {get; set;}
-    public string Texture {get; set;}
+    public ResourcePackOpacityChannelProperties? Input {get; set;}
+    public string? Texture {get; set;}
     public decimal? Value {get; set;}
     public decimal? Shift {get; set;}
     public decimal? Scale {get; set;}

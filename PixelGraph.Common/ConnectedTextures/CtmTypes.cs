@@ -1,7 +1,4 @@
 ﻿using PixelGraph.Common.Material;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace PixelGraph.Common.ConnectedTextures;
 
@@ -65,17 +62,17 @@ public static class CtmTypes
 
     private static readonly string[] fixedTypes = {Optifine_Fixed, Optifine_Top, Optifine_Compact, Optifine_Horizontal, Optifine_Vertical, Optifine_Compact, Optifine_Expanded, Optifine_Full};
 
-    public static bool IsFixedSize(string method)
+    public static bool IsFixedSize(string? method)
     {
         return fixedTypes.Contains(method, StringComparer.InvariantCultureIgnoreCase);
     }
 
-    public static CtmDescription GetBounds(MaterialConnectionProperties connections)
+    public static CtmDescription? GetBounds(MaterialConnectionProperties connections)
     {
         return GetBounds(connections.Method, connections.Width, connections.Height);
     }
 
-    public static CtmDescription GetBounds(string method, int? width, int? height)
+    public static CtmDescription? GetBounds(string? method, int? width, int? height)
     {
         if (method == null) return null;
 

@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common.TextureFormats;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData;
 
@@ -31,7 +30,7 @@ internal class OptionalEncodingChannelValues : List<OptionalEncodingChannelValue
 
     public class Channel
     {
-        public string Text {get; set;}
-        public string Value {get; set;}
+        public string? Text {get; set;}
+        public string? Value {get; set;}
     }
 }

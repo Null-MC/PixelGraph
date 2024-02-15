@@ -10,16 +10,16 @@ namespace PixelGraph.Rendering.CubeMaps;
 
 internal class DynamicSkyCubeCore : CubeMapRenderCore
 {
-    private SkyDomeBufferModel geometryBuffer;
-    private IMinecraftScene _scene;
+    private SkyDomeBufferModel? geometryBuffer;
+    private IMinecraftScene? _scene;
     private long lastSceneUpdate;
 
-    public IMinecraftScene Scene {
+    public IMinecraftScene? Scene {
         get => _scene;
         set => SetAffectsRender(ref _scene, value);
     }
 
-    public override ShaderResourceViewProxy CubeMap => _cubeMap;
+    public override ShaderResourceViewProxy? CubeMap => _cubeMap;
 
 
     public DynamicSkyCubeCore() : base(RenderType.PreProc)
@@ -74,9 +74,11 @@ internal class DynamicSkyCubeCore : CubeMapRenderCore
         }
 
         base.Render(context, deviceContext);
-            
-        deviceContext.GenerateMips(_cubeMap);
-        context.SharedResource.EnvironmentMapMipLevels = _cubeMap.TextureView.Description.TextureCube.MipLevels;
+
+        if (_cubeMap != null) {
+            deviceContext.GenerateMips(_cubeMap);
+            context.SharedResource.EnvironmentMapMipLevels = _cubeMap.TextureView.Description.TextureCube.MipLevels;
+        }
             
         context.UpdatePerFrameData(true, false, deviceContext);
         _scene.Apply(deviceContext);
@@ -88,6 +90,9 @@ internal class DynamicSkyCubeCore : CubeMapRenderCore
 
     protected override void RenderFace(RenderContext context, DeviceContextProxy deviceContext)
     {
+        ArgumentNullException.ThrowIfNull(geometryBuffer);
+        ArgumentNullException.ThrowIfNull(Scene);
+
         var vertexStartSlot = 0;
         geometryBuffer.AttachBuffers(deviceContext, ref vertexStartSlot, EffectTechnique.EffectsManager);
 

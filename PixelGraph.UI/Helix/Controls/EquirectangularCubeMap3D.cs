@@ -29,7 +29,7 @@ public class EquirectangularCubeMap3D : Element3D, ICubeMapSource
         set => SetValue(ExposureProperty, value);
     }
 
-    public ShaderResourceViewProxy CubeMap => (SceneNode as EquirectangularCubeMapNode)?.CubeMap;
+    public ShaderResourceViewProxy? CubeMap => (SceneNode as EquirectangularCubeMapNode)?.CubeMap;
     public long LastUpdated => (SceneNode as EquirectangularCubeMapNode)?.LastUpdated ?? 0;
 
 

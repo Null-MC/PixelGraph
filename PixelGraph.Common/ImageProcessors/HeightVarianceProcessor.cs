@@ -4,7 +4,6 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 
 namespace PixelGraph.Common.ImageProcessors;
 
@@ -24,6 +23,9 @@ internal class HeightVarianceProcessor<TPixel> : PixelRowProcessor
         var pixelHigh = new Rgba32();
         var pixelLow = new Rgba32();
         var pixelOut = new Rgba32(0, 0, 0, 255);
+
+        ArgumentNullException.ThrowIfNull(options.HighFreqHeightImage);
+        ArgumentNullException.ThrowIfNull(options.LowFreqHeightImage);
 
         var highFreqRow = options.HighFreqHeightImage.DangerousGetPixelRowMemory(context.Y).Span;
         var lowFreqRow = options.LowFreqHeightImage.DangerousGetPixelRowMemory(context.Y).Span;
@@ -51,8 +53,8 @@ internal class HeightVarianceProcessor<TPixel> : PixelRowProcessor
 
     public class Options
     {
-        public Image<TPixel> HighFreqHeightImage;
-        public Image<TPixel> LowFreqHeightImage;
+        public Image<TPixel>? HighFreqHeightImage;
+        public Image<TPixel>? LowFreqHeightImage;
         public ColorChannel HeightChannel = ColorChannel.Red;
         public float Strength = 1f;
     }

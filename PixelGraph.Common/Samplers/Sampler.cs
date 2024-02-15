@@ -1,8 +1,6 @@
 ﻿using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers;
@@ -15,7 +13,7 @@ public static class Sampler<TPixel>
         return TryCreate(name) ?? throw new ApplicationException($"Unknown sampler '{name}'!");
     }
 
-    public static ISampler<TPixel> TryCreate(string name)
+    public static ISampler<TPixel>? TryCreate(string? name)
     {
         if (name == null) return null;
         return map.TryGetValue(name, out var samplerFunc) ? samplerFunc() : null;
@@ -46,7 +44,7 @@ public interface ISampler
 public interface ISampler<TPixel> : ISampler
     where TPixel : unmanaged, IPixel<TPixel>
 {
-    Image<TPixel> Image {get; set;}
+    Image<TPixel>? Image {get; set;}
 }
 
 public interface IRowSampler

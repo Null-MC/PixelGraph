@@ -1,12 +1,11 @@
 ﻿using PixelGraph.UI.Internal;
-using System;
 
 namespace PixelGraph.UI.Models.Tabs;
 
 public interface ITabModel
 {
     Guid Id {get;}
-    string DisplayName {get;}
+    string? DisplayName {get;}
     bool IsPreview {get; set;}
     bool IsLoading {get; set;}
     //bool IsSelected {get; set;}
@@ -15,7 +14,7 @@ public interface ITabModel
 
 public abstract class TabModelBase : ModelBase, ITabModel
 {
-    private string _displayName {get; set;}
+    private string? _displayName {get; set;}
     private bool _isPreview {get; set;}
     private bool _isLoading {get; set;}
     //private bool _isSelected {get; set;}
@@ -23,7 +22,7 @@ public abstract class TabModelBase : ModelBase, ITabModel
 
     public Guid Id {get;}
 
-    public string DisplayName {
+    public string? DisplayName {
         get => _displayName;
         set {
             _displayName = value;

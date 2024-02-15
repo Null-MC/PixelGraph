@@ -5,7 +5,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,7 +23,7 @@ public class OpacityTests : ImageTestBase
 
         project = new ProjectData {
             Input = new PackInputEncoding {
-                Opacity = {
+                Opacity = new ResourcePackOpacityChannelProperties {
                     Texture = TextureTags.Opacity,
                     Color = ColorChannel.Red,
                 },
@@ -32,8 +31,8 @@ public class OpacityTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
-                Opacity = {
+            Encoding = new PackOutputEncoding {
+                Opacity = new ResourcePackOpacityChannelProperties {
                     Texture = TextureTags.Color,
                     Color = ColorChannel.Alpha,
                 },

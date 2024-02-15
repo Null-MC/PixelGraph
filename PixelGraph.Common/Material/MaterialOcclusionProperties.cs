@@ -1,7 +1,5 @@
 ﻿using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
-using System;
-using PixelGraph.Common.Projects;
 
 namespace PixelGraph.Common.Material;
 
@@ -13,8 +11,8 @@ public class MaterialOcclusionProperties : IHaveData
     public const decimal DefaultZScale = 6.0m;
     public const decimal DefaultZBias = 0.0m;
 
-    public ResourcePackOcclusionChannelProperties Input {get; set;}
-    public string Texture {get; set;}
+    public ResourcePackOcclusionChannelProperties? Input {get; set;}
+    public string? Texture {get; set;}
     public decimal? Value {get; set;}
     public decimal? Shift {get; set;}
     public decimal? Scale {get; set;}

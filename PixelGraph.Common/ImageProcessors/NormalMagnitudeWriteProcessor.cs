@@ -3,7 +3,6 @@ using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors;
@@ -21,6 +20,8 @@ internal class NormalMagnitudeWriteProcessor<TPixel> : PixelRowProcessor
 
     protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
     {
+        ArgumentNullException.ThrowIfNull(options.MagSampler);
+
         Vector3 normal;
         double fx, fy;
 
@@ -62,7 +63,7 @@ internal class NormalMagnitudeWriteProcessor<TPixel> : PixelRowProcessor
     public class Options
     {
         public ColorChannel InputColor;
-        public ISampler<TPixel> MagSampler;
+        public ISampler<TPixel>? MagSampler;
         public PixelMapping Mapping;
         //public float ValueShift;
         //public float Scale;

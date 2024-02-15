@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace PixelGraph.UI.Internal.Caching;
+﻿namespace PixelGraph.UI.Internal.Caching;
 
 internal abstract class AsyncRegistrationCounterCache<TKey, TValue>
 {

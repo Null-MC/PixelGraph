@@ -12,15 +12,15 @@ namespace PixelGraph.Rendering.CubeMaps;
 
 internal class IrradianceCubeCore : CubeMapRenderCore
 {
-    private SkyBoxBufferModel geometryBuffer;
-    private ICubeMapSource _environmentCubeMapSource;
+    private SkyBoxBufferModel? geometryBuffer;
+    private ICubeMapSource? _environmentCubeMapSource;
     private SamplerStateDescription _samplerDescription;
-    private SamplerStateProxy textureSampler;
+    private SamplerStateProxy? textureSampler;
     private long sourceLastUpdated;
     private int environmentTextureSlot;
     private int environmentSamplerSlot;
 
-    public ICubeMapSource EnvironmentCubeMapSource {
+    public ICubeMapSource? EnvironmentCubeMapSource {
         get => _environmentCubeMapSource;
         set => SetAffectsRender(ref _environmentCubeMapSource, value);
     }
@@ -80,6 +80,9 @@ internal class IrradianceCubeCore : CubeMapRenderCore
 
     protected override void RenderFace(RenderContext context, DeviceContextProxy deviceContext)
     {
+        ArgumentNullException.ThrowIfNull(geometryBuffer);
+        ArgumentNullException.ThrowIfNull(_environmentCubeMapSource);
+
         deviceContext.SetShaderResource(PixelShader.Type, environmentTextureSlot, _environmentCubeMapSource.CubeMap);
         deviceContext.SetSampler(PixelShader.Type, environmentSamplerSlot, textureSampler);
 

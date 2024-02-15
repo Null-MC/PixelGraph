@@ -16,7 +16,7 @@ namespace PixelGraph.Common.Textures;
 
 public interface IItemTextureGenerator
 {
-    Task<Image<Rgba32>> CreateAsync(ITextureGraph graph, CancellationToken token = default);
+    Task<Image<Rgba32>?> CreateAsync(ITextureGraph graph, CancellationToken token = default);
 }
 
 internal class ItemTextureGenerator : IItemTextureGenerator
@@ -31,7 +31,7 @@ internal class ItemTextureGenerator : IItemTextureGenerator
     private readonly ITextureReader texReader;
     private readonly IInputReader reader;
 
-    private Image<Rgba32> emissiveImage;
+    private Image<Rgba32>? emissiveImage;
 
 
     public ItemTextureGenerator(
@@ -52,9 +52,9 @@ internal class ItemTextureGenerator : IItemTextureGenerator
         this.reader = reader;
     }
 
-    public async Task<Image<Rgba32>> CreateAsync(ITextureGraph graph, CancellationToken token = default)
+    public async Task<Image<Rgba32>?> CreateAsync(ITextureGraph graph, CancellationToken token = default)
     {
-        Image<Rgba32> image = null;
+        Image<Rgba32>? image = null;
 
         emissiveImage = null;
         try {
@@ -116,7 +116,7 @@ internal class ItemTextureGenerator : IItemTextureGenerator
                         inventoryOptions.OcclusionSampler.SetBounds(in region);
                     }
 
-                    if (emissiveChannel != null && emissiveInfo != null) {
+                    if (emissiveChannel != null && emissiveInfo != null && inventoryOptions.EmissiveSampler != null) {
                         regions.GetFrameTileBounds(TargetFrame, emissiveInfo.FrameCount, part.TileIndex, out var region);
                         inventoryOptions.EmissiveSampler.SetBounds(in region);
                     }
@@ -152,7 +152,7 @@ internal class ItemTextureGenerator : IItemTextureGenerator
         }
     }
 
-    private async Task<Image<Rgba32>> BuildAlbedoBufferAsync(CancellationToken token)
+    private async Task<Image<Rgba32>?> BuildAlbedoBufferAsync(CancellationToken token)
     {
         using var scope = provider.CreateScope();
         var subContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
@@ -164,16 +164,16 @@ internal class ItemTextureGenerator : IItemTextureGenerator
         subContext.IsAnimated = context.IsAnimated;
         //subContext.PackWriteTime = ;
 
-        if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorRed, out var redInputChannel))
+        if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorRed, out var redInputChannel) && redInputChannel != null)
             subContext.InputEncoding.Add(redInputChannel);
 
-        if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorGreen, out var greenInputChannel))
+        if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorGreen, out var greenInputChannel) && greenInputChannel != null)
             subContext.InputEncoding.Add(greenInputChannel);
 
-        if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorBlue, out var blueInputChannel))
+        if (context.InputEncoding.TryGetChannel(EncodingChannel.ColorBlue, out var blueInputChannel) && blueInputChannel != null)
             subContext.InputEncoding.Add(blueInputChannel);
 
-        if (context.InputEncoding.TryGetChannel(EncodingChannel.Opacity, out var opacityInputChannel))
+        if (context.InputEncoding.TryGetChannel(EncodingChannel.Opacity, out var opacityInputChannel) && opacityInputChannel != null)
             subContext.InputEncoding.Add(opacityInputChannel);
 
         builder.InputChannels = subContext.InputEncoding.ToArray();
@@ -208,7 +208,7 @@ internal class ItemTextureGenerator : IItemTextureGenerator
                 targetSize = texSize;
         }
 
-        Image<Rgba32> image = null;
+        Image<Rgba32>? image = null;
         try {
             image = await builder.BuildAsync<Rgba32>(false, targetSize, token);
             return image;
@@ -219,10 +219,10 @@ internal class ItemTextureGenerator : IItemTextureGenerator
         }
     }
 
-    private Task<TextureSource> GetEmissiveInfoAsync(CancellationToken token)
+    private Task<TextureSource?> GetEmissiveInfoAsync(CancellationToken token)
     {
         var emissiveFile = texReader.EnumerateInputTextures(context.Material, TextureTags.Emissive).FirstOrDefault();
-        if (emissiveFile == null) return Task.FromResult<TextureSource>(null);
+        if (emissiveFile == null) return Task.FromResult<TextureSource?>(null);
 
         return sourceGraph.GetOrCreateAsync(emissiveFile, token);
     }
@@ -230,6 +230,8 @@ internal class ItemTextureGenerator : IItemTextureGenerator
     private async Task<ISampler<Rgba32>> GetEmissiveSamplerAsync(string emissiveFile, CancellationToken token)
     {
         await using var stream = reader.Open(emissiveFile);
+        if (stream == null) throw new ApplicationException("Failed to open file stream!");
+
         emissiveImage = await Image.LoadAsync<Rgba32>(stream, token);
 
         var samplerName = context.Profile?.Encoding?.Emissive?.Sampler

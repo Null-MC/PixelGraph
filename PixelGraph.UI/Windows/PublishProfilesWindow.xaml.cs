@@ -44,12 +44,16 @@ public partial class PackProfilesWindow
 
     private void OnNewProfileClick(object sender, RoutedEventArgs e)
     {
-        Model.CreateNewProfile();
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
+        Model.Data.CreateNewProfile();
     }
 
     private void OnDuplicateProfileClick(object sender, RoutedEventArgs e)
     {
-        Model.CloneSelectedProfile();
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
+        Model.Data.CloneSelectedProfile();
     }
 
     private void OnDeleteProfileClick(object sender, RoutedEventArgs e)
@@ -57,7 +61,9 @@ public partial class PackProfilesWindow
         //var result = MessageBox.Show(this, "Are you sure? This operation cannot be undone.", "Warning", MessageBoxButton.OKCancel);
         //if (result != MessageBoxResult.OK) return;
 
-        Model.RemoveSelected();
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
+        Model.Data.RemoveSelected();
     }
 
     private void OnProfileListBoxMouseDown(object sender, MouseButtonEventArgs e)
@@ -68,7 +74,9 @@ public partial class PackProfilesWindow
 
     private void OnGenerateHeaderUuid(object sender, RoutedEventArgs e)
     {
-        var profile = Model.SelectedProfile;
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
+        var profile = Model.Data.SelectedProfile;
         if (profile == null) return;
 
         if (TryGenerateGuid(profile.PackHeaderUuid, out var newGuid))
@@ -77,7 +85,9 @@ public partial class PackProfilesWindow
 
     private void OnGenerateModuleUuid(object sender, RoutedEventArgs e)
     {
-        var profile = Model.SelectedProfile;
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
+        var profile = Model.Data.SelectedProfile;
         if (profile == null) return;
 
         if (TryGenerateGuid(profile.PackModuleUuid, out var newGuid))
@@ -87,36 +97,44 @@ public partial class PackProfilesWindow
     private void OnEncodingSamplerKeyUp(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Delete) return;
-        Model.EditEncodingSampler = null;
+
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
+        Model.Data.EditEncodingSampler = null;
     }
 
     private void OnImageEncodingKeyUp(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Delete) return;
-        Model.EditImageEncoding = null;
+
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
+        Model.Data.EditImageEncoding = null;
     }
 
     private async void OnEditEncodingClick(object sender, RoutedEventArgs e)
     {
-        var profile = Model.SelectedProfile?.Profile;
-        if (Model.SelectedProfile == null || profile == null) return;
+        ArgumentNullException.ThrowIfNull(Model.Data);
 
-        var formatFactory = TextureFormat.GetFactory(Model.SelectedProfile.TextureFormat);
+        var profile = Model.Data.SelectedProfile?.Profile;
+        if (Model.Data.SelectedProfile == null || profile == null) return;
+
+        var formatFactory = TextureFormat.GetFactory(Model.Data.SelectedProfile.TextureFormat);
 
         try {
             var window = new TextureFormatWindow {
                 Owner = this,
                 Model = {
-                    Encoding = (PackEncoding)profile.Encoding.Clone(),
-                    DefaultEncoding = formatFactory.Create(),
-                    DefaultSampler = Model.EditEncodingSampler,
+                    Encoding = (PackEncoding?)profile.Encoding?.Clone(),
+                    DefaultEncoding = formatFactory?.Create(),
+                    DefaultSampler = Model.Data.EditEncodingSampler,
                     EnableSampler = true,
                 },
             };
 
             if (window.ShowDialog() != true) return;
 
-            profile.Encoding = (PackOutputEncoding)window.Model.Encoding;
+            profile.Encoding = (PackOutputEncoding?)window.Model.Encoding;
         }
         catch (Exception error) {
             logger.LogError(error, "An unhandled exception occurred in TextureFormatWindow!");
@@ -126,8 +144,10 @@ public partial class PackProfilesWindow
 
     private async void OnSaveButtonClick(object sender, RoutedEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
         try {
-            await Model.SaveAsync();
+            await Model.Data.SaveAsync();
         }
         catch (Exception error) {
             logger.LogError(error, "Failed to save project file!");

@@ -3,17 +3,13 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace PixelGraph.Common.IO.Texture;
 
 public interface ITextureReader
 {
-    bool TryGetByTag(string tag, out string localFile);
-    bool TryGetByName(in string name, out string localFile);
+    bool TryGetByTag(string tag, out string? localFile);
+    bool TryGetByName(in string name, out string? localFile);
 
     //IEnumerable<string> EnumerateInputTextures(string localPath, string filename);
     IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag);
@@ -36,7 +32,7 @@ internal abstract class TextureReaderBase : ITextureReader
         Reader = provider.GetRequiredService<IInputReader>();
     }
 
-    public virtual bool TryGetByTag(string tag, out string localFile)
+    public virtual bool TryGetByTag(string tag, out string? localFile)
     {
         if (tag == null) throw new ArgumentNullException(nameof(tag));
 
@@ -50,7 +46,7 @@ internal abstract class TextureReaderBase : ITextureReader
         return localFile != null;
     }
 
-    public virtual bool TryGetByName(in string localName, out string localFile)
+    public virtual bool TryGetByName(in string localName, out string? localFile)
     {
         var localPath = Path.GetDirectoryName(localName);
         var name = Path.GetFileName(localName);

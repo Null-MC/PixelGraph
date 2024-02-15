@@ -2,25 +2,23 @@
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.IO.Resources;
 using PixelGraph.UI.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.ViewModels;
 
-public class ResourceLocationsViewModel : ModelBase
+public class ResourceLocationsModel : INotifyPropertyChanged
 {
     private readonly IResourceLocationManager resourceLocationMgr;
-    private ObservableCollection<ResourceLocationDisplayModel> _locations;
-    private ResourceLocationDisplayModel _selectedLocationItem;
+    //private ObservableCollection<ResourceLocationDisplayModel> _locations;
+    private ResourceLocationDisplayModel? _selectedLocationItem;
 
     public bool HasChanges {get; set;}
 
     public bool HasSelectedLocation => _selectedLocationItem != null;
 
-    public string EditName {
+    public string? EditName {
         get => _selectedLocationItem?.DisplayName;
         set {
             if (_selectedLocationItem == null) return;
@@ -31,7 +29,7 @@ public class ResourceLocationsViewModel : ModelBase
         }
     }
 
-    public string EditFile {
+    public string? EditFile {
         get => _selectedLocationItem?.FileName;
         set {
             if (_selectedLocationItem == null) return;
@@ -42,15 +40,9 @@ public class ResourceLocationsViewModel : ModelBase
         }
     }
 
-    public ObservableCollection<ResourceLocationDisplayModel> Locations {
-        get => _locations;
-        set {
-            _locations = value;
-            OnPropertyChanged();
-        }
-    }
+    public ObservableCollection<ResourceLocationDisplayModel> Locations {get;}
 
-    public ResourceLocationDisplayModel SelectedLocationItem {
+    public ResourceLocationDisplayModel? SelectedLocationItem {
         get => _selectedLocationItem;
         set {
             _selectedLocationItem = value;
@@ -63,10 +55,8 @@ public class ResourceLocationsViewModel : ModelBase
     }
 
 
-    public ResourceLocationsViewModel(IServiceProvider provider)
+    public ResourceLocationsModel(IServiceProvider provider)
     {
-        if (provider == null) return;
-
         resourceLocationMgr = provider.GetRequiredService<IResourceLocationManager>();
 
         var locations = resourceLocationMgr.GetLocations() ?? Enumerable.Empty<ResourceLocation>();
@@ -77,7 +67,7 @@ public class ResourceLocationsViewModel : ModelBase
 
     public void AddFiles(IEnumerable<string> filenames)
     {
-        ResourceLocationDisplayModel lastAdded = null;
+        ResourceLocationDisplayModel? lastAdded = null;
         foreach (var filename in filenames) {
             var location = new ResourceLocation {
                 Name = System.IO.Path.GetFileNameWithoutExtension(filename),
@@ -94,9 +84,9 @@ public class ResourceLocationsViewModel : ModelBase
 
     public void RemoveSelected()
     {
-        if (!HasSelectedLocation) return;
+        if (_selectedLocationItem == null) return;
 
-        Locations.Remove(SelectedLocationItem);
+        Locations.Remove(_selectedLocationItem);
         SelectedLocationItem = null;
         HasChanges = true;
     }
@@ -108,9 +98,33 @@ public class ResourceLocationsViewModel : ModelBase
 
         await resourceLocationMgr.SaveAsync();
     }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        field = value;
+        OnPropertyChanged(propertyName);
+        return true;
+    }
 }
 
-internal class ResourceLocationsDesignerViewModel : ResourceLocationsViewModel
+public class ResourceLocationsViewModel : ModelBase
 {
-    public ResourceLocationsDesignerViewModel() : base(null) {}
+    public ResourceLocationsModel? Data {get; private set;}
+
+
+    public void Initialize(IServiceProvider provider)
+    {
+        Data = provider.GetRequiredService<ResourceLocationsModel>();
+        OnPropertyChanged(nameof(Data));
+    }
 }
+
+internal class ResourceLocationsDesignerViewModel : ResourceLocationsViewModel {}

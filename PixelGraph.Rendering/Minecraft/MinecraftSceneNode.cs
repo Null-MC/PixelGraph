@@ -3,13 +3,12 @@ using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Model.Scene;
 using HelixToolkit.SharpDX.Core.Render;
 using SharpDX;
-using System.Collections.Generic;
 
 namespace PixelGraph.Rendering.Minecraft;
 
 public class MinecraftSceneNode : SceneNode, IMinecraftScene
 {
-    private MinecraftSceneCore SceneCore => RenderCore as MinecraftSceneCore;
+    private MinecraftSceneCore SceneCore => (MinecraftSceneCore)RenderCore;
     public long LastUpdated => SceneCore.LastUpdated;
 
     public bool EnableAtmosphere {
@@ -45,7 +44,7 @@ public class MinecraftSceneNode : SceneNode, IMinecraftScene
 
     public void Apply(DeviceContextProxy deviceContext)
     {
-        SceneCore?.Apply(deviceContext);
+        SceneCore.Apply(deviceContext);
     }
 
     protected override RenderCore OnCreateRenderCore()

@@ -5,7 +5,7 @@ namespace PixelGraph.UI.Models.Tabs;
 
 public class MaterialTabModel : TabModelBase
 {
-    public string MaterialFilename {get; set;}
+    public string? MaterialFilename {get; set;}
     //public MaterialProperties Material {get; set;}
-    public CacheRegistration<string, MaterialProperties> MaterialRegistration {get; set;}
+    public CacheRegistration<string, MaterialProperties>? MaterialRegistration {get; set;}
 }

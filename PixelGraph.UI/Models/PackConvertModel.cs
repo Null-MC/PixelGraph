@@ -3,17 +3,16 @@ using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.ViewModels;
-using System;
 using PixelGraph.UI.Internal.Logging;
+using PixelGraph.UI.ViewModels;
 
 namespace PixelGraph.UI.Models;
 
 internal class PackConvertModel : ModelBase
 {
-    private ImportTreeNode _rootNode;
-    private string _rootDirectory;
-    private string _importSource;
+    private ImportTreeNode? _rootNode;
+    private string? _rootDirectory;
+    private string? _importSource;
     //private bool _copyUntracked;
     //private bool _includeUnknown;
     private volatile bool _isReady;
@@ -21,13 +20,13 @@ internal class PackConvertModel : ModelBase
     private volatile bool _showLog;
 
     //public event EventHandler IncludeUnknownChanged;
-    public event EventHandler<LogEventArgs> LogEvent;
+    public event EventHandler<LogEventArgs>? LogEvent;
 
     public bool IsArchive {get; set;}
     //public bool AsGlobal {get; set;}
     public string SourceFormat {get; set;}
     public string OutputFormat {get; set;}
-    public IProjectDescription Project {get; set;}
+    public IProjectDescription? Project {get; set;}
     public PackOutputEncoding PackOutput {get; set;}
     //public ResourcePackProfileProperties PackOutput {get; set;}
 
@@ -39,7 +38,7 @@ internal class PackConvertModel : ModelBase
         }
     }
 
-    public string RootDirectory {
+    public string? RootDirectory {
         get => _rootDirectory;
         set {
             _rootDirectory = value;
@@ -47,7 +46,7 @@ internal class PackConvertModel : ModelBase
         }
     }
 
-    public string ImportSource {
+    public string? ImportSource {
         get => _importSource;
         set {
             _importSource = value;
@@ -55,7 +54,7 @@ internal class PackConvertModel : ModelBase
         }
     }
 
-    public ImportTreeNode RootNode {
+    public ImportTreeNode? RootNode {
         get => _rootNode;
         set {
             _rootNode = value;

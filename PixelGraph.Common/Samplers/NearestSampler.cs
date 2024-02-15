@@ -12,7 +12,9 @@ internal class NearestSampler<TPixel> : SamplerBase<TPixel>
 {
     public override IRowSampler ForRow(in double y)
     {
-        GetTexCoordY(in y, out var fy);
+        ArgumentNullException.ThrowIfNull(Image);
+
+        GetTexcoordY(in y, out var fy);
         var py = (int)MathF.Floor(fy);
 
         var sampler = new NearestRowSampler<TPixel> {
@@ -21,7 +23,7 @@ internal class NearestSampler<TPixel> : SamplerBase<TPixel>
             Y = py,
         };
 
-        NormalizeTexCoordY(ref py);
+        NormalizeTexcoordY(ref py);
 
         sampler.Row = Image.DangerousGetPixelRowMemory(py)
             .Slice(Bounds.Left, Bounds.Width);
@@ -31,12 +33,14 @@ internal class NearestSampler<TPixel> : SamplerBase<TPixel>
 
     public override void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue)
     {
+        ArgumentNullException.ThrowIfNull(Image);
+
         GetTexCoord(in x, in y, out var fx, out var fy);
 
         var px = (int)MathF.Floor(fx);
         var py = (int)MathF.Floor(fy);
 
-        NormalizeTexCoord(ref px, ref py);
+        NormalizeTexcoord(ref px, ref py);
 
         var pixel = Image[px, py].ToScaledVector4();
         pixel.GetChannelValue(color, out pixelValue);

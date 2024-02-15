@@ -1,5 +1,4 @@
 ﻿using PixelGraph.UI.ViewModels;
-using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -7,8 +6,8 @@ namespace PixelGraph.UI.Controls;
 
 public partial class DocumentTabControl
 {
-    public event EventHandler<CloseTabEventArgs> CloseTab;
-    public event EventHandler CloseAllTabs;
+    public event EventHandler<CloseTabEventArgs>? CloseTab;
+    public event EventHandler? CloseAllTabs;
 
 
     public DocumentTabControl()
@@ -26,7 +25,7 @@ public partial class DocumentTabControl
 
     private void OnContextMenuCloseTabClick(object sender, RoutedEventArgs e)
     {
-        if (DataContext is MainWindowViewModel {HasSelectedTab: true} model)
+        if (DataContext is MainWindowViewModel {HasSelectedTab: true, SelectedTab: {} } model)
             OnCloseTab(model.SelectedTab.Id);
     }
 

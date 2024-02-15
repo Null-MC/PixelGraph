@@ -17,23 +17,23 @@ public class CustomPbrMaterial : Material
     private readonly string materialPassName;
     //private readonly string materialOITPassName;
 
-    public TextureModel AlbedoAlphaMap {
-        get => (TextureModel)GetValue(AlbedoAlphaMapProperty);
+    public TextureModel? AlbedoAlphaMap {
+        get => (TextureModel?)GetValue(AlbedoAlphaMapProperty);
         set => SetValue(AlbedoAlphaMapProperty, value);
     }
 
-    public TextureModel NormalHeightMap {
-        get => (TextureModel)GetValue(NormalHeightMapProperty);
+    public TextureModel? NormalHeightMap {
+        get => (TextureModel?)GetValue(NormalHeightMapProperty);
         set => SetValue(NormalHeightMapProperty, value);
     }
 
-    public TextureModel RoughF0OcclusionMap {
-        get => (TextureModel)GetValue(RoughF0OcclusionMapProperty);
+    public TextureModel? RoughF0OcclusionMap {
+        get => (TextureModel?)GetValue(RoughF0OcclusionMapProperty);
         set => SetValue(RoughF0OcclusionMapProperty, value);
     }
 
-    public TextureModel PorositySssEmissiveMap {
-        get => (TextureModel)GetValue(PorositySssEmissiveMapProperty);
+    public TextureModel? PorositySssEmissiveMap {
+        get => (TextureModel?)GetValue(PorositySssEmissiveMapProperty);
         set => SetValue(PorositySssEmissiveMapProperty, value);
     }
 
@@ -42,18 +42,18 @@ public class CustomPbrMaterial : Material
     //    set => SetValue(BrdfLutMapProperty, value);
     //}
 
-    public ILutMapSource DielectricBrdfLutMapSource {
-        get => (ILutMapSource)GetValue(DielectricBrdfLutMapSourceProperty);
+    public ILutMapSource? DielectricBrdfLutMapSource {
+        get => (ILutMapSource?)GetValue(DielectricBrdfLutMapSourceProperty);
         set => SetValue(DielectricBrdfLutMapSourceProperty, value);
     }
 
-    public ICubeMapSource EnvironmentCubeMapSource {
-        get => (ICubeMapSource)GetValue(EnvironmentCubeMapSourceProperty);
+    public ICubeMapSource? EnvironmentCubeMapSource {
+        get => (ICubeMapSource?)GetValue(EnvironmentCubeMapSourceProperty);
         set => SetValue(EnvironmentCubeMapSourceProperty, value);
     }
 
-    public ICubeMapSource IrradianceCubeMapSource {
-        get => (ICubeMapSource)GetValue(IrradianceCubeMapSourceProperty);
+    public ICubeMapSource? IrradianceCubeMapSource {
+        get => (ICubeMapSource?)GetValue(IrradianceCubeMapSourceProperty);
         set => SetValue(IrradianceCubeMapSourceProperty, value);
     }
 

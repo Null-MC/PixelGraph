@@ -10,23 +10,20 @@ using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures.Graphing;
 
 public interface ITextureOcclusionGraph
 {
-    PackEncodingChannel Channel {get;}
+    PackEncodingChannel? Channel {get;}
     int FrameCount {get;}
     int FrameWidth {get;}
     int FrameHeight {get;}
     bool HasTexture {get;}
 
-    Task<Image<L8>> GetTextureAsync(CancellationToken token = default);
-    Task<Image<L8>> GenerateAsync(CancellationToken token = default);
-    Task<ISampler<L8>> GetSamplerAsync(CancellationToken token = default);
+    Task<Image<L8>?> GetTextureAsync(CancellationToken token = default);
+    Task<Image<L8>?> GenerateAsync(CancellationToken token = default);
+    Task<ISampler<L8>?> GetSamplerAsync(CancellationToken token = default);
 }
     
 internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
@@ -34,10 +31,10 @@ internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
     private readonly IServiceProvider provider;
     private readonly ITextureGraphContext context;
     private readonly ITextureHeightGraph heightGraph;
-    private Image<L8> texture;
+    private Image<L8>? texture;
     private bool isLoaded;
 
-    public PackEncodingChannel Channel {get; private set;}
+    public PackEncodingChannel? Channel {get; private set;}
     public int FrameCount {get; private set;}
     public int FrameWidth {get; private set;}
     public int FrameHeight {get; private set;}
@@ -61,7 +58,7 @@ internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
         texture?.Dispose();
     }
 
-    public async Task<Image<L8>> GetTextureAsync(CancellationToken token = default)
+    public async Task<Image<L8>?> GetTextureAsync(CancellationToken token = default)
     {
         if (isLoaded) return texture;
         isLoaded = true;
@@ -96,7 +93,7 @@ internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
         return texture;
     }
 
-    public async Task<ISampler<L8>> GetSamplerAsync(CancellationToken token = default)
+    public async Task<ISampler<L8>?> GetSamplerAsync(CancellationToken token = default)
     {
         var occlusionTexture = await GetTextureAsync(token);
         if (occlusionTexture == null) return null;
@@ -111,8 +108,10 @@ internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
         return sampler;
     }
 
-    public async Task<Image<L8>> GenerateAsync(CancellationToken token = default)
+    public async Task<Image<L8>?> GenerateAsync(CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         var heightImage = await heightGraph.GetOrCreateAsync(token);
         if (heightImage == null) return null;
 
@@ -214,7 +213,7 @@ internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
         }
     }
 
-    private async Task<(Image<TPixel> image, int frameCount)> ExtractInputAsync<TPixel>(string inputEncodingChannel, PackEncodingChannel outputChannel, CancellationToken token)
+    private async Task<(Image<TPixel>? image, int frameCount)> ExtractInputAsync<TPixel>(string inputEncodingChannel, PackEncodingChannel outputChannel, CancellationToken token)
         where TPixel : unmanaged, IPixel<TPixel>
     {
         var inputChannel = context.InputEncoding.GetChannel(inputEncodingChannel);
@@ -237,7 +236,7 @@ internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
         await builder.MapAsync(false, token);
         if (!builder.HasMappedSources) return (null, 0);
 
-        Image<TPixel> image = null;
+        Image<TPixel>? image = null;
         try {
             image = await builder.BuildAsync<TPixel>(false, null, token);
             return (image, builder.FrameCount);

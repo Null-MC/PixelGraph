@@ -2,7 +2,6 @@
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal.Preview.Textures;
-using System;
 
 namespace PixelGraph.UI.Helix.Materials;
 

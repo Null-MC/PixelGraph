@@ -1,6 +1,5 @@
 ﻿using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Textures;
-using System;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack;
@@ -9,10 +8,10 @@ public abstract class PackEncodingChannel : IHaveData
 {
     [YamlIgnore]
     public string ID {get;}
-        
-    public string Texture {get; set;}
+    
+    public string? Texture {get; set;}
     public ColorChannel? Color {get; set;}
-    public string Sampler {get; set;}
+    public string? Sampler {get; set;}
     public decimal? MinValue {get; set;}
     public decimal? MaxValue {get; set;}
     public byte? RangeMin {get; set;}
@@ -28,7 +27,7 @@ public abstract class PackEncodingChannel : IHaveData
     public bool? EnableClipping {get; set;}
 
     [YamlIgnore]
-    internal string __Filename {get; set;}
+    internal string? __Filename {get; set;}
 
     [YamlIgnore]
     public bool HasTexture => Texture != null && !TextureTags.Is(Texture, TextureTags.None);

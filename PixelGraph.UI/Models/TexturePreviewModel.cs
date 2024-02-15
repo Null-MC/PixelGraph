@@ -7,8 +7,8 @@ namespace PixelGraph.UI.Models;
 
 public interface ITexturePreviewModel : INotifyPropertyChanged
 {
-    BitmapSource Texture {get;}
-    string MousePixel {get; set;}
+    BitmapSource? Texture {get;}
+    string? MousePixel {get; set;}
 
     int OutlineX {get;}
     int OutlineY {get;}
@@ -24,11 +24,11 @@ internal class TexturePreviewModel : ModelBase, ITexturePreviewModel
 {
     private const float HalfPixel = 0.5f - float.Epsilon;
 
-    private BitmapSource _texture;
+    private BitmapSource? _texture;
     private bool _showOutline;
     private RectangleF? outlineBounds;
     private int _outlineX, _outlineY, _outlineWidth, _outlineHeight;
-    private string _mousePixel;
+    private string? _mousePixel;
 
     public int OutlineX => _outlineX;
     public int OutlineY => _outlineY;
@@ -37,7 +37,7 @@ internal class TexturePreviewModel : ModelBase, ITexturePreviewModel
     public bool HasOutlineBounds => outlineBounds.HasValue;
     public bool HasOutline => _showOutline && HasOutlineBounds;
 
-    public BitmapSource Texture {
+    public BitmapSource? Texture {
         get => _texture;
         set {
             _texture = value;
@@ -57,7 +57,7 @@ internal class TexturePreviewModel : ModelBase, ITexturePreviewModel
         }
     }
 
-    public string MousePixel {
+    public string? MousePixel {
         get => _mousePixel;
         set {
             if (_mousePixel == value) return;

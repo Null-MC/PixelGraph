@@ -2,7 +2,6 @@
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
-using System;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows.Media;
@@ -12,49 +11,49 @@ namespace PixelGraph.UI.Models.PropertyGrid;
 public interface IPropertyRow : INotifyPropertyChanged
 {
     bool Enabled {get; set;}
-    object ActualValue {get;}
+    object? ActualValue {get;}
 }
 
 public interface IEditPropertyRow : IPropertyRow
 {
     string Name {get;}
-    object EditValue {get; set;}
-    object EditDisplayValue {get;}
-    object DefaultValue {get; set;}
+    object? EditValue {get; set;}
+    object? EditDisplayValue {get;}
+    object? DefaultValue {get; set;}
 }
 
 public interface IEditPropertyRow<in TProperty> : IEditPropertyRow
 {
-    void SetData(TProperty data);
+    void SetData(TProperty? data);
     void Invalidate();
 }
 
 public abstract class EditPropertyRowModelBase<TProperty, TValue> : ModelBase, IEditPropertyRow<TProperty>
 {
-    private readonly PropertyInfo info;
+    private readonly PropertyInfo? info;
     private readonly string propertyName;
-    private object _defaultValue;
-    private TProperty _data;
+    private object? _defaultValue;
+    private TProperty? _data;
 
-    public event EventHandler<PropertyValueChangedEventArgs> ValueChanged;
+    public event EventHandler<PropertyValueChangedEventArgs>? ValueChanged;
 
     public string Name {get;}
     public bool Enabled {get; set;}
 
-    public object EditDisplayValue => GetDisplayValue();
+    public object? EditDisplayValue => GetDisplayValue();
 
-    public object ActualValue {
+    public object? ActualValue {
         get {
             if (_data == null) return null;
-            return info.GetValue(_data);
+            return info?.GetValue(_data);
         }
     }
 
-    public object EditValue {
+    public object? EditValue {
         get => ActualValue ?? _defaultValue;
         set {
             if (_data == null) return;
-            info.SetValue(_data, FormatValue<TValue>(value));
+            info?.SetValue(_data, FormatValue<TValue>(value));
             OnValueChanged();
             OnPropertyChanged();
             OnPropertyChanged(nameof(ActualValue));
@@ -62,7 +61,7 @@ public abstract class EditPropertyRowModelBase<TProperty, TValue> : ModelBase, I
         }
     }
 
-    public object DefaultValue {
+    public object? DefaultValue {
         get => _defaultValue;
         set {
             if (_data == null) return;
@@ -74,7 +73,7 @@ public abstract class EditPropertyRowModelBase<TProperty, TValue> : ModelBase, I
     }
 
 
-    protected EditPropertyRowModelBase(string name, string propertyName, object defaultValue = null)
+    protected EditPropertyRowModelBase(string name, string propertyName, object? defaultValue = null)
     {
         this.propertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
         Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -86,7 +85,7 @@ public abstract class EditPropertyRowModelBase<TProperty, TValue> : ModelBase, I
         Enabled = true;
     }
 
-    protected virtual T FormatValue<T>(object value)
+    protected virtual T? FormatValue<T>(object? value)
     {
         if (value is string stringValue) {
             if (TryParseDivision(stringValue, out var decimalValue))
@@ -96,10 +95,10 @@ public abstract class EditPropertyRowModelBase<TProperty, TValue> : ModelBase, I
         if (value is Color colorValue && typeof(T) == typeof(string))
             return ColorHelper.ToHexRGB(colorValue).To<T>();
 
-        return value.To<T>();
+        return value != null ? value.To<T>() : default;
     }
 
-    public void SetData(TProperty data)
+    public void SetData(TProperty? data)
     {
         _data = data;
         Invalidate();
@@ -112,7 +111,7 @@ public abstract class EditPropertyRowModelBase<TProperty, TValue> : ModelBase, I
         OnPropertyChanged(nameof(EditDisplayValue));
     }
 
-    protected virtual object GetDisplayValue() => EditValue;
+    protected virtual object? GetDisplayValue() => EditValue;
 
     protected virtual void OnValueChanged()
     {

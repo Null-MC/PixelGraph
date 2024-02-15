@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using SixLabors.ImageSharp;
+﻿using SixLabors.ImageSharp;
 
 namespace PixelGraph.Common.ConnectedTextures;
 
@@ -117,9 +115,9 @@ internal class ExpandedCtmMap
 
 public class ImagePart
 {
-    public string Name {get; set;}
+    public string? Name {get; set;}
     public Rectangle Bounds {get; set;}
-    public MultiPart[] Mappings {get; set;}
+    public MultiPart[]? Mappings {get; set;}
 
     public class MultiPart
     {

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace PixelGraph.UI.ViewData;
+﻿namespace PixelGraph.UI.ViewData;
 
 internal class FxaaLevelValues : List<FxaaLevelValues.Item>
 {
@@ -15,7 +13,7 @@ internal class FxaaLevelValues : List<FxaaLevelValues.Item>
 
     public class Item
     {
-        public string Text {get; set;}
+        public string? Text {get; set;}
         public int Value {get; set;}
     }
 }

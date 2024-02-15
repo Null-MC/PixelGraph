@@ -7,21 +7,18 @@ using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace PixelGraph.Common.Textures.Graphing;
 
 public interface ITextureGraphContext
 {
-    MaterialProperties Material {get; set;}
-    IProjectDescription Project {get; set;}
-    PublishProfileProperties Profile {get; set;}
+    MaterialProperties? Material {get; set;}
+    IProjectDescription? Project {get; set;}
+    PublishProfileProperties? Profile {get; set;}
     List<PackEncodingChannel> InputEncoding {get; set;}
     List<PackEncodingChannel> OutputEncoding {get; set;}
-    IPublisherMapping Mapping {get; set;}
+    IPublisherMapping? Mapping {get; set;}
 
     DateTime PackWriteTime {get; set;}
     bool IsAnimated {get; set;}
@@ -47,6 +44,7 @@ public interface ITextureGraphContext
     Size? GetMaterialSize(float? defaultAspect = null);
     Size? GetTextureSize(float? defaultAspect);
     Size? GetBufferSize(float aspect);
+    string GetSamplerName(string channelName);
     MaterialType GetFinalMaterialType();
 }
 
@@ -58,24 +56,24 @@ internal class TextureGraphContext : ITextureGraphContext
     private static readonly Regex citTextureExp = new(@"(?:^|\/)optifine\/cit(?:\/|$)", RegexOptions.Compiled);
     private static readonly Regex entityTextureExp = new(@"(?:^|\/)textures\/entity(?:\/|$)", RegexOptions.Compiled);
 
-    public MaterialProperties Material {get; set;}
-    public IProjectDescription Project {get; set;}
-    public PublishProfileProperties Profile {get; set;}
-    public List<PackEncodingChannel> InputEncoding {get; set;}
-    public List<PackEncodingChannel> OutputEncoding {get; set;}
-    public IPublisherMapping Mapping {get; set;}
+    public MaterialProperties? Material {get; set;}
+    public IProjectDescription? Project {get; set;}
+    public PublishProfileProperties? Profile {get; set;}
+    public List<PackEncodingChannel> InputEncoding {get; set;} = new();
+    public List<PackEncodingChannel> OutputEncoding {get; set;} = new();
+    public IPublisherMapping? Mapping {get; set;}
 
     public DateTime PackWriteTime {get; set;}
     public bool IsAnimated {get; set;}
-    public int MaxFrameCount {get; set;}
-    public bool PublishAsGlobal {get; set;}
-    public bool ApplyPostProcessing {get; set;}
+    public int MaxFrameCount {get; set;} = 1;
+    public bool PublishAsGlobal {get; set;} = true;
+    public bool ApplyPostProcessing {get; set;} = true;
     public bool IsImport {get; set;}
 
-    public bool MaterialWrapX => Material.WrapX ?? MaterialProperties.DefaultWrap;
-    public bool MaterialWrapY => Material.WrapY ?? MaterialProperties.DefaultWrap;
-    public bool IsMaterialMultiPart => Material.Parts?.Any() ?? false;
-    public bool IsMaterialCtm => !string.IsNullOrWhiteSpace(Material.CTM?.Method);
+    public bool MaterialWrapX => Material?.WrapX ?? MaterialProperties.DefaultWrap;
+    public bool MaterialWrapY => Material?.WrapY ?? MaterialProperties.DefaultWrap;
+    public bool IsMaterialMultiPart => Material?.Parts?.Any() ?? false;
+    public bool IsMaterialCtm => !string.IsNullOrWhiteSpace(Material?.CTM?.Method);
 
     public float? TextureScale => (float?)Profile?.TextureScale;
     public string DefaultSampler => Profile?.Encoding?.Sampler ?? Samplers.Samplers.Nearest;
@@ -84,7 +82,7 @@ internal class TextureGraphContext : ITextureGraphContext
 
     public bool BakeOcclusionToColor {
         get {
-            var matVal = Material.Color.BakeOcclusion;
+            var matVal = Material?.Color?.BakeOcclusion;
             var profileVal = Profile?.BakeOcclusionToColor;
 
             if (!matVal.HasValue && !profileVal.HasValue)
@@ -98,23 +96,14 @@ internal class TextureGraphContext : ITextureGraphContext
     public int PaletteColors => Profile?.Encoding?.PaletteColors ?? PackOutputEncoding.DefaultPaletteColors;
 
 
-    public TextureGraphContext()
-    {
-        InputEncoding = new List<PackEncodingChannel>();
-        OutputEncoding = new List<PackEncodingChannel>();
-        ApplyPostProcessing = true;
-        PublishAsGlobal = true;
-        MaxFrameCount = 1;
-    }
-
     public void ApplyInputEncoding()
     {
-        var inputEncoding = BuildEncoding(Project.Input.Format);
-        inputEncoding.Merge(Project.Input);
-        inputEncoding.Merge(Material);
+        var inputEncoding = BuildEncoding(Project?.Input?.Format);
+        if (Project?.Input != null) inputEncoding.Merge(Project.Input);
+        if (Material != null) inputEncoding.Merge(Material);
 
-        var outputEncoding = BuildEncoding(Profile.Encoding.Format);
-        outputEncoding.Merge(Profile.Encoding);
+        var outputEncoding = BuildEncoding(Profile?.Encoding?.Format);
+        if (Profile?.Encoding != null) outputEncoding.Merge(Profile.Encoding);
 
         InputEncoding = inputEncoding.GetMapped().ToList();
         OutputEncoding = outputEncoding.GetMapped().ToList();
@@ -122,11 +111,11 @@ internal class TextureGraphContext : ITextureGraphContext
 
     public void ApplyOutputEncoding()
     {
-        var inputEncoding = BuildEncoding(Profile.Encoding.Format);
-        inputEncoding.Merge(Profile.Encoding);
+        var inputEncoding = BuildEncoding(Profile?.Encoding?.Format);
+        if (Profile?.Encoding != null) inputEncoding.Merge(Profile.Encoding);
 
-        var outputEncoding = BuildEncoding(Project.Input.Format);
-        outputEncoding.Merge(Project.Input);
+        var outputEncoding = BuildEncoding(Project?.Input?.Format);
+        if (Project?.Input != null) outputEncoding.Merge(Project.Input);
         // TODO: layer material properties on top of pack encoding?
 
         InputEncoding = inputEncoding.GetMapped().ToList();
@@ -134,6 +123,13 @@ internal class TextureGraphContext : ITextureGraphContext
 
         OutputEncoding = outputEncoding.GetMapped().ToList();
         if (OutputEncoding.Count == 0) throw new ApplicationException("Output encoding is empty!");
+    }
+
+    public string GetSamplerName(string channelName)
+    {
+        return Material?.GetInput(channelName)?.Sampler
+            ?? Profile?.Encoding?.Height?.Sampler
+            ?? DefaultSampler;
     }
 
     public ISampler<T> CreateSampler<T>(Image<T> image, string name) where T : unmanaged, IPixel<T>
@@ -148,13 +144,15 @@ internal class TextureGraphContext : ITextureGraphContext
 
     public MaterialType GetFinalMaterialType()
     {
+        ArgumentNullException.ThrowIfNull(Material);
+
         var type = Material.GetMaterialType();
 
         if (type != MaterialType.Automatic || string.IsNullOrWhiteSpace(Material.LocalPath))
             return type;
 
         var path = PathEx.Normalize(Material.LocalPath);
-        if (path == null) return type;
+        //if (path == null) return type;
 
         if (blockTextureExp.IsMatch(path)) return MaterialType.Block;
         if (itemTextureExp.IsMatch(path)) return MaterialType.Item;
@@ -167,16 +165,16 @@ internal class TextureGraphContext : ITextureGraphContext
 
     public float? GetExpectedAspect()
     {
-        if (IsMaterialMultiPart) {
-            var (width, height) = Material.GetMultiPartBounds();
-            return width / (float)height;
-        }
+        if (Material == null || !IsMaterialMultiPart) return null;
 
-        return null;
+        var (width, height) = Material.GetMultiPartBounds();
+        return width / (float)height;
     }
 
     public Size? GetMaterialSize(float? defaultAspect = null)
     {
+        if (Material == null) return null;
+
         if (Material.TextureWidth.HasValue) {
             if (Material.TextureHeight.HasValue) {
                 var width = Material.TextureWidth.Value;
@@ -194,7 +192,7 @@ internal class TextureGraphContext : ITextureGraphContext
             if (defaultAspect.HasValue) {
                 // TODO: return width, width*aspect
                 var width = Material.TextureWidth.Value;
-                var height = (int)(width * defaultAspect);
+                var height = (int)(width * defaultAspect.Value);
 
                 if (Profile != null && Profile.TextureScale.HasValue) {
                     var scale = (float)Profile.TextureScale.Value;
@@ -295,14 +293,14 @@ internal class TextureGraphContext : ITextureGraphContext
         var blockSize = Profile?.BlockTextureSize;
         var scale = (float?)Profile?.TextureScale;
 
-        if (Material.TryGetSourceBounds(in blockSize, scale, out var bounds)) return bounds;
+        if (Material != null && Material.TryGetSourceBounds(in blockSize, scale, out var bounds)) return bounds;
 
         return GetTextureSize(aspect);
     }
 
-    private static PackEncoding BuildEncoding(string format)
+    private static PackEncoding BuildEncoding(string? format)
     {
-        PackEncoding encoding = null;
+        PackEncoding? encoding = null;
         if (!string.IsNullOrWhiteSpace(format)) {
             var formatFactory = TextureFormat.GetFactory(format);
             encoding = formatFactory?.Create();

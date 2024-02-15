@@ -24,13 +24,8 @@ using PixelGraph.UI.Models;
 using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewData;
 using SixLabors.ImageSharp;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
 using PixelGraph.UI.Internal.IO;
@@ -49,38 +44,38 @@ namespace PixelGraph.UI.ViewModels
     {
         private readonly object busyLock;
 
-        private ILogger<MainWindowViewModel> logger;
-        private IAppSettingsManager appSettingsMgr;
-        private ITabPreviewManager tabPreviewMgr;
-        private IProjectContextManager projectContextMgr;
-        private IPublishLocationManager publishLocationMgr;
-        private MaterialPropertiesCache materialCache;
-        private TextureEditUtility editUtility;
+        private ILogger<MainWindowViewModel>? logger;
+        private IAppSettingsManager? appSettingsMgr;
+        private ITabPreviewManager? tabPreviewMgr;
+        private IProjectContextManager? projectContextMgr;
+        private IPublishLocationManager? publishLocationMgr;
+        private MaterialPropertiesCache? materialCache;
+        private TextureEditUtility? editUtility;
 
-        private IServiceProvider _provider;
+        private IServiceProvider? _provider;
         private volatile bool _isBusy, _isInitializing;
         private volatile bool _isImageEditorOpen;
-        private List<PublishLocationDisplayModel> _publishLocations;
-        private PublishProfileDisplayRow _selectedProfile;
-        private string _projectFilename;
-        private string _searchText;
+        private List<PublishLocationDisplayModel>? _publishLocations;
+        private PublishProfileDisplayRow? _selectedProfile;
+        private string? _projectFilename;
+        private string? _searchText;
         private bool _showAllFiles;
-        private ContentTreeNode _selectedNode;
-        private PublishLocationDisplayModel _selectedLocation;
-        private ContentTreeNode _treeRoot;
-        private ITabModel _tabListSelection;
-        private ITabModel _previewTab;
+        private ContentTreeNode? _selectedNode;
+        private PublishLocationDisplayModel? _selectedLocation;
+        private ContentTreeNode? _treeRoot;
+        private ITabModel? _tabListSelection;
+        private ITabModel? _previewTab;
         private bool _isPreviewTabSelected;
         private bool _isRenderPreviewOn;
         private bool _isRenderPreviewEnabled;
         private EditModes _editMode;
-        private string _selectedTag;
+        private string? _selectedTag;
 
-        public event EventHandler<UnhandledExceptionEventArgs> TreeError;
-        public event EventHandler SelectedTabChanged;
-        public event EventHandler SelectedTagChanged;
-        public event EventHandler ViewModeChanged;
-        public event EventHandler SelectedProfileChanged;
+        public event EventHandler<UnhandledExceptionEventArgs>? TreeError;
+        public event EventHandler? SelectedTabChanged;
+        public event EventHandler? SelectedTagChanged;
+        public event EventHandler? ViewModeChanged;
+        public event EventHandler? SelectedProfileChanged;
 
         public ObservableCollection<PublishProfileDisplayRow> ProfileList {get;}
         public TexturePreviewModel TextureModel {get;}
@@ -103,14 +98,14 @@ namespace PixelGraph.UI.ViewModels
         public bool HasTreeMaterialSelection => _selectedNode is ContentTreeMaterialDirectory;
         public bool HasTreeTextureSelection => _selectedNode is ContentTreeFile {Type: ContentNodeType.Texture};
         public bool HasSelectedTag => _selectedTag != null;
-        public MaterialProperties SelectedTabMaterial => (SelectedTab as MaterialTabModel)?.MaterialRegistration?.Value;
-        public ITabModel SelectedTab => _isPreviewTabSelected ? _previewTab : _tabListSelection;
+        public MaterialProperties? SelectedTabMaterial => (SelectedTab as MaterialTabModel)?.MaterialRegistration?.Value;
+        public ITabModel? SelectedTab => _isPreviewTabSelected ? _previewTab : _tabListSelection;
         public bool HasSelectedMaterial => SelectedTab is MaterialTabModel;
         public bool HasSelectedTab => IsPreviewTabSelected || TabListSelection != null;
         public bool HasPreviewTab => PreviewTab != null;
 
 
-        public PublishProfileDisplayRow SelectedProfile {
+        public PublishProfileDisplayRow? SelectedProfile {
             get => _selectedProfile;
             set {
                 if (value == _selectedProfile) return;
@@ -122,7 +117,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public ITabModel PreviewTab {
+        public ITabModel? PreviewTab {
             get => _previewTab;
             set {
                 if (_previewTab == value) return;
@@ -140,7 +135,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public string SelectedTag {
+        public string? SelectedTag {
             get => _selectedTag;
             set {
                 if (value == _selectedTag) return;
@@ -242,7 +237,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
         
-        public ITabModel TabListSelection {
+        public ITabModel? TabListSelection {
             get => _tabListSelection;
             set {
                 if (_tabListSelection == value) return;
@@ -266,7 +261,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
         
-        public string ProjectFilename {
+        public string? ProjectFilename {
             get => _projectFilename;
             set {
                 _projectFilename = value;
@@ -276,7 +271,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
         
-        public List<PublishLocationDisplayModel> PublishLocations {
+        public List<PublishLocationDisplayModel>? PublishLocations {
             get => _publishLocations;
             private set {
                 _publishLocations = value;
@@ -284,7 +279,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public ContentTreeNode TreeRoot {
+        public ContentTreeNode? TreeRoot {
             get => _treeRoot;
             private set {
                 _treeRoot = value;
@@ -292,13 +287,13 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public string SearchText {
+        public string? SearchText {
             get => _searchText;
             set {
                 _searchText = value;
                 OnPropertyChanged();
 
-                TreeRoot.UpdateVisibility(this);
+                TreeRoot?.UpdateVisibility(this);
             }
         }
 
@@ -308,11 +303,11 @@ namespace PixelGraph.UI.ViewModels
                 _showAllFiles = value;
                 OnPropertyChanged();
 
-                TreeRoot.UpdateVisibility(this);
+                TreeRoot?.UpdateVisibility(this);
             }
         }
 
-        public ContentTreeNode SelectedNode {
+        public ContentTreeNode? SelectedNode {
             get => _selectedNode;
             set {
                 _selectedNode = value;
@@ -323,7 +318,7 @@ namespace PixelGraph.UI.ViewModels
             }
         }
 
-        public PublishLocationDisplayModel SelectedLocation {
+        public PublishLocationDisplayModel? SelectedLocation {
             get => _selectedLocation;
             set {
                 _selectedLocation = value;
@@ -388,6 +383,8 @@ namespace PixelGraph.UI.ViewModels
         {
             UpdatePublishLocations();
 
+            ArgumentNullException.ThrowIfNull(appSettingsMgr);
+
             if (appSettingsMgr.Data.SelectedPublishLocation != null) {
                 var location = PublishLocations?.FirstOrDefault(x => string.Equals(x.DisplayName, appSettingsMgr.Data.SelectedPublishLocation, StringComparison.InvariantCultureIgnoreCase));
                 if (location != null) SelectedLocation = location;
@@ -442,12 +439,14 @@ namespace PixelGraph.UI.ViewModels
             var tab = SelectedTab;
             if (tab == null) return;
 
-            var context = tabPreviewMgr.Get(tab.Id);
-            if (context == null) throw new ApplicationException($"Tab context not found! id={SelectedTab.Id}");
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
+            var context = tabPreviewMgr.Get(tab.Id)
+                ?? throw new ApplicationException($"Tab context not found! id={SelectedTab?.Id}");
 
 #if !NORENDER
             if (tab is MaterialTabModel matTab) {
-                var mat = matTab.MaterialRegistration.Value;
+                var mat = matTab.MaterialRegistration?.Value;
                 RenderProperties.ApplyMaterial(mat);
             }
 
@@ -473,6 +472,8 @@ namespace PixelGraph.UI.ViewModels
         {
             if (_isInitializing || isUpdatingProfiles) return;
 
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+
             var context = projectContextMgr.GetContext();
             if (context != null) context.SelectedProfile = SelectedProfile?.Profile;
 
@@ -481,9 +482,12 @@ namespace PixelGraph.UI.ViewModels
 
         public void Clear()
         {
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+            ArgumentNullException.ThrowIfNull(materialCache);
+
             projectContextMgr.SetContext(null);
 
-            ProfileList?.Clear();
+            ProfileList.Clear();
             ProjectFilename = null;
             SelectedNode = null;
             TreeRoot = null;
@@ -493,6 +497,8 @@ namespace PixelGraph.UI.ViewModels
 
         public void CloseAllTabs()
         {
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
             tabPreviewMgr.Clear();
 
             IsPreviewTabSelected = false;
@@ -503,6 +509,8 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task LoadProjectAsync(string filename)
         {
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+
             var serializer = new ProjectSerializer();
             var project = await serializer.LoadAsync(filename);
 
@@ -519,7 +527,10 @@ namespace PixelGraph.UI.ViewModels
         {
             if (!TryStartBusy()) return;
 
-            var projectContext = projectContextMgr.GetContext();
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+            ArgumentNullException.ThrowIfNull(_provider);
+
+            var projectContext = projectContextMgr.GetContextRequired();
             var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();
@@ -547,14 +558,14 @@ namespace PixelGraph.UI.ViewModels
                         treeReader.Update(TreeRoot);
                     }
                     catch (Exception error) {
-                        logger.LogError(error, "Failed to populate TreeView!");
+                        logger?.LogError(error, "Failed to populate TreeView!");
                         OnTreeError(error);
                     }
 
                     TreeRoot.UpdateVisibility(this);
 
                     // TODO: add 'selected-profile' to project to restore last selection?
-                    projectContext.SelectedProfile = projectContext.Project.Profiles.FirstOrDefault();
+                    projectContext.SelectedProfile = projectContext.Project.Profiles?.FirstOrDefault();
 
                     SelectedProfile = ProfileList.FirstOrDefault(p => p.Profile == projectContext.SelectedProfile);
                     EndBusy();
@@ -573,7 +584,10 @@ namespace PixelGraph.UI.ViewModels
         {
             if (!TryStartBusy()) return;
 
-            var projectContext = projectContextMgr.GetContext();
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+            ArgumentNullException.ThrowIfNull(_provider);
+
+            var projectContext = projectContextMgr.GetContextRequired();
             var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
 
             serviceBuilder.Initialize();
@@ -598,12 +612,16 @@ namespace PixelGraph.UI.ViewModels
 
         public void LoadAppSettings()
         {
+            ArgumentNullException.ThrowIfNull(appSettingsMgr);
+
             IsRenderPreviewEnabled = appSettingsMgr.Data.RenderPreview?.Enabled ?? RenderPreviewSettings.Default_Enabled;
         }
 
         public void ClearPreviewTab()
         {
             if (PreviewTab == null) return;
+
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
 
             if (PreviewTab is MaterialTabModel materialTab && materialTab.MaterialRegistration != null)
                 materialCache.Release(materialTab.MaterialRegistration);
@@ -618,6 +636,9 @@ namespace PixelGraph.UI.ViewModels
             if (PreviewTab != null)
                 ClearPreviewTab();
 
+            ArgumentNullException.ThrowIfNull(_provider);
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
             var context = new TabPreviewContext(_provider) {
                 Id = newTab.Id,
             };
@@ -630,6 +651,9 @@ namespace PixelGraph.UI.ViewModels
 
         public void AddNewTab(ITabModel newTab)
         {
+            ArgumentNullException.ThrowIfNull(_provider);
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
             var context = new TabPreviewContext(_provider) {
                 Id = newTab.Id,
             };
@@ -641,21 +665,29 @@ namespace PixelGraph.UI.ViewModels
 
         public bool HasAcceptedPatreonNotification()
         {
+            ArgumentNullException.ThrowIfNull(appSettingsMgr);
+
             return appSettingsMgr.Data.HasAcceptedPatreonNotification ?? false;
         }
 
         public bool HasAcceptedLicenseAgreement()
         {
+            ArgumentNullException.ThrowIfNull(appSettingsMgr);
+
             return appSettingsMgr.Data.AcceptedLicenseAgreementVersion == AppSettingsDataModel.CurrentLicenseVersion;
         }
 
         public bool HasAcceptedTermsOfService()
         {
+            ArgumentNullException.ThrowIfNull(appSettingsMgr);
+
             return appSettingsMgr.Data.AcceptedTermsOfServiceVersion == AppSettingsDataModel.CurrentTermsVersion;
         }
 
         public void UpdatePublishLocations()
         {
+            ArgumentNullException.ThrowIfNull(publishLocationMgr);
+
             PublishLocations = publishLocationMgr.GetLocations()?
                 .Select(l => new PublishLocationDisplayModel(l)).ToList();
 
@@ -668,17 +700,21 @@ namespace PixelGraph.UI.ViewModels
 
         public void UpdatePublishProfiles()
         {
-            var projectContext = projectContextMgr.GetContext();
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+
+            var projectContext = projectContextMgr.GetContextRequired();
 
             isUpdatingProfiles = true;
 
             try {
                 ProfileList.Clear();
 
-                foreach (var profile in projectContext.Project.Profiles)
-                    ProfileList.Add(new PublishProfileDisplayRow(profile) {
-                        DefaultName = projectContext.Project.Name,
-                    });
+                if (projectContext.Project?.Profiles != null) {
+                    foreach (var profile in projectContext.Project.Profiles)
+                        ProfileList.Add(new PublishProfileDisplayRow(profile) {
+                            DefaultName = projectContext.Project.Name,
+                        });
+                }
 
                 SelectedProfile = ProfileList.FirstOrDefault(p => p.Profile == projectContext.SelectedProfile);
             }
@@ -692,6 +728,8 @@ namespace PixelGraph.UI.ViewModels
             var tab = SelectedTab;
             if (tab == null) return;
 
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
             var context = tabPreviewMgr.Get(tab.Id);
             if (context == null) return;
 
@@ -700,7 +738,7 @@ namespace PixelGraph.UI.ViewModels
                 await Task.Run(() => UpdateTabPreviewAsync(dispatcher, context, token), token);
             }
             catch (Exception error) {
-                logger.LogError(error, "Failed to update tab preview!");
+                logger?.LogError(error, "Failed to update tab preview!");
             }
             finally {
                 await dispatcher.BeginInvoke(() => tab.IsLoading = false);
@@ -711,7 +749,7 @@ namespace PixelGraph.UI.ViewModels
         {
             try {
                 if (SelectedTab is MaterialTabModel materialTab) {
-                    var material = materialTab.MaterialRegistration.Value;
+                    var material = materialTab.MaterialRegistration?.Value;
                     if (material == null) return;
 
 #if !NORENDER
@@ -722,7 +760,7 @@ namespace PixelGraph.UI.ViewModels
                                 await context.BuildModelMeshAsync(renderContext, token);
                             }
                             catch (Exception error) {
-                                logger.LogError(error, "Failed to build model mesh!");
+                                logger?.LogError(error, "Failed to build model mesh!");
                                 // TODO: show error modal!
                                 return;
                             }
@@ -759,7 +797,7 @@ namespace PixelGraph.UI.ViewModels
                         if (!context.IsLayerValid) {
                             var image = await Task.Run(async () => {
                                 using var previewBuilder = _provider.GetRequiredService<ILayerPreviewBuilder>();
-                                var projectContext = projectContextMgr.GetContext();
+                                var projectContext = projectContextMgr.GetContextRequired();
 
                                 previewBuilder.Project = projectContext.Project;
                                 previewBuilder.Profile = projectContext.SelectedProfile;
@@ -797,7 +835,7 @@ namespace PixelGraph.UI.ViewModels
                 if (SelectedTab is TextureTabModel textureTab) {
                     if (context.LayerImage != null) return;
 
-                    var projectContext = projectContextMgr.GetContext();
+                    var projectContext = projectContextMgr.GetContextRequired();
                     context.SourceFile = PathEx.Join(projectContext.RootDirectory, textureTab.ImageFilename);
 
                     await dispatcher.BeginInvoke(() => {
@@ -816,7 +854,10 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task GenerateNormalAsync(MaterialProperties material, string filename, CancellationToken token = default)
         {
-            var projectContext = projectContextMgr.GetContext();
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+            ArgumentNullException.ThrowIfNull(_provider);
+
+            var projectContext = projectContextMgr.GetContextRequired();
 
             var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
             var inputEncoding = inputFormat?.Create() ?? new PackEncoding();
@@ -849,7 +890,10 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task GenerateOcclusionAsync(MaterialProperties material, string filename, CancellationToken token = default)
         {
-            var projectContext = projectContextMgr.GetContext();
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+            ArgumentNullException.ThrowIfNull(_provider);
+
+            var projectContext = projectContextMgr.GetContextRequired();
 
             var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
             var inputEncoding = inputFormat?.Create() ?? new PackEncoding();
@@ -877,10 +921,8 @@ namespace PixelGraph.UI.ViewModels
             context.InputEncoding = inputEncoding.GetMapped().ToList();
             context.OutputEncoding = inputEncoding.GetMapped().ToList();
 
-            using var occlusionImage = await graph.GenerateAsync(token);
-
-            if (occlusionImage == null)
-                throw new ApplicationException("Unable to generate occlusion texture!");
+            using var occlusionImage = await graph.GenerateAsync(token)
+                ?? throw new ApplicationException("Unable to generate occlusion texture!");
 
             // WARN: This only allows separate images!
             // TODO: Support writing to the channel of an existing image?
@@ -890,7 +932,7 @@ namespace PixelGraph.UI.ViewModels
             var inputChannel = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Occlusion));
             
             if (inputChannel != null && !TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
-                //material.Occlusion ??= new MaterialOcclusionProperties();
+                material.Occlusion ??= new MaterialOcclusionProperties();
                 material.Occlusion.Texture = Path.GetFileName(filename);
 
                 material.Occlusion.Input ??= new ResourcePackOcclusionChannelProperties();
@@ -903,9 +945,11 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task SaveMaterialAsync(MaterialProperties material)
         {
-            if (material == null) throw new ArgumentNullException(nameof(material));
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+            ArgumentNullException.ThrowIfNull(_provider);
+            ArgumentNullException.ThrowIfNull(material);
 
-            var projectContext = projectContextMgr.GetContext();
+            var projectContext = projectContextMgr.GetContextRequired();
             var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
             
             serviceBuilder.Initialize();
@@ -924,7 +968,10 @@ namespace PixelGraph.UI.ViewModels
 
         public async Task<MaterialProperties> ImportTextureAsync(string filename, CancellationToken token = default)
         {
-            var projectContext = projectContextMgr.GetContext();
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+            ArgumentNullException.ThrowIfNull(_provider);
+
+            var projectContext = projectContextMgr.GetContextRequired();
             var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
             
             serviceBuilder.Initialize();
@@ -952,6 +999,8 @@ namespace PixelGraph.UI.ViewModels
             var ext = Path.GetExtension(filename);
             var destFile = PathEx.Join(localPath, itemName, $"albedo{ext}");
             await using (var sourceStream = reader.Open(filename)) {
+                if (sourceStream == null) throw new ApplicationException("Failed to open source file stream!");
+
                 await writer.OpenWriteAsync(destFile, async destStream => {
                     await sourceStream.CopyToAsync(destStream, token);
                 }, token);
@@ -961,7 +1010,7 @@ namespace PixelGraph.UI.ViewModels
                 writer.Delete(filename);
             }
             catch (IOException error) {
-                logger.LogWarning(error, "Failed to delete new material source file!");
+                logger?.LogWarning(error, "Failed to delete new material source file!");
             }
 
             return material;
@@ -976,7 +1025,9 @@ namespace PixelGraph.UI.ViewModels
 
         private void CloseTab(Guid tabId)
         {
-            ITabModel tab = null;
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
+            ITabModel? tab = null;
             if (PreviewTab?.Id == tabId) {
                 tab = PreviewTab;
                 PreviewTab = null;
@@ -991,7 +1042,7 @@ namespace PixelGraph.UI.ViewModels
                 }
             }
 
-            if (tab is MaterialTabModel materialTab && materialTab.MaterialRegistration != null)
+            if (tab is MaterialTabModel { MaterialRegistration: not null } materialTab)
                 materialCache.Release(materialTab.MaterialRegistration);
 
             tabPreviewMgr.Remove(tabId);
@@ -999,6 +1050,8 @@ namespace PixelGraph.UI.ViewModels
 
         public void InvalidateTab(Guid tabId)
         {
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
             var context = tabPreviewMgr.Get(tabId);
             if (context == null) return;
 
@@ -1012,11 +1065,16 @@ namespace PixelGraph.UI.ViewModels
         public void InvalidateTabLayer()
         {
             if (SelectedTab == null) return;
+
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
             tabPreviewMgr.Get(SelectedTab.Id)?.InvalidateLayer(false);
         }
 
         public void InvalidateTabChannels(Guid tabId, string[] channels)
         {
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
             var context = tabPreviewMgr.Get(tabId);
             if (context == null) return;
 
@@ -1029,17 +1087,23 @@ namespace PixelGraph.UI.ViewModels
 
         public void InvalidateAllTabs()
         {
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
             tabPreviewMgr.InvalidateAll(true);
         }
 
         public void InvalidateAllTabLayers()
         {
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
             tabPreviewMgr.InvalidateAllLayers(true);
         }
 
 #if !NORENDER
         public void UpdateMaterials()
         {
+            ArgumentNullException.ThrowIfNull(tabPreviewMgr);
+
             var renderContext = BuildRenderContext();
 
             foreach (var tab in tabPreviewMgr.All) {
@@ -1049,12 +1113,14 @@ namespace PixelGraph.UI.ViewModels
 
         private RenderContext BuildRenderContext()
         {
-            var projectContext = projectContextMgr.GetContext();
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+
+            var projectContext = projectContextMgr.GetContextRequired();
 
             return new RenderContext {
                 RenderMode = RenderProperties.RenderMode,
-                Project = projectContext?.Project,
-                PackProfile = projectContext?.SelectedProfile,
+                Project = projectContext.Project,
+                PackProfile = projectContext.SelectedProfile,
                 DefaultMaterial = SelectedTabMaterial,
                 MissingMaterial = RenderProperties.MissingMaterial,
                 DielectricBrdfLutMap = RenderProperties.DielectricBrdfLutMap,
@@ -1076,10 +1142,12 @@ namespace PixelGraph.UI.ViewModels
         {
             if (SelectedTab is not MaterialTabModel materialTab) return;
             
-            var selectedMaterial = materialTab.MaterialRegistration.Value;
+            var selectedMaterial = materialTab.MaterialRegistration?.Value;
             if (selectedMaterial == null) return;
 
-            if (!HasSelectedTag) return;
+            if (SelectedTag == null) return;
+
+            ArgumentNullException.ThrowIfNull(editUtility);
 
             try {
                 IsImageEditorOpen = true;
@@ -1099,6 +1167,8 @@ namespace PixelGraph.UI.ViewModels
 
         public void CancelExternalImageEdit()
         {
+            ArgumentNullException.ThrowIfNull(editUtility);
+
             editUtility.Cancel();
             IsImageEditorOpen = false;
         }
@@ -1137,7 +1207,7 @@ namespace PixelGraph.UI.ViewModels
                 DisplayName = "Test Material",
             };
 
-            TreeRoot.Nodes.Add(new ContentTreeDirectory(null) {
+            TreeRoot?.Nodes.Add(new ContentTreeDirectory(null) {
                 Name = "assets",
                 Nodes = {
                     new ContentTreeDirectory(null) {

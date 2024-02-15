@@ -1,7 +1,5 @@
 ﻿using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
-using System;
-using PixelGraph.Common.Projects;
 using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.Material;
@@ -10,9 +8,9 @@ public class MaterialNormalProperties : IHaveData
 {
     public const decimal DefaultStrength = 1.0m;
 
-    public string Texture {get; set;}
+    public string? Texture {get; set;}
     public decimal? Strength {get; set;}
-    public string Method {get; set;}
+    public string? Method {get; set;}
 
     public decimal? Noise { get; set; }
     public decimal? CurveX { get; set; }
@@ -20,17 +18,17 @@ public class MaterialNormalProperties : IHaveData
     public decimal? RadiusX { get; set; }
     public decimal? RadiusY { get; set; }
         
-    public ResourcePackNormalXChannelProperties InputX {get; set;}
+    public ResourcePackNormalXChannelProperties? InputX {get; set;}
 
     [YamlMember(Alias = "value-x", ApplyNamingConventions = false)]
     public decimal? ValueX {get; set;}
 
-    public ResourcePackNormalYChannelProperties InputY {get; set;}
+    public ResourcePackNormalYChannelProperties? InputY {get; set;}
 
     [YamlMember(Alias = "value-y", ApplyNamingConventions = false)]
     public decimal? ValueY {get; set;}
 
-    public ResourcePackNormalZChannelProperties InputZ {get; set;}
+    public ResourcePackNormalZChannelProperties? InputZ {get; set;}
 
     [YamlMember(Alias = "value-z", ApplyNamingConventions = false)]
     public decimal? ValueZ {get; set;}
@@ -63,7 +61,7 @@ public class MaterialNormalProperties : IHaveData
     #region Deprecated
 
     [Obsolete("Rename usages of Filter to Method.")]
-    public string Filter {
+    public string? Filter {
         get => null;
         set => Method = value;
     }

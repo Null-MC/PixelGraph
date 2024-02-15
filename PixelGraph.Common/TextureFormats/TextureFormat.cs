@@ -1,7 +1,5 @@
 ﻿using PixelGraph.Common.TextureFormats.Bedrock;
 using PixelGraph.Common.TextureFormats.Java;
-using System;
-using System.Collections.Generic;
 
 namespace PixelGraph.Common.TextureFormats;
 
@@ -21,7 +19,7 @@ public class TextureFormat
     public static bool Is(string formatActual, string formatExpected) =>
         string.Equals(formatActual, formatExpected, StringComparison.InvariantCultureIgnoreCase);
 
-    public static ITextureFormatFactory GetFactory(string format)
+    public static ITextureFormatFactory? GetFactory(string? format)
     {
         //if (format == null) throw new ArgumentNullException(nameof(format));
         if (format == null) return null;

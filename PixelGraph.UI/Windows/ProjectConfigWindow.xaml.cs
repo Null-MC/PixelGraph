@@ -2,13 +2,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
-using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal.Utilities;
-using System;
 using System.Windows;
-using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows;
 
@@ -31,13 +28,15 @@ public partial class ProjectConfigWindow
 
     private async void OnEditEncodingClick(object sender, RoutedEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(Model.Project);
+
         var formatFactory = TextureFormat.GetFactory(Model.Format);
 
         var window = new TextureFormatWindow {
             Owner = this,
             Model = {
-                Encoding = (PackEncoding)Model.Project.Input.Clone(),
-                DefaultEncoding = formatFactory.Create(),
+                Encoding = (PackEncoding?)Model.Project.Input?.Clone(),
+                DefaultEncoding = formatFactory?.Create(),
                 EnableSampler = false,
             },
         };
@@ -51,7 +50,7 @@ public partial class ProjectConfigWindow
             return;
         }
 
-        Model.Project.Input = (PackInputEncoding)window.Model.Encoding;
+        Model.Project.Input = (PackInputEncoding?)window.Model.Encoding;
     }
 
     private async void OnOkButtonClick(object sender, RoutedEventArgs e)

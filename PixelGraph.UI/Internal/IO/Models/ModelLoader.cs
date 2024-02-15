@@ -21,16 +21,16 @@ public class ModelLoader
         this.provider = provider;
     }
 
-    public JavaEntityModelVersion GetJavaEntityModel(MaterialProperties material)
+    public JavaEntityModelVersion? GetJavaEntityModel(MaterialProperties material)
     {
         var modelFile = material.Model;
         if (modelFile == null && !MCPath.IsEntityPath(material.LocalPath)) return null;
         if (modelFile?.StartsWith("block/", StringComparison.InvariantCultureIgnoreCase) ?? false) return null;
 
-        JavaEntityModelVersion baseModel;
+        JavaEntityModelVersion? baseModel;
         if (modelFile != null) {
             var modelId = Path.GetFileName(modelFile);
-            baseModel = Minecraft.Java.FindEntityModelVersionById<JavaEntityModelVersion>(modelId)?.FirstOrDefault();
+            baseModel = Minecraft.Java.FindEntityModelVersionById<JavaEntityModelVersion>(modelId).FirstOrDefault();
         }
         else {
             baseModel = Minecraft.Java.GetEntityModelForTexture<JavaEntityTextureVersion>(material.Name, material.LocalPath)?.GetLatestVersion();
@@ -47,7 +47,7 @@ public class ModelLoader
         return baseModel;
     }
 
-    public BlockModelVersion GetBlockModel(MaterialProperties material, bool defaultCube = false)
+    public BlockModelVersion? GetBlockModel(MaterialProperties material, bool defaultCube = false)
     {
         var modelFile = material.Model;
         if (modelFile == null && !MCPath.IsBlockPath(material.LocalPath) && !defaultCube) return null;

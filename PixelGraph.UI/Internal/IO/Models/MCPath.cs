@@ -1,6 +1,5 @@
-﻿using System;
+﻿using PixelGraph.Common.Extensions;
 using System.Text.RegularExpressions;
-using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.UI.Internal.IO.Models;
 
@@ -13,21 +12,21 @@ internal static class MCPath
 
     public static bool IsEntityPath(string materialPath)
     {
-        if (materialPath == null) throw new ArgumentNullException(nameof(materialPath));
+        ArgumentNullException.ThrowIfNull(materialPath);
 
         return entityPathExp.IsMatch(PathEx.Normalize(materialPath));
     }
 
     public static bool IsBlockPath(string materialPath)
     {
-        if (materialPath == null) throw new ArgumentNullException(nameof(materialPath));
+        ArgumentNullException.ThrowIfNull(materialPath);
 
         return blockPathExp.IsMatch(PathEx.Normalize(materialPath));
     }
 
     public static bool IsItemPath(string materialPath)
     {
-        if (materialPath == null) throw new ArgumentNullException(nameof(materialPath));
+        ArgumentNullException.ThrowIfNull(materialPath);
 
         return itemPathExp.IsMatch(PathEx.Normalize(materialPath));
     }

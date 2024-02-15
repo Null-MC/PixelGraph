@@ -20,15 +20,19 @@ public class CtmPublisher
 
     public async Task TryBuildPropertiesAsync(ITextureGraphContext context, CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         var ctmData = context.Material.CTM;
         if (ctmData == null || string.IsNullOrWhiteSpace(ctmData.Method)) return;
 
         var propsFileIn = NamingStructure.GetInputPropertiesName(context.Material);
-        var properties = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+        var properties = new Dictionary<string, string?>(StringComparer.InvariantCultureIgnoreCase);
         var propertySerializer = new PropertyFileSerializer();
 
         if (reader.FileExists(propsFileIn)) {
-            await using var sourceStream = reader.Open(propsFileIn);
+            await using var sourceStream = reader.Open(propsFileIn)
+                ?? throw new ApplicationException("Failed to open file stream!");
+
             using var streamReader = new StreamReader(sourceStream);
 
             await foreach (var (propertyName, propertyValue) in propertySerializer.ReadAsync(streamReader, token))

@@ -84,13 +84,13 @@ internal class ItemProcessor<TOcclusion, TEmissive> : PixelRowProcessor
         public Color LightColor = Color.FromArgb(200, 200, 200);
         public Vector3 LightDirection = Vector3.UnitZ;
 
-        public ISampler<Rgb24> NormalSampler;
+        public ISampler<Rgb24>? NormalSampler;
 
-        public ISampler<TOcclusion> OcclusionSampler;
+        public ISampler<TOcclusion>? OcclusionSampler;
         public ColorChannel OcclusionInputColor;
         public PixelMapping OcclusionMapping;
 
-        public ISampler<TEmissive> EmissiveSampler;
+        public ISampler<TEmissive>? EmissiveSampler;
         public ColorChannel EmissiveColor;
     }
 }

@@ -7,18 +7,13 @@ using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
-using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Extensions;
+using PixelGraph.UI.Internal.Logging;
 using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
-using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
-using PixelGraph.UI.Internal.Logging;
 
 namespace PixelGraph.UI.Windows;
 
@@ -69,7 +64,7 @@ public partial class ImportPackWindow : IDisposable
 
         await using var scope = serviceBuilder.Build();
 
-        var projectContext = projectContextMgr.GetContext();
+        var projectContext = projectContextMgr.GetContextRequired();
         var importer = scope.GetRequiredService<IResourcePackImporter>();
 
         importer.AsGlobal = Model.AsGlobal;
@@ -90,7 +85,7 @@ public partial class ImportPackWindow : IDisposable
     {
         var contentType = Model.IsArchive ? ContentTypes.Archive : ContentTypes.File;
 
-        var projectContext = projectContextMgr.GetContext();
+        var projectContext = projectContextMgr.GetContextRequired();
         var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
         serviceBuilder.Initialize();
@@ -135,22 +130,23 @@ public partial class ImportPackWindow : IDisposable
 
     public void Dispose()
     {
-        tokenSource?.Dispose();
+        tokenSource.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     #region Events
 
-    private async void OnWindowLoaded(object sender, RoutedEventArgs e)
+    private async void OnWindowLoaded(object? sender, RoutedEventArgs e)
     {
         await LoadSourceAsync(tokenSource.Token);
     }
 
-    private void OnWindowClosed(object sender, EventArgs e)
+    private void OnWindowClosed(object? sender, EventArgs e)
     {
         tokenSource.Cancel();
     }
 
-    private async void OnImportClick(object sender, RoutedEventArgs e)
+    private async void OnImportClick(object? sender, RoutedEventArgs e)
     {
         Model.ShowLog = true;
         Model.IsActive = true;
@@ -178,7 +174,7 @@ public partial class ImportPackWindow : IDisposable
         }
     }
 
-    private void OnEditEncodingClick(object sender, RoutedEventArgs e)
+    private void OnEditEncodingClick(object? sender, RoutedEventArgs e)
     {
         var formatFactory = TextureFormat.GetFactory(Model.SourceTextureFormat);
 
@@ -186,7 +182,7 @@ public partial class ImportPackWindow : IDisposable
             Owner = this,
             Model = {
                 Encoding = (PackEncoding)Model.Encoding.Clone(),
-                DefaultEncoding = formatFactory.Create(),
+                DefaultEncoding = formatFactory?.Create(),
                 EnableSampler = false,
             },
         };
@@ -196,23 +192,23 @@ public partial class ImportPackWindow : IDisposable
         Model.Encoding = (PackOutputEncoding)window.Model.Encoding;
     }
 
-    private void OnCancelClick(object sender, RoutedEventArgs e)
+    private void OnCancelClick(object? sender, RoutedEventArgs e)
     {
         tokenSource.Cancel();
         LogList.Append(LogLevel.Warning, "Cancelling...");
     }
 
-    private void OnLogMessage(object sender, LogEventArgs e)
+    private void OnLogMessage(object? sender, LogEventArgs e)
     {
         LogList.Append(e.Level, e.Message);
     }
 
-    private void OnLogListAppended(object sender, LogEventArgs e)
+    private void OnLogListAppended(object? sender, LogEventArgs e)
     {
         LogList.Append(e.Level, e.Message);
     }
 
-    private async void OnIncludeUnknownChanged(object sender, EventArgs e)
+    private async void OnIncludeUnknownChanged(object? sender, EventArgs e)
     {
         // TODO: cancel current load task
 

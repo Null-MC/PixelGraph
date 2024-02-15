@@ -1,4 +1,5 @@
 ﻿using PixelGraph.Common.ConnectedTextures;
+using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using YamlDotNet.Serialization;
@@ -13,28 +14,28 @@ public class MaterialProperties
     public const bool DefaultPublishItem = false;
 
     [YamlIgnore]
-    public string Name {get; set;}
+    public string? Name {get; set;}
 
     [YamlIgnore]
     public bool UseGlobalMatching {get; set;}
 
     [YamlIgnore]
-    public string LocalFilename {get; set;}
+    public string? LocalFilename {get; set;}
 
     [YamlIgnore]
-    public string LocalPath {get; set;}
+    public string? LocalPath {get; set;}
 
     //[YamlIgnore]
     //public string Alias {get; internal set;}
 
     [YamlIgnore]
-    public string DisplayName => Name; //Alias != null ? $"{Alias}:{Name}" : Name;
+    public string? DisplayName => Name; //Alias != null ? $"{Alias}:{Name}" : Name;
 
     [YamlMember(Order = -100)]
-    public string InputFormat {get; set;}
+    public string? InputFormat {get; set;}
 
     [YamlMember(Order = -99)]
-    public string Type {get; set;}
+    public string? Type {get; set;}
 
     [YamlMember(Order = -98)]
     public bool? Publish {get; set;}
@@ -61,52 +62,52 @@ public class MaterialProperties
 
     //public int? RangeMax {get; set;}
 
-    public MaterialOpacityProperties Opacity {get; set;}
+    public MaterialOpacityProperties? Opacity {get; set;}
 
-    public MaterialColorProperties Color {get; set;}
+    public MaterialColorProperties? Color {get; set;}
 
-    public MaterialHeightProperties Height {get; set;}
+    public MaterialHeightProperties? Height {get; set;}
 
-    public MaterialBumpProperties Bump {get; set;}
+    public MaterialBumpProperties? Bump {get; set;}
 
-    public MaterialNormalProperties Normal {get; set;}
+    public MaterialNormalProperties? Normal {get; set;}
 
-    public MaterialOcclusionProperties Occlusion {get; set;}
+    public MaterialOcclusionProperties? Occlusion {get; set;}
 
-    public MaterialSpecularProperties Specular {get; set;}
+    public MaterialSpecularProperties? Specular {get; set;}
 
-    public MaterialSmoothProperties Smooth {get; set;}
+    public MaterialSmoothProperties? Smooth {get; set;}
 
-    public MaterialRoughProperties Rough {get; set;}
+    public MaterialRoughProperties? Rough {get; set;}
 
-    public MaterialMetalProperties Metal {get; set;}
+    public MaterialMetalProperties? Metal {get; set;}
 
     [YamlMember(Alias = "hcm", ApplyNamingConventions = false)]
-    public MaterialHcmProperties HCM {get; set;}
+    public MaterialHcmProperties? HCM {get; set;}
 
-    public MaterialF0Properties F0 {get; set;}
+    public MaterialF0Properties? F0 {get; set;}
 
-    public MaterialPorosityProperties Porosity {get; set;}
+    public MaterialPorosityProperties? Porosity {get; set;}
 
     [YamlMember(Alias = "sss", ApplyNamingConventions = false)]
-    public MaterialSssProperties SSS {get; set;}
+    public MaterialSssProperties? SSS {get; set;}
 
-    public MaterialEmissiveProperties Emissive {get; set;}
+    public MaterialEmissiveProperties? Emissive {get; set;}
 
-    public string Model {get; set;}
+    public string? Model {get; set;}
 
-    public string BlendMode {get; set;}
+    public string? BlendMode {get; set;}
 
-    public string TintColor {get; set;}
+    public string? TintColor {get; set;}
 
     [YamlMember(Alias = "ctm", Order = 100)]
-    public MaterialConnectionProperties CTM {get; set;}
+    public MaterialConnectionProperties? CTM {get; set;}
 
     [YamlMember(Order = 101)]
-    public List<MaterialPart> Parts {get; set;}
+    public List<MaterialPart>? Parts {get; set;}
 
     [YamlMember(Order = 102)]
-    public List<MaterialFilter> Filters {get; set;}
+    public List<MaterialFilter>? Filters {get; set;}
 
 
     public MaterialProperties()
@@ -152,6 +153,8 @@ public class MaterialProperties
 
     public Size GetMultiPartBounds()
     {
+        ArgumentNullException.ThrowIfNull(Parts);
+
         var size = new Size();
 
         foreach (var part in Parts) {
@@ -220,6 +223,11 @@ public class MaterialProperties
         return MaterialType.Automatic;
     }
 
+    public PackEncodingChannel? GetInput(string channelName)
+    {
+        return inputMap.GetValueOrDefault(channelName)?.Invoke(this);
+    }
+
     //public MaterialProperties Clone()
     //{
     //    var clone = (MaterialProperties)MemberwiseClone();
@@ -279,12 +287,33 @@ public class MaterialProperties
         return shiftMap.TryGetValue(encodingChannel, out var valueFunc) ? valueFunc(this) : 0m;
     }
 
+    private static readonly Dictionary<string, Func<MaterialProperties, PackEncodingChannel?>> inputMap = new(StringComparer.OrdinalIgnoreCase) {
+        [EncodingChannel.Opacity] = mat => mat.Opacity?.Input,
+        [EncodingChannel.ColorRed] = mat => mat.Color?.InputRed,
+        [EncodingChannel.ColorGreen] = mat => mat.Color?.InputGreen,
+        [EncodingChannel.ColorBlue] = mat => mat.Color?.InputBlue,
+        [EncodingChannel.Height] = mat => mat.Height?.Input,
+        [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Input,
+        [EncodingChannel.NormalX] = mat => mat.Normal?.InputX,
+        [EncodingChannel.NormalY] = mat => mat.Normal?.InputY,
+        [EncodingChannel.NormalZ] = mat => mat.Normal?.InputZ,
+        [EncodingChannel.Specular] = mat => mat.Specular?.Input,
+        [EncodingChannel.Smooth] = mat => mat.Smooth?.Input,
+        [EncodingChannel.Rough] = mat => mat.Rough?.Input,
+        [EncodingChannel.Metal] = mat => mat.Metal?.Input,
+        [EncodingChannel.HCM] = mat => mat.HCM?.Input,
+        [EncodingChannel.F0] = mat => mat.F0?.Input,
+        [EncodingChannel.Porosity] = mat => mat.Porosity?.Input,
+        [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Input,
+        [EncodingChannel.Emissive] = mat => mat.Emissive?.Input,
+    };
+
     private static readonly Dictionary<string, Func<MaterialProperties, decimal?>> valueMap = new(StringComparer.OrdinalIgnoreCase) {
         [EncodingChannel.Opacity] = mat => mat.Opacity?.Value,
         [EncodingChannel.ColorRed] = mat => mat.Color?.GetValueRed(),
         [EncodingChannel.ColorGreen] = mat => mat.Color?.GetValueGreen(),
         [EncodingChannel.ColorBlue] = mat => mat.Color?.GetValueBlue(),
-        [EncodingChannel.Height] = mat => null,
+        [EncodingChannel.Height] = _ => null,
         [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Value,
         [EncodingChannel.NormalX] = mat => mat.Normal?.ValueX,
         [EncodingChannel.NormalY] = mat => mat.Normal?.ValueY,
@@ -369,19 +398,19 @@ public class MaterialProperties
     }
 
     [Obsolete("Replace usages of Alpha with Opacity")]
-    public MaterialOpacityProperties Alpha {
+    public MaterialOpacityProperties? Alpha {
         get => null;
         set => Opacity = value;
     }
 
     [Obsolete("Replace usages of Albedo with Color")]
-    public MaterialColorProperties Albedo {
+    public MaterialColorProperties? Albedo {
         get => null;
         set => Color = value;
     }
 
     [Obsolete("Replace usages of Diffuse with Color")]
-    public MaterialColorProperties Diffuse {
+    public MaterialColorProperties? Diffuse {
         get => null;
         set => Color = value;
     }

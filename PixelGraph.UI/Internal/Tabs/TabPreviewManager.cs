@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PixelGraph.UI.Internal.Tabs;
+﻿namespace PixelGraph.UI.Internal.Tabs;
 
 public interface ITabPreviewManager : IDisposable
 {
     IEnumerable<TabPreviewContext> All {get;}
 
     void Add(TabPreviewContext context);
-    TabPreviewContext Get(Guid id);
+    TabPreviewContext? Get(Guid id);
     void Remove(Guid id);
     void Clear();
     void InvalidateAll(bool clear);
@@ -43,7 +40,7 @@ public class TabPreviewManager : ITabPreviewManager
         contextMap[context.Id] = context;
     }
 
-    public TabPreviewContext Get(Guid id)
+    public TabPreviewContext? Get(Guid id)
     {
         return contextMap.TryGetValue(id, out var result) ? result : null;
     }

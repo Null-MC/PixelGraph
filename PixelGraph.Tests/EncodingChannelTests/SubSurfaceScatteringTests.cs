@@ -5,7 +5,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,7 +23,7 @@ public class SubSurfaceScatteringTests : ImageTestBase
 
         project = new ProjectData {
             Input = new PackInputEncoding {
-                SSS = {
+                SSS = new ResourcePackSssChannelProperties {
                     Texture = TextureTags.SubSurfaceScattering,
                     Color = ColorChannel.Red,
                 },
@@ -32,8 +31,8 @@ public class SubSurfaceScatteringTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
-                SSS = {
+            Encoding = new PackOutputEncoding {
+                SSS = new ResourcePackSssChannelProperties {
                     Texture = TextureTags.SubSurfaceScattering,
                     Color = ColorChannel.Red,
                 },

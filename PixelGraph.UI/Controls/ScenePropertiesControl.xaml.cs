@@ -5,8 +5,6 @@ using Ookii.Dialogs.Wpf;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Models.Scene;
 using PixelGraph.UI.ViewData;
-using System;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -15,7 +13,7 @@ namespace PixelGraph.UI.Controls;
 
 public partial class ScenePropertiesControl
 {
-    private IAppSettingsManager settings;
+    private IAppSettingsManager? settings;
     private bool isInitializing;
 
     public ScenePropertiesModel SceneProperties {
@@ -66,7 +64,7 @@ public partial class ScenePropertiesControl
         await Dispatcher.BeginInvoke(() => SceneProperties.EquirectangularMap = texture);
     }
 
-    private async void OnErpFileBrowseClick(object sender, RoutedEventArgs e)
+    private async void OnErpFileBrowseClick(object? sender, RoutedEventArgs e)
     {
         var dialog = new VistaOpenFileDialog {
             Title = "Import Zip Archive",
@@ -81,7 +79,7 @@ public partial class ScenePropertiesControl
         await LoadIblTextureAsync();
     }
 
-    private void OnErpFilenamePreviewKeyDown(object sender, KeyEventArgs e)
+    private void OnErpFilenamePreviewKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Delete) {
             SceneProperties.EquirectangularMap = null;
@@ -89,15 +87,17 @@ public partial class ScenePropertiesControl
         }
     }
 
-    private void OnErpRemoveClick(object sender, RoutedEventArgs e)
+    private void OnErpRemoveClick(object? sender, RoutedEventArgs e)
     {
         SceneProperties.EquirectangularMap = null;
         SceneProperties.ErpFilename = null;
     }
 
-    private void OnSceneAppSettingsChanged(object sender, EventArgs e)
+    private void OnSceneAppSettingsChanged(object? sender, EventArgs e)
     {
         if (isInitializing) return;
+
+        ArgumentNullException.ThrowIfNull(settings);
 
         settings.Data.RenderPreview.PomType = SceneProperties.PomType?.Name;
         settings.Data.RenderPreview.EnableAtmosphere = SceneProperties.EnableAtmosphere;
@@ -108,7 +108,7 @@ public partial class ScenePropertiesControl
         Dispatcher.Invoke(() => settings.SaveAsync(), DispatcherPriority.DataBind);
     }
 
-    private async void OnControlLoaded(object sender, RoutedEventArgs e)
+    private async void OnControlLoaded(object? sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace(SceneProperties.ErpFilename))
             await LoadIblTextureAsync();

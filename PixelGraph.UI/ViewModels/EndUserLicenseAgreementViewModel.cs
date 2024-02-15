@@ -1,14 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Settings;
-using System;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.ViewModels;
 
 internal class EndUserLicenseAgreementViewModel : ModelBase
 {
-    private IAppSettingsManager appSettings;
+    private IAppSettingsManager? appSettings;
     private bool _hasNotAccepted;
 
     public bool HasNotAccepted {
@@ -28,6 +26,8 @@ internal class EndUserLicenseAgreementViewModel : ModelBase
 
     public async Task SetResultAsync(bool result)
     {
+        ArgumentNullException.ThrowIfNull(appSettings);
+
         appSettings.Data.AcceptedLicenseAgreementVersion = result
             ? AppSettingsDataModel.CurrentLicenseVersion : null;
 

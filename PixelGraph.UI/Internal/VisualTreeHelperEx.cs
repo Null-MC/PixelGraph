@@ -5,7 +5,7 @@ namespace PixelGraph.UI.Internal;
 
 internal static class VisualTreeHelperEx
 {
-    public static T FindParent<T>(this DependencyObject child) where T : DependencyObject
+    public static T? FindParent<T>(this DependencyObject child) where T : DependencyObject
     {
         while (true) {
             var parentObject = VisualTreeHelper.GetParent(child);
@@ -16,7 +16,7 @@ internal static class VisualTreeHelperEx
         }
     }
 
-    public static T FindChild<T>(this DependencyObject parent) where T : DependencyObject
+    public static T? FindChild<T>(this DependencyObject parent) where T : DependencyObject
     {
         var count = VisualTreeHelper.GetChildrenCount(parent);
 

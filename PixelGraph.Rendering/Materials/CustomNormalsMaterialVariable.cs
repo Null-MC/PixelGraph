@@ -26,9 +26,9 @@ internal class CustomNormalsMaterialVariable : MaterialVariable
     
     private readonly ITextureResourceManager textureManager;
     private readonly IStatePoolManager statePoolManager;
-    private readonly ShaderResourceViewProxy[] textureResources;
+    private readonly ShaderResourceViewProxy?[] textureResources;
     private readonly SamplerStateProxy[] samplerResources;
-    private readonly CustomNormalsMaterialCore material;
+    private readonly CustomNormalsMaterialCore? material;
     private readonly ShaderPass materialPass;
     private readonly ShaderPass shadowPass;
     private readonly ShaderPass wireframePass;
@@ -75,6 +75,8 @@ internal class CustomNormalsMaterialVariable : MaterialVariable
 
     protected override void OnInitialPropertyBindings()
     {
+        ArgumentNullException.ThrowIfNull(material);
+
         AddPropertyBinding(nameof(CustomNormalsMaterialCore.OpacityMap), () => {
             CreateTextureView(material.OpacityMap, OpacityMapIdx);
         });
@@ -115,7 +117,7 @@ internal class CustomNormalsMaterialVariable : MaterialVariable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void CreateTextureView(TextureModel texture, int index)
+    private void CreateTextureView(TextureModel? texture, int index)
     {
         var newTexture = texture == null
             ? null : textureManager.Register(texture);
@@ -169,16 +171,16 @@ internal class CustomNormalsMaterialVariable : MaterialVariable
 
     private void CreateSamplers()
     {
+        ArgumentNullException.ThrowIfNull(material);
+
         var newSurfaceSampler = statePoolManager.Register(material.SurfaceMapSampler);
         var newHeightSampler = statePoolManager.Register(material.HeightMapSampler);
 
         RemoveAndDispose(ref samplerResources[SurfaceSamplerIdx]);
         RemoveAndDispose(ref samplerResources[HeightSamplerIdx]);
 
-        if (material != null) {
-            samplerResources[SurfaceSamplerIdx] = newSurfaceSampler;
-            samplerResources[HeightSamplerIdx] = newHeightSampler;
-        }
+        samplerResources[SurfaceSamplerIdx] = newSurfaceSampler;
+        samplerResources[HeightSamplerIdx] = newHeightSampler;
     }
 
     private void CreateSampler(SamplerStateDescription desc, int index)

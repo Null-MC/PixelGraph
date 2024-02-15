@@ -8,7 +8,7 @@ public class ResourceLocationDisplayModel : ModelBase
     public ResourceLocation DataSource {get;}
     //private bool _isManualSelect {get; set;}
 
-    public string DisplayName {
+    public string? DisplayName {
         get => DataSource.Name;
         set {
             DataSource.Name = value;
@@ -16,7 +16,7 @@ public class ResourceLocationDisplayModel : ModelBase
         }
     }
 
-    public string FileName {
+    public string? FileName {
         get => DataSource.File;
         set {
             DataSource.File = value;

@@ -11,14 +11,14 @@ namespace PixelGraph.Rendering.Sky;
 
 public class DebugSkyBoxCore : GeometryRenderCore
 {
-    private ShaderPass defaultShaderPass;
-    private ICubeMapSource _cubeMapSource;
+    private ShaderPass? defaultShaderPass;
+    private ICubeMapSource? _cubeMapSource;
     private SamplerStateDescription samplerDescription;
-    private SamplerStateProxy textureSampler;
+    private SamplerStateProxy? textureSampler;
     private int cubeTextureSlot;
     private int textureSamplerSlot;
         
-    public ICubeMapSource CubeMapSource {
+    public ICubeMapSource? CubeMapSource {
         get => _cubeMapSource;
         set => SetAffectsRender(ref _cubeMapSource, value);
     }
@@ -66,7 +66,7 @@ public class DebugSkyBoxCore : GeometryRenderCore
 
     protected override void OnRender(RenderContext context, DeviceContextProxy deviceContext)
     {
-        if (_cubeMapSource == null) return;
+        if (_cubeMapSource == null || defaultShaderPass == null) return;
 
         deviceContext.SetShaderResource(PixelShader.Type, cubeTextureSlot, _cubeMapSource.CubeMap);
         deviceContext.SetSampler(PixelShader.Type, textureSamplerSlot, textureSampler);

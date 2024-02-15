@@ -3,7 +3,6 @@ using PixelGraph.UI.Internal.Preview;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Windows;
 using System.Windows.Media;
 using Point = System.Windows.Point;
@@ -12,11 +11,11 @@ namespace PixelGraph.UI.ViewModels;
 
 internal class TexturePreviewViewModel : ModelBase
 {
-    private ITexturePreviewModel _texturePreviewData;
+    private ITexturePreviewModel? _texturePreviewData;
     private bool _enableTiling;
     private double _zoom = 1d;
 
-    public ITexturePreviewModel TexturePreviewData {
+    public ITexturePreviewModel? TexturePreviewData {
         get => _texturePreviewData;
         set {
             _texturePreviewData = value;
@@ -55,6 +54,11 @@ internal class TexturePreviewViewModel : ModelBase
 
     public void UpdateMouseColor(in Point pos)
     {
+        if (TexturePreviewData?.Texture == null) {
+            // warn
+            return;
+        }
+
         var rect = new Int32Rect((int)pos.X, (int)pos.Y, 1, 1);
         rect.X = Math.Clamp(rect.X, 0, TexturePreviewData.Texture.PixelWidth-1);
         rect.Y = Math.Clamp(rect.Y, 0, TexturePreviewData.Texture.PixelHeight-1);

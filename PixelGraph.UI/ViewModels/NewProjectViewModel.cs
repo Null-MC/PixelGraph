@@ -1,40 +1,34 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Common.Extensions;
-using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.IO;
 using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Models;
-using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using PixelGraph.UI.Internal.IO;
 
 namespace PixelGraph.UI.ViewModels;
 
-internal class NewProjectViewModel
+internal class NewProjectViewModel(IServiceProvider provider)
 {
-    private readonly IProjectContextManager projectContextMgr;
-    private readonly IRecentPathManager recentMgr;
+    private readonly IProjectContextManager projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
+    private readonly IRecentPathManager recentMgr = provider.GetRequiredService<IRecentPathManager>();
 
-    public NewProjectModel Model {get; set;}
+    public NewProjectModel? Model {get; set;}
 
-
-    public NewProjectViewModel(IServiceProvider provider)
-    {
-        projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
-        recentMgr = provider.GetRequiredService<IRecentPathManager>();
-    }
 
     public async Task CreateProjectAsync(ProjectContext projectContext, CancellationToken token = default)
     {
-        if (!Directory.Exists(projectContext.RootDirectory))
+        ArgumentNullException.ThrowIfNull(Model);
+
+        if (projectContext.RootDirectory != null && !Directory.Exists(projectContext.RootDirectory))
             Directory.CreateDirectory(projectContext.RootDirectory);
 
         projectContextMgr.SetContext(projectContext);
         await projectContextMgr.SaveAsync();
 
-        recentMgr.Insert(projectContext.ProjectFilename);
-        await recentMgr.SaveAsync(token);
+        if (projectContext.ProjectFilename != null) {
+            recentMgr.Insert(projectContext.ProjectFilename);
+            await recentMgr.SaveAsync(token);
+        }
 
         if (Model.CreateMinecraftFolders)
             CreateDefaultMinecraftFolders(projectContext);
@@ -46,7 +40,7 @@ internal class NewProjectViewModel
             CreateDefaultOptifineFolders(projectContext);
     }
 
-    private static void CreateDefaultMinecraftFolders(ProjectContext projectContext)
+    private static void CreateDefaultMinecraftFolders(IProjectContext projectContext)
     {
         var mcPath = PathEx.Join(projectContext.RootDirectory, "assets", "minecraft");
 
@@ -98,14 +92,14 @@ internal class NewProjectViewModel
         TryCreateDirectory(realmsPath, "textures");
     }
 
-    private static void CreateDefaultRealmsFolders(ProjectContext projectContext)
+    private static void CreateDefaultRealmsFolders(IProjectContext projectContext)
     {
         var realmsPath = PathEx.Join(projectContext.RootDirectory, "assets", "realms");
 
         TryCreateDirectory(realmsPath, "textures");
     }
 
-    private static void CreateDefaultOptifineFolders(ProjectContext projectContext)
+    private static void CreateDefaultOptifineFolders(IProjectContext projectContext)
     {
         var optifinePath = PathEx.Join(projectContext.RootDirectory, "assets", "minecraft", "optifine");
 

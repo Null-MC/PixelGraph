@@ -28,7 +28,7 @@ public class NormalGenerationTests : ImageTestBase
 
         project = new ProjectData {
             Input = new PackInputEncoding {
-                Height = {
+                Height = new ResourcePackHeightChannelProperties {
                     Texture = TextureTags.Height,
                     Color = ColorChannel.Red,
                 },
@@ -36,22 +36,22 @@ public class NormalGenerationTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
-                NormalX = {
+            Encoding = new PackOutputEncoding {
+                NormalX = new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Red,
                     MinValue = -1m,
                     MaxValue = 1m,
                     DefaultValue = 0m,
                 },
-                NormalY = {
+                NormalY = new ResourcePackNormalYChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Green,
                     MinValue = -1m,
                     MaxValue = 1m,
                     DefaultValue = 0m,
                 },
-                NormalZ = {
+                NormalZ = new ResourcePackNormalZChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Blue,
                     MinValue = -1m,
@@ -155,7 +155,9 @@ public class NormalGenerationTests : ImageTestBase
 
         using var normalImage = builder.Build();
         await SaveImageAsync("Output/final.png", normalImage);
-        await SaveImageAsync("Output/variance.png", builder.VarianceMap);
+
+        if (builder.VarianceMap != null)
+            await SaveImageAsync("Output/variance.png", builder.VarianceMap);
     }
 
     private static Task SaveImageAsync(string localFile, Image image)

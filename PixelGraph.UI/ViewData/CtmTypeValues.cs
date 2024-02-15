@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common.ConnectedTextures;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData;
 
@@ -29,7 +28,7 @@ internal class CtmTypeValues : List<CtmTypeValues.Item>
 
     public class Item
     {
-        public string Text {get; set;}
-        public string Value {get; set;}
+        public string? Text {get; set;}
+        public string? Value {get; set;}
     }
 }

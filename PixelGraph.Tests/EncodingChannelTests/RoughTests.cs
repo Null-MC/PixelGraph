@@ -5,7 +5,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,7 +23,7 @@ public class RoughTests : ImageTestBase
 
         project = new ProjectData {
             Input = new PackInputEncoding {
-                Rough = {
+                Rough = new ResourcePackRoughChannelProperties {
                     Texture = TextureTags.Rough,
                     Color = ColorChannel.Red,
                 },
@@ -32,8 +31,8 @@ public class RoughTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
-                Rough = {
+            Encoding = new PackOutputEncoding {
+                Rough = new ResourcePackRoughChannelProperties {
                     Texture = TextureTags.Rough,
                     Color = ColorChannel.Red,
                 },
@@ -128,7 +127,7 @@ public class RoughTests : ImageTestBase
 
         graph.Project = new ProjectData {
             Input = new PackInputEncoding {
-                Smooth = {
+                Smooth = new ResourcePackSmoothChannelProperties {
                     Texture = TextureTags.Smooth,
                     Color = ColorChannel.Red,
                 },

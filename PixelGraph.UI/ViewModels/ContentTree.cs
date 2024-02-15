@@ -1,6 +1,5 @@
 ﻿using MahApps.Metro.IconPacks;
 using PixelGraph.UI.ViewData;
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -9,11 +8,11 @@ namespace PixelGraph.UI.ViewModels;
 
 public class ContentTreeNode : INotifyPropertyChanged
 {
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-    public string Name {get; set;}
-    public string LocalPath {get; set;}
-    public ContentTreeNode Parent {get;}
+    public string? Name {get; set;}
+    public string? LocalPath {get; set;}
+    public ContentTreeNode? Parent {get;}
 
     public ObservableCollection<ContentTreeNode> Nodes {get;}
 
@@ -31,7 +30,7 @@ public class ContentTreeNode : INotifyPropertyChanged
     }
 
 
-    public ContentTreeNode(ContentTreeNode parent)
+    public ContentTreeNode(ContentTreeNode? parent)
     {
         Parent = parent;
 
@@ -67,7 +66,7 @@ public class ContentTreeNode : INotifyPropertyChanged
     //    return null;
     //}
 
-    private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -75,7 +74,7 @@ public class ContentTreeNode : INotifyPropertyChanged
 
 internal class ContentTreeDirectory : ContentTreeNode
 {
-    public ContentTreeDirectory(ContentTreeNode parent) : base(parent) {}
+    public ContentTreeDirectory(ContentTreeNode? parent) : base(parent) {}
 
     public override void UpdateVisibility(ISearchParameters search)
     {
@@ -99,7 +98,7 @@ internal class ContentTreeDirectory : ContentTreeNode
 
 internal class ContentTreeMaterialDirectory : ContentTreeDirectory
 {
-    public string MaterialFilename {get; set;}
+    public string? MaterialFilename {get; set;}
 
 
     public ContentTreeMaterialDirectory(ContentTreeNode parent) : base(parent) {}
@@ -108,7 +107,7 @@ internal class ContentTreeMaterialDirectory : ContentTreeDirectory
     {
         Visible = true;
 
-        if (!string.IsNullOrEmpty(search.SearchText)) {
+        if (Name != null && !string.IsNullOrEmpty(search.SearchText)) {
             Visible = Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase);
         }
 
@@ -123,12 +122,12 @@ internal class ContentTreeMaterialDirectory : ContentTreeDirectory
 
 internal class ContentTreeFile : ContentTreeNode
 {
-    public string Filename {get; set;}
-    public ContentNodeType Type {get; set;}
+    public string? Filename {get; set;}
+    public ContentNodeType? Type {get; set;}
     public PackIconFontAwesomeKind Icon {get; set;}
 
 
-    public ContentTreeFile(ContentTreeNode parent) : base(parent)
+    public ContentTreeFile(ContentTreeNode? parent) : base(parent)
     {
         Icon = PackIconFontAwesomeKind.FileSolid;
     }
@@ -139,7 +138,7 @@ internal class ContentTreeFile : ContentTreeNode
         else Visible = Type == ContentNodeType.Material;
         if (!Visible) return;
 
-        if (!string.IsNullOrEmpty(search.SearchText)) {
+        if (Name != null && !string.IsNullOrEmpty(search.SearchText)) {
             Visible = Name.Contains(search.SearchText, StringComparison.InvariantCultureIgnoreCase);
         }
     }

@@ -22,18 +22,12 @@ using PixelGraph.UI.Models;
 using PixelGraph.UI.Models.Tabs;
 using PixelGraph.UI.ViewModels;
 using PixelGraph.UI.Windows.Modals;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 #if !NORENDER
 using System.Windows.Media.Imaging;
@@ -120,15 +114,12 @@ namespace PixelGraph.UI.Windows
         private async Task ImportPackAsync(string source, bool isArchive)
         {
             try {
-                using var window = new ImportPackWindow(provider) {
-                    Owner = this,
-                    Model = {
-                        //RootDirectory = Model.RootDirectory,
-                        //PackInput = Model.PackInput,
-                        ImportSource = source,
-                        IsArchive = isArchive,
-                    },
-                };
+                using var window = new ImportPackWindow(provider);
+                //RootDirectory = Model.RootDirectory,
+                //PackInput = Model.PackInput,
+                window.Model.ImportSource = source;
+                window.Model.IsArchive = isArchive;
+                window.Owner = this;
 
                 if (window.ShowDialog() != true) return;
             }
@@ -141,7 +132,7 @@ namespace PixelGraph.UI.Windows
             await Model.LoadRootDirectoryAsync(Dispatcher);
         }
 
-        private string GetArchiveFilename(bool isBedrock)
+        private string? GetArchiveFilename(bool isBedrock)
         {
             string defaultExt;
             var saveFileDialog = new VistaSaveFileDialog {
@@ -155,14 +146,14 @@ namespace PixelGraph.UI.Windows
                 defaultExt = ".mcpack";
                 saveFileDialog.Filter = "MCPACK Archive|*.mcpack|All Files|*.*";
 
-                if (projectContext.SelectedProfile != null)
+                if (projectContext?.SelectedProfile != null)
                     saveFileDialog.FileName = $"{projectContext.SelectedProfile.Name}.mcpack";
             }
             else {
                 defaultExt = ".zip";
                 saveFileDialog.Filter = "ZIP Archive|*.zip|All Files|*.*";
 
-                if (projectContext.SelectedProfile != null)
+                if (projectContext?.SelectedProfile != null)
                     saveFileDialog.FileName = $"{projectContext.SelectedProfile?.Name}.zip";
             }
 
@@ -176,7 +167,7 @@ namespace PixelGraph.UI.Windows
             return filename;
         }
 
-        private ITabModel GetTabModel(ContentTreeNode node)
+        private ITabModel? GetTabModel(ContentTreeNode? node)
         {
             var tabList = Model.TabList.AsEnumerable();
             if (Model.PreviewTab != null) tabList = tabList.Prepend(Model.PreviewTab);
@@ -208,7 +199,7 @@ namespace PixelGraph.UI.Windows
 
         private async Task<bool> GenerateNormalMap(MaterialProperties material, CancellationToken token)
         {
-            var projectContext = projectContextMgr.GetContext();
+            var projectContext = projectContextMgr.GetContextRequired();
             var outputName = TextureTags.Get(material, TextureTags.Normal);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
@@ -260,7 +251,7 @@ namespace PixelGraph.UI.Windows
 
         private async Task<bool> GenerateOcclusionMap(MaterialProperties material, CancellationToken token)
         {
-            var projectContext = projectContextMgr.GetContext();
+            var projectContext = projectContextMgr.GetContextRequired();
             var outputName = TextureTags.Get(material, TextureTags.Occlusion);
 
             if (string.IsNullOrWhiteSpace(outputName)) {
@@ -310,7 +301,7 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private static ITabModel BuildTabModel(ContentTreeNode node)
+        private static ITabModel? BuildTabModel(ContentTreeNode? node)
         {
             return node switch {
                 ContentTreeMaterialDirectory materialNode => new MaterialTabModel {
@@ -443,18 +434,23 @@ namespace PixelGraph.UI.Windows
         private async Task LoadCurrentProject()
         {
             var projectContext = projectContextMgr.GetContext();
+            if (projectContext == null) {
+                logger.LogWarning("No project context specified!");
+                return;
+            }
 
             await Dispatcher.BeginInvoke(() => {
                 Model.ProjectFilename = projectContext.ProjectFilename;
             });
 
-            await RecentProjects.AppendAsync(projectContext.ProjectFilename);
+            if (!string.IsNullOrEmpty(projectContext.ProjectFilename))
+                await RecentProjects.AppendAsync(projectContext.ProjectFilename);
 
             try {
                 await Task.Run(() => Model.LoadRootDirectoryAsync(Dispatcher));
             }
             catch (Exception error) {
-                logger.LogError(error, $"Failed to load content for project '{projectContext.ProjectFilename}'!");
+                logger.LogError(error, "Failed to load content for project '{ProjectFilename}'!", projectContext.ProjectFilename);
 
                 Dispatcher.Invoke(() => {
                     Model.Clear();
@@ -535,7 +531,7 @@ namespace PixelGraph.UI.Windows
             Model.CloseAllTabs();
             Model.Clear();
 
-            logger.LogDebug($"Upgrading legacy project from directory '{dialog.SelectedPath}'.");
+            logger.LogDebug("Upgrading legacy project from directory '{SelectedPath}'.", dialog.SelectedPath);
             var deleteFileList = new List<string>();
 
             try {
@@ -558,6 +554,7 @@ namespace PixelGraph.UI.Windows
                         if (profile.Name.EndsWith(".pack")) profile.Name = profile.Name[..^5];
                     }
 
+                    project.Profiles ??= new List<PublishProfileProperties>();
                     project.Profiles.Add(profile);
                     deleteFileList.Add(packFile);
                 }
@@ -571,7 +568,7 @@ namespace PixelGraph.UI.Windows
                 await projectContextMgr.SaveAsync();
             }
             catch (Exception error) {
-                logger.LogError(error, $"Failed to upgrade project data from directory '{dialog.SelectedPath}'!");
+                logger.LogError(error, "Failed to upgrade project data from directory '{SelectedPath}'!", dialog.SelectedPath);
                 await this.ShowMessageAsync("Error!", "Failed to upgrade project!");
                 return;
             }
@@ -582,7 +579,7 @@ namespace PixelGraph.UI.Windows
                     File.Delete(file);
                 }
                 catch (Exception error) {
-                    logger.LogWarning(error, $"Failed to delete file '{file}' after project upgrade!");
+                    logger.LogWarning(error, "Failed to delete file '{file}' after project upgrade!", file);
                     deleteFailureCount++;
                 }
             }
@@ -643,13 +640,13 @@ namespace PixelGraph.UI.Windows
             await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private void OnTreeViewError(object sender, UnhandledExceptionEventArgs e)
+        private void OnTreeViewError(object? sender, UnhandledExceptionEventArgs e)
         {
             var error = (Exception)e.ExceptionObject;
             ShowError($"Failed to update content tree! {error.Message}");
         }
 
-        private async void OnPublishLocationsClick(object sender, RoutedEventArgs e)
+        private async void OnPublishLocationsClick(object? sender, RoutedEventArgs e)
         {
             try {
                 var window = new PublishLocationsWindow(provider) {Owner = this};
@@ -664,7 +661,7 @@ namespace PixelGraph.UI.Windows
             Model.UpdatePublishLocations();
         }
 
-        private async void OnResourceLocationsClick(object sender, RoutedEventArgs e)
+        private async void OnResourceLocationsClick(object? sender, RoutedEventArgs e)
         {
             try {
                 var window = new ResourceLocationsWindow(provider) {Owner = this};
@@ -679,7 +676,7 @@ namespace PixelGraph.UI.Windows
             //Model.UpdatePublishLocations();
         }
 
-        private async void OnSettingsClick(object sender, RoutedEventArgs e)
+        private async void OnSettingsClick(object? sender, RoutedEventArgs e)
         {
             try {
                 var window = new SettingsWindow(provider) {Owner = this};
@@ -700,7 +697,7 @@ namespace PixelGraph.UI.Windows
 #endif
         }
 
-        private async void OnNewMaterialMenuClick(object sender, RoutedEventArgs e)
+        private async void OnNewMaterialMenuClick(object? sender, RoutedEventArgs e)
         {
             var window = new NewMaterialWindow(provider) {Owner = this};
 
@@ -728,7 +725,7 @@ namespace PixelGraph.UI.Windows
                     UseGlobalMatching = false,
                 };
 
-                var projectContext = projectContextMgr.GetContext();
+                var projectContext = projectContextMgr.GetContextRequired();
                 var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
                 serviceBuilder.Initialize();
@@ -750,7 +747,7 @@ namespace PixelGraph.UI.Windows
             // TODO: select the new TreeView node
         }
 
-        private async void OnChannelEditImageButtonClick(object sender, RoutedEventArgs e)
+        private async void OnChannelEditImageButtonClick(object? sender, RoutedEventArgs e)
         {
             var tab = Model.SelectedTab;
             if (tab == null) return;
@@ -770,7 +767,7 @@ namespace PixelGraph.UI.Windows
                 await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private async void OnHelpDocumentationClick(object sender, RoutedEventArgs e)
+        private async void OnHelpDocumentationClick(object? sender, RoutedEventArgs e)
         {
             try {
                 ProcessHelper.Start(@"https://github.com/null511/PixelGraph-Release/wiki");
@@ -781,7 +778,7 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private async void OnHelpAboutClick(object sender, RoutedEventArgs e)
+        private async void OnHelpAboutClick(object? sender, RoutedEventArgs e)
         {
             try {
                 var window = new AboutWindow(provider) {Owner = this};
@@ -793,7 +790,7 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private async void OnHelpViewLogsClick(object sender, RoutedEventArgs e)
+        private async void OnHelpViewLogsClick(object? sender, RoutedEventArgs e)
         {
             var info = new ProcessStartInfo {
                 FileName = "explorer",
@@ -811,36 +808,35 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private async void OnPublishMenuItemClick(object sender, RoutedEventArgs e)
+        private async void OnPublishMenuItemClick(object? sender, RoutedEventArgs e)
         {
             var projectContext = projectContextMgr.GetContext();
-            if (projectContext.SelectedProfile == null) return;
+            if (projectContext?.SelectedProfile == null) return;
 
             try {
-                using var window = new PublishOutputWindow(provider) {
-                    Owner = this,
-                    Model = {
-                        Clean = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
-                    },
-                };
+                using var window = new PublishOutputWindow(provider);
+                window.Owner = this;
+
+                window.Model.Initialize(provider);
+                window.Model.Data.Clean = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
 
                 var isBedrock = GameEdition.Is(projectContext.SelectedProfile.Edition, GameEdition.Bedrock);
 
-                if (Model.SelectedLocation != null && !Model.SelectedLocation.IsManualSelect) {
-                    var name = projectContext.SelectedProfile.Name;
-                    if (name == null) throw new ApplicationException("Unable to determine profile name!");
+                if (Model.SelectedLocation is { IsManualSelect: false }) {
+                    var name = projectContext.SelectedProfile.Name
+                        ?? throw new ApplicationException("Unable to determine profile name!");
 
                     if (Model.SelectedLocation.Archive)
                         name += isBedrock ? ".mcpack" : ".zip";
 
-                    window.Model.Destination = Path.Combine(Model.SelectedLocation.Path, name);
-                    window.Model.Archive = Model.SelectedLocation.Archive;
+                    window.Model.Data.Destination = Path.Combine(Model.SelectedLocation.Path, name);
+                    window.Model.Data.Archive = Model.SelectedLocation.Archive;
                 }
                 else {
-                    window.Model.Destination = GetArchiveFilename(isBedrock);
-                    window.Model.Archive = true;
+                    window.Model.Data.Destination = GetArchiveFilename(isBedrock);
+                    window.Model.Data.Archive = true;
 
-                    if (window.Model.Destination == null) return;
+                    if (window.Model.Data.Destination == null) return;
                 }
 
                 window.ShowDialog();
@@ -853,8 +849,9 @@ namespace PixelGraph.UI.Windows
 
         private async Task UpdateMaterialProperties(MaterialPropertyChangedEventArgs e)
         {
-            var tab = Model.SelectedTab as MaterialTabModel;
-            var material = tab?.MaterialRegistration.Value;
+            if (Model.SelectedTab is not MaterialTabModel tab) return;
+
+            var material = tab.MaterialRegistration?.Value;
             if (material == null) return;
 
             await Model.SaveMaterialAsync(material);
@@ -875,28 +872,30 @@ namespace PixelGraph.UI.Windows
             }
 
             var channels = e.ClassName switch {
-                nameof(MaterialColorProperties) => new[] {
+                nameof(MaterialColorProperties) => [
                     EncodingChannel.ColorRed,
                     EncodingChannel.ColorGreen,
-                    EncodingChannel.ColorBlue,
-                },
-                nameof(MaterialOpacityProperties) => new[] {EncodingChannel.Opacity},
-                nameof(MaterialHeightProperties) => new[] {EncodingChannel.Height},
-                nameof(MaterialNormalProperties) => new[] {
+                    EncodingChannel.ColorBlue
+                ],
+                nameof(MaterialOpacityProperties) => [
+                    EncodingChannel.Opacity],
+                nameof(MaterialHeightProperties) => [
+                    EncodingChannel.Height],
+                nameof(MaterialNormalProperties) => [
                     EncodingChannel.NormalX,
                     EncodingChannel.NormalY,
-                    EncodingChannel.NormalZ,
-                },
-                nameof(MaterialOcclusionProperties) => new[] {EncodingChannel.Occlusion},
-                nameof(MaterialSpecularProperties) => new[] {EncodingChannel.Specular},
-                nameof(MaterialSmoothProperties) => new[] {EncodingChannel.Smooth},
-                nameof(MaterialRoughProperties) => new[] {EncodingChannel.Rough},
-                nameof(MaterialMetalProperties) => new[] {EncodingChannel.Metal},
-                nameof(MaterialHcmProperties) => new[] {EncodingChannel.HCM},
-                nameof(MaterialF0Properties) => new[] {EncodingChannel.F0},
-                nameof(MaterialPorosityProperties) => new[] {EncodingChannel.Porosity},
+                    EncodingChannel.NormalZ
+                ],
+                nameof(MaterialOcclusionProperties) => [EncodingChannel.Occlusion],
+                nameof(MaterialSpecularProperties) => [EncodingChannel.Specular],
+                nameof(MaterialSmoothProperties) => [EncodingChannel.Smooth],
+                nameof(MaterialRoughProperties) => [EncodingChannel.Rough],
+                nameof(MaterialMetalProperties) => [EncodingChannel.Metal],
+                nameof(MaterialHcmProperties) => [EncodingChannel.HCM],
+                nameof(MaterialF0Properties) => [EncodingChannel.F0],
+                nameof(MaterialPorosityProperties) => [EncodingChannel.Porosity],
                 nameof(MaterialSssProperties) => new[] {EncodingChannel.SubSurfaceScattering},
-                nameof(MaterialEmissiveProperties) => new[] {EncodingChannel.Emissive},
+                nameof(MaterialEmissiveProperties) => [EncodingChannel.Emissive],
                 _ => null,
             };
 
@@ -906,22 +905,22 @@ namespace PixelGraph.UI.Windows
             await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private async void OnMaterialPropertyChanged(object sender, MaterialPropertyChangedEventArgs e)
+        private async void OnMaterialPropertyChanged(object? sender, MaterialPropertyChangedEventArgs e)
         {
             await UpdateMaterialProperties(e);
         }
 
-        private async void OnMaterialFiltersChanged(object sender, EventArgs e)
+        private async void OnMaterialFiltersChanged(object? sender, EventArgs e)
         {
             await UpdateMaterialProperties(new MaterialPropertyChangedEventArgs(null, null));
         }
 
-        private async void OnMaterialConnectionsChanged(object sender, EventArgs e)
+        private async void OnMaterialConnectionsChanged(object? sender, EventArgs e)
         {
             await UpdateMaterialProperties(new MaterialPropertyChangedEventArgs(null, null));
         }
 
-        private async void OnTextureTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private async void OnTextureTreeSelectedItemChanged(object? sender, RoutedPropertyChangedEventArgs<object> e)
         {
             Model.SelectedNode = e.NewValue as ContentTreeNode;
 
@@ -957,7 +956,7 @@ namespace PixelGraph.UI.Windows
             await Dispatcher.BeginInvoke(() => Model.SetPreviewTab(newTab));
         }
 
-        private async void OnContentTreeMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void OnContentTreeMouseDoubleClick(object? sender, MouseButtonEventArgs e)
         {
             var existingTab = GetTabModel(Model.SelectedNode);
             if (existingTab != null) {
@@ -982,11 +981,11 @@ namespace PixelGraph.UI.Windows
             await Dispatcher.BeginInvoke(() => Model.AddNewTab(newTab));
         }
 
-        private async void OnGenerateNormal(object sender, EventArgs e)
+        private async void OnGenerateNormal(object? sender, EventArgs e)
         {
             if (Model.SelectedTab is not MaterialTabModel materialTab) return;
 
-            var material = materialTab.MaterialRegistration.Value;
+            var material = materialTab.MaterialRegistration?.Value;
             if (material == null) return;
 
             if (!await GenerateNormalMap(material, CancellationToken.None)) return;
@@ -1002,11 +1001,11 @@ namespace PixelGraph.UI.Windows
                 await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private async void OnGenerateOcclusion(object sender, EventArgs e)
+        private async void OnGenerateOcclusion(object? sender, EventArgs e)
         {
             if (Model.SelectedTab is not MaterialTabModel materialTab) return;
 
-            var material = materialTab.MaterialRegistration.Value;
+            var material = materialTab.MaterialRegistration?.Value;
             if (material == null) return;
 
             if (!await GenerateOcclusionMap(material, CancellationToken.None)) return;
@@ -1022,7 +1021,7 @@ namespace PixelGraph.UI.Windows
                 await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private async void OnImportMaterialClick(object sender, RoutedEventArgs e)
+        private async void OnImportMaterialClick(object? sender, RoutedEventArgs e)
         {
             if (Model.SelectedNode is not ContentTreeFile fileNode) return;
             if (fileNode.Type != ContentNodeType.Texture) return;
@@ -1057,7 +1056,7 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private void OnContentTreePreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        private void OnContentTreePreviewMouseRightButtonDown(object? sender, MouseButtonEventArgs e)
         {
             var source = e.OriginalSource as DependencyObject;
 
@@ -1067,12 +1066,12 @@ namespace PixelGraph.UI.Windows
             (source as TreeViewItem)?.Focus();
         }
 
-        private void OnContentRefreshClick(object sender, RoutedEventArgs e)
+        private void OnContentRefreshClick(object? sender, RoutedEventArgs e)
         {
             Model.ReloadContent();
         }
 
-        private async void OnPublishLocationSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void OnPublishLocationSelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
             if (Model.IsInitializing) return;
 
@@ -1085,7 +1084,7 @@ namespace PixelGraph.UI.Windows
             await settings.SaveAsync();
         }
 
-        //private async void OnPublishProfileSelectionChanged(object sender, SelectionChangedEventArgs e)
+        //private async void OnPublishProfileSelectionChanged(object? sender, SelectionChangedEventArgs e)
         //{
         //    if (Model.IsInitializing) return;
 
@@ -1100,22 +1099,27 @@ namespace PixelGraph.UI.Windows
         //        await Model.UpdateTabPreviewAsync(Dispatcher);
         //}
 
-        private void OnTreeOpenFolderClick(object sender, RoutedEventArgs e)
+        private void OnTreeOpenFolderClick(object? sender, RoutedEventArgs e)
         {
-            if (Model.SelectedNode is ContentTreeFile fileNode) {
-                OpenFolderSelectFile(fileNode.Filename);
-            }
-            else if (Model.SelectedNode is ContentTreeDirectory directoryNode) {
-                OpenFolder(directoryNode.LocalPath);
-            }
-            else if (Model.SelectedNode is ContentTreeMaterialDirectory materialNode) {
-                OpenFolder(materialNode.LocalPath);
+            switch (Model.SelectedNode) {
+                case ContentTreeFile fileNode:
+                    OpenFolderSelectFile(fileNode.Filename);
+                    break;
+                case ContentTreeDirectory directoryNode:
+                    OpenFolder(directoryNode.LocalPath);
+                    break;
+                default: {
+                    if (Model.SelectedNode is ContentTreeMaterialDirectory materialNode) {
+                        OpenFolder(materialNode.LocalPath);
+                    }
+                    break;
+                }
             }
         }
 
         private void OpenFolder(string path)
         {
-            var projectContext = projectContextMgr.GetContext();
+            var projectContext = projectContextMgr.GetContextRequired();
             var fullPath = PathEx.Join(projectContext.RootDirectory, path);
 
             if (!fullPath.EndsWith(Path.DirectorySeparatorChar))
@@ -1125,32 +1129,32 @@ namespace PixelGraph.UI.Windows
                 using var _ = Process.Start("explorer.exe", fullPath);
             }
             catch (Exception error) {
-                logger.LogError(error, $"Failed to open external directory \"{fullPath}\"!");
+                logger.LogError(error, "Failed to open external directory \"{fullPath}\"!", fullPath);
                 ShowError($"Failed to open directory! {error.UnfoldMessageString()}");
             }
         }
 
         private void OpenFolderSelectFile(string file)
         {
-            var projectContext = projectContextMgr.GetContext();
+            var projectContext = projectContextMgr.GetContextRequired();
             var fullFile = PathEx.Join(projectContext.RootDirectory, file);
 
             try {
                 using var _ = Process.Start("explorer.exe", $"/select,\"{fullFile}\"");
             }
             catch (Exception error) {
-                logger.LogError(error, $"Failed to open directory with file \"{fullFile}\"!");
+                logger.LogError(error, "Failed to open directory with file \"{fullFile}\"!", fullFile);
                 ShowError($"Failed to open directory! {error.UnfoldMessageString()}");
             }
         }
 
-        private void OnImageEditorCompleteClick(object sender, RoutedEventArgs e)
+        private void OnImageEditorCompleteClick(object? sender, RoutedEventArgs e)
         {
             Model.CancelExternalImageEdit();
         }
 
 #if !NORENDER
-        private void OnWindowPreviewKeyUp(object sender, KeyEventArgs e)
+        private void OnWindowPreviewKeyUp(object? sender, KeyEventArgs e)
         {
             if (e.Key == Key.R) {
                 var leftCtrl = e.KeyboardDevice.IsKeyDown(Key.LeftCtrl);
@@ -1195,24 +1199,24 @@ namespace PixelGraph.UI.Windows
             }
         }
 
-        private void OnScenePropertiesDynamicSkyChanged(object sender, EventArgs e)
+        private void OnScenePropertiesDynamicSkyChanged(object? sender, EventArgs e)
         {
             renderPreview.Model.UpdateSunPosition();
         }
 
-        private void OnScenePropertiesEnvironmentChanged(object sender, EventArgs e)
+        private void OnScenePropertiesEnvironmentChanged(object? sender, EventArgs e)
         {
             //await viewModel.UpdateTabPreviewAsync();
             Model.UpdateMaterials();
         }
 #endif
 
-        private async void OnPreviewRefreshClick(object sender, EventArgs e)
+        private async void OnPreviewRefreshClick(object? sender, EventArgs e)
         {
             await RefreshPreview();
         }
 
-        private void OnCloseAllDocumentTabs(object sender, EventArgs e)
+        private void OnCloseAllDocumentTabs(object? sender, EventArgs e)
         {
             Model.CloseAllTabs();
         }
@@ -1226,27 +1230,30 @@ namespace PixelGraph.UI.Windows
         //    window.ShowDialog();
         //}
 
-        private async void OnRecentProjectTileClicked(object _, TileClickedEventArgs e)
+        private async void OnRecentProjectTileClicked(object? _, TileClickedEventArgs e)
         {
+            if (string.IsNullOrEmpty(e.Filename))
+                throw new ApplicationException("Recent project filename is undefined!");
+
             try {
                 await Task.Run(() => Model.LoadProjectAsync(e.Filename));
             }
             catch (Exception error) {
-                logger.LogError(error, $"Failed to load recent project '{e.Filename}'!");
+                logger.LogError(error, "Failed to load recent project '{Filename}'!", e.Filename);
 
                 Dispatcher.Invoke(() => {
                     Model.Clear();
                     MessageBox.Show(this, $"Failed to load project! {error.UnfoldMessageString()}", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
                 });
 
-                await RecentProjects.Model.RemoveAsync(e.Filename);
+                await RecentProjects.Model.Data.RemoveAsync(e.Filename);
                 return;
             }
 
             await LoadCurrentProject();
         }
 
-        private async void OnMaterialPropertiesModelChanged(object sender, EventArgs e)
+        private async void OnMaterialPropertiesModelChanged(object? sender, EventArgs e)
         {
             //renderPreview.UpdateModel(Model.SelectedTabMaterial);
             if (Model.SelectedTab == null) return;
@@ -1257,13 +1264,13 @@ namespace PixelGraph.UI.Windows
             await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private async void OnSelectedTabChanged(object sender, EventArgs e)
+        private async void OnSelectedTabChanged(object? sender, EventArgs e)
         {
             if (Model.SelectedTab != null)
                 await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private async void OnSelectedProfileChanged(object sender, EventArgs e)
+        private async void OnSelectedProfileChanged(object? sender, EventArgs e)
         {
             Model.InvalidateAllTabs();
 
@@ -1271,7 +1278,7 @@ namespace PixelGraph.UI.Windows
                 await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private async void OnSelectedTagChanged(object sender, EventArgs e)
+        private async void OnSelectedTagChanged(object? sender, EventArgs e)
         {
             if (Model.SelectedTab == null) return;
 
@@ -1279,7 +1286,7 @@ namespace PixelGraph.UI.Windows
             await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private async void OnViewModeChanged(object sender, EventArgs e)
+        private async void OnViewModeChanged(object? sender, EventArgs e)
         {
             if (Model.SelectedTab == null) return;
 
@@ -1287,7 +1294,7 @@ namespace PixelGraph.UI.Windows
             await Model.UpdateTabPreviewAsync(Dispatcher);
         }
 
-        private void OnExitClick(object sender, RoutedEventArgs e)
+        private void OnExitClick(object? sender, RoutedEventArgs e)
         {
             Close();
         }

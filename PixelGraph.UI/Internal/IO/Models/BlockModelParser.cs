@@ -4,9 +4,7 @@ using MinecraftMappings.Minecraft;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SharpDX;
-using System;
 using System.IO;
-using System.Linq;
 
 namespace PixelGraph.UI.Internal.IO.Models;
 //internal interface IBlockModelParser
@@ -31,7 +29,7 @@ internal class BlockModelParser //: IBlockModelParser
 
         do {
             var parentModel = FindModel(filename);
-            if (parentModel == null) break;
+            //if (parentModel == null) break;
 
             MergeModels(finalModel, parentModel);
             filename = parentModel.Parent;
@@ -51,14 +49,14 @@ internal class BlockModelParser //: IBlockModelParser
         if (!modelFile.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
             modelFile = $"{modelFile}.json";
 
-        JObject json = null;
+        JObject? json = null;
         var result = locator.FindBlockModel(modelFile, stream => {
             using var reader = new StreamReader(stream);
             using var jsonReader = new JsonTextReader(reader);
             json = JObject.Load(jsonReader);
         });
 
-        if (result) {
+        if (result && json != null) {
             //var json = ParseModelJson(localFile);
             return ParseModelFile(json);
         }
@@ -100,7 +98,7 @@ internal class BlockModelParser //: IBlockModelParser
         modelElement.Name = element.Value<string>("name");
 
         var from_array = element.Value<JArray>("from")?.ToObject<float[]>();
-        if (from_array == null || from_array.Length != 3)
+        if (from_array is not { Length: 3 })
             throw new ApplicationException("Element 'from' must contain 3 values!");
 
         modelElement.From.X = from_array[0];
@@ -108,7 +106,7 @@ internal class BlockModelParser //: IBlockModelParser
         modelElement.From.Z = from_array[2];
 
         var to_array = element.Value<JArray>("to")?.ToObject<float[]>();
-        if (to_array == null || to_array.Length != 3)
+        if (to_array is not { Length: 3 })
             throw new ApplicationException("Element 'to' must contain 3 values!");
 
         modelElement.To.X = to_array[0];
@@ -116,7 +114,7 @@ internal class BlockModelParser //: IBlockModelParser
         modelElement.To.Z = to_array[2];
 
         var faces = element.Value<JObject>("faces");
-        if (faces == null || !faces.HasValues)
+        if (faces is not { HasValues: true })
             throw new ApplicationException("Element has no faces");
 
         var rotationData = element.Value<JObject>("rotation");
@@ -134,7 +132,7 @@ internal class BlockModelParser //: IBlockModelParser
             }
 
             var axisName = rotationData.Value<string>("axis");
-            if (!ModelAxiss.TryParse(axisName, out modelElement.Rotation.Axis))
+            if (axisName == null || !ModelAxiss.TryParse(axisName, out modelElement.Rotation.Axis))
                 throw new ApplicationException("Element rotation axis is undefined!");
 
             modelElement.Rotation.Angle = rotationData.Value<decimal>("angle");

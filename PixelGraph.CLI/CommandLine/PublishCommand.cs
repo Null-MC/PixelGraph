@@ -7,13 +7,9 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Projects;
 using Serilog;
-using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.CLI.CommandLine;
 
@@ -64,13 +60,13 @@ internal class PublishCommand
             "Sets the level of concurrency for importing/publishing files. Default value is half of the system processor count."));
     }
 
-    private async Task<int> RunAsync(FileInfo projectFile, string profileName, DirectoryInfo destination, FileInfo zip, bool clean, int concurrency)
+    private async Task<int> RunAsync(FileInfo projectFile, string profileName, DirectoryInfo destination, FileInfo? zip, bool clean, int concurrency)
     {
         var destPath = zip?.FullName ?? destination.FullName;
 
         try {
-            if (projectFile?.Exists != true)
-                throw new ApplicationException($"Project file not found! [{projectFile?.FullName}]");
+            if (projectFile.Exists != true)
+                throw new ApplicationException($"Project file not found! [{projectFile.FullName}]");
 
             if (string.IsNullOrWhiteSpace(profileName))
                 throw new ApplicationException("Profile name is undefined!");
@@ -80,8 +76,8 @@ internal class PublishCommand
                 projectData = ProjectSerializer.Parse(stream);
             }
 
-            var profile = projectData.Profiles.Find(p => string.Equals(p.Name, profileName, StringComparison.InvariantCultureIgnoreCase));
-            if (profile == null) throw new ApplicationException($"Profile not found in project! [{profileName}]");
+            var profile = projectData.Profiles?.Find(p => string.Equals(p.Name, profileName, StringComparison.InvariantCultureIgnoreCase))
+                ?? throw new ApplicationException($"Profile not found in project! [{profileName}]");
 
             var context = new ProjectPublishContext {
                 Project = projectData,
@@ -126,7 +122,7 @@ internal class PublishCommand
     {
         private readonly IServiceBuilder serviceBuilder;
 
-        public ProjectPublishContext Context {get; set;}
+        public ProjectPublishContext? Context {get; set;}
         public bool CleanDestination {get; set;}
         public int Concurrency {get; set;} = 1;
         public bool AsArchive {get; set;}
@@ -141,8 +137,14 @@ internal class PublishCommand
 
         public async Task ExecuteAsync(string sourcePath, string destFilename, CancellationToken token = default)
         {
-            if (sourcePath == null) throw new ApplicationException("Source path must be defined!");
-            if (destFilename == null) throw new ApplicationException("Either Destination or Zip must be defined!");
+            ArgumentNullException.ThrowIfNull(sourcePath);
+            ArgumentNullException.ThrowIfNull(destFilename);
+            //if (sourcePath == null) throw new ApplicationException("Source path must be defined!");
+            //if (destFilename == null) throw new ApplicationException("Either Destination or Zip must be defined!");
+            ArgumentNullException.ThrowIfNull(Context);
+
+            if (Context.Profile == null) throw new ApplicationException("Profile context is undefined!");
+            if (Context.Profile.Edition == null) throw new ApplicationException("Profile edition is undefined!");
 
             var timer = Stopwatch.StartNew();
 

@@ -10,18 +10,24 @@ namespace PixelGraph.Rendering.CubeMaps;
 
 public class DynamicSkyCubeNode : SceneNode, ICubeMapSource
 {
-    public IMinecraftScene Scene {
-        get => EnvCubeCore.Scene;
-        set => EnvCubeCore.Scene = value;
+    public IMinecraftScene? Scene {
+        get => EnvCubeCore?.Scene;
+        set {
+            if (EnvCubeCore != null)
+                EnvCubeCore.Scene = value;
+        }
     }
 
     public int FaceSize {
-        get => EnvCubeCore.FaceSize;
-        set => EnvCubeCore.FaceSize = value;
+        get => EnvCubeCore?.FaceSize ?? 0;
+        set {
+            if (EnvCubeCore != null)
+                EnvCubeCore.FaceSize = value;
+        }
     }
 
-    private DynamicSkyCubeCore EnvCubeCore => RenderCore as DynamicSkyCubeCore;
-    public ShaderResourceViewProxy CubeMap => EnvCubeCore?.CubeMap;
+    private DynamicSkyCubeCore? EnvCubeCore => RenderCore as DynamicSkyCubeCore;
+    public ShaderResourceViewProxy? CubeMap => EnvCubeCore?.CubeMap;
     public long LastUpdated => EnvCubeCore?.LastUpdated ?? 0;
 
 

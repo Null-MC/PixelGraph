@@ -10,12 +10,13 @@ using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Internal.Utilities;
+using PixelGraph.UI.ViewModels;
 using PixelGraph.UI.Windows;
 using Serilog;
 using Serilog.Events;
-using System;
 using System.Windows;
 using System.Windows.Threading;
+
 
 #if !NORENDER
 using PixelGraph.Rendering.Models;
@@ -28,8 +29,8 @@ namespace PixelGraph.UI
     public partial class App
     {
         private readonly ServiceCollection services;
-        private ServiceProvider provider;
-        private MainWindow window;
+        private ServiceProvider? provider;
+        private MainWindow? window;
 
 
         public App()
@@ -57,6 +58,9 @@ namespace PixelGraph.UI
             services.AddTransient<EntityModelParser>();
             services.AddTransient<ModelLoader>();
 
+            services.AddTransient<PublishProfilesModel>();
+            services.AddTransient<RecentProjectsModel>();
+
 #if !NORENDER
             services.AddSingleton<IShaderByteCodeManager, CustomShaderManager>();
 
@@ -71,7 +75,7 @@ namespace PixelGraph.UI
 #endif
         }
 
-        private void App_OnStartup(object sender, StartupEventArgs e)
+        private void App_OnStartup(object? sender, StartupEventArgs e)
         {
             Log.Logger = LocalLogFile.FileLogger;
             Log.Information("Application Started.");
@@ -98,7 +102,7 @@ namespace PixelGraph.UI
             }
         }
 
-        private void App_OnExit(object sender, ExitEventArgs e)
+        private void App_OnExit(object? sender, ExitEventArgs e)
         {
             try {
                 provider?.Dispose();
@@ -111,12 +115,12 @@ namespace PixelGraph.UI
             }
         }
 
-        private void App_OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        private void App_OnDispatcherUnhandledException(object? sender, DispatcherUnhandledExceptionEventArgs e)
         {
             Log.Fatal(e.Exception, "An unhandled exception occurred!");
         }
 
-        private void OnDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private void OnDomainUnhandledException(object? sender, UnhandledExceptionEventArgs e)
         {
             var level = e.IsTerminating ? LogEventLevel.Fatal : LogEventLevel.Error;
             Log.Write(level, e.ExceptionObject as Exception, "An unhandled exception occurred!");

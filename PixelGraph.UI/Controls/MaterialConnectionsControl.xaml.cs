@@ -1,12 +1,11 @@
 ﻿using PixelGraph.Common.Material;
-using System;
 using System.Windows;
 
 namespace PixelGraph.UI.Controls;
 
 public partial class MaterialConnectionsControl
 {
-    public event EventHandler DataChanged;
+    public event EventHandler? DataChanged;
 
     public MaterialProperties Material {
         set => SetValue(MaterialProperty, value);

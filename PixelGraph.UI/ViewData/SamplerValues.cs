@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common.Samplers;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData;
 
@@ -16,7 +15,7 @@ internal class SamplerValues : List<SamplerValues.Item>
 
     public class Item
     {
-        public string Text {get; set;}
-        public string Value {get; set;}
+        public string? Text {get; set;}
+        public string? Value {get; set;}
     }
 }

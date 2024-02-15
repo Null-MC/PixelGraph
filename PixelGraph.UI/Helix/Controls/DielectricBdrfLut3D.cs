@@ -14,8 +14,8 @@ public class DielectricBdrfLut3D : Element3D, ILutMapSource
         set => SetValue(ResolutionProperty, value);
     }
 
-    private DielectricBdrfLutNode LutMapNode => SceneNode as DielectricBdrfLutNode;
-    public ShaderResourceViewProxy LutMap => LutMapNode?.LutMap;
+    private DielectricBdrfLutNode? LutMapNode => SceneNode as DielectricBdrfLutNode;
+    public ShaderResourceViewProxy? LutMap => LutMapNode?.LutMap;
     public long LastUpdated => LutMapNode?.LastUpdated ?? 0;
 
 

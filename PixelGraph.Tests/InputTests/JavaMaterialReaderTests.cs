@@ -3,8 +3,6 @@ using PixelGraph.Common;
 using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
-using System;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,14 +22,13 @@ public class JavaMaterialReaderTests : TestBase, IDisposable, IAsyncDisposable
 
     public void Dispose()
     {
-        provider?.Dispose();
+        provider.Dispose();
         GC.SuppressFinalize(this);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (provider != null)
-            await provider.DisposeAsync();
+        await provider.DisposeAsync();
     }
 
     [InlineData("~/basecolor.png", TextureTags.Color)]

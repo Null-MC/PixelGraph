@@ -1,11 +1,10 @@
-﻿using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace PixelGraph.Rendering.Utilities;
 
 public static class ResourceLoader
 {
-    public static Stream Open(string filePath)
+    public static Stream? Open(string filePath)
     {
         var assembly = Assembly.GetExecutingAssembly();
         return assembly.GetManifestResourceStream(filePath);

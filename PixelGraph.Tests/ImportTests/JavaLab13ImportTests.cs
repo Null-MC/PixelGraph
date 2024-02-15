@@ -8,7 +8,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -35,7 +34,7 @@ public class JavaLab13ImportTests : ImageTestBase
 
         packProfile = new PublishProfileProperties {
             Edition = GameEdition.Java,
-            Encoding = {
+            Encoding = new PackOutputEncoding {
                 Format = TextureFormat.Format_Lab13,
             },
         };

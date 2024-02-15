@@ -5,26 +5,22 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Rendering.Shaders;
 using PixelGraph.UI.Models.Scene;
 using PixelGraph.UI.ViewModels;
-using System;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 
 namespace PixelGraph.UI.Controls;
 
 public partial class RenderPreviewControl
 {
-    private ILogger<RenderPreviewControl> logger;
+    private ILogger<RenderPreviewControl>? logger;
 
-    public event EventHandler RefreshClick;
-    public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
+    public event EventHandler? RefreshClick;
+    public event EventHandler<ShaderCompileErrorEventArgs>? ShaderCompileErrors;
 
-    public RenderPreviewViewModel ViewModel {get; private set;}
+    public RenderPreviewViewModel? ViewModel {get; private set;}
 
     public ScenePropertiesModel SceneProperties {
         get => (ScenePropertiesModel)GetValue(ScenePropertiesProperty);
@@ -36,12 +32,12 @@ public partial class RenderPreviewControl
         set => SetValue(RenderPropertiesProperty, value);
     }
 
-    public string FrameRateText {
-        get => (string)GetValue(FrameRateTextProperty);
+    public string? FrameRateText {
+        get => (string?)GetValue(FrameRateTextProperty);
     }
 
-    public string DeviceNameText {
-        get => (string)GetValue(DeviceNameTextProperty);
+    public string? DeviceNameText {
+        get => (string?)GetValue(DeviceNameTextProperty);
         set => SetValue(DeviceNameTextProperty, value);
     }
 
@@ -127,15 +123,15 @@ public partial class RenderPreviewControl
         ShaderCompileErrors?.Invoke(this, e);
     }
 
-    private async void OnRenderModeSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void OnRenderModeSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (!Model.IsLoaded) return;
 
         OnRefreshClick();
-        await Task.Run(() => ViewModel.SaveRenderStateAsync());
+        await Task.Run(() => ViewModel?.SaveRenderStateAsync());
     }
 
-    private void OnPreviewRefreshClick(object sender, RoutedEventArgs e)
+    private void OnPreviewRefreshClick(object? sender, RoutedEventArgs e)
     {
         OnRefreshClick();
     }
@@ -145,24 +141,26 @@ public partial class RenderPreviewControl
         RefreshClick?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnViewModelShaderCompileErrors(object sender, ShaderCompileErrorEventArgs e)
+    private void OnViewModelShaderCompileErrors(object? sender, ShaderCompileErrorEventArgs e)
     {
-        ThrowShaderCompileErrors(e.Errors);
+        if (e.Errors != null) ThrowShaderCompileErrors(e.Errors);
     }
 
-    private async void OnShaderCompileErrors(object sender, ShaderCompileErrorEventArgs e)
+    private async void OnShaderCompileErrors(object? sender, ShaderCompileErrorEventArgs e)
     {
         var message = new StringBuilder("Failed to compile shaders!");
 
-        foreach (var error in e.Errors) {
-            message.AppendLine();
-            message.Append(error.Message);
+        if (e.Errors != null) {
+            foreach (var error in e.Errors) {
+                message.AppendLine();
+                message.Append(error.Message);
+            }
         }
 
         await Dispatcher.BeginInvoke(() => ShowWindowError(message.ToString()));
     }
 
-    private void OnRenderModelChanged(object sender, EventArgs e)
+    private void OnRenderModelChanged(object? sender, EventArgs e)
     {
         OnRefreshClick();
 
@@ -170,13 +168,13 @@ public partial class RenderPreviewControl
         // need to rebind existing materials for this to help
     }
 
-    private void OnControlPreviewKeyDown(object sender, KeyEventArgs e)
+    private void OnControlPreviewKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.I && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
             Model.RenderProperties.ShowIrradiance = true;
     }
 
-    private void OnControlPreviewKeyUp(object sender, KeyEventArgs e)
+    private void OnControlPreviewKeyUp(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.I && Model.RenderProperties.ShowIrradiance)
             Model.RenderProperties.ShowIrradiance = false;

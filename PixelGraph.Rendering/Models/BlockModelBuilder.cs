@@ -3,7 +3,6 @@ using MinecraftMappings.Internal.Models;
 using MinecraftMappings.Internal.Models.Block;
 using PixelGraph.Common.Extensions;
 using SharpDX;
-using System;
 
 namespace PixelGraph.Rendering.Models;
 
@@ -14,15 +13,11 @@ public class BlockModelBuilder : ModelBuilder
 
     public void Clear() => Builder.Clear();
 
-    public void AppendModelTextureParts(in float cubeSize, Vector3 offset, BlockModelVersion modelVersion, string textureId = null)
+    public void AppendModelTextureParts(in float cubeSize, Vector3 offset, BlockModelVersion modelVersion, string? textureId = null)
     {
-        Vector3 faceNormal, faceUp;
-        float faceOffset, faceWidth, faceHeight;
-        Matrix mWorld;
-
         foreach (var element in modelVersion.Elements) {
             var halfBlock = (element.To - element.From) * 0.5f;
-            mWorld = Matrix.Translation(element.From + halfBlock);
+            var mWorld = Matrix.Translation(element.From + halfBlock);
 
             if (element.Rotation != null) {
                 var axis = element.Rotation.GetAxisVector();
@@ -44,9 +39,9 @@ public class BlockModelBuilder : ModelBuilder
                 // Skip if building a specific texture that doesn't match this ID
                 if (textureId != null && !string.Equals($"#{textureId}", faceData.Texture, StringComparison.InvariantCultureIgnoreCase)) continue;
 
-                faceUp = GetUpVector(face);
-                faceNormal = GetFaceNormal(face);
-                (faceWidth, faceHeight, faceOffset) = element.GetWidthHeightOffset(in face);
+                var faceUp = GetUpVector(face);
+                var faceNormal = GetFaceNormal(face);
+                var (faceWidth, faceHeight, faceOffset) = element.GetWidthHeightOffset(in face);
                 var rotation = faceData.Rotation ?? 0;
 
                 RectangleF uv;

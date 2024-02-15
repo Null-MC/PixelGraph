@@ -3,24 +3,23 @@ using PixelGraph.Common;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
-using PixelGraph.UI.ViewModels;
-using System;
 using PixelGraph.UI.Internal.Logging;
+using PixelGraph.UI.ViewModels;
 
 namespace PixelGraph.UI.Models;
 
 internal class PackImportModel : ModelBase
 {
-    private ImportTreeNode _rootNode;
-    private string _importSource;
+    private ImportTreeNode? _rootNode;
+    private string? _importSource;
     private bool _copyUntracked;
     private bool _includeUnknown;
     private volatile bool _isReady;
     private volatile bool _isActive;
     private volatile bool _showLog;
 
-    public event EventHandler IncludeUnknownChanged;
-    public event EventHandler<LogEventArgs> LogEvent;
+    public event EventHandler? IncludeUnknownChanged;
+    public event EventHandler<LogEventArgs>? LogEvent;
 
     public bool IsArchive {get; set;}
     public bool AsGlobal {get; set;}
@@ -36,7 +35,7 @@ internal class PackImportModel : ModelBase
         }
     }
 
-    public string ImportSource {
+    public string? ImportSource {
         get => _importSource;
         set {
             _importSource = value;
@@ -44,7 +43,7 @@ internal class PackImportModel : ModelBase
         }
     }
 
-    public ImportTreeNode RootNode {
+    public ImportTreeNode? RootNode {
         get => _rootNode;
         set {
             _rootNode = value;

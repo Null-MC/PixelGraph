@@ -1,6 +1,5 @@
 ﻿using PixelGraph.UI.Models;
 using Serilog;
-using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -8,7 +7,7 @@ namespace PixelGraph.UI.Controls;
 
 public partial class TexturePreviewControl
 {
-    public event EventHandler RefreshClick;
+    public event EventHandler? RefreshClick;
 
     public ITexturePreviewModel TexturePreviewModel {
         get => (ITexturePreviewModel)GetValue(TexturePreviewModelProperty);
@@ -77,6 +76,9 @@ public partial class TexturePreviewControl
     private static void OnShowOutlinePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
         if (sender is not TexturePreviewControl control) return;
+
+        ArgumentNullException.ThrowIfNull(control.Model.TexturePreviewData);
+
         control.Model.TexturePreviewData.ShowOutline = (bool)e.NewValue;
     }
 

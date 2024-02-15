@@ -7,7 +7,7 @@ public class ObservableMaterialFilter : ModelBase
 {
     public MaterialFilter Filter {get;}
 
-    public string Name {
+    public string? Name {
         get => Filter.Name;
         set {
             Filter.Name = value;

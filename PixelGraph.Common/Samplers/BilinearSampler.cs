@@ -3,7 +3,6 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers;
@@ -13,7 +12,9 @@ internal class BilinearSampler<TPixel> : SamplerBase<TPixel>
 {
     public override IRowSampler ForRow(in double y)
     {
-        GetTexCoordY(in y, out var fy);
+        ArgumentNullException.ThrowIfNull(Image);
+
+        GetTexcoordY(in y, out var fy);
 
         var minRangeY = (int)MathF.Ceiling(RangeY);
         var pyMin = (int)MathF.Floor(fy - 0.5f*minRangeY);
@@ -28,8 +29,8 @@ internal class BilinearSampler<TPixel> : SamplerBase<TPixel>
             YMax = pyMax,
         };
 
-        NormalizeTexCoordY(ref pyMin);
-        NormalizeTexCoordY(ref pyMax);
+        NormalizeTexcoordY(ref pyMin);
+        NormalizeTexcoordY(ref pyMax);
 
         sampler.RowMin = Image
             .DangerousGetPixelRowMemory(pyMin)
@@ -44,6 +45,8 @@ internal class BilinearSampler<TPixel> : SamplerBase<TPixel>
 
     public override void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue)
     {
+        ArgumentNullException.ThrowIfNull(Image);
+
         GetTexCoord(in x, in y, out var fx, out var fy);
 
         fx -= 0.5f;
@@ -56,8 +59,8 @@ internal class BilinearSampler<TPixel> : SamplerBase<TPixel>
         var px = fx - pxMin;
         var py = fy - pyMin;
 
-        NormalizeTexCoord(ref pxMin, ref pyMin);
-        NormalizeTexCoord(ref pxMax, ref pyMax);
+        NormalizeTexcoord(ref pxMin, ref pyMin);
+        NormalizeTexcoord(ref pxMax, ref pyMax);
 
         var rowMin = Image
             .DangerousGetPixelRowMemory(pyMin)
@@ -122,7 +125,7 @@ internal struct BilinearRowSampler<TPixel> : IRowSampler
         var minRangeY = (int)MathF.Ceiling(RangeY);
 
         var fx = (float)(Bounds.Left + x * Bounds.Width) - 0.5f*minRangeX;
-        var fy = (float)(Bounds.Top + y * Bounds.Height) - 0.5f*minRangeX;
+        var fy = (float)(Bounds.Top + y * Bounds.Height) - 0.5f*minRangeY;
 
         var pxMin = (int)MathF.Floor(fx);
         var pxMax = pxMin + minRangeX;

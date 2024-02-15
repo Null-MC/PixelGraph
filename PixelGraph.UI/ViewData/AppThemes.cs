@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace PixelGraph.UI.ViewData;
+﻿namespace PixelGraph.UI.ViewData;
 
 internal class AppThemeBaseValues : List<AppThemeBaseValues.Item>
 {
@@ -12,8 +10,8 @@ internal class AppThemeBaseValues : List<AppThemeBaseValues.Item>
 
     public class Item
     {
-        public string Text {get; set;}
-        public string Value {get; set;}
+        public string? Text {get; set;}
+        public string? Value {get; set;}
     }
 }
 
@@ -48,7 +46,7 @@ internal class AppThemeAccentValues : List<AppThemeAccentValues.Item>
 
     public class Item
     {
-        public string Text {get; set;}
-        public string Value {get; set;}
+        public string? Text {get; set;}
+        public string? Value {get; set;}
     }
 }

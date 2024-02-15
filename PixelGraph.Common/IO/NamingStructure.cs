@@ -1,7 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Projects;
-using System;
 
 namespace PixelGraph.Common.IO;
 
@@ -33,14 +32,16 @@ public static class NamingStructure
         return PathEx.Localize(filename);
     }
 
-    public static string GetPath(MaterialProperties material, bool global)
+    public static string? GetPath(MaterialProperties material, bool global)
     {
         return global ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
     }
 
     public static string GetExtension(PublishProfileProperties pack)
     {
-        var encoding = pack.Encoding.Image ?? ImageExtensions.Default;
+        ArgumentNullException.ThrowIfNull(pack);
+
+        var encoding = pack.Encoding?.Image ?? ImageExtensions.Default;
 
         if (!ImageExtensions.Supports(encoding))
             throw new ApplicationException($"Unsupported image encoding '{encoding}'!");

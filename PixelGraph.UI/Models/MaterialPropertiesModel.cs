@@ -9,21 +9,19 @@ using PixelGraph.UI.Internal.IO.Models;
 using PixelGraph.UI.Models.PropertyGrid;
 using PixelGraph.UI.ViewData;
 using PixelGraph.UI.ViewModels;
-using System;
 using System.ComponentModel;
-using System.Linq;
 
 namespace PixelGraph.UI.Models;
 
 internal class MaterialPropertiesModel : ModelBase
 {
-    private MaterialProperties _material;
-    private string _selectedTag;
+    private MaterialProperties? _material;
+    private string? _selectedTag;
     private decimal? _iorToF0Value;
     private decimal? _iorDefaultValue;
 
-    public event EventHandler<MaterialPropertyChangedEventArgs> DataChanged;
-    public event EventHandler ModelChanged;
+    public event EventHandler<MaterialPropertyChangedEventArgs>? DataChanged;
+    public event EventHandler? ModelChanged;
 
     public GeneralPropertyCollection GeneralProperties {get;}
     public GeneralPreviewPropertyCollection GeneralModelProperties {get;}
@@ -66,7 +64,7 @@ internal class MaterialPropertiesModel : ModelBase
 
     public decimal? IorActualValue => _iorToF0Value;
 
-    public MaterialProperties Material {
+    public MaterialProperties? Material {
         get => _material;
         set {
             _material = value;
@@ -102,7 +100,7 @@ internal class MaterialPropertiesModel : ModelBase
         }
     }
 
-    public string SelectedTag {
+    public string? SelectedTag {
         get => _selectedTag;
         set {
             _selectedTag = value;
@@ -230,7 +228,7 @@ internal class MaterialPropertiesModel : ModelBase
         return Math.Round((decimal) d, 3);
     }
 
-    private void OnGeneralPropertyValueChanged(object sender, PropertyChangedEventArgs e)
+    private void OnGeneralPropertyValueChanged(object? sender, PropertyChangedEventArgs e)
     {
         OnDataChanged(nameof(MaterialProperties), e.PropertyName);
 
@@ -239,7 +237,7 @@ internal class MaterialPropertiesModel : ModelBase
         if (isModelProperty) OnModelChanged();
     }
 
-    private void OnF0PropertyValueChanged(object sender, PropertyChangedEventArgs e)
+    private void OnF0PropertyValueChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName?.Equals(nameof(MaterialF0Properties.Value)) ?? false) {
             _iorToF0Value = null;
@@ -256,7 +254,7 @@ internal class MaterialPropertiesModel : ModelBase
     //    OnDataChanged();
     //}
 
-    private void OnDataChanged(string className, string propertyName)
+    private void OnDataChanged(string className, string? propertyName)
     {
         var e = new MaterialPropertyChangedEventArgs(className, propertyName);
         DataChanged?.Invoke(this, e);
@@ -270,11 +268,11 @@ internal class MaterialPropertiesModel : ModelBase
 
 public class MaterialPropertyChangedEventArgs : EventArgs
 {
-    public string ClassName {get; set;}
-    public string PropertyName {get; set;}
+    public string? ClassName {get; set;}
+    public string? PropertyName {get; set;}
 
 
-    public MaterialPropertyChangedEventArgs(string className, string propertyName)
+    public MaterialPropertyChangedEventArgs(string? className, string? propertyName)
     {
         ClassName = className;
         PropertyName = propertyName;
@@ -315,7 +313,7 @@ public class GeneralPreviewPropertyCollection : PropertyCollectionBase<MaterialP
         AddTextColor<string>("Tint", nameof(MaterialProperties.TintColor));
     }
 
-    public override void SetData(MaterialProperties material)
+    public override void SetData(MaterialProperties? material)
     {
         base.SetData(material);
 
@@ -449,10 +447,10 @@ public class NormalGeneratorPropertyCollection : PropertyCollectionBase<Material
         AddValue<decimal?>("Strength", nameof(MaterialNormalProperties.Strength), 0m, 10m, MaterialNormalProperties.DefaultStrength);
     }
 
-    public override void SetData(MaterialNormalProperties data)
-    {
-        base.SetData(data);
-    }
+    //public override void SetData(MaterialNormalProperties data)
+    //{
+    //    base.SetData(data);
+    //}
 }
 
 public class OcclusionPropertyCollection : PropertyCollectionBase<MaterialOcclusionProperties>

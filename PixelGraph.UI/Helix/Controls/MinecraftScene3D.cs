@@ -10,8 +10,8 @@ namespace PixelGraph.UI.Helix.Controls;
 
 public class MinecraftScene3D : Element3D, IMinecraftScene
 {
-    private MinecraftSceneNode MCSceneNode => SceneNode as MinecraftSceneNode;
-    public long LastUpdated => MCSceneNode.LastUpdated;
+    private MinecraftSceneNode? MCSceneNode => SceneNode as MinecraftSceneNode;
+    public long LastUpdated => MCSceneNode?.LastUpdated ?? 0;
 
     public bool EnableAtmosphere {
         get => (bool)GetValue(EnableAtmosphereProperty);

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace PixelGraph.UI.Internal.Settings;
+﻿namespace PixelGraph.UI.Internal.Settings;
 
 public class AppSettingsDataModel : ICloneable
 {
@@ -19,14 +17,14 @@ public class AppSettingsDataModel : ICloneable
     public int? MaxRecentProjects {get; set;}
     public int? Concurrency {get; set;}
 
-    public string SelectedPublishLocation {get; set;}
+    public string? SelectedPublishLocation {get; set;}
     public bool PublishCloseOnComplete {get; set;}
 
-    public string TextureEditorExecutable {get; set;}
-    public string TextureEditorArguments {get; set;}
+    public string? TextureEditorExecutable {get; set;}
+    public string? TextureEditorArguments {get; set;}
 
-    public string ThemeBaseColor {get; set;}
-    public string ThemeAccentColor {get; set;}
+    public string? ThemeBaseColor {get; set;}
+    public string? ThemeAccentColor {get; set;}
 
     public RenderPreviewSettings RenderPreview {get; private set;}
 

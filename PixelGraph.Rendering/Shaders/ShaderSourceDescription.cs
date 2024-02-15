@@ -1,20 +1,17 @@
 ﻿using PixelGraph.Rendering.Utilities;
 using SharpDX;
 using SharpDX.D3DCompiler;
-using System;
-using System.Collections.Generic;
-using System.IO;
 
 namespace PixelGraph.Rendering.Shaders;
 
 public class ShaderSourceDescription : IDisposable
 {
     public string EntryPoint {get; set;} = "main";
-    public string Profile {get; set;}
+    public string? Profile {get; set;}
 
-    public string RawFileName {get; set;}
-    public string CompiledResourceName {get; set;}
-    public ShaderBytecode Code {get; private set;}
+    public string? RawFileName {get; set;}
+    public string? CompiledResourceName {get; set;}
+    public ShaderBytecode? Code {get; private set;}
 
 
     public void Dispose()
@@ -75,7 +72,7 @@ internal class CustomShaderFileInclude : Include
 {
     private readonly string _sourcePath;
 
-    public IDisposable Shadow {get; set;}
+    public IDisposable? Shadow {get; set;}
 
 
     public CustomShaderFileInclude(string sourcePath)

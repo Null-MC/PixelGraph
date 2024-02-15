@@ -15,11 +15,10 @@ float4 main(const ps_input input, const in bool face : SV_IsFrontFace) : SV_TARG
 	//float2 tex_sign = sign(tex_size) * 0.5 + 0.5;
 	//return float4(tex_sign, 0, 1);
 
-	const float3 normal = normalize(input.nor);
+	float3 normal = normalize(input.nor);
     float3 tangent = normalize(input.tan);
     float3 bitangent = normalize(input.bin);
 
-	float tex_depth = 0;
     float3 shadow_tex = 0;
 
 	float2 vTS = input.vTS;
@@ -29,6 +28,7 @@ float4 main(const ps_input input, const in bool face : SV_IsFrontFace) : SV_TARG
 		bitangent = -bitangent;
 	}
 
+	float tex_depth = 0;
 	const float2 tex = get_parallax_texcoord(input.tex, vTS, shadow_tex, tex_depth);
 
 	const pbr_material mat = get_pbr_material(tex);

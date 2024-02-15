@@ -2,9 +2,6 @@
 using PixelGraph.UI.Internal.Preview;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 #if !NORENDER
@@ -17,12 +14,12 @@ namespace PixelGraph.UI.Internal.Tabs
     public class TabPreviewContext : IDisposable
     {
         private readonly object lockHandle;
-        private CancellationTokenSource tokenSource;
-        private BitmapSource _layerImageSource;
+        private CancellationTokenSource? tokenSource;
+        private BitmapSource? _layerImageSource;
         
         public Guid Id {get; set;}
-        public string SourceFile {get; set;}
-        public Image LayerImage {get; set;}
+        public string? SourceFile {get; set;}
+        public Image? LayerImage {get; set;}
         public bool IsMaterialBuilderValid {get; private set;}
         public bool IsMaterialValid {get; private set;}
         public bool IsLayerValid {get; private set;}
@@ -82,7 +79,7 @@ namespace PixelGraph.UI.Internal.Tabs
             IsLayerSourceValid = false;
         }
 
-        public BitmapSource GetLayerImageSource()
+        public BitmapSource? GetLayerImageSource()
         {
             if (IsLayerSourceValid) return _layerImageSource;
 

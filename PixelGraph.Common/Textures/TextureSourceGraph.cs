@@ -6,8 +6,8 @@ namespace PixelGraph.Common.Textures;
 
 public interface ITextureSourceGraph
 {
-    bool TryGet(string tag, out TextureSource source);
-    Task<TextureSource> GetOrCreateAsync(string localFile, CancellationToken token = default);
+    bool TryGet(string tag, out TextureSource? source);
+    Task<TextureSource?> GetOrCreateAsync(string localFile, CancellationToken token = default);
 }
 
 internal class TextureSourceGraph : ITextureSourceGraph
@@ -29,12 +29,12 @@ internal class TextureSourceGraph : ITextureSourceGraph
         expectedAspect = new Lazy<float?>(context.GetExpectedAspect);
     }
 
-    public bool TryGet(string tag, out TextureSource source)
+    public bool TryGet(string tag, out TextureSource? source)
     {
         return sourceMap.TryGetValue(tag, out source);
     }
 
-    public async Task<TextureSource> GetOrCreateAsync(string localFile, CancellationToken token = default)
+    public async Task<TextureSource?> GetOrCreateAsync(string localFile, CancellationToken token = default)
     {
         if (localFile == null) throw new ArgumentNullException(nameof(localFile));
 

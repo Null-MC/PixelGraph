@@ -2,7 +2,6 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System;
 
 namespace PixelGraph.Common.Textures;
 
@@ -12,7 +11,7 @@ internal class NormalMapBuilder<THeight> : IDisposable
     private readonly TextureRegionEnumerator regions;
 
     public NormalMapMethods Method {get; set;}
-    public Image<THeight> HeightImage {get; set;}
+    public Image<THeight>? HeightImage {get; set;}
     public ColorChannel HeightChannel {get; set;}
     public float Strength {get; set;}
     public bool WrapX {get; set;}
@@ -23,7 +22,7 @@ internal class NormalMapBuilder<THeight> : IDisposable
     public float VarianceStrength {get; set;}
     public float VarianceBlur {get; set;}
 
-    public Image<L8> VarianceMap {get; private set;}
+    public Image<L8>? VarianceMap {get; private set;}
 
 
     public NormalMapBuilder(TextureRegionEnumerator regions)
@@ -45,6 +44,8 @@ internal class NormalMapBuilder<THeight> : IDisposable
 
     private Image<Rgb24> BuildSimple()
     {
+        ArgumentNullException.ThrowIfNull(HeightImage);
+
         var options = new NormalMapProcessor<THeight>.Options {
             Source = HeightImage,
             HeightChannel = HeightChannel,
@@ -54,7 +55,7 @@ internal class NormalMapBuilder<THeight> : IDisposable
             WrapY = WrapY,
         };
             
-        Image<Rgb24> resultImage = null;
+        Image<Rgb24>? resultImage = null;
 
         try {
             var processor = new NormalMapProcessor<THeight>(options);
@@ -62,6 +63,8 @@ internal class NormalMapBuilder<THeight> : IDisposable
             resultImage = new Image<Rgb24>(Configuration.Default, HeightImage.Width, HeightImage.Height);
 
             foreach (var frame in regions.GetAllRenderRegions()) {
+                if (frame.Tiles ==  null) continue;
+
                 foreach (var tile in frame.Tiles) {
                     var outBounds = tile.DestBounds.ScaleTo(HeightImage.Width, HeightImage.Height);
                     //options.SourceBounds = ;
@@ -80,6 +83,8 @@ internal class NormalMapBuilder<THeight> : IDisposable
 
     private Image<Rgb24> BuildVariance()
     {
+        ArgumentNullException.ThrowIfNull(HeightImage);
+
         if (LowFreqDownscale <= 1f) throw new ArgumentOutOfRangeException(nameof(LowFreqDownscale), "Variance downscale must be greater than 1!");
 
         var lowFreqFilterDown = KnownResamplers.Box;
@@ -153,7 +158,7 @@ internal class NormalMapBuilder<THeight> : IDisposable
             VarianceImage = VarianceMap,
         };
 
-        Image<Rgb24> resultImage = null;
+        Image<Rgb24>? resultImage = null;
 
         try {
             var blendProcessor = new NormalBlendProcessor(blendOptions);
@@ -161,6 +166,8 @@ internal class NormalMapBuilder<THeight> : IDisposable
             resultImage = new Image<Rgb24>(Configuration.Default, srcWidth, srcHeight);
 
             foreach (var frame in regions.GetAllRenderRegions()) {
+                if (frame.Tiles ==  null) continue;
+
                 foreach (var tile in frame.Tiles) {
                     //sampler.Bounds = tile.Bounds;
 

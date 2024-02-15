@@ -5,7 +5,7 @@ namespace PixelGraph.Common.Material;
 public class MaterialPart
 {
     [YamlMember(Order = 0)]
-    public string Name {get; set;}
+    public string? Name {get; set;}
 
     [YamlMember(Order = 1)]
     public int? Left {get; set;}

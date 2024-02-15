@@ -1,6 +1,5 @@
 ﻿using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.ResourcePack;
-using System;
 using System.Globalization;
 
 namespace PixelGraph.Common.Material;
@@ -9,18 +8,18 @@ public class MaterialColorProperties : IHaveData
 {
     public const bool DefaultBakeOcclusion = false;
 
-    public string Texture {get; set;}
-    public string Value {get; set;}
+    public string? Texture {get; set;}
+    public string? Value {get; set;}
     public bool? BakeOcclusion {get; set;}
 
 
-    public ResourcePackColorRedChannelProperties InputRed {get; set;}
+    public ResourcePackColorRedChannelProperties? InputRed {get; set;}
     public decimal? ScaleRed {get; set;}
 
-    public ResourcePackColorGreenChannelProperties InputGreen {get; set;}
+    public ResourcePackColorGreenChannelProperties? InputGreen {get; set;}
     public decimal? ScaleGreen {get; set;}
 
-    public ResourcePackColorBlueChannelProperties InputBlue {get; set;}
+    public ResourcePackColorBlueChannelProperties? InputBlue {get; set;}
     public decimal? ScaleBlue {get; set;}
 
 
@@ -45,7 +44,7 @@ public class MaterialColorProperties : IHaveData
         return false;
     }
 
-    private static decimal? ParseHexRange(string hex, int start)
+    private static decimal? ParseHexRange(string? hex, int start)
     {
         var trimValue = hex?.Trim('#', ' ');
         if (string.IsNullOrEmpty(trimValue) || trimValue.Length != 6) return null;
@@ -76,9 +75,9 @@ public class MaterialColorProperties : IHaveData
         set => __ValueBlue = value;
     }
 
-    internal string __PreviewTint;
+    internal string? __PreviewTint;
     [Obsolete("Replace usages of mat.Color.PreviewTint with mat.ColorTint")]
-    public string PreviewTint {
+    public string? PreviewTint {
         get => null;
         set => __PreviewTint = value;
     }

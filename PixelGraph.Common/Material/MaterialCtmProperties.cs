@@ -1,12 +1,11 @@
-﻿using PixelGraph.Common.Projects;
-using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.ResourcePack;
 
 namespace PixelGraph.Common.Material;
 
 public class MaterialCtmProperties
 {
-    public ResourcePackMetalChannelProperties Input {get; set;}
-    public string Texture {get; set;}
+    public ResourcePackMetalChannelProperties? Input {get; set;}
+    public string? Texture {get; set;}
     public decimal? Value {get; set;}
 
 

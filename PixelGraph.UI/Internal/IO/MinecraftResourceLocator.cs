@@ -5,10 +5,7 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.UI.Internal.IO.Resources;
 using PixelGraph.UI.Internal.Projects;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace PixelGraph.UI.Internal.IO;
 
@@ -31,7 +28,7 @@ public class MinecraftResourceLocator
         resourceMgr = provider.GetRequiredService<IResourceLocationManager>();
     }
 
-    public bool FindLocalMaterial(string searchFile, out string localPath)
+    public bool FindLocalMaterial(string searchFile, out string? localPath)
     {
         var builder = GetProjectBuilder();
         using var scope = builder.Build();
@@ -79,10 +76,12 @@ public class MinecraftResourceLocator
             using var scope = builder.Build();
             var reader = scope.GetRequiredService<IInputReader>();
 
-            if (!FindLocalBlockModel(reader, searchFile, out var localPath)) continue;
+            if (!FindLocalBlockModel(reader, searchFile, out var localPath) || localPath == null) continue;
 
             //localPath = reader.GetFullPath(localPath);
-            using var stream = reader.Open(localPath);
+            using var stream = reader.Open(localPath)
+                ?? throw new ApplicationException("Failed to open block model file stream!");
+
             readAction(stream);
             return true;
         }
@@ -97,9 +96,11 @@ public class MinecraftResourceLocator
             using var scope = builder.Build();
             var reader = scope.GetRequiredService<IInputReader>();
 
-            if (!FindLocalEntityModel(reader, searchFile, out var localPath)) continue;
+            if (!FindLocalEntityModel(reader, searchFile, out var localPath) || localPath == null) continue;
 
-            using var stream = reader.Open(localPath);
+            using var stream = reader.Open(localPath)
+                ?? throw new ApplicationException("Failed to open entity model file stream!");
+
             readAction(stream);
             return true;
         }
@@ -108,7 +109,7 @@ public class MinecraftResourceLocator
         return false;
     }
 
-    private static bool TryFindFile(IInputReader reader, string searchPath, string searchFile, bool recursive, out string localFile)
+    private static bool TryFindFile(IInputReader reader, string searchPath, string searchFile, bool recursive, out string? localFile)
     {
         foreach (var file in reader.EnumerateFiles(searchPath, searchFile)) {
             localFile = file;
@@ -125,7 +126,7 @@ public class MinecraftResourceLocator
         return false;
     }
 
-    private bool FindLocalBlockModel(IInputReader reader, string searchFile, out string localPath)
+    private bool FindLocalBlockModel(IInputReader reader, string searchFile, out string? localPath)
     {
         if (reader.FileExists(searchFile)) {
             localPath = searchFile;
@@ -157,7 +158,7 @@ public class MinecraftResourceLocator
         return false;
     }
 
-    private bool FindLocalEntityModel(IInputReader reader, string searchFile, out string localPath)
+    private bool FindLocalEntityModel(IInputReader reader, string searchFile, out string? localPath)
     {
         if (reader.FileExists(searchFile)) {
             localPath = searchFile;
@@ -181,7 +182,7 @@ public class MinecraftResourceLocator
         return false;
     }
 
-    public IEnumerable<string> FindAllNamespaces()
+    public IEnumerable<string?> FindAllNamespaces()
     {
         var builder = GetProjectBuilder();
         using var scope = builder.Build();
@@ -190,7 +191,7 @@ public class MinecraftResourceLocator
         return FindAllNamespaceDirectories(reader).Select(Path.GetFileName);
     }
 
-    private static IEnumerable<string> FindAllNamespaceDirectories(IInputReader reader, string @namespace = null)
+    private static IEnumerable<string> FindAllNamespaceDirectories(IInputReader reader, string? @namespace = null)
     {
         return @namespace != null
             ? new[] { $"assets/{@namespace}" }
@@ -217,14 +218,17 @@ public class MinecraftResourceLocator
 
     private IServiceBuilder GetProjectBuilder()
     {
-        var projectContext = projectContextMgr.GetContext();
+        var projectContext = projectContextMgr.GetContextRequired();
+
+        if (string.IsNullOrEmpty(projectContext.RootDirectory))
+            throw new ApplicationException("Project root directory is undefined!");
 
         var projectBuilder = provider.GetRequiredService<IServiceBuilder>();
         projectBuilder.ConfigureReader(ContentTypes.File, GameEditions.None, projectContext.RootDirectory);
         return projectBuilder;
     }
 
-    private static bool TryExtractNamespace(ref string path, out string @namespace)
+    private static bool TryExtractNamespace(ref string path, out string? @namespace)
     {
         var nsIndex = path.IndexOf(':');
 

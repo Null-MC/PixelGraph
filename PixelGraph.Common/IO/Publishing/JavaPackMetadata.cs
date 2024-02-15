@@ -8,7 +8,7 @@ internal class JavaPackMetadata
     public int PackFormat {get; set;}
 
     [JsonProperty("description")]
-    public string Description {get; set;}
+    public string? Description {get; set;}
 
 
     public JavaPackMetadata()

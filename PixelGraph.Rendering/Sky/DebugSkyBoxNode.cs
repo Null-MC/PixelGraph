@@ -8,7 +8,7 @@ namespace PixelGraph.Rendering.Sky;
 
 public class DebugSkyBoxNode : SceneNode
 {
-    public ICubeMapSource CubeMapSource {
+    public ICubeMapSource? CubeMapSource {
         get => ((DebugSkyBoxCore)RenderCore).CubeMapSource;
         set => ((DebugSkyBoxCore)RenderCore).CubeMapSource = value;
     }

@@ -3,40 +3,31 @@ using PixelGraph.Common.PixelOperations;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Linq;
-using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors;
 
-internal class OverlayProcessor<TPixel> : PixelRowProcessor
+internal class OverlayProcessor<TPixel>(OverlayProcessor<TPixel>.Options options) : PixelRowProcessor
     where TPixel : unmanaged, IPixel<TPixel>
 {
-    private readonly Options options;
-
-
-    public OverlayProcessor(in Options options)
-    {
-        this.options = options;
-    }
-
     protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
     {
+        ArgumentNullException.ThrowIfNull(options.Samplers);
+
         GetTexCoordY(in context, out var rfy);
         var samplerCount = options.Samplers.Length;
-        var rowSamplers = options.Samplers.Select(sampler => sampler.Sampler.ForRow(rfy)).ToArray();
 
-        double fx, fy;
-        Vector4 pixelOut;
+        var rowSamplers = new IRowSampler[samplerCount];
+        for (var i = 0; i < samplerCount; i++)
+            rowSamplers[i] = options.Samplers[i].Sampler?.ForRow(rfy) ?? throw new ApplicationException("Sampler is undefined!");
 
         for (var x = 0; x < context.Bounds.Width; x++) {
-            pixelOut = row[x].ToScaledVector4();
+            var pixelOut = row[x].ToScaledVector4();
 
             for (var i = 0; i < samplerCount; i++) {
                 var samplerOptions = options.Samplers[i];
                 var mapping = samplerOptions.PixelMap;
 
-                GetTexCoord(in context, context.Bounds.Left + x, out fx, out fy);
+                GetTexCoord(in context, context.Bounds.Left + x, out var fx, out var fy);
                 rowSamplers[i].SampleScaled(fx, fy, in samplerOptions.InputColor, out var pixelValue);
 
                 if (!mapping.TryUnmap(in pixelValue, out var value)) continue;
@@ -90,14 +81,14 @@ internal class OverlayProcessor<TPixel> : PixelRowProcessor
 
     public class Options
     {
-        public SamplerOptions[] Samplers;
+        public SamplerOptions[]? Samplers;
         public bool IsGrayscale;
     }
 
     public class SamplerOptions
     {
         public PixelMapping PixelMap;
-        public ISampler<TPixel> Sampler;
+        public ISampler<TPixel>? Sampler;
         public ColorChannel InputColor;
         public ColorChannel OutputColor;
     }

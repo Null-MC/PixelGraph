@@ -1,18 +1,16 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Projects;
-using System;
-using System.Collections.Generic;
 
 namespace PixelGraph.Common.IO.Texture;
 
 public interface ITextureWriter
 {
-    string TryGet(string tag, string textureName, string extension, bool global);
-    string GetInputTextureName(MaterialProperties material, string tag);
-    string GetInputMetaName(MaterialProperties material, string tag);
-    string GetOutputMetaName(PublishProfileProperties pack, MaterialProperties material, string tag, bool global);
-    string GetOutputMetaName(PublishProfileProperties pack, string path, string name, string tag, bool global);
+    string? TryGet(string tag, string textureName, string? extension, bool global);
+    string? GetInputTextureName(MaterialProperties material, string tag);
+    string? GetInputMetaName(MaterialProperties material, string tag);
+    string? GetOutputMetaName(PublishProfileProperties pack, MaterialProperties material, string tag, bool global);
+    string? GetOutputMetaName(PublishProfileProperties pack, string path, string name, string tag, bool global);
 }
 
 internal class TextureWriterBase : ITextureWriter
@@ -27,7 +25,7 @@ internal class TextureWriterBase : ITextureWriter
         GlobalMap = new Dictionary<string, Func<string, string>>(StringComparer.InvariantCultureIgnoreCase);
     }
 
-    public string TryGet(string tag, string textureName, string extension, bool global)
+    public string? TryGet(string tag, string textureName, string? extension, bool global)
     {
         if (global) {
             if (GlobalMap.TryGetValue(tag, out var func)) {
@@ -43,12 +41,12 @@ internal class TextureWriterBase : ITextureWriter
         return null;
     }
 
-    public string GetInputTextureName(MaterialProperties material, string tag)
+    public string? GetInputTextureName(MaterialProperties material, string tag)
     {
         return TryGet(tag, material.Name, "*", material.UseGlobalMatching);
     }
 
-    public string GetInputMetaName(MaterialProperties material, string tag)
+    public string? GetInputMetaName(MaterialProperties material, string tag)
     {
         var path = NamingStructure.GetPath(material, material.UseGlobalMatching);
         var name = TryGet(tag, material.Name, "mcmeta", material.UseGlobalMatching);
@@ -58,7 +56,7 @@ internal class TextureWriterBase : ITextureWriter
         return PathEx.Localize(filename);
     }
 
-    public string GetOutputMetaName(PublishProfileProperties pack, MaterialProperties material, string tag, bool global)
+    public string? GetOutputMetaName(PublishProfileProperties pack, MaterialProperties material, string tag, bool global)
     {
         var path = NamingStructure.GetPath(material, global && material.CTM?.Method == null);
         var ext = NamingStructure.GetExtension(pack);
@@ -69,7 +67,7 @@ internal class TextureWriterBase : ITextureWriter
         return PathEx.Localize(filename);
     }
 
-    public string GetOutputMetaName(PublishProfileProperties pack, string path, string name, string tag, bool global)
+    public string? GetOutputMetaName(PublishProfileProperties pack, string path, string name, string tag, bool global)
     {
         var ext = NamingStructure.GetExtension(pack);
         var fileName = TryGet(tag, name, $"{ext}.mcmeta", global);
@@ -79,7 +77,7 @@ internal class TextureWriterBase : ITextureWriter
         return PathEx.Localize(filename);
     }
 
-    private static string BuildName(string name, string ext)
+    private static string BuildName(string name, string? ext)
     {
         var result = name;
         if (ext != null) result += $".{ext}";

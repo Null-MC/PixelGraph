@@ -1,11 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Nito.AsyncEx;
-using System;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO;
 
@@ -18,24 +13,24 @@ internal class ArchiveOutputWriter : IOutputWriter
 
     public ArchiveOutputWriter(IOptions<OutputOptions> options)
     {
-        locker = new AsyncReaderWriterLock();
+        if (string.IsNullOrEmpty(options.Value.Root))
+            throw new ApplicationException("Output archive filename is undefined!");
 
         fileStream = File.Open(options.Value.Root, FileMode.OpenOrCreate, FileAccess.ReadWrite);
         archive = new ZipArchive(fileStream, ZipArchiveMode.Update);
+        locker = new AsyncReaderWriterLock();
     }
 
     public void Dispose()
     {
-        archive?.Dispose();
-        fileStream?.Dispose();
+        archive.Dispose();
+        fileStream.Dispose();
     }
 
     public async ValueTask DisposeAsync()
     {
-        archive?.Dispose();
-
-        if (fileStream != null)
-            await fileStream.DisposeAsync();
+        archive.Dispose();
+        await fileStream.DisposeAsync();
     }
 
     public void Prepare() {}

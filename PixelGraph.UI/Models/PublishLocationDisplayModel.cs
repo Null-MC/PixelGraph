@@ -8,7 +8,7 @@ public class PublishLocationDisplayModel : ModelBase
     public PublishLocation DataSource {get;}
     private bool _isManualSelect {get; set;}
 
-    public string DisplayName {
+    public string? DisplayName {
         get => DataSource.Name;
         set {
             DataSource.Name = value;
@@ -16,7 +16,7 @@ public class PublishLocationDisplayModel : ModelBase
         }
     }
 
-    public string Path {
+    public string? Path {
         get => DataSource.Path;
         set {
             DataSource.Path = value;

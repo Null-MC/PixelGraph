@@ -2,7 +2,6 @@
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing.Processors;
-using System;
 
 namespace PixelGraph.Common.PixelOperations;
 
@@ -43,38 +42,18 @@ internal abstract class PixelRowProcessor : IImageProcessor
         GetTexCoordY(in context.Bounds, in y, out fy);
     }
 
-    private class Processor<TPixel> : ImageProcessor<TPixel>
+    private class Processor<TPixel>(Configuration configuration, Image<TPixel> source, in Rectangle sourceRectangle, PixelRowAction<TPixel> action)
+        : ImageProcessor<TPixel>(configuration, source, sourceRectangle)
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        private readonly PixelRowAction<TPixel> action;
-
-
-        public Processor(Configuration configuration, Image<TPixel> source, in Rectangle sourceRectangle, PixelRowAction<TPixel> action)
-            : base(configuration, source, sourceRectangle)
-        {
-            this.action = action;
-        }
-
         protected override void OnFrameApply(ImageFrame<TPixel> source)
         {
             var operation = new FilterRowOperation(source, action, SourceRectangle);
             ParallelRowIterator.IterateRows(Configuration, SourceRectangle, in operation);
         }
 
-        private readonly struct FilterRowOperation : IRowOperation
+        private readonly struct FilterRowOperation(ImageFrame<TPixel> frame, PixelRowAction<TPixel> action, Rectangle region) : IRowOperation
         {
-            private readonly ImageFrame<TPixel> frame;
-            private readonly PixelRowAction<TPixel> action;
-            private readonly Rectangle region;
-
-
-            public FilterRowOperation(ImageFrame<TPixel> frame, PixelRowAction<TPixel> action, Rectangle region)
-            {
-                this.frame = frame;
-                this.action = action;
-                this.region = region;
-            }
-
             public void Invoke(int y)
             {
                 if (y < 0 || y >= frame.Height) return;

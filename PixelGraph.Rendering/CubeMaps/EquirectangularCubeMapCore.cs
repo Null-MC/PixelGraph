@@ -12,16 +12,16 @@ namespace PixelGraph.Rendering.CubeMaps;
 
 internal class EquirectangularCubeMapCore : CubeMapRenderCore
 {
-    private ShaderResourceViewProxy textureView;
-    private SkyBoxBufferModel geometryBuffer;
-    private SamplerStateProxy textureSampler;
-    private TextureModel _texture;
+    private ShaderResourceViewProxy? textureView;
+    private SkyBoxBufferModel? geometryBuffer;
+    private SamplerStateProxy? textureSampler;
+    private TextureModel? _texture;
     private int textureSamplerSlot;
     private int textureSlot;
     private float _intensity;
     //private bool isValid;
 
-    public TextureModel Texture {
+    public TextureModel? Texture {
         get => _texture;
         set {
             if (SetAffectsRender(ref _texture, value) && IsAttached) {
@@ -108,17 +108,21 @@ internal class EquirectangularCubeMapCore : CubeMapRenderCore
             return;
         }
 
-        base.Render(context, deviceContext);
-            
-        deviceContext.GenerateMips(_cubeMap);
-        context.SharedResource.EnvironmentMapMipLevels = _cubeMap.TextureView.Description.TextureCube.MipLevels;
-            
+        if (_cubeMap != null) {
+            base.Render(context, deviceContext);
+
+            deviceContext.GenerateMips(_cubeMap);
+            context.SharedResource.EnvironmentMapMipLevels = _cubeMap.TextureView.Description.TextureCube.MipLevels;
+        }
+
         //context.UpdatePerFrameData(true, false, deviceContext);
         //IsRenderValid = true;
     }
 
     protected override void RenderFace(RenderContext context, DeviceContextProxy deviceContext)
     {
+        ArgumentNullException.ThrowIfNull(geometryBuffer);
+
         //defaultShaderPass.PixelShader.BindTexture(deviceContext, textureSlot, textureView);
         //defaultShaderPass.PixelShader.BindSampler(deviceContext, textureSamplerSlot, textureSampler);
         deviceContext.SetShaderResource(PixelShader.Type, textureSlot, textureView);

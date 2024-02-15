@@ -72,13 +72,15 @@ internal class ImageWriter : IImageWriter
 
         switch (format) {
             case ImageFormats.Png:
-                var pngMeta = metadata.GetPngMetadata();
-                pngMeta.TextData.Add(new PngTextData("Software", $"PixelGraph v{AppCommon.Version}", null, null));
-                pngMeta.TextData.Add(new PngTextData("Creation Time", DateTime.UtcNow.ToString("R"), null, null));
+                const string metaLanguage = "en-US";
 
-                if (!string.IsNullOrWhiteSpace(context.Project.Author)) {
-                    pngMeta.TextData.Add(new PngTextData("Author", context.Project.Author, null, null));
-                    pngMeta.TextData.Add(new PngTextData("Copyright", $"Copyright {DateTime.Now.Year}", null, null));
+                var pngMeta = metadata.GetPngMetadata();
+                pngMeta.TextData.Add(new PngTextData("Software", $"PixelGraph v{AppCommon.Version}", metaLanguage, string.Empty));
+                pngMeta.TextData.Add(new PngTextData("Creation Time", DateTime.UtcNow.ToString("R"), metaLanguage, string.Empty));
+
+                if (!string.IsNullOrWhiteSpace(context.Project?.Author)) {
+                    pngMeta.TextData.Add(new PngTextData("Author", context.Project.Author, metaLanguage, string.Empty));
+                    pngMeta.TextData.Add(new PngTextData("Copyright", $"Copyright {DateTime.Now.Year}", metaLanguage, string.Empty));
                 }
 
                 break;
@@ -86,7 +88,7 @@ internal class ImageWriter : IImageWriter
                 var gifMeta = metadata.GetGifMetadata();
                 gifMeta.Comments.Add($"Published using PixelGraph v{AppCommon.Version}");
 
-                if (!string.IsNullOrWhiteSpace(context.Project.Author)) {
+                if (!string.IsNullOrWhiteSpace(context.Project?.Author)) {
                     gifMeta.Comments.Add($"Author: {context.Project.Author}");
                     gifMeta.Comments.Add($"Copyright {DateTime.Now.Year}");
                 }
@@ -103,7 +105,7 @@ internal class ImageWriter : IImageWriter
         profile.SetValue(ExifTag.UserComment, $"Published with PixelGraph v{AppCommon.Version}");
         profile.SetValue(ExifTag.DateTime, DateTime.UtcNow.ToString("O"));
 
-        if (!string.IsNullOrWhiteSpace(context.Project.Author)) {
+        if (!string.IsNullOrWhiteSpace(context.Project?.Author)) {
             profile.SetValue(ExifTag.Artist, context.Project.Author);
             profile.SetValue(ExifTag.XPAuthor, context.Project.Author);
             profile.SetValue(ExifTag.OwnerName, context.Project.Author);
@@ -117,9 +119,11 @@ internal class ImageWriter : IImageWriter
     {
         var profile = new IptcProfile();
         profile.SetValue(IptcTag.OriginatingProgram, Encoding.ASCII, "PixelGraph");
-        profile.SetValue(IptcTag.ProgramVersion, Encoding.ASCII, AppCommon.Version);
 
-        if (!string.IsNullOrWhiteSpace(context.Project.Author)) {
+        if (AppCommon.Version != null)
+            profile.SetValue(IptcTag.ProgramVersion, Encoding.ASCII, AppCommon.Version);
+
+        if (!string.IsNullOrWhiteSpace(context.Project?.Author)) {
             profile.SetValue(IptcTag.Contact, Encoding.ASCII, context.Project.Author);
             profile.SetValue(IptcTag.CopyrightNotice, Encoding.ASCII, $"Copyright {DateTime.Now.Year}");
         }
@@ -153,7 +157,7 @@ internal class ImageWriter : IImageWriter
 
     private PngEncoder GetPngEncoder(ImageChannels type)
     {
-        IQuantizer quantizer = null;
+        IQuantizer? quantizer = null;
         PngColorType colorType;
         PngBitDepth bitDepth;
 

@@ -1,5 +1,4 @@
-﻿using System;
-using YamlDotNet.Serialization;
+﻿using YamlDotNet.Serialization;
 
 namespace PixelGraph.Common.ResourcePack;
 
@@ -11,9 +10,9 @@ public class PackInputEncoding : PackEncoding, ICloneable
     /// Gets or sets the named texture encoding format for reading image data.
     /// </summary>
     /// <remarks>
-    /// See <see cref="PixelGraph.Common.TextureFormats.TextureFormat"/>.
+    /// See <see cref="TextureFormats.TextureFormat"/>.
     /// </remarks>
-    public string Format {get; set;}
+    public string? Format {get; set;}
 
     public bool? AutoMaterial {get; set;}
 
@@ -21,10 +20,10 @@ public class PackInputEncoding : PackEncoding, ICloneable
     /// Gets or sets the edition of Minecraft the RP will target.
     /// </summary>
     /// <remarks>
-    /// See <see cref="PixelGraph.Common.IO.GameEdition"/>.
+    /// See <see cref="IO.GameEdition"/>.
     /// </remarks>
     [YamlMember(Order = -99)]
-    public string Edition {get; set;}
+    public string? Edition {get; set;}
 
 
     public override bool HasAnyData()

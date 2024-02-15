@@ -25,11 +25,11 @@ internal class CustomDiffuseMaterialVariable : MaterialVariable
         IrradianceSamplerIdx = 1,
         ShadowSamplerIdx = 2;
 
-    private readonly CustomDiffuseMaterialCore material;
+    private readonly CustomDiffuseMaterialCore? material;
 
     private readonly ITextureResourceManager textureManager;
     private readonly IStatePoolManager statePoolManager;
-    private readonly ShaderResourceViewProxy[] textureResources;
+    private readonly ShaderResourceViewProxy?[] textureResources;
     private readonly SamplerStateProxy[] samplerResources;
 
     private int texDiffuseAlphaSlot, texEmissiveSlot, texIrradianceSlot, texShadowSlot;
@@ -78,6 +78,8 @@ internal class CustomDiffuseMaterialVariable : MaterialVariable
 
     protected override void OnInitialPropertyBindings()
     {
+        ArgumentNullException.ThrowIfNull(material);
+
         AddPropertyBinding(nameof(CustomDiffuseMaterialCore.DiffuseAlphaMap), () => {
             CreateTextureView(material.DiffuseAlphaMap, DiffuseAlphaMapIdx);
         });
@@ -109,6 +111,8 @@ internal class CustomDiffuseMaterialVariable : MaterialVariable
 
     public override bool BindMaterialResources(RenderContext context, DeviceContextProxy deviceContext, ShaderPass shaderPass)
     {
+        ArgumentNullException.ThrowIfNull(material);
+
         if (HasTextures) {
             OnBindMaterialTextures(deviceContext, shaderPass.PixelShader);
         }
@@ -140,7 +144,7 @@ internal class CustomDiffuseMaterialVariable : MaterialVariable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void CreateTextureView(TextureModel texture, int index)
+    private void CreateTextureView(TextureModel? texture, int index)
     {
         var newTexture = texture == null
             ? null : textureManager.Register(texture);
@@ -197,6 +201,8 @@ internal class CustomDiffuseMaterialVariable : MaterialVariable
 
     private void CreateSamplers()
     {
+        ArgumentNullException.ThrowIfNull(material);
+
         var newSurfaceSampler = statePoolManager.Register(material.SurfaceMapSampler);
         var newShadowSampler = statePoolManager.Register(DefaultSamplers.ShadowSampler);
         var newIrradianceSampler = statePoolManager.Register(material.IrradianceMapSampler);

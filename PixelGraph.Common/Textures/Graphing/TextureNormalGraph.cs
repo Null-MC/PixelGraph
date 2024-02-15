@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Nito.Disposables.Internals;
 using PixelGraph.Common.ImageProcessors;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Projects;
@@ -14,13 +15,13 @@ namespace PixelGraph.Common.Textures.Graphing;
 
 public interface ITextureNormalGraph
 {
-    Image<Rgb24> NormalTexture {get;}
+    Image<Rgb24>? NormalTexture {get;}
     int NormalFrameCount {get;}
     int NormalFrameWidth {get;}
     int NormalFrameHeight {get;}
     bool HasNormalTexture {get;}
 
-    Image<L8> MagnitudeTexture {get;}
+    Image<L8>? MagnitudeTexture {get;}
     int MagnitudeFrameCount {get;}
     int MagnitudeFrameWidth {get;}
     int MagnitudeFrameHeight {get;}
@@ -33,8 +34,8 @@ public interface ITextureNormalGraph
     Task<bool> TryBuildNormalMapAsync(CancellationToken token = default);
     Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default);
 
-    ISampler<Rgb24> GetNormalSampler();
-    ISampler<L8> GetMagnitudeSampler();
+    ISampler<Rgb24>? GetNormalSampler();
+    ISampler<L8>? GetMagnitudeSampler();
 }
 
 internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
@@ -44,13 +45,13 @@ internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
     private readonly ITextureGraphContext context;
     private readonly ITextureHeightGraph heightGraph;
 
-    public Image<Rgb24> NormalTexture {get; private set;}
+    public Image<Rgb24>? NormalTexture {get; private set;}
     public int NormalFrameCount {get; private set;}
     public int NormalFrameWidth {get; private set;}
     public int NormalFrameHeight {get; private set;}
     public bool HasNormalTexture => NormalTexture != null;
 
-    public Image<L8> MagnitudeTexture {get; private set;}
+    public Image<L8>? MagnitudeTexture {get; private set;}
     public int MagnitudeFrameCount {get; private set;}
     public int MagnitudeFrameWidth {get; private set;}
     public int MagnitudeFrameHeight {get; private set;}
@@ -108,6 +109,8 @@ internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
 
     public async Task<bool> TryBuildNormalMapAsync(CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         // Try to compose from existing channels first
         var inputChannelX = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalX));
         var inputChannelY = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, EncodingChannel.NormalY));
@@ -136,7 +139,7 @@ internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
             //}
 
             var builder = scope.ServiceProvider.GetRequiredService<ITextureBuilder>();
-            builder.InputChannels = new [] {inputChannelX, inputChannelY, inputChannelZ}.Where(x => x != null).ToArray();
+            builder.InputChannels = new [] {inputChannelX, inputChannelY, inputChannelZ}.WhereNotNull().ToArray();
             builder.OutputChannels = new PackEncodingChannel[] {ChannelX, ChannelY, ChannelZ};
 
             await builder.MapAsync(false, token);
@@ -208,6 +211,8 @@ internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
 
     public async Task<Image<Rgb24>> GenerateAsync(CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         logger.LogInformation("Generating normal map for texture {DisplayName}.", context.Material.DisplayName);
 
         var heightTex = await heightGraph.GetOrCreateAsync(token);
@@ -220,8 +225,9 @@ internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
 
         NormalFrameCount = heightGraph.HeightFrameCount;
 
-        if (!NormalMapMethod.TryParse(context.Material.Normal?.Method, out var normalMethod))
-            normalMethod = NormalMapMethods.Sobel3;
+        var normalMethod = NormalMapMethods.Sobel3;
+        if (context.Material.Normal?.Method != null && NormalMapMethod.TryParse(context.Material.Normal.Method, out var _normalMethod))
+            normalMethod = _normalMethod;
 
         var regions = provider.GetRequiredService<TextureRegionEnumerator>();
         regions.SourceFrameCount = NormalFrameCount;
@@ -250,18 +256,23 @@ internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
         return builder.Build();
     }
 
-    public ISampler<Rgb24> GetNormalSampler()
+    public ISampler<Rgb24>? GetNormalSampler()
     {
         return NormalTexture == null ? null : context.CreateSampler(NormalTexture, Samplers.Samplers.Nearest);
     }
 
-    public ISampler<L8> GetMagnitudeSampler()
+    public ISampler<L8>? GetMagnitudeSampler()
     {
         return MagnitudeTexture == null ? null : context.CreateSampler(MagnitudeTexture, Samplers.Samplers.Nearest);
     }
 
     private void ApplyFiltering()
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+        ArgumentNullException.ThrowIfNull(NormalTexture);
+
+        if (context.Material.Filters == null) return;
+
         var regions = provider.GetRequiredService<TextureRegionEnumerator>();
         regions.SourceFrameCount = NormalFrameCount;
         regions.DestFrameCount = NormalFrameCount;
@@ -271,7 +282,7 @@ internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
                 filter.GetRectangle(out var filterRegion);
 
                 foreach (var part in regions.GetAllPublishRegions()) {
-                    var frame = part.Frames.FirstOrDefault();
+                    var frame = part.Frames?.FirstOrDefault();
                     if (frame == null) continue;
 
                     var x = frame.SourceBounds.Left + filterRegion.X * frame.SourceBounds.Width;
@@ -304,26 +315,31 @@ internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
 
     private void ApplyFilterRegion(MaterialFilter filter, Rectangle region)
     {
-        if (filter.HasNormalRotation) {
-            var curveProcessor = new NormalRotateProcessor {
-                CurveTop = (float?)filter.GetNormalCurveTop() ?? 0f,
-                CurveBottom = (float?)filter.GetNormalCurveBottom() ?? 0f,
-                CurveLeft = (float?)filter.GetNormalCurveLeft() ?? 0f,
-                CurveRight = (float?)filter.GetNormalCurveRight() ?? 0f,
-                RadiusTop = (float?)filter.GetNormalRadiusTop() ?? 1f,
-                RadiusBottom = (float?)filter.GetNormalRadiusBottom() ?? 1f,
-                RadiusLeft = (float?)filter.GetNormalRadiusLeft() ?? 1f,
-                RadiusRight = (float?)filter.GetNormalRadiusRight() ?? 1f,
-                Noise = (float?)filter.NormalNoise ?? 0f,
-                Bounds = region,
-            };
+        ArgumentNullException.ThrowIfNull(NormalTexture);
 
-            curveProcessor.Apply(NormalTexture);
-        }
+        if (!filter.HasNormalRotation) return;
+
+        var curveProcessor = new NormalRotateProcessor {
+            CurveTop = (float?)filter.GetNormalCurveTop() ?? 0f,
+            CurveBottom = (float?)filter.GetNormalCurveBottom() ?? 0f,
+            CurveLeft = (float?)filter.GetNormalCurveLeft() ?? 0f,
+            CurveRight = (float?)filter.GetNormalCurveRight() ?? 0f,
+            RadiusTop = (float?)filter.GetNormalRadiusTop() ?? 1f,
+            RadiusBottom = (float?)filter.GetNormalRadiusBottom() ?? 1f,
+            RadiusLeft = (float?)filter.GetNormalRadiusLeft() ?? 1f,
+            RadiusRight = (float?)filter.GetNormalRadiusRight() ?? 1f,
+            Noise = (float?)filter.NormalNoise ?? 0f,
+            Bounds = region,
+        };
+
+        curveProcessor.Apply(NormalTexture);
     }
 
     private void TryExtractMagnitude()
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+        ArgumentNullException.ThrowIfNull(NormalTexture);
+
         var magnitudeInputChannels = context.InputEncoding
             .Where(c => TextureTags.Is(c.Texture, TextureTags.Normal))
             .Where(c => c.Color == ColorChannel.Magnitude).ToArray();
@@ -353,6 +369,9 @@ internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
 
     private async Task ApplyMagnitudeAsync(PackEncodingChannel magnitudeChannel, CancellationToken token)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+        ArgumentNullException.ThrowIfNull(NormalTexture);
+
         var inputChannel = context.InputEncoding.FirstOrDefault(e => EncodingChannel.Is(e.ID, magnitudeChannel.ID));
         if (inputChannel == null) return;
 
@@ -393,6 +412,8 @@ internal class TextureNormalGraph : ITextureNormalGraph, IDisposable
         regions.DestFrameCount = NormalFrameCount;
 
         foreach (var frame in regions.GetAllRenderRegions()) {
+            if (frame.Tiles == null) continue;
+
             foreach (var part in frame.Tiles) {
                 options.MagSampler.SetBounds(part.SourceBounds);
                 var outBounds = part.DestBounds.ScaleTo(NormalTexture.Width, NormalTexture.Height);

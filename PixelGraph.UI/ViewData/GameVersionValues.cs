@@ -1,6 +1,4 @@
 ﻿using MinecraftMappings.Minecraft.Java;
-using System;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData;
 
@@ -18,7 +16,7 @@ internal class GameVersionValues : List<GameVersionValue>
 
 public class GameVersionValue
 {
-    public string Text {get; set;}
-    public Version Version {get; set;}
+    public string? Text {get; set;}
+    public Version? Version {get; set;}
     //public bool IsLatest {get; set;}
 }

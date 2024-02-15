@@ -33,6 +33,9 @@ internal class EdgeFadeImageEffect : IEdgeFadeImageEffect
 
     public void Apply(Image image, string tag, Rectangle? bounds = null, bool isGrayscale = false)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         var hasEdgeSizeX = context.Material.Height?.EdgeFadeX != null
                            || context.Material.Height?.EdgeFadeLeft != null
                            || context.Material.Height?.EdgeFadeRight != null;

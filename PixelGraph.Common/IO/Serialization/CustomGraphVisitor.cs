@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.ObjectGraphVisitors;
@@ -10,7 +9,7 @@ public class CustomGraphVisitor : ChainedObjectGraphVisitor
 {
     public CustomGraphVisitor(IObjectGraphVisitor<IEmitter> nextVisitor) : base(nextVisitor) {}
 
-    private static object GetDefault(Type type)
+    private static object? GetDefault(Type type)
     {
         return type.IsValueType ? Activator.CreateInstance(type) : null;
     }

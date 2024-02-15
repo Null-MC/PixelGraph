@@ -2,7 +2,6 @@
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors;
@@ -10,7 +9,7 @@ namespace PixelGraph.Common.ImageProcessors;
 internal class HeightEdgeProcessor
 {
     public Rectangle Bounds;
-    public ColorChannel[] Colors;
+    public ColorChannel[]? Colors;
     public float SizeTop, SizeBottom;
     public float SizeLeft, SizeRight;
     public float Strength = 1f;
@@ -24,6 +23,8 @@ internal class HeightEdgeProcessor
 
     private void ProcessRow(Span<Vector4> row, Point pos)
     {
+        ArgumentNullException.ThrowIfNull(Colors);
+
         var count = Colors.Length;
 
         for (var x = 0; x < Bounds.Width; x++) {

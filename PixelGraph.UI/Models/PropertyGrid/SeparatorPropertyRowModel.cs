@@ -6,7 +6,7 @@ public interface ISeparatorPropertyRow : IPropertyRow {}
 
 public class SeparatorPropertyRowModel : ModelBase, ISeparatorPropertyRow
 {
-    public object ActualValue => null;
+    public object? ActualValue => null;
 
     public bool Enabled {
         get => true;

@@ -4,12 +4,8 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Projects;
-using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO.Importing;
 
@@ -20,9 +16,9 @@ internal interface IMaterialImporter
     /// </summary>
     bool AsGlobal {get; set;}
 
-    IProjectDescription Project {get; set;}
+    IProjectDescription? Project {get; set;}
 
-    PublishProfileProperties PackProfile {get; set;}
+    PublishProfileProperties? PackProfile {get; set;}
 
     bool IsMaterialFile(string filename, out string name);
 
@@ -40,9 +36,9 @@ internal abstract class MaterialImporterBase : IMaterialImporter
     /// <inheritdoc />
     public bool AsGlobal {get; set;}
 
-    public IProjectDescription Project {get; set;}
+    public IProjectDescription? Project {get; set;}
 
-    public PublishProfileProperties PackProfile {get; set;}
+    public PublishProfileProperties? PackProfile {get; set;}
 
 
     protected MaterialImporterBase(IServiceProvider provider)
@@ -78,8 +74,8 @@ internal abstract class MaterialImporterBase : IMaterialImporter
         var context = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
 
         context.PackWriteTime = DateTime.Now;
-        context.Project = (IProjectDescription)Project.Clone();
-        context.Profile = (PublishProfileProperties)PackProfile.Clone();
+        context.Project = (IProjectDescription?)Project?.Clone();
+        context.Profile = (PublishProfileProperties?)PackProfile?.Clone();
         context.PublishAsGlobal = AsGlobal;
         context.Material = material;
         context.IsImport = true;

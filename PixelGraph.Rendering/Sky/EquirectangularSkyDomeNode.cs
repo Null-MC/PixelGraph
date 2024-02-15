@@ -8,7 +8,7 @@ namespace PixelGraph.Rendering.Sky;
 
 public class EquirectangularSkyDomeNode : SceneNode
 {
-    public TextureModel Texture {
+    public TextureModel? Texture {
         get => ((EquirectangularSkyDomeCore)RenderCore).Texture;
         set => ((EquirectangularSkyDomeCore)RenderCore).Texture = value;
     }

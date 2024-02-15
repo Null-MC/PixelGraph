@@ -1,13 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace PixelGraph.Common.IO;
+﻿namespace PixelGraph.Common.IO;
 
 public class OutputOptions
 {
-    public string Root {get; set;}
+    public string? Root {get; set;}
 }
 
 public interface IOutputWriter : IAsyncDisposable, IDisposable

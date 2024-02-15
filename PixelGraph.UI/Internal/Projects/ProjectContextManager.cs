@@ -1,14 +1,12 @@
 ﻿using PixelGraph.Common.IO.Serialization;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal.Projects;
 
 public interface IProjectContextManager
 {
-    IProjectContext GetContext();
-    void SetContext(IProjectContext context);
+    IProjectContext? GetContext();
+    IProjectContext GetContextRequired();
+    void SetContext(IProjectContext? context);
     Task SaveAsync();
 }
 
@@ -16,7 +14,7 @@ internal class ProjectContextManager : IProjectContextManager, IDisposable
 {
     private readonly ProjectSerializer serializer;
     private readonly ReaderWriterLockSlim _lock;
-    private IProjectContext _context;
+    private IProjectContext? _context;
 
 
     public ProjectContextManager()
@@ -27,10 +25,10 @@ internal class ProjectContextManager : IProjectContextManager, IDisposable
 
     public void Dispose()
     {
-        _lock?.Dispose();
+        _lock.Dispose();
     }
 
-    public IProjectContext GetContext()
+    public IProjectContext? GetContext()
     {
         _lock.EnterReadLock();
 
@@ -42,7 +40,9 @@ internal class ProjectContextManager : IProjectContextManager, IDisposable
         }
     }
 
-    public void SetContext(IProjectContext context)
+    public IProjectContext GetContextRequired() => GetContext() ?? throw new ApplicationException("Failed to retrieve project context!");
+
+    public void SetContext(IProjectContext? context)
     {
         _lock.EnterWriteLock();
 
@@ -56,8 +56,15 @@ internal class ProjectContextManager : IProjectContextManager, IDisposable
 
     public Task SaveAsync()
     {
-        var context = GetContext();
-        if (context == null) return Task.CompletedTask;
+        var context = GetContextRequired();
+
+        if (context.Project == null) {
+            // logger.Warn();
+            return Task.CompletedTask;
+        }
+
+        if (string.IsNullOrEmpty(context.ProjectFilename))
+            throw new ApplicationException("Project filename is undefined!");
 
         return serializer.SaveAsync(context.Project, context.ProjectFilename);
     }

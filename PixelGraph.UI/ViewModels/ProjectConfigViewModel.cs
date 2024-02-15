@@ -3,17 +3,15 @@ using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Projects;
-using System;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.ViewModels;
 
 internal class ProjectConfigViewModel : ModelBase
 {
-    private IProjectContextManager projectContextMgr;
-    private ProjectData _project;
+    private IProjectContextManager? projectContextMgr;
+    private ProjectData? _project;
 
-    public ProjectData Project {
+    public ProjectData? Project {
         get => _project;
         private set {
             _project = value;
@@ -26,7 +24,7 @@ internal class ProjectConfigViewModel : ModelBase
         }
     }
 
-    public string PackName {
+    public string? PackName {
         get => Project?.Name;
         set {
             if (Project == null) return;
@@ -35,7 +33,7 @@ internal class ProjectConfigViewModel : ModelBase
         }
     }
 
-    public string PackDescription {
+    public string? PackDescription {
         get => Project?.Description;
         set {
             if (Project == null) return;
@@ -44,7 +42,7 @@ internal class ProjectConfigViewModel : ModelBase
         }
     }
 
-    public string PackAuthor {
+    public string? PackAuthor {
         get => Project?.Author;
         set {
             if (Project == null) return;
@@ -53,7 +51,7 @@ internal class ProjectConfigViewModel : ModelBase
         }
     }
 
-    public string Format {
+    public string? Format {
         get => Project?.Input?.Format;
         set {
             if (Project == null) return;
@@ -68,12 +66,14 @@ internal class ProjectConfigViewModel : ModelBase
     public void Initialize(IServiceProvider provider)
     {
         projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
-        Project = (ProjectData)projectContextMgr.GetContext()?.Project.Clone();
+        Project = (ProjectData?)projectContextMgr.GetContext()?.Project?.Clone();
     }
 
     public async Task SaveAsync()
     {
-        var projectContext = projectContextMgr.GetContext();
+        ArgumentNullException.ThrowIfNull(projectContextMgr);
+
+        var projectContext = projectContextMgr.GetContextRequired();
 
         projectContext.Project = Project;
 

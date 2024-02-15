@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 
 namespace PixelGraph.Common.IO.Publishing;
 
@@ -30,19 +28,19 @@ internal class BedrockPackMetadata
 internal class BedrockPackHeaderMetadata
 {
     [JsonProperty("name")]
-    public string Name {get; set;}
+    public string? Name {get; set;}
 
     [JsonProperty("description")]
-    public string Description {get; set;}
+    public string? Description {get; set;}
 
     [JsonProperty("uuid")]
     public Guid? UniqueId {get; set;}
 
     [JsonProperty("version")]
-    public int[] Version {get; set;}
+    public int[]? Version {get; set;}
 
     [JsonProperty("min_engine_version")]
-    public int[] MinEngineVersion {get; set;}
+    public int[]? MinEngineVersion {get; set;}
 
 
     //public BedrockPackHeaderMetadata()
@@ -54,14 +52,14 @@ internal class BedrockPackHeaderMetadata
 internal class BedrockPackModuleMetadata
 {
     [JsonProperty("description")]
-    public string Description {get; set;}
+    public string? Description {get; set;}
 
     [JsonProperty("type")]
-    public string Type {get; set;}
+    public string? Type {get; set;}
 
     [JsonProperty("uuid")]
     public Guid? UniqueId {get; set;}
 
     [JsonProperty("version")]
-    public int[] Version {get; set;}
+    public int[]? Version {get; set;}
 }

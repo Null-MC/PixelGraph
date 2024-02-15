@@ -8,5 +8,5 @@ public interface IEditBoolPropertyRow<in TProperty> : IEditBoolPropertyRow, IEdi
 
 public class EditBoolPropertyRowModel<TProperty, TValue> : EditPropertyRowModelBase<TProperty, TValue>, IEditBoolPropertyRow<TProperty>
 {
-    public EditBoolPropertyRowModel(string name, string propertyName, object defaultValue = null) : base(name, propertyName, defaultValue) {}
+    public EditBoolPropertyRowModel(string name, string propertyName, object? defaultValue = null) : base(name, propertyName, defaultValue) {}
 }

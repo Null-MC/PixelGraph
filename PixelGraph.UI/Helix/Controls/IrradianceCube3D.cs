@@ -26,8 +26,8 @@ public class IrradianceCube3D : Element3D, ICubeMapSource
         set => SetValue(FaceSizeProperty, value);
     }
 
-    public ShaderResourceViewProxy CubeMap => ((IrradianceCubeNode)SceneNode)?.CubeMap;
-    public long LastUpdated => ((IrradianceCubeNode)SceneNode)?.LastUpdated ?? 0;
+    public ShaderResourceViewProxy? CubeMap => ((IrradianceCubeNode)SceneNode).CubeMap;
+    public long LastUpdated => ((IrradianceCubeNode)SceneNode).LastUpdated;
 
 
     protected override SceneNode OnCreateSceneNode()

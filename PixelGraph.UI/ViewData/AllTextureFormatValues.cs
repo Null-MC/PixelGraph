@@ -2,7 +2,6 @@
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.TextureFormats.Bedrock;
 using PixelGraph.Common.TextureFormats.Java;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData;
 
@@ -69,8 +68,8 @@ internal class AllTextureFormatValues : List<TextureFormatValueItem>
 
 public class TextureFormatValueItem
 {
-    public string Text {get; set;}
-    public string Value {get; set;}
-    public string Hint {get; set;}
-    public string[] GameEditions {get; set;}
+    public string? Text {get; set;}
+    public string? Value {get; set;}
+    public string? Hint {get; set;}
+    public string[]? GameEditions {get; set;}
 }

@@ -5,9 +5,6 @@ using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO.Publishing;
 
@@ -46,7 +43,7 @@ public class JavaPublisher : PublisherBase
         var graphContext = scopeProvider.GetRequiredService<ITextureGraphContext>();
         await ctmPublish.TryBuildPropertiesAsync(graphContext, token);
 
-        if (graphContext.Material.PublishItem ?? false) {
+        if (graphContext.Material?.PublishItem ?? false) {
             var graphBuilder = scopeProvider.GetRequiredService<IPublishGraphBuilder>();
             await graphBuilder.PublishInventoryAsync(token);
         }

@@ -2,8 +2,6 @@
 using HelixToolkit.SharpDX.Core.Shaders;
 using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Rendering.Shaders;
-using System;
-using System.Collections.Generic;
 using SharpDX.Direct3D;
 
 namespace PixelGraph.Rendering;
@@ -93,7 +91,7 @@ public class PreviewEffectsManager : DefaultEffectsManager
         var meshTechnique = new TechniqueDescription(DefaultRenderTechniqueNames.Mesh) {
             InputLayoutDescription = new InputLayoutDescription(shaderMgr.GetCode(CustomShaderManager.Name_PbrVertex), CustomInputLayout.VSBlockInput),
             PassDescriptions = new List<ShaderPassDescription> {
-                new ShaderPassDescription(CustomPassNames.Diffuse) {
+                new(CustomPassNames.Diffuse) {
                     ShaderList = new[] {
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_DiffusePixel, ShaderStage.Pixel),
@@ -104,7 +102,7 @@ public class PreviewEffectsManager : DefaultEffectsManager
 
                 // TODO: Diffuse OIT
 
-                new ShaderPassDescription(CustomPassNames.Normals) {
+                new(CustomPassNames.Normals) {
                     ShaderList = new[] {
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_NormalsPixel, ShaderStage.Pixel),
@@ -115,7 +113,7 @@ public class PreviewEffectsManager : DefaultEffectsManager
 
                 // TODO: Normals OIT
 
-                new ShaderPassDescription(CustomPassNames.PbrFilament) {
+                new(CustomPassNames.PbrFilament) {
                     ShaderList = new[] {
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrFilamentPixel, ShaderStage.Pixel),
@@ -126,7 +124,7 @@ public class PreviewEffectsManager : DefaultEffectsManager
 
                 // TODO: PBR-Metal OIT
 
-                new ShaderPassDescription(CustomPassNames.PbrJessie) {
+                new(CustomPassNames.PbrJessie) {
                     ShaderList = new[] {
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrJessiePixel, ShaderStage.Pixel),
@@ -135,7 +133,7 @@ public class PreviewEffectsManager : DefaultEffectsManager
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                 },
 
-                new ShaderPassDescription(CustomPassNames.PbrNull) {
+                new(CustomPassNames.PbrNull) {
                     ShaderList = new[] {
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrNullPixel, ShaderStage.Pixel),
@@ -153,7 +151,7 @@ public class PreviewEffectsManager : DefaultEffectsManager
                 //    DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
                 //});
 
-                new ShaderPassDescription(DefaultPassNames.ShadowPass) {
+                new(DefaultPassNames.ShadowPass) {
                     ShaderList = new[] {
                         shaderMgr.BuildDescription(CustomShaderManager.Name_ShadowVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_ShadowPixel, ShaderStage.Pixel),

@@ -2,8 +2,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SharpDX;
-using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace PixelGraph.UI.Internal.IO.Models;
@@ -34,7 +32,7 @@ internal class EntityModelParser //: IEntityModelParser
         }
     }
 
-    private T FindModel<T>(string searchFile)
+    private T? FindModel<T>(string searchFile)
         where T : EntityModelVersion, new()
     {
         var modelFile = searchFile;
@@ -47,7 +45,7 @@ internal class EntityModelParser //: IEntityModelParser
         if (!modelFile.Contains('/', StringComparison.InvariantCulture))
             modelFile = $"assets/minecraft/optifine/cem/{modelFile}";
 
-        JObject json = null;
+        JObject? json = null;
         var result = locator.FindEntityModel(modelFile, stream => {
             using var reader = new StreamReader(stream);
             using var jsonReader = new JsonTextReader(reader);
@@ -55,7 +53,7 @@ internal class EntityModelParser //: IEntityModelParser
 
         });
 
-        if (result) return ParseModelFile<T>(json);
+        if (result && json != null) return ParseModelFile<T>(json);
 
         return null;
         //var name = Path.GetFileName(searchFile);
@@ -76,14 +74,14 @@ internal class EntityModelParser //: IEntityModelParser
         if (!modelFile.Contains('/', StringComparison.InvariantCulture))
             modelFile = $"assets/minecraft/optifine/cem/{modelFile}";
 
-        JObject json = null;
+        JObject? json = null;
         var result = locator.FindEntityModel(modelFile, stream => {
             using var reader = new StreamReader(stream);
             using var jsonReader = new JsonTextReader(reader);
             json = JObject.Load(jsonReader);
         });
 
-        if (result) return ParseModelPartFile(json);
+        if (result && json != null) return ParseModelPartFile(json);
             
         var name = Path.GetFileName(searchFile);
 

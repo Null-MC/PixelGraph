@@ -56,7 +56,7 @@
             TextBrush="White"
             UseDefaultGestures="False"
             ZoomExtentsWhenLoaded="True"
-            FXAALevel="{Binding RenderProperties.FxaaLevel, Mode=OneWay}"
+            FXAALevel="{Binding RenderProperties.FXAA, Mode=OneWay}"
             EnableSwapChainRendering="{Binding RenderProperties.EnableSwapChain, Mode=OneWay}"
             FrameRateText="{Binding FrameRateText, Mode=OneWayToSource, RelativeSource={RelativeSource AncestorType={x:Type controls:RenderPreviewControl}}}">
             <hx:Viewport3DX.InputBindings>

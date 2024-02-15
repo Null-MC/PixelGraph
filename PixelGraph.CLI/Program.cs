@@ -5,9 +5,7 @@ using PixelGraph.Common;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
-using System;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace PixelGraph.CLI;
 
@@ -52,7 +50,7 @@ internal class Program
             return 1;
         }
         finally {
-            Log.CloseAndFlush();
+            await Log.CloseAndFlushAsync();
         }
     }
 
@@ -75,7 +73,7 @@ internal class Program
         services.AddTransient<PublishCommand.Executor>();
     }
 
-    private static void Console_OnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
+    private static void Console_OnCancelKeyPress(object? sender, ConsoleCancelEventArgs e)
     {
         ConsoleEx.WriteLine("Cancelling...", ConsoleColor.Yellow);
         lifetime.Cancel();

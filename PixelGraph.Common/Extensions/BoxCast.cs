@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace PixelGraph.Common.Extensions;
+﻿namespace PixelGraph.Common.Extensions;
 
 public static class BoxCast
 {
-    public static object To(this object value, Type targetType)
+    public static object? To(this object? value, Type targetType)
     {
         if (value == null) return default;
 
@@ -21,8 +19,8 @@ public static class BoxCast
         return Convert.ChangeType(value, t);
     }
 
-    public static T To<T>(this object value)
+    public static T? To<T>(this object? value)
     {
-        return (T)To(value, typeof(T));
+        return (T?)To(value, typeof(T));
     }
 }

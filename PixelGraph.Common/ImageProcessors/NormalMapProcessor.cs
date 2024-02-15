@@ -4,7 +4,6 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors;
@@ -32,45 +31,44 @@ internal class NormalMapProcessor<THeight> : PixelRowProcessor
 
     protected override void ProcessRow<TPixel>(in PixelRowContext context, Span<TPixel> row)
     {
-        Vector3 normal, result;
-        Vector4 pixelOut;
-        Vector2 derivative;
-        float strength;
-
         var k = new float[kernelSize, kernelSize];
+
         for (var x = 0; x < context.Bounds.Width; x++) {
             //ProcessPixelNormal(ref k, in context, in x, out normal);
             PopulateKernel(ref k, in context, in x);
 
-            if (options.Method == NormalMapMethods.SobelHigh) {
-                ApplyHighPass(ref k[0,0], in k[1,1]);
-                ApplyHighPass(ref k[1,0], in k[1,1]);
-                ApplyHighPass(ref k[2,0], in k[1,1]);
-                ApplyHighPass(ref k[0,1], in k[1,1]);
-                ApplyHighPass(ref k[2,1], in k[1,1]);
-                ApplyHighPass(ref k[0,2], in k[1,1]);
-                ApplyHighPass(ref k[1,2], in k[1,1]);
-                ApplyHighPass(ref k[2,2], in k[1,1]);
-            }
-            else if (options.Method == NormalMapMethods.SobelLow) {
-                ApplyLowPass(ref k[0,0], in k[1,1]);
-                ApplyLowPass(ref k[1,0], in k[1,1]);
-                ApplyLowPass(ref k[2,0], in k[1,1]);
-                ApplyLowPass(ref k[0,1], in k[1,1]);
-                ApplyLowPass(ref k[2,1], in k[1,1]);
-                ApplyLowPass(ref k[0,2], in k[1,1]);
-                ApplyLowPass(ref k[1,2], in k[1,1]);
-                ApplyLowPass(ref k[2,2], in k[1,1]);
+            switch (options.Method) {
+                case NormalMapMethods.SobelHigh:
+                    ApplyHighPass(ref k[0,0], in k[1,1]);
+                    ApplyHighPass(ref k[1,0], in k[1,1]);
+                    ApplyHighPass(ref k[2,0], in k[1,1]);
+                    ApplyHighPass(ref k[0,1], in k[1,1]);
+                    ApplyHighPass(ref k[2,1], in k[1,1]);
+                    ApplyHighPass(ref k[0,2], in k[1,1]);
+                    ApplyHighPass(ref k[1,2], in k[1,1]);
+                    ApplyHighPass(ref k[2,2], in k[1,1]);
+                    break;
+                case NormalMapMethods.SobelLow:
+                    ApplyLowPass(ref k[0,0], in k[1,1]);
+                    ApplyLowPass(ref k[1,0], in k[1,1]);
+                    ApplyLowPass(ref k[2,0], in k[1,1]);
+                    ApplyLowPass(ref k[0,1], in k[1,1]);
+                    ApplyLowPass(ref k[2,1], in k[1,1]);
+                    ApplyLowPass(ref k[0,2], in k[1,1]);
+                    ApplyLowPass(ref k[1,2], in k[1,1]);
+                    ApplyLowPass(ref k[2,2], in k[1,1]);
+                    break;
             }
 
-            strength = options.Strength / MathF.Pow(kernelSize, 2f) * 10f;
+            var strength = options.Strength / MathF.Pow(kernelSize, 2f) * 10f;
 
             SobelHelper.ApplyOperator(ref k, in kernelSize, in _operator);
-            SobelHelper.GetDerivative(ref k, in kernelSize, out derivative);
-            SobelHelper.CalculateNormal(in derivative, in strength, out normal);
+            SobelHelper.GetDerivative(ref k, in kernelSize, out var derivative);
+            SobelHelper.CalculateNormal(in derivative, in strength, out var normal);
 
-            NormalEncoding.EncodeNormal(in normal, out result);
+            NormalEncoding.EncodeNormal(in normal, out var result);
 
+            Vector4 pixelOut;
             pixelOut.X = result.X * 0.5f + (127f/255f);
             pixelOut.Y = result.Y * 0.5f + (127f/255f);
             pixelOut.Z = result.Z;
@@ -82,6 +80,8 @@ internal class NormalMapProcessor<THeight> : PixelRowProcessor
 
     private void PopulateKernel(ref float[,] kernel, in PixelRowContext context, in int x)
     {
+        ArgumentNullException.ThrowIfNull(options.Source);
+
         var ox = (kernelSize - 1) / 2;
         var oy = (kernelSize - 1) / 2;
 
@@ -122,7 +122,7 @@ internal class NormalMapProcessor<THeight> : PixelRowProcessor
 
     public class Options
     {
-        public Image<THeight> Source;
+        public Image<THeight>? Source;
         public ColorChannel HeightChannel;
         public NormalMapMethods Method;
         public float Strength = 1f;

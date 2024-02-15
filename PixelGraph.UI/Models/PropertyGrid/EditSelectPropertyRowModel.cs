@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace PixelGraph.UI.Models.PropertyGrid;
+﻿namespace PixelGraph.UI.Models.PropertyGrid;
 
 public interface ISelectPropertyRow : IPropertyRow
 {
@@ -24,17 +20,17 @@ public class EditSelectPropertyRowModel<TProperty, TValue> : EditPropertyRowMode
     //public string DisplayValue => Options.GetDisplayValue(EditValue);
 
 
-    public EditSelectPropertyRowModel(string name, string propertyName, SelectPropertyRowOptions options, object defaultValue = null) : base(name, propertyName, defaultValue)
+    public EditSelectPropertyRowModel(string name, string propertyName, SelectPropertyRowOptions options, object? defaultValue = null) : base(name, propertyName, defaultValue)
     {
         Options = options;
     }
 
-    public EditSelectPropertyRowModel(string name, string propertyName, SelectPropertyRowOptions options, Func<object> defaultFunc) : base(name, propertyName, defaultFunc)
+    public EditSelectPropertyRowModel(string name, string propertyName, SelectPropertyRowOptions options, Func<object?> defaultFunc) : base(name, propertyName, defaultFunc)
     {
         Options = options;
     }
 
-    protected override object GetDisplayValue()
+    protected override object? GetDisplayValue()
     {
         return Options.GetDisplayValue(EditValue);
     }
@@ -68,7 +64,7 @@ public class SelectPropertyRowOptions
         SelectedValuePath = value;
     }
 
-    public string GetDisplayValue(object value)
+    public string? GetDisplayValue(object? value)
     {
         var itemType = Items.FirstOrDefault()?.GetType();
         if (itemType == null) return null;
@@ -88,6 +84,6 @@ public class SelectPropertyRowOptions
 
         if (item == null) return null;
 
-        return (string)displayProperty.GetValue(item);
+        return (string?)displayProperty.GetValue(item);
     }
 }

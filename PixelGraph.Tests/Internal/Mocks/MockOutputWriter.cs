@@ -1,9 +1,5 @@
 ﻿using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Tests.Internal.Mocks;
 
@@ -23,6 +19,8 @@ internal class MockOutputWriter : IOutputWriter
     public async Task<T> OpenReadAsync<T>(string localFilename, Func<Stream, Task<T>> readFunc, CancellationToken token = default)
     {
         await using var stream = Content.OpenRead(localFilename);
+        if (stream == null) throw new FileNotFoundException("Failed to open file stream!");
+
         return await readFunc(stream);
     }
 

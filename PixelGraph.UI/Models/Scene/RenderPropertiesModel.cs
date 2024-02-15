@@ -9,11 +9,9 @@ using PixelGraph.Rendering;
 using PixelGraph.Rendering.CubeMaps;
 using PixelGraph.Rendering.LUTs;
 using PixelGraph.UI.Internal;
-using SharpDX;
-using System;
-using System.Linq;
-using System.Windows.Media.Media3D;
 using PixelGraph.UI.Internal.IO.Models;
+using SharpDX;
+using System.Windows.Media.Media3D;
 using OrthographicCamera = HelixToolkit.Wpf.SharpDX.OrthographicCamera;
 using PerspectiveCamera = HelixToolkit.Wpf.SharpDX.PerspectiveCamera;
 
@@ -21,12 +19,12 @@ namespace PixelGraph.UI.Models.Scene;
 
 public class RenderPropertiesModel : ModelBase
 {
-    private IEffectsManager _effectsManager;
-    private ILutMapSource _dielectricBrdfLutMap;
-    private ICubeMapSource _irradianceCube;
-    private ObservableElement3DCollection _meshParts;
-    private PerspectiveCamera _camera;
-    private MaterialProperties _missingMaterial;
+    private IEffectsManager? _effectsManager;
+    private ILutMapSource? _dielectricBrdfLutMap;
+    private ICubeMapSource? _irradianceCube;
+    private ObservableElement3DCollection? _meshParts;
+    private PerspectiveCamera? _camera;
+    private MaterialProperties? _missingMaterial;
     private FXAALevel _fxaa;
     private bool _enableSwapChain;
     private bool _enableTiling;
@@ -39,16 +37,16 @@ public class RenderPropertiesModel : ModelBase
     private PerspectiveCamera _lightCamera;
     private int _environmentMapSize;
     private int _irradianceMapSize;
-    private string _meshBlendMode;
-    private string _meshTintColor;
+    private string? _meshBlendMode;
+    private string? _meshTintColor;
     private float _subSurfaceBlur;
     private bool _showIrradiance;
 
-    public event EventHandler RenderModeChanged;
-    public event EventHandler RenderModelChanged;
+    public event EventHandler? RenderModeChanged;
+    public event EventHandler? RenderModelChanged;
 
-    internal ICubeMapSource DynamicSkyCubeSource {get; set;}
-    internal ICubeMapSource ErpCubeSource {get; set;}
+    internal ICubeMapSource? DynamicSkyCubeSource {get; set;}
+    internal ICubeMapSource? ErpCubeSource {get; set;}
 
     public int EnvironmentMapSize {
         get => _environmentMapSize;
@@ -125,7 +123,7 @@ public class RenderPropertiesModel : ModelBase
         }
     }
 
-    public IEffectsManager EffectsManager {
+    public IEffectsManager? EffectsManager {
         get => _effectsManager;
         set {
             _effectsManager = value;
@@ -158,7 +156,7 @@ public class RenderPropertiesModel : ModelBase
         }
     }
 
-    public ILutMapSource DielectricBrdfLutMap {
+    public ILutMapSource? DielectricBrdfLutMap {
         get => _dielectricBrdfLutMap;
         set {
             _dielectricBrdfLutMap = value;
@@ -166,7 +164,7 @@ public class RenderPropertiesModel : ModelBase
         }
     }
 
-    public ICubeMapSource IrradianceCube {
+    public ICubeMapSource? IrradianceCube {
         get => _irradianceCube;
         set {
             _irradianceCube = value;
@@ -174,15 +172,15 @@ public class RenderPropertiesModel : ModelBase
         }
     }
 
-    public MaterialProperties MissingMaterial {
+    public MaterialProperties? MissingMaterial {
         get => _missingMaterial;
-        set {
-            _missingMaterial = value;
-            OnPropertyChanged();
-        }
+        //set {
+        //    _missingMaterial = value;
+        //    OnPropertyChanged();
+        //}
     }
 
-    public PerspectiveCamera Camera {
+    public PerspectiveCamera? Camera {
         get => _camera;
         set {
             _camera = value;
@@ -190,7 +188,7 @@ public class RenderPropertiesModel : ModelBase
         }
     }
 
-    public ObservableElement3DCollection MeshParts {
+    public ObservableElement3DCollection? MeshParts {
         get => _meshParts;
         set {
             _meshParts = value;
@@ -198,7 +196,7 @@ public class RenderPropertiesModel : ModelBase
         }
     }
 
-    public string MeshBlendMode {
+    public string? MeshBlendMode {
         get => _meshBlendMode;
         private set {
             _meshBlendMode = value;
@@ -206,7 +204,7 @@ public class RenderPropertiesModel : ModelBase
         }
     }
 
-    public string MeshTintColor {
+    public string? MeshTintColor {
         get => _meshTintColor;
         private set {
             _meshTintColor = value;
@@ -236,7 +234,7 @@ public class RenderPropertiesModel : ModelBase
     {
         _meshParts = new ObservableElement3DCollection();
 
-        Camera = new PerspectiveCamera {
+        _camera = new PerspectiveCamera {
             UpDirection = Vector3.UnitY.ToVector3D(),
         };
 
@@ -255,9 +253,16 @@ public class RenderPropertiesModel : ModelBase
             NearPlaneDistance = 1f,
             FieldOfView = 45f,
         };
+
+        _missingMaterial = new MaterialProperties {
+            Color = new MaterialColorProperties {
+                Value = "#f800f8",
+                Texture = "<missing>",
+            }
+        };
     }
 
-    public void ApplyMaterial(MaterialProperties material)
+    public void ApplyMaterial(MaterialProperties? material)
     {
         var blend = material?.BlendMode;
         if (material != null && blend == null) {

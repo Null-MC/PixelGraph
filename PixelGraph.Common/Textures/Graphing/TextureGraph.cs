@@ -4,11 +4,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures.Graphing;
 
@@ -18,7 +13,7 @@ public interface ITextureGraph
     int GetMaxFrameCount();
 
     Task MapAsync(string textureTag, bool createEmpty, int? frame = null, int? part = null, CancellationToken token = default);
-    Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, bool createEmpty, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
+    Task<Image<TPixel>?> CreateImageAsync<TPixel>(string textureTag, bool createEmpty, CancellationToken token = default) where TPixel : unmanaged, IPixel<TPixel>;
 }
 
 internal class TextureGraph : ITextureGraph
@@ -89,7 +84,7 @@ internal class TextureGraph : ITextureGraph
         builderMap[textureTag] = builder;
     }
 
-    public async Task<Image<TPixel>> CreateImageAsync<TPixel>(string textureTag, bool createEmpty, CancellationToken token = default)
+    public async Task<Image<TPixel>?> CreateImageAsync<TPixel>(string textureTag, bool createEmpty, CancellationToken token = default)
         where TPixel : unmanaged, IPixel<TPixel>
     {
         if (!builderMap.TryGetValue(textureTag, out var builder))

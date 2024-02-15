@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace PixelGraph.UI.Internal.IO.Resources;
+﻿namespace PixelGraph.UI.Internal.IO.Resources;
 
 internal interface IResourceLocationManager
 {
-    ResourceLocation[] GetLocations();
+    ResourceLocation[]? GetLocations();
     void SetLocations(IEnumerable<ResourceLocation> locations);
     Task LoadAsync(CancellationToken token = default);
     Task SaveAsync(CancellationToken token = default);
@@ -20,7 +14,7 @@ internal class ResourceLocationManager : IResourceLocationManager, IDisposable
 
     private readonly IAppDataUtility appData;
     private readonly ReaderWriterLockSlim _lock;
-    private ResourceLocation[] _locations;
+    private ResourceLocation[]? _locations;
 
 
     public ResourceLocationManager(IAppDataUtility appData)
@@ -32,10 +26,10 @@ internal class ResourceLocationManager : IResourceLocationManager, IDisposable
 
     public void Dispose()
     {
-        _lock?.Dispose();
+        _lock.Dispose();
     }
 
-    public ResourceLocation[] GetLocations()
+    public ResourceLocation[]? GetLocations()
     {
         _lock.EnterReadLock();
 
@@ -47,7 +41,7 @@ internal class ResourceLocationManager : IResourceLocationManager, IDisposable
         }
     }
 
-    public void SetLocations(IEnumerable<ResourceLocation> locations)
+    public void SetLocations(IEnumerable<ResourceLocation>? locations)
     {
         _lock.EnterWriteLock();
 
@@ -67,7 +61,7 @@ internal class ResourceLocationManager : IResourceLocationManager, IDisposable
 
     public Task SaveAsync(CancellationToken token = default)
     {
-        var locations = GetLocations();
+        var locations = GetLocations() ?? Array.Empty<ResourceLocation>();
         return appData.WriteJsonAsync(FileName, locations, token);
     }
 }

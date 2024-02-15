@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Platforms>x64</Platforms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>warnings</Nullable>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

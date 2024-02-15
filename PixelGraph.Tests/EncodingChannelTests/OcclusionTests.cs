@@ -5,7 +5,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,7 +23,7 @@ public class OcclusionTests : ImageTestBase
 
         project = new ProjectData {
             Input = new PackInputEncoding {
-                Occlusion = {
+                Occlusion = new ResourcePackOcclusionChannelProperties {
                     Texture = TextureTags.Occlusion,
                     Color = ColorChannel.Red,
                     Invert = true,
@@ -33,8 +32,8 @@ public class OcclusionTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
-                Occlusion = {
+            Encoding = new PackOutputEncoding {
+                Occlusion = new ResourcePackOcclusionChannelProperties {
                     Texture = TextureTags.Occlusion,
                     Color = ColorChannel.Red,
                     Invert = true,

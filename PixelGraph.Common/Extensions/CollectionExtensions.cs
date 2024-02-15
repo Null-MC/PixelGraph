@@ -1,10 +1,5 @@
 ﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 namespace PixelGraph.Common.Extensions;
@@ -22,7 +17,7 @@ internal static class CollectionExtensions
         foreach (var e in collection) action(e);
     }
 
-    public static PackEncodingChannel GetChannel(this IEnumerable<PackEncodingChannel> collection, string encodingChannel)
+    public static PackEncodingChannel? GetChannel(this IEnumerable<PackEncodingChannel> collection, string encodingChannel)
     {
         return collection.FirstOrDefault(c => EncodingChannel.Is(c.ID, encodingChannel));
     }
@@ -46,13 +41,13 @@ internal static class CollectionExtensions
     //    return channelProperties != null;
     //}
 
-    public static bool TryGetChannel(this IEnumerable<PackEncodingChannel> collection, string encodingChannel, out PackEncodingChannel channelProperties)
+    public static bool TryGetChannel(this IEnumerable<PackEncodingChannel> collection, string encodingChannel, out PackEncodingChannel? channelProperties)
     {
         channelProperties = collection.FirstOrDefault(c => EncodingChannel.Is(c.ID, encodingChannel));
         return channelProperties != null;
     }
 
-    public static async Task AsyncParallelForEach<T>(this IEnumerable<T> source, Func<T, Task> body, int maxDegreeOfParallelism = DataflowBlockOptions.Unbounded, TaskScheduler scheduler = null, CancellationToken token = default)
+    public static async Task AsyncParallelForEach<T>(this IEnumerable<T> source, Func<T, Task> body, int maxDegreeOfParallelism = DataflowBlockOptions.Unbounded, TaskScheduler? scheduler = null, CancellationToken token = default)
     {
         var options = new ExecutionDataflowBlockOptions {
             CancellationToken = token,

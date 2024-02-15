@@ -1,17 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MahApps.Metro.Controls.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using Ookii.Dialogs.Wpf;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
-using System;
 using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
-using MahApps.Metro.Controls.Dialogs;
 
 namespace PixelGraph.UI.Windows;
 
@@ -22,9 +18,10 @@ public partial class ResourceLocationsWindow
 
     public ResourceLocationsWindow(IServiceProvider provider)
     {
-        DataContext = viewModel = new ResourceLocationsViewModel(provider);
+        DataContext = viewModel = new ResourceLocationsViewModel();
 
         InitializeComponent();
+        viewModel.Initialize(provider);
 
         var themeHelper = provider.GetRequiredService<IThemeHelper>();
         themeHelper.ApplyCurrent(this);
@@ -32,8 +29,10 @@ public partial class ResourceLocationsWindow
 
     private async Task SaveAsync()
     {
+        ArgumentNullException.ThrowIfNull(viewModel.Data);
+
         try {
-            await viewModel.SaveAsync();
+            await viewModel.Data.SaveAsync();
         }
         catch (Exception error) {
             await this.ShowMessageAsync("Error!", $"Failed to save resource locations! {error.Message}");
@@ -41,7 +40,7 @@ public partial class ResourceLocationsWindow
         }
 
         await Dispatcher.BeginInvoke(() => {
-            viewModel.HasChanges = false;
+            viewModel.Data.HasChanges = false;
             DialogResult = true;
         });
     }
@@ -69,7 +68,9 @@ public partial class ResourceLocationsWindow
 
     private async void OnWindowClosing(object sender, CancelEventArgs e)
     {
-        if (DialogResult.HasValue || !viewModel.HasChanges) return;
+        ArgumentNullException.ThrowIfNull(viewModel.Data);
+
+        if (DialogResult.HasValue || !viewModel.Data.HasChanges) return;
 
         var result = MessageBox.Show(this, "Would you like to save your changes?", "Warning!", MessageBoxButton.YesNoCancel);
 
@@ -91,19 +92,26 @@ public partial class ResourceLocationsWindow
 
     private void OnAddClick(object sender, RoutedEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(viewModel.Data);
+
         if (TryGetFilenames(true, out var files))
-            viewModel.AddFiles(files);
+            viewModel.Data.AddFiles(files);
     }
 
     private void OnRemoveClick(object sender, RoutedEventArgs e)
     {
-        viewModel.RemoveSelected();
+        ArgumentNullException.ThrowIfNull(viewModel.Data);
+
+        viewModel.Data.RemoveSelected();
     }
 
     private void OnPathBrowseClick(object sender, RoutedEventArgs e)
     {
         if (!TryGetFilenames(true, out var files)) return;
-        viewModel.EditFile = files.FirstOrDefault();
+
+        ArgumentNullException.ThrowIfNull(viewModel.Data);
+
+        viewModel.Data.EditFile = files.FirstOrDefault();
     }
         
     private async void OnOkButtonClick(object sender, RoutedEventArgs e)

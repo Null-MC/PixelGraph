@@ -5,7 +5,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,7 +23,7 @@ public class PorosityTests : ImageTestBase
 
         project = new ProjectData {
             Input = new PackInputEncoding {
-                Porosity = {
+                Porosity = new ResourcePackPorosityChannelProperties {
                     Texture = TextureTags.Porosity,
                     Color = ColorChannel.Red,
                 },
@@ -32,8 +31,8 @@ public class PorosityTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
-                Porosity = {
+            Encoding = new PackOutputEncoding {
+                Porosity = new ResourcePackPorosityChannelProperties {
                     Texture = TextureTags.Porosity,
                     Color = ColorChannel.Red,
                 },

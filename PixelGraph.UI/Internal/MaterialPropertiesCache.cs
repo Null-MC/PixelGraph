@@ -4,9 +4,6 @@ using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Material;
 using PixelGraph.UI.Internal.Caching;
 using PixelGraph.UI.Internal.Projects;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal;
 
@@ -34,9 +31,9 @@ internal class MaterialPropertiesCache : AsyncRegistrationCounterCache<string, M
         base.Release(registration);
     }
 
-    private async Task<MaterialProperties> LoadMaterial(string localFile, CancellationToken token)
+    private async Task<MaterialProperties?> LoadMaterial(string localFile, CancellationToken token)
     {
-        var projectContext = projectContextMgr.GetContext();
+        var projectContext = projectContextMgr.GetContextRequired();
         var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
 
         serviceBuilder.Initialize();

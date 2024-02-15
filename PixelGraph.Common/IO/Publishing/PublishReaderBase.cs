@@ -3,12 +3,8 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.IO.Texture;
 using PixelGraph.Common.Material;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
+using Path = System.IO.Path;
 
 namespace PixelGraph.Common.IO.Publishing;
 
@@ -65,23 +61,16 @@ internal class PublishReader : IPublishReader
         }
     }
 
-    protected virtual bool OnDirectoryFilter(string path)
-    {
-        if (path.EndsWith(".ignore", StringComparison.InvariantCultureIgnoreCase)) return false;
-        //...
-
-        return true;
-    }
-
     private async IAsyncEnumerable<object> LoadRecursiveAsync(string searchPath, [EnumeratorCancellation] CancellationToken token)
     {
-        if (!OnDirectoryFilter(searchPath)) yield break;
+        if (!PublishIgnore.AllowDirectory(searchPath)) yield break;
 
         if (TryFindLocalFile(searchPath, out var localMapFile)) {
-            MaterialProperties material = null;
+            MaterialProperties? material = null;
 
             try {
-                material = await materialReader.LoadLocalAsync(localMapFile, token);
+                material = await materialReader.LoadLocalAsync(localMapFile, token)
+                    ?? throw new ApplicationException("Failed to load material file!");
 
                 var fullMapFile = reader.GetFullPath(localMapFile);
                 ignored.Add(fullMapFile);
@@ -101,7 +90,7 @@ internal class PublishReader : IPublishReader
                 // TODO: add mcmeta files to ignored
             }
             catch (Exception error) {
-                logger.LogWarning(error, $"Failed to load local texture map '{localMapFile}'!");
+                logger.LogWarning(error, "Failed to load local texture map '{localMapFile}'!", localMapFile);
             }
 
             if (material != null)
@@ -135,7 +124,9 @@ internal class PublishReader : IPublishReader
             materialList.Clear();
 
             try {
-                var material = await materialReader.LoadGlobalAsync(filename, token);
+                var material = await materialReader.LoadGlobalAsync(filename, token)
+                    ?? throw new ApplicationException("Failed to load material file!");
+
                 var fullFile = reader.GetFullPath(filename);
                 ignored.Add(fullFile);
 
@@ -164,7 +155,7 @@ internal class PublishReader : IPublishReader
                 // TODO: add mcmeta files to ignored
             }
             catch (Exception error) {
-                logger.LogWarning(error, $"Failed to load global texture map '{filename}'!");
+                logger.LogWarning(error, "Failed to load global texture map '{filename}'!", filename);
             }
 
             foreach (var texture in materialList)
@@ -173,7 +164,7 @@ internal class PublishReader : IPublishReader
 
         foreach (var filename in reader.EnumerateFiles(searchPath)) {
             if (IgnoredExtensions.Any(x => filename.EndsWith(x, StringComparison.InvariantCultureIgnoreCase))) {
-                logger.LogDebug($"Ignoring file '{filename}'.");
+                logger.LogDebug("Ignoring file '{filename}'.", filename);
                 continue;
             }
 
@@ -206,6 +197,6 @@ internal class PublishReader : IPublishReader
         return false;
     }
 
-    public static string[] AllLocalTextures = {"alpha", "diffuse", "albedo", "height", "occlusion", "normal", "specular", "smooth", "rough", "metal", "f0", "porosity", "sss", "emissive"};
+    private static readonly string[] AllLocalTextures = {"alpha", "diffuse", "albedo", "height", "occlusion", "normal", "specular", "smooth", "rough", "metal", "f0", "porosity", "sss", "emissive"};
     private static readonly string[] IgnoredExtensions = {".pack.yml", ".mat.yml", ".pbr.yml", ".zip", ".db", ".cmd", ".sh", ".xcf", ".psd", ".bak"};
 }

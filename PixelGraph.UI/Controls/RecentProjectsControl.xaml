@@ -35,7 +35,7 @@
         </StackPanel>
         <Rectangle DockPanel.Dock="Top" VerticalAlignment="Bottom" Height="1"
                    Fill="{DynamicResource MahApps.Brushes.Accent2}"/>
-        <ItemsControl Margin="2" ItemsSource="{Binding Tiles, Mode=OneWay}">
+        <ItemsControl Margin="2" ItemsSource="{Binding Data.Tiles, Mode=OneWay}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel/>

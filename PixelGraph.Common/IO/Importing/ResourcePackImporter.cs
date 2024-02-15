@@ -3,12 +3,6 @@ using Microsoft.Extensions.Logging;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Projects;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO.Importing;
 
@@ -17,8 +11,8 @@ public interface IResourcePackImporter
     bool AsGlobal {get; set;}
     bool CopyUntracked {get; set;}
     bool IncludeUnknown {get; set;}
-    IProjectDescription Project {get; set;}
-    PublishProfileProperties PackProfile {get; set;}
+    IProjectDescription? Project {get; set;}
+    PublishProfileProperties? PackProfile {get; set;}
 
     Task ImportAsync(CancellationToken token = default);
 }
@@ -34,8 +28,8 @@ public class ResourcePackImporter : IResourcePackImporter
     public bool AsGlobal {get; set;}
     public bool CopyUntracked {get; set;}
     public bool IncludeUnknown {get; set;}
-    public IProjectDescription Project {get; set;}
-    public PublishProfileProperties PackProfile {get; set;}
+    public IProjectDescription? Project {get; set;}
+    public PublishProfileProperties? PackProfile {get; set;}
 
     public int FailureCount {get; set;}
 
@@ -131,6 +125,8 @@ public class ResourcePackImporter : IResourcePackImporter
 
             var file = PathEx.Join(localPath, name);
             file = PathEx.Normalize(file);
+
+            if (file == null) throw new ApplicationException("File name is undefined!");
 
             try {
                 await ImportMaterialAsync(localPath, name, token);
@@ -259,7 +255,7 @@ public class ResourcePackImporter : IResourcePackImporter
         if (name.EndsWith(".ignore", StringComparison.InvariantCultureIgnoreCase)) return true;
 
         // Ignore root minecraft.jar directories
-        var subPath = PathEx.Normalize(Path.GetDirectoryName(path));
+        var subPath = PathEx.NormalizeNullable(Path.GetDirectoryName(path));
         if (subPath?.StartsWith("com/mojang") ?? false) return true;
         if (subPath?.StartsWith("net/minecraft") ?? false) return true;
         if (subPath?.StartsWith("data/minecraft") ?? false) return true;

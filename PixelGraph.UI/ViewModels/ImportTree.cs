@@ -6,9 +6,9 @@ namespace PixelGraph.UI.ViewModels;
 
 internal class ImportTreeNode : INotifyPropertyChanged
 {
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-    public string Name {get; set;}
+    public string? Name {get; set;}
     public ObservableCollection<ImportTreeNode> Nodes {get; set;}
 
     private bool _included;
@@ -27,7 +27,7 @@ internal class ImportTreeNode : INotifyPropertyChanged
         _included = true;
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -35,10 +35,10 @@ internal class ImportTreeNode : INotifyPropertyChanged
 
 internal class ImportTreeDirectory : ImportTreeNode
 {
-    public string Path {get; set;}
+    public string? Path {get; set;}
 }
 
 internal class ImportTreeFile : ImportTreeNode
 {
-    public string Filename {get; set;}
+    public string? Filename {get; set;}
 }

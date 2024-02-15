@@ -4,7 +4,6 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Models;
-using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -13,12 +12,12 @@ namespace PixelGraph.UI.Controls;
 
 public partial class MaterialPropertiesControl
 {
-    private IProjectContextManager projectContextMgr;
+    private IProjectContextManager? projectContextMgr;
 
-    public event EventHandler GenerateNormal;
-    public event EventHandler GenerateOcclusion;
-    public event EventHandler<MaterialPropertyChangedEventArgs> DataChanged;
-    public event EventHandler ModelChanged;
+    public event EventHandler? GenerateNormal;
+    public event EventHandler? GenerateOcclusion;
+    public event EventHandler<MaterialPropertyChangedEventArgs>? DataChanged;
+    public event EventHandler? ModelChanged;
 
     public MaterialProperties Material {
         //get => (MaterialProperties)GetValue(MaterialProperty);
@@ -41,12 +40,14 @@ public partial class MaterialPropertiesControl
         projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
     }
 
-    private void OnSelectFile(object sender, SelectFileEventArgs e)
+    private void OnSelectFile(object? sender, SelectFileEventArgs e)
     {
-        var projectContext = projectContextMgr.GetContext();
+        ArgumentNullException.ThrowIfNull(projectContextMgr);
+
+        var projectContext = projectContextMgr.GetContextRequired();
         if (string.IsNullOrEmpty(projectContext.RootDirectory)) return;
 
-        string sourcePath = null;
+        string? sourcePath = null;
         if (e.Value is string sourceValue) {
             if (File.Exists(sourceValue)) {
                 sourcePath = sourceValue;
@@ -93,7 +94,7 @@ public partial class MaterialPropertiesControl
         }
     }
 
-    protected virtual void OnDataChanged(object sender, MaterialPropertyChangedEventArgs e)
+    protected virtual void OnDataChanged(object? sender, MaterialPropertyChangedEventArgs e)
     {
         DataChanged?.Invoke(this, e);
     }
@@ -103,22 +104,22 @@ public partial class MaterialPropertiesControl
         ModelChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnGenerateNormalClick(object sender, RoutedEventArgs e)
+    private void OnGenerateNormalClick(object? sender, RoutedEventArgs e)
     {
         GenerateNormal?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnGenerateOcclusionClick(object sender, RoutedEventArgs e)
+    private void OnGenerateOcclusionClick(object? sender, RoutedEventArgs e)
     {
         GenerateOcclusion?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnIorToFoConvertButtonClick(object sender, RoutedEventArgs e)
+    private void OnIorToFoConvertButtonClick(object? sender, RoutedEventArgs e)
     {
         Model.ConvertIorToF0();
     }
 
-    private void OnF0ConverterTextBoxKeyUp(object sender, KeyEventArgs e)
+    private void OnF0ConverterTextBoxKeyUp(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter) {
             IorToF0ConvertButton.Focus();
@@ -126,7 +127,7 @@ public partial class MaterialPropertiesControl
         }
     }
 
-    private void OnPropertyGridModelChanged(object sender, EventArgs e)
+    private void OnPropertyGridModelChanged(object? sender, EventArgs e)
     {
         OnModelChanged();
     }

@@ -14,16 +14,16 @@ namespace PixelGraph.UI.Helix.Materials;
 
 internal interface IMaterialBuilder : IDisposable, IAsyncDisposable
 {
-    string PassName {get; set;}
+    string? PassName {get; set;}
     //string PassNameOIT {get; set;}
     SamplerStateDescription ColorSampler {get; set;}
     SamplerStateDescription HeightSampler {get; set;}
 
-    ProjectPublishContext PackContext {get; set;}
-    MaterialProperties Material {get; set;}
-    ILutMapSource DielectricBrdfLutMapSource {get; set;}
-    ICubeMapSource EnvironmentCubeMapSource {get; set;}
-    ICubeMapSource IrradianceCubeMapSource {get; set;}
+    ProjectPublishContext? PackContext {get; set;}
+    MaterialProperties? Material {get; set;}
+    ILutMapSource? DielectricBrdfLutMapSource {get; set;}
+    ICubeMapSource? EnvironmentCubeMapSource {get; set;}
+    ICubeMapSource? IrradianceCubeMapSource {get; set;}
     //TextureModel BrdfLutMap {get; set;}
     bool RenderEnvironmentMap {get; set;}
 
@@ -40,18 +40,18 @@ internal abstract class MaterialBuilderBase<T> : IMaterialBuilder
     private readonly IServiceProvider provider;
     private readonly BmpEncoder encoder;
 
-    protected Dictionary<string, Stream> TextureMap {get;}
+    protected Dictionary<string, Stream?> TextureMap {get;}
 
-    public string PassName {get; set;}
+    public string? PassName {get; set;}
     //public string PassNameOIT {get; set;}
     public SamplerStateDescription ColorSampler {get; set;}
     public SamplerStateDescription HeightSampler {get; set;}
 
-    public ProjectPublishContext PackContext {get; set;}
-    public MaterialProperties Material {get; set;}
-    public ILutMapSource DielectricBrdfLutMapSource {get; set;}
-    public ICubeMapSource EnvironmentCubeMapSource {get; set;}
-    public ICubeMapSource IrradianceCubeMapSource {get; set;}
+    public ProjectPublishContext? PackContext {get; set;}
+    public MaterialProperties? Material {get; set;}
+    public ILutMapSource? DielectricBrdfLutMapSource {get; set;}
+    public ICubeMapSource? EnvironmentCubeMapSource {get; set;}
+    public ICubeMapSource? IrradianceCubeMapSource {get; set;}
     public bool RenderEnvironmentMap {get; set;}
 
 
@@ -64,7 +64,7 @@ internal abstract class MaterialBuilderBase<T> : IMaterialBuilder
             SupportTransparency = true,
         };
 
-        TextureMap = new Dictionary<string, Stream>(StringComparer.InvariantCultureIgnoreCase);
+        TextureMap = new Dictionary<string, Stream?>(StringComparer.InvariantCultureIgnoreCase);
     }
 
     public virtual void Dispose()
@@ -116,6 +116,8 @@ internal abstract class MaterialBuilderBase<T> : IMaterialBuilder
 
     protected ITexturePreviewBuilder GetPreviewBuilder(int? frame = null, int? part = null)
     {
+        ArgumentNullException.ThrowIfNull(PackContext);
+
         var previewBuilder = provider.GetRequiredService<T>();
 
         previewBuilder.Project = PackContext.Project;

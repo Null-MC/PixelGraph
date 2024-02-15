@@ -37,9 +37,9 @@ internal class PackInputModel : ModelBase
 
     public TextureChannelMapping Emissive {get; set;}
 
-    private PackInputEncoding _packInput;
+    private PackInputEncoding? _packInput;
 
-    public PackInputEncoding PackInput {
+    public PackInputEncoding? PackInput {
         get => _packInput;
         set {
             if (_packInput == value) return;
@@ -52,7 +52,7 @@ internal class PackInputModel : ModelBase
         }
     }
 
-    public string Format {
+    public string? Format {
         get => PackInput?.Format;
         set {
             if (PackInput == null) return;
@@ -168,7 +168,7 @@ internal class PackInputDesignerModel : PackInputModel
     {
         PackInput = new PackInputEncoding {
             Format = TextureFormat.Format_Raw,
-            Opacity = {
+            Opacity = new ResourcePackOpacityChannelProperties {
                 MinValue = 100,
             },
         };

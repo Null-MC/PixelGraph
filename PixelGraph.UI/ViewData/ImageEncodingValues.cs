@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace PixelGraph.UI.ViewData;
+﻿namespace PixelGraph.UI.ViewData;
 
 internal class ImageEncodingValues : List<ImageEncodingValues.Item>
 {
@@ -14,7 +12,7 @@ internal class ImageEncodingValues : List<ImageEncodingValues.Item>
 
     public class Item
     {
-        public string Text {get; set;}
-        public string Value {get; set;}
+        public string? Text {get; set;}
+        public string? Value {get; set;}
     }
 }

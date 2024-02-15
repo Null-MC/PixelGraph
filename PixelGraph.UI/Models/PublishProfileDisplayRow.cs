@@ -7,11 +7,11 @@ namespace PixelGraph.UI.Models;
 public class PublishProfileDisplayRow : ModelBase
 {
     public PublishProfileProperties Profile {get;}
-    private string _defaultName;
+    private string? _defaultName;
 
-    public string DisplayName => Profile.Name?.NullIfWhitespace(_defaultName);
+    public string? DisplayName => Profile.Name?.NullIfWhitespace(_defaultName);
 
-    public string DefaultName {
+    public string? DefaultName {
         set {
             _defaultName = value;
             OnPropertyChanged();

@@ -6,10 +6,10 @@ namespace PixelGraph.UI.Models;
 
 internal class TextureChannelMapping : ModelBase
 {
-    private PackEncodingChannel _channel;
-    private string _textureDefault;
+    private PackEncodingChannel? _channel;
+    private string? _textureDefault;
     private ColorChannel? _colorDefault;
-    private string _samplerDefault;
+    private string? _samplerDefault;
     private decimal? _minValueDefault;
     private decimal? _maxValueDefault;
     private byte? _rangeMinDefault;
@@ -20,9 +20,9 @@ internal class TextureChannelMapping : ModelBase
 
     //public event EventHandler DataChanged;
 
-    public string Texture => _channel?.Texture;
+    public string? Texture => _channel?.Texture;
     public ColorChannel? Color => _channel?.Color;
-    public string Sampler => _channel?.Sampler;
+    public string? Sampler => _channel?.Sampler;
     public decimal? MinValue => _channel?.MinValue;
     public decimal? MaxValue => _channel?.MaxValue;
     public byte? RangeMin => _channel?.RangeMin;
@@ -33,7 +33,7 @@ internal class TextureChannelMapping : ModelBase
 
     public string Label {get;}
 
-    public string EditTexture {
+    public string? EditTexture {
         get => _channel?.Texture ?? _textureDefault;
         set {
             if (_channel == null) return;
@@ -57,7 +57,7 @@ internal class TextureChannelMapping : ModelBase
         }
     }
         
-    public string EditSampler {
+    public string? EditSampler {
         get => _channel?.Sampler ?? _samplerDefault;
         set {
             if (_channel == null) return;
@@ -154,7 +154,7 @@ internal class TextureChannelMapping : ModelBase
         }
     }
 
-    public string TextureDefault {
+    public string? TextureDefault {
         get => _textureDefault;
         set {
             if (_textureDefault == value) return;
@@ -174,7 +174,7 @@ internal class TextureChannelMapping : ModelBase
         }
     }
 
-    public string SamplerDefault {
+    public string? SamplerDefault {
         get => _samplerDefault;
         set {
             if (_samplerDefault == value) return;
@@ -259,7 +259,7 @@ internal class TextureChannelMapping : ModelBase
         Label = label;
     }
 
-    public void SetChannel(PackEncodingChannel channel)
+    public void SetChannel(PackEncodingChannel? channel)
     {
         _channel = channel;
 
@@ -285,7 +285,7 @@ internal class TextureChannelMapping : ModelBase
         OnPropertyChanged(nameof(EditInvert));
     }
 
-    public void ApplyDefaultValues(PackEncodingChannel encodingDefaults, string sampler = null)
+    public void ApplyDefaultValues(PackEncodingChannel? encodingDefaults, string? sampler = null)
     {
         TextureDefault = encodingDefaults?.Texture;
         ColorDefault = encodingDefaults?.Color;

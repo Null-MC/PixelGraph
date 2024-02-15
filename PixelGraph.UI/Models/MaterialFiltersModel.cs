@@ -4,28 +4,25 @@ using MinecraftMappings.Internal.Models.Entity;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal;
+using PixelGraph.UI.Internal.IO.Models;
 using PixelGraph.UI.ViewModels;
 using SharpDX;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Text;
-using PixelGraph.UI.Internal.IO.Models;
 
 namespace PixelGraph.UI.Models;
 
 internal class MaterialFiltersViewModel : ModelBase
 {
-    private MaterialProperties _material;
-    private ObservableMaterialFilter _selectedFilter;
-    private ObservableCollection<ObservableMaterialFilter> _filterList;
-    private ITexturePreviewModel _texturePreviewModel;
-    private string _selectedTag;
+    private MaterialProperties? _material;
+    private ObservableMaterialFilter? _selectedFilter;
+    private ObservableCollection<ObservableMaterialFilter>? _filterList;
+    private ITexturePreviewModel? _texturePreviewModel;
+    private string? _selectedTag;
 
-    public event EventHandler SelectionChanged;
-    public event EventHandler DataChanged;
+    public event EventHandler? SelectionChanged;
+    public event EventHandler? DataChanged;
 
     public FilterGeneralPropertyCollection GeneralProperties {get;}
     public FilterNormalPropertyCollection NormalProperties {get;}
@@ -35,7 +32,7 @@ internal class MaterialFiltersViewModel : ModelBase
     public bool IsGeneralSelected => TextureTags.Is(_selectedTag, TextureTags.General);
     public bool IsNormalSelected => TextureTags.Is(_selectedTag, TextureTags.Normal);
 
-    public ITexturePreviewModel TexturePreviewData {
+    public ITexturePreviewModel? TexturePreviewData {
         get => _texturePreviewModel;
         set {
             _texturePreviewModel = value;
@@ -43,7 +40,7 @@ internal class MaterialFiltersViewModel : ModelBase
         }
     }
 
-    public ObservableCollection<ObservableMaterialFilter> FilterList {
+    public ObservableCollection<ObservableMaterialFilter>? FilterList {
         get => _filterList;
         private set {
             _filterList = value;
@@ -51,7 +48,7 @@ internal class MaterialFiltersViewModel : ModelBase
         }
     }
 
-    public MaterialProperties Material {
+    public MaterialProperties? Material {
         get => _material;
         set {
             if (_material == value) return;
@@ -64,7 +61,7 @@ internal class MaterialFiltersViewModel : ModelBase
         }
     }
 
-    public ObservableMaterialFilter SelectedFilter {
+    public ObservableMaterialFilter? SelectedFilter {
         get => _selectedFilter;
         set {
             if (_selectedFilter == value) return;
@@ -80,7 +77,7 @@ internal class MaterialFiltersViewModel : ModelBase
         }
     }
 
-    public string SelectedTag {
+    public string? SelectedTag {
         get => _selectedTag;
         set {
             _selectedTag = value;
@@ -103,9 +100,12 @@ internal class MaterialFiltersViewModel : ModelBase
 
     public void ImportFiltersFromModel(ModelLoader loader)
     {
+        ArgumentNullException.ThrowIfNull(Material);
+
         var entityModel = loader.GetJavaEntityModel(Material);
         if (entityModel != null) {
             var filters = ImportFiltersFromEntityModel(entityModel);
+            Material.Filters ??= new List<MaterialFilter>();
             Material.Filters.AddRange(filters);
             OnDataChanged();
             return;
@@ -114,6 +114,7 @@ internal class MaterialFiltersViewModel : ModelBase
         var blockModel = loader.GetBlockModel(Material);
         if (blockModel != null) {
             var filters = ImportFiltersFromBlockModel(blockModel);
+            Material.Filters ??= new List<MaterialFilter>();
             Material.Filters.AddRange(filters);
             OnDataChanged();
             return;
@@ -254,7 +255,7 @@ internal class MaterialFiltersViewModel : ModelBase
         return ProcessElements(model.Elements);
     }
 
-    private void OnPropertyValueChanged(object sender, PropertyChangedEventArgs e)
+    private void OnPropertyValueChanged(object? sender, PropertyChangedEventArgs e)
     {
         OnDataChanged();
     }
@@ -269,8 +270,10 @@ internal class MaterialFiltersViewModel : ModelBase
         DataChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public void AddNewFilter(MaterialFilter newFilter = null)
+    public void AddNewFilter(MaterialFilter? newFilter = null)
     {
+        ArgumentNullException.ThrowIfNull(_material);
+
         newFilter ??= new MaterialFilter();
 
         _material.Filters ??= new List<MaterialFilter>();
@@ -293,8 +296,10 @@ internal class MaterialFiltersViewModel : ModelBase
     {
         if (_selectedFilter == null) return;
 
-        _material.Filters.Remove(_selectedFilter.Filter);
-        _filterList.Remove(_selectedFilter);
+        ArgumentNullException.ThrowIfNull(_material);
+
+        _material.Filters?.Remove(_selectedFilter.Filter);
+        _filterList?.Remove(_selectedFilter);
         OnDataChanged();
 
         SelectedFilter = null;

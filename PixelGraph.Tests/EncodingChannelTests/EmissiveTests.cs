@@ -5,7 +5,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,7 +23,7 @@ public class EmissiveTests : ImageTestBase
 
         project = new ProjectData {
             Input = new PackInputEncoding {
-                Emissive = {
+                Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Emissive,
                     Color = ColorChannel.Red,
                 },
@@ -32,8 +31,8 @@ public class EmissiveTests : ImageTestBase
         };
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
-                Emissive = {
+            Encoding = new PackOutputEncoding {
+                Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Emissive,
                     Color = ColorChannel.Red,
                 },
@@ -128,7 +127,7 @@ public class EmissiveTests : ImageTestBase
 
         graph.Project = new ProjectData {
             Input = new PackInputEncoding {
-                Emissive = {
+                Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Emissive,
                     Color = ColorChannel.Red,
                     Shift = -1,
@@ -159,7 +158,7 @@ public class EmissiveTests : ImageTestBase
 
         graph.Project = new ProjectData {
             Input = new PackInputEncoding {
-                Emissive = {
+                Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Emissive,
                     Color = ColorChannel.Red,
                     Invert = true,
@@ -190,7 +189,7 @@ public class EmissiveTests : ImageTestBase
 
         graph.Project = new ProjectData {
             Input = new PackInputEncoding {
-                Emissive = {
+                Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Emissive,
                     Color = ColorChannel.Red,
                 },
@@ -198,8 +197,8 @@ public class EmissiveTests : ImageTestBase
         };
 
         graph.PackProfile = new PublishProfileProperties {
-            Encoding = {
-                Emissive = {
+            Encoding = new PackOutputEncoding {
+                Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Emissive,
                     Color = ColorChannel.Red,
                     Shift = -1,
@@ -229,7 +228,7 @@ public class EmissiveTests : ImageTestBase
 
         graph.Project = new ProjectData {
             Input = new PackInputEncoding {
-                Emissive = {
+                Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Emissive,
                     Color = ColorChannel.Red,
                 },
@@ -237,8 +236,8 @@ public class EmissiveTests : ImageTestBase
         };
 
         graph.PackProfile = new PublishProfileProperties {
-            Encoding = {
-                Emissive = {
+            Encoding = new PackOutputEncoding {
+                Emissive = new ResourcePackEmissiveChannelProperties {
                     Texture = TextureTags.Emissive,
                     Color = ColorChannel.Red,
                     Shift = 1,

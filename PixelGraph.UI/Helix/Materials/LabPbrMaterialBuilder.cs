@@ -18,6 +18,8 @@ internal class LabPbrMaterialBuilder : MaterialBuilderBase<IRenderLabPbrPreviewB
 
     public override Material BuildMaterial()
     {
+        ArgumentNullException.ThrowIfNull(PassName);
+
         var mat = new CustomPbrMaterial(PassName) {
             DielectricBrdfLutMapSource = DielectricBrdfLutMapSource,
             EnvironmentCubeMapSource = EnvironmentCubeMapSource,
@@ -28,7 +30,7 @@ internal class LabPbrMaterialBuilder : MaterialBuilderBase<IRenderLabPbrPreviewB
             RenderShadowMap = true,
         };
 
-        if (Material.TintColor != null) {
+        if (Material?.TintColor != null) {
             //if (!tint_hex.StartsWith('#')) tint_hex = '#'+tint_hex;
             var tint = ColorHelper.RGBFromHex(Material.TintColor);
             if (tint.HasValue) mat.ColorTint = tint.Value.ToColor4();

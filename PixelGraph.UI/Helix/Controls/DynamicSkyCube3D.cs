@@ -20,8 +20,8 @@ public class DynamicSkyCube3D : Element3D, ICubeMapSource
         set => SetValue(FaceSizeProperty, value);
     }
 
-    private DynamicSkyCubeNode EnvCubeNode => SceneNode as DynamicSkyCubeNode;
-    public ShaderResourceViewProxy CubeMap => EnvCubeNode?.CubeMap;
+    private DynamicSkyCubeNode? EnvCubeNode => SceneNode as DynamicSkyCubeNode;
+    public ShaderResourceViewProxy? CubeMap => EnvCubeNode?.CubeMap;
     public long LastUpdated => EnvCubeNode?.LastUpdated ?? 0;
 
 

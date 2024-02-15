@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PixelGraph.Common.IO;
+﻿namespace PixelGraph.Common.IO;
 
 public static class GameEdition
 {
@@ -14,7 +11,7 @@ public static class GameEdition
         return map.TryGetValue(text, out var value) ? value : throw new ApplicationException($"Unknown game edition '{text}'!");
     }
 
-    public static bool Is(string actual, string expected)
+    public static bool Is(string? actual, string? expected)
     {
         return string.Equals(expected, actual, StringComparison.InvariantCultureIgnoreCase);
     }

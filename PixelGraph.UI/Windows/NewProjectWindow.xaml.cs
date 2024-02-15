@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using MinecraftMappings.Minecraft.Java;
 using Ookii.Dialogs.Wpf;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
@@ -9,12 +10,8 @@ using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.Models;
 using PixelGraph.UI.ViewModels;
-using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.UI.Windows;
 
@@ -43,6 +40,8 @@ public partial class NewProjectWindow
 
     private ProjectContext BuildProjectContext()
     {
+        if (Model.ProjectFilename == null) throw new ApplicationException("Project filename is undefined!");
+
         if (!(Model.ProjectFilename.EndsWith(".yml") || Model.ProjectFilename.EndsWith(".yaml")))
             Model.ProjectFilename = PathEx.Join(Model.ProjectFilename, "project.yml");
 
@@ -60,13 +59,14 @@ public partial class NewProjectWindow
         var packProfile = new PublishProfileProperties {
             Name = $"{Model.PackName}-LabPbr",
             Description = "A short description of the RP content.",
-            Encoding = {
+            Encoding = new PackOutputEncoding {
                 Format = TextureFormat.Format_Lab13,
             },
             Edition = "Java",
             Format = JavaPackVersion.Latest.Index,
         };
 
+        projectContext.Project.Profiles ??= new List<PublishProfileProperties>();
         projectContext.Project.Profiles.Add(packProfile);
         projectContext.SelectedProfile = packProfile;
 

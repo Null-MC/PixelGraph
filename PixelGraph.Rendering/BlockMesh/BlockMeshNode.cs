@@ -2,7 +2,6 @@
 using HelixToolkit.SharpDX.Core.Core;
 using HelixToolkit.SharpDX.Core.Model.Scene;
 using PixelGraph.Rendering.Models;
-using System;
 
 namespace PixelGraph.Rendering.BlockMesh;
 

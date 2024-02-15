@@ -1,5 +1,4 @@
-﻿using PixelGraph.Common.Projects;
-using PixelGraph.Common.ResourcePack;
+﻿using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.UI.Internal;
 
@@ -26,10 +25,10 @@ internal class TextureFormatModel : ModelBase
     private readonly TextureChannelMapping _sss;
     private readonly TextureChannelMapping _emissive;
         
-    private PackEncoding _encoding;
-    private PackEncoding _defaultEncoding;
+    private PackEncoding? _encoding;
+    private PackEncoding? _defaultEncoding;
     //public string _format, _sampler;
-    private string _defaultSampler;
+    private string? _defaultSampler;
     private bool _enableSampler;
         
     //public event EventHandler DataChanged;
@@ -57,7 +56,7 @@ internal class TextureFormatModel : ModelBase
     //    }
     //}
 
-    public PackEncoding Encoding {
+    public PackEncoding? Encoding {
         get => _encoding;
         set {
             _encoding = value;
@@ -75,7 +74,7 @@ internal class TextureFormatModel : ModelBase
         }
     }
 
-    public PackEncoding DefaultEncoding {
+    public PackEncoding? DefaultEncoding {
         get => _defaultEncoding;
         set {
             _defaultEncoding = value;
@@ -85,7 +84,7 @@ internal class TextureFormatModel : ModelBase
         }
     }
 
-    public string DefaultSampler {
+    public string? DefaultSampler {
         get => _defaultSampler;
         set {
             _defaultSampler = value;
@@ -205,6 +204,8 @@ internal class TextureFormatModel : ModelBase
 
     private void UpdateChannels()
     {
+        if (Encoding == null) return;
+
         _opacity.SetChannel(Encoding.Opacity);
 
         _colorRed.SetChannel(Encoding.ColorRed);

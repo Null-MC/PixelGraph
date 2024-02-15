@@ -5,13 +5,8 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
-using System;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO.Importing;
 
@@ -52,7 +47,7 @@ internal class BedrockMaterialImporter : MaterialImporterBase
         }
 
         var path = Path.GetDirectoryName(filename);
-        path = PathEx.Normalize(path);
+        path = PathEx.NormalizeNullable(path);
         if (path != null && isPathMaterialExp.IsMatch(path)) return true;
 
         return false;
@@ -71,14 +66,16 @@ internal class BedrockMaterialImporter : MaterialImporterBase
 
     private async Task ParseTextureSetAsync(ITextureGraphContext context, CancellationToken token)
     {
-        var localPath = PathEx.Localize(context.Material.LocalPath);
+        ArgumentNullException.ThrowIfNull(context.Material);
+
+        var localPath = PathEx.LocalizeNullable(context.Material.LocalPath);
         var textureSetFilename = PathEx.Join(localPath, $"{context.Material.Name}.texture_set.json");
         if (!Reader.FileExists(textureSetFilename)) return;
 
         var data = await ParseJsonAsync(textureSetFilename, token);
-        var textureSet = data.SelectToken("['minecraft:texture_set']");
-        if (textureSet == null) throw new ApplicationException("Invalid texture_set json file!");
-
+        var textureSet = data.SelectToken("['minecraft:texture_set']")
+            ?? throw new ApplicationException("Invalid texture_set json file!");
+        
         var colorData = textureSet.SelectToken("color");
         if (colorData != null) {
             var channelColorR = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.ColorRed));
@@ -256,9 +253,11 @@ internal class BedrockMaterialImporter : MaterialImporterBase
     private async Task<JObject> ParseJsonAsync(string localFile, CancellationToken token)
     {
         try {
-            await using var stream = Reader.Open(localFile);
+            await using var stream = Reader.Open(localFile)
+                ?? throw new ApplicationException("Failed to open file!");
+
             using var reader = new StreamReader(stream);
-            using var jsonReader = new JsonTextReader(reader);
+            await using var jsonReader = new JsonTextReader(reader);
             return await JObject.LoadAsync(jsonReader, token);
         }
         catch (Exception error) {

@@ -10,13 +10,13 @@ namespace PixelGraph.UI.Helix.Materials;
 
 public class CustomNormalsMaterial : Material
 {
-    public TextureModel OpacityMap {
-        get => (TextureModel)GetValue(OpacityMapProperty);
+    public TextureModel? OpacityMap {
+        get => (TextureModel?)GetValue(OpacityMapProperty);
         set => SetValue(OpacityMapProperty, value);
     }
 
-    public TextureModel NormalHeightMap {
-        get => (TextureModel)GetValue(NormalHeightMapProperty);
+    public TextureModel? NormalHeightMap {
+        get => (TextureModel?)GetValue(NormalHeightMapProperty);
         set => SetValue(NormalHeightMapProperty, value);
     }
 

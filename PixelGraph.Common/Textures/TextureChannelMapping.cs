@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common.ResourcePack;
-using System;
 
 namespace PixelGraph.Common.Textures;
 
@@ -21,7 +20,7 @@ internal class TextureChannelMapping
 
     public bool InputEnableClipping;
 
-    public string OutputChannelID;
+    public string? OutputChannelID;
     public ColorChannel OutputColor;
     //public string OutputSampler;
     public float OutputMinValue;
@@ -44,10 +43,10 @@ internal class TextureChannelMapping
     //public bool Convert_SpecularToSmooth, Convert_SmoothToSpecular;
     //public bool Convert_SpecularToRough, Convert_RoughToSpecular;
 
-    public string SourceTag;
-    public string SourceFilename;
+    public string? SourceTag;
+    public string? SourceFilename;
     public int Priority;
-    public string Sampler;
+    public string? Sampler;
     //public float ValueShift;
     //public float ValueScale;
     //public bool IsMetalToF0;
@@ -69,7 +68,7 @@ internal class TextureChannelMapping
         //InputPerceptual = channel.Perceptual ?? false;
         InputEnableClipping = channel.EnableClipping ?? false;
 
-        Sampler = channel.Sampler;
+        //Sampler = channel.Sampler;
     }
 
     public void ApplyOutputChannel(PackEncodingChannel channel)
@@ -91,6 +90,6 @@ internal class TextureChannelMapping
         OutputClipValue = (float?)channel.ClipValue;
         Priority = channel.Priority ?? 0;
 
-        Sampler = channel.Sampler;
+        //Sampler = channel.Sampler;
     }
 }

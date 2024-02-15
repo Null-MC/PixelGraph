@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace PixelGraph.Common.IO;
+﻿namespace PixelGraph.Common.IO;
 
 public static class UnitHelper
 {
@@ -49,12 +45,13 @@ public static class UnitHelper
             {"D", "{0:P:Days:Day}"}
         };
 
-        public string Format(string format, object arg, IFormatProvider formatProvider)
+        public string Format(string? format, object? arg, IFormatProvider? formatProvider)
         {
-            return string.Format(new PluralFormatter(), timeFormats[format], arg);
+            var timeFormat = timeFormats[format ?? "S"];
+            return string.Format(new PluralFormatter(), timeFormat, arg);
         }
 
-        public object GetFormat(Type formatType)
+        public object? GetFormat(Type? formatType)
         {
             return formatType == typeof(ICustomFormatter) ? this : null;
         }
@@ -62,9 +59,9 @@ public static class UnitHelper
 
     private class PluralFormatter : ICustomFormatter, IFormatProvider
     {
-        public string Format(string format, object arg, IFormatProvider formatProvider)
+        public string Format(string? format, object? arg, IFormatProvider? formatProvider)
         {
-            if (arg != null) {
+            if (arg != null && format != null) {
                 var parts = format.Split(':'); // ["P", "Plural", "Singular"]
 
                 if (parts[0] == "P") {
@@ -77,7 +74,7 @@ public static class UnitHelper
             return string.Format(format, arg);
         }
 
-        public object GetFormat(Type formatType)
+        public object? GetFormat(Type? formatType)
         {
             return formatType == typeof(ICustomFormatter) ? this : null;
         }

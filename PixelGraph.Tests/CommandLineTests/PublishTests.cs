@@ -5,8 +5,6 @@ using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Tests.Internal;
-using System;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,14 +24,13 @@ public class PublishTests : TestBase, IAsyncDisposable, IDisposable
 
     public void Dispose()
     {
-        provider?.Dispose();
+        provider.Dispose();
         GC.SuppressFinalize(this);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (provider != null)
-            await provider.DisposeAsync();
+        await provider.DisposeAsync();
     }
 
     [Fact]
@@ -51,7 +48,7 @@ public class PublishTests : TestBase, IAsyncDisposable, IDisposable
             },
             Profile = new PublishProfileProperties {
                 Edition = GameEdition.Java,
-                Encoding = {
+                Encoding = new PackOutputEncoding {
                     Format = TextureFormat.Format_Lab13,
                 },
             },
@@ -78,7 +75,7 @@ public class PublishTests : TestBase, IAsyncDisposable, IDisposable
             },
             Profile = new PublishProfileProperties {
                 Edition = GameEdition.Java,
-                Encoding = {
+                Encoding = new PackOutputEncoding {
                     Format = TextureFormat.Format_Lab13,
                 },
             },

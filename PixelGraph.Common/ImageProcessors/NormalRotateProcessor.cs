@@ -1,7 +1,6 @@
 ﻿using PixelGraph.Common.Extensions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors;
@@ -66,7 +65,7 @@ internal class NormalRotateProcessor
 
     private void ProcessRow(Span<Vector4> row, Point pos)
     {
-        byte[] noiseX = null, noiseY = null;
+        byte[]? noiseX = null, noiseY = null;
 
         if (hasNoise) {
             GenerateNoise(Bounds.Width, out noiseX);
@@ -91,48 +90,48 @@ internal class NormalRotateProcessor
         }
     }
 
-    private void ProcessPixel(in int x, in int y, ref Vector3 v, in byte[] noiseX, in byte[] noiseY)
+    private void ProcessPixel(in int x, in int y, ref Vector3 v, in byte[]? noiseX, in byte[]? noiseY)
     {
-        if (hasRotation || hasNoise) {
-            var fx = (x + 0.5f) / Bounds.Width * 2f - 1f;
-            var fy = (y + 0.5f) / Bounds.Height * 2f - 1f;
+        if (!hasRotation && !hasNoise) return;
 
-            var f_top = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
-            var f_bottom = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
-            var f_left = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft;
-            var f_right = MathF.Max(fx - offsetRight, 0f) * invRadiusRight;
+        var fx = (x + 0.5f) / Bounds.Width * 2f - 1f;
+        var fy = (y + 0.5f) / Bounds.Height * 2f - 1f;
 
-            var baseRotation = Vector3.One;
-            baseRotation.X = f_left + f_right;
-            baseRotation.Y = f_top + f_bottom;
+        var f_top = MathF.Min(fy + offsetTop, 0f) * invRadiusTop;
+        var f_bottom = MathF.Max(fy - offsetBottom, 0f) * invRadiusBottom;
+        var f_left = MathF.Min(fx + offsetLeft, 0f) * invRadiusLeft;
+        var f_right = MathF.Max(fx - offsetRight, 0f) * invRadiusRight;
 
-            var q = Quaternion.Identity;
-            if (!baseRotation.X.NearEqual(0f) || !baseRotation.Y.NearEqual(0f)) {
-                var rotationAxis = new Vector3 {
-                    X = -baseRotation.Y,
-                    Y = baseRotation.X,
-                    Z = 0f,
-                };
+        var baseRotation = Vector3.One;
+        baseRotation.X = f_left + f_right;
+        baseRotation.Y = f_top + f_bottom;
 
-                MathEx.Normalize(ref rotationAxis);
-                MathEx.Normalize(ref baseRotation);
-                var baseAngle = MathF.Acos(baseRotation.Z);
+        var q = Quaternion.Identity;
+        if (!baseRotation.X.NearEqual(0f) || !baseRotation.Y.NearEqual(0f)) {
+            var rotationAxis = new Vector3 {
+                X = -baseRotation.Y,
+                Y = baseRotation.X,
+                Z = 0f,
+            };
 
-                var mix = MathF.Abs(MathF.Asin(rotationAxis.X) / (MathF.PI / 2f));
-                var angle_x = MathF.Sign(-f_left) * CurveLeft + MathF.Sign(f_right) * CurveRight;
-                var angle_y = MathF.Sign(-f_top) * CurveTop + MathF.Sign(f_bottom) * CurveBottom;
-                MathEx.Lerp(angle_x, angle_y, mix, out var angle);
+            MathEx.Normalize(ref rotationAxis);
+            MathEx.Normalize(ref baseRotation);
+            var baseAngle = MathF.Acos(baseRotation.Z);
+
+            var mix = MathF.Abs(MathF.Asin(rotationAxis.X) / (MathF.PI / 2f));
+            var angle_x = MathF.Sign(-f_left) * CurveLeft + MathF.Sign(f_right) * CurveRight;
+            var angle_y = MathF.Sign(-f_top) * CurveTop + MathF.Sign(f_bottom) * CurveBottom;
+            MathEx.Lerp(angle_x, angle_y, mix, out var angle);
                     
-                q = Quaternion.CreateFromAxisAngle(rotationAxis, baseAngle * (angle / 45f));
-            }
-
-            if (hasNoise) {
-                q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, (noiseX[x] / 127.5f - 1f) * Noise * MathEx.Deg2RadF);
-                q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, (noiseY[x] / 127.5f - 1f) * -Noise * MathEx.Deg2RadF);
-            }
-
-            v = Vector3.Transform(v, q);
+            q = Quaternion.CreateFromAxisAngle(rotationAxis, baseAngle * (angle / 45f));
         }
+
+        if (hasNoise) {
+            q *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, ((noiseX?[x] ?? 127) / 127.5f - 1f) * Noise * MathEx.Deg2RadF);
+            q *= Quaternion.CreateFromAxisAngle(Vector3.UnitX, ((noiseY?[x] ?? 127) / 127.5f - 1f) * -Noise * MathEx.Deg2RadF);
+        }
+
+        v = Vector3.Transform(v, q);
         //else if (RestoreNormalZ) {
         //    var v2 = new Vector2(v.X, v.Y);
         //    var d = Vector2.Dot(v2, v2);

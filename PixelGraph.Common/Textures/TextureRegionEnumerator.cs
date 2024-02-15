@@ -1,8 +1,5 @@
-﻿using System;
-using PixelGraph.Common.ConnectedTextures;
+﻿using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Textures.Graphing;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace PixelGraph.Common.Textures;
 //public interface ITextureRegionEnumerator
@@ -51,6 +48,8 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
 
     private TextureRenderFrame GetRenderRegion(int frameIndex)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         var renderFrame = new TextureRenderFrame();
 
         if (context.IsMaterialCtm) {
@@ -133,10 +132,12 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
             });
     }
 
-    private string GetTileName(int index)
+    private string? GetTileName(int index)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         if (context.IsMaterialMultiPart)
-            return context.Material.Parts[index].Name;
+            return context.Material.Parts?[index].Name;
 
         if (context.IsMaterialCtm) {
             var start = context.Material?.CTM?.TileStartIndex ??
@@ -170,8 +171,10 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
 
     private int GetPublishTileCount()
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         if (context.IsMaterialMultiPart)
-            return context.Material.Parts.Count;
+            return context.Material.Parts?.Count ?? 0;
 
         if (context.IsMaterialCtm)
             return CtmTypes.GetBounds(context.Material?.CTM)?.Total ?? 1;
@@ -193,6 +196,8 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
 
     public void GetFrameTileBounds(in int frameIndex, in int frameCount, in int tileIndex, out UVRegion region)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         var frameHeight = 1d;
         if (frameCount > 1) frameHeight /= frameCount;
         var wrappedIndex = frameIndex % frameCount;
@@ -237,7 +242,7 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
 
 public class TextureRenderFrame
 {
-    public TextureRenderTile[] Tiles {get; set;}
+    public TextureRenderTile[]? Tiles {get; set;}
 }
 
 public class TextureRenderTile
@@ -248,9 +253,9 @@ public class TextureRenderTile
 
 public class TexturePublishPart
 {
-    public string Name {get; set;}
+    public string? Name {get; set;}
     public int TileIndex {get; set;}
-    public TexturePublishFrame[] Frames {get; set;}
+    public TexturePublishFrame[]? Frames {get; set;}
 }
 
 public class TexturePublishFrame

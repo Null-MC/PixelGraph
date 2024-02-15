@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 
 namespace PixelGraph.Common.IO.Serialization;
 //public interface IPropertyWriter<T>
@@ -15,19 +10,18 @@ namespace PixelGraph.Common.IO.Serialization;
 
 internal class PropertyFileSerializer //: IPropertyWriter<T>
 {
-    public string Separator {get; set;} = "=";
+    private string Separator {get; set;} = "=";
 
 
     public async IAsyncEnumerable<KeyValuePair<string, string>> ReadAsync(StreamReader reader, [EnumeratorCancellation] CancellationToken token = default)
     {
-        string line;
-        while ((line = await reader.ReadLineAsync()) != null) {
+        while (await reader.ReadLineAsync() is {} line) {
             token.ThrowIfCancellationRequested();
 
             line = line.Trim();
             if (line.StartsWith('#') || string.IsNullOrEmpty(line)) continue;
 
-            if (!TryParseLine(line, out var propertyName, out var value))
+            if (!TryParseLine(line, out var propertyName, out var value) || propertyName == null || value == null)
                 throw new ApplicationException($"Failed to parse property line '{line}'!");
 
             //SetProperty(data, propertyName, value);
@@ -35,7 +29,7 @@ internal class PropertyFileSerializer //: IPropertyWriter<T>
         }
     }
 
-    public async Task WriteAsync(StreamWriter writer, IEnumerable<KeyValuePair<string, string>> properties, CancellationToken token = default)
+    public async Task WriteAsync(StreamWriter writer, IEnumerable<KeyValuePair<string, string?>> properties, CancellationToken token = default)
     {
         foreach (var (propertName, propertyValue) in properties) {
             token.ThrowIfCancellationRequested();
@@ -47,7 +41,7 @@ internal class PropertyFileSerializer //: IPropertyWriter<T>
         }
     }
 
-    private bool TryParseLine(string line, out string propertyName, out string value)
+    private bool TryParseLine(string line, out string? propertyName, out string? value)
     {
         var i = line.IndexOf(Separator, StringComparison.InvariantCultureIgnoreCase);
 

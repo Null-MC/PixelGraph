@@ -1,17 +1,16 @@
 ﻿using PixelGraph.Common.IO.Serialization;
-using System;
 
 namespace PixelGraph.Common.Material;
 
 public class MaterialConnectionProperties : IHaveData
 {
-    public string Method {get; set;}
+    public string? Method {get; set;}
     public int? Width {get; set;}
     public int? Height {get; set;}
     //public string Tiles {get; set;}
     //public string Weights {get; set;}
-    public string MatchBlocks {get; set;}
-    public string MatchTiles {get; set;}
+    public string? MatchBlocks {get; set;}
+    public string? MatchTiles {get; set;}
     //public string Symmetry {get; set;}
     //public bool? InnerSeams {get; set;}
     //public bool? Linked {get; set;}
@@ -34,7 +33,7 @@ public class MaterialConnectionProperties : IHaveData
     #region Deprecated
 
     [Obsolete("Replace usages of Type with Method")]
-    public string Type {
+    public string? Type {
         get => null;
         set => Method = value;
     }

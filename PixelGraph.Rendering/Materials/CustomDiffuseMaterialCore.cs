@@ -10,9 +10,9 @@ namespace PixelGraph.Rendering.Materials;
 
 public class CustomDiffuseMaterialCore : MaterialCore
 {
-    private TextureModel _diffuseAlphaMap;
-    private TextureModel _emissiveMap;
-    private ICubeMapSource _irradianceCubeMapSource;
+    private TextureModel? _diffuseAlphaMap;
+    private TextureModel? _emissiveMap;
+    private ICubeMapSource? _irradianceCubeMapSource;
     private SamplerStateDescription _surfaceMapSampler;
     private SamplerStateDescription _shadowMapSampler;
     private SamplerStateDescription _irradianceMapSampler;
@@ -20,17 +20,17 @@ public class CustomDiffuseMaterialCore : MaterialCore
     private bool _renderShadowMap;
     private bool _renderEnvironmentMap;
 
-    public TextureModel DiffuseAlphaMap {
+    public TextureModel? DiffuseAlphaMap {
         get => _diffuseAlphaMap;
         set => Set(ref _diffuseAlphaMap, value);
     }
 
-    public TextureModel EmissiveMap {
+    public TextureModel? EmissiveMap {
         get => _emissiveMap;
         set => Set(ref _emissiveMap, value);
     }
 
-    public ICubeMapSource IrradianceCubeMapSource {
+    public ICubeMapSource? IrradianceCubeMapSource {
         get => _irradianceCubeMapSource;
         set => Set(ref _irradianceCubeMapSource, value);
     }

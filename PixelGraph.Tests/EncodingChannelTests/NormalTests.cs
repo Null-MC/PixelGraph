@@ -5,7 +5,6 @@ using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
 using PixelGraph.Tests.Internal;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,22 +21,22 @@ public class NormalTests : ImageTestBase
         Builder.ConfigureWriter(ContentTypes.File, GameEditions.None, null);
 
         packProfile = new PublishProfileProperties {
-            Encoding = {
-                NormalX = {
+            Encoding = new PackOutputEncoding {
+                NormalX = new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Red,
                     MinValue = -1m,
                     MaxValue = 1m,
                     DefaultValue = 0m,
                 },
-                NormalY = {
+                NormalY = new ResourcePackNormalYChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Green,
                     MinValue = -1m,
                     MaxValue = 1m,
                     DefaultValue = 0m,
                 },
-                NormalZ = {
+                NormalZ = new ResourcePackNormalZChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Blue,
                     MinValue = -1m,
@@ -59,21 +58,21 @@ public class NormalTests : ImageTestBase
 
         graph.Project = new ProjectData {
             Input = new PackInputEncoding {
-                NormalX = {
+                NormalX = new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Red,
                     MinValue = -1m,
                     MaxValue = 1m,
                     DefaultValue = 0m,
                 },
-                NormalY = {
+                NormalY = new ResourcePackNormalYChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Green,
                     MinValue = -1m,
                     MaxValue = 1m,
                     DefaultValue = 0m,
                 },
-                NormalZ = {
+                NormalZ = new ResourcePackNormalZChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Blue,
                     MinValue = -1m,
@@ -105,14 +104,14 @@ public class NormalTests : ImageTestBase
 
         graph.Project = new ProjectData {
             Input = new PackInputEncoding {
-                NormalX = {
+                NormalX = new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Red,
                     MinValue = -1m,
                     MaxValue = 1m,
                     DefaultValue = 0m,
                 },
-                NormalY = {
+                NormalY = new ResourcePackNormalYChannelProperties {
                     Texture = TextureTags.Normal,
                     Color = ColorChannel.Green,
                     MinValue = -1m,

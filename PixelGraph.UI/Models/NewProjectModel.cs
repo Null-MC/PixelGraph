@@ -6,7 +6,7 @@ internal class NewProjectModel : ModelBase
 {
     private NewProjectStates _state;
     private string _packName;
-    private string _projectFilename;
+    private string? _projectFilename;
     private bool _createMinecraftFolders;
     private bool _createRealmsFolders;
     private bool _createOptifineFolders;
@@ -24,7 +24,7 @@ internal class NewProjectModel : ModelBase
         }
     }
 
-    public string ProjectFilename {
+    public string? ProjectFilename {
         get => _projectFilename;
         set {
             if (_projectFilename == value) return;

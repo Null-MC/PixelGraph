@@ -8,22 +8,21 @@ using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using System;
 
 namespace PixelGraph.Rendering.LUTs;
 
 internal abstract class LutMapRenderCore : RenderCore, ILutMapSource
 {
     private readonly ConstantBufferComponent modelCB;
-    private RenderTargetView renderTargetView;
+    private RenderTargetView? renderTargetView;
     protected ShaderPass defaultShaderPass;
-    private ShaderResourceViewProxy lutMap;
-    private RasterizerStateProxy rasterState;
+    private ShaderResourceViewProxy? lutMap;
+    private RasterizerStateProxy? rasterState;
     private Viewport viewport;
     private int _resolution;
     private bool isRenderValid;
 
-    public ShaderResourceViewProxy LutMap => lutMap;
+    public ShaderResourceViewProxy? LutMap => lutMap;
 
     protected string PassName;
     public ScreenQuadModelStruct ModelStruct;

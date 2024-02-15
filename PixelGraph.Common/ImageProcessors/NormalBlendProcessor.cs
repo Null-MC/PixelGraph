@@ -3,7 +3,6 @@ using PixelGraph.Common.PixelOperations;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 using System.Numerics;
 
 namespace PixelGraph.Common.ImageProcessors;
@@ -22,6 +21,10 @@ internal class NormalBlendProcessor : PixelRowProcessor
     {
         var pixelOut = new Rgb24();
         var vectorFinal = new Vector3();
+
+        ArgumentNullException.ThrowIfNull(options.HighFreqNormalImage);
+        ArgumentNullException.ThrowIfNull(options.LowFreqNormalImage);
+        ArgumentNullException.ThrowIfNull(options.VarianceImage);
 
         var rowHigh = options.HighFreqNormalImage.DangerousGetPixelRowMemory(context.Y).Span;
         var rowLow = options.LowFreqNormalImage.DangerousGetPixelRowMemory(context.Y).Span;
@@ -49,8 +52,8 @@ internal class NormalBlendProcessor : PixelRowProcessor
 
     public class Options
     {
-        public Image<Rgb24> HighFreqNormalImage;
-        public Image<Rgb24> LowFreqNormalImage;
-        public Image<L8> VarianceImage;
+        public Image<Rgb24>? HighFreqNormalImage;
+        public Image<Rgb24>? LowFreqNormalImage;
+        public Image<L8>? VarianceImage;
     }
 }

@@ -8,7 +8,7 @@ namespace PixelGraph.Common.Textures;
 
 public class TextureSource
 {
-    public string LocalFile {get; set;}
+    public string? LocalFile {get; set;}
     public int FrameCount {get; set;}
     public int Width {get; set;}
     public int Height {get; set;}

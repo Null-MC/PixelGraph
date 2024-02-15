@@ -9,14 +9,14 @@ namespace PixelGraph.Rendering.Sky;
 
 internal class EquirectangularSkyDomeCore : GeometryRenderCore
 {
-    private ShaderResourceViewProxy textureView;
-    private SamplerStateProxy textureSampler;
+    private ShaderResourceViewProxy? textureView;
+    private SamplerStateProxy? textureSampler;
     private ShaderPass defaultShaderPass;
-    private TextureModel _texture;
+    private TextureModel? _texture;
     private int textureSamplerSlot;
     private int textureSlot;
 
-    public TextureModel Texture {
+    public TextureModel? Texture {
         get => _texture;
         set {
             if (SetAffectsRender(ref _texture, value) && IsAttached) {

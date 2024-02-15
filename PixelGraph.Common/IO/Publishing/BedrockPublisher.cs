@@ -96,7 +96,7 @@ public class BedrockPublisher : PublisherBase
         }
     }
 
-    protected override bool TryMapFile(in string sourceFile, out string destinationFile)
+    protected override bool TryMapFile(in string sourceFile, out string? destinationFile)
     {
         return fileMap.TryGetValue(sourceFile, out destinationFile);
     }

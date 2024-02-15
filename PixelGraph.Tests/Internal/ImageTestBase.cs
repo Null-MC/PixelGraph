@@ -7,10 +7,6 @@ using PixelGraph.Common.Textures.Graphing.Builders;
 using PixelGraph.Tests.Internal.Mocks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit.Abstractions;
 
 namespace PixelGraph.Tests.Internal;
@@ -31,9 +27,9 @@ public class ImageTestGraph : IDisposable, IAsyncDisposable
     private readonly ServiceProvider provider;
 
     public IServiceProvider Provider => provider;
-    public IProjectDescription Project {get; set;}
-    public PublishProfileProperties PackProfile {get; set;}
-    public MaterialProperties Material {get; set;}
+    public IProjectDescription? Project {get; set;}
+    public PublishProfileProperties? PackProfile {get; set;}
+    public MaterialProperties? Material {get; set;}
 
 
     public ImageTestGraph(ServiceProvider provider)
@@ -43,14 +39,13 @@ public class ImageTestGraph : IDisposable, IAsyncDisposable
 
     public void Dispose()
     {
-        provider?.Dispose();
+        provider.Dispose();
         GC.SuppressFinalize(this);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (provider != null)
-            await provider.DisposeAsync();
+        await provider.DisposeAsync();
     }
 
     public Task CreateImageAsync(string localFile, byte gray)

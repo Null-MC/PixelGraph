@@ -1,32 +1,27 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.Material;
+﻿using HelixToolkit.SharpDX.Core;
+using Microsoft.Extensions.DependencyInjection;
 using PixelGraph.Rendering;
 using PixelGraph.Rendering.Shaders;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Tabs;
 using PixelGraph.UI.Models.Scene;
 using SharpDX.DXGI;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using HelixToolkit.SharpDX.Core;
 using Media3D = System.Windows.Media.Media3D;
 
 namespace PixelGraph.UI.ViewModels;
 
-public class RenderPreviewViewModel
+public class RenderPreviewViewModel(IServiceProvider provider)
 {
     private static readonly Lazy<Factory1> deviceFactory;
 
-    private readonly IServiceProvider provider;
-    private readonly IAppSettingsManager appSettings;
-    private readonly ITabPreviewManager tabPreviewMgr;
+    private readonly IAppSettingsManager appSettings = provider.GetRequiredService<IAppSettingsManager>();
+    private readonly ITabPreviewManager tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
 
-    public event EventHandler RenderModelChanged;
-    public event EventHandler<ShaderCompileErrorEventArgs> ShaderCompileErrors;
+    public event EventHandler? RenderModelChanged;
+    public event EventHandler<ShaderCompileErrorEventArgs>? ShaderCompileErrors;
 
-    public ScenePropertiesModel SceneProperties {get; set;}
-    public RenderPropertiesModel RenderProperties {get; set;}
+    public ScenePropertiesModel? SceneProperties {get; set;}
+    public RenderPropertiesModel? RenderProperties {get; set;}
 
 
     static RenderPreviewViewModel()
@@ -34,17 +29,11 @@ public class RenderPreviewViewModel
         deviceFactory = new Lazy<Factory1>();
     }
 
-    public RenderPreviewViewModel(IServiceProvider provider)
-    {
-        this.provider = provider;
-
-        appSettings = provider.GetRequiredService<IAppSettingsManager>();
-        tabPreviewMgr = provider.GetRequiredService<ITabPreviewManager>();
-    }
-
     public void Initialize()
     {
         ResetViewport();
+
+        ArgumentNullException.ThrowIfNull(RenderProperties);
 
         RenderProperties.RenderModeChanged += OnRenderModeChanged;
         RenderProperties.RenderModelChanged += OnRenderModelChanged;
@@ -55,16 +44,20 @@ public class RenderPreviewViewModel
         LoadAppSettings();
         UpdateShaders();
 
-        RenderProperties.MissingMaterial = new MaterialProperties {
-            Color = new MaterialColorProperties {
-                Value = "#f800f8",
-                Texture = "<missing>",
-            }
-        };
+        //ArgumentNullException.ThrowIfNull(RenderProperties);
+
+        //RenderProperties.MissingMaterial = new MaterialProperties {
+        //    Color = new MaterialColorProperties {
+        //        Value = "#f800f8",
+        //        Texture = "<missing>",
+        //    }
+        //};
     }
 
     public void LoadAppSettings()
     {
+        ArgumentNullException.ThrowIfNull(RenderProperties);
+
         RenderProperties.EnableBloom = appSettings.Data.RenderPreview.EnableBloom ?? RenderPreviewSettings.Default_EnableBloom;
         RenderProperties.EnableSwapChain = appSettings.Data.RenderPreview.EnableSwapChain ?? RenderPreviewSettings.Default_EnableSwapChain;
         RenderProperties.WaterMode = appSettings.Data.RenderPreview.WaterMode ?? RenderPreviewSettings.Default_WaterMode;
@@ -84,6 +77,8 @@ public class RenderPreviewViewModel
 
     public async Task SaveRenderStateAsync(CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(RenderProperties);
+
         appSettings.Data.RenderPreview.SelectedMode = RenderPreviewMode.GetString(RenderProperties.RenderMode);
 
         await appSettings.SaveAsync(token);
@@ -99,12 +94,16 @@ public class RenderPreviewViewModel
 
     public void UpdateShaders()
     {
+        ArgumentNullException.ThrowIfNull(RenderProperties);
+
         RenderProperties.EffectsManager?.Dispose();
         RenderProperties.EffectsManager = new PreviewEffectsManager(provider);
     }
 
-    public string GetDeviceName()
+    public string? GetDeviceName()
     {
+        ArgumentNullException.ThrowIfNull(RenderProperties);
+
         if (RenderProperties.EffectsManager == null) return null;
 
         var adapter = deviceFactory.Value.GetAdapter(RenderProperties.EffectsManager.AdapterIndex);
@@ -113,6 +112,10 @@ public class RenderPreviewViewModel
 
     private void ResetViewport()
     {
+        ArgumentNullException.ThrowIfNull(SceneProperties);
+        ArgumentNullException.ThrowIfNull(RenderProperties);
+        ArgumentNullException.ThrowIfNull(RenderProperties.Camera);
+
         RenderProperties.Camera.Position = new Media3D.Point3D(10, 10, 10);
         RenderProperties.Camera.LookDirection = new Media3D.Vector3D(-10, -10, -10);
 
@@ -128,12 +131,12 @@ public class RenderPreviewViewModel
         ShaderCompileErrors?.Invoke(this, e);
     }
 
-    private void OnRenderModeChanged(object sender, EventArgs e)
+    private void OnRenderModeChanged(object? sender, EventArgs e)
     {
         tabPreviewMgr.InvalidateAllMaterialBuilders(true);
     }
 
-    private void OnRenderModelChanged(object sender, EventArgs e)
+    private void OnRenderModelChanged(object? sender, EventArgs e)
     {
         OnRenderModelChanged();
     }
@@ -146,5 +149,5 @@ public class RenderPreviewViewModel
 
 public class ShaderCompileErrorEventArgs : EventArgs
 {
-    public ShaderCompileError[] Errors {get; set;}
+    public ShaderCompileError[]? Errors {get; set;}
 }

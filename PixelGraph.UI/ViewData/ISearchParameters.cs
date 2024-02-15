@@ -2,6 +2,6 @@
 
 public interface ISearchParameters
 {
-    string SearchText {get;}
+    string? SearchText {get;}
     bool ShowAllFiles {get;}
 }

@@ -7,16 +7,12 @@ using PixelGraph.Common.IO.Importing;
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.TextureFormats;
-using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Extensions;
+using PixelGraph.UI.Internal.Logging;
 using PixelGraph.UI.Internal.Utilities;
 using PixelGraph.UI.ViewModels;
-using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using PixelGraph.UI.Internal.Logging;
 
 namespace PixelGraph.UI.Windows;
 
@@ -44,7 +40,7 @@ public partial class PackConvertWindow : IDisposable
 
     public void Dispose()
     {
-        tokenSource?.Dispose();
+        tokenSource.Dispose();
     }
 
     //private async Task LoadSourceAsync(CancellationToken token)
@@ -186,7 +182,7 @@ public partial class PackConvertWindow : IDisposable
             Owner = this,
             Model = {
                 Encoding = (PackEncoding)Model.PackOutput.Clone(),
-                DefaultEncoding = formatFactory.Create(),
+                DefaultEncoding = formatFactory?.Create(),
                 //TextureFormat = Model.SourceFormat,
                 EnableSampler = false,
                 //DefaultSampler = Samplers.Nearest,
@@ -199,7 +195,7 @@ public partial class PackConvertWindow : IDisposable
         //Model.SourceFormat = window.Model.TextureFormat;
     }
 
-    private void OnCancelClick(object sender, RoutedEventArgs e)
+    private void OnCancelClick(object? sender, RoutedEventArgs e)
     {
         tokenSource.Cancel();
         LogList.Append(LogLevel.Warning, "Cancelling...");
@@ -208,17 +204,17 @@ public partial class PackConvertWindow : IDisposable
         //Close();
     }
 
-    private void OnLogMessage(object sender, LogEventArgs e)
+    private void OnLogMessage(object? sender, LogEventArgs e)
     {
         LogList.Append(e.Level, e.Message);
     }
 
-    private void OnLogListAppended(object sender, LogEventArgs e)
+    private void OnLogListAppended(object? sender, LogEventArgs e)
     {
         LogList.Append(e.Level, e.Message);
     }
 
-    private void OnCancelButtonClick(object sender, RoutedEventArgs e)
+    private void OnCancelButtonClick(object? sender, RoutedEventArgs e)
     {
         DialogResult = false;
     }

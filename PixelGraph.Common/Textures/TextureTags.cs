@@ -1,6 +1,4 @@
 ﻿using PixelGraph.Common.Material;
-using System;
-using System.Collections.Generic;
 
 namespace PixelGraph.Common.Textures;
 
@@ -37,16 +35,16 @@ public static class TextureTags
     public static string[] All {get;} = {Opacity, Color, Height, Bump, Normal, Occlusion, Specular, Smooth, Rough, Metal, HCM, F0, Porosity, SubSurfaceScattering, Emissive, Item, MER};
 
 
-    public static string Get(MaterialProperties material, string tag)
+    public static string? Get(MaterialProperties material, string tag)
     {
         return map.TryGetValue(tag, out var fileFunc)
             ? fileFunc(material) : null;
     }
 
 
-    public static bool Is(string tagActual, string tagExpected) => string.Equals(tagActual, tagExpected, StringComparison.InvariantCultureIgnoreCase);
+    public static bool Is(string? tagActual, string? tagExpected) => string.Equals(tagActual, tagExpected, StringComparison.InvariantCultureIgnoreCase);
 
-    private static readonly Dictionary<string, Func<MaterialProperties, string>> map = new(StringComparer.InvariantCultureIgnoreCase) {
+    private static readonly Dictionary<string, Func<MaterialProperties, string?>> map = new(StringComparer.InvariantCultureIgnoreCase) {
         [Opacity] = mat => mat.Opacity?.Texture,
         [Color] = mat => mat.Color?.Texture,
         [Height] = mat => mat.Height?.Texture,

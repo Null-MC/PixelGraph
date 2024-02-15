@@ -8,12 +8,6 @@ using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO.Publishing;
 
@@ -27,52 +21,40 @@ public interface IPublisher
     Task PublishAsync(ProjectPublishContext context, CancellationToken token = default);
 }
 
-public struct PublishStatus
+public readonly struct PublishStatus
 {
-    public bool IsAnalyzing {get; set;}
-    public double Progress {get; set;}
+    public bool IsAnalyzing {get; init;}
+    public double Progress {get; init;}
 }
 
-public abstract class PublisherBase : IPublisher
+public abstract class PublisherBase(
+    ILogger<IPublisher> logger,
+    IServiceProvider provider) : IPublisher
 {
-    private readonly IPublishReader loader;
-    private readonly IPublishSummary summary;
+    private readonly IPublishReader loader = provider.GetRequiredService<IPublishReader>();
+    private readonly IPublishSummary summary = provider.GetRequiredService<IPublishSummary>();
     private int totalMaterialCount, totalFileCount;
     private int currentMaterialCount, currentFileCount;
-    private object[] content;
+    private object[]? content;
 
-    public event EventHandler<PublishStatus> StateChanged;
+    public event EventHandler<PublishStatus>? StateChanged;
 
-    protected IServiceProvider Provider {get;}
-    protected ILogger<IPublisher> Logger {get;}
-    protected IPublisherMapping Mapping {get; set;}
-    protected IInputReader Reader {get;}
-    protected IOutputWriter Writer {get;}
+    protected IServiceProvider Provider {get;} = provider;
+    protected ILogger<IPublisher> Logger {get;} = logger;
+    protected IPublisherMapping Mapping {get; set;} = new DefaultPublishMapping();
+    protected IInputReader Reader {get;} = provider.GetRequiredService<IInputReader>();
+    protected IOutputWriter Writer {get;} = provider.GetRequiredService<IOutputWriter>();
 
     public int Concurrency {get; set;} = 1;
 
 
-    protected PublisherBase(
-        ILogger<IPublisher> logger,
-        IServiceProvider provider)
-    {
-
-        Provider = provider;
-        Logger = logger;
-
-        loader = provider.GetRequiredService<IPublishReader>();
-        Reader = provider.GetRequiredService<IInputReader>();
-        Writer = provider.GetRequiredService<IOutputWriter>();
-        summary = provider.GetRequiredService<IPublishSummary>();
-
-        Mapping = new DefaultPublishMapping();
-    }
-
     public virtual async Task PrepareAsync(ProjectPublishContext context, bool clean, CancellationToken token = default)
     {
-        if (context == null) throw new ArgumentNullException(nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(context.Project);
+        ArgumentNullException.ThrowIfNull(context.Profile);
 
-        loader.EnableAutoMaterial = context.Project.Input.AutoMaterial ?? PackInputEncoding.AutoMaterialDefault;
+        loader.EnableAutoMaterial = context.Project.Input?.AutoMaterial ?? PackInputEncoding.AutoMaterialDefault;
 
         summary.Reset();
         if (clean) CleanDestination();
@@ -110,6 +92,8 @@ public abstract class PublisherBase : IPublisher
 
     private async Task PublishContentAsync(ProjectPublishContext packContext, CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(content);
+
         currentMaterialCount = 0;
         currentFileCount = 0;
 
@@ -139,7 +123,7 @@ public abstract class PublisherBase : IPublisher
     private async Task PublishMaterialAsync(ProjectPublishContext packContext, MaterialProperties material, CancellationToken token)
     {
         if (material.CTM?.Method != null) {
-            var publishConnected = packContext.Profile.PublishConnected ?? PublishProfileProperties.PublishConnectedDefault;
+            var publishConnected = packContext.Profile?.PublishConnected ?? PublishProfileProperties.PublishConnectedDefault;
 
             if (!publishConnected) {
                 Logger.LogDebug("Skipping connected texture '{DisplayName}'. feature disabled.", material.DisplayName);
@@ -168,50 +152,47 @@ public abstract class PublisherBase : IPublisher
 
     private async Task PublishFileAsync(ProjectPublishContext packContext, string localFile, CancellationToken token)
     {
-        if (TryMapFile(localFile, out var destFile)) {
-            using var scope = Provider.CreateScope();
-            var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
-            var genericPublisher = scope.ServiceProvider.GetRequiredService<GenericTexturePublisher>();
-
-            graphContext.PackWriteTime = packContext.LastUpdated;
-            graphContext.Project = packContext.Project;
-            graphContext.Profile = packContext.Profile;
-            graphContext.Mapping = Mapping;
-                            
-            var file = Path.GetFileName(localFile);
-            if (fileIgnoreList.Contains(file)) {
-                Logger.LogDebug("Skipping ignored file {sourceFile}.", localFile);
-                return;
-            }
-
-            var sourceTime = Reader.GetWriteTime(localFile);
-            var destinationTime = Writer.GetWriteTime(destFile);
-
-            if (IsUpToDate(packContext.LastUpdated, sourceTime, destinationTime)) {
-                Logger.LogDebug("Skipping up-to-date untracked file {sourceFile}.", localFile);
-                return;
-            }
-
-            if (IsGenericResizable(localFile)) {
-                await genericPublisher.PublishAsync(localFile, null, destFile, token);
-            }
-            else {
-                await using var srcStream = Reader.Open(localFile);
-                await Writer.OpenWriteAsync(destFile, async destStream => {
-                    await srcStream.CopyToAsync(destStream, token);
-                }, token);
-            }
-
-            Logger.LogInformation("Published untracked file {destFile}.", destFile);
-        }
-        else {
+        if (!TryMapFile(localFile, out var destFile) || destFile == null) {
             Logger.LogWarning("Skipping non-mapped file '{localFile}'.", localFile);
+            return;
         }
+
+        using var scope = Provider.CreateScope();
+        var graphContext = scope.ServiceProvider.GetRequiredService<ITextureGraphContext>();
+        var genericPublisher = scope.ServiceProvider.GetRequiredService<GenericTexturePublisher>();
+
+        graphContext.PackWriteTime = packContext.LastUpdated;
+        graphContext.Project = packContext.Project;
+        graphContext.Profile = packContext.Profile;
+        graphContext.Mapping = Mapping;
+
+        if (!PublishIgnore.AllowFile(localFile)) {
+            Logger.LogDebug("Skipping ignored file {sourceFile}.", localFile);
+            return;
+        }
+
+        var sourceTime = Reader.GetWriteTime(localFile);
+        var destinationTime = Writer.GetWriteTime(destFile);
+
+        if (IsUpToDate(packContext.LastUpdated, sourceTime, destinationTime)) {
+            Logger.LogDebug("Skipping up-to-date untracked file {sourceFile}.", localFile);
+            return;
+        }
+
+        if (IsGenericResizable(localFile)) { await genericPublisher.PublishAsync(localFile, null, destFile, token); }
+        else {
+            await using var srcStream = Reader.Open(localFile);
+            if (srcStream == null) throw new ApplicationException("Failed to open source file stream!");
+
+            await Writer.OpenWriteAsync(destFile, async destStream => {await srcStream.CopyToAsync(destStream, token);}, token);
+        }
+
+        Logger.LogInformation("Published untracked file {destFile}.", destFile);
     }
 
     protected abstract Task PublishPackMetaAsync(PublishProfileProperties pack, CancellationToken token);
 
-    protected virtual bool TryMapFile(in string sourceFile, out string destinationFile)
+    protected virtual bool TryMapFile(in string sourceFile, out string? destinationFile)
     {
         destinationFile = sourceFile;
         return true;
@@ -229,9 +210,8 @@ public abstract class PublisherBase : IPublisher
     protected static async Task WriteJsonAsync(Stream stream, object content, Formatting formatting, CancellationToken token)
     {
         await using var writer = new StreamWriter(stream, leaveOpen: true);
-        using var jsonWriter = new JsonTextWriter(writer) {
-            Formatting = formatting,
-        };
+        await using var jsonWriter = new JsonTextWriter(writer);
+        jsonWriter.Formatting = formatting;
 
         await JToken.FromObject(content).WriteToAsync(jsonWriter, token);
     }
@@ -263,15 +243,5 @@ public abstract class PublisherBase : IPublisher
         Path.Combine("assets", "minecraft", "textures", "misc"),
         Path.Combine("assets", "minecraft", "optifine", "colormap"),
         Path.Combine("pack", "minecraft", "optifine", "colormap"),
-    };
-
-    private static readonly HashSet<string> fileIgnoreList = new(StringComparer.InvariantCultureIgnoreCase) {
-        "project.yml",
-        "input.yml",
-        "source.txt",
-        "readme.txt",
-        "readme.md",
-        "desktop.ini",
-        "thumbs.db",
     };
 }

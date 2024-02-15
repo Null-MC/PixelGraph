@@ -10,12 +10,18 @@ namespace PixelGraph.Rendering.LUTs;
 public class DielectricBdrfLutNode : SceneNode, ILutMapSource
 {
     public int Resolution {
-        get => LutMapCore.Resolution;
-        set => LutMapCore.Resolution = value;
+        get {
+            ArgumentNullException.ThrowIfNull(LutMapCore);
+            return LutMapCore.Resolution;
+        }
+        set {
+            ArgumentNullException.ThrowIfNull(LutMapCore);
+            LutMapCore.Resolution = value;
+        }
     }
 
-    private DielectricBrdfLutMapCore LutMapCore => RenderCore as DielectricBrdfLutMapCore;
-    public ShaderResourceViewProxy LutMap => LutMapCore?.LutMap;
+    private DielectricBrdfLutMapCore? LutMapCore => RenderCore as DielectricBrdfLutMapCore;
+    public ShaderResourceViewProxy? LutMap => LutMapCore?.LutMap;
     public long LastUpdated => LutMapCore?.LastUpdated ?? 0;
 
 

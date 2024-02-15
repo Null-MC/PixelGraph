@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using MinecraftMappings.Minecraft;
+using Nito.Disposables.Internals;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.IO;
 using PixelGraph.UI.ViewData;
-using System;
 using System.Collections.ObjectModel;
 
 namespace PixelGraph.UI.ViewModels;
@@ -11,9 +11,9 @@ namespace PixelGraph.UI.ViewModels;
 internal class NewMaterialViewModel : ModelBase
 {
     protected GameObjectTypes _gameObjectType;
-    protected string _gameObjectName;
-    protected string _gameNamespace;
-    protected string _location;
+    protected string? _gameObjectName;
+    protected string? _gameNamespace;
+    protected string? _location;
 
     public ObservableCollection<string> GameNamespaces {get;}
     public ObservableCollection<GameObjectOption> GameObjectNames {get;}
@@ -29,7 +29,7 @@ internal class NewMaterialViewModel : ModelBase
         }
     }
 
-    public string GameNamespace {
+    public string? GameNamespace {
         get => _gameNamespace;
         set {
             _gameNamespace = value;
@@ -39,7 +39,7 @@ internal class NewMaterialViewModel : ModelBase
         }
     }
 
-    public string GameObjectName {
+    public string? GameObjectName {
         get => _gameObjectName;
         set {
             _gameObjectName = value;
@@ -49,7 +49,7 @@ internal class NewMaterialViewModel : ModelBase
         }
     }
 
-    public string Location {
+    public string? Location {
         get => _location;
         private set {
             _location = value;
@@ -71,7 +71,7 @@ internal class NewMaterialViewModel : ModelBase
     {
         var locator = provider.GetRequiredService<MinecraftResourceLocator>();
 
-        foreach (var @namespace in locator.FindAllNamespaces()) {
+        foreach (var @namespace in locator.FindAllNamespaces().WhereNotNull()) {
             if (string.Equals(@namespace, "minecraft", StringComparison.InvariantCultureIgnoreCase)) continue;
             GameNamespaces.Add(@namespace);
         }
@@ -95,7 +95,7 @@ internal class NewMaterialViewModel : ModelBase
             case GameObjectTypes.Item:
             case GameObjectTypes.Optifine_CIT:
                 foreach (var item in Minecraft.Java.AllItems) {
-                    var latest = item.GetLatestVersion();
+                    var latest = item.GetLatestVersion() ?? throw new ApplicationException("Unable to retrieve latest game version!");
 
                     GameObjectNames.Add(new GameObjectOption {
                         Id = latest.Id,
@@ -124,7 +124,7 @@ internal class NewMaterialViewModel : ModelBase
         Location = GetLocation();
     }
 
-    private string GetLocation()
+    private string? GetLocation()
     {
         var pathExt = GetPathForType(GameObjectType);
         if (pathExt == null) return null;
@@ -135,7 +135,7 @@ internal class NewMaterialViewModel : ModelBase
         return $"{path}/{GameObjectName}";
     }
 
-    private static string GetPathForType(GameObjectTypes objType)
+    private static string? GetPathForType(GameObjectTypes objType)
     {
         return objType switch {
             GameObjectTypes.Block => "textures/block",
@@ -158,11 +158,11 @@ internal class NewMaterialDesignerViewModel : NewMaterialViewModel
 
 public class GameObjectOption
 {
-    private string _path;
+    private string? _path;
 
-    public string Id {get; set;}
+    public string? Id {get; set;}
 
-    public string Path {
+    public string? Path {
         get => _path ?? Id;
         set => _path = value;
     }

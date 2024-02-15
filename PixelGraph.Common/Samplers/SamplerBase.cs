@@ -1,7 +1,6 @@
 ﻿using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 
 namespace PixelGraph.Common.Samplers;
 
@@ -10,7 +9,7 @@ internal abstract class SamplerBase<TPixel> : ISampler<TPixel>
 {
     protected Rectangle Bounds;
 
-    public Image<TPixel> Image {get; set;}
+    public Image<TPixel>? Image {get; set;}
     public float RangeX {get; set;}
     public float RangeY {get; set;}
     public bool WrapX {get; set;}
@@ -37,35 +36,35 @@ internal abstract class SamplerBase<TPixel> : ISampler<TPixel>
     {
         //fx = (float)(Bounds.Left + x * Bounds.Width);
         //fy = (float)(Bounds.Top + y * Bounds.Height);
-        GetTexCoordX(in x, out fx);
-        GetTexCoordY(in y, out fy);
+        GetTexcoordX(in x, out fx);
+        GetTexcoordY(in y, out fy);
     }
 
-    protected void GetTexCoordX(in double x, out float fx)
+    protected void GetTexcoordX(in double x, out float fx)
     {
         fx = (float)(Bounds.Left + x * Bounds.Width);
     }
 
-    protected void GetTexCoordY(in double y, out float fy)
+    protected void GetTexcoordY(in double y, out float fy)
     {
         fy = (float)(Bounds.Top + y * Bounds.Height);
     }
 
-    protected void NormalizeTexCoordX(ref int px)
+    protected void NormalizeTexcoordX(ref int px)
     {
         if (WrapX) TexCoordHelper.WrapCoordX(ref px, in Bounds);
         else TexCoordHelper.ClampCoordX(ref px, in Bounds);
     }
 
-    protected void NormalizeTexCoordY(ref int py)
+    protected void NormalizeTexcoordY(ref int py)
     {
         if (WrapY) TexCoordHelper.WrapCoordY(ref py, in Bounds);
         else TexCoordHelper.ClampCoordY(ref py, in Bounds);
     }
 
-    protected void NormalizeTexCoord(ref int px, ref int py)
+    protected void NormalizeTexcoord(ref int px, ref int py)
     {
-        NormalizeTexCoordX(ref px);
-        NormalizeTexCoordY(ref py);
+        NormalizeTexcoordX(ref px);
+        NormalizeTexcoordY(ref py);
     }
 }

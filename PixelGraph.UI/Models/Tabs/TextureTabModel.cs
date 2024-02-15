@@ -2,5 +2,5 @@
 
 public class TextureTabModel : TabModelBase
 {
-    public string ImageFilename {get; set;}
+    public string? ImageFilename {get; set;}
 }

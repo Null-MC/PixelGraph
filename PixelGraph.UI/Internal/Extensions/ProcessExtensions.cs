@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.UI.Internal.Extensions;
 
@@ -17,11 +15,11 @@ internal static class ProcessExtensions
     {
         if (process.HasExited) return Task.CompletedTask;
 
-        var tcs = new TaskCompletionSource<object>();
+        var tcs = new TaskCompletionSource<object?>();
         process.EnableRaisingEvents = true;
-        process.Exited += (sender, args) => tcs.TrySetResult(null);
+        process.Exited += (_, _) => tcs.TrySetResult(null);
 
-        cancellationToken.Register(() => tcs.SetCanceled());
+        cancellationToken.Register(() => tcs.SetCanceled(cancellationToken));
 
         return process.HasExited ? Task.CompletedTask : tcs.Task;
     }

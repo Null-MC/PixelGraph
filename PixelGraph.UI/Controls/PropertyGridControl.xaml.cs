@@ -1,7 +1,5 @@
 ﻿using PixelGraph.UI.Internal;
 using PixelGraph.UI.Models.PropertyGrid;
-using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,7 +8,7 @@ namespace PixelGraph.UI.Controls;
 
 public class SelectFileEventArgs : EventArgs
 {
-    public object Value {get; set;}
+    public object? Value {get; set;}
     public bool Success {get; set;}
 }
 
@@ -18,8 +16,8 @@ public partial class PropertyGridControl
 {
     private bool isEditing;
 
-    public event EventHandler<PropertyGridChangedEventArgs> PropertyChanged;
-    public event EventHandler<SelectFileEventArgs> SelectFile;
+    public event EventHandler<PropertyGridChangedEventArgs>? PropertyChanged;
+    public event EventHandler<SelectFileEventArgs>? SelectFile;
 
 
     public PropertyGridControl()
@@ -87,7 +85,7 @@ public partial class PropertyGridControl
         PropertyChanged?.Invoke(this, e);
     }
 
-    private void OnSelectFileClick(object sender, RoutedEventArgs e)
+    private void OnSelectFileClick(object? sender, RoutedEventArgs e)
     {
         var button = sender as UIElement;
         var row = button?.FindParent<DataGridRow>();
@@ -97,7 +95,7 @@ public partial class PropertyGridControl
             editRow.EditValue = newValue;
     }
 
-    private bool OnSelectFile(in object value, out object result)
+    private bool OnSelectFile(in object? value, out object? result)
     {
         var e = new SelectFileEventArgs {
             Value = value,
@@ -112,11 +110,11 @@ public partial class PropertyGridControl
 
 public class PropertyGridRowStyleSelector : StyleSelector
 {
-    public Style DefaultStyle {get; set;}
-    public Style SeparatorStyle {get; set;}
+    public Style? DefaultStyle {get; set;}
+    public Style? SeparatorStyle {get; set;}
 
 
-    public override Style SelectStyle(object item, DependencyObject container)
+    public override Style? SelectStyle(object item, DependencyObject container)
     {
         return item switch {
             ISeparatorPropertyRow => SeparatorStyle,
@@ -127,13 +125,13 @@ public class PropertyGridRowStyleSelector : StyleSelector
 
 public class PropertyGridCellTemplateSelector : DataTemplateSelector
 {
-    public DataTemplate TextBoxTemplate {get; set;}
-    public DataTemplate CheckBoxTemplate {get; set;}
-    public DataTemplate ComboBoxTemplate {get; set;}
-    public DataTemplate SeparatorTemplate {get; set;}
+    public DataTemplate? TextBoxTemplate {get; set;}
+    public DataTemplate? CheckBoxTemplate {get; set;}
+    public DataTemplate? ComboBoxTemplate {get; set;}
+    public DataTemplate? SeparatorTemplate {get; set;}
 
 
-    public override DataTemplate SelectTemplate(object item, DependencyObject container)
+    public override DataTemplate? SelectTemplate(object item, DependencyObject container)
     {
         return item switch {
             ITextPropertyRow => TextBoxTemplate,
@@ -147,13 +145,13 @@ public class PropertyGridCellTemplateSelector : DataTemplateSelector
 
 public class PropertyGridEditCellTemplateSelector : DataTemplateSelector
 {
-    public DataTemplate TextBoxTemplate {get; set;}
-    public DataTemplate CheckBoxTemplate {get; set;}
-    public DataTemplate ComboBoxTemplate {get; set;}
-    public DataTemplate SeparatorTemplate {get; set;}
+    public DataTemplate? TextBoxTemplate {get; set;}
+    public DataTemplate? CheckBoxTemplate {get; set;}
+    public DataTemplate? ComboBoxTemplate {get; set;}
+    public DataTemplate? SeparatorTemplate {get; set;}
 
 
-    public override DataTemplate SelectTemplate(object item, DependencyObject container)
+    public override DataTemplate? SelectTemplate(object item, DependencyObject container)
     {
         return item switch {
             IEditTextPropertyRow => TextBoxTemplate,
@@ -167,5 +165,5 @@ public class PropertyGridEditCellTemplateSelector : DataTemplateSelector
 
 public class PropertyGridChangedEventArgs : EventArgs
 {
-    public string PropertyName {get; set;}
+    public string? PropertyName {get; set;}
 }

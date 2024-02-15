@@ -1,8 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using PixelGraph.Common.Extensions;
-using System;
-using System.Collections.Generic;
-using System.IO;
 
 namespace PixelGraph.Common.IO;
 
@@ -16,7 +13,7 @@ internal class FileInputReader : BaseInputReader
         this.options = options;
     }
 
-    public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = null)
+    public override IEnumerable<string> EnumerateDirectories(string? localPath, string? pattern = null)
     {
         var fullPath = GetFullPath(localPath);
         if (!Directory.Exists(fullPath)) yield break;
@@ -27,7 +24,7 @@ internal class FileInputReader : BaseInputReader
         }
     }
 
-    public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = null)
+    public override IEnumerable<string> EnumerateFiles(string? localPath, string? pattern = null)
     {
         var fullPath = GetFullPath(localPath);
         if (!Directory.Exists(fullPath)) yield break;
@@ -50,7 +47,7 @@ internal class FileInputReader : BaseInputReader
         return File.Exists(fullFile);
     }
 
-    public override string GetFullPath(string localFile)
+    public override string GetFullPath(string? localFile)
     {
         var fullFile = PathEx.Join(options.Value.Root, localFile);
         fullFile = PathEx.Localize(fullFile);
@@ -59,6 +56,8 @@ internal class FileInputReader : BaseInputReader
 
     public override string GetRelativePath(string fullPath)
     {
+        if (options.Value.Root == null) throw new ApplicationException("Root path is undefined!");
+
         return PathEx.TryGetRelative(options.Value.Root, fullPath, out var localPath) ? localPath : fullPath;
     }
 

@@ -2,7 +2,6 @@
 using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.ViewData;
-using System;
 using System.IO;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Media3D;
@@ -18,9 +17,9 @@ namespace PixelGraph.UI.Models.Scene
 {
     public class ScenePropertiesModel : ModelBase
     {
-        public event EventHandler EnvironmentChanged;
-        public event EventHandler DynamicSkyChanged;
-        public event EventHandler AppSettingsChanged;
+        public event EventHandler? EnvironmentChanged;
+        public event EventHandler? DynamicSkyChanged;
+        public event EventHandler? AppSettingsChanged;
 
         private readonly Rotation3DAnimation spinAnimation;
         private Media.Color _ambientColor;
@@ -33,9 +32,9 @@ namespace PixelGraph.UI.Models.Scene
         private Vector3 _sunDirection;
         private float _sunStrength;
         private bool _enableLights;
-        private TextureModel _equirectangularMap;
+        private TextureModel? _equirectangularMap;
         private Transform3D _meshTransform;
-        private string _erpFilename, _erpName;
+        private string? _erpFilename, _erpName;
         private float _erpIntensity;
         private bool _spinMesh;
         private PomTypeValues.Item _pomType;
@@ -178,7 +177,7 @@ namespace PixelGraph.UI.Models.Scene
             }
         }
 
-        public string ErpName {
+        public string? ErpName {
             get => _erpName;
             private set {
                 if (_erpName == value) return;
@@ -187,7 +186,7 @@ namespace PixelGraph.UI.Models.Scene
             }
         }
 
-        public string ErpFilename {
+        public string? ErpFilename {
             get => _erpFilename;
             set {
                 if (_erpFilename == value) return;
@@ -237,7 +236,7 @@ namespace PixelGraph.UI.Models.Scene
             }
         }
 
-        public TextureModel EquirectangularMap {
+        public TextureModel? EquirectangularMap {
             get => _equirectangularMap;
             set {
                 if (_equirectangularMap == value) return;

@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace PixelGraph.CLI.Extensions;
+﻿namespace PixelGraph.CLI.Extensions;
 
 internal static class ConsoleEx
 {
-    private static readonly object handle = new object();
+    private static readonly object handle = new();
 
 
     public static void Write(string text, ConsoleColor color)

@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common.Textures;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.ViewData;
 
@@ -17,7 +16,7 @@ internal class NormalMethodValues : List<NormalMethodValues.Item>
 
     public class Item
     {
-        public string Text {get; set;}
-        public string Value {get; set;}
+        public string? Text {get; set;}
+        public string? Value {get; set;}
     }
 }

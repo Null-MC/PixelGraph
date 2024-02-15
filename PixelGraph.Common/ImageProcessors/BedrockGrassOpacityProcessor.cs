@@ -2,7 +2,6 @@
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
 
 namespace PixelGraph.Common.ImageProcessors;
 
@@ -19,6 +18,8 @@ internal class BedrockGrassOpacityProcessor<TPixel> : PixelRowProcessor
 
     protected override void ProcessRow<TP>(in PixelRowContext context, Span<TP> row)
     {
+        ArgumentNullException.ThrowIfNull(options.SamplerOverlay);
+
         var pixelOut = new Rgba32();
         var overlayPixel = new Rgba32();
 
@@ -58,7 +59,7 @@ internal class BedrockGrassOpacityProcessor<TPixel> : PixelRowProcessor
     public class Options
     {
         public byte Threshold = 127;
-        public ISampler<Rgba32> SamplerOpacity;
-        public ISampler<TPixel> SamplerOverlay;
+        public ISampler<Rgba32>? SamplerOpacity;
+        public ISampler<TPixel>? SamplerOverlay;
     }
 }

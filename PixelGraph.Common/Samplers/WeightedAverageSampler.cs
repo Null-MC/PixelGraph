@@ -3,8 +3,6 @@ using PixelGraph.Common.Textures;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Linq;
 using System.Numerics;
 
 namespace PixelGraph.Common.Samplers;
@@ -17,14 +15,16 @@ internal class WeightedAverageSampler<TPixel> : SamplerBase<TPixel>
 
     public override IRowSampler ForRow(in double y)
     {
-        GetTexCoordY(in y, out var fy);
+        ArgumentNullException.ThrowIfNull(Image);
+
+        GetTexcoordY(in y, out var fy);
 
         var minRangeY = MathF.Max(RangeY, 1f);
         var stepY = (int)MathF.Ceiling(minRangeY);
         var pyMin = (int)MathF.Floor(fy - 0.5f*stepY);
 
         var rows = Enumerable.Range(pyMin, stepY).Select(i => {
-            NormalizeTexCoordY(ref i);
+            NormalizeTexcoordY(ref i);
             return Image.DangerousGetPixelRowMemory(i)
                 .Slice(Bounds.X, Bounds.Width);
         }).ToArray();
@@ -40,6 +40,8 @@ internal class WeightedAverageSampler<TPixel> : SamplerBase<TPixel>
 
     public override void SampleScaled(in double x, in double y, in ColorChannel color, out float pixelValue)
     {
+        ArgumentNullException.ThrowIfNull(Image);
+
         GetTexCoord(in x, in y, out var fx, out var fy);
             
         var minRangeX = MathF.Max(RangeX, 1f);
@@ -61,7 +63,7 @@ internal class WeightedAverageSampler<TPixel> : SamplerBase<TPixel>
         pixelValue = 0f;
         for (var iy = 0; iy < stepX; iy++) {
             var py = pyMin + iy;
-            NormalizeTexCoordY(ref py);
+            NormalizeTexcoordY(ref py);
 
             var row = Image
                 .DangerousGetPixelRowMemory(py)
@@ -69,7 +71,7 @@ internal class WeightedAverageSampler<TPixel> : SamplerBase<TPixel>
 
             for (var ix = 0; ix < stepX; ix++) {
                 var px = pxMin + ix;
-                NormalizeTexCoordX(ref px);
+                NormalizeTexcoordX(ref px);
 
                 var p = row[px - Bounds.X].ToScaledVector4();
                 p.GetChannelValue(color, out var pValue);

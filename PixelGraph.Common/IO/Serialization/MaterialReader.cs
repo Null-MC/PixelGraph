@@ -1,11 +1,6 @@
 ﻿using PixelGraph.Common.ConnectedTextures;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -13,9 +8,9 @@ namespace PixelGraph.Common.IO.Serialization;
 
 public interface IMaterialReader
 {
-    Task<MaterialProperties> LoadAsync(string localFile, CancellationToken token = default);
-    Task<MaterialProperties> LoadGlobalAsync(string localFile, CancellationToken token = default);
-    Task<MaterialProperties> LoadLocalAsync(string localFile, CancellationToken token = default);
+    Task<MaterialProperties?> LoadAsync(string localFile, CancellationToken token = default);
+    Task<MaterialProperties?> LoadGlobalAsync(string localFile, CancellationToken token = default);
+    Task<MaterialProperties?> LoadLocalAsync(string localFile, CancellationToken token = default);
     //bool TryExpandRange(MaterialProperties texture, out MaterialProperties[] results);
 }
 
@@ -38,7 +33,7 @@ internal class MaterialReader : IMaterialReader
         this.reader = reader;
     }
 
-    public Task<MaterialProperties> LoadAsync(string localFile, CancellationToken token = default)
+    public Task<MaterialProperties?> LoadAsync(string localFile, CancellationToken token = default)
     {
         var name = Path.GetFileName(localFile);
         var global = !(string.Equals(name, "pbr.yml", StringComparison.InvariantCultureIgnoreCase)
@@ -46,7 +41,7 @@ internal class MaterialReader : IMaterialReader
         return global ? LoadGlobalAsync(localFile, token) : LoadLocalAsync(localFile, token);
     }
 
-    public async Task<MaterialProperties> LoadGlobalAsync(string localFile, CancellationToken token = default)
+    public async Task<MaterialProperties?> LoadGlobalAsync(string localFile, CancellationToken token = default)
     {
         if (localFile == null) throw new ArgumentNullException(nameof(localFile));
 
@@ -71,7 +66,7 @@ internal class MaterialReader : IMaterialReader
         return material;
     }
 
-    public async Task<MaterialProperties> LoadLocalAsync(string localFile, CancellationToken token = default)
+    public async Task<MaterialProperties?> LoadLocalAsync(string localFile, CancellationToken token = default)
     {
         var itemPath = Path.GetDirectoryName(localFile);
         if (!reader.FileExists(localFile)) return null;
@@ -114,9 +109,10 @@ internal class MaterialReader : IMaterialReader
     private async Task<MaterialProperties> ParseDocumentAsync(string localFile)
     {
         await using var stream = reader.Open(localFile);
+        if (stream == null) throw new ApplicationException("Failed to open file stream!");
+
         using var streamReader = new StreamReader(stream);
-        var document = deserializer.Deserialize<MaterialProperties>(streamReader)
-                       ?? new MaterialProperties();
+        var document = deserializer.Deserialize<MaterialProperties>(streamReader);
 
         if (document.CTM?.Method != null && parseMap.TryGetValue(document.CTM.Method, out var replaceMethod))
             document.CTM.Method = replaceMethod;

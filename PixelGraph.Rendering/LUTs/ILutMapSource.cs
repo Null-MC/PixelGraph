@@ -4,6 +4,6 @@ namespace PixelGraph.Rendering.LUTs;
 
 public interface ILutMapSource
 {
-    ShaderResourceViewProxy LutMap {get;}
+    ShaderResourceViewProxy? LutMap {get;}
     long LastUpdated {get;}
 }

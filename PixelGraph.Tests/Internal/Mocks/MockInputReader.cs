@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
-using System;
-using System.Collections.Generic;
-using System.IO;
 
 namespace PixelGraph.Tests.Internal.Mocks;
 
@@ -22,7 +19,7 @@ internal class MockInputReader : BaseInputReader
         _content = content;
     }
 
-    public override IEnumerable<string> EnumerateDirectories(string localPath, string pattern = default)
+    public override IEnumerable<string> EnumerateDirectories(string? localPath, string? pattern = default)
     {
         var fullPath = GetFullPath(localPath);
 
@@ -32,7 +29,7 @@ internal class MockInputReader : BaseInputReader
         }
     }
 
-    public override IEnumerable<string> EnumerateFiles(string localPath, string pattern = default)
+    public override IEnumerable<string> EnumerateFiles(string? localPath, string? pattern = default)
     {
         var fullPath = GetFullPath(localPath);
 
@@ -48,7 +45,7 @@ internal class MockInputReader : BaseInputReader
         return _content.FileExists(fullFile);
     }
 
-    public override Stream Open(string localFile)
+    public override Stream? Open(string localFile)
     {
         var fullFile = GetFullPath(localFile);
         return _content.OpenRead(fullFile);
@@ -56,13 +53,15 @@ internal class MockInputReader : BaseInputReader
 
     public override DateTime? GetWriteTime(string localFile) => null;
 
-    public override string GetFullPath(string localPath)
+    public override string GetFullPath(string? localPath)
     {
         return PathEx.Join(options.Value.Root, localPath);
     }
 
     public override string GetRelativePath(string fullPath)
     {
+        if (options.Value.Root == null) throw new ApplicationException("Root path is undefined!");
+
         return PathEx.TryGetRelative(options.Value.Root, fullPath, out var localPath) ? localPath : fullPath;
     }
 }

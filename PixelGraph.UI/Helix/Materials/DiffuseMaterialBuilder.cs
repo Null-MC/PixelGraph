@@ -3,7 +3,6 @@ using HelixToolkit.Wpf.SharpDX;
 using PixelGraph.Common.Textures;
 using PixelGraph.UI.Internal.Preview.Textures;
 using PixelGraph.UI.Internal.Utilities;
-using System;
 
 namespace PixelGraph.UI.Helix.Materials;
 
@@ -24,7 +23,7 @@ internal class DiffuseMaterialBuilder : MaterialBuilderBase<IRenderDiffusePrevie
             RenderShadowMap = true,
         };
 
-        if (Material.TintColor != null) {
+        if (Material?.TintColor != null) {
             var tint = ColorHelper.RGBFromHex(Material.TintColor);
             if (tint.HasValue) mat.ColorTint = tint.Value.ToColor4();
         }

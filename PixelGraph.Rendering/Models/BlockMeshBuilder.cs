@@ -3,27 +3,11 @@ using SharpDX;
 
 namespace PixelGraph.Rendering.Models;
 
-internal class BlockMeshBuilder : MeshBuilder
+internal class BlockMeshBuilder() : MeshBuilder(true, true, true)
 {
-    private Vector2Collection textureCoordinateMins;
-    private Vector2Collection textureCoordinateMaxs;
+    private Vector2Collection TextureCoordinateMins {get; set;} = new();
+    private Vector2Collection TextureCoordinateMaxs {get; set;} = new();
 
-    public Vector2Collection TextureCoordinateMins {
-        get => textureCoordinateMins;
-        set => textureCoordinateMins = value;
-    }
-
-    public Vector2Collection TextureCoordinateMaxs {
-        get => textureCoordinateMaxs;
-        set => textureCoordinateMaxs = value;
-    }
-
-
-    public BlockMeshBuilder() : base(true, true, true)
-    {
-        textureCoordinateMins = new Vector2Collection();
-        textureCoordinateMaxs = new Vector2Collection();
-    }
 
     public void Clear()
     {
@@ -47,23 +31,23 @@ internal class BlockMeshBuilder : MeshBuilder
 
     public void AddTextureCoordinateMin4x(in Vector2 texMin)
     {
-        textureCoordinateMins.Add(texMin);
-        textureCoordinateMins.Add(texMin);
-        textureCoordinateMins.Add(texMin);
-        textureCoordinateMins.Add(texMin);
+        TextureCoordinateMins.Add(texMin);
+        TextureCoordinateMins.Add(texMin);
+        TextureCoordinateMins.Add(texMin);
+        TextureCoordinateMins.Add(texMin);
     }
 
     public void AddTextureCoordinateMax4x(in Vector2 texMax)
     {
-        textureCoordinateMaxs.Add(texMax);
-        textureCoordinateMaxs.Add(texMax);
-        textureCoordinateMaxs.Add(texMax);
-        textureCoordinateMaxs.Add(texMax);
+        TextureCoordinateMaxs.Add(texMax);
+        TextureCoordinateMaxs.Add(texMax);
+        TextureCoordinateMaxs.Add(texMax);
+        TextureCoordinateMaxs.Add(texMax);
     }
 
     public BlockMeshGeometry3D ToBlockMeshGeometry3D()
     {
-        if (HasTangents && Tangents.Count == 0) {
+        if (HasTangents && Tangents.Count > 0) {
             ComputeTangents(Positions, Normals, TextureCoordinates, TriangleIndices, out var tan, out var bitan);
             Tangents.AddRange(tan);
             BiTangents.AddRange(bitan);

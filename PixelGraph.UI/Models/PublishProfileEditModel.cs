@@ -2,20 +2,19 @@
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Extensions;
-using System;
 
 namespace PixelGraph.UI.Models;
 
 public class PublishProfileEditModel : ModelBase
 {
     public PublishProfileProperties Profile {get;}
-    private string _defaultName;
+    private string? _defaultName;
 
     public bool IsJavaProfile => Common.IO.GameEdition.Is(Profile.Edition, Common.IO.GameEdition.Java);
     public bool IsBedrockProfile => Common.IO.GameEdition.Is(Profile.Edition, Common.IO.GameEdition.Bedrock);
-    public string DisplayName => Profile.Name?.NullIfWhitespace(_defaultName);
+    public string? DisplayName => Profile.Name?.NullIfWhitespace(_defaultName);
 
-    public string Name {
+    public string? Name {
         get => Profile.Name;
         set {
             Profile.Name = value;
@@ -25,7 +24,7 @@ public class PublishProfileEditModel : ModelBase
         }
     }
 
-    public string DefaultName {
+    public string? DefaultName {
         //get => _defaultName;
         set {
             _defaultName = value;
@@ -35,7 +34,7 @@ public class PublishProfileEditModel : ModelBase
         }
     }
 
-    public string GameEdition {
+    public string? GameEdition {
         get => Profile.Edition;
         set {
             Profile.Edition = value;
@@ -46,7 +45,7 @@ public class PublishProfileEditModel : ModelBase
         }
     }
 
-    public string PackDescription {
+    public string? PackDescription {
         get => Profile.Description;
         set {
             Profile.Description = value;
@@ -54,7 +53,7 @@ public class PublishProfileEditModel : ModelBase
         }
     }
 
-    public string PackTags {
+    public string? PackTags {
         get => Profile.Tags;
         set {
             Profile.Tags = value;
@@ -86,7 +85,7 @@ public class PublishProfileEditModel : ModelBase
         }
     }
 
-    public string TextureFormat {
+    public string? TextureFormat {
         get => Profile.Encoding?.Format;
         set {
             Profile.Encoding ??= new PackOutputEncoding();
@@ -95,13 +94,13 @@ public class PublishProfileEditModel : ModelBase
         }
     }
 
-    public string ImageEncoding {
+    public string? ImageEncoding {
         get => Profile.Encoding?.Image;
         set {
             Profile.Encoding ??= new PackOutputEncoding();
             Profile.Encoding.Image = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(ImageEncoding));
+            OnPropertyChanged();
         }
     }
 
@@ -121,17 +120,17 @@ public class PublishProfileEditModel : ModelBase
             Profile.Encoding ??= new PackOutputEncoding();
             Profile.Encoding.PaletteColors = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(PaletteColors));
+            OnPropertyChanged();
         }
     }
 
-    public string EncodingSampler {
+    public string? EncodingSampler {
         get => Profile.Encoding?.Sampler;
         set {
             Profile.Encoding ??= new PackOutputEncoding();
             Profile.Encoding.Sampler = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(EncodingSampler));
+            OnPropertyChanged();
         }
     }
 
@@ -167,7 +166,7 @@ public class PublishProfileEditModel : ModelBase
         }
     }
 
-    public string NormalMethodDefault {
+    public string? NormalMethodDefault {
         get => Profile.NormalMethodDefault;
         set {
             Profile.NormalMethodDefault = value;
