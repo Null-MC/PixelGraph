@@ -2,38 +2,17 @@
 using PixelGraph.Common.Textures.Graphing;
 
 namespace PixelGraph.Common.Textures;
-//public interface ITextureRegionEnumerator
-//{
-//    int SourceFrameCount {get; set;}
-//    int DestFrameCount {get; set;}
-//    int? TargetFrame {get; set;}
-//    int? TargetPart {get; set;}
 
-//    IEnumerable<TextureRenderFrame> GetAllRenderRegions();
-//    IEnumerable<TexturePublishPart> GetAllPublishRegions();
-//    TexturePublishFrame GetPublishPartFrame(int frameIndex, int tileIndex);
-//    void GetFrameTileBounds(in int frameIndex, in int frameCount, in int tileIndex, out UVRegion region);
-//}
-
-public class TextureRegionEnumerator //: ITextureRegionEnumerator
+public class TextureRegionEnumerator
+    (ITextureGraphContext context)
 {
-    private readonly ITextureGraphContext context;
-
-    public int SourceFrameCount {get; set;}
-    public int DestFrameCount {get; set;}
+    public int SourceFrameCount {get; set;} = 1;
+    public int DestFrameCount {get; set;} = 1;
     public int? TargetFrame {get; set;}
     public int? TargetPart {get; set;}
 
     private int ActualDestFrameCount => TargetFrame.HasValue ? 1 : DestFrameCount;
 
-
-    public TextureRegionEnumerator(ITextureGraphContext context)
-    {
-        this.context = context;
-
-        SourceFrameCount = 1;
-        DestFrameCount = 1;
-    }
 
     public IEnumerable<TextureRenderFrame> GetAllRenderRegions()
     {
@@ -59,7 +38,7 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
 
             if (CtmTypes.IsRepeatType(context.Material.CTM?.Method)) {
                 var tile = new TextureRenderTile();
-                renderFrame.Tiles = new[] {tile};
+                renderFrame.Tiles = [tile];
 
                 if (TargetPart.HasValue)
                     GetFrameTileBounds(frameIndex, SourceFrameCount, TargetPart.Value, out tile.SourceBounds);
@@ -95,7 +74,7 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
 
             GetFrameBounds(frameIndex, ActualDestFrameCount, out tile.DestBounds);
 
-            renderFrame.Tiles = new[] {tile};
+            renderFrame.Tiles = [tile];
         }
 
         return renderFrame;
@@ -104,7 +83,7 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
     public IEnumerable<TexturePublishPart> GetAllPublishRegions()
     {
         IEnumerable<TexturePublishFrame> GetFrames(int partIndex) {
-            if (TargetFrame.HasValue) return new [] {GetPublishPartFrame(TargetFrame.Value, partIndex)};
+            if (TargetFrame.HasValue) return [GetPublishPartFrame(TargetFrame.Value, partIndex)];
 
             return Enumerable.Range(0, DestFrameCount)
                 .Select(i => GetPublishPartFrame(i, partIndex));
@@ -113,13 +92,13 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
         if (TargetPart.HasValue) {
             var p = TargetPart.Value;
 
-            return new TexturePublishPart[] {
-                new() {
+            return [
+                new TexturePublishPart {
                     Name = GetTileName(p),
                     TileIndex = p,
                     Frames = GetFrames(p).ToArray(),
                 }
-            };
+            ];
         }
 
         var tileCount = GetPublishTileCount();
@@ -176,8 +155,8 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
         if (context.IsMaterialMultiPart)
             return context.Material.Parts?.Count ?? 0;
 
-        if (context.IsMaterialCtm)
-            return CtmTypes.GetBounds(context.Material?.CTM)?.Total ?? 1;
+        if (context.IsMaterialCtm && context.Material?.CTM != null)
+            return CtmTypes.GetBounds(context.Material.CTM)?.Total ?? 1;
 
         return 1;
     }
@@ -202,7 +181,7 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
         if (frameCount > 1) frameHeight /= frameCount;
         var wrappedIndex = frameIndex % frameCount;
 
-        if (context.IsMaterialMultiPart) {
+        if (context.IsMaterialMultiPart && context.Material.Parts != null) {
             var part = context.Material.Parts[tileIndex];
             var (maxWidth, maxHeight) = context.Material.GetMultiPartBounds();
 
@@ -218,7 +197,7 @@ public class TextureRegionEnumerator //: ITextureRegionEnumerator
             return;
         }
 
-        if (context.IsMaterialCtm) {
+        if (context.IsMaterialCtm && context.Material.CTM != null) {
             var bounds = CtmTypes.GetBounds(context.Material.CTM);
             var tileCountX = bounds?.Width ?? 1;
             var tileCountY = bounds?.Height ?? 1;
@@ -253,9 +232,9 @@ public class TextureRenderTile
 
 public class TexturePublishPart
 {
-    public string? Name {get; set;}
-    public int TileIndex {get; set;}
-    public TexturePublishFrame[]? Frames {get; set;}
+    public string? Name {get; init;}
+    public int TileIndex {get; init;}
+    public TexturePublishFrame[] Frames {get; init;} = [];
 }
 
 public class TexturePublishFrame

@@ -25,9 +25,9 @@ internal class ArchiveInputReader : BaseInputReader, IDisposable
         archive.Dispose();
     }
 
-    public override IEnumerable<string> EnumerateDirectories(string localPath, string? pattern = null)
+    public override IEnumerable<string> EnumerateDirectories(string? localPath, string? pattern = null)
     {
-        var fullPath = localPath == "." ? string.Empty : localPath;
+        var fullPath = (localPath == "." ? null : localPath) ?? string.Empty;
         var start = fullPath.Length;
 
         return GetPathEntries(fullPath).Select(e => {
@@ -36,9 +36,9 @@ internal class ArchiveInputReader : BaseInputReader, IDisposable
         }).WhereNotNull().Distinct();
     }
 
-    public override IEnumerable<string> EnumerateFiles(string localPath, string? pattern = null)
+    public override IEnumerable<string> EnumerateFiles(string? localPath, string? pattern = null)
     {
-        var fullPath = localPath == "." ? string.Empty : localPath;
+        var fullPath = (localPath == "." ? null : localPath) ?? string.Empty;
 
         foreach (var entry in GetPathEntries(fullPath)) {
             var localEntryPath = entry.FullName[fullPath.Length..].TrimStart('/');
@@ -62,15 +62,15 @@ internal class ArchiveInputReader : BaseInputReader, IDisposable
 
     public override Stream? Open(string localFile)
     {
-        var file = PathEx.Normalize(localFile);
-        if (file == null) throw new FileNotFoundException();
+        var file = PathEx.Normalize(localFile)
+            ?? throw new FileNotFoundException();
 
         return archive.GetEntry(file)?.Open();
     }
 
     public override bool FileExists(string localFile)
     {
-        var file = PathEx.Normalize(localFile);
+        var file = PathEx.NormalizeNullable(localFile);
         return file != null && archive.GetEntry(file) != null;
     }
 
@@ -82,8 +82,8 @@ internal class ArchiveInputReader : BaseInputReader, IDisposable
 
     private IEnumerable<ZipArchiveEntry> GetPathEntries(string localPath)
     {
-        var path = PathEx.Normalize(localPath);
-        if (path == null) throw new FileNotFoundException();
+        var path = PathEx.Normalize(localPath)
+            ?? throw new FileNotFoundException();
 
         foreach (var entry in archive.Entries) {
             if (string.IsNullOrEmpty(entry.Name)) continue;

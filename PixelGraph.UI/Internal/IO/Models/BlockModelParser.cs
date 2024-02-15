@@ -7,21 +7,9 @@ using SharpDX;
 using System.IO;
 
 namespace PixelGraph.UI.Internal.IO.Models;
-//internal interface IBlockModelParser
-//{
-//    BlockModelVersion LoadRecursive(string localFile);
-//}
 
-internal class BlockModelParser //: IBlockModelParser
+internal class BlockModelParser(MinecraftResourceLocator locator)
 {
-    private readonly MinecraftResourceLocator locator;
-
-
-    public BlockModelParser(MinecraftResourceLocator locator)
-    {
-        this.locator = locator;
-    }
-
     public BlockModelVersion LoadRecursive(string localFile)
     {
         var finalModel = new BlockModelVersion();

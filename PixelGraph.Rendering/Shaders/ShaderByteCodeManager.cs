@@ -1,9 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using SharpDX.D3DCompiler;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
 using ShaderDescription = HelixToolkit.SharpDX.Core.Shaders.ShaderDescription;
 
@@ -33,6 +30,8 @@ public class ShaderByteCodeManager : IShaderByteCodeManager, IDisposable
             shader.Dispose();
 
         map.Clear();
+
+        GC.SuppressFinalize(this);
     }
 
     public void Add(string name, ShaderSourceDescription shader)
@@ -92,11 +91,11 @@ public class ShaderByteCodeManager : IShaderByteCodeManager, IDisposable
         if (!map.TryGetValue(name, out var shader))
             throw new ApplicationException($"Shader '{name}' not found!");
 
-        return shader.Code;
+        return shader.Code ?? throw new ApplicationException("Shader code is undefined!");
     }
 
     public ShaderDescription BuildDescription(string name, ShaderStage type)
     {
-        return new(name, type, GetCode(name));
+        return new ShaderDescription(name, type, GetCode(name));
     }
 }

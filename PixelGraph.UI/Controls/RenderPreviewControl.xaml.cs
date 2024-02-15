@@ -170,12 +170,16 @@ public partial class RenderPreviewControl
 
     private void OnControlPreviewKeyDown(object? sender, KeyEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(Model.RenderProperties);
+
         if (e.Key == Key.I && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
             Model.RenderProperties.ShowIrradiance = true;
     }
 
     private void OnControlPreviewKeyUp(object? sender, KeyEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(Model.RenderProperties);
+
         if (e.Key == Key.I && Model.RenderProperties.ShowIrradiance)
             Model.RenderProperties.ShowIrradiance = false;
     }

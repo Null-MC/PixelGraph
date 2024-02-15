@@ -7,9 +7,7 @@ using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.IO;
 using PixelGraph.UI.Models;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -18,15 +16,15 @@ namespace PixelGraph.UI.ViewModels;
 
 public class RecentProjectsModel(
     ILogger<RecentProjectsModel> logger,
-    IRecentPathManager recentMgr) : INotifyPropertyChanged
+    IRecentPathManager recentMgr)
 {
     private readonly ILogger<RecentProjectsModel>? logger = logger;
     private readonly IRecentPathManager? recentMgr = recentMgr;
     private readonly ProjectSerializer serializer = new();
 
-    public event PropertyChangedEventHandler? PropertyChanged;
+    //public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ObservableCollection<ProjectTileModel> Tiles {get;} = new();
+    public ObservableCollection<ProjectTileModel> Tiles {get;} = [];
     public ImageSource? MissingImage {get; set;}
 
 
@@ -123,10 +121,10 @@ public class RecentProjectsModel(
             recentMgr.Remove(filename);
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
+    //protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    //{
+    //    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    //}
 
     //protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     //{

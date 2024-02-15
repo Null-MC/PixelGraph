@@ -7,11 +7,11 @@ namespace PixelGraph.UI.Models;
 
 public class RenderPreviewModel : ModelBase
 {
-    private ScenePropertiesModel _sceneProperties;
-    private RenderPropertiesModel _renderProperties;
+    private ScenePropertiesModel? _sceneProperties;
+    private RenderPropertiesModel? _renderProperties;
     private bool _isLoaded;
 
-    public ScenePropertiesModel SceneProperties {
+    public ScenePropertiesModel? SceneProperties {
         get => _sceneProperties;
         set {
             _sceneProperties = value;
@@ -19,7 +19,7 @@ public class RenderPreviewModel : ModelBase
         }
     }
 
-    public RenderPropertiesModel RenderProperties {
+    public RenderPropertiesModel? RenderProperties {
         get => _renderProperties;
         set {
             _renderProperties = value;
@@ -38,6 +38,9 @@ public class RenderPreviewModel : ModelBase
 
     public void UpdateSunPosition()
     {
+        ArgumentNullException.ThrowIfNull(SceneProperties);
+        ArgumentNullException.ThrowIfNull(RenderProperties);
+
         RenderProperties.SunCamera.Position = (new Vector3(0f, 2f, 0f) + SceneProperties.SunDirection * 16f).ToPoint3D();
         RenderProperties.SunCamera.LookDirection = -SceneProperties.SunDirection.ToVector3D();
     }

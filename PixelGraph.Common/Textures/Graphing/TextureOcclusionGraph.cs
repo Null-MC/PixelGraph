@@ -26,32 +26,21 @@ public interface ITextureOcclusionGraph
     Task<ISampler<L8>?> GetSamplerAsync(CancellationToken token = default);
 }
     
-internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
+internal class TextureOcclusionGraph(
+    IServiceProvider provider,
+    ITextureGraphContext context,
+    ITextureHeightGraph heightGraph)
+    : ITextureOcclusionGraph, IDisposable
 {
-    private readonly IServiceProvider provider;
-    private readonly ITextureGraphContext context;
-    private readonly ITextureHeightGraph heightGraph;
     private Image<L8>? texture;
     private bool isLoaded;
 
     public PackEncodingChannel? Channel {get; private set;}
-    public int FrameCount {get; private set;}
+    public int FrameCount {get; private set;} = 1;
     public int FrameWidth {get; private set;}
     public int FrameHeight {get; private set;}
     public bool HasTexture => texture != null;
 
-
-    public TextureOcclusionGraph(
-        IServiceProvider provider,
-        ITextureGraphContext context,
-        ITextureHeightGraph heightGraph)
-    {
-        this.provider = provider;
-        this.context = context;
-        this.heightGraph = heightGraph;
-
-        FrameCount = 1;
-    }
 
     public void Dispose()
     {
@@ -133,9 +122,9 @@ internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
         heightSampler.RangeY = (float)heightImage.Height / occlusionHeight;
 
         var quality = (float) (context.Profile?.OcclusionQuality ?? PublishProfileProperties.DefaultOcclusionQuality);
-        var stepDistance = (float)(context.Material.Occlusion?.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance);
-        var zScale = (float) (context.Material.Occlusion?.ZScale ?? MaterialOcclusionProperties.DefaultZScale);
-        var zBias = (float) (context.Material.Occlusion?.ZBias ?? MaterialOcclusionProperties.DefaultZBias);
+        var stepDistance = (float)(context.Material.Occlusion.StepDistance ?? MaterialOcclusionProperties.DefaultStepDistance);
+        var zScale = (float) (context.Material.Occlusion.ZScale ?? MaterialOcclusionProperties.DefaultZScale);
+        var zBias = (float) (context.Material.Occlusion.ZBias ?? MaterialOcclusionProperties.DefaultZBias);
         var hitPower = (float)(context.Profile?.OcclusionPower ?? PublishProfileProperties.DefaultOcclusionPower);
 
         // adjust volume height with texture scale
@@ -192,6 +181,8 @@ internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
 
         try {
             foreach (var frame in regions.GetAllRenderRegions()) {
+                if (frame.Tiles == null) continue;
+
                 foreach (var tile in frame.Tiles) {
                     heightSampler.SetBounds(tile.SourceBounds);
 
@@ -230,8 +221,8 @@ internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
         subContext.InputEncoding.Add(inputChannel);
         //subContext.PackWriteTime = ;
 
-        builder.InputChannels = new [] {inputChannel};
-        builder.OutputChannels = new[] {outputChannel};
+        builder.InputChannels = [inputChannel];
+        builder.OutputChannels = [outputChannel];
 
         await builder.MapAsync(false, token);
         if (!builder.HasMappedSources) return (null, 0);
@@ -249,15 +240,17 @@ internal class TextureOcclusionGraph : ITextureOcclusionGraph, IDisposable
 
     private int GetTileSize(in int imageWidth)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         var profileSize = context.Profile?.BlockTextureSize ?? context.Profile?.TextureSize;
         if (profileSize.HasValue) return profileSize.Value;
 
         if (context.Material.CTM?.Method != null) {
             var bounds = CtmTypes.GetBounds(context.Material.CTM);
-            var w = context.Material.CTM.Width ?? bounds.Width;
+            var w = context.Material.CTM.Width ?? bounds?.Width;
             //var h = context.Material.CTM.Height ?? bounds.Height;
 
-            return imageWidth / w;
+            if (w.HasValue) return imageWidth / w.Value;
         }
 
         return imageWidth;

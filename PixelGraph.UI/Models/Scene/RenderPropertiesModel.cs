@@ -22,9 +22,11 @@ public class RenderPropertiesModel : ModelBase
     private IEffectsManager? _effectsManager;
     private ILutMapSource? _dielectricBrdfLutMap;
     private ICubeMapSource? _irradianceCube;
-    private ObservableElement3DCollection? _meshParts;
-    private PerspectiveCamera? _camera;
-    private MaterialProperties? _missingMaterial;
+    private ObservableElement3DCollection? _meshParts = [];
+    private PerspectiveCamera? _camera = new() {
+        UpDirection = Vector3.UnitY.ToVector3D(),
+    };
+
     private FXAALevel _fxaa;
     private bool _enableSwapChain;
     private bool _enableTiling;
@@ -33,8 +35,20 @@ public class RenderPropertiesModel : ModelBase
     private int _parallaxSamples;
     private bool _enableBloom;
     private int _waterMode;
-    private OrthographicCamera _sunCamera;
-    private PerspectiveCamera _lightCamera;
+    private OrthographicCamera _sunCamera = new() {
+        UpDirection = Vector3.UnitY.ToVector3D(),
+        NearPlaneDistance = 1f,
+        FarPlaneDistance = 48f,
+        Width = 24,
+    };
+    private PerspectiveCamera _lightCamera = new() { 
+        Position = new Point3D(8f, 8f, 8f),
+        LookDirection = new Vector3D(-1f, -1f, -1f),
+        UpDirection = new Vector3D(0f, 1f, 0f),
+        FarPlaneDistance = 32f,
+        NearPlaneDistance = 1f,
+        FieldOfView = 45f,
+    };
     private int _environmentMapSize;
     private int _irradianceMapSize;
     private string? _meshBlendMode;
@@ -173,12 +187,13 @@ public class RenderPropertiesModel : ModelBase
     }
 
     public MaterialProperties? MissingMaterial {
-        get => _missingMaterial;
-        //set {
-        //    _missingMaterial = value;
-        //    OnPropertyChanged();
-        //}
-    }
+        get;
+    } = new() {
+        Color = new MaterialColorProperties {
+            Value = "#f800f8",
+            Texture = "<missing>",
+        }
+    };
 
     public PerspectiveCamera? Camera {
         get => _camera;
@@ -230,49 +245,17 @@ public class RenderPropertiesModel : ModelBase
     }
 
 
-    public RenderPropertiesModel()
-    {
-        _meshParts = new ObservableElement3DCollection();
-
-        _camera = new PerspectiveCamera {
-            UpDirection = Vector3.UnitY.ToVector3D(),
-        };
-
-        _sunCamera = new OrthographicCamera {
-            UpDirection = Vector3.UnitY.ToVector3D(),
-            NearPlaneDistance = 1f,
-            FarPlaneDistance = 48f,
-            Width = 24,
-        };
-
-        _lightCamera = new PerspectiveCamera { 
-            Position = new Point3D(8f, 8f, 8f),
-            LookDirection = new Vector3D(-1f, -1f, -1f),
-            UpDirection = new Vector3D(0f, 1f, 0f),
-            FarPlaneDistance = 32f,
-            NearPlaneDistance = 1f,
-            FieldOfView = 45f,
-        };
-
-        _missingMaterial = new MaterialProperties {
-            Color = new MaterialColorProperties {
-                Value = "#f800f8",
-                Texture = "<missing>",
-            }
-        };
-    }
-
     public void ApplyMaterial(MaterialProperties? material)
     {
         var blend = material?.BlendMode;
-        if (material != null && blend == null) {
-            if (MCPath.IsEntityPath(material.LocalPath)) {
+        if (material is { Name: not null } && blend == null) {
+            if (material.LocalPath != null && MinecraftPath.IsEntityPath(material.LocalPath)) {
                 var textureData = Minecraft.Java.FindEntityTexturesById<JavaEntityTexture, JavaEntityTextureVersion>(material.Name).FirstOrDefault();
                 blend = textureData != null
                     ? BlendModes.ToString(textureData.BlendMode)
                     : BlendModes.CutoutText;
             }
-            else if (MCPath.IsItemPath(material.LocalPath)) {
+            else if (material.LocalPath != null && MinecraftPath.IsItemPath(material.LocalPath)) {
                 blend = BlendModes.CutoutText;
             }
             else {
@@ -287,12 +270,12 @@ public class RenderPropertiesModel : ModelBase
         MeshTintColor = material?.TintColor;
     }
 
-    protected virtual void OnRenderModeChanged()
+    private void OnRenderModeChanged()
     {
         RenderModeChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    protected virtual void OnRenderModelChanged()
+    private void OnRenderModelChanged()
     {
         RenderModelChanged?.Invoke(this, EventArgs.Empty);
     }

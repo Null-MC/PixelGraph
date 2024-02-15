@@ -24,8 +24,8 @@ internal class MaterialFiltersViewModel : ModelBase
     public event EventHandler? SelectionChanged;
     public event EventHandler? DataChanged;
 
-    public FilterGeneralPropertyCollection GeneralProperties {get;}
-    public FilterNormalPropertyCollection NormalProperties {get;}
+    public FilterGeneralPropertyCollection GeneralProperties {get;} = [];
+    public FilterNormalPropertyCollection NormalProperties {get;} = [];
 
     public bool HasMaterial => _material != null;
     public bool HasSelectedFilter => _selectedFilter != null;
@@ -91,10 +91,7 @@ internal class MaterialFiltersViewModel : ModelBase
 
     public MaterialFiltersViewModel()
     {
-        GeneralProperties = new FilterGeneralPropertyCollection();
         GeneralProperties.PropertyChanged += OnPropertyValueChanged;
-
-        NormalProperties = new FilterNormalPropertyCollection();
         NormalProperties.PropertyChanged += OnPropertyValueChanged;
     }
 
@@ -105,7 +102,7 @@ internal class MaterialFiltersViewModel : ModelBase
         var entityModel = loader.GetJavaEntityModel(Material);
         if (entityModel != null) {
             var filters = ImportFiltersFromEntityModel(entityModel);
-            Material.Filters ??= new List<MaterialFilter>();
+            Material.Filters ??= [];
             Material.Filters.AddRange(filters);
             OnDataChanged();
             return;
@@ -114,7 +111,7 @@ internal class MaterialFiltersViewModel : ModelBase
         var blockModel = loader.GetBlockModel(Material);
         if (blockModel != null) {
             var filters = ImportFiltersFromBlockModel(blockModel);
-            Material.Filters ??= new List<MaterialFilter>();
+            Material.Filters ??= [];
             Material.Filters.AddRange(filters);
             OnDataChanged();
             return;
@@ -142,59 +139,56 @@ internal class MaterialFiltersViewModel : ModelBase
 
         IEnumerable<MaterialFilter> ProcessElements(IEnumerable<EntityElement> elements) {
             foreach (var element in elements) {
-                if (element.Boxes != null) {
-                    var cubeIndex = 1;
+                var cubeIndex = 1;
 
-                    foreach (var cube in element.Boxes) {
-                        foreach (var face in ModelElement.AllFaces) {
-                            var region = cube.GetFaceRectangle(face, element.MirrorTexU);
+                foreach (var cube in element.Boxes) {
+                    foreach (var face in ModelElement.AllFaces) {
+                        var region = cube.GetFaceRectangle(face, element.MirrorTexU);
 
-                            if (existingRegions.Contains(region)) continue;
-                            existingRegions.Add(region);
+                        if (existingRegions.Contains(region)) continue;
+                        existingRegions.Add(region);
 
-                            var faceName = UVHelper.GetFaceName(face);
+                        var faceName = UVHelper.GetFaceName(face);
 
-                            nameBuilder.Clear();
+                        nameBuilder.Clear();
 
-                            if (!string.IsNullOrWhiteSpace(element.Id))
-                                nameBuilder.Append(element.Id);
+                        if (!string.IsNullOrWhiteSpace(element.Id))
+                            nameBuilder.Append(element.Id);
 
-                            if (cubeIndex > 1)
-                                nameBuilder.Append(cubeIndex);
+                        if (cubeIndex > 1)
+                            nameBuilder.Append(cubeIndex);
 
-                            nameBuilder.Append('-');
-                            nameBuilder.Append(faceName);
+                        nameBuilder.Append('-');
+                        nameBuilder.Append(faceName);
 
-                            var left = region.Left / model.TextureSize.X;
-                            var width = region.Width / model.TextureSize.X;
+                        var left = region.Left / model.TextureSize.X;
+                        var width = region.Width / model.TextureSize.X;
 
-                            if (width < 0f) {
-                                width = -width;
-                                left -= width;
-                            }
-
-                            var top = region.Top / model.TextureSize.Y;
-                            var height = region.Height / model.TextureSize.Y;
-
-                            if (height < 0f) {
-                                height = -height;
-                                top -= height;
-                            }
-
-                            yield return new MaterialFilter {
-                                Name = $"{nameBuilder}",
-                                Top = new decimal(top),
-                                Left = new decimal(left),
-                                Width = new decimal(width),
-                                Height = new decimal(height),
-                            };
+                        if (width < 0f) {
+                            width = -width;
+                            left -= width;
                         }
 
-                        cubeIndex++;
+                        var top = region.Top / model.TextureSize.Y;
+                        var height = region.Height / model.TextureSize.Y;
+
+                        if (height < 0f) {
+                            height = -height;
+                            top -= height;
+                        }
+
+                        yield return new MaterialFilter {
+                            Name = $"{nameBuilder}",
+                            Top = new decimal(top),
+                            Left = new decimal(left),
+                            Width = new decimal(width),
+                            Height = new decimal(height),
+                        };
                     }
+
+                    cubeIndex++;
                 }
 
-                if (element.Submodels == null) continue;
                 foreach (var filter in ProcessElements(element.Submodels))
                     yield return filter;
             }
@@ -276,13 +270,13 @@ internal class MaterialFiltersViewModel : ModelBase
 
         newFilter ??= new MaterialFilter();
 
-        _material.Filters ??= new List<MaterialFilter>();
+        _material.Filters ??= [];
         _material.Filters.Add(newFilter);
 
         var filterModel = new ObservableMaterialFilter(newFilter);
 
         if (_filterList == null) {
-            _filterList = new ObservableCollection<ObservableMaterialFilter>();
+            _filterList = [];
             OnPropertyChanged(nameof(FilterList));
         }
 

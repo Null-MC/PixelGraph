@@ -10,13 +10,13 @@ namespace PixelGraph.UI.ViewModels;
 
 internal class NewMaterialViewModel : ModelBase
 {
-    protected GameObjectTypes _gameObjectType;
+    protected GameObjectTypes _gameObjectType = GameObjectTypes.Block;
+    protected string? _gameNamespace = "minecraft";
     protected string? _gameObjectName;
-    protected string? _gameNamespace;
     protected string? _location;
 
-    public ObservableCollection<string> GameNamespaces {get;}
-    public ObservableCollection<GameObjectOption> GameObjectNames {get;}
+    public ObservableCollection<string> GameNamespaces {get;} = new(new [] {"minecraft"});
+    public ObservableCollection<GameObjectOption> GameObjectNames {get;} = [];
 
     public GameObjectTypes GameObjectType {
         get => _gameObjectType;
@@ -58,15 +58,6 @@ internal class NewMaterialViewModel : ModelBase
     }
 
 
-    public NewMaterialViewModel()
-    {
-        GameObjectNames = new ObservableCollection<GameObjectOption>();
-        GameNamespaces = new ObservableCollection<string>(new [] {"minecraft"});
-
-        _gameObjectType = GameObjectTypes.Block;
-        _gameNamespace = "minecraft";
-    }
-
     public void Initialize(IServiceProvider provider)
     {
         var locator = provider.GetRequiredService<MinecraftResourceLocator>();
@@ -85,7 +76,7 @@ internal class NewMaterialViewModel : ModelBase
             case GameObjectTypes.Block:
             case GameObjectTypes.Optifine_CTM:
                 foreach (var block in Minecraft.Java.AllBlockTextures) {
-                    var latest = block.GetLatestVersion();
+                    var latest = block.GetLatestVersion() ?? throw new ApplicationException($"Unable to get latest game version for block '{block.Name}'!");
 
                     GameObjectNames.Add(new GameObjectOption {
                         Id = latest.Id,
@@ -95,7 +86,7 @@ internal class NewMaterialViewModel : ModelBase
             case GameObjectTypes.Item:
             case GameObjectTypes.Optifine_CIT:
                 foreach (var item in Minecraft.Java.AllItems) {
-                    var latest = item.GetLatestVersion() ?? throw new ApplicationException("Unable to retrieve latest game version!");
+                    var latest = item.GetLatestVersion() ?? throw new ApplicationException($"Unable to get latest game version for item '{item.Name}'!");
 
                     GameObjectNames.Add(new GameObjectOption {
                         Id = latest.Id,
@@ -104,7 +95,7 @@ internal class NewMaterialViewModel : ModelBase
                 break;
             case GameObjectTypes.Entity:
                 foreach (var entity in Minecraft.Java.AllEntityTextures) {
-                    var latest = entity.GetLatestVersion();
+                    var latest = entity.GetLatestVersion() ?? throw new ApplicationException($"Unable to get latest game version for entity '{entity.Name}'!");
 
                     var e = new GameObjectOption {
                         Id = latest.Id,
@@ -116,6 +107,8 @@ internal class NewMaterialViewModel : ModelBase
                     GameObjectNames.Add(e);
                 }
                 break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 
@@ -160,7 +153,7 @@ public class GameObjectOption
 {
     private string? _path;
 
-    public string? Id {get; set;}
+    public string? Id {get; init;}
 
     public string? Path {
         get => _path ?? Id;

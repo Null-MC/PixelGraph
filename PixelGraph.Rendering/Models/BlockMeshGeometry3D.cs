@@ -5,8 +5,8 @@ namespace PixelGraph.Rendering.Models;
 
 public class BlockMeshGeometry3D : MeshGeometry3D
 {
-    private Vector2Collection textureCoordinateMins = new();
-    private Vector2Collection textureCoordinateMaxs = new();
+    private Vector2Collection textureCoordinateMins = [];
+    private Vector2Collection textureCoordinateMaxs = [];
 
     [DataMember]
     public Vector2Collection TextureCoordinateMins {

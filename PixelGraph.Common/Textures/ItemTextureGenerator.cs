@@ -19,38 +19,20 @@ public interface IItemTextureGenerator
     Task<Image<Rgba32>?> CreateAsync(ITextureGraph graph, CancellationToken token = default);
 }
 
-internal class ItemTextureGenerator : IItemTextureGenerator
+internal class ItemTextureGenerator(
+    IServiceProvider provider,
+    ITextureGraphContext context,
+    ITextureSourceGraph sourceGraph,
+    ITextureNormalGraph normalGraph,
+    ITextureOcclusionGraph occlusionGraph,
+    ITextureReader texReader,
+    IInputReader reader)
+    : IItemTextureGenerator
 {
     private const int TargetFrame = 0;
 
-    private readonly IServiceProvider provider;
-    private readonly ITextureGraphContext context;
-    private readonly ITextureSourceGraph sourceGraph;
-    private readonly ITextureNormalGraph normalGraph;
-    private readonly ITextureOcclusionGraph occlusionGraph;
-    private readonly ITextureReader texReader;
-    private readonly IInputReader reader;
-
     private Image<Rgba32>? emissiveImage;
 
-
-    public ItemTextureGenerator(
-        IServiceProvider provider,
-        ITextureGraphContext context,
-        ITextureSourceGraph sourceGraph,
-        ITextureNormalGraph normalGraph,
-        ITextureOcclusionGraph occlusionGraph,
-        ITextureReader texReader,
-        IInputReader reader)
-    {
-        this.provider = provider;
-        this.context = context;
-        this.sourceGraph = sourceGraph;
-        this.normalGraph = normalGraph;
-        this.occlusionGraph = occlusionGraph;
-        this.texReader = texReader;
-        this.reader = reader;
-    }
 
     public async Task<Image<Rgba32>?> CreateAsync(ITextureGraph graph, CancellationToken token = default)
     {
@@ -177,12 +159,12 @@ internal class ItemTextureGenerator : IItemTextureGenerator
             subContext.InputEncoding.Add(opacityInputChannel);
 
         builder.InputChannels = subContext.InputEncoding.ToArray();
-        builder.OutputChannels = new PackEncodingChannel[] {
+        builder.OutputChannels = [
             new ResourcePackColorRedChannelProperties(TextureTags.Color, ColorChannel.Red),
             new ResourcePackColorGreenChannelProperties(TextureTags.Color, ColorChannel.Green),
             new ResourcePackColorBlueChannelProperties(TextureTags.Color, ColorChannel.Blue),
-            new ResourcePackOpacityChannelProperties(TextureTags.Color, ColorChannel.Alpha) {DefaultValue = 1m},
-        };
+            new ResourcePackOpacityChannelProperties(TextureTags.Color, ColorChannel.Alpha) {DefaultValue = 1m}
+        ];
 
         if (context.IsMaterialCtm)
             builder.TargetPart = 0;
@@ -221,6 +203,8 @@ internal class ItemTextureGenerator : IItemTextureGenerator
 
     private Task<TextureSource?> GetEmissiveInfoAsync(CancellationToken token)
     {
+        ArgumentNullException.ThrowIfNull(context.Material);
+
         var emissiveFile = texReader.EnumerateInputTextures(context.Material, TextureTags.Emissive).FirstOrDefault();
         if (emissiveFile == null) return Task.FromResult<TextureSource?>(null);
 
@@ -229,13 +213,12 @@ internal class ItemTextureGenerator : IItemTextureGenerator
 
     private async Task<ISampler<Rgba32>> GetEmissiveSamplerAsync(string emissiveFile, CancellationToken token)
     {
-        await using var stream = reader.Open(emissiveFile);
-        if (stream == null) throw new ApplicationException("Failed to open file stream!");
+        await using var stream = reader.Open(emissiveFile)
+            ?? throw new ApplicationException("Failed to open file stream!");
 
         emissiveImage = await Image.LoadAsync<Rgba32>(stream, token);
 
-        var samplerName = context.Profile?.Encoding?.Emissive?.Sampler
-                          ?? context.DefaultSampler;
+        var samplerName = context.GetSamplerName(EncodingChannel.Emissive);// context.Profile?.Encoding?.Emissive.Sampler ?? context.DefaultSampler;
 
         var sampler = context.CreateSampler(emissiveImage, samplerName);
 

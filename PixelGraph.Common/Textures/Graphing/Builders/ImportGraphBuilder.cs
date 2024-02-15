@@ -1,9 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.Textures.Graphing.Builders;
 
@@ -12,16 +8,9 @@ public interface IImportGraphBuilder
     Task ImportAsync(CancellationToken token = default);
 }
 
-internal class ImportGraphBuilder : TextureGraphBuilder, IImportGraphBuilder
+internal class ImportGraphBuilder(IServiceProvider provider, ILogger<ImportGraphBuilder> logger)
+    : TextureGraphBuilder(provider, logger), IImportGraphBuilder
 {
-    private readonly ILogger<ImportGraphBuilder> logger;
-
-
-    public ImportGraphBuilder(IServiceProvider provider, ILogger<ImportGraphBuilder> logger) : base(provider, logger)
-    {
-        this.logger = logger;
-    }
-        
     public async Task ImportAsync(CancellationToken token = default)
     {
         await ProcessAllTexturesAsync(false, token);

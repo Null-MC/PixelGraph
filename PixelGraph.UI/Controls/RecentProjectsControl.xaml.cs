@@ -28,17 +28,23 @@ public partial class RecentProjectsControl
 
         Model.Initialize(provider);
 
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
         Model.Data.MissingImage = CreateMissingImage();
     }
 
     public async Task AppendAsync(string filename, CancellationToken token = default)
     {
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
         await Model.Data.AppendProjectAsync(filename, token);
         await Model.Data.UpdateModelListAsync(Dispatcher, token);
     }
 
     private async Task OpenProjectAsync(string filename)
     {
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
         if (!File.Exists(filename)) {
             var window = Window.GetWindow(this);
             if (window != null) MessageBox.Show(window, "The selected project file could not be found!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -53,6 +59,8 @@ public partial class RecentProjectsControl
 
     private async void OnControlLoaded(object sender, RoutedEventArgs e)
     {
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
         try {
             await Task.Run(Model.Data.LoadAsync);
         }
@@ -93,7 +101,7 @@ public partial class RecentProjectsControl
         return image;
     }
 
-    private ProjectTileModel? GetContextModel(object sender)
+    private static ProjectTileModel? GetContextModel(object sender)
     {
         return sender is not MenuItem {
             Parent: ContextMenu {
@@ -117,6 +125,8 @@ public partial class RecentProjectsControl
         var projectModel = GetContextModel(sender);
         if (projectModel == null) return;
 
+        ArgumentNullException.ThrowIfNull(Model.Data);
+
         Model.Data.Tiles.Remove(projectModel);
 
         if (projectModel.Filename != null)
@@ -126,5 +136,5 @@ public partial class RecentProjectsControl
 
 public class TileClickedEventArgs
 {
-    public string? Filename {get; set;}
+    public string? Filename {get; init;}
 }

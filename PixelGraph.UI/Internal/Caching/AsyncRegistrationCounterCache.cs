@@ -1,14 +1,10 @@
 ﻿namespace PixelGraph.UI.Internal.Caching;
 
-internal abstract class AsyncRegistrationCounterCache<TKey, TValue>
+internal abstract class AsyncRegistrationCounterCache<TKey, TValue>(IEqualityComparer<TKey> keyComparer)
+    where TKey : notnull
 {
-    private readonly Dictionary<TKey, CounterCacheItem<TValue>> map;
+    private readonly Dictionary<TKey, CounterCacheItem<TValue>> map = new(keyComparer);
 
-
-    protected AsyncRegistrationCounterCache(IEqualityComparer<TKey> keyComparer)
-    {
-        map = new Dictionary<TKey, CounterCacheItem<TValue>>(keyComparer);
-    }
 
     protected async Task<CacheRegistration<TKey, TValue>> RegisterAsync(TKey key, Func<TKey, Task<TValue>> createFunc)
     {
@@ -23,11 +19,10 @@ internal abstract class AsyncRegistrationCounterCache<TKey, TValue>
     {
         if (!map.TryGetValue(registration.Key, out var counter)) return;
         if (!counter.Registrations.Remove(registration.RegistrationId)) return;
+        if (counter.Registrations.Count != 0) return;
 
-        if (counter.Registrations.Count == 0) {
-            if (counter.Item is IDisposable disposable) disposable.Dispose();
-            map.Remove(registration.Key);
-        }
+        if (counter.Item is IDisposable disposable) disposable.Dispose();
+        map.Remove(registration.Key);
     }
 
     public void Clear()

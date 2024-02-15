@@ -7,20 +7,11 @@ using PixelGraph.UI.Internal.Projects;
 
 namespace PixelGraph.UI.Internal;
 
-internal class MaterialPropertiesCache : AsyncRegistrationCounterCache<string, MaterialProperties>
+internal class MaterialPropertiesCache(
+    IServiceProvider provider,
+    IProjectContextManager projectContextMgr)
+    : AsyncRegistrationCounterCache<string, MaterialProperties>(StringComparer.InvariantCultureIgnoreCase)
 {
-    private readonly IServiceProvider provider;
-    private readonly IProjectContextManager projectContextMgr;
-
-
-    public MaterialPropertiesCache(
-        IServiceProvider provider,
-        IProjectContextManager projectContextMgr) : base(StringComparer.InvariantCultureIgnoreCase)
-    {
-        this.provider = provider;
-        this.projectContextMgr = projectContextMgr;
-    }
-
     public Task<CacheRegistration<string, MaterialProperties>> RegisterAsync(string localFile, CancellationToken token = default)
     {
         return RegisterAsync(localFile, key => LoadMaterial(key, token));
@@ -31,7 +22,7 @@ internal class MaterialPropertiesCache : AsyncRegistrationCounterCache<string, M
         base.Release(registration);
     }
 
-    private async Task<MaterialProperties?> LoadMaterial(string localFile, CancellationToken token)
+    private async Task<MaterialProperties> LoadMaterial(string localFile, CancellationToken token)
     {
         var projectContext = projectContextMgr.GetContextRequired();
         var serviceBuilder = provider.GetRequiredService<IServiceBuilder>();
@@ -42,6 +33,7 @@ internal class MaterialPropertiesCache : AsyncRegistrationCounterCache<string, M
         await using var scope = serviceBuilder.Build();
 
         var materialReader = scope.GetRequiredService<IMaterialReader>();
-        return await materialReader.LoadAsync(localFile, token);
+        return await materialReader.LoadAsync(localFile, token)
+            ?? throw new ApplicationException("Failed to load material!");
     }
 }

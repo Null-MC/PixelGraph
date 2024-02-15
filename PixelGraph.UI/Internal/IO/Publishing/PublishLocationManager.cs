@@ -6,7 +6,7 @@ namespace PixelGraph.UI.Internal.IO.Publishing;
 
 internal interface IPublishLocationManager
 {
-    string SelectedLocation {get; set;}
+    string? SelectedLocation {get; set;}
 
     PublishLocation[]? GetLocations();
     void SetLocations(IEnumerable<PublishLocation>? locations);
@@ -14,26 +14,18 @@ internal interface IPublishLocationManager
     Task SaveAsync(CancellationToken token = default);
 }
 
-internal class PublishLocationManager : IPublishLocationManager, IDisposable
+internal class PublishLocationManager(
+    IAppSettingsManager appSettings,
+    IAppDataUtility appData)
+    : IPublishLocationManager, IDisposable
 {
     private const string FileName = "PublishLocations.json";
 
-    private readonly IAppDataUtility appData;
-    private readonly ReaderWriterLockSlim _lock;
+    private readonly ReaderWriterLockSlim _lock = new();
     private PublishLocation[]? _locations;
 
-    public string SelectedLocation {get; set;}
+    public string? SelectedLocation {get; set;} = appSettings.Data.SelectedPublishLocation;
 
-
-    public PublishLocationManager(
-        IAppSettingsManager appSettings,
-        IAppDataUtility appData)
-    {
-        this.appData = appData;
-
-        _lock = new ReaderWriterLockSlim();
-        SelectedLocation = appSettings.Data.SelectedPublishLocation;
-    }
 
     public void Dispose()
     {

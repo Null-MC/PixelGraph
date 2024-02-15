@@ -7,11 +7,6 @@ using PixelGraph.Common.Projects;
 using PixelGraph.Common.TextureFormats;
 using PixelGraph.Common.Textures;
 using PixelGraph.Common.Textures.Graphing;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PixelGraph.Common.IO.Publishing;
 
@@ -32,20 +27,20 @@ public class BedrockPublisher : PublisherBase
                 Name = pack.Name,
                 Description = pack.Description,
                 UniqueId = pack.HeaderUuid,
-                Version = new [] {1, 0, 0},
-                MinEngineVersion = new [] {1, 16, 0},
+                Version = [1, 0, 0],
+                MinEngineVersion = [1, 16, 0],
             },
             Modules = {
                 new BedrockPackModuleMetadata {
                     UniqueId = pack.ModuleUuid,
                     Description = pack.Description,
                     Type = "resources",
-                    Version = new [] {1, 0, 0},
+                    Version = [1, 0, 0],
                 },
             },
         };
 
-        var isRtx = TextureFormat.Is(pack.Encoding.Format, TextureFormat.Format_Rtx);
+        var isRtx = TextureFormat.Is(pack.Encoding?.Format, TextureFormat.Format_Rtx);
         if (isRtx) packMeta.Capabilities.Add("raytraced");
 
         await Writer.OpenWriteAsync("manifest.json", async stream => {
@@ -70,8 +65,10 @@ public class BedrockPublisher : PublisherBase
     {
         var context = scopeProvider.GetRequiredService<ITextureGraphContext>();
 
-        if (context.OutputEncoding == null) return;
-        if (context.IsMaterialCtm && !(context.Material.CTM.Placeholder ?? false)) return;
+        ArgumentNullException.ThrowIfNull(context.Material);
+
+        //if (context.OutputEncoding == null) return;
+        if (context.IsMaterialCtm && !(context.Material.CTM?.Placeholder ?? false)) return;
 
         var hasNormalMer = context.OutputEncoding.Any(e => TextureTags.Is(e.Texture, TextureTags.Normal) || TextureTags.Is(e.Texture, TextureTags.MER));
         if (!hasNormalMer) return;
@@ -79,7 +76,7 @@ public class BedrockPublisher : PublisherBase
         var sourcePath = context.Material.LocalPath;
 
         // Create *.texture_set.json file
-        if (context.IsMaterialMultiPart) {
+        if (context.IsMaterialMultiPart && context.Material.Parts != null) {
             foreach (var part in context.Material.Parts) {
                 if (Mapping.TryMap(sourcePath, part.Name, out var destPath, out var destName))
                     await CreateMaterialMetadataAsync(context, destPath, destName, token);
@@ -103,7 +100,7 @@ public class BedrockPublisher : PublisherBase
 
     protected override bool TryMapMaterial(in MaterialProperties material)
     {
-        if (Mapping == null) return true;
+        //if (Mapping == null) return true;
 
         var sourcePath = material.LocalPath;
         string sourceFile;

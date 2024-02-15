@@ -41,7 +41,7 @@ public abstract class PublisherBase(
 
     protected IServiceProvider Provider {get;} = provider;
     protected ILogger<IPublisher> Logger {get;} = logger;
-    protected IPublisherMapping Mapping {get; set;} = new DefaultPublishMapping();
+    protected IPublisherMapping Mapping {get; init;} = new DefaultPublishMapping();
     protected IInputReader Reader {get;} = provider.GetRequiredService<IInputReader>();
     protected IOutputWriter Writer {get;} = provider.GetRequiredService<IOutputWriter>();
 
@@ -181,8 +181,8 @@ public abstract class PublisherBase(
 
         if (IsGenericResizable(localFile)) { await genericPublisher.PublishAsync(localFile, null, destFile, token); }
         else {
-            await using var srcStream = Reader.Open(localFile);
-            if (srcStream == null) throw new ApplicationException("Failed to open source file stream!");
+            await using var srcStream = Reader.Open(localFile)
+                ?? throw new ApplicationException("Failed to open source file stream!");
 
             await Writer.OpenWriteAsync(destFile, async destStream => {await srcStream.CopyToAsync(destStream, token);}, token);
         }
@@ -236,12 +236,12 @@ public abstract class PublisherBase(
         return !resizeIgnoreList.Any(x => localFile.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
     }
 
-    private static readonly string[] resizeIgnoreList = {
+    private static readonly string[] resizeIgnoreList = [
         Path.Combine("assets", "minecraft", "textures", "font"),
         Path.Combine("assets", "minecraft", "textures", "gui"),
         Path.Combine("assets", "minecraft", "textures", "colormap"),
         Path.Combine("assets", "minecraft", "textures", "misc"),
         Path.Combine("assets", "minecraft", "optifine", "colormap"),
-        Path.Combine("pack", "minecraft", "optifine", "colormap"),
-    };
+        Path.Combine("pack", "minecraft", "optifine", "colormap")
+    ];
 }

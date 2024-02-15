@@ -38,8 +38,8 @@ internal class TextureBuilder(
     ITextureNormalGraph normalGraph,
     ITextureOcclusionGraph occlusionGraph) : ITextureBuilder
 {
-    private readonly List<TextureChannelMapping> mappings = new();
-    private readonly Dictionary<ColorChannel, int> defaultPriorityValues = new();
+    private readonly List<TextureChannelMapping> mappings = [];
+    private readonly Dictionary<ColorChannel, int> defaultPriorityValues = [];
     private Vector4 defaultValues;
     private Size bufferSize;
     private bool isGrayscale;
@@ -110,7 +110,7 @@ internal class TextureBuilder(
         isGrayscale = mappings.All(x => x.OutputColor == ColorChannel.Red);
         if (isGrayscale) defaultValues.Z = defaultValues.Y = defaultValues.X;
 
-        var autoLevel = context.Material?.Height?.AutoLevel
+        var autoLevel = context.Material?.Height.AutoLevel
                         ?? context.Profile?.AutoLevelHeight
                         ?? PublishProfileProperties.AutoLevelHeightDefault;
 
@@ -219,7 +219,9 @@ internal class TextureBuilder(
         ArgumentNullException.ThrowIfNull(context.Material);
 
         mapping = new TextureChannelMapping {
-            Sampler = outputChannel.Sampler ?? context.Profile?.Encoding?.GetSampler(outputChannel.ID),
+            Sampler = outputChannel.Sampler
+                ?? context.Profile?.Encoding?.GetSampler(outputChannel.ID)
+                ?? context.DefaultSampler,
         };
 
         mapping.ApplyOutputChannel(outputChannel);
@@ -250,7 +252,7 @@ internal class TextureBuilder(
             return true;
         }
 
-        if (inputChannel?.Texture != null) {
+        if (inputChannel.Texture != null) {
             if (TextureTags.Is(inputChannel.Texture, TextureTags.MagnitudeBuffer)) {
                 mapping.SourceTag = TextureTags.MagnitudeBuffer;
                 mapping.ApplyInputChannel(inputChannel);

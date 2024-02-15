@@ -15,27 +15,14 @@ using System.IO;
 
 namespace PixelGraph.UI.Internal.Utilities;
 
-internal class TextureEditUtility
+internal class TextureEditUtility(
+    ILogger<TextureEditUtility> logger,
+    IServiceProvider provider,
+    IAppSettingsManager appSettingsMgr,
+    IProjectContextManager projectContextMgr)
 {
-    private readonly ILogger<TextureEditUtility> logger;
-    private readonly IServiceProvider provider;
-    private readonly IAppSettingsManager appSettingsMgr;
-    private readonly IProjectContextManager projectContextMgr;
-
     private CancellationTokenSource? mergedTokenSource;
 
-
-    public TextureEditUtility(
-        ILogger<TextureEditUtility> logger,
-        IServiceProvider provider,
-        IAppSettingsManager appSettingsMgr,
-        IProjectContextManager projectContextMgr)
-    {
-        this.appSettingsMgr = appSettingsMgr;
-        this.provider = provider;
-        this.projectContextMgr = projectContextMgr;
-        this.logger = logger;
-    }
 
     public Task<bool> EditLayerAsync(MaterialProperties material, string textureTag, CancellationToken token = default)
     {
@@ -76,10 +63,8 @@ internal class TextureEditUtility
             };
 
             var srcTime = File.GetLastWriteTimeUtc(tempFile);
-            using var process = Process.Start(info);
-
-            if (process == null)
-                throw new ApplicationException($"Failed to start process '{info.FileName}'!");
+            using var process = Process.Start(info)
+                ?? throw new ApplicationException($"Failed to start process '{info.FileName}'!");
 
             try {
                 await process.WaitForExitAsync(token);
@@ -139,7 +124,7 @@ internal class TextureEditUtility
             var srcPath = material.UseGlobalMatching
                 ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
 
-            inputFile = PathEx.Join(srcPath, matchName.Replace("*", "png"));
+            inputFile = PathEx.Join(srcPath, matchName?.Replace("*", "png"));
         }
 
         if (string.IsNullOrWhiteSpace(inputFile))
@@ -148,7 +133,7 @@ internal class TextureEditUtility
         return reader.GetFullPath(inputFile);
     }
 
-    private Image CreateImage(int width, int height, bool hasColor, bool hasAlpha)
+    private static Image CreateImage(int width, int height, bool hasColor, bool hasAlpha)
     {
         if (hasColor) {
             if (hasAlpha)

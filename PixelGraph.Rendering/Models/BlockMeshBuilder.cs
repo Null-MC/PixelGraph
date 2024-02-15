@@ -5,8 +5,8 @@ namespace PixelGraph.Rendering.Models;
 
 internal class BlockMeshBuilder() : MeshBuilder(true, true, true)
 {
-    private Vector2Collection TextureCoordinateMins {get; set;} = new();
-    private Vector2Collection TextureCoordinateMaxs {get; set;} = new();
+    private Vector2Collection TextureCoordinateMins {get; set;} = [];
+    private Vector2Collection TextureCoordinateMaxs {get; set;} = [];
 
 
     public void Clear()

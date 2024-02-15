@@ -1,4 +1,5 @@
-﻿using PixelGraph.Rendering.Utilities;
+﻿using PixelGraph.Common.Extensions;
+using PixelGraph.Rendering.Utilities;
 using SharpDX;
 using SharpDX.D3DCompiler;
 
@@ -22,7 +23,7 @@ public class ShaderSourceDescription : IDisposable
 
     public bool TryLoadFromPath(string path, IList<ShaderCompileError> errorList)
     {
-        var filename = Path.Combine(path, RawFileName);
+        var filename = PathEx.Join(path, RawFileName);
         if (!File.Exists(filename)) return false;
             
         try {
@@ -54,9 +55,11 @@ public class ShaderSourceDescription : IDisposable
 
     public void LoadFromAssembly()
     {
+        ArgumentNullException.ThrowIfNull(CompiledResourceName);
+
         var resourcePath = GetResourcePath(CompiledResourceName);
-        using var stream = ResourceLoader.Open(resourcePath);
-        if (stream == null) throw new FileNotFoundException($"Unable to locate embedded resource '{resourcePath}'!", resourcePath);
+        using var stream = ResourceLoader.Open(resourcePath)
+            ?? throw new FileNotFoundException($"Unable to locate embedded resource '{resourcePath}'!", resourcePath);
 
         Code?.Dispose();
         Code = ShaderBytecode.FromStream(stream);
@@ -68,26 +71,20 @@ public class ShaderSourceDescription : IDisposable
     }
 }
 
-internal class CustomShaderFileInclude : Include
+internal class CustomShaderFileInclude(string sourcePath) : Include
 {
-    private readonly string _sourcePath;
-
     public IDisposable? Shadow {get; set;}
 
-
-    public CustomShaderFileInclude(string sourcePath)
-    {
-        _sourcePath = sourcePath;
-    }
 
     public void Dispose()
     {
         Shadow?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     public Stream Open(IncludeType type, string fileName, Stream parentStream)
     {
-        var path = _sourcePath;
+        var path = sourcePath;
 
         if (parentStream is FileStream fileStream) {
             var p = Path.GetDirectoryName(fileStream.Name);

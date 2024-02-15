@@ -2,7 +2,7 @@
 
 public static class UnitHelper
 {
-    private static readonly string[] suf = { "B", "KB", "MB", "GB", "TB", "PB", "EB" }; //Longs run out around EB
+    private static readonly string[] suf = ["B", "KB", "MB", "GB", "TB", "PB", "EB"]; //Longs run out around EB
 
     private static readonly SortedList<long, string> cutoff = new() {
         {59, "{3:S}"},
@@ -37,7 +37,7 @@ public static class UnitHelper
 
     private class HMSFormatter : ICustomFormatter, IFormatProvider
     {
-        // list of Formats, with a P customformat for pluralization
+        // list of Formats, with a P custom format for pluralization
         private static readonly Dictionary<string, string> timeFormats = new() {
             {"S", "{0:P:Seconds:Second}"},
             {"M", "{0:P:Minutes:Minute}"},
@@ -71,7 +71,7 @@ public static class UnitHelper
                 }
             }
 
-            return string.Format(format, arg);
+            return (format != null ? string.Format(format, arg) : arg?.ToString()) ?? "NULL";
         }
 
         public object? GetFormat(Type? formatType)

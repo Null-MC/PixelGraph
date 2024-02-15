@@ -112,12 +112,6 @@ public class PublishProfileProperties : IHaveData, ICloneable
     public int? TileStartIndex {get; set;}
 
 
-    //public string GetSampler(string encodingChannel)
-    //{
-    //    var shit = null;
-    //    return shit ?? Encoding?.Sampler;
-    //}
-
     public virtual object Clone()
     {
         var clone = (PublishProfileProperties)MemberwiseClone();

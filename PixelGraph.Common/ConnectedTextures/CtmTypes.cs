@@ -45,9 +45,9 @@ public static class CtmTypes
         [Optifine_Expanded] = new(12, 4, 47),
     };
 
-    private static readonly string[] _repeatTypes = {
+    private static readonly string[] _repeatTypes = [
         Optifine_Repeat, Optifine_OverlayRepeat,
-    };
+    ];
 
 
     public static bool Is(string expected, string actual)
@@ -55,12 +55,14 @@ public static class CtmTypes
         return string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static bool IsRepeatType(string method)
+    public static bool IsRepeatType(string? method)
     {
+        if (method == null) return false;
+
         return _repeatTypes.Contains(method, StringComparer.InvariantCultureIgnoreCase);
     }
 
-    private static readonly string[] fixedTypes = {Optifine_Fixed, Optifine_Top, Optifine_Compact, Optifine_Horizontal, Optifine_Vertical, Optifine_Compact, Optifine_Expanded, Optifine_Full};
+    private static readonly string[] fixedTypes = [Optifine_Fixed, Optifine_Top, Optifine_Compact, Optifine_Horizontal, Optifine_Vertical, Optifine_Compact, Optifine_Expanded, Optifine_Full];
 
     public static bool IsFixedSize(string? method)
     {
@@ -90,17 +92,9 @@ public static class CtmTypes
     }
 }
 
-public class CtmDescription
+public class CtmDescription(int width, int height, int total)
 {
-    public int Width {get;}
-    public int Height {get;}
-    public int Total {get;}
-
-
-    public CtmDescription(int width, int height, int total)
-    {
-        Width = width;
-        Height = height;
-        Total = total;
-    }
+    public int Width {get;} = width;
+    public int Height {get;} = height;
+    public int Total {get;} = total;
 }

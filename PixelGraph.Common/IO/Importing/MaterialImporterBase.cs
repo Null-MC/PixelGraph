@@ -26,12 +26,11 @@ internal interface IMaterialImporter
     Task ImportAsync(MaterialProperties material, CancellationToken token = default);
 }
 
-internal abstract class MaterialImporterBase : IMaterialImporter
+internal abstract class MaterialImporterBase(IServiceProvider provider) : IMaterialImporter
 {
-    private readonly IServiceProvider provider;
-    private readonly IMaterialWriter matWriter;
+    private readonly IMaterialWriter matWriter = provider.GetRequiredService<IMaterialWriter>();
 
-    protected IInputReader Reader {get;}
+    protected IInputReader Reader {get;} = provider.GetRequiredService<IInputReader>();
 
     /// <inheritdoc />
     public bool AsGlobal {get; set;}
@@ -40,14 +39,6 @@ internal abstract class MaterialImporterBase : IMaterialImporter
 
     public PublishProfileProperties? PackProfile {get; set;}
 
-
-    protected MaterialImporterBase(IServiceProvider provider)
-    {
-        this.provider = provider;
-
-        matWriter = provider.GetRequiredService<IMaterialWriter>();
-        Reader = provider.GetRequiredService<IInputReader>();
-    }
 
     public abstract bool IsMaterialFile(string filename, out string name);
 

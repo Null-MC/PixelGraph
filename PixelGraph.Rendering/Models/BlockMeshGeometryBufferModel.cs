@@ -9,15 +9,13 @@ using SharpDX.Direct3D11;
 
 namespace PixelGraph.Rendering.Models;
 
-public class BlockMeshGeometryBufferModel : MeshGeometryBufferModel<BlockMeshVertex>
+public class BlockMeshGeometryBufferModel() : MeshGeometryBufferModel<BlockMeshVertex>(PrimitiveTopology.TriangleList, [
+    new ImmutableBufferProxy(BlockMeshVertex.SizeInBytes, BindFlags.VertexBuffer),
+])
 {
     //private static readonly Vector2[] emptyTextureArray = Array.Empty<Vector2>();
     //private static readonly Vector4[] emptyColorArray = Array.Empty<Vector4>();
 
-
-    public BlockMeshGeometryBufferModel() : base(PrimitiveTopology.TriangleList, new IElementsBufferProxy[] {
-        new ImmutableBufferProxy(BlockMeshVertex.SizeInBytes, BindFlags.VertexBuffer),
-    }) {}
 
     //public BlockMeshGeometryBufferModel(int structSize, bool dynamic = false) : base(structSize, dynamic) {}
     //public BlockMeshGeometryBufferModel(int structSize, PrimitiveTopology topology, bool dynamic = false) : base(structSize, topology, dynamic) {}
@@ -32,7 +30,7 @@ public class BlockMeshGeometryBufferModel : MeshGeometryBufferModel<BlockMeshVer
         switch (bufferIndex) {
             case 0:
                 // -- set geometry if given
-                if (geometry.Positions != null && geometry.Positions.Count > 0) {
+                if (geometry.Positions is { Count: > 0 }) {
                     // --- get geometry
                     var data = BuildVertexArray(mesh);
                     buffer.UploadDataToBuffer(context, data, geometry.Positions.Count, 0, geometry.PreDefinedVertexCount);
@@ -62,7 +60,7 @@ public class BlockMeshGeometryBufferModel : MeshGeometryBufferModel<BlockMeshVer
         }
     }
 
-    private BlockMeshVertex[] BuildVertexArray(BlockMeshGeometry3D geometry)
+    private static BlockMeshVertex[] BuildVertexArray(BlockMeshGeometry3D geometry)
     {
         //var geometry = this.geometryInternal as MeshGeometry3D;
         var vertexCount = geometry.Positions.Count;

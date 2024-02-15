@@ -21,40 +21,25 @@ using System.IO;
 
 namespace PixelGraph.UI.Helix.Models;
 
-public class MultiPartMeshBuilder : IDisposable
+public class MultiPartMeshBuilder(
+    IServiceProvider provider,
+    IProjectContextManager projectContextMgr,
+    MinecraftResourceLocator locator,
+    ModelLoader modelLoader) : IDisposable
 {
     private const float CubeSize = 4f;
 
-    private readonly IServiceProvider provider;
-    private readonly IProjectContextManager projectContextMgr;
-    private readonly MinecraftResourceLocator locator;
-    private readonly ModelLoader modelLoader;
-    private readonly Dictionary<string, IMaterialBuilder> materialMap;
-    private readonly List<(IModelBuilder, IMaterialBuilder)> partsList;
+    private readonly Dictionary<string, IMaterialBuilder> materialMap = [];
+    private readonly List<(IModelBuilder, IMaterialBuilder)> partsList = [];
     private bool isEntity;
 
-    public ObservableElement3DCollection ModelParts {get;}
+    public ObservableElement3DCollection ModelParts { get; } = [];
 
-
-    public MultiPartMeshBuilder(
-        IServiceProvider provider,
-        IProjectContextManager projectContextMgr,
-        MinecraftResourceLocator locator,
-        ModelLoader modelLoader)
-    {
-        this.provider = provider;
-        this.projectContextMgr = projectContextMgr;
-        this.locator = locator;
-        this.modelLoader = modelLoader;
-
-        materialMap = new Dictionary<string, IMaterialBuilder>();
-        ModelParts = new ObservableElement3DCollection();
-        partsList = new List<(IModelBuilder, IMaterialBuilder)>();
-    }
 
     public void Dispose()
     {
         ClearTextureBuilders();
+        GC.SuppressFinalize(this);
     }
 
     public async Task BuildAsync(IRenderContext renderContext, CancellationToken token = default)
@@ -100,14 +85,13 @@ public class MultiPartMeshBuilder : IDisposable
 
         foreach (var (modelBuilder, materialBuilder) in partsList) {
             var modelPart = new BlockMeshGeometryModel3D {
+                Geometry = modelBuilder.ToBlockMeshGeometry3D(),
+                Material = materialBuilder.BuildMaterial(),
                 IsThrowingShadow = true,
                 CullMode = isEntity
                     ? CullMode.None
                     : CullMode.Back,
             };
-
-            modelPart.Geometry = modelBuilder.ToBlockMeshGeometry3D();
-            modelPart.Material = materialBuilder.BuildMaterial();
 
             // TODO: I don't think this works at all...
             if (modelPart.Material.CanFreeze) modelPart.Material.Freeze();
@@ -158,10 +142,10 @@ public class MultiPartMeshBuilder : IDisposable
             var modelBuilder = new BlockModelBuilder();
 
             if (tile) {
-                Vector3 offset;
                 for (var z = -1; z <= 1; z++) {
                     for (var y = -1; y <= 1; y++) {
                         for (var x = -1; x <= 1; x++) {
+                            Vector3 offset;
                             offset.X = x * 16f;
                             offset.Y = y * 16f;
                             offset.Z = z * 16f;
@@ -233,8 +217,8 @@ public class MultiPartMeshBuilder : IDisposable
             if (string.Equals(textureId, "particle", StringComparison.InvariantCultureIgnoreCase)) continue;
 
             // find material from textureFile
-            MaterialProperties material;
-            int partIndex = 0;
+            MaterialProperties? material;
+            var partIndex = 0;
 
             var fileName = Path.GetFileNameWithoutExtension(textureFile);
             if (string.Equals(fileName, renderContext.DefaultMaterial.Name, StringComparison.InvariantCultureIgnoreCase)) {
@@ -244,7 +228,7 @@ public class MultiPartMeshBuilder : IDisposable
                 material = renderContext.DefaultMaterial;
             }
             //else if (renderContext.DefaultMaterial.CTM.Method)
-            else if (locator.FindLocalMaterial(textureFile, out var materialFile)) {
+            else if (locator.FindLocalMaterial(textureFile, out var materialFile) && materialFile != null) {
                 material = await matReader.LoadAsync(materialFile, token);
             }
             else {

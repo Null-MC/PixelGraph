@@ -10,35 +10,17 @@ using ImageExtensions = PixelGraph.Common.IO.ImageExtensions;
 
 namespace PixelGraph.Common.Textures.Graphing.Builders;
 
-internal abstract class TextureGraphBuilder
+internal abstract class TextureGraphBuilder(IServiceProvider provider, ILogger logger)
 {
-    private readonly ILogger logger;
+    protected IInputReader Reader {get;} = provider.GetRequiredService<IInputReader>();
+    protected ITextureReader TexReader {get;} = provider.GetRequiredService<ITextureReader>();
+    protected ITextureWriter TexWriter {get;} = provider.GetRequiredService<ITextureWriter>();
+    protected IOutputWriter Writer {get;} = provider.GetRequiredService<IOutputWriter>();
+    protected IImageWriter ImageWriter {get;} = provider.GetRequiredService<IImageWriter>();
+    protected ITextureGraphContext Context {get;} = provider.GetRequiredService<ITextureGraphContext>();
+    protected ITextureGraph Graph {get;} = provider.GetRequiredService<ITextureGraph>();
+    protected IPublishSummary Summary {get;} = provider.GetRequiredService<IPublishSummary>();
 
-    protected IServiceProvider Provider {get;}
-    protected IInputReader Reader {get;}
-    protected ITextureReader TexReader {get;}
-    protected ITextureWriter TexWriter {get;}
-    protected IOutputWriter Writer {get;}
-    protected IImageWriter ImageWriter {get;}
-    protected ITextureGraphContext Context {get;}
-    protected ITextureGraph Graph {get;}
-    protected IPublishSummary Summary {get;}
-
-
-    protected TextureGraphBuilder(IServiceProvider provider, ILogger logger)
-    {
-        Provider = provider;
-        this.logger = logger;
-
-        Reader = provider.GetRequiredService<IInputReader>();
-        TexReader = provider.GetRequiredService<ITextureReader>();
-        TexWriter = provider.GetRequiredService<ITextureWriter>();
-        Writer = provider.GetRequiredService<IOutputWriter>();
-        ImageWriter = provider.GetRequiredService<IImageWriter>();
-        Context = provider.GetRequiredService<ITextureGraphContext>();
-        Graph = provider.GetRequiredService<ITextureGraph>();
-        Summary = provider.GetRequiredService<IPublishSummary>();
-    }
 
     /// <summary>
     /// Publishes all textures with mapped output.
@@ -110,7 +92,7 @@ internal abstract class TextureGraphBuilder
         var usePlaceholder = Context.Material.CTM?.Placeholder ?? false;
         var ext = NamingStructure.GetExtension(Context.Profile);
 
-        var regions = Provider.GetRequiredService<TextureRegionEnumerator>();
+        var regions = provider.GetRequiredService<TextureRegionEnumerator>();
         regions.SourceFrameCount = maxFrameCount;
         regions.DestFrameCount = maxFrameCount;
 
@@ -212,8 +194,8 @@ internal abstract class TextureGraphBuilder
 
     private async Task CopyMetaFileAsync(string metaFileIn, string metaFileOut, CancellationToken token)
     {
-        await using var sourceStream = Reader.Open(metaFileIn);
-        if (sourceStream == null) throw new ApplicationException("Failed to open meta file stream!");
+        await using var sourceStream = Reader.Open(metaFileIn)
+            ?? throw new ApplicationException("Failed to open meta file stream!");
 
         await Writer.OpenWriteAsync(metaFileOut, async destStream => {
             await sourceStream.CopyToAsync(destStream, token);

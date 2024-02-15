@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Nito.Disposables.Internals;
 using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Material;
 using PixelGraph.Common.Textures;
@@ -20,21 +21,16 @@ public interface ITextureReader
     bool IsGlobalFile(string localFile, string name, string tag);
 }
 
-internal abstract class TextureReaderBase : ITextureReader
+internal abstract class TextureReaderBase(IServiceProvider provider) : ITextureReader
 {
-    protected ITextureGraphContext Context {get;}
-    protected IInputReader Reader {get;}
+    protected ITextureGraphContext Context {get;} = provider.GetRequiredService<ITextureGraphContext>();
+    protected IInputReader Reader {get;} = provider.GetRequiredService<IInputReader>();
 
-
-    protected TextureReaderBase(IServiceProvider provider)
-    {
-        Context = provider.GetRequiredService<ITextureGraphContext>();
-        Reader = provider.GetRequiredService<IInputReader>();
-    }
 
     public virtual bool TryGetByTag(string tag, out string? localFile)
     {
-        if (tag == null) throw new ArgumentNullException(nameof(tag));
+        ArgumentNullException.ThrowIfNull(tag);
+        ArgumentNullException.ThrowIfNull(Context.Material);
 
         var textureList = Context.IsImport
             ? EnumerateOutputTextures(Context.Material.Name, Context.Material.LocalPath, tag, true)
@@ -61,7 +57,7 @@ internal abstract class TextureReaderBase : ITextureReader
         return localFile != null;
     }
 
-    public virtual IEnumerable<string> EnumerateInputTextures(string localPath, string name)
+    public virtual IEnumerable<string> EnumerateInputTextures(string? localPath, string name)
     {
         if (localPath == null) throw new ArgumentNullException(nameof(localPath));
         if (name == null) throw new ArgumentNullException(nameof(name));
@@ -79,8 +75,8 @@ internal abstract class TextureReaderBase : ITextureReader
 
     public virtual IEnumerable<string> EnumerateInputTextures(MaterialProperties material, string tag)
     {
-        if (material == null) throw new ArgumentNullException(nameof(material));
-        if (tag == null) throw new ArgumentNullException(nameof(tag));
+        ArgumentNullException.ThrowIfNull(material);
+        ArgumentNullException.ThrowIfNull(tag);
 
         var srcPath = material.UseGlobalMatching
             ? material.LocalPath : PathEx.Join(material.LocalPath, material.Name);
@@ -112,7 +108,7 @@ internal abstract class TextureReaderBase : ITextureReader
         }
     }
 
-    public virtual IEnumerable<string> EnumerateOutputTextures(string localPath, string name)
+    public virtual IEnumerable<string> EnumerateOutputTextures(string? localPath, string name)
     {
         if (localPath == null) throw new ArgumentNullException(nameof(localPath));
         if (name == null) throw new ArgumentNullException(nameof(name));
@@ -130,7 +126,7 @@ internal abstract class TextureReaderBase : ITextureReader
 
     public virtual IEnumerable<string> EnumerateOutputTextures(string destName, string destPath, string tag, bool global)
     {
-        if (tag == null) throw new ArgumentNullException(nameof(tag));
+        ArgumentNullException.ThrowIfNull(tag);
 
         var srcPath = global
             ? destPath : PathEx.Join(destPath, destName);
@@ -161,6 +157,6 @@ internal abstract class TextureReaderBase : ITextureReader
     {
         return TextureTags.All
             .SelectMany(tag => EnumerateInputTextures(material, tag))
-            .Where(file => file != null).Distinct();
+            .WhereNotNull().Distinct();
     }
 }

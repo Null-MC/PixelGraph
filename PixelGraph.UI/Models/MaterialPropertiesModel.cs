@@ -23,27 +23,27 @@ internal class MaterialPropertiesModel : ModelBase
     public event EventHandler<MaterialPropertyChangedEventArgs>? DataChanged;
     public event EventHandler? ModelChanged;
 
-    public GeneralPropertyCollection GeneralProperties {get;}
-    public GeneralPreviewPropertyCollection GeneralModelProperties {get;}
-    public OpacityPropertyCollection OpacityProperties {get;}
-    public ColorPropertyCollection ColorProperties {get;}
-    public ColorOtherPropertyCollection ColorOtherProperties {get;}
-    public HeightPropertyCollection HeightProperties {get;}
-    public HeightEdgeFadingPropertyCollection HeightEdgeProperties {get;}
-    public NormalPropertyCollection NormalProperties {get;}
-    public NormalFilterPropertyCollection NormalFilterProperties {get;}
-    public NormalGeneratorPropertyCollection NormalGenerationProperties {get;}
-    public OcclusionPropertyCollection OcclusionProperties {get;}
-    public OcclusionGeneratorPropertyCollection OcclusionGenerationProperties {get;}
-    public SpecularPropertyCollection SpecularProperties {get;}
-    public SmoothPropertyCollection SmoothProperties {get;}
-    public RoughPropertyCollection RoughProperties {get;}
-    public MetalPropertyCollection MetalProperties {get;}
-    public HcmPropertyCollection HcmProperties {get;}
-    public F0PropertyCollection F0Properties {get;}
-    public PorosityPropertyCollection PorosityProperties {get;}
-    public SssPropertyCollection SssProperties {get; set;}
-    public EmissivePropertyCollection EmissiveProperties {get;}
+    public GeneralPropertyCollection GeneralProperties {get;} = new();
+    public GeneralPreviewPropertyCollection GeneralModelProperties {get;} = new();
+    public OpacityPropertyCollection OpacityProperties {get;} = new();
+    public ColorPropertyCollection ColorProperties {get;} = new();
+    public ColorOtherPropertyCollection ColorOtherProperties {get;} = new();
+    public HeightPropertyCollection HeightProperties {get;} = new();
+    public HeightEdgeFadingPropertyCollection HeightEdgeProperties {get;} = new();
+    public NormalPropertyCollection NormalProperties {get;} = new();
+    public NormalFilterPropertyCollection NormalFilterProperties {get;} = new();
+    public NormalGeneratorPropertyCollection NormalGenerationProperties {get;} = new();
+    public OcclusionPropertyCollection OcclusionProperties {get;} = new();
+    public OcclusionGeneratorPropertyCollection OcclusionGenerationProperties {get;} = new();
+    public SpecularPropertyCollection SpecularProperties {get;} = new();
+    public SmoothPropertyCollection SmoothProperties {get;} = new();
+    public RoughPropertyCollection RoughProperties {get;} = new();
+    public MetalPropertyCollection MetalProperties {get;} = new();
+    public HcmPropertyCollection HcmProperties {get;} = new();
+    public F0PropertyCollection F0Properties {get;} = new();
+    public PorosityPropertyCollection PorosityProperties {get;} = new();
+    public SssPropertyCollection SssProperties {get; set;} = new();
+    public EmissivePropertyCollection EmissiveProperties {get;} = new();
 
     public bool HasMaterial => _material != null;
     public bool IsGeneralSelected => TextureTags.Is(_selectedTag, TextureTags.General);
@@ -136,67 +136,46 @@ internal class MaterialPropertiesModel : ModelBase
 
     public MaterialPropertiesModel()
     {
-        GeneralProperties = new GeneralPropertyCollection();
         GeneralProperties.PropertyChanged += OnGeneralPropertyValueChanged;
 
-        GeneralModelProperties = new GeneralPreviewPropertyCollection();
         GeneralModelProperties.PropertyChanged += OnGeneralPropertyValueChanged;
 
-        OpacityProperties = new OpacityPropertyCollection();
         OpacityProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialOpacityProperties), e.PropertyName);
 
-        ColorProperties = new ColorPropertyCollection();
         ColorProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialColorProperties), e.PropertyName);
 
-        ColorOtherProperties = new ColorOtherPropertyCollection();
         ColorOtherProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialColorProperties), e.PropertyName);
 
-        HeightProperties = new HeightPropertyCollection();
         HeightProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialHeightProperties), e.PropertyName);
 
-        HeightEdgeProperties = new HeightEdgeFadingPropertyCollection();
         HeightEdgeProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialHeightProperties), e.PropertyName);
 
-        NormalProperties = new NormalPropertyCollection();
         NormalProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialNormalProperties), e.PropertyName);
 
-        NormalFilterProperties = new NormalFilterPropertyCollection();
         NormalFilterProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialNormalProperties), e.PropertyName);
 
-        NormalGenerationProperties = new NormalGeneratorPropertyCollection();
         NormalGenerationProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialNormalProperties), e.PropertyName);
 
-        OcclusionProperties = new OcclusionPropertyCollection();
         OcclusionProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialOcclusionProperties), e.PropertyName);
 
-        OcclusionGenerationProperties = new OcclusionGeneratorPropertyCollection();
         OcclusionGenerationProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialOcclusionProperties), e.PropertyName);
 
-        SpecularProperties = new SpecularPropertyCollection();
         SpecularProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialSpecularProperties), e.PropertyName);
 
-        SmoothProperties = new SmoothPropertyCollection();
         SmoothProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialSmoothProperties), e.PropertyName);
 
-        RoughProperties = new RoughPropertyCollection();
         RoughProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialRoughProperties), e.PropertyName);
 
-        MetalProperties = new MetalPropertyCollection();
         MetalProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialMetalProperties), e.PropertyName);
 
-        HcmProperties = new HcmPropertyCollection();
         HcmProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialHcmProperties), e.PropertyName);
 
-        F0Properties = new F0PropertyCollection();
         F0Properties.PropertyChanged += OnF0PropertyValueChanged;
 
-        PorosityProperties = new PorosityPropertyCollection();
         PorosityProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialPorosityProperties), e.PropertyName);
 
-        SssProperties = new SssPropertyCollection();
         SssProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialSssProperties), e.PropertyName);
 
-        EmissiveProperties = new EmissivePropertyCollection();
         EmissiveProperties.PropertyChanged += (_, e) => OnDataChanged(nameof(MaterialEmissiveProperties), e.PropertyName);
     }
 
@@ -204,7 +183,9 @@ internal class MaterialPropertiesModel : ModelBase
     {
         if (!_iorToF0Value.HasValue) return;
 
-        var t = (_iorToF0Value - 1) / (_iorToF0Value + 1);
+        ArgumentNullException.ThrowIfNull(Material);
+
+        var t = (_iorToF0Value - 1m) / (_iorToF0Value + 1m);
         var f0 = Math.Round((decimal)(t * t), 3);
 
         Material.F0.Value = f0;
@@ -219,7 +200,7 @@ internal class MaterialPropertiesModel : ModelBase
 
     private decimal? CalculateIorFromF0()
     {
-        if (!(Material?.F0?.Value.HasValue ?? false)) return null;
+        if (!(Material?.F0.Value.HasValue ?? false)) return null;
 
         var f0 = (double)Material.F0.Value.Value;
         if (f0 < 0) return null;
@@ -260,23 +241,16 @@ internal class MaterialPropertiesModel : ModelBase
         DataChanged?.Invoke(this, e);
     }
 
-    protected virtual void OnModelChanged()
+    protected void OnModelChanged()
     {
         ModelChanged?.Invoke(this, EventArgs.Empty);
     }
 }
 
-public class MaterialPropertyChangedEventArgs : EventArgs
+public class MaterialPropertyChangedEventArgs(string? className, string? propertyName) : EventArgs
 {
-    public string? ClassName {get; set;}
-    public string? PropertyName {get; set;}
-
-
-    public MaterialPropertyChangedEventArgs(string? className, string? propertyName)
-    {
-        ClassName = className;
-        PropertyName = propertyName;
-    }
+    public string? ClassName { get; set; } = className;
+    public string? PropertyName { get; set; } = propertyName;
 }
 
 public class GeneralPropertyCollection : PropertyCollectionBase<MaterialProperties>
@@ -319,7 +293,7 @@ public class GeneralPreviewPropertyCollection : PropertyCollectionBase<MaterialP
 
         if (material != null) {
 #if !NORENDER
-            if (MCPath.IsEntityPath(material.LocalPath)) {
+            if (material.LocalPath != null && MinecraftPath.IsEntityPath(material.LocalPath)) {
                 var textureData = Minecraft.Java.FindEntityTexturesById<JavaEntityTexture, JavaEntityTextureVersion>(material.Name).FirstOrDefault();
                 blendRow.DefaultValue = textureData != null
                     ? BlendModes.ToString(textureData.BlendMode)
@@ -328,7 +302,7 @@ public class GeneralPreviewPropertyCollection : PropertyCollectionBase<MaterialP
                 var modelData = Minecraft.Java.GetEntityModelForTexture<JavaEntityTextureVersion>(material.Name, material.LocalPath)?.GetLatestVersion();
                 modelRow.DefaultValue = modelData != null ? $"entity/{modelData.Id}" : null;
             }
-            else if (MCPath.IsItemPath(material.LocalPath)) {
+            else if (material.LocalPath != null && MinecraftPath.IsItemPath(material.LocalPath)) {
                 blendRow.DefaultValue = BlendModes.CutoutText;
                 modelRow.DefaultValue = null;
             }

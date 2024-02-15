@@ -62,37 +62,37 @@ public class MaterialProperties
 
     //public int? RangeMax {get; set;}
 
-    public MaterialOpacityProperties? Opacity {get; set;}
+    public MaterialOpacityProperties Opacity {get; set;}
 
-    public MaterialColorProperties? Color {get; set;}
+    public MaterialColorProperties Color {get; set;}
 
-    public MaterialHeightProperties? Height {get; set;}
+    public MaterialHeightProperties Height {get; set;}
 
-    public MaterialBumpProperties? Bump {get; set;}
+    public MaterialBumpProperties Bump {get; set;}
 
-    public MaterialNormalProperties? Normal {get; set;}
+    public MaterialNormalProperties Normal {get; set;}
 
-    public MaterialOcclusionProperties? Occlusion {get; set;}
+    public MaterialOcclusionProperties Occlusion {get; set;}
 
-    public MaterialSpecularProperties? Specular {get; set;}
+    public MaterialSpecularProperties Specular {get; set;}
 
-    public MaterialSmoothProperties? Smooth {get; set;}
+    public MaterialSmoothProperties Smooth {get; set;}
 
-    public MaterialRoughProperties? Rough {get; set;}
+    public MaterialRoughProperties Rough {get; set;}
 
-    public MaterialMetalProperties? Metal {get; set;}
+    public MaterialMetalProperties Metal {get; set;}
 
     [YamlMember(Alias = "hcm", ApplyNamingConventions = false)]
-    public MaterialHcmProperties? HCM {get; set;}
+    public MaterialHcmProperties HCM {get; set;}
 
-    public MaterialF0Properties? F0 {get; set;}
+    public MaterialF0Properties F0 {get; set;}
 
-    public MaterialPorosityProperties? Porosity {get; set;}
+    public MaterialPorosityProperties Porosity {get; set;}
 
     [YamlMember(Alias = "sss", ApplyNamingConventions = false)]
-    public MaterialSssProperties? SSS {get; set;}
+    public MaterialSssProperties SSS {get; set;}
 
-    public MaterialEmissiveProperties? Emissive {get; set;}
+    public MaterialEmissiveProperties Emissive {get; set;}
 
     public string? Model {get; set;}
 
@@ -175,7 +175,7 @@ public class MaterialProperties
     public bool TryGetSourceBounds(in int? blockSize, in float? scale, out Size size)
     {
         // ERROR: this is fucking things up!
-        // TODO: move type-based size lookup to it's own method
+        // TODO: move type-based size lookup to its own method
 
         var texWidth = TextureWidth ?? TextureSize;
         var texHeight = TextureHeight ?? TextureSize;
@@ -288,81 +288,81 @@ public class MaterialProperties
     }
 
     private static readonly Dictionary<string, Func<MaterialProperties, PackEncodingChannel?>> inputMap = new(StringComparer.OrdinalIgnoreCase) {
-        [EncodingChannel.Opacity] = mat => mat.Opacity?.Input,
-        [EncodingChannel.ColorRed] = mat => mat.Color?.InputRed,
-        [EncodingChannel.ColorGreen] = mat => mat.Color?.InputGreen,
-        [EncodingChannel.ColorBlue] = mat => mat.Color?.InputBlue,
-        [EncodingChannel.Height] = mat => mat.Height?.Input,
-        [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Input,
-        [EncodingChannel.NormalX] = mat => mat.Normal?.InputX,
-        [EncodingChannel.NormalY] = mat => mat.Normal?.InputY,
-        [EncodingChannel.NormalZ] = mat => mat.Normal?.InputZ,
-        [EncodingChannel.Specular] = mat => mat.Specular?.Input,
-        [EncodingChannel.Smooth] = mat => mat.Smooth?.Input,
-        [EncodingChannel.Rough] = mat => mat.Rough?.Input,
-        [EncodingChannel.Metal] = mat => mat.Metal?.Input,
-        [EncodingChannel.HCM] = mat => mat.HCM?.Input,
-        [EncodingChannel.F0] = mat => mat.F0?.Input,
-        [EncodingChannel.Porosity] = mat => mat.Porosity?.Input,
-        [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Input,
-        [EncodingChannel.Emissive] = mat => mat.Emissive?.Input,
+        [EncodingChannel.Opacity] = mat => mat.Opacity.Input,
+        [EncodingChannel.ColorRed] = mat => mat.Color.InputRed,
+        [EncodingChannel.ColorGreen] = mat => mat.Color.InputGreen,
+        [EncodingChannel.ColorBlue] = mat => mat.Color.InputBlue,
+        [EncodingChannel.Height] = mat => mat.Height.Input,
+        [EncodingChannel.Occlusion] = mat => mat.Occlusion.Input,
+        [EncodingChannel.NormalX] = mat => mat.Normal.InputX,
+        [EncodingChannel.NormalY] = mat => mat.Normal.InputY,
+        [EncodingChannel.NormalZ] = mat => mat.Normal.InputZ,
+        [EncodingChannel.Specular] = mat => mat.Specular.Input,
+        [EncodingChannel.Smooth] = mat => mat.Smooth.Input,
+        [EncodingChannel.Rough] = mat => mat.Rough.Input,
+        [EncodingChannel.Metal] = mat => mat.Metal.Input,
+        [EncodingChannel.HCM] = mat => mat.HCM.Input,
+        [EncodingChannel.F0] = mat => mat.F0.Input,
+        [EncodingChannel.Porosity] = mat => mat.Porosity.Input,
+        [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS.Input,
+        [EncodingChannel.Emissive] = mat => mat.Emissive.Input,
     };
 
     private static readonly Dictionary<string, Func<MaterialProperties, decimal?>> valueMap = new(StringComparer.OrdinalIgnoreCase) {
-        [EncodingChannel.Opacity] = mat => mat.Opacity?.Value,
-        [EncodingChannel.ColorRed] = mat => mat.Color?.GetValueRed(),
-        [EncodingChannel.ColorGreen] = mat => mat.Color?.GetValueGreen(),
-        [EncodingChannel.ColorBlue] = mat => mat.Color?.GetValueBlue(),
+        [EncodingChannel.Opacity] = mat => mat.Opacity.Value,
+        [EncodingChannel.ColorRed] = mat => mat.Color.GetValueRed(),
+        [EncodingChannel.ColorGreen] = mat => mat.Color.GetValueGreen(),
+        [EncodingChannel.ColorBlue] = mat => mat.Color.GetValueBlue(),
         [EncodingChannel.Height] = _ => null,
-        [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Value,
-        [EncodingChannel.NormalX] = mat => mat.Normal?.ValueX,
-        [EncodingChannel.NormalY] = mat => mat.Normal?.ValueY,
-        [EncodingChannel.NormalZ] = mat => mat.Normal?.ValueZ,
-        [EncodingChannel.Specular] = mat => mat.Specular?.Value,
-        [EncodingChannel.Smooth] = mat => mat.Smooth?.Value,
-        [EncodingChannel.Rough] = mat => mat.Rough?.Value,
-        [EncodingChannel.Metal] = mat => mat.Metal?.Value,
-        [EncodingChannel.HCM] = mat => mat.HCM?.Value,
-        [EncodingChannel.F0] = mat => mat.F0?.Value,
-        [EncodingChannel.Porosity] = mat => mat.Porosity?.Value,
-        [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Value,
-        [EncodingChannel.Emissive] = mat => mat.Emissive?.Value,
+        [EncodingChannel.Occlusion] = mat => mat.Occlusion.Value,
+        [EncodingChannel.NormalX] = mat => mat.Normal.ValueX,
+        [EncodingChannel.NormalY] = mat => mat.Normal.ValueY,
+        [EncodingChannel.NormalZ] = mat => mat.Normal.ValueZ,
+        [EncodingChannel.Specular] = mat => mat.Specular.Value,
+        [EncodingChannel.Smooth] = mat => mat.Smooth.Value,
+        [EncodingChannel.Rough] = mat => mat.Rough.Value,
+        [EncodingChannel.Metal] = mat => mat.Metal.Value,
+        [EncodingChannel.HCM] = mat => mat.HCM.Value,
+        [EncodingChannel.F0] = mat => mat.F0.Value,
+        [EncodingChannel.Porosity] = mat => mat.Porosity.Value,
+        [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS.Value,
+        [EncodingChannel.Emissive] = mat => mat.Emissive.Value,
     };
 
     private static readonly Dictionary<string, Func<MaterialProperties, decimal>> shiftMap = new(StringComparer.OrdinalIgnoreCase) {
-        [EncodingChannel.Opacity] = mat => mat.Opacity?.Shift ?? 0m,
+        [EncodingChannel.Opacity] = mat => mat.Opacity.Shift ?? 0m,
         [EncodingChannel.ColorRed] = _ => 0m,
         [EncodingChannel.ColorGreen] = _ => 0m,
         [EncodingChannel.ColorBlue] = _ => 0m,
-        [EncodingChannel.Height] = mat => mat.Height?.Shift ?? 0m,
-        [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Shift ?? 0m,
-        [EncodingChannel.Smooth] = mat => mat.Smooth?.Shift ?? 0m,
-        [EncodingChannel.Specular] = mat => mat.Specular?.Shift ?? 0m,
-        [EncodingChannel.Rough] = mat => mat.Rough?.Shift ?? 0m,
-        [EncodingChannel.Metal] = mat => mat.Metal?.Shift ?? 0m,
+        [EncodingChannel.Height] = mat => mat.Height.Shift ?? 0m,
+        [EncodingChannel.Occlusion] = mat => mat.Occlusion.Shift ?? 0m,
+        [EncodingChannel.Smooth] = mat => mat.Smooth.Shift ?? 0m,
+        [EncodingChannel.Specular] = mat => mat.Specular.Shift ?? 0m,
+        [EncodingChannel.Rough] = mat => mat.Rough.Shift ?? 0m,
+        [EncodingChannel.Metal] = mat => mat.Metal.Shift ?? 0m,
         [EncodingChannel.HCM] = _ => 0m,
-        [EncodingChannel.F0] = mat => mat.F0?.Shift ?? 0m,
-        [EncodingChannel.Porosity] = mat => mat.Porosity?.Shift ?? 0m,
-        [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Shift ?? 0m,
-        [EncodingChannel.Emissive] = mat => mat.Emissive?.Shift ?? 0m,
+        [EncodingChannel.F0] = mat => mat.F0.Shift ?? 0m,
+        [EncodingChannel.Porosity] = mat => mat.Porosity.Shift ?? 0m,
+        [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS.Shift ?? 0m,
+        [EncodingChannel.Emissive] = mat => mat.Emissive.Shift ?? 0m,
     };
 
     private static readonly Dictionary<string, Func<MaterialProperties, decimal>> scaleMap = new(StringComparer.OrdinalIgnoreCase) {
-        [EncodingChannel.Opacity] = mat => mat.Opacity?.Scale ?? 1m,
-        [EncodingChannel.ColorRed] = mat => mat.Color?.ScaleRed ?? 1m,
-        [EncodingChannel.ColorGreen] = mat => mat.Color?.ScaleGreen ?? 1m,
-        [EncodingChannel.ColorBlue] = mat => mat.Color?.ScaleBlue ?? 1m,
-        [EncodingChannel.Height] = mat => mat.Height?.Scale ?? 1m,
-        [EncodingChannel.Occlusion] = mat => mat.Occlusion?.Scale ?? 1m,
-        [EncodingChannel.Specular] = mat => mat.Specular?.Scale ?? 1m,
-        [EncodingChannel.Smooth] = mat => mat.Smooth?.Scale ?? 1m,
-        [EncodingChannel.Rough] = mat => mat.Rough?.Scale ?? 1m,
-        [EncodingChannel.Metal] = mat => mat.Metal?.Scale ?? 1m,
+        [EncodingChannel.Opacity] = mat => mat.Opacity.Scale ?? 1m,
+        [EncodingChannel.ColorRed] = mat => mat.Color.ScaleRed ?? 1m,
+        [EncodingChannel.ColorGreen] = mat => mat.Color.ScaleGreen ?? 1m,
+        [EncodingChannel.ColorBlue] = mat => mat.Color.ScaleBlue ?? 1m,
+        [EncodingChannel.Height] = mat => mat.Height.Scale ?? 1m,
+        [EncodingChannel.Occlusion] = mat => mat.Occlusion.Scale ?? 1m,
+        [EncodingChannel.Specular] = mat => mat.Specular.Scale ?? 1m,
+        [EncodingChannel.Smooth] = mat => mat.Smooth.Scale ?? 1m,
+        [EncodingChannel.Rough] = mat => mat.Rough.Scale ?? 1m,
+        [EncodingChannel.Metal] = mat => mat.Metal.Scale ?? 1m,
         [EncodingChannel.HCM] = _ => 1m,
-        [EncodingChannel.F0] = mat => mat.F0?.Scale ?? 1m,
-        [EncodingChannel.Porosity] = mat => mat.Porosity?.Scale ?? 1m,
-        [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS?.Scale ?? 1m,
-        [EncodingChannel.Emissive] = mat => mat.Emissive?.Scale ?? 1m,
+        [EncodingChannel.F0] = mat => mat.F0.Scale ?? 1m,
+        [EncodingChannel.Porosity] = mat => mat.Porosity.Scale ?? 1m,
+        [EncodingChannel.SubSurfaceScattering] = mat => mat.SSS.Scale ?? 1m,
+        [EncodingChannel.Emissive] = mat => mat.Emissive.Scale ?? 1m,
     };
 
     #region Deprecated
@@ -376,10 +376,7 @@ public class MaterialProperties
     [Obsolete("Replace usages of BakeOcclusionToColor with Color.BakeOcclusion")]
     public bool? BakeOcclusionToColor {
         get => null;
-        set {
-            Color ??= new MaterialColorProperties();
-            Color.BakeOcclusion = value;
-        }
+        set => Color.BakeOcclusion = value;
     }
 
     [Obsolete("Replace usages of Wrap with WrapX and WrapY")]
@@ -400,19 +397,19 @@ public class MaterialProperties
     [Obsolete("Replace usages of Alpha with Opacity")]
     public MaterialOpacityProperties? Alpha {
         get => null;
-        set => Opacity = value;
+        set => Opacity = value ?? throw new ArgumentNullException(nameof(value));
     }
 
     [Obsolete("Replace usages of Albedo with Color")]
     public MaterialColorProperties? Albedo {
         get => null;
-        set => Color = value;
+        set => Color = value ?? throw new ArgumentNullException(nameof(value));
     }
 
     [Obsolete("Replace usages of Diffuse with Color")]
     public MaterialColorProperties? Diffuse {
         get => null;
-        set => Color = value;
+        set => Color = value ?? throw new ArgumentNullException(nameof(value));
     }
 
     #endregion

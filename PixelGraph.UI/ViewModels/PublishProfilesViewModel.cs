@@ -117,7 +117,7 @@ internal class PublishProfilesModel : INotifyPropertyChanged
 
     public PublishProfilesModel(IProjectContextManager projectContextMgr)
     {
-        Profiles = new ObservableCollection<PublishProfileEditModel>();
+        Profiles = [];
 
         this.projectContextMgr = projectContextMgr;
 
@@ -201,7 +201,7 @@ internal class PublishProfilesModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(EditEncodingSampler));
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -239,6 +239,8 @@ internal class PublishProfilesDesignerModel : PublishProfilesViewModel.DesignerM
 {
     public PublishProfilesDesignerModel()
     {
+        ArgumentNullException.ThrowIfNull(Data);
+
         Data.Profiles.Add(new PublishProfileEditModel(new PublishProfileProperties {
             Edition = GameEdition.Bedrock,
             Name = "Sample RP",

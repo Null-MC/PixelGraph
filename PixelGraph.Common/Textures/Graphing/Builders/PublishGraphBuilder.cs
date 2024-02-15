@@ -108,9 +108,9 @@ internal class PublishGraphBuilder(
                     throw new NotImplementedException();
                 }
 
-                destFile = Path.Combine(_p, _n); 
+                destFile = Path.Combine(_p, _n);
 
-                var regions = Provider.GetRequiredService<TextureRegionEnumerator>();
+                var regions = provider.GetRequiredService<TextureRegionEnumerator>();
                 regions.SourceFrameCount = Context.MaxFrameCount;
                 regions.DestFrameCount = Context.MaxFrameCount;
 
@@ -160,8 +160,9 @@ internal class PublishGraphBuilder(
     {
         DateTime? destinationTime = null;
 
-        var inputTags = Context.InputEncoding?
-            .Select(e => e.Texture).WhereNotNull().Distinct().ToArray();
+        var inputTags = Context.InputEncoding
+            .Select(e => e.Texture).WhereNotNull()
+            .Distinct().ToArray();
 
         foreach (var file in GetMaterialInputFiles(inputTags)) {
             var writeTime = Reader.GetWriteTime(file);
@@ -171,8 +172,9 @@ internal class PublishGraphBuilder(
                 sourceTime = writeTime;
         }
 
-        var outputTags = Context.OutputEncoding?
-            .Select(e => e.Texture).WhereNotNull().Distinct().ToArray();
+        var outputTags = Context.OutputEncoding
+            .Select(e => e.Texture).WhereNotNull()
+            .Distinct().ToArray();
 
         foreach (var file in GetMaterialOutputFiles(outputTags)) {
             var writeTime = Writer.GetWriteTime(file);

@@ -554,7 +554,7 @@ namespace PixelGraph.UI.Windows
                         if (profile.Name.EndsWith(".pack")) profile.Name = profile.Name[..^5];
                     }
 
-                    project.Profiles ??= new List<PublishProfileProperties>();
+                    project.Profiles ??= [];
                     project.Profiles.Add(profile);
                     deleteFileList.Add(packFile);
                 }

@@ -42,7 +42,7 @@ namespace PixelGraph.UI.ViewModels
 {
     internal class MainWindowViewModel : ModelBase, ISearchParameters
     {
-        private readonly object busyLock;
+        private readonly object busyLock = new();
 
         private ILogger<MainWindowViewModel>? logger;
         private IAppSettingsManager? appSettingsMgr;
@@ -55,7 +55,7 @@ namespace PixelGraph.UI.ViewModels
         private IServiceProvider? _provider;
         private volatile bool _isBusy, _isInitializing;
         private volatile bool _isImageEditorOpen;
-        private List<PublishLocationDisplayModel>? _publishLocations;
+        private List<PublishLocationDisplayModel>? _publishLocations = [];
         private PublishProfileDisplayRow? _selectedProfile;
         private string? _projectFilename;
         private string? _searchText;
@@ -77,9 +77,9 @@ namespace PixelGraph.UI.ViewModels
         public event EventHandler? ViewModeChanged;
         public event EventHandler? SelectedProfileChanged;
 
-        public ObservableCollection<PublishProfileDisplayRow> ProfileList {get;}
+        public ObservableCollection<PublishProfileDisplayRow> ProfileList {get;} = [];
         public TexturePreviewModel TextureModel {get;}
-        public ObservableCollection<ITabModel> TabList {get;}
+        public ObservableCollection<ITabModel> TabList {get;} = [];
         public ICommand TabCloseButtonCommand {get;}
 
 #if NORENDER
@@ -345,12 +345,8 @@ namespace PixelGraph.UI.ViewModels
 
         public MainWindowViewModel()
         {
-            _publishLocations = new List<PublishLocationDisplayModel>();
             _treeRoot = new ContentTreeNode(null);
-            busyLock = new object();
 
-            TabList = new ObservableCollection<ITabModel>();
-            ProfileList = new ObservableCollection<PublishProfileDisplayRow>();
             TabCloseButtonCommand = new ActionCommand(OnTabCloseButtonClicked);
 
             _isInitializing = true;
@@ -623,7 +619,7 @@ namespace PixelGraph.UI.ViewModels
 
             ArgumentNullException.ThrowIfNull(tabPreviewMgr);
 
-            if (PreviewTab is MaterialTabModel materialTab && materialTab.MaterialRegistration != null)
+            if (PreviewTab is MaterialTabModel { MaterialRegistration: not null } materialTab)
                 materialCache.Release(materialTab.MaterialRegistration);
 
             tabPreviewMgr.Remove(PreviewTab.Id);
@@ -747,6 +743,10 @@ namespace PixelGraph.UI.ViewModels
 
         private async Task UpdateTabPreviewAsync(Dispatcher dispatcher, TabPreviewContext context, CancellationToken token)
         {
+            if (_provider == null) return;
+
+            ArgumentNullException.ThrowIfNull(projectContextMgr);
+
             try {
                 if (SelectedTab is MaterialTabModel materialTab) {
                     var material = materialTab.MaterialRegistration?.Value;
@@ -859,9 +859,14 @@ namespace PixelGraph.UI.ViewModels
 
             var projectContext = projectContextMgr.GetContextRequired();
 
-            var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
+            ArgumentNullException.ThrowIfNull(projectContext.Project);
+
+            var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input?.Format);
             var inputEncoding = inputFormat?.Create() ?? new PackEncoding();
-            inputEncoding.Merge(projectContext.Project.Input);
+            
+            if (projectContext.Project.Input != null)
+                inputEncoding.Merge(projectContext.Project.Input);
+            
             inputEncoding.Merge(material);
 
             var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
@@ -895,9 +900,14 @@ namespace PixelGraph.UI.ViewModels
 
             var projectContext = projectContextMgr.GetContextRequired();
 
-            var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input.Format);
+            ArgumentNullException.ThrowIfNull(projectContext.Project);
+
+            var inputFormat = TextureFormat.GetFactory(projectContext.Project.Input?.Format);
             var inputEncoding = inputFormat?.Create() ?? new PackEncoding();
-            inputEncoding.Merge(projectContext.Project.Input);
+
+            if (projectContext.Project.Input != null)
+                inputEncoding.Merge(projectContext.Project.Input);
+
             inputEncoding.Merge(material);
 
             var serviceBuilder = _provider.GetRequiredService<IServiceBuilder>();
@@ -932,7 +942,6 @@ namespace PixelGraph.UI.ViewModels
             var inputChannel = context.InputEncoding.FirstOrDefault(c => EncodingChannel.Is(c.ID, EncodingChannel.Occlusion));
             
             if (inputChannel != null && !TextureTags.Is(inputChannel.Texture, TextureTags.Occlusion)) {
-                material.Occlusion ??= new MaterialOcclusionProperties();
                 material.Occlusion.Texture = Path.GetFileName(filename);
 
                 material.Occlusion.Input ??= new ResourcePackOcclusionChannelProperties();
@@ -1126,7 +1135,7 @@ namespace PixelGraph.UI.ViewModels
                 DielectricBrdfLutMap = RenderProperties.DielectricBrdfLutMap,
                 IrradianceCubeMap = RenderProperties.IrradianceCube,
                 EnvironmentEnabled = SceneProperties.EnableAtmosphere || SceneProperties.EquirectangularMap != null,
-                EnableLinearSampling = SceneProperties.PomType?.EnableLinearSampling ?? false,
+                EnableLinearSampling = SceneProperties.PomType.EnableLinearSampling,
                 EnableTiling = RenderProperties.EnableTiling,
 
                 EnvironmentCubeMap = SceneProperties.EnableAtmosphere

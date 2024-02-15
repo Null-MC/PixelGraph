@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace PixelGraph.UI.Internal.IO.Models;
 
-internal static class MCPath
+internal static class MinecraftPath
 {
     private static readonly Regex entityPathExp = new(@"assets\/[\w-_.]+\/textures\/(?:entity|models)(?:$|\/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex blockPathExp = new(@"assets\/[\w-_.]+\/textures\/block(?:$|\/)", RegexOptions.IgnoreCase | RegexOptions.Compiled);

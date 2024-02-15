@@ -16,7 +16,7 @@ public class TextureFormat
     public const string Format_Rtx = "rtx";
 
 
-    public static bool Is(string formatActual, string formatExpected) =>
+    public static bool Is(string? formatActual, string? formatExpected) =>
         string.Equals(formatActual, formatExpected, StringComparison.InvariantCultureIgnoreCase);
 
     public static ITextureFormatFactory? GetFactory(string? format)

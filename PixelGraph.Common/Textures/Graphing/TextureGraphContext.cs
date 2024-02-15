@@ -59,8 +59,8 @@ internal class TextureGraphContext : ITextureGraphContext
     public MaterialProperties? Material {get; set;}
     public IProjectDescription? Project {get; set;}
     public PublishProfileProperties? Profile {get; set;}
-    public List<PackEncodingChannel> InputEncoding {get; set;} = new();
-    public List<PackEncodingChannel> OutputEncoding {get; set;} = new();
+    public List<PackEncodingChannel> InputEncoding {get; set;} = [];
+    public List<PackEncodingChannel> OutputEncoding {get; set;} = [];
     public IPublisherMapping? Mapping {get; set;}
 
     public DateTime PackWriteTime {get; set;}
@@ -82,7 +82,7 @@ internal class TextureGraphContext : ITextureGraphContext
 
     public bool BakeOcclusionToColor {
         get {
-            var matVal = Material?.Color?.BakeOcclusion;
+            var matVal = Material?.Color.BakeOcclusion;
             var profileVal = Profile?.BakeOcclusionToColor;
 
             if (!matVal.HasValue && !profileVal.HasValue)
@@ -127,8 +127,8 @@ internal class TextureGraphContext : ITextureGraphContext
 
     public string GetSamplerName(string channelName)
     {
-        return Material?.GetInput(channelName)?.Sampler
-            ?? Profile?.Encoding?.Height?.Sampler
+        return Profile?.Encoding?.GetSampler(channelName)
+            ?? Material?.GetInput(channelName)?.Sampler
             ?? DefaultSampler;
     }
 
