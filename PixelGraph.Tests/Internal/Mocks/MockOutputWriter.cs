@@ -18,8 +18,8 @@ internal class MockOutputWriter : IOutputWriter
 
     public async Task<T> OpenReadAsync<T>(string localFilename, Func<Stream, Task<T>> readFunc, CancellationToken token = default)
     {
-        await using var stream = Content.OpenRead(localFilename);
-        if (stream == null) throw new FileNotFoundException("Failed to open file stream!");
+        await using var stream = Content.OpenRead(localFilename)
+            ?? throw new FileNotFoundException("Failed to open file stream!");
 
         return await readFunc(stream);
     }
@@ -58,7 +58,7 @@ internal class MockOutputWriter : IOutputWriter
 
 public class MockStream : Stream
 {
-    public MemoryStream BaseStream {get;}
+    public MemoryStream BaseStream {get;} = new();
 
     public override long Position {
         get => BaseStream.Position;
@@ -70,11 +70,6 @@ public class MockStream : Stream
     public override bool CanWrite => BaseStream.CanWrite;
     public override long Length => BaseStream.Length;
 
-
-    public MockStream()
-    {
-        BaseStream = new MemoryStream();
-    }
 
     public override int Read(byte[] buffer, int offset, int count) => BaseStream.Read(buffer, offset, count);
 
@@ -94,5 +89,6 @@ public class MockStream : Stream
     public override async ValueTask DisposeAsync()
     {
         await FlushAsync();
+        GC.SuppressFinalize(this);
     }
 }

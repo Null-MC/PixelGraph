@@ -44,7 +44,7 @@ public partial class MaterialFiltersControl
         logger = provider.GetRequiredService<ILogger<MaterialFiltersControl>>();
     }
 
-    protected virtual void OnDataChanged()
+    protected void OnDataChanged()
     {
         DataChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -60,37 +60,37 @@ public partial class MaterialFiltersControl
         TexturePreviewModel.SetOutlineBounds(null);
     }
 
-    private void OnModelDataChanged(object sender, EventArgs e)
+    private void OnModelDataChanged(object? sender, EventArgs e)
     {
         OnDataChanged();
     }
 
-    private void OnSelectionChanged(object sender, EventArgs e)
+    private void OnSelectionChanged(object? sender, EventArgs e)
     {
         InvalidateSelectedFilterBounds();
     }
 
-    private void OnFilterAddButtonClick(object sender, RoutedEventArgs e)
+    private void OnFilterAddButtonClick(object? sender, RoutedEventArgs e)
     {
         Model.AddNewFilter();
     }
 
-    private void OnFilterDeleteButtonClick(object sender, RoutedEventArgs e)
+    private void OnFilterDeleteButtonClick(object? sender, RoutedEventArgs e)
     {
         Model.DeleteSelectedFilter();
     }
 
-    private void OnFilterImportFromModelButtonClick(object sender, RoutedEventArgs e)
+    private void OnFilterImportFromModelButtonClick(object? sender, RoutedEventArgs e)
     {
         var material = Model.Material;
         if (material == null) return;
 
-        var window = Window.GetWindow(this);
-        if (window == null) throw new ApplicationException("Unable to locate parent window handle!");
-
         ArgumentNullException.ThrowIfNull(provider);
 
-        material.Filters ??= new List<MaterialFilter>();
+        var window = Window.GetWindow(this)
+            ?? throw new ApplicationException("Unable to locate parent window handle!");
+
+        material.Filters ??= [];
 
         if (material.Filters.Count > 0) {
             var confirm = MessageBox.Show(window, "Would you like to clear the existing filters before importing? This operation cannot be undone!", "Warning", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
@@ -111,7 +111,7 @@ public partial class MaterialFiltersControl
         }
     }
 
-    private void OnFilterPropertyChanged(object sender, PropertyGridChangedEventArgs e)
+    private void OnFilterPropertyChanged(object? sender, PropertyGridChangedEventArgs e)
     {
         var row = Model.SelectedFilter;
         if (row == null || e.PropertyName == null) return;
@@ -129,7 +129,7 @@ public partial class MaterialFiltersControl
         }
     }
 
-    private void OnFilterListMouseDown(object sender, MouseButtonEventArgs e)
+    private void OnFilterListMouseDown(object? sender, MouseButtonEventArgs e)
     {
         var r = VisualTreeHelper.HitTest(this, e.GetPosition(this));
 
@@ -137,7 +137,7 @@ public partial class MaterialFiltersControl
             FilterList.UnselectAll();
     }
 
-    private void OnContextMenuDuplicateClick(object sender, RoutedEventArgs e)
+    private void OnContextMenuDuplicateClick(object? sender, RoutedEventArgs e)
     {
         var selected = Model.SelectedFilter?.Filter.Clone();
         if (selected == null) return;
@@ -145,24 +145,24 @@ public partial class MaterialFiltersControl
         Model.AddNewFilter(selected);
     }
 
-    private void OnContextMenuDeleteClick(object sender, RoutedEventArgs e)
+    private void OnContextMenuDeleteClick(object? sender, RoutedEventArgs e)
     {
         Model.DeleteSelectedFilter();
     }
 
-    private static void OnTexturePreviewModelPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    private static void OnTexturePreviewModelPropertyChanged(DependencyObject? sender, DependencyPropertyChangedEventArgs e)
     {
         if (sender is not MaterialFiltersControl control) return;
         control.Model.TexturePreviewData = e.NewValue as ITexturePreviewModel;
     }
 
-    private static void OnMaterialPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    private static void OnMaterialPropertyChanged(DependencyObject? sender, DependencyPropertyChangedEventArgs e)
     {
         if (sender is not MaterialFiltersControl control) return;
         control.Model.Material = e.NewValue as MaterialProperties;
     }
 
-    private static void OnSelectedTagPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    private static void OnSelectedTagPropertyChanged(DependencyObject? sender, DependencyPropertyChangedEventArgs e)
     {
         if (sender is not MaterialFiltersControl control) return;
         if (control.Model == null) return;

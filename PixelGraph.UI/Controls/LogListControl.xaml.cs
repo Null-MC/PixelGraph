@@ -95,16 +95,9 @@ public partial class LogListControl
         [LogLevel.Trace] = Brushes.Purple,
     };
 
-    private class Message
+    private class Message(LogLevel level, string text)
     {
-        public readonly LogLevel Level;
-        public readonly string Text;
-
-
-        public Message(LogLevel level, string text)
-        {
-            Level = level;
-            Text = text;
-        }
+        public readonly LogLevel Level = level;
+        public readonly string Text = text;
     }
 }

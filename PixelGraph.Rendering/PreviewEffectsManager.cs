@@ -22,122 +22,122 @@ public class PreviewEffectsManager : DefaultEffectsManager
     {
         AddTechnique(new TechniqueDescription(CustomRenderTechniqueNames.DynamicSkybox) {
             InputLayoutDescription = new InputLayoutDescription(shaderMgr.GetCode(CustomShaderManager.Name_SkyVertex), DefaultInputLayout.VSInputSkybox),
-            PassDescriptions = new List<ShaderPassDescription> {
-                new(DefaultPassNames.Default) {
-                    ShaderList = new[] {
+            PassDescriptions = [
+                new ShaderPassDescription(DefaultPassNames.Default) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_SkyPixel, ShaderStage.Pixel),
-                    },
+                    ],
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSNoDepthNoStencil,
                     BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
                     RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                 },
-                new(CustomPassNames.Sky_ERP) {
-                    ShaderList = new[] {
+                new ShaderPassDescription(CustomPassNames.Sky_ERP) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_SkyErpPixel, ShaderStage.Pixel),
-                    },
+                    ],
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSNoDepthNoStencil,
                     BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
                     RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                 },
-                new(CustomPassNames.SkyFinal_Cube) {
-                    ShaderList = new[] {
+                new ShaderPassDescription(CustomPassNames.SkyFinal_Cube) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_SkyFinalCubePixel, ShaderStage.Pixel),
-                    },
+                    ],
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
                     BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
                     RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                 },
-                new(CustomPassNames.SkyFinal_ERP) {
-                    ShaderList = new[] {
+                new ShaderPassDescription(CustomPassNames.SkyFinal_ERP) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_SkyFinalErpPixel, ShaderStage.Pixel),
-                    },
+                    ],
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSLessEqualNoWrite,
                     BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
                     RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                 },
-                new(CustomPassNames.SkyIrradiance) {
-                    ShaderList = new[] {
+                new ShaderPassDescription(CustomPassNames.SkyIrradiance) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_SkyVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_SkyIrradiancePixel, ShaderStage.Pixel),
-                    },
+                    ],
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSNoDepthNoStencil,
                     BlendStateDescription = DefaultBlendStateDescriptions.BSSourceAlways,
                     RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                 },
-            },
+            ],
         });
 
         AddTechnique(new TechniqueDescription(CustomRenderTechniqueNames.BdrfDielectricLut) {
             InputLayoutDescription = InputLayoutDescription.EmptyInputLayout,
-            PassDescriptions = new[] {
+            PassDescriptions = [
                 new ShaderPassDescription(DefaultPassNames.Default) {
-                    ShaderList = new[] {
+                    ShaderList = [
                         DefaultVSShaderDescriptions.VSScreenQuad,
                         shaderMgr.BuildDescription(CustomShaderManager.Name_BdrfDielectricLutPixel, ShaderStage.Pixel),
-                    },
+                    ],
                     Topology = PrimitiveTopology.TriangleStrip,
                     BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                     RasterStateDescription = DefaultRasterDescriptions.RSSkybox,
                 }
-            }
+            ]
         });
 
         RemoveTechnique(DefaultRenderTechniqueNames.Mesh);
         var meshTechnique = new TechniqueDescription(DefaultRenderTechniqueNames.Mesh) {
             InputLayoutDescription = new InputLayoutDescription(shaderMgr.GetCode(CustomShaderManager.Name_PbrVertex), CustomInputLayout.VSBlockInput),
-            PassDescriptions = new List<ShaderPassDescription> {
-                new(CustomPassNames.Diffuse) {
-                    ShaderList = new[] {
+            PassDescriptions = [
+                new ShaderPassDescription(CustomPassNames.Diffuse) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_DiffusePixel, ShaderStage.Pixel),
-                    },
+                    ],
                     BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                 },
 
                 // TODO: Diffuse OIT
 
-                new(CustomPassNames.Normals) {
-                    ShaderList = new[] {
+                new ShaderPassDescription(CustomPassNames.Normals) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_NormalsPixel, ShaderStage.Pixel),
-                    },
+                    ],
                     BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                 },
 
                 // TODO: Normals OIT
 
-                new(CustomPassNames.PbrFilament) {
-                    ShaderList = new[] {
+                new ShaderPassDescription(CustomPassNames.PbrFilament) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrFilamentPixel, ShaderStage.Pixel),
-                    },
+                    ],
                     BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                 },
 
                 // TODO: PBR-Metal OIT
 
-                new(CustomPassNames.PbrJessie) {
-                    ShaderList = new[] {
+                new ShaderPassDescription(CustomPassNames.PbrJessie) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrJessiePixel, ShaderStage.Pixel),
-                    },
+                    ],
                     BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                 },
 
-                new(CustomPassNames.PbrNull) {
-                    ShaderList = new[] {
+                new ShaderPassDescription(CustomPassNames.PbrNull) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_PbrNullPixel, ShaderStage.Pixel),
-                    },
+                    ],
                     BlendStateDescription = DefaultBlendStateDescriptions.BSAlphaBlend,
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                 },
@@ -151,15 +151,15 @@ public class PreviewEffectsManager : DefaultEffectsManager
                 //    DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLess,
                 //});
 
-                new(DefaultPassNames.ShadowPass) {
-                    ShaderList = new[] {
+                new ShaderPassDescription(DefaultPassNames.ShadowPass) {
+                    ShaderList = [
                         shaderMgr.BuildDescription(CustomShaderManager.Name_ShadowVertex, ShaderStage.Vertex),
                         shaderMgr.BuildDescription(CustomShaderManager.Name_ShadowPixel, ShaderStage.Pixel),
-                    },
+                    ],
                     BlendStateDescription = DefaultBlendStateDescriptions.NoBlend,
                     DepthStencilStateDescription = DefaultDepthStencilDescriptions.DSSDepthLessEqual,
                 },
-            }
+            ]
         };
         AddTechnique(meshTechnique);
     }

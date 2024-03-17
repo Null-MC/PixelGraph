@@ -9,24 +9,13 @@ using System.IO;
 
 namespace PixelGraph.UI.Internal.IO;
 
-public class MinecraftResourceLocator
+public class MinecraftResourceLocator(
+    ILogger<MinecraftResourceLocator> logger,
+    IServiceProvider provider)
 {
-    private readonly ILogger<MinecraftResourceLocator> logger;
-    private readonly IServiceProvider provider;
-    private readonly IProjectContextManager projectContextMgr;
-    private readonly IResourceLocationManager resourceMgr;
+    private readonly IProjectContextManager projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
+    private readonly IResourceLocationManager resourceMgr = provider.GetRequiredService<IResourceLocationManager>();
 
-
-    public MinecraftResourceLocator(
-        ILogger<MinecraftResourceLocator> logger,
-        IServiceProvider provider)
-    {
-        this.provider = provider;
-        this.logger = logger;
-
-        projectContextMgr = provider.GetRequiredService<IProjectContextManager>();
-        resourceMgr = provider.GetRequiredService<IResourceLocationManager>();
-    }
 
     public bool FindLocalMaterial(string searchFile, out string? localPath)
     {
@@ -194,7 +183,7 @@ public class MinecraftResourceLocator
     private static IEnumerable<string> FindAllNamespaceDirectories(IInputReader reader, string? @namespace = null)
     {
         return @namespace != null
-            ? new[] { $"assets/{@namespace}" }
+            ? [$"assets/{@namespace}"]
             : reader.EnumerateDirectories("assets");
     }
 

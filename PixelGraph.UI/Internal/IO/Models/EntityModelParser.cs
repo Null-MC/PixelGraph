@@ -11,15 +11,8 @@ namespace PixelGraph.UI.Internal.IO.Models;
 //}
 
 internal class EntityModelParser //: IEntityModelParser
+    (MinecraftResourceLocator locator)
 {
-    private readonly MinecraftResourceLocator locator;
-
-
-    public EntityModelParser(MinecraftResourceLocator locator)
-    {
-        this.locator = locator;
-    }
-
     public void Build<T>(T baseModel, string localFile)
         where T : EntityModelVersion, new()
     {

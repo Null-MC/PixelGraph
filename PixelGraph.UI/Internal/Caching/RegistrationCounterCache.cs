@@ -1,14 +1,10 @@
 ﻿namespace PixelGraph.UI.Internal.Caching;
 
-internal abstract class RegistrationCounterCache<TKey, TValue> where TKey : notnull
+internal abstract class RegistrationCounterCache<TKey, TValue>(IEqualityComparer<TKey> keyComparer)
+    where TKey : notnull
 {
-    private readonly Dictionary<TKey, CounterCacheItem<TValue>> map;
+    private readonly Dictionary<TKey, CounterCacheItem<TValue>> map = new(keyComparer);
 
-
-    protected RegistrationCounterCache(IEqualityComparer<TKey> keyComparer)
-    {
-        map = new Dictionary<TKey, CounterCacheItem<TValue>>(keyComparer);
-    }
 
     protected CacheRegistration<TKey, TValue> Register(TKey key, Func<TKey, TValue> createFunc)
     {
@@ -39,34 +35,5 @@ internal abstract class RegistrationCounterCache<TKey, TValue> where TKey : notn
         map[key] = counter;
 
         return counter;
-    }
-}
-
-internal class CounterCacheItem<T>
-{
-    public T Item {get;}
-    public List<Guid> Registrations {get;}
-
-
-    public CounterCacheItem(T item)
-    {
-        Item = item;
-
-        Registrations = new List<Guid>();
-    }
-}
-
-public class CacheRegistration<TKey, TValue>
-{
-    public TKey Key {get;}
-    public TValue Value {get;}
-    public Guid RegistrationId {get;}
-
-
-    public CacheRegistration(TKey key, TValue data, Guid registrationId)
-    {
-        Key = key;
-        Value = data;
-        RegistrationId = registrationId;
     }
 }

@@ -1,7 +1,6 @@
 ﻿namespace PixelGraph.UI.Internal.Caching;
 
-internal abstract class AsyncRegistrationCounterCache<TKey, TValue>(IEqualityComparer<TKey> keyComparer)
-    where TKey : notnull
+internal abstract class AsyncRegistrationCounterCache<TKey, TValue>(IEqualityComparer<TKey> keyComparer) where TKey : notnull
 {
     private readonly Dictionary<TKey, CounterCacheItem<TValue>> map = new(keyComparer);
 

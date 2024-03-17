@@ -18,16 +18,17 @@ public partial class PublishOutputWindow : IDisposable
         InitializeComponent();
 
         themeHelper.ApplyCurrent(this);
-        
+
+        Model.Initialize(provider);
         ArgumentNullException.ThrowIfNull(Model.Data);
+
+        Model.Data.IsLoading = true;
 
         Model.Data.StateChanged += OnStatusChanged;
         Model.Data.LogAppended += OnLogAppended;
 
-        Model.Data.IsLoading = true;
         Model.Data.CloseOnComplete = appSettings.Data.PublishCloseOnComplete;
 
-        Model.Initialize(provider);
         Model.Data.IsLoading = false;
     }
 

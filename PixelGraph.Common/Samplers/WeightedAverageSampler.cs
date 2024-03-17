@@ -29,7 +29,7 @@ internal class WeightedAverageSampler<TPixel> : SamplerBase<TPixel>
                 .Slice(Bounds.X, Bounds.Width);
         }).ToArray();
 
-        return new WeightedAverageRowSampler<TPixel>(in rows, in Bounds) {
+        return new WeightedAverageRowSampler<TPixel>(rows, Bounds) {
             NearestWeight = NearestWeight,
             RangeX = RangeX,
             RangeY = RangeY,
@@ -87,30 +87,18 @@ internal class WeightedAverageSampler<TPixel> : SamplerBase<TPixel>
     }
 }
 
-internal struct WeightedAverageRowSampler<TPixel> : IRowSampler
+internal struct WeightedAverageRowSampler<TPixel>(IReadOnlyList<Memory<TPixel>> rows, Rectangle bounds) : IRowSampler
     where TPixel : unmanaged, IPixel<TPixel>
 {
-    private readonly Memory<TPixel>[] rows;
-    private readonly Rectangle bounds;
+    //private readonly Memory<TPixel>[] rows = rows;
+    //private readonly Rectangle bounds = bounds;
 
-    public float NearestWeight;
-    public float RangeX;
-    public float RangeY;
-    public bool WrapX;
-    public int YMin;
+    public float NearestWeight = 0f;
+    public float RangeX = 1;
+    public float RangeY = 1;
+    public bool WrapX = true;
+    public int YMin = 0;
 
-
-    public WeightedAverageRowSampler(in Memory<TPixel>[] rows, in Rectangle bounds)
-    {
-        this.rows = rows;
-        this.bounds = bounds;
-
-        NearestWeight = 0f;
-        RangeX = 1;
-        RangeY = 1;
-        WrapX = true;
-        YMin = 0;
-    }
 
     public void Sample(in double x, in double y, ref Rgba32 pixel)
     {

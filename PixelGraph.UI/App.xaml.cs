@@ -59,6 +59,7 @@ namespace PixelGraph.UI
             services.AddTransient<ModelLoader>();
 
             services.AddTransient<PublishProfilesModel>();
+            services.AddTransient<PublishOutputModel>();
             services.AddTransient<RecentProjectsModel>();
 
 #if !NORENDER

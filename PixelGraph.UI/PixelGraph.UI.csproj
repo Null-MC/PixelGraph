@@ -33,6 +33,7 @@
     <Compile Remove="Converters\TextureLabelConverter.cs" />
     <Compile Remove="Helix\MeshMaterialBuilderCache.cs" />
     <Compile Remove="Internal\AppConfiguration.cs" />
+    <Compile Remove="Internal\Caching\RegistrationCounterCache.cs" />
     <Compile Remove="Internal\ImagePreviewCache.cs" />
     <Compile Remove="Internal\Preview\PbrSpecularMeshModel3D.cs" />
     <Compile Remove="Internal\Preview\Textures\RenderPbrMetalPreviewBuilder.cs" />

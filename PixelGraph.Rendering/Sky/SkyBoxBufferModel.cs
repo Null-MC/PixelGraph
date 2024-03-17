@@ -17,9 +17,9 @@ internal class SkyBoxBufferModel : PointGeometryBufferModel<Vector3>
         };
     }
 
-    protected override void OnCreateVertexBuffer(DeviceContextProxy context, IElementsBufferProxy buffer, int bufferIndex, Geometry3D geometry, IDeviceResources deviceResources)
+    protected override void OnCreateVertexBuffer(DeviceContextProxy context, IElementsBufferProxy buffer, int bufferIndex, Geometry3D? geometry, IDeviceResources deviceResources)
     {
-        if (geometry?.Positions != null && geometry.Positions.Count > 0) {
+        if (geometry?.Positions is { Count: > 0 }) {
             buffer.UploadDataToBuffer(context, geometry.Positions, geometry.Positions.Count);
         }
         else {
@@ -28,47 +28,47 @@ internal class SkyBoxBufferModel : PointGeometryBufferModel<Vector3>
     }
 
 
-    private static readonly Vector3Collection boxPositions = new() {
-        new Vector3(-10.0f,  10.0f, -10.0f),
-        new Vector3( -10.0f, -10.0f, -10.0f),
-        new Vector3( 10.0f, -10.0f, -10.0f),
-        new Vector3(  10.0f, -10.0f, -10.0f),
-        new Vector3(  10.0f,  10.0f, -10.0f),
-        new Vector3( -10.0f,  10.0f, -10.0f),
-
-        new Vector3( -10.0f, -10.0f,  10.0f),
+    private static readonly Vector3Collection boxPositions = [
+        new Vector3(-10.0f, 10.0f, -10.0f),
         new Vector3(-10.0f, -10.0f, -10.0f),
-        new Vector3(  -10.0f,  10.0f, -10.0f),
-        new Vector3(  -10.0f,  10.0f, -10.0f),
-        new Vector3(  -10.0f,  10.0f,  10.0f),
-        new Vector3(  -10.0f, -10.0f,  10.0f),
+        new Vector3(10.0f, -10.0f, -10.0f),
+        new Vector3(10.0f, -10.0f, -10.0f),
+        new Vector3(10.0f, 10.0f, -10.0f),
+        new Vector3(-10.0f, 10.0f, -10.0f),
 
-        new Vector3(   10.0f, -10.0f, -10.0f),
-        new Vector3(   10.0f, -10.0f,  10.0f),
-        new Vector3(   10.0f,  10.0f,  10.0f),
-        new Vector3(   10.0f,  10.0f,  10.0f),
-        new Vector3(   10.0f,  10.0f, -10.0f),
-        new Vector3(   10.0f, -10.0f, -10.0f),
+        new Vector3(-10.0f, -10.0f, 10.0f),
+        new Vector3(-10.0f, -10.0f, -10.0f),
+        new Vector3(-10.0f, 10.0f, -10.0f),
+        new Vector3(-10.0f, 10.0f, -10.0f),
+        new Vector3(-10.0f, 10.0f, 10.0f),
+        new Vector3(-10.0f, -10.0f, 10.0f),
 
-        new Vector3(  -10.0f, -10.0f,  10.0f),
-        new Vector3(  -10.0f,  10.0f,  10.0f),
-        new Vector3(   10.0f,  10.0f,  10.0f),
-        new Vector3(   10.0f,  10.0f,  10.0f),
-        new Vector3(   10.0f, -10.0f,  10.0f),
-        new Vector3(  -10.0f, -10.0f,  10.0f),
+        new Vector3(10.0f, -10.0f, -10.0f),
+        new Vector3(10.0f, -10.0f, 10.0f),
+        new Vector3(10.0f, 10.0f, 10.0f),
+        new Vector3(10.0f, 10.0f, 10.0f),
+        new Vector3(10.0f, 10.0f, -10.0f),
+        new Vector3(10.0f, -10.0f, -10.0f),
 
-        new Vector3(  -10.0f,  10.0f, -10.0f),
-        new Vector3(   10.0f,  10.0f, -10.0f),
-        new Vector3(   10.0f,  10.0f,  10.0f),
-        new Vector3(   10.0f,  10.0f,  10.0f),
-        new Vector3(  -10.0f,  10.0f,  10.0f),
-        new Vector3(  -10.0f,  10.0f, -10.0f),
+        new Vector3(-10.0f, -10.0f, 10.0f),
+        new Vector3(-10.0f, 10.0f, 10.0f),
+        new Vector3(10.0f, 10.0f, 10.0f),
+        new Vector3(10.0f, 10.0f, 10.0f),
+        new Vector3(10.0f, -10.0f, 10.0f),
+        new Vector3(-10.0f, -10.0f, 10.0f),
 
-        new Vector3(  -10.0f, -10.0f, -10.0f),
-        new Vector3(  -10.0f, -10.0f,  10.0f),
-        new Vector3(   10.0f, -10.0f, -10.0f),
-        new Vector3(   10.0f, -10.0f, -10.0f),
-        new Vector3( -10.0f, -10.0f,  10.0f),
-        new Vector3(   10.0f, -10.0f,  10.0f)
-    };
+        new Vector3(-10.0f, 10.0f, -10.0f),
+        new Vector3(10.0f, 10.0f, -10.0f),
+        new Vector3(10.0f, 10.0f, 10.0f),
+        new Vector3(10.0f, 10.0f, 10.0f),
+        new Vector3(-10.0f, 10.0f, 10.0f),
+        new Vector3(-10.0f, 10.0f, -10.0f),
+
+        new Vector3(-10.0f, -10.0f, -10.0f),
+        new Vector3(-10.0f, -10.0f, 10.0f),
+        new Vector3(10.0f, -10.0f, -10.0f),
+        new Vector3(10.0f, -10.0f, -10.0f),
+        new Vector3(-10.0f, -10.0f, 10.0f),
+        new Vector3(10.0f, -10.0f, 10.0f)
+    ];
 }

@@ -7,20 +7,10 @@ using System.IO;
 
 namespace PixelGraph.UI.Internal.IO;
 
-internal class ContentTreeReader
+internal class ContentTreeReader(
+    IInputReader reader,
+    IPublishReader loader)
 {
-    private readonly IInputReader reader;
-    private readonly IPublishReader loader;
-
-
-    public ContentTreeReader(
-        IInputReader reader,
-        IPublishReader loader)
-    {
-        this.reader = reader;
-        this.loader = loader;
-    }
-
     public void Update(ContentTreeNode parentNode)
     {
         var existingNodes = parentNode.Nodes.ToList();
