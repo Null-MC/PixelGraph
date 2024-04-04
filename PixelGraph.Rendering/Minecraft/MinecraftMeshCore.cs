@@ -90,7 +90,7 @@ internal class MinecraftMeshCore : RenderCore
 
     public override void Render(RenderContext context, DeviceContextProxy deviceContext)
     {
-        if (isRenderValid && !context.UpdateSceneGraphRequested) return;
+        if (isRenderValid && !context.updateSceneGraphRequested) return;
 
         Apply(deviceContext);
         isRenderValid = true;

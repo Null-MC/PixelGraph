@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.10.7</Version>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyName>PixelGraph</AssemblyName>
@@ -13,6 +12,7 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>1.10.8</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -118,7 +118,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'!='ReleaseNoRender'">
-    <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.24.0" />
+    <PackageReference Include="HelixToolkit.SharpDX.Core.Wpf" Version="2.25.0" />
   </ItemGroup>
 
   <ItemGroup>

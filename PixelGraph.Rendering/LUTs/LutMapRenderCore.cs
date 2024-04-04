@@ -108,7 +108,7 @@ internal abstract class LutMapRenderCore : RenderCore, ILutMapSource
     {
         //if (! && !context.UpdatePerFrameRenderableRequested) return;
 
-        if (isRenderValid && !context.UpdateSceneGraphRequested) return;
+        if (isRenderValid && !context.updateSceneGraphRequested) return;
 
         if (CreateLutMapResources()) {
             RaiseInvalidateRender();

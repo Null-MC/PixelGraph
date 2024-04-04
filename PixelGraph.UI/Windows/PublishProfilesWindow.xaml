@@ -22,10 +22,7 @@
         <vd:SamplerValues x:Key="Samplers"/>
         <converters:NullableConverter x:Key="NullableConverter"/>
     </Window.Resources>
-    <Window.DataContext>
-        <vm:PublishProfilesViewModel x:Name="Model"/>
-    </Window.DataContext>
-    <DockPanel DataContext="{Binding Data, Mode=OneWay}">
+    <DockPanel>
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource MahApps.Brushes.Highlight}">
             <DockPanel Margin="4,4,4,4" LastChildFill="False">
                 <Button DockPanel.Dock="Left" Content="Cancel" Margin="4" IsCancel="True" Width="80"/>
@@ -289,7 +286,7 @@
                         <TabItem Header="Normal">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="8" Orientation="Vertical">
-                                    <CheckBox IsChecked="{Binding SelectedProfile.AutoGenerateNormal, Mode=TwoWay}">
+                                    <CheckBox IsChecked="{Binding SelectedProfile.AutoGenerateNormal, Mode=TwoWay, FallbackValue={x:Null}}">
                                         <TextBlock Text="Generate Automatically" Style="{StaticResource FieldLabelStyle}"/>
                                     </CheckBox>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
@@ -301,8 +298,8 @@
                                         </Grid.ColumnDefinitions>
                                         <controls:ComboBoxEx HorizontalContentAlignment="Center"
                                                              DisplayMemberPath="Text" SelectedValuePath="Value"
-                                                             Placeholder="{Binding NormalMethodDefault, Mode=OneTime}"
-                                                             SelectedValue="{Binding SelectedProfile.NormalMethodDefault, Mode=TwoWay, Converter={StaticResource NullableConverter}}"
+                                                             Placeholder="{x:Static vm:PublishProfilesViewModel.NormalMethodDefault}"
+                                                             SelectedValue="{Binding SelectedProfile.NormalMethodDefault, Mode=TwoWay, Converter={StaticResource NullableConverter}, FallbackValue={x:Null}}"
                                                              ItemsSource="{StaticResource NormalMethodValues}"
                                                              Style="{StaticResource MahApps.Styles.ComboBox}"/>
                                     </Grid>
@@ -314,8 +311,8 @@
                                             <ColumnDefinition Width="*" MaxWidth="120"/>
                                         </Grid.ColumnDefinitions>
                                         <controls:TextBoxEx TextAlignment="Center"
-                                            Placeholder="{Binding NormalStrengthDefault, Mode=OneTime}"
-                                            Text="{Binding SelectedProfile.NormalStrengthDefault, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                            Placeholder="{x:Static vm:PublishProfilesViewModel.NormalStrengthDefault}"
+                                            Text="{Binding SelectedProfile.NormalStrengthDefault, Mode=TwoWay, Converter={StaticResource NullableConverter}, FallbackValue={x:Null}}"/>
                                     </Grid>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                                Text="The default strength value to use for normal mapping."/>
@@ -325,24 +322,24 @@
                         <TabItem Header="Occlusion">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="8" Orientation="Vertical">
-                                    <CheckBox IsChecked="{Binding SelectedProfile.AutoGenerateOcclusion, Mode=TwoWay}">
+                                    <CheckBox IsChecked="{Binding SelectedProfile.AutoGenerateOcclusion, Mode=TwoWay, FallbackValue={x:Null}}">
                                         <TextBlock Text="Generate Automatically" Style="{StaticResource FieldLabelStyle}"/>
                                     </CheckBox>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                                Text="When enabled materials that are missing an occlusion texture will attempt to generate it from the height texture."/>
-                                    <CheckBox IsChecked="{Binding SelectedProfile.BakeOcclusionToColor, Mode=TwoWay}">
+                                    <CheckBox IsChecked="{Binding SelectedProfile.BakeOcclusionToColor, Mode=TwoWay, FallbackValue={x:Null}}">
                                         <TextBlock Text="Bake to Color" Style="{StaticResource FieldLabelStyle}"/>
                                     </CheckBox>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                                Text="When enabled the ambient occlusion will be baked directly into the color channels."/>
                                     <TextBlock Text="Ray Quality" Style="{StaticResource FieldLabelStyle}"/>
-                                    <controls:TextBoxEx Placeholder="{Binding OcclusionQualityDefault, Mode=OneTime}"
-                                                        Text="{Binding SelectedProfile.OcclusionQuality, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    <controls:TextBoxEx Placeholder="{x:Static vm:PublishProfilesViewModel.OcclusionQualityDefault}"
+                                                        Text="{Binding SelectedProfile.OcclusionQuality, Mode=TwoWay, Converter={StaticResource NullableConverter}, FallbackValue={x:Null}}"/>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                                Text="Defines the number of rays to cast per-pixel as a percentage of a hemisphere. A value of 0 will cast 5 rays, and a value of 0.1 is 348 rays."/>
                                     <TextBlock Text="Ray Power" Style="{StaticResource FieldLabelStyle}"/>
-                                    <controls:TextBoxEx Placeholder="{Binding OcclusionPowerDefault, Mode=OneTime}"
-                                                        Text="{Binding SelectedProfile.OcclusionPower, Mode=TwoWay, Converter={StaticResource NullableConverter}}"/>
+                                    <controls:TextBoxEx Placeholder="{x:Static vm:PublishProfilesViewModel.OcclusionPowerDefault}"
+                                                        Text="{Binding SelectedProfile.OcclusionPower, Mode=TwoWay, Converter={StaticResource NullableConverter}, FallbackValue={x:Null}}"/>
                                     <TextBlock Style="{StaticResource DescriptionTextStyle}"
                                                Text="Defines the power to apply to ray intersections. The default is 1 for a linear falloff; a value of 0.5 will reduce AO density, and values over 1 will increase density."/>
                                 </StackPanel>

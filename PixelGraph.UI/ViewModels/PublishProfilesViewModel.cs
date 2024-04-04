@@ -1,10 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.Common.IO;
+﻿using PixelGraph.Common.IO;
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Samplers;
 using PixelGraph.Common.TextureFormats;
-using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Projects;
 using PixelGraph.UI.Models;
 using System.Collections.ObjectModel;
@@ -13,7 +11,7 @@ using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.ViewModels;
 
-internal class PublishProfilesModel : INotifyPropertyChanged
+public class PublishProfilesViewModel : INotifyPropertyChanged
 {
     private readonly IProjectContextManager? projectContextMgr;
     private string? _defaultPackName, _defaultPackDescription;
@@ -24,10 +22,10 @@ internal class PublishProfilesModel : INotifyPropertyChanged
     public bool HasSelectedProfile => _selectedProfile != null;
     public bool IsSelectedProfileJava => SelectedProfile?.IsJavaProfile ?? false;
     public bool IsSelectedProfileBedrock => SelectedProfile?.IsBedrockProfile ?? false;
-    public string NormalMethodDefault => PublishProfileProperties.DefaultNormalMethod;
-    public decimal NormalStrengthDefault => PublishProfileProperties.DefaultNormalStrength;
-    public decimal OcclusionQualityDefault => PublishProfileProperties.DefaultOcclusionQuality;
-    public decimal OcclusionPowerDefault => PublishProfileProperties.DefaultOcclusionPower;
+    public static string NormalMethodDefault => PublishProfileProperties.DefaultNormalMethod;
+    public static decimal NormalStrengthDefault => PublishProfileProperties.DefaultNormalStrength;
+    public static decimal OcclusionQualityDefault => PublishProfileProperties.DefaultOcclusionQuality;
+    public static decimal OcclusionPowerDefault => PublishProfileProperties.DefaultOcclusionPower;
 
     public ObservableCollection<PublishProfileEditModel> Profiles {get;}
 
@@ -115,7 +113,7 @@ internal class PublishProfilesModel : INotifyPropertyChanged
     }
 
 
-    public PublishProfilesModel(IProjectContextManager projectContextMgr)
+    public PublishProfilesViewModel(IProjectContextManager projectContextMgr)
     {
         Profiles = [];
 
@@ -215,33 +213,31 @@ internal class PublishProfilesModel : INotifyPropertyChanged
     //}
 }
 
-internal class PublishProfilesViewModel : ModelBase
+//internal class PublishProfilesViewModel : ModelBase
+//{
+//    public PublishProfilesModel? Data {get; private set;}
+
+
+//    public void Initialize(IServiceProvider provider)
+//    {
+//        Data = provider.GetRequiredService<PublishProfilesModel>();
+//        OnPropertyChanged(nameof(Data));
+//    }
+
+//    internal class DesignerModel : PublishProfilesViewModel
+//    {
+//        protected DesignerModel()
+//        {
+//            Data = new PublishProfilesModel(null);
+//        }
+//    }
+//}
+
+internal class PublishProfilesDesignerModel : PublishProfilesViewModel
 {
-    public PublishProfilesModel? Data {get; private set;}
-
-
-    public void Initialize(IServiceProvider provider)
+    public PublishProfilesDesignerModel() : base(null)
     {
-        Data = provider.GetRequiredService<PublishProfilesModel>();
-        OnPropertyChanged(nameof(Data));
-    }
-
-    internal class DesignerModel : PublishProfilesViewModel
-    {
-        protected DesignerModel()
-        {
-            Data = new PublishProfilesModel(null);
-        }
-    }
-}
-
-internal class PublishProfilesDesignerModel : PublishProfilesViewModel.DesignerModel
-{
-    public PublishProfilesDesignerModel()
-    {
-        ArgumentNullException.ThrowIfNull(Data);
-
-        Data.Profiles.Add(new PublishProfileEditModel(new PublishProfileProperties {
+        Profiles.Add(new PublishProfileEditModel(new PublishProfileProperties {
             Edition = GameEdition.Bedrock,
             Name = "Sample RP",
             Description = "A description of the resource pack.",
@@ -252,9 +248,9 @@ internal class PublishProfilesDesignerModel : PublishProfilesViewModel.DesignerM
             },
         }));
 
-        Data.Profiles.Add(new PublishProfileEditModel(new PublishProfileProperties {Name = "Profile B"}));
-        Data.Profiles.Add(new PublishProfileEditModel(new PublishProfileProperties {Name = "Profile C"}));
+        Profiles.Add(new PublishProfileEditModel(new PublishProfileProperties {Name = "Profile B"}));
+        Profiles.Add(new PublishProfileEditModel(new PublishProfileProperties {Name = "Profile C"}));
 
-        Data.SelectedProfile = Data.Profiles[0];
+        SelectedProfile = Profiles[0];
     }
 }

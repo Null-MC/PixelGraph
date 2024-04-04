@@ -103,7 +103,7 @@ internal class MinecraftSceneCore : RenderCore, IMinecraftScene
 
     public override void Render(RenderContext context, DeviceContextProxy deviceContext)
     {
-        if (isRenderValid && !context.UpdateSceneGraphRequested) return;
+        if (isRenderValid && !context.updateSceneGraphRequested) return;
 
         Apply(deviceContext);
 

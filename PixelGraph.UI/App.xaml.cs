@@ -58,7 +58,7 @@ namespace PixelGraph.UI
             services.AddTransient<EntityModelParser>();
             services.AddTransient<ModelLoader>();
 
-            services.AddTransient<PublishProfilesModel>();
+            services.AddTransient<PublishProfilesViewModel>();
             services.AddTransient<PublishOutputViewModel>();
             services.AddTransient<ResourceLocationsViewModel>();
             services.AddTransient<RecentProjectsModel>();

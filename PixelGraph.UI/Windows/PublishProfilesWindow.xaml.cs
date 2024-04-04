@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using PixelGraph.UI.ViewModels;
 
 namespace PixelGraph.UI.Windows;
 
@@ -16,9 +17,14 @@ public partial class PackProfilesWindow
 {
     private readonly ILogger<PackProfilesWindow> logger;
 
+    public PublishProfilesViewModel Model {get;}
+
 
     public PackProfilesWindow(IServiceProvider provider)
     {
+        Model = provider.GetRequiredService<PublishProfilesViewModel>();
+        DataContext = Model;
+
         logger = provider.GetRequiredService<ILogger<PackProfilesWindow>>();
 
         InitializeComponent();
@@ -26,7 +32,7 @@ public partial class PackProfilesWindow
         var themeHelper = provider.GetRequiredService<IThemeHelper>();
         themeHelper.ApplyCurrent(this);
 
-        Model.Initialize(provider);
+        //Model.Initialize(provider);
     }
 
     private bool TryGenerateGuid(Guid? currentValue, out Guid id)
@@ -44,16 +50,12 @@ public partial class PackProfilesWindow
 
     private void OnNewProfileClick(object sender, RoutedEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(Model.Data);
-
-        Model.Data.CreateNewProfile();
+        Model.CreateNewProfile();
     }
 
     private void OnDuplicateProfileClick(object sender, RoutedEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(Model.Data);
-
-        Model.Data.CloneSelectedProfile();
+        Model.CloneSelectedProfile();
     }
 
     private void OnDeleteProfileClick(object sender, RoutedEventArgs e)
@@ -61,9 +63,7 @@ public partial class PackProfilesWindow
         //var result = MessageBox.Show(this, "Are you sure? This operation cannot be undone.", "Warning", MessageBoxButton.OKCancel);
         //if (result != MessageBoxResult.OK) return;
 
-        ArgumentNullException.ThrowIfNull(Model.Data);
-
-        Model.Data.RemoveSelected();
+        Model.RemoveSelected();
     }
 
     private void OnProfileListBoxMouseDown(object sender, MouseButtonEventArgs e)
@@ -74,9 +74,7 @@ public partial class PackProfilesWindow
 
     private void OnGenerateHeaderUuid(object sender, RoutedEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(Model.Data);
-
-        var profile = Model.Data.SelectedProfile;
+        var profile = Model.SelectedProfile;
         if (profile == null) return;
 
         if (TryGenerateGuid(profile.PackHeaderUuid, out var newGuid))
@@ -85,9 +83,7 @@ public partial class PackProfilesWindow
 
     private void OnGenerateModuleUuid(object sender, RoutedEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(Model.Data);
-
-        var profile = Model.Data.SelectedProfile;
+        var profile = Model.SelectedProfile;
         if (profile == null) return;
 
         if (TryGenerateGuid(profile.PackModuleUuid, out var newGuid))
@@ -98,28 +94,22 @@ public partial class PackProfilesWindow
     {
         if (e.Key != Key.Delete) return;
 
-        ArgumentNullException.ThrowIfNull(Model.Data);
-
-        Model.Data.EditEncodingSampler = null;
+        Model.EditEncodingSampler = null;
     }
 
     private void OnImageEncodingKeyUp(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Delete) return;
 
-        ArgumentNullException.ThrowIfNull(Model.Data);
-
-        Model.Data.EditImageEncoding = null;
+        Model.EditImageEncoding = null;
     }
 
     private async void OnEditEncodingClick(object sender, RoutedEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(Model.Data);
+        var profile = Model.SelectedProfile?.Profile;
+        if (Model.SelectedProfile == null || profile == null) return;
 
-        var profile = Model.Data.SelectedProfile?.Profile;
-        if (Model.Data.SelectedProfile == null || profile == null) return;
-
-        var formatFactory = TextureFormat.GetFactory(Model.Data.SelectedProfile.TextureFormat);
+        var formatFactory = TextureFormat.GetFactory(Model.SelectedProfile.TextureFormat);
 
         try {
             var window = new TextureFormatWindow {
@@ -127,7 +117,7 @@ public partial class PackProfilesWindow
                 Model = {
                     Encoding = (PackEncoding?)profile.Encoding?.Clone(),
                     DefaultEncoding = formatFactory?.Create(),
-                    DefaultSampler = Model.Data.EditEncodingSampler,
+                    DefaultSampler = Model.EditEncodingSampler,
                     EnableSampler = true,
                 },
             };
@@ -144,10 +134,8 @@ public partial class PackProfilesWindow
 
     private async void OnSaveButtonClick(object sender, RoutedEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(Model.Data);
-
         try {
-            await Model.Data.SaveAsync();
+            await Model.SaveAsync();
         }
         catch (Exception error) {
             logger.LogError(error, "Failed to save project file!");
