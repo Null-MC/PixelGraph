@@ -5,7 +5,6 @@ using PixelGraph.Common.Extensions;
 using PixelGraph.Common.IO;
 using PixelGraph.Common.IO.Publishing;
 using PixelGraph.Common.Projects;
-using PixelGraph.UI.Internal;
 using PixelGraph.UI.Internal.Extensions;
 using PixelGraph.UI.Internal.Logging;
 using PixelGraph.UI.Internal.Projects;
@@ -16,13 +15,15 @@ using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.ViewModels;
 
-internal class PublishOutputModel(
+public class PublishOutputViewModel(
     ILogger<PublishOutputViewModel> logger,
     IProjectContextManager projectContextMgr,
     IAppSettingsManager settings,
     IServiceProvider provider)
-    : INotifyPropertyChanged
+    : INotifyPropertyChanged, IDisposable
 {
+    private readonly CancellationTokenSource tokenSource = new();
+
     private double _progress;
     private bool _closeOnComplete;
 
@@ -92,6 +93,12 @@ internal class PublishOutputModel(
     }
 
 
+    public void Dispose()
+    {
+        tokenSource.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     public async Task<bool> PublishAsync(CancellationToken token = default)
     {
         isRunning = true;
@@ -150,6 +157,8 @@ internal class PublishOutputModel(
         if (!isRunning) return;
 
         OnLogAppended(LogLevel.Warning, "Cancelling...");
+
+        tokenSource.Cancel();
     }
 
     private async Task<IPublishSummary> PublishInternalAsync(IProjectContext projectContext, CancellationToken token)
@@ -171,6 +180,8 @@ internal class PublishOutputModel(
         logReceiver.LogMessage += OnInternalLog;
             
         await using var scope = serviceBuilder.Build();
+
+        //await Task.Delay(3_000, token);
 
         OnLogAppended(LogLevel.None, "Preparing output directory...");
         var writer = scope.GetRequiredService<IOutputWriter>();
@@ -230,52 +241,16 @@ internal class PublishOutputModel(
     //    OnPropertyChanged(propertyName);
     //    return true;
     //}
-}
-
-internal class PublishOutputViewModel : ModelBase, IDisposable
-{
-    private readonly CancellationTokenSource tokenSource = new();
-
-    public PublishOutputModel? Data {get; private set;}
 
 
-    public void Dispose()
-    {
-        tokenSource.Dispose();
-    }
-
-    public void Initialize(IServiceProvider? provider)
-    {
-        if (provider == null) return;
-
-        Data = provider.GetRequiredService<PublishOutputModel>();
-        OnPropertyChanged(nameof(Data));
-
-        Data.IsInitializing = false;
-    }
-
-    public void Cancel()
-    {
-        Data?.Cancel();
-        tokenSource.Cancel();
-    }
-
-    internal class DesignerViewModel : PublishOutputViewModel
-    {
-        protected DesignerViewModel()
-        {
-            Initialize(null);
-        }
-    }
+    internal class DesignerViewModel() : PublishOutputViewModel(null, null, null, null);
 }
 
 internal class PublishOutputDesignerViewModel : PublishOutputViewModel.DesignerViewModel
 {
     public PublishOutputDesignerViewModel()
     {
-        ArgumentNullException.ThrowIfNull(Data);
-
-        Data.IsActive = true;
+        IsActive = true;
 
         //OnAppendLog(LogLevel.Debug, "Hello World!");
         //AppendLog(LogLevel.Warning, "Something is wrong...");

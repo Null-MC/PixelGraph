@@ -3,16 +3,8 @@ using PixelGraph.Common.Extensions;
 
 namespace PixelGraph.Common.IO;
 
-internal class FileOutputWriter : IOutputWriter
+internal class FileOutputWriter(IOptions<OutputOptions> options) : IOutputWriter
 {
-    private readonly IOptions<OutputOptions> options;
-
-
-    public FileOutputWriter(IOptions<OutputOptions> options)
-    {
-        this.options = options;
-    }
-
     public void Prepare()
     {
         if (options.Value.Root != null && !Directory.Exists(options.Value.Root))

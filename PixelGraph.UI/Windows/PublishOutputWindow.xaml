@@ -12,9 +12,6 @@
              ShowInTaskbar="False" WindowStartupLocation="CenterOwner" SaveWindowPosition="True"
              Loaded="OnWindowLoaded" Closed="OnWindowClosed"
              Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
-    <Window.DataContext>
-        <vm:PublishOutputViewModel x:Name="Model"/>
-    </Window.DataContext>
     <Window.Resources>
         <converters:VisibilityConverter x:Key="VisibilityConverter"/>
         <converters:VisibilityInverseConverter x:Key="VisibilityInverseConverter"/>
@@ -23,16 +20,16 @@
         <Border DockPanel.Dock="Bottom" Background="{DynamicResource MahApps.Brushes.Highlight}">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="4,4,4,4">
                 <CheckBox Content="Close when complete" Margin="4,4,20,4" FontSize="12"
-                          IsChecked="{Binding Data.CloseOnComplete, Mode=TwoWay}"/>
+                          IsChecked="{Binding CloseOnComplete, Mode=TwoWay}"/>
                 <Button Content="Cancel" Margin="4" Click="OnCancelButtonClick" Width="80"
-                        Visibility="{Binding Data.IsActive, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
+                        Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
                 <Button Content="Close" Margin="4" Click="OnCloseButtonClick" Width="80"
-                        Visibility="{Binding Data.IsActive, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
+                        Visibility="{Binding IsActive, Mode=OneWay, Converter={StaticResource VisibilityInverseConverter}}"/>
             </StackPanel>
         </Border>
         <mah:MetroProgressBar DockPanel.Dock="Bottom" Maximum="1.0" Margin="1"
-                     IsIndeterminate="{Binding Data.IsAnalyzing, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                     Value="{Binding Data.Progress, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+                     IsIndeterminate="{Binding IsAnalyzing, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                     Value="{Binding Progress, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
         <controls:LogListControl x:Name="LogList"/>
     </DockPanel>
 </mah:MetroWindow>

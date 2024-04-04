@@ -14,31 +14,20 @@ public class AppSettingsDataModel : ICloneable
     public int? AcceptedLicenseAgreementVersion {get; set;}
     public int? AcceptedTermsOfServiceVersion {get; set;}
     public bool? HasAcceptedPatreonNotification {get; set;}
-    public int? MaxRecentProjects {get; set;}
+    public int? MaxRecentProjects {get; set;} = DefaultMaxRecentProjects;
     public int? Concurrency {get; set;}
 
     public string? SelectedPublishLocation {get; set;}
     public bool PublishCloseOnComplete {get; set;}
 
-    public string? TextureEditorExecutable {get; set;}
-    public string? TextureEditorArguments {get; set;}
+    public string? TextureEditorExecutable {get; set;} = DefaultImageEditorExe;
+    public string? TextureEditorArguments {get; set;} = DefaultImageEditorArgs;
 
-    public string? ThemeBaseColor {get; set;}
-    public string? ThemeAccentColor {get; set;}
+    public string? ThemeBaseColor {get; set;} = DefaultThemeBaseColor;
+    public string? ThemeAccentColor {get; set;} = DefaultThemeAccentColor;
 
-    public RenderPreviewSettings RenderPreview {get; private set;}
+    public RenderPreviewSettings RenderPreview {get; private set;} = new();
 
-
-    public AppSettingsDataModel()
-    {
-        TextureEditorExecutable = DefaultImageEditorExe;
-        TextureEditorArguments = DefaultImageEditorArgs;
-        ThemeBaseColor = DefaultThemeBaseColor;
-        ThemeAccentColor = DefaultThemeAccentColor;
-        MaxRecentProjects = DefaultMaxRecentProjects;
-
-        RenderPreview = new RenderPreviewSettings();
-    }
 
     public object Clone()
     {

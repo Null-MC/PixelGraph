@@ -12,16 +12,10 @@ public interface IProjectContextManager
 
 internal class ProjectContextManager : IProjectContextManager, IDisposable
 {
-    private readonly ProjectSerializer serializer;
-    private readonly ReaderWriterLockSlim _lock;
+    private readonly ProjectSerializer serializer = new();
+    private readonly ReaderWriterLockSlim _lock = new();
     private IProjectContext? _context;
 
-
-    public ProjectContextManager()
-    {
-        serializer = new ProjectSerializer();
-        _lock = new ReaderWriterLockSlim();
-    }
 
     public void Dispose()
     {

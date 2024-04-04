@@ -59,8 +59,10 @@ namespace PixelGraph.UI
             services.AddTransient<ModelLoader>();
 
             services.AddTransient<PublishProfilesModel>();
-            services.AddTransient<PublishOutputModel>();
+            services.AddTransient<PublishOutputViewModel>();
+            services.AddTransient<ResourceLocationsViewModel>();
             services.AddTransient<RecentProjectsModel>();
+            services.AddTransient<TermsOfServiceModel>();
 
 #if !NORENDER
             services.AddSingleton<IShaderByteCodeManager, CustomShaderManager>();

@@ -3,15 +3,23 @@ using PixelGraph.Common.IO.Publishing;
 using PixelGraph.UI.Internal.Logging;
 using PixelGraph.UI.Internal.Settings;
 using PixelGraph.UI.Internal.Utilities;
+using PixelGraph.UI.ViewModels;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace PixelGraph.UI.Windows;
 
 public partial class PublishOutputWindow : IDisposable
 {
+    public PublishOutputViewModel Model {get;}
+
+
     public PublishOutputWindow(IServiceProvider provider)
     {
+        Model = provider.GetRequiredService<PublishOutputViewModel>();
+        DataContext = Model;
+
         var themeHelper = provider.GetRequiredService<IThemeHelper>();
         var appSettings = provider.GetRequiredService<IAppSettingsManager>();
 
@@ -19,51 +27,51 @@ public partial class PublishOutputWindow : IDisposable
 
         themeHelper.ApplyCurrent(this);
 
-        Model.Initialize(provider);
-        ArgumentNullException.ThrowIfNull(Model.Data);
+        Model.IsLoading = true;
 
-        Model.Data.IsLoading = true;
+        Model.StateChanged += OnStatusChanged;
+        Model.LogAppended += OnLogAppended;
 
-        Model.Data.StateChanged += OnStatusChanged;
-        Model.Data.LogAppended += OnLogAppended;
+        Model.CloseOnComplete = appSettings.Data.PublishCloseOnComplete;
 
-        Model.Data.CloseOnComplete = appSettings.Data.PublishCloseOnComplete;
+        Model.Clean = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
 
-        Model.Data.IsLoading = false;
+        Model.IsLoading = false;
+
+        Model.IsInitializing = false;
     }
 
     public void Dispose()
     {
-        Model?.Dispose();
+        Model.Dispose();
         GC.SuppressFinalize(this);
     }
 
     private void OnStatusChanged(object? sender, PublishStatus e)
     {
-        ArgumentNullException.ThrowIfNull(Model.Data);
+        //ArgumentNullException.ThrowIfNull(Model);
 
-        var data = Model.Data;
         Dispatcher.BeginInvoke(() => {
-            data.IsAnalyzing = e.IsAnalyzing;
-            data.Progress = e.Progress;
+            Model.IsAnalyzing = e.IsAnalyzing;
+            Model.Progress = e.Progress;
         }, DispatcherPriority.DataBind);
     }
 
     private async void OnWindowLoaded(object? sender, RoutedEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(Model.Data);
+        //ArgumentNullException.ThrowIfNull(Model);
 
-        Model.Data.IsActive = true;
+        Model.IsActive = true;
 
         try {
-            var success = await Model.Data.PublishAsync();
-            if (success && Model.Data.CloseOnComplete) DialogResult = true;
+            var success = await Model.PublishAsync();
+            if (success && Model.CloseOnComplete) DialogResult = true;
         }
         catch (OperationCanceledException) {
             if (IsLoaded) DialogResult = false;
         }
         finally {
-            await Dispatcher.BeginInvoke(() => Model.Data.IsActive = false);
+            await Dispatcher.BeginInvoke(() => Model.IsActive = false);
         }
     }
 

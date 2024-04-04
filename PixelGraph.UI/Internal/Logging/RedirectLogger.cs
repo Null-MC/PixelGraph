@@ -2,10 +2,7 @@
 
 namespace PixelGraph.UI.Internal.Logging;
 
-internal class RedirectLogger : RedirectLogger<object>
-{
-    public RedirectLogger(ILogReceiver receiver) : base(receiver) {}
-}
+internal class RedirectLogger(ILogReceiver receiver) : RedirectLogger<object>(receiver);
 
 internal class RedirectLogger<T> : ILogger<T>
 {
@@ -31,14 +28,8 @@ internal class RedirectLogger<T> : ILogger<T>
     }
 }
 
-internal class LogEventArgs : EventArgs
+public class LogEventArgs(LogLevel level, string message) : EventArgs
 {
-    public LogLevel Level {get; set;}
-    public string Message {get; set;}
-
-    public LogEventArgs(LogLevel level, string message)
-    {
-        Level = level;
-        Message = message;
-    }
+    public LogLevel Level {get; set;} = level;
+    public string Message {get; set;} = message;
 }

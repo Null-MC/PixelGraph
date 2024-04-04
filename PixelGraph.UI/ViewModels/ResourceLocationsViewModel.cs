@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelGraph.UI.Internal;
-using PixelGraph.UI.Internal.IO.Resources;
+﻿using PixelGraph.UI.Internal.IO.Resources;
 using PixelGraph.UI.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -8,10 +6,9 @@ using System.Runtime.CompilerServices;
 
 namespace PixelGraph.UI.ViewModels;
 
-public class ResourceLocationsModel : INotifyPropertyChanged
+public class ResourceLocationsViewModel : INotifyPropertyChanged
 {
     private readonly IResourceLocationManager resourceLocationMgr;
-    //private ObservableCollection<ResourceLocationDisplayModel> _locations;
     private ResourceLocationDisplayModel? _selectedLocationItem;
 
     public bool HasChanges {get; set;}
@@ -55,9 +52,9 @@ public class ResourceLocationsModel : INotifyPropertyChanged
     }
 
 
-    public ResourceLocationsModel(IServiceProvider provider)
+    public ResourceLocationsViewModel(IResourceLocationManager resourceLocationMgr)
     {
-        resourceLocationMgr = provider.GetRequiredService<IResourceLocationManager>();
+        this.resourceLocationMgr = resourceLocationMgr;
 
         var locations = resourceLocationMgr.GetLocations() ?? Enumerable.Empty<ResourceLocation>();
         var displayLocations = locations.Select(l => new ResourceLocationDisplayModel(l)).ToArray();
@@ -115,16 +112,4 @@ public class ResourceLocationsModel : INotifyPropertyChanged
     }
 }
 
-public class ResourceLocationsViewModel : ModelBase
-{
-    public ResourceLocationsModel? Data {get; private set;}
-
-
-    public void Initialize(IServiceProvider provider)
-    {
-        Data = provider.GetRequiredService<ResourceLocationsModel>();
-        OnPropertyChanged(nameof(Data));
-    }
-}
-
-internal class ResourceLocationsDesignerViewModel : ResourceLocationsViewModel {}
+internal class ResourceLocationsDesignerViewModel() : ResourceLocationsViewModel(null);

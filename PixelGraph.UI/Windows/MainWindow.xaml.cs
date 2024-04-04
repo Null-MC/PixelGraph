@@ -817,8 +817,9 @@ namespace PixelGraph.UI.Windows
                 using var window = new PublishOutputWindow(provider);
                 window.Owner = this;
 
-                window.Model.Initialize(provider);
-                window.Model.Data.Clean = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+                //window.Model.Initialize(provider);
+                //window.Model.Data.Clean = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+                //window.Model.Data.IsInitializing = false;
 
                 var isBedrock = GameEdition.Is(projectContext.SelectedProfile.Edition, GameEdition.Bedrock);
 
@@ -829,14 +830,14 @@ namespace PixelGraph.UI.Windows
                     if (Model.SelectedLocation.Archive)
                         name += isBedrock ? ".mcpack" : ".zip";
 
-                    window.Model.Data.Destination = Path.Combine(Model.SelectedLocation.Path, name);
-                    window.Model.Data.Archive = Model.SelectedLocation.Archive;
+                    window.Model.Destination = Path.Combine(Model.SelectedLocation.Path, name);
+                    window.Model.Archive = Model.SelectedLocation.Archive;
                 }
                 else {
-                    window.Model.Data.Destination = GetArchiveFilename(isBedrock);
-                    window.Model.Data.Archive = true;
+                    window.Model.Destination = GetArchiveFilename(isBedrock);
+                    window.Model.Archive = true;
 
-                    if (window.Model.Data.Destination == null) return;
+                    if (window.Model.Destination == null) return;
                 }
 
                 window.ShowDialog();

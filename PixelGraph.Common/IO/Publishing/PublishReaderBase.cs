@@ -16,32 +16,18 @@ public interface IPublishReader
     bool IsLocalMaterialPath(string localPath);
 }
 
-internal class PublishReader : IPublishReader
+internal class PublishReader(
+    ILogger<PublishReader> logger,
+    IInputReader reader,
+    IMaterialReader materialReader,
+    ITextureReader texReader)
+    : IPublishReader
 {
-    private readonly ILogger<PublishReader> logger;
-    private readonly IInputReader reader;
-    private readonly IMaterialReader materialReader;
-    private readonly ITextureReader texReader;
-    private readonly Stack<string> untracked;
-    private readonly HashSet<string> ignored;
+    private readonly Stack<string> untracked = new();
+    private readonly HashSet<string> ignored = new(StringComparer.InvariantCultureIgnoreCase);
 
     public bool EnableAutoMaterial {get; set;}
 
-
-    public PublishReader(
-        ILogger<PublishReader> logger,
-        IInputReader reader,
-        IMaterialReader materialReader,
-        ITextureReader texReader)
-    {
-        this.reader = reader;
-        this.materialReader = materialReader;
-        this.texReader = texReader;
-        this.logger = logger;
-
-        untracked = new Stack<string>();
-        ignored = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-    }
 
     public async IAsyncEnumerable<object> LoadAsync([EnumeratorCancellation] CancellationToken token = default)
     {
@@ -197,6 +183,6 @@ internal class PublishReader : IPublishReader
         return false;
     }
 
-    private static readonly string[] AllLocalTextures = {"alpha", "diffuse", "albedo", "height", "occlusion", "normal", "specular", "smooth", "rough", "metal", "f0", "porosity", "sss", "emissive"};
-    private static readonly string[] IgnoredExtensions = {".pack.yml", ".mat.yml", ".pbr.yml", ".zip", ".db", ".cmd", ".sh", ".xcf", ".psd", ".bak"};
+    private static readonly string[] AllLocalTextures = ["alpha", "diffuse", "albedo", "height", "occlusion", "normal", "specular", "smooth", "rough", "metal", "f0", "porosity", "sss", "emissive"];
+    private static readonly string[] IgnoredExtensions = [".pack.yml", ".mat.yml", ".pbr.yml", ".zip", ".db", ".cmd", ".sh", ".xcf", ".psd", ".bak"];
 }

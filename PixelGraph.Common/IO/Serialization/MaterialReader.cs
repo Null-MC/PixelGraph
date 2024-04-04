@@ -14,10 +14,9 @@ public interface IMaterialReader
     //bool TryExpandRange(MaterialProperties texture, out MaterialProperties[] results);
 }
 
-internal class MaterialReader : IMaterialReader
+internal class MaterialReader(IInputReader reader) : IMaterialReader
 {
     private static readonly IDeserializer deserializer;
-    private readonly IInputReader reader;
 
 
     static MaterialReader()
@@ -26,11 +25,6 @@ internal class MaterialReader : IMaterialReader
             .WithTypeConverter(new YamlStringEnumConverter())
             .WithNamingConvention(HyphenatedNamingConvention.Instance)
             .Build();
-    }
-
-    public MaterialReader(IInputReader reader)
-    {
-        this.reader = reader;
     }
 
     public Task<MaterialProperties?> LoadAsync(string localFile, CancellationToken token = default)
@@ -108,11 +102,11 @@ internal class MaterialReader : IMaterialReader
         
     private async Task<MaterialProperties> ParseDocumentAsync(string localFile)
     {
-        await using var stream = reader.Open(localFile);
-        if (stream == null) throw new ApplicationException("Failed to open file stream!");
+        await using var stream = reader.Open(localFile)
+            ?? throw new ApplicationException("Failed to open file stream!");
 
         using var streamReader = new StreamReader(stream);
-        var document = deserializer.Deserialize<MaterialProperties>(streamReader);
+        var document = deserializer.Deserialize<MaterialProperties?>(streamReader) ?? new MaterialProperties();
 
         if (document.CTM?.Method != null && parseMap.TryGetValue(document.CTM.Method, out var replaceMethod))
             document.CTM.Method = replaceMethod;

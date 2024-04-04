@@ -13,15 +13,15 @@ namespace PixelGraph.UI.Windows;
 
 public partial class ResourceLocationsWindow
 {
-    private readonly ResourceLocationsViewModel viewModel;
+    private ResourceLocationsViewModel Model {get;}
 
 
     public ResourceLocationsWindow(IServiceProvider provider)
     {
-        DataContext = viewModel = new ResourceLocationsViewModel();
+        Model = provider.GetRequiredService<ResourceLocationsViewModel>();
+        DataContext = Model;
 
         InitializeComponent();
-        viewModel.Initialize(provider);
 
         var themeHelper = provider.GetRequiredService<IThemeHelper>();
         themeHelper.ApplyCurrent(this);
@@ -29,10 +29,8 @@ public partial class ResourceLocationsWindow
 
     private async Task SaveAsync()
     {
-        ArgumentNullException.ThrowIfNull(viewModel.Data);
-
         try {
-            await viewModel.Data.SaveAsync();
+            await Model.SaveAsync();
         }
         catch (Exception error) {
             await this.ShowMessageAsync("Error!", $"Failed to save resource locations! {error.Message}");
@@ -40,7 +38,7 @@ public partial class ResourceLocationsWindow
         }
 
         await Dispatcher.BeginInvoke(() => {
-            viewModel.Data.HasChanges = false;
+            Model.HasChanges = false;
             DialogResult = true;
         });
     }
@@ -68,9 +66,7 @@ public partial class ResourceLocationsWindow
 
     private async void OnWindowClosing(object sender, CancelEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(viewModel.Data);
-
-        if (DialogResult.HasValue || !viewModel.Data.HasChanges) return;
+        if (DialogResult.HasValue || !Model.HasChanges) return;
 
         var result = MessageBox.Show(this, "Would you like to save your changes?", "Warning!", MessageBoxButton.YesNoCancel);
 
@@ -92,26 +88,20 @@ public partial class ResourceLocationsWindow
 
     private void OnAddClick(object sender, RoutedEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(viewModel.Data);
-
         if (TryGetFilenames(true, out var files))
-            viewModel.Data.AddFiles(files);
+            Model.AddFiles(files);
     }
 
     private void OnRemoveClick(object sender, RoutedEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(viewModel.Data);
-
-        viewModel.Data.RemoveSelected();
+        Model.RemoveSelected();
     }
 
     private void OnPathBrowseClick(object sender, RoutedEventArgs e)
     {
         if (!TryGetFilenames(true, out var files)) return;
 
-        ArgumentNullException.ThrowIfNull(viewModel.Data);
-
-        viewModel.Data.EditFile = files.FirstOrDefault();
+        Model.EditFile = files.FirstOrDefault();
     }
         
     private async void OnOkButtonClick(object sender, RoutedEventArgs e)

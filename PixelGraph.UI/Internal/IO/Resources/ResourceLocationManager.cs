@@ -1,6 +1,6 @@
 ﻿namespace PixelGraph.UI.Internal.IO.Resources;
 
-internal interface IResourceLocationManager
+public interface IResourceLocationManager
 {
     ResourceLocation[]? GetLocations();
     void SetLocations(IEnumerable<ResourceLocation> locations);
@@ -8,21 +8,13 @@ internal interface IResourceLocationManager
     Task SaveAsync(CancellationToken token = default);
 }
 
-internal class ResourceLocationManager : IResourceLocationManager, IDisposable
+internal class ResourceLocationManager(IAppDataUtility appData) : IResourceLocationManager, IDisposable
 {
     private const string FileName = "Resources.json";
 
-    private readonly IAppDataUtility appData;
-    private readonly ReaderWriterLockSlim _lock;
+    private readonly ReaderWriterLockSlim _lock = new();
     private ResourceLocation[]? _locations;
 
-
-    public ResourceLocationManager(IAppDataUtility appData)
-    {
-        this.appData = appData;
-
-        _lock = new ReaderWriterLockSlim();
-    }
 
     public void Dispose()
     {

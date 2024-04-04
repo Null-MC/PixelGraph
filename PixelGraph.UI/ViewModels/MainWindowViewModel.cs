@@ -757,7 +757,8 @@ namespace PixelGraph.UI.ViewModels
                         if (!context.IsMaterialBuilderValid) {
                             try {
                                 var renderContext = BuildRenderContext();
-                                await context.BuildModelMeshAsync(renderContext, token);
+                                if (renderContext != null)
+                                    await context.BuildModelMeshAsync(renderContext, token);
                             }
                             catch (Exception error) {
                                 logger?.LogError(error, "Failed to build model mesh!");
@@ -1114,17 +1115,19 @@ namespace PixelGraph.UI.ViewModels
             ArgumentNullException.ThrowIfNull(tabPreviewMgr);
 
             var renderContext = BuildRenderContext();
+            if (renderContext == null) return;
 
             foreach (var tab in tabPreviewMgr.All) {
                 tab.UpdateMaterials(renderContext);
             }
         }
 
-        private RenderContext BuildRenderContext()
+        private RenderContext? BuildRenderContext()
         {
             ArgumentNullException.ThrowIfNull(projectContextMgr);
 
-            var projectContext = projectContextMgr.GetContextRequired();
+            var projectContext = projectContextMgr.GetContext();
+            if (projectContext == null) return null;
 
             return new RenderContext {
                 RenderMode = RenderProperties.RenderMode,
