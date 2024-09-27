@@ -5,22 +5,20 @@ using YamlDotNet.Serialization.ObjectGraphVisitors;
 
 namespace PixelGraph.Common.IO.Serialization;
 
-public class CustomGraphVisitor : ChainedObjectGraphVisitor
+public class CustomGraphVisitor(IObjectGraphVisitor<IEmitter> nextVisitor) : ChainedObjectGraphVisitor(nextVisitor)
 {
-    public CustomGraphVisitor(IObjectGraphVisitor<IEmitter> nextVisitor) : base(nextVisitor) {}
-
     private static object? GetDefault(Type type)
     {
         return type.IsValueType ? Activator.CreateInstance(type) : null;
     }
 
-    public override bool EnterMapping(IObjectDescriptor key, IObjectDescriptor value, IEmitter context)
+    public override bool EnterMapping(IObjectDescriptor key, IObjectDescriptor value, IEmitter context, ObjectSerializer serializer)
     {
         return !Equals(value.Value, GetDefault(value.Type))
-               && base.EnterMapping(key, value, context);
+               && base.EnterMapping(key, value, context, serializer);
     }
 
-    public override bool EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, IEmitter context)
+    public override bool EnterMapping(IPropertyDescriptor key, IObjectDescriptor value, IEmitter context, ObjectSerializer serializer)
     {
         if (value.Value is IHaveData dataObj) return dataObj.HasAnyData();
 
@@ -28,6 +26,6 @@ public class CustomGraphVisitor : ChainedObjectGraphVisitor
         var defaultValue = defaultValueAttribute?.Value;
 
         return !Equals(value.Value, defaultValue)
-               && base.EnterMapping(key, value, context);
+               && base.EnterMapping(key, value, context, serializer);
     }
 }

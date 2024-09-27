@@ -69,8 +69,8 @@ public class BlockMeshGeometryBufferModel() : MeshGeometryBufferModel<BlockMeshV
         using var tangents = geometry.Tangents.GetEnumerator();
         using var bitangents = geometry.BiTangents.GetEnumerator();
         using var texcoords = geometry.TextureCoordinates.GetEnumerator();
-        using var texcoordMins = geometry.TextureCoordinateMins.GetEnumerator();
-        using var texcoordMaxs = geometry.TextureCoordinateMaxs.GetEnumerator();
+        using var texcoordMins = geometry.TextureCoordinateMins?.GetEnumerator();
+        using var texcoordMaxs = geometry.TextureCoordinateMaxs?.GetEnumerator();
 
         var array = ThreadBufferManager<BlockMeshVertex>.GetBuffer(vertexCount);
 
@@ -80,16 +80,16 @@ public class BlockMeshGeometryBufferModel() : MeshGeometryBufferModel<BlockMeshV
             tangents.MoveNext();
             bitangents.MoveNext();
             texcoords.MoveNext();
-            texcoordMins.MoveNext();
-            texcoordMaxs.MoveNext();
+            texcoordMins?.MoveNext();
+            texcoordMaxs?.MoveNext();
 
             array[i].Position = new Vector4(positions.Current, 1f);
             array[i].Normal = normals.Current;
             array[i].Tangent = tangents.Current;
             array[i].BiTangent = bitangents.Current;
             array[i].TexCoord = texcoords.Current;
-            array[i].TexCoordMin = texcoordMins.Current;
-            array[i].TexCoordMax = texcoordMaxs.Current;
+            array[i].TexCoordMin = texcoordMins?.Current ?? Vector2.Zero;
+            array[i].TexCoordMax = texcoordMaxs?.Current ?? Vector2.Zero;
         }
 
         return array;

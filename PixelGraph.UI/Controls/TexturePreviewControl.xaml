@@ -19,7 +19,7 @@
                 <Button DockPanel.Dock="Right" Margin="2,0" Padding="6,0" BorderThickness="0"
                         Click="OnPreviewRefreshClick" ToolTip="Refresh Preview"
                         Style="{StaticResource MahApps.Styles.Button}">
-                    <iconPacks:FontAwesome Kind="SyncSolid" Width="14" Height="14"/>
+                    <iconPacks:FontAwesome Kind="RecycleSolid" Width="14" Height="14"/>
                 </Button>
                 <ComboBox IsEditable="True" DockPanel.Dock="Right" Margin="2,0" BorderThickness="0" ToolTip="Zoom"
                           Text="{Binding ZoomText, Mode=TwoWay}">

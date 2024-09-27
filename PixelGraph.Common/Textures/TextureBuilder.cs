@@ -243,8 +243,9 @@ internal class TextureBuilder(
                 mapping.OutputApplyOcclusion = true;
         }
 
-        var inputChannel = InputChannels?.FirstOrDefault(i => EncodingChannel.Is(i.ID, outputChannel.ID))
-            ?? throw new ApplicationException("Input channel is undefined!");
+        var inputChannel = InputChannels?.FirstOrDefault(i => EncodingChannel.Is(i.ID, outputChannel.ID));
+            //?? throw new ApplicationException("Input channel is undefined!");
+        if (inputChannel == null) return false;
 
         if (context.Material.TryGetChannelValue(outputChannel.ID, out var value)) {
             mapping.InputValue = (float)value;

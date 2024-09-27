@@ -95,11 +95,11 @@
                     <MenuItem Header="From Folder" Click="OnImportFolderClick"
                               Icon="{iconPacks:FontAwesome FolderSolid}"/>
                     <MenuItem Header="From Archive" Click="OnImportZipClick"
-                              Icon="{iconPacks:FontAwesome FileArchiveSolid}"/>
+                              Icon="{iconPacks:FontAwesome FileZipperSolid}"/>
                 </MenuItem>
                 <Separator/>
                 <MenuItem Header="Close" Click="OnCloseProjectClick"
-                          Icon="{iconPacks:FontAwesome WindowCloseSolid}"
+                          Icon="{iconPacks:FontAwesome XmarkSolid}"
                           IsEnabled="{Binding IsProjectLoaded, Mode=OneWay}"/>
                 <MenuItem Header="Exit" Click="OnExitClick">
                     <MenuItem.Icon>
@@ -109,7 +109,7 @@
             </MenuItem>
             <MenuItem Header="Edit" Background="Transparent">
                 <MenuItem Header="App Settings" Click="OnSettingsClick"
-                          Icon="{iconPacks:FontAwesome CogSolid}"/>
+                          Icon="{iconPacks:FontAwesome GearsSolid}"/>
                 <MenuItem Header="Publish Locations" Click="OnPublishLocationsClick"
                           Icon="{iconPacks:FontAwesome FolderSolid}"/>
                 <MenuItem Header="Resource Locations" Click="OnResourceLocationsClick"
@@ -136,7 +136,7 @@
                 <MenuItem Header="Documentation" Icon="{iconPacks:FontAwesome QuestionSolid}" Click="OnHelpDocumentationClick"/>
                 <MenuItem Header="View Logs" Icon="{iconPacks:FontAwesome FolderOpenSolid}" Click="OnHelpViewLogsClick"/>
                 <Separator/>
-                <MenuItem Header="About" Icon="{iconPacks:FontAwesome InfoCircleSolid}" Click="OnHelpAboutClick"/>
+                <MenuItem Header="About" Icon="{iconPacks:FontAwesome CircleInfoSolid}" Click="OnHelpAboutClick"/>
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
@@ -164,7 +164,7 @@
                              Style="{StaticResource MahApps.Styles.TextBox.Search}"/>
                     <Button Grid.Column="1" ToolTip="Refresh" Width="26" Height="26" Margin="2,4" BorderThickness="0" Padding="6" Click="OnContentRefreshClick"
                             Style="{StaticResource MahApps.Styles.Button.Square.Accent}">
-                        <iconPacks:PackIconFontAwesome Kind="RedoSolid" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <iconPacks:PackIconFontAwesome Kind="RecycleSolid" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
                     <ToggleButton Grid.Column="2" Width="26" Height="26" Margin="2,4,4,4" BorderThickness="0" Padding="6" ToolTip="Show All Files"
                                   IsChecked="{Binding ShowAllFiles, Mode=TwoWay}">
@@ -269,7 +269,7 @@
                                     <Button DockPanel.Dock="Left" Margin="2,0" Padding="6,2" BorderThickness="0"
                                             ToolTip="Edit Layer Image" Click="OnChannelEditImageButtonClick"
                                             Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"
-                                            Content="{iconPacks:FontAwesome Kind=EditSolid}"/>
+                                            Content="{iconPacks:FontAwesome Kind=PenToSquareSolid}"/>
                                     <ComboBox DisplayMemberPath="Name" SelectedValuePath="Key"
                                               Margin="2,0" Padding="4,0" FontSize="16" Grid.IsSharedSizeScope="True"
                                               ItemsSource="{StaticResource TextureList}"

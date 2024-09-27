@@ -106,7 +106,7 @@
                                            Foreground="{DynamicResource MahApps.Brushes.Gray2}"
                                            Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <DockPanel Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateHeaderUuid"/>
+                                    <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="{iconPacks:FontAwesome Kind=PenToSquareSolid}" Click="OnGenerateHeaderUuid"/>
                                     <TextBox Text="{Binding SelectedProfile.PackHeaderUuid, Mode=TwoWay, FallbackValue={x:Null}, Converter={StaticResource NullableConverter}}"/>
                                 </DockPanel>
                                 <TextBlock Text="Module UUID" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
@@ -114,7 +114,7 @@
                                            Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                 <DockPanel Visibility="{Binding IsSelectedProfileBedrock, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <Button DockPanel.Dock="Right" Margin="6,0,0,0"
-                                            Content="{iconPacks:FontAwesome Kind=EditSolid}" Click="OnGenerateModuleUuid"/>
+                                            Content="{iconPacks:FontAwesome Kind=PenToSquareSolid}" Click="OnGenerateModuleUuid"/>
                                     <TextBox Text="{Binding SelectedProfile.PackModuleUuid, Mode=TwoWay, FallbackValue={x:Null}, Converter={StaticResource NullableConverter}}"/>
                                 </DockPanel>
                                 <TextBlock Text="Image Encoding" FontSize="12" FontWeight="Bold" Margin="0,12,0,0"
@@ -181,7 +181,7 @@
                                 <DockPanel>
                                     <Button DockPanel.Dock="Right" Margin="0" Padding="4,0" BorderThickness="0"
                                             ToolTip="Edit Encoding" Click="OnEditEncodingClick"
-                                            Content="{iconPacks:FontAwesome Kind=EditSolid}"
+                                            Content="{iconPacks:FontAwesome Kind=PenToSquareSolid}"
                                             Style="{StaticResource MahApps.Styles.Button.MetroSquare}"/>
                                     <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
                                               ItemsSource="{StaticResource AllTextureFormats}"

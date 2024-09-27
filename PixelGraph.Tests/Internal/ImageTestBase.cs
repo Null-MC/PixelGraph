@@ -46,6 +46,7 @@ public class ImageTestGraph : IDisposable, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await provider.DisposeAsync();
+        GC.SuppressFinalize(this);
     }
 
     public Task CreateImageAsync(string localFile, byte gray)
@@ -122,7 +123,7 @@ public class ImageTestGraph : IDisposable, IAsyncDisposable
         return content.OpenImageAsync<TPixel>(localFile);
     }
 
-    public Stream GetFile(string localFile)
+    public Stream? GetFile(string localFile)
     {
         var content = provider.GetRequiredService<MockFileContent>();
         return content.OpenRead(localFile);

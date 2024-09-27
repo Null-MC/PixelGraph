@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.25.0" />
-    <PackageReference Include="JeremyAnsel.HLSL.Targets" Version="2.0.20" />
+    <PackageReference Include="JeremyAnsel.HLSL.Targets" Version="2.0.25" />
   </ItemGroup>
 
   <ItemGroup>

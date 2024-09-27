@@ -13,7 +13,7 @@ public class YamlStringEnumConverter : IYamlTypeConverter
         return type.IsEnum || (Nullable.GetUnderlyingType(type)?.IsEnum ?? false);
     }
 
-    public object ReadYaml(IParser parser, Type type)
+    public object ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer)
     {
         var parsedEnum = parser.Consume<Scalar>();
 
@@ -22,13 +22,13 @@ public class YamlStringEnumConverter : IYamlTypeConverter
 
         var serializableValues = ScanAssembly(t).ToDictionary(pa => pa.Key, pa => pa.Value);
 
-        if (!serializableValues.ContainsKey(parsedEnum.Value))
+        if (!serializableValues.TryGetValue(parsedEnum.Value, out var value))
             throw new YamlException(parsedEnum.Start, parsedEnum.End, $"Value '{parsedEnum.Value}' not found in enum '{t.Name}'");
 
-        return Enum.Parse(t, serializableValues[parsedEnum.Value].Name);
+        return Enum.Parse(t, value.Name);
     }
 
-    public void WriteYaml(IEmitter emitter, object? value, Type type)
+    public void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer)
     {
         var nullType = Nullable.GetUnderlyingType(type);
         var t = nullType ?? type;

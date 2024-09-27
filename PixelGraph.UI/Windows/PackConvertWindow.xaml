@@ -70,7 +70,7 @@
                                        Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Padding="4,0" ToolTip="Edit Encoding" Click="OnEditEncodingClick"
-                                        Content="{iconPacks:FontAwesome Kind=EditSolid}"
+                                        Content="{iconPacks:FontAwesome Kind=PenToSquareSolid}"
                                         Style="{StaticResource MahApps.Styles.Button.MetroSquare}"/>
                                 <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
                                           ItemsSource="{StaticResource AllTextureFormats}"
@@ -83,7 +83,7 @@
                                        Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Padding="4,0" ToolTip="Edit Encoding" Click="OnEditEncodingClick"
-                                        Content="{iconPacks:FontAwesome Kind=EditSolid}"
+                                        Content="{iconPacks:FontAwesome Kind=PenToSquareSolid}"
                                         Style="{StaticResource MahApps.Styles.Button.MetroSquare}"/>
                                 <ComboBox DisplayMemberPath="Text" SelectedValuePath="Value"
                                           ItemsSource="{StaticResource AllTextureFormats}"

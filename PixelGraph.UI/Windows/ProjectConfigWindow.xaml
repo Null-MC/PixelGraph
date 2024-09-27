@@ -25,7 +25,7 @@
             <Button Content="Cancel" IsCancel="True" HorizontalAlignment="Left" Margin="6" Width="80" FontSize="12"  />
             <Button HorizontalAlignment="Right" Margin="6" Click="OnOkButtonClick" Width="80">
                 <StackPanel Orientation="Horizontal">
-                    <iconPacks:PackIconFontAwesome Kind="SaveRegular" Height="12" VerticalAlignment="Center"/>
+                    <iconPacks:PackIconFontAwesome Kind="FloppyDiskRegular" Height="12" VerticalAlignment="Center"/>
                     <TextBlock Text="Save" Padding="4,0" VerticalAlignment="Center" FontSize="12"/>
                 </StackPanel>
             </Button>
@@ -73,7 +73,7 @@
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Margin="0" Padding="4,0" BorderThickness="0"
                                     ToolTip="Edit Encoding" Click="OnEditEncodingClick"
-                                    Content="{iconPacks:FontAwesome Kind=EditSolid}"
+                                    Content="{iconPacks:FontAwesome Kind=PenToSquareSolid}"
                                     Style="{StaticResource MahApps.Styles.Button.MetroSquare}"/>
                             <ComboBox Width="180" Padding="0,1" Margin="2,6,6,6" HorizontalContentAlignment="Center" FontSize="14"
                                       DisplayMemberPath="Text" SelectedValuePath="Value"

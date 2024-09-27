@@ -17,13 +17,12 @@ public interface IResourcePackImporter
     Task ImportAsync(CancellationToken token = default);
 }
 
-public class ResourcePackImporter : IResourcePackImporter
+public class ResourcePackImporter(IServiceProvider provider) : IResourcePackImporter
 {
-    private readonly ILogger<ResourcePackImporter> logger;
-    private readonly IInputReader reader;
-    private readonly IOutputWriter writer;
-    private readonly IMaterialImporter importer;
-    //private readonly IMaterialWriter matWriter;
+    private readonly ILogger<ResourcePackImporter> logger = provider.GetRequiredService<ILogger<ResourcePackImporter>>();
+    private readonly IInputReader reader = provider.GetRequiredService<IInputReader>();
+    private readonly IOutputWriter writer = provider.GetRequiredService<IOutputWriter>();
+    private readonly IMaterialImporter importer = provider.GetRequiredService<IMaterialImporter>();
 
     public bool AsGlobal {get; set;}
     public bool CopyUntracked {get; set;}
@@ -33,20 +32,6 @@ public class ResourcePackImporter : IResourcePackImporter
 
     public int FailureCount {get; set;}
 
-
-    //static ResourcePackImporter()
-    //{
-    //    ctmPropertySerializer = new ObjectPropertyFileSerializer<CtmProperties>();
-    //}
-
-    public ResourcePackImporter(IServiceProvider provider)
-    {
-        reader = provider.GetRequiredService<IInputReader>();
-        writer = provider.GetRequiredService<IOutputWriter>();
-        importer = provider.GetRequiredService<IMaterialImporter>();
-        //matWriter = provider.GetRequiredService<IMaterialWriter>();
-        logger = provider.GetRequiredService<ILogger<ResourcePackImporter>>();
-    }
 
     public async Task ImportAsync(CancellationToken token = default)
     {
@@ -212,8 +197,8 @@ public class ResourcePackImporter : IResourcePackImporter
 
     private async Task CopyFileAsync(string file, CancellationToken token)
     {
-        await using var sourceStream = reader.Open(file);
-        if (sourceStream == null) throw new ApplicationException($"Failed to open file '{file}'!");
+        await using var sourceStream = reader.Open(file)
+            ?? throw new ApplicationException($"Failed to open file '{file}'!");
 
         await writer.OpenWriteAsync(file, async destStream => {
             await sourceStream.CopyToAsync(destStream, token);

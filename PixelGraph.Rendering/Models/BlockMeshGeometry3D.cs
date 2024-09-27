@@ -5,17 +5,17 @@ namespace PixelGraph.Rendering.Models;
 
 public class BlockMeshGeometry3D : MeshGeometry3D
 {
-    private Vector2Collection textureCoordinateMins = [];
-    private Vector2Collection textureCoordinateMaxs = [];
+    private Vector2Collection? textureCoordinateMins = [];
+    private Vector2Collection? textureCoordinateMaxs = [];
 
     [DataMember]
-    public Vector2Collection TextureCoordinateMins {
+    public Vector2Collection? TextureCoordinateMins {
         get => textureCoordinateMins;
         set => Set(ref textureCoordinateMins, value);
     }
 
     [DataMember]
-    public Vector2Collection TextureCoordinateMaxs {
+    public Vector2Collection? TextureCoordinateMaxs {
         get => textureCoordinateMaxs;
         set => Set(ref textureCoordinateMaxs, value);
     }
@@ -35,11 +35,11 @@ public class BlockMeshGeometry3D : MeshGeometry3D
     {
         base.OnClearAllGeometryData();
 
-        TextureCoordinateMins.Clear();
-        TextureCoordinateMins.TrimExcess();
+        TextureCoordinateMins?.Clear();
+        TextureCoordinateMins?.TrimExcess();
 
-        TextureCoordinateMaxs.Clear();
-        TextureCoordinateMaxs.TrimExcess();
+        TextureCoordinateMaxs?.Clear();
+        TextureCoordinateMaxs?.TrimExcess();
     }
 
     //public void Freeze()

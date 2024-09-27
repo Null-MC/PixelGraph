@@ -28,7 +28,7 @@
                     <Button DockPanel.Dock="Left" Margin="2,0" Padding="6,0" BorderThickness="0"
                             Click="OnPreviewRefreshClick" ToolTip="Refresh Preview"
                             Style="{StaticResource MahApps.Styles.Button}">
-                        <iconPacks:FontAwesome Kind="SyncSolid" Width="14" Height="14"/>
+                        <iconPacks:FontAwesome Kind="RecycleSolid" Width="14" Height="14"/>
                     </Button>
                     <ComboBox DockPanel.Dock="Left" Margin="2,0" Padding="4,0"
                               BorderThickness="0" Width="140" ToolTip="Shader"

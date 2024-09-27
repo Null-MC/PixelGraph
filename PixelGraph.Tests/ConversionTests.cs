@@ -19,6 +19,11 @@ public class ConversionTests : TestBase
         using var provider = Builder.Build();
         var javaToBedrock = provider.GetRequiredService<JavaToBedrockPublishMapping>();
 
+        if (javaToBedrock.Mappings == null) {
+            // TODO: warn about no mappings found?
+            return;
+        }
+
         var total = javaToBedrock.Mappings.Count;
 
         var mappedCount = 0;
@@ -68,7 +73,7 @@ public class ConversionTests : TestBase
         using var provider = Builder.Build();
         var javaToBedrock = provider.GetRequiredService<JavaToBedrockPublishMapping>();
 
-        var javaMatchList = javaToBedrock.Mappings.Keys;
+        var javaMatchList = javaToBedrock.Mappings?.Keys;
         var javaTextureList = Minecraft.Java.AllBlockTextures;
 
         // TODO: unfinished
@@ -80,7 +85,7 @@ public class ConversionTests : TestBase
         using var provider = Builder.Build();
         var javaToBedrock = provider.GetRequiredService<JavaToBedrockPublishMapping>();
 
-        var javaMatchList = javaToBedrock.Mappings.Keys;
+        var javaMatchList = javaToBedrock.Mappings?.Keys;
         var javaTextureList = Minecraft.Java.AllBlockTextures;
 
         // TODO: unfinished

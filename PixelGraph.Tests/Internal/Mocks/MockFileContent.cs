@@ -35,8 +35,12 @@ public class MockFileContent : IDisposable, IAsyncDisposable
 
     public IEnumerable<MockFile> EnumerateFiles(string localPath, string? pattern)
     {
-        return Files.Where(f => string.Equals(Path.GetDirectoryName(f.Filename), localPath, StringComparison.InvariantCultureIgnoreCase))
-            .Where(d => PathEx.MatchPattern(Path.GetFileName(d.Filename), pattern));
+        return Files
+            .Where(f => string.Equals(Path.GetDirectoryName(f.Filename), localPath, StringComparison.InvariantCultureIgnoreCase))
+            .Where(d => {
+                var name = Path.GetFileName(d.Filename) ?? string.Empty;
+                return PathEx.MatchPattern(name, pattern);
+            });
     }
 
     public bool FileExists(string filename)

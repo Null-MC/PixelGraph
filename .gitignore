@@ -356,3 +356,6 @@ launchSettings.json
 
 # Compiled Shaders
 *.cso
+
+# Inno Setup
+publish/

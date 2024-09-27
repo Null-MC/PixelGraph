@@ -78,7 +78,7 @@
                                 <Setter Property="Visibility" Value="Hidden"/>
                             </Style>
                         </Button.Style>
-                        <icon:FontAwesome Kind="TimesSolid" Width="12" Height="12"/>
+                        <icon:FontAwesome Kind="XmarkSolid" Width="12" Height="12"/>
                     </Button>
                     <TextBlock VerticalAlignment="Center" Margin="8,4,6,0" FontSize="14"
                                Text="{Binding Path=DisplayName}"/>

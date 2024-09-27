@@ -8,7 +8,6 @@ using PixelGraph.Common.IO.Serialization;
 using PixelGraph.Common.Projects;
 using Serilog;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Diagnostics;
 
 namespace PixelGraph.CLI.CommandLine;
@@ -31,38 +30,49 @@ internal class PublishCommand
         this.lifetime = lifetime;
         this.logger = logger;
 
+        var optProjectFile = new Option<FileInfo>(
+            new [] {"-p", "--project-file"}, () => new FileInfo("project.yml"),
+            "The filename of the project to publish.");
+
+        var optProfileName = new Option<string>(
+            new [] {"-n", "--profile-name"},
+            "The name of the publish-profile within the project to publish.");
+
+        var optDestination = new Option<DirectoryInfo>(
+            new[] { "-o", "--output" },
+            "The target directory to publish the resource pack to.");
+
+        var optZip = new Option<FileInfo?>(
+            new [] {"-z", "--zip"},
+            "Generates a compressed ZIP archive of the published contents.");
+
+        var optClean = new Option<bool>(
+            new [] {"-c", "--clean"}, () => false,
+            "Generates a compressed ZIP archive of the published contents.");
+
+        var optConcurrency = new Option<int>(
+            new [] {"--concurrency"}, ConcurrencyHelper.GetDefaultValue,
+            "Sets the level of concurrency for importing/publishing files. Default value is half of the system processor count.");
+
         Command = new Command("publish", "Publishes the specified profile.") {
-            Handler = CommandHandler.Create<FileInfo, string, DirectoryInfo, FileInfo, bool, int>(RunAsync),
+            optProjectFile,
+            optProfileName,
+            optDestination,
+            optZip,
+            optClean,
+            optConcurrency,
         };
 
-        Command.AddOption(new Option<FileInfo>(
-            new [] {"-p", "--project-file"}, () => new FileInfo("project.yml"),
-            "The filename of the project to publish."));
-
-        Command.AddOption(new Option<string>(
-            new [] {"-n", "--profile-name"},
-            "The name of the publish-profile within the project to publish."));
-
-        Command.AddOption(new Option<DirectoryInfo>(
-            new[] { "-o", "--output" },
-            "The target directory to publish the resource pack to."));
-
-        Command.AddOption(new Option<string>(
-            new [] {"-z", "--zip"},
-            "Generates a compressed ZIP archive of the published contents."));
-
-        Command.AddOption(new Option<bool>(
-            new [] {"-c", "--clean"}, () => false,
-            "Generates a compressed ZIP archive of the published contents."));
-
-        Command.AddOption(new Option<int>(
-            new [] {"--concurrency"}, ConcurrencyHelper.GetDefaultValue,
-            "Sets the level of concurrency for importing/publishing files. Default value is half of the system processor count."));
+        Command.SetHandler(RunAsync, optProjectFile, optProfileName, optDestination, optZip, optClean, optConcurrency);
     }
 
-    private async Task<int> RunAsync(FileInfo projectFile, string profileName, DirectoryInfo destination, FileInfo? zip, bool clean, int concurrency)
+    private async Task<int> RunAsync(FileInfo projectFile, string profileName, DirectoryInfo? destination, FileInfo? zip, bool clean, int concurrency)
     {
-        var destPath = zip?.FullName ?? destination.FullName;
+        var destPath = zip?.FullName ?? destination?.FullName;
+        if (destPath == null) throw new ApplicationException("Publish output location is undefined!");
+
+        var sourcePath = projectFile.DirectoryName;
+        if (sourcePath == null) throw new ApplicationException("Source directory is undefined!");
 
         try {
             if (projectFile.Exists != true)
@@ -103,7 +113,7 @@ internal class PublishCommand
             executor.CleanDestination = clean;
             executor.AsArchive = zip != null;
 
-            await executor.ExecuteAsync(projectFile.DirectoryName, destPath, lifetime.Token);
+            await executor.ExecuteAsync(sourcePath, destPath, lifetime.Token);
 
             return 0;
         }
