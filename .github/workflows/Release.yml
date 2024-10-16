@@ -50,6 +50,7 @@ jobs:
       - name: Upload Binaries
         uses: softprops/action-gh-release@v2
         with:
+          draft: true
           name: Release ${{ github.event.inputs.version }}
           tag_name: v${{ github.event.inputs.version }}
           files: |
@@ -86,6 +87,7 @@ jobs:
       - name: Upload Binaries
         uses: softprops/action-gh-release@v2
         with:
+          draft: true
           name: Release ${{ github.event.inputs.version }}
           tag_name: v${{ github.event.inputs.version }}
           files: |
@@ -114,7 +116,6 @@ jobs:
         with:
           pull: true
           push: true
-          repository: 
           tags: |
             null511/pixelgraph:latest
             null511/pixelgraph:${{ github.event.inputs.version }}
