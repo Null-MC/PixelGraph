@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "PixelGraph"
-#define MyAppVersion "1.10.9"
+#define MyAppVersion "1.11.0"
 #define MyAppPublisher "Joshua Miller"
 #define MyAppURL "https://github.com/Null-MC/PixelGraph"
 #define MyAppExeName "PixelGraph.exe"
