@@ -40,14 +40,7 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [InlineData(255, 255, 255)]
     [Theory] public async Task ColorTextureTest(byte red, byte green, byte blue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/color.png", red, green, blue);
         await graph.ProcessAsync();
@@ -65,16 +58,10 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [Theory(Skip = "Alpha clip fallback is broken.")]
     public async Task OpacityValueTest(decimal actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Opacity = new MaterialOpacityProperties {
-                Value = actualValue,
-            }
+        graph.Material!.Opacity = new MaterialOpacityProperties {
+            Value = actualValue,
         };
 
         await graph.ProcessAsync();
@@ -90,14 +77,7 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [Theory(Skip = "Alpha clip fallback is broken.")]
     public async Task OpacityTextureTest(byte actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/opacity.png", actualValue);
         await graph.ProcessAsync();
@@ -113,16 +93,10 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [InlineData(1.0, 47)]
     [Theory] public async Task SubSurfaceScatteringValueTest(decimal actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            SSS = new MaterialSssProperties {
-                Value = actualValue,
-            },
+        graph.Material!.SSS = new MaterialSssProperties {
+            Value = actualValue,
         };
 
         await graph.ProcessAsync();
@@ -137,14 +111,7 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [InlineData(255, 47)]
     [Theory] public async Task SubSurfaceScatteringTextureTest(byte actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/sss.png", actualValue);
         await graph.ProcessAsync();
@@ -160,16 +127,10 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [InlineData(1.0, 72)]
     [Theory] public async Task EmissiveValueTest(decimal actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Emissive = new MaterialEmissiveProperties {
-                Value = actualValue,
-            },
+        graph.Material!.Emissive = new MaterialEmissiveProperties {
+            Value = actualValue,
         };
 
         await graph.ProcessAsync();
@@ -185,14 +146,7 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [InlineData(255, 72)]
     [Theory] public async Task EmissiveTextureTest(byte actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/emissive.png", actualValue);
         await graph.ProcessAsync();
@@ -208,16 +162,10 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [InlineData(1.0, 157)]
     [Theory] public async Task SmoothValueTest(decimal actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Smooth = new MaterialSmoothProperties {
-                Value = actualValue,
-            },
+        graph.Material!.Smooth = new MaterialSmoothProperties {
+            Value = actualValue,
         };
 
         await graph.ProcessAsync();
@@ -232,14 +180,7 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [InlineData(255, 157)]
     [Theory] public async Task SmoothTextureTest(byte actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/smooth.png", actualValue);
         await graph.ProcessAsync();
@@ -251,14 +192,7 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [Fact(Skip = "Alpha clip fallback is broken.")]
     public async Task PerPixelTest()
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync<L8>("assets/test/sss.png", 4, 1, image => {
             image[1, 0] = new L8(255);
@@ -288,14 +222,7 @@ public class JavaAlphaPbrPublishTests : ImageTestBase
     [Fact(Skip = "Alpha clip fallback is broken.")]
     public async Task OpacityClipTest()
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync<L8>("assets/test/opacity.png", 9, 1, image => {
             image[1, 0] = new L8(255);

@@ -41,14 +41,7 @@ public class BedrockRtxPublishTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task OpacityTextureTest(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/opacity.png", value);
         await graph.ProcessAsync();
@@ -63,14 +56,7 @@ public class BedrockRtxPublishTests : ImageTestBase
     [InlineData(255, 255, 255)]
     [Theory] public async Task ColorTextureTest(byte red, byte green, byte blue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/color.png", red, green, blue);
         await graph.ProcessAsync();
@@ -86,14 +72,7 @@ public class BedrockRtxPublishTests : ImageTestBase
     [InlineData(255, 127,   0)]
     [Theory] public async Task NormalTextureTest(byte red, byte green, byte blue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/normal.png", red, green, blue);
         await graph.ProcessAsync();
@@ -108,14 +87,7 @@ public class BedrockRtxPublishTests : ImageTestBase
     //[InlineData(255)]
     //[Theory] public async Task HeightTextureTest(byte value)
     //{
-    //    await using var graph = Graph();
-
-    //    graph.PackInput = packInput;
-    //    graph.PackProfile = packProfile;
-    //    graph.Material = new MaterialProperties {
-    //        Name = "test",
-    //        LocalPath = "assets",
-    //    };
+    //    await using var graph = DefaultGraph(project, packProfile);
 
     //    await graph.CreateImageAsync("assets/test/height.png", value);
     //    await graph.ProcessAsync();
@@ -131,14 +103,7 @@ public class BedrockRtxPublishTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task MetalTextureTest(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/metal.png", value);
         await graph.ProcessAsync();
@@ -154,16 +119,10 @@ public class BedrockRtxPublishTests : ImageTestBase
     [InlineData(1.0, 255)]
     [Theory] public async Task MetalValueTest(decimal inputValue, byte outputValue)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Metal = new MaterialMetalProperties {
-                Value = inputValue,
-            }
+        graph.Material!.Metal = new MaterialMetalProperties {
+            Value = inputValue,
         };
 
         await graph.ProcessAsync();
@@ -179,14 +138,7 @@ public class BedrockRtxPublishTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task EmissiveTextureTest(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/emissive.png", value);
         await graph.ProcessAsync();
@@ -202,14 +154,7 @@ public class BedrockRtxPublishTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task RoughTextureTest(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/rough.png", value);
         await graph.ProcessAsync();
@@ -220,14 +165,7 @@ public class BedrockRtxPublishTests : ImageTestBase
 
     [Fact] public async Task PerPixelSpecularTextureTest()
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync<L8>("assets/test/metal.png", 4, 1, image => {
             image[1, 0] = new L8(240);

@@ -46,14 +46,7 @@ public class MetalTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task Passthrough(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/metal.png", value);
         await graph.ProcessAsync();
@@ -98,16 +91,10 @@ public class MetalTests : ImageTestBase
     [InlineData(200, 0.01,   2)]
     [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Metal = new MaterialMetalProperties {
-                Scale = scale,
-            },
+        graph.Material!.Metal = new MaterialMetalProperties {
+            Scale = scale,
         };
 
         await graph.CreateImageAsync("assets/test/metal.png", value);
@@ -124,27 +111,19 @@ public class MetalTests : ImageTestBase
     [InlineData(255, 255)]
     [Theory] public async Task ConvertsHcmToMetal(byte value, byte expected)
     {
-        await using var graph = Graph();
-
-        graph.Project = new ProjectData {
-            Input = new PackInputEncoding {
-                HCM = new ResourcePackHcmChannelProperties {
-                    Texture = TextureTags.HCM,
-                    Color = ColorChannel.Red,
-                    MinValue = 230m,
-                    MaxValue = 255m,
-                    RangeMin = 230,
-                    RangeMax = 255,
-                    EnableClipping = true,
-                },
+        project.Input = new PackInputEncoding {
+            HCM = new ResourcePackHcmChannelProperties {
+                Texture = TextureTags.HCM,
+                Color = ColorChannel.Red,
+                MinValue = 230m,
+                MaxValue = 255m,
+                RangeMin = 230,
+                RangeMax = 255,
+                EnableClipping = true,
             },
         };
 
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/hcm.png", value);
         await graph.ProcessAsync();

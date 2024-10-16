@@ -46,14 +46,7 @@ public class PorosityTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task Passthrough(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/porosity.png", value);
         await graph.ProcessAsync();
@@ -98,16 +91,10 @@ public class PorosityTests : ImageTestBase
     [InlineData(200, 0.01,   2)]
     [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Porosity = new MaterialPorosityProperties {
-                Scale = scale,
-            },
+        graph.Material!.Porosity = new MaterialPorosityProperties {
+            Scale = scale,
         };
 
         await graph.CreateImageAsync("assets/test/porosity.png", value);

@@ -46,14 +46,7 @@ public class EmissiveTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task Passthrough(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/emissive.png", value);
         await graph.ProcessAsync();
@@ -71,17 +64,11 @@ public class EmissiveTests : ImageTestBase
     //[InlineData(0.784, 0.01,   2)]
     //[Theory] public async Task ScaleValue(decimal value, decimal scale, byte expected)
     //{
-    //    await using var graph = Graph();
+    //    await using var graph = DefaultGraph(project, packProfile);
 
-    //    graph.PackInput = packInput;
-    //    graph.PackProfile = packProfile;
-    //    graph.Material = new MaterialProperties {
-    //        Name = "test",
-    //        LocalPath = "assets",
-    //        Emissive = new MaterialEmissiveProperties {
-    //            Value = value,
-    //            Scale = scale,
-    //        },
+    //    graph.Material.Emissive = new MaterialEmissiveProperties {
+    //        Value = value,
+    //        Scale = scale,
     //    };
 
     //    await graph.ProcessAsync();
@@ -98,16 +85,10 @@ public class EmissiveTests : ImageTestBase
     [InlineData(200, 0.01,   2)]
     [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Emissive = new MaterialEmissiveProperties {
-                Scale = scale,
-            },
+        graph.Material!.Emissive = new MaterialEmissiveProperties {
+            Scale = scale,
         };
 
         await graph.CreateImageAsync("assets/test/emissive.png", value);
@@ -123,23 +104,9 @@ public class EmissiveTests : ImageTestBase
     [InlineData(255,   0)]
     [Theory] public async Task ConvertsEmissiveClippedToEmissive(byte value, byte expected)
     {
-        await using var graph = Graph();
+        project.Input!.Emissive.Shift = -1;
 
-        graph.Project = new ProjectData {
-            Input = new PackInputEncoding {
-                Emissive = new ResourcePackEmissiveChannelProperties {
-                    Texture = TextureTags.Emissive,
-                    Color = ColorChannel.Red,
-                    Shift = -1,
-                },
-            },
-        };
-
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/emissive.png", value);
         await graph.ProcessAsync();
@@ -154,23 +121,9 @@ public class EmissiveTests : ImageTestBase
     [InlineData(255, 0)]
     [Theory] public async Task ConvertsEmissiveInverseToEmissive(byte value, byte expected)
     {
-        await using var graph = Graph();
+        project.Input!.Emissive.Invert = true;
 
-        graph.Project = new ProjectData {
-            Input = new PackInputEncoding {
-                Emissive = new ResourcePackEmissiveChannelProperties {
-                    Texture = TextureTags.Emissive,
-                    Color = ColorChannel.Red,
-                    Invert = true,
-                },
-            },
-        };
-
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/emissive.png", value);
         await graph.ProcessAsync();
@@ -185,31 +138,9 @@ public class EmissiveTests : ImageTestBase
     [InlineData(255, 254)]
     [Theory] public async Task ShiftDown(byte value, byte expected)
     {
-        await using var graph = Graph();
+        packProfile.Encoding!.Emissive.Shift = -1;
 
-        graph.Project = new ProjectData {
-            Input = new PackInputEncoding {
-                Emissive = new ResourcePackEmissiveChannelProperties {
-                    Texture = TextureTags.Emissive,
-                    Color = ColorChannel.Red,
-                },
-            },
-        };
-
-        graph.PackProfile = new PublishProfileProperties {
-            Encoding = new PackOutputEncoding {
-                Emissive = new ResourcePackEmissiveChannelProperties {
-                    Texture = TextureTags.Emissive,
-                    Color = ColorChannel.Red,
-                    Shift = -1,
-                },
-            },
-        };
-
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/emissive.png", value);
         await graph.ProcessAsync();
@@ -224,31 +155,9 @@ public class EmissiveTests : ImageTestBase
     [InlineData(255,   0)]
     [Theory] public async Task ShiftUp(byte value, byte expected)
     {
-        await using var graph = Graph();
+        packProfile.Encoding!.Emissive.Shift = 1;
 
-        graph.Project = new ProjectData {
-            Input = new PackInputEncoding {
-                Emissive = new ResourcePackEmissiveChannelProperties {
-                    Texture = TextureTags.Emissive,
-                    Color = ColorChannel.Red,
-                },
-            },
-        };
-
-        graph.PackProfile = new PublishProfileProperties {
-            Encoding = new PackOutputEncoding {
-                Emissive = new ResourcePackEmissiveChannelProperties {
-                    Texture = TextureTags.Emissive,
-                    Color = ColorChannel.Red,
-                    Shift = 1,
-                },
-            },
-        };
-
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/emissive.png", value);
         await graph.ProcessAsync();

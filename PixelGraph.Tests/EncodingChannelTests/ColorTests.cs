@@ -62,14 +62,7 @@ public class ColorTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task RedPassthrough(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/color.png", value, 0, 0);
         await graph.ProcessAsync();
@@ -84,14 +77,7 @@ public class ColorTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task GreenPassthrough(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/color.png", 0, value, 0);
         await graph.ProcessAsync();
@@ -108,17 +94,11 @@ public class ColorTests : ImageTestBase
     //[InlineData(200, 0.01,   2)]
     //[Theory] public async Task ScaleRedValue(decimal value, decimal scale, byte expected)
     //{
-    //    await using var graph = Graph();
+    //    await using var graph = DefaultGraph(project, packProfile);
 
-    //    graph.PackInput = packInput;
-    //    graph.PackProfile = packProfile;
-    //    graph.Material = new MaterialProperties {
-    //        Name = "test",
-    //        LocalPath = "assets",
-    //        Albedo = new MaterialAlbedoProperties {
-    //            ValueRed = value,
-    //            ScaleRed = scale,
-    //        },
+    //    graph.Material.Albedo = new MaterialAlbedoProperties {
+    //        ValueRed = value,
+    //        ScaleRed = scale,
     //    };
 
     //    await graph.ProcessAsync();
@@ -135,16 +115,10 @@ public class ColorTests : ImageTestBase
     [InlineData(200, 0.01,  2)]
     [Theory] public async Task ScaleRedTexture(byte value, decimal scale, byte expected)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Color = new MaterialColorProperties {
-                ScaleRed = scale,
-            },
+        graph.Material!.Color = new MaterialColorProperties {
+            ScaleRed = scale,
         };
 
         await graph.CreateImageAsync("assets/test/color.png", value, 0, 0);
@@ -157,30 +131,22 @@ public class ColorTests : ImageTestBase
     [Fact]
     public async Task ShiftRgb()
     {
-        await using var graph = Graph();
-
-        graph.Project = new ProjectData {
-            Input = new PackInputEncoding {
-                ColorRed = new ResourcePackColorRedChannelProperties {
-                    Texture = TextureTags.Color,
-                    Color = ColorChannel.Green,
-                },
-                ColorGreen = new ResourcePackColorGreenChannelProperties {
-                    Texture = TextureTags.Color,
-                    Color = ColorChannel.Blue,
-                },
-                ColorBlue = new ResourcePackColorBlueChannelProperties {
-                    Texture = TextureTags.Color,
-                    Color = ColorChannel.Red,
-                },
+        project.Input = new PackInputEncoding {
+            ColorRed = new ResourcePackColorRedChannelProperties {
+                Texture = TextureTags.Color,
+                Color = ColorChannel.Green,
+            },
+            ColorGreen = new ResourcePackColorGreenChannelProperties {
+                Texture = TextureTags.Color,
+                Color = ColorChannel.Blue,
+            },
+            ColorBlue = new ResourcePackColorBlueChannelProperties {
+                Texture = TextureTags.Color,
+                Color = ColorChannel.Red,
             },
         };
 
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/color.png", 60, 120, 180);
         await graph.ProcessAsync();

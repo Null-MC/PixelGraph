@@ -20,6 +20,22 @@ public abstract class ImageTestBase : TestBase
         var provider = Builder.Build();
         return new ImageTestGraph(provider);
     }
+
+
+    protected ImageTestGraph DefaultGraph(IProjectDescription project, PublishProfileProperties profile)
+    {
+        var graph = Graph();
+
+        graph.Project = project;
+        graph.PackProfile = profile;
+        graph.Material = new MaterialProperties {
+            Name = "test",
+            LocalPath = "assets",
+            LocalFilename = "mat.yml",
+        };
+
+        return graph;
+    }
 }
 
 public class ImageTestGraph : IDisposable, IAsyncDisposable

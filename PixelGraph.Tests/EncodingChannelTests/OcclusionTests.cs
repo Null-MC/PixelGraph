@@ -48,14 +48,7 @@ public class OcclusionTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task Passthrough(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/occlusion.png", value);
         await graph.ProcessAsync();
@@ -101,16 +94,10 @@ public class OcclusionTests : ImageTestBase
     [InlineData( 55, 0.01, 253)]
     [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Occlusion = new MaterialOcclusionProperties {
-                Scale = scale,
-            },
+        graph.Material!.Occlusion = new MaterialOcclusionProperties {
+            Scale = scale,
         };
 
         await graph.CreateImageAsync("assets/test/occlusion.png", value);

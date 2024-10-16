@@ -46,16 +46,10 @@ public class OpacityTests : ImageTestBase
     [InlineData(1.00, 255)]
     [Theory] public async Task PassthroughValue(decimal actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Opacity = new MaterialOpacityProperties {
-                Value = actualValue,
-            },
+        graph.Material!.Opacity = new MaterialOpacityProperties {
+            Value = actualValue,
         };
 
         await graph.ProcessAsync();
@@ -70,14 +64,7 @@ public class OpacityTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task PassthroughTexture(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/opacity.png", value);
         await graph.ProcessAsync();
@@ -121,16 +108,10 @@ public class OpacityTests : ImageTestBase
     [InlineData(200, 0.01,  2)]
     [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Opacity = new MaterialOpacityProperties {
-                Scale = scale,
-            },
+        graph.Material!.Opacity = new MaterialOpacityProperties {
+            Scale = scale,
         };
 
         await graph.CreateImageAsync("assets/test/opacity.png", value);

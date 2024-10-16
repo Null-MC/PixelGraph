@@ -46,14 +46,7 @@ public class SmoothTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task Passthrough(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/smooth.png", value);
         await graph.ProcessAsync();
@@ -98,16 +91,10 @@ public class SmoothTests : ImageTestBase
     [InlineData(200, 0.01,   2)]
     [Theory] public async Task ScaleTexture(byte value, decimal scale, byte expected)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            Smooth = new MaterialSmoothProperties {
-                Scale = scale,
-            },
+        graph.Material!.Smooth = new MaterialSmoothProperties {
+            Scale = scale,
         };
 
         await graph.CreateImageAsync("assets/test/smooth.png", value);
@@ -123,22 +110,14 @@ public class SmoothTests : ImageTestBase
     [InlineData(255,   0)]
     [Theory] public async Task ConvertsRoughToSmooth(byte value, byte expected)
     {
-        await using var graph = Graph();
-
-        graph.Project = new ProjectData {
-            Input = new PackInputEncoding {
-                Rough = new ResourcePackRoughChannelProperties {
-                    Texture = TextureTags.Rough,
-                    Color = ColorChannel.Red,
-                },
+        project.Input = new PackInputEncoding {
+            Rough = new ResourcePackRoughChannelProperties {
+                Texture = TextureTags.Rough,
+                Color = ColorChannel.Red,
             },
         };
 
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/rough.png", value);
         await graph.ProcessAsync();

@@ -2,8 +2,6 @@
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
-using System;
-using System.Collections.Generic;
 
 namespace PixelGraph.UI.Internal.Preview.Textures;
 

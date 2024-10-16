@@ -69,14 +69,7 @@ public class NormalGenerationTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task GeneratesFlat(byte height)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/height.png", height);
         await graph.ProcessAsync();

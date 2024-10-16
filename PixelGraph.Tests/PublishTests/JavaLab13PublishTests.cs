@@ -40,14 +40,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task OpacityTextureTest(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/opacity.png", value);
         await graph.ProcessAsync();
@@ -62,14 +55,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255, 255, 255)]
     [Theory] public async Task ColorTextureTest(byte red, byte green, byte blue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/color.png", red, green, blue);
         await graph.ProcessAsync();
@@ -85,14 +71,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(new byte[]{  0, 127,   0}, new byte[]{  0, 127})]
     [Theory] public async Task NormalTextureTest(byte[] normalIn, byte[] normalOut)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/normal.png", normalIn[0], normalIn[1], normalIn[2]);
         await graph.ProcessAsync();
@@ -109,14 +88,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task OcclusionTextureTest(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/occlusion.png", value);
         await graph.ProcessAsync();
@@ -131,14 +103,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task HeightTextureTest(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/height.png", value);
         await graph.ProcessAsync();
@@ -153,14 +118,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255)]
     [Theory] public async Task SmoothTextureTest(byte value)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/smooth.png", value);
         await graph.ProcessAsync();
@@ -178,14 +136,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255,  10)]
     [Theory] public async Task F0TextureTest(byte actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/f0.png", actualValue);
         await graph.ProcessAsync();
@@ -202,14 +153,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255, 255)]
     [Theory] public async Task HCMTextureTest(byte inputValue, byte outputValue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/hcm.png", inputValue);
         await graph.ProcessAsync();
@@ -226,16 +170,10 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255, 255)]
     [Theory] public async Task HCMValueTest(byte inputValue, byte outputValue)
     {
-        await using var graph = Graph();
+        await using var graph = DefaultGraph(project, packProfile);
 
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-            HCM = new MaterialHcmProperties {
-                Value = inputValue,
-            }
+        graph.Material!.HCM = new MaterialHcmProperties {
+            Value = inputValue,
         };
 
         await graph.ProcessAsync();
@@ -250,14 +188,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255, 64)]
     [Theory] public async Task PorosityTextureTest(byte actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/porosity.png", actualValue);
         await graph.ProcessAsync();
@@ -272,14 +203,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255, 255)]
     [Theory] public async Task SubSurfaceScatteringTextureTest(byte actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/sss.png", actualValue);
         await graph.ProcessAsync();
@@ -295,14 +219,7 @@ public class JavaLab13PublishTests : ImageTestBase
     [InlineData(255, 254)]
     [Theory] public async Task EmissiveTextureTest(byte actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/emissive.png", actualValue);
         await graph.ProcessAsync();
@@ -313,14 +230,7 @@ public class JavaLab13PublishTests : ImageTestBase
 
     [Fact] public async Task PerPixelSpecularTextureTest()
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync<L8>("assets/test/smooth.png", 7, 1, image => {
             image[1, 0] = new L8(200);

@@ -244,16 +244,24 @@ internal class TextureBuilder(
         }
 
         var inputChannel = InputChannels?.FirstOrDefault(i => EncodingChannel.Is(i.ID, outputChannel.ID));
-            //?? throw new ApplicationException("Input channel is undefined!");
-        if (inputChannel == null) return false;
+        //if (inputChannel == null) return false;
 
         if (context.Material.TryGetChannelValue(outputChannel.ID, out var value)) {
             mapping.InputValue = (float)value;
-            mapping.ApplyInputChannel(inputChannel);
+
+            if (inputChannel != null)
+                mapping.ApplyInputChannel(inputChannel);
+
             return true;
         }
 
-        if (inputChannel.Texture != null) {
+        //if (context.Material.TryGetChannelValue(outputChannel.ID, out var value)) {
+        //    mapping.InputValue = (float)value;
+        //    mapping.ApplyInputChannel(inputChannel);
+        //    return true;
+        //}
+
+        if (inputChannel?.Texture != null) {
             if (TextureTags.Is(inputChannel.Texture, TextureTags.MagnitudeBuffer)) {
                 mapping.SourceTag = TextureTags.MagnitudeBuffer;
                 mapping.ApplyInputChannel(inputChannel);
@@ -273,7 +281,7 @@ internal class TextureBuilder(
                 mapping.ApplyInputChannel(inputChannel);
                 return true;
             }
-                
+
             if (matReader.TryGetByTag(inputChannel.Texture, out mapping.SourceFilename)) {
                 mapping.ApplyInputChannel(inputChannel);
                 return true;
@@ -292,7 +300,7 @@ internal class TextureBuilder(
                 return true;
             }
         }
-            
+
         var isOutputSmooth = EncodingChannel.Is(outputChannel.ID, EncodingChannel.Smooth);
         if (isOutputSmooth) {
             // Rough > Smooth

@@ -1,5 +1,4 @@
 ﻿using PixelGraph.Common;
-using PixelGraph.Common.Material;
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.ResourcePack;
 using PixelGraph.Common.Textures;
@@ -54,9 +53,7 @@ public class NormalTests : ImageTestBase
     [InlineData(127, 255,   0)]
     [Theory] public async Task Passthrough(byte valueX, byte valueY, byte valueZ)
     {
-        await using var graph = Graph();
-
-        graph.Project = new ProjectData {
+        var project = new ProjectData {
             Input = new PackInputEncoding {
                 NormalX = new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.Normal,
@@ -82,11 +79,7 @@ public class NormalTests : ImageTestBase
             },
         };
             
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/normal.png", valueX, valueY, valueZ);
         await graph.ProcessAsync();
@@ -100,9 +93,7 @@ public class NormalTests : ImageTestBase
     [InlineData(127,  64, 222)]
     [Theory] public async Task RestoreZ(byte valueX, byte valueY, byte expectedZ)
     {
-        await using var graph = Graph();
-
-        graph.Project = new ProjectData {
+        var project = new ProjectData {
             Input = new PackInputEncoding {
                 NormalX = new ResourcePackNormalXChannelProperties {
                     Texture = TextureTags.Normal,
@@ -121,11 +112,7 @@ public class NormalTests : ImageTestBase
             },
         };
 
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/normal.png", valueX, valueY, 0);
         await graph.ProcessAsync();

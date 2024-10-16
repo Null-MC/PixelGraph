@@ -57,14 +57,7 @@ public class HcmTests : ImageTestBase
     [InlineData(255, 255)]
     [Theory] public async Task Passthrough(byte actualValue, byte expectedValue)
     {
-        await using var graph = Graph();
-
-        graph.Project = project;
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/hcm.png", actualValue);
         await graph.ProcessAsync();
@@ -134,22 +127,14 @@ public class HcmTests : ImageTestBase
     [InlineData(255, 255)]
     [Theory] public async Task ConvertsMetalToHcm(byte value, byte expected)
     {
-        await using var graph = Graph();
-
-        graph.Project = new ProjectData {
-            Input = new PackInputEncoding {
-                Metal = new ResourcePackMetalChannelProperties {
-                    Texture = TextureTags.Metal,
-                    Color = ColorChannel.Red,
-                },
+        project.Input = new PackInputEncoding {
+            Metal = new ResourcePackMetalChannelProperties {
+                Texture = TextureTags.Metal,
+                Color = ColorChannel.Red,
             },
         };
 
-        graph.PackProfile = packProfile;
-        graph.Material = new MaterialProperties {
-            Name = "test",
-            LocalPath = "assets",
-        };
+        await using var graph = DefaultGraph(project, packProfile);
 
         await graph.CreateImageAsync("assets/test/metal.png", value);
         await graph.ProcessAsync();
