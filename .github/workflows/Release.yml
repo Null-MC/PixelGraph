@@ -23,10 +23,10 @@ jobs:
           submodules: recursive
       - name: Compile Binaries
         run: |
-          dotnet publish PixelGraph.CLI -c Release -r win-x64 -o publish/win-cli-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish PixelGraph.CLI -c Release -r win-x64 -o publish/win-cli-x64 -p:PublishSingleFile=true -p:EnableWindowsTargeting=true --self-contained false
           dotnet publish PixelGraph.CLI -c Release -r linux-x64 -o publish/linux-cli-x64 -p:PublishSingleFile=true --self-contained false
           dotnet publish PixelGraph.CLI -c Release -r osx-x64 -o publish/osx-cli-x64 -p:PublishSingleFile=true --self-contained false
-          dotnet publish PixelGraph.UI -c Release -r win-x64 -o publish/win-ui-x64 -p:PublishSingleFile=true --self-contained false
+          dotnet publish PixelGraph.UI -c Release -r win-x64 -o publish/win-ui-x64 -p:PublishSingleFile=true -p:EnableWindowsTargeting=true --self-contained false
           dotnet publish PixelGraph.UI -c ReleaseNoRender -r win7-x64 -o publish/wine-ui-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true --self-contained
       - name: Archive WineHQ Release
         uses: thedoctor0/zip-release@master
