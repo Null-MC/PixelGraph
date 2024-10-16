@@ -44,9 +44,9 @@ jobs:
           dotnet publish PixelGraph.CLI -c Release -r osx-x64 -o publish/osx-cli-x64 -p:PublishSingleFile=true --self-contained false
       - name: Move/Rename Binaries
         run: |
-          mv 'publish/win-cli-x64/PixelGraph.exe' 'PixelGraph-CLI-Windows-x64.exe'
-          mv 'publish/linux-cli-x64/PixelGraph.exe' 'PixelGraph-CLI-Linux-x64.exe'
-          mv 'publish/osx-cli-x64/PixelGraph.exe' 'PixelGraph-CLI-OSX-x64.exe'
+          mv ./publish/win-cli-x64/PixelGraph.exe ./PixelGraph-CLI-Windows-x64.exe
+          mv ./publish/linux-cli-x64/PixelGraph ./PixelGraph-CLI-Linux-x64
+          mv ./publish/osx-cli-x64/PixelGraph ./PixelGraph-CLI-OSX-x64
       - name: Upload Binaries
         uses: softprops/action-gh-release@v2
         with:
@@ -54,8 +54,8 @@ jobs:
           tag_name: v${{ github.event.inputs.version }}
           files: |
             PixelGraph-CLI-Windows-x64.exe
-            PixelGraph-CLI-Linux-x64.exe
-            PixelGraph-CLI-OSX-x64.exe
+            PixelGraph-CLI-Linux-x64
+            PixelGraph-CLI-OSX-x64
 
   publish_ui:
     name: Publish UI
