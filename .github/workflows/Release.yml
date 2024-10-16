@@ -18,21 +18,22 @@ jobs:
       release_id: ${{ steps.create_release.outputs.id }}
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare Release
+        uses: softprops/action-gh-release@v2
         with:
+          draft: true
+          generate_release_notes: true
+          make_latest: "true"
+          name: Release ${{ github.event.inputs.version }}
           tag_name: v${{ github.event.inputs.version }}
-          release_name: Release ${{ github.event.inputs.version }}
 
   publish_cli:
     name: Publish CLI
     runs-on: ubuntu-latest
     needs: [prepare_release]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Publish CLI Binaries
@@ -73,7 +74,8 @@ jobs:
     runs-on: windows-latest
     needs: [prepare_release]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Prepare shaders
@@ -111,14 +113,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: [publish_cli]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Publish Dockerfile
-        if: ${{ github.event.inputs.publish_docker == 'true' }}
-        uses: docker/build-push-action@v1
+      - name: Docker Setup
+        uses: docker/setup-buildx-action@v3
+      - name: Docker Login
+        uses: docker/login-action@v3
         with:
-          repository: null511/pixelgraph
           username: null511
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          tags: latest,${{ github.event.inputs.version }}
+      - name: Publish Dockerfile
+        if: ${{ github.event.inputs.publish_docker == 'true' }}
+        uses: docker/build-push-action@v6
+        with:
+          pull: true
+          push: true
+          repository: 
+          tags:
+            - null511/pixelgraph:latest
+            - null511/pixelgraph:${{ github.event.inputs.version }}
