@@ -131,6 +131,6 @@ jobs:
           pull: true
           push: true
           repository: 
-          tags:
-            - null511/pixelgraph:latest
-            - null511/pixelgraph:${{ github.event.inputs.version }}
+          tags: |
+            null511/pixelgraph:latest
+            null511/pixelgraph:${{ github.event.inputs.version }}
