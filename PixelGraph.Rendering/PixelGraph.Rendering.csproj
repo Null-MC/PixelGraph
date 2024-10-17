@@ -6,6 +6,7 @@
     <LangVersion>latest</LangVersion>
     <Platforms>x64</Platforms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <PublishTrimmed>true</PublishTrimmed>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

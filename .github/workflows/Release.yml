@@ -129,7 +129,7 @@ jobs:
             PixelGraph-CLI-OSX-x64
             PixelGraph-UI-Windows-x64.exe
             PixelGraph-UI-WineHQ-x64.zip
-            PixelGraph-UI-* Install.exe
+            PixelGraph-Install.exe
 
   publish_docker:
     if: ${{ github.event.inputs.publish_docker == 'true' }}
