@@ -29,7 +29,7 @@ jobs:
           dotnet publish PixelGraph.CLI -c Release -r linux-x64 -o publish/linux-cli-x64 -p:PublishSingleFile=true --self-contained false
           dotnet publish PixelGraph.CLI -c Release -r osx-x64 -o publish/osx-cli-x64 -p:PublishSingleFile=true --self-contained false
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: cli
           path: publish
@@ -58,7 +58,7 @@ jobs:
           filename: publish/WineHQ-UI-x64.zip
           path: publish/wine-ui-x64/
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ui
           path: publish
@@ -71,11 +71,11 @@ jobs:
       contents: write
     steps:
       - name: Download CLI Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: cli
       - name: Download UI Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ui
       - name: Move/Rename Binaries
