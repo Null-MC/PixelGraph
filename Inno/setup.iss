@@ -33,11 +33,11 @@ ArchitecturesAllowed=x64compatible
 ; the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
-InfoBeforeFile=D:\PixelGraph\PixelGraph.UI\Resources\EULA.rtf
+InfoBeforeFile=..\PixelGraph.UI\Resources\EULA.rtf
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=D:\PixelGraph\publish
+OutputDir=./publish
 OutputBaseFilename=PixelGraph-UI-{#MyAppVersion} Install
 Compression=lzma
 SolidCompression=yes
@@ -50,7 +50,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
-Source: "D:\PixelGraph\PixelGraph.UI\bin\x64\Release\net6.0-windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "src\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

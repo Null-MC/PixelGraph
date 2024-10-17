@@ -7,10 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.inputs.version == ''
     steps:
-      - name: Setup .NET 6.0
+      - name: Setup .NET 8.0
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
       - name: Checkout
         uses: actions/checkout@v4
         with:

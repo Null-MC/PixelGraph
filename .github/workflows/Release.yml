@@ -15,10 +15,10 @@ jobs:
     name: Compile CLI
     runs-on: ubuntu-latest
     steps:
-      - name: Setup .NET 6.0
+      - name: Setup .NET 8.0
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -38,10 +38,10 @@ jobs:
     name: Compile UI
     runs-on: windows-latest
     steps:
-      - name: Setup .NET 6.0
+      - name: Setup .NET 8.0
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -67,24 +67,27 @@ jobs:
     name: Compile Installer
     runs-on: windows-latest
     steps:
-      - name: Setup .NET 6.0
+      - name: Setup .NET 8.0
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Compile Binaries
         run: |
-          dotnet publish PixelGraph.UI -c Release -r win-x64 -o publish -p:EnableWindowsTargeting=true --self-contained false
-          docker image pull eckertj/inno-setup
-          docker run --name=inno-setup --rm -v .:/app -w /app eckertj/inno-setup "iscc.exe ./Inno/setup.iss"
+          curl https://files.jrsoftware.org/is/6/innosetup-6.3.3.exe innosetup.exe
+          innosetup.exe /VERYSILENT
+          setx PATH "%PATH%;C:\\Program Files (x86)\\Inno Setup 6"
+          cd Inno
+          dotnet publish ..\\PixelGraph.UI -c Release -r win-x64 -o src -p:EnableWindowsTargeting=true --self-contained false
+          ISCC.exe "setup.iss"
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: inno
-          path: publish
+          path: Inno/publish
 
   publish_release:
     name: Publish Release
