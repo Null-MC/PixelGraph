@@ -58,9 +58,20 @@ jobs:
   publish_release:
     name: Publish Release
     runs-on: ubuntu-latest
+    needs: [compile_cli, compile_ui]
     permissions:
       contents: write
     steps:
+      - name: Restore CLI Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: publish
+          key: cli
+      - name: Restore UI Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: publish
+          key: ui
       - name: Move/Rename Binaries
         run: |
           mv ./publish/win-cli-x64/PixelGraph.exe ./PixelGraph-CLI-Windows-x64.exe
@@ -87,7 +98,7 @@ jobs:
     if: ${{ github.event.inputs.publish_docker == 'true' }}
     name: Publish Dockerfile
     runs-on: ubuntu-latest
-    needs: [publish]
+    needs: [compile_cli]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
