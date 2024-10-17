@@ -78,11 +78,11 @@ jobs:
       - name: Compile Binaries
         run: |
           curl -s -S -o innosetup.exe https://files.jrsoftware.org/is/6/innosetup-6.3.3.exe
-          ./innosetup.exe /VERYSILENT
+          ./innosetup.exe
           setx PATH "%PATH%;C:\\Program Files (x86)\\Inno Setup 6"
           cd Inno
           dotnet publish ..\\PixelGraph.UI -c Release -r win-x64 -o src -p:EnableWindowsTargeting=true --self-contained false
-          ISCC.exe "setup.iss" /SILENT
+          ISCC.exe "setup.iss"
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
