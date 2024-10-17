@@ -78,6 +78,7 @@ jobs:
       - name: Compile Binaries
         run: |
           dotnet publish PixelGraph.UI -c Release -r win-x64 -o publish -p:EnableWindowsTargeting=true --self-contained false
+          docker image pull eckertj/inno-setup
           docker run --name=inno-setup --rm -v .:/app -w /app eckertj/inno-setup "iscc.exe ./Inno/setup.iss"
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
