@@ -80,6 +80,7 @@ jobs:
           curl -s -S -o innosetup.exe https://files.jrsoftware.org/is/6/innosetup-6.3.3.exe
           ./innosetup.exe
           setx PATH "%PATH%;C:\\Program Files (x86)\\Inno Setup 6"
+          dotnet build PixelGraph.Rendering -c Release
           cd Inno
           dotnet publish ..\\PixelGraph.UI -c Release -r win-x64 -o src -p:EnableWindowsTargeting=true --self-contained false
           ISCC.exe "setup.iss"
