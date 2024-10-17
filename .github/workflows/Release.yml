@@ -15,6 +15,10 @@ jobs:
     name: Compile CLI
     runs-on: ubuntu-latest
     steps:
+      - name: Setup DotNet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -34,6 +38,10 @@ jobs:
     name: Compile UI
     runs-on: windows-latest
     steps:
+      - name: Setup DotNet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
       - name: Checkout
         uses: actions/checkout@v4
         with:
