@@ -66,7 +66,6 @@ jobs:
   compile_inno:
     name: Compile Installer
     runs-on: windows-latest
-    container: eckertj/inno-setup
     steps:
       - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v4
@@ -79,7 +78,7 @@ jobs:
       - name: Compile Binaries
         run: |
           dotnet publish PixelGraph.UI -c Release -r win-x64 -o publish -p:EnableWindowsTargeting=true --self-contained false
-          iscc ./Inno/setup.iss
+          docker run --name=inno-setup --rm -v .:/app -w /app eckertj/inno-setup "iscc.exe ./Inno/setup.iss"
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -89,7 +88,7 @@ jobs:
   publish_release:
     name: Publish Release
     runs-on: ubuntu-latest
-    needs: [compile_cli, compile_ui]
+    needs: [compile_cli, compile_ui, compile_inno]
     permissions:
       contents: write
     steps:
