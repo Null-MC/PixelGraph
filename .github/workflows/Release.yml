@@ -15,7 +15,7 @@ jobs:
     name: Compile CLI
     runs-on: ubuntu-latest
     steps:
-      - name: Setup DotNet
+      - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '6.0.x'
@@ -38,7 +38,7 @@ jobs:
     name: Compile UI
     runs-on: windows-latest
     steps:
-      - name: Setup DotNet
+      - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '6.0.x'
@@ -50,7 +50,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: publish
-          key: ui
+          key: win-ui
       - name: Prepare shaders
         run: dotnet build PixelGraph.Rendering -c Release
       - name: Compile Binaries
@@ -79,7 +79,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: publish
-          key: ui
+          key: win-ui
       - name: Move/Rename Binaries
         run: |
           mv ./publish/win-cli-x64/PixelGraph.exe ./PixelGraph-CLI-Windows-x64.exe
