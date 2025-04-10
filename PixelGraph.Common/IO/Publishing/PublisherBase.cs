@@ -59,7 +59,7 @@ public abstract class PublisherBase(
         summary.Reset();
         if (clean) CleanDestination();
 
-        await PublishPackMetaAsync(context.Profile, token);
+        await PublishPackMetaAsync(context, token);
 
         content = await loader.LoadAsync(token).ToArrayAsync(token);
 
@@ -190,7 +190,7 @@ public abstract class PublisherBase(
         Logger.LogInformation("Published untracked file {destFile}.", destFile);
     }
 
-    protected abstract Task PublishPackMetaAsync(PublishProfileProperties pack, CancellationToken token);
+    protected abstract Task PublishPackMetaAsync(ProjectPublishContext context, CancellationToken token);
 
     protected virtual bool TryMapFile(in string sourceFile, out string? destinationFile)
     {

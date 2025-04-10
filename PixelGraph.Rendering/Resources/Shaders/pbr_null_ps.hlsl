@@ -22,9 +22,6 @@ static const float3 absorption_factor = float3(0.0035f, 0.0004f, 0.0f);
 
 float4 main(const ps_input input, const in bool face : SV_IsFrontFace) : SV_TARGET
 {
-    //float2 col = tex_dielectric_brdf_lut.SampleLevel(sampler_brdf_lut, input.tex, 0);
-    //return float4(col, 0.f, 1.f);
-
 	const float3 normal = normalize(input.nor);
     float3 tangent = normalize(input.tan);
     float3 bitangent = normalize(input.bin);

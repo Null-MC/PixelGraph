@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PixelGraph.Common.ConnectedTextures;
+using PixelGraph.Common.Extensions;
 using PixelGraph.Common.Projects;
 using PixelGraph.Common.Textures.Graphing;
 using PixelGraph.Common.Textures.Graphing.Builders;
@@ -21,15 +22,15 @@ public class JavaPublisher : PublisherBase
         this.ctmPublish = ctmPublish;
     }
 
-    protected override async Task PublishPackMetaAsync(PublishProfileProperties pack, CancellationToken token)
+    protected override async Task PublishPackMetaAsync(ProjectPublishContext context, CancellationToken token)
     {
         var packMeta = new JavaPackMetadata {
-            PackFormat = pack.Format ?? PublishProfileProperties.DefaultJavaFormat,
-            Description = pack.Description ?? string.Empty,
+            PackFormat = context.Profile?.Format ?? PublishProfileProperties.DefaultJavaFormat,
+            Description = context.Profile?.Description.NullIfEmpty() ?? context.Project?.Description ?? string.Empty,
         };
 
-        if (pack.Tags != null) {
-            packMeta.Description += $"\n{string.Join(' ', pack.Tags)}";
+        if (context.Profile?.Tags != null) {
+            packMeta.Description += $"\n{string.Join(' ', context.Profile.Tags)}";
         }
 
         var data = new {pack = packMeta};

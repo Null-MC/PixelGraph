@@ -19,28 +19,28 @@ public class BedrockPublisher : PublisherBase
         Mapping = new JavaToBedrockPublishMapping();
     }
 
-    protected override async Task PublishPackMetaAsync(PublishProfileProperties pack, CancellationToken token)
+    protected override async Task PublishPackMetaAsync(ProjectPublishContext context, CancellationToken token)
     {
         var packMeta = new BedrockPackMetadata {
-            FormatVersion = pack.Format ?? PublishProfileProperties.DefaultBedrockFormat,
+            FormatVersion = context.Profile?.Format ?? PublishProfileProperties.DefaultBedrockFormat,
             Header = {
-                Name = pack.Name,
-                Description = pack.Description,
-                UniqueId = pack.HeaderUuid,
+                Name = context.Profile?.Name ?? context.Project?.Name,
+                Description = context.Profile?.Description ?? context.Project?.Description,
+                UniqueId = context.Profile?.HeaderUuid,
                 Version = [1, 0, 0],
                 MinEngineVersion = [1, 16, 0],
             },
             Modules = {
                 new BedrockPackModuleMetadata {
-                    UniqueId = pack.ModuleUuid,
-                    Description = pack.Description,
+                    UniqueId = context.Profile?.ModuleUuid,
+                    Description = context.Profile?.Description,
                     Type = "resources",
                     Version = [1, 0, 0],
                 },
             },
         };
 
-        var isRtx = TextureFormat.Is(pack.Encoding?.Format, TextureFormat.Format_Rtx);
+        var isRtx = TextureFormat.Is(context.Profile?.Encoding?.Format, TextureFormat.Format_Rtx);
         if (isRtx) packMeta.Capabilities.Add("raytraced");
 
         await Writer.OpenWriteAsync("manifest.json", async stream => {

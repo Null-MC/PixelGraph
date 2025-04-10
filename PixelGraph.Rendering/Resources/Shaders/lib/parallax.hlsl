@@ -7,7 +7,7 @@ static const float sqrt2 = sqrt(2.0f);
 
 float get_parallax_length(const in float2 uv_size)
 {
-	return sqrt(lengthSq(uv_size) * 0.5f) * ParallaxDepth;
+    return ParallaxDepth;// * sqrt(lengthSq(uv_size) * 0.5f);
 }
 
 float2 get_parallax_offset(const in float3 lightT)
@@ -22,7 +22,7 @@ float2 get_parallax_offset(const in float3 lightT)
 float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, out float3 shadow_tex, out float tex_depth) //, out float3 hit_normal)
 {
 	const int step_count = ParallaxSamples; //(int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoV);
-	const float step_size = rcp(step_count);
+    const float step_size = rcp(float(step_count));
 	const float2 step_offset = step_size * offsetT;
 	
 	float trace_depth = 1.0;
