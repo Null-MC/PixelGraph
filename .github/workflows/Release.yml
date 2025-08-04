@@ -51,7 +51,7 @@ jobs:
       - name: Compile Binaries
         run: |
           dotnet publish PixelGraph.UI -c Release -r win-x64 -o publish/win-ui-x64 -p:PublishSingleFile=true -p:EnableWindowsTargeting=true --self-contained false
-          dotnet publish PixelGraph.UI -c ReleaseNoRender -r win7-x64 -o publish/wine-ui-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true --self-contained
+          dotnet publish PixelGraph.UI -c ReleaseNoRender -r win-x64 -o publish/wine-ui-x64 -p:PublishReadyToRun=true -p:PublishReadyToRunShowWarnings=true --self-contained
       - name: Archive WineHQ Release
         uses: thedoctor0/zip-release@master
         with:
