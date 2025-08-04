@@ -77,7 +77,7 @@ jobs:
           submodules: recursive
       - name: Compile Binaries
         run: |
-          winget install --id JRSoftware.InnoSetup -e -s winget -i
+          curl -s -S -o innosetup.exe https://files.jrsoftware.org/is/6/innosetup-6.4.3.exe
           ./innosetup.exe
           setx PATH "%PATH%;C:\\Program Files (x86)\\Inno Setup 6"
           dotnet build PixelGraph.Rendering -c Release
