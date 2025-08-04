@@ -17,7 +17,7 @@ WORKDIR /src/PixelGraph.CLI
 RUN dotnet publish -c Release -o /publish \
 	--runtime alpine-x64 --self-contained true
 
-FROM mcr.microsoft.com/dotnet/runtime:6.0-alpine
+FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine
 
 # WORKDIR /app
 COPY --from=build /publish /app/
