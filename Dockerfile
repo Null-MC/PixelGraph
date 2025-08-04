@@ -15,7 +15,7 @@ COPY ./PixelGraph.CLI ./PixelGraph.CLI/
 
 WORKDIR /src/PixelGraph.CLI
 RUN dotnet publish -c Release -o /publish \
-	--runtime alpine-x64 --self-contained true
+	--runtime linux-musl-x64 --self-contained true
 
 FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine
 
