@@ -9,6 +9,7 @@ public class MaterialNormalProperties : IHaveData
     public const decimal DefaultStrength = 1.0m;
 
     public string? Texture {get; set;}
+    public string? HeightMapTexture {get; set;}
     public decimal? Strength {get; set;}
     public string? Method {get; set;}
 
@@ -41,6 +42,7 @@ public class MaterialNormalProperties : IHaveData
         if (InputZ?.HasAnyData() ?? false) return true;
 
         if (Texture != null) return true;
+        if (HeightMapTexture != null) return true;
         if (Strength.HasValue) return true;
         if (Method != null) return true;
 

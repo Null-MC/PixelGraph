@@ -45,7 +45,7 @@ internal abstract class TextureGraphBuilder(IServiceProvider provider, ILogger l
             var tagOutputEncoding = Context.OutputEncoding
                 .Where(e => TextureTags.Is(e.Texture, tag)).ToArray();
 
-            if (tagOutputEncoding.Any()) {
+            if (tagOutputEncoding.Length > 0) {
                 var hasAlpha = tagOutputEncoding.Any(c => c.Color == ColorChannel.Alpha);
                 var hasColor = tagOutputEncoding.Any(c => c.Color != ColorChannel.Red);
 

@@ -99,7 +99,7 @@ float4 main(const ps_input input, const in bool face : SV_IsFrontFace) : SV_TARG
     // Blend base colors
 	const float metal = step(0.8999f, mat.f0_hcm);
 	const float3 tint = srgb_to_linear(TintColor);
-    float3 diffuse = mat.albedo * tint * (1.0f - metal);
+    float3 diffuse = mat.albedo * tint * (1.0f - metal * roughL);
 
 	float3 tex_normal = tex_normal_height.Sample(sampler_height, tex).xyz;
     //src_normal = normalize(src_normal * 2.0f - 1.0f);

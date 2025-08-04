@@ -59,8 +59,8 @@ internal abstract class TextureReaderBase(IServiceProvider provider) : ITextureR
 
     public virtual IEnumerable<string> EnumerateInputTextures(string? localPath, string name)
     {
-        if (localPath == null) throw new ArgumentNullException(nameof(localPath));
-        if (name == null) throw new ArgumentNullException(nameof(name));
+        ArgumentNullException.ThrowIfNull(localPath);
+        ArgumentNullException.ThrowIfNull(name);
 
         foreach (var file in Reader.EnumerateFiles(localPath)) {
             var ext = Path.GetExtension(file);
@@ -110,8 +110,8 @@ internal abstract class TextureReaderBase(IServiceProvider provider) : ITextureR
 
     public virtual IEnumerable<string> EnumerateOutputTextures(string? localPath, string name)
     {
-        if (localPath == null) throw new ArgumentNullException(nameof(localPath));
-        if (name == null) throw new ArgumentNullException(nameof(name));
+        ArgumentNullException.ThrowIfNull(localPath);
+        ArgumentNullException.ThrowIfNull(name);
 
         foreach (var file in Reader.EnumerateFiles(localPath)) {
             var ext = Path.GetExtension(file);

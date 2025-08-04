@@ -13,6 +13,7 @@ public class MaterialOcclusionProperties : IHaveData
 
     public ResourcePackOcclusionChannelProperties? Input {get; set;}
     public string? Texture {get; set;}
+    public string? HeightMapTexture {get; set;}
     public decimal? Value {get; set;}
     public decimal? Shift {get; set;}
     public decimal? Scale {get; set;}
@@ -28,6 +29,7 @@ public class MaterialOcclusionProperties : IHaveData
     {
         if (Input != null && Input.HasAnyData()) return true;
         if (Texture != null) return true;
+        if (HeightMapTexture != null) return true;
         if (Value.HasValue) return true;
         if (Shift.HasValue) return true;
         if (Scale.HasValue) return true;

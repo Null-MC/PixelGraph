@@ -887,8 +887,8 @@ namespace PixelGraph.UI.ViewModels
             var matMetaFileIn = NamingStructure.GetInputMetaName(material);
             context.IsAnimated = reader.FileExists(matMetaFileIn);
 
-            context.InputEncoding = inputEncoding.GetMapped().ToList();
-            context.OutputEncoding = inputEncoding.GetMapped().ToList();
+            context.InputEncoding = [.. inputEncoding.GetMapped()];
+            context.OutputEncoding = [..inputEncoding.GetMapped()];
 
             using var normalImage = await graph.GenerateAsync(token);
             await normalImage.SaveAsync(filename, token);
@@ -929,8 +929,8 @@ namespace PixelGraph.UI.ViewModels
             var matMetaFileIn = NamingStructure.GetInputMetaName(material);
             context.IsAnimated = reader.FileExists(matMetaFileIn);
 
-            context.InputEncoding = inputEncoding.GetMapped().ToList();
-            context.OutputEncoding = inputEncoding.GetMapped().ToList();
+            context.InputEncoding = [..inputEncoding.GetMapped()];
+            context.OutputEncoding = [..inputEncoding.GetMapped()];
 
             using var occlusionImage = await graph.GenerateAsync(token)
                 ?? throw new ApplicationException("Unable to generate occlusion texture!");

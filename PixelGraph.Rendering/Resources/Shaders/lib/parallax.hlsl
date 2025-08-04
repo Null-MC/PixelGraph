@@ -13,7 +13,7 @@ float get_parallax_length(const in float2 uv_size)
 float2 get_parallax_offset(const in float3 lightT)
 {
 	const float length_sq = dot(lightT, lightT);
-	const float parallax_length = sqrt(length_sq - lightT.z * lightT.z) / lightT.z;
+    const float parallax_length = sqrt(length_sq - lightT.z * lightT.z) / lightT.z;
 	float2 parallax_dir = normalize(lightT.xy);
 
 	return parallax_dir * parallax_length;
@@ -75,16 +75,16 @@ float2 get_parallax_texcoord(const in float2 tex, const in float2 offsetT, out f
 float2 get_parallax_texcoord_wet(const in float2 tex, const in float2 vTS, const in float2 rTS, const in float water_level, out float2 water_tex, out float3 shadow_tex, out float tex_depth)
 {
 	const int step_count = ParallaxSamples; //(int)lerp(ParallaxSamplesMax, ParallaxSamplesMin, NoV);
-	const float step_size = rcp(step_count);
+    const float step_size = rcp(float(step_count));
 	float2 step_offset = step_size * vTS;
 	
-	float trace_depth = 1.0;
+	float trace_depth = 1.0f;
 	float2 trace_offset = tex;
 	float2 prev_trace_offset = tex + step_offset;
 
-	tex_depth = 1.0;
-	float prev_tex_depth = 1.0;
-	float prev_trace_depth = 1.0 + step_size;
+	tex_depth = 1.0f;
+	float prev_tex_depth = 1.0f;
+	float prev_trace_depth = 1.0f + step_size;
 
 	bool hit_water = false;
 

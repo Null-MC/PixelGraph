@@ -1,5 +1,4 @@
-﻿using HelixToolkit.SharpDX.Core;
-using MinecraftMappings.Internal.Models;
+﻿using MinecraftMappings.Internal.Models;
 using MinecraftMappings.Internal.Models.Block;
 using PixelGraph.Common.Extensions;
 using SharpDX;
@@ -11,7 +10,7 @@ public class BlockModelBuilder : ModelBuilder
     private static readonly Vector3 blockCenter = new(8f, 8f, 8f);
 
 
-    public void Clear() => Builder.Clear();
+    //public void Clear() => Builder.Clear();
 
     public void AppendModelTextureParts(in float cubeSize, Vector3 offset, BlockModelVersion modelVersion, string? textureId = null)
     {
@@ -53,8 +52,6 @@ public class BlockModelBuilder : ModelBuilder
                 AddCubeFace(in mWorld, in faceNormal, in faceUp, in faceOffset, in faceWidth, in faceHeight, in uv, in rotation);
             }
         }
-
-        Builder.ComputeTangents(MeshFaces.Default);
     }
 
     private static void Multiply(in RectangleF region, in float scale, out RectangleF scaledRegion)

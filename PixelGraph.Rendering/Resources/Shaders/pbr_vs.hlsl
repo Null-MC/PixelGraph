@@ -19,27 +19,19 @@ ps_input main(const vs_input_ex input)
 	output.tex_min = input.tex_min;
 	output.tex_max = input.tex_max;
 
-	const float3 nor =  normalize(input.nor);
-	const float3 tan =  normalize(input.tan);
-
-	float3 bin = -normalize(input.bin);
-	//float3 bin = -normalize(cross(nor, tan));
-
+	float3 nor = normalize(input.nor);
+	float3 tan = normalize(input.tan);
+	float3 bin = normalize(input.bin);
+	
 	float2 uv_size = input.tex_max - input.tex_min;
 	output.pDepth = get_parallax_length(uv_size);
-
-	//if ((uv_size.x < 0.0f && uv_size.y > 0.0f) || (uv_size.x > 0.0f && uv_size.y < 0.0f)) bin = -bin;
-	//if (sign(uv_size.x) != sign(uv_size.y)) bin = -bin;
-
-	const float flip = sign(uv_size.x * uv_size.y);
-	if (flip != 0.0) bin *= flip;
 
 	output.tan = mul(tan, (float3x3) mWorld);
 	output.bin = mul(bin, (float3x3) mWorld);
 	output.nor = mul(nor, (float3x3) mWorld);
 
 	const float3x3 mTBN = float3x3(output.tan, output.bin, output.nor);
-    output.vT = mul(mTBN, normalize(output.eye.xyz));
+    output.vT = mul(mTBN, output.eye.xyz);
 	output.vTS = get_parallax_offset(output.vT) * output.pDepth;
 
 	return output;

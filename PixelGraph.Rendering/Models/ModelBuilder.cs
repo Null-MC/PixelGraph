@@ -1,7 +1,6 @@
 ﻿using HelixToolkit.SharpDX.Core;
 using MinecraftMappings.Internal.Models;
 using SharpDX;
-using System;
 
 namespace PixelGraph.Rendering.Models;
 
@@ -14,13 +13,8 @@ public abstract class ModelBuilder : IModelBuilder
 {
     protected const float BlockToWorld = 1f / 16f;
 
-    internal BlockMeshBuilder Builder {get;}
+    internal BlockMeshBuilder Builder {get;} = new();
 
-
-    protected ModelBuilder()
-    {
-        Builder = new BlockMeshBuilder();
-    }
 
     public BlockMeshGeometry3D ToBlockMeshGeometry3D()
     {
@@ -29,7 +23,7 @@ public abstract class ModelBuilder : IModelBuilder
         
     protected void AddCubeFace(in Matrix mWorld, in Vector3 normal, in Vector3 up, in float dist, in float width, in float height, in RectangleF uv, in int uvRotation)
     {
-        CrossProduct(in normal, in up, out var right);
+        var right = Vector3.Cross(normal, up);
 
         var n = normal * dist * 0.5f;
         var _up = up * height * 0.5f;
@@ -59,15 +53,13 @@ public abstract class ModelBuilder : IModelBuilder
             Builder.AddNormal4x(wNormal);
 
         if (Builder.HasTexCoords) {
-            var texcoords = GetRotatedTexcoords(in uv, in uvRotation);
+            var texcoords = new Vector2[4];
+            GetRotatedTexcoords(in uv, in uvRotation, ref texcoords);
             Builder.TextureCoordinates.AddRange(texcoords);
 
             GetTexMinMax(in uv, in uvRotation, out var texMin, out var texMax);
             Builder.AddTextureCoordinateMin4x(texMin);
             Builder.AddTextureCoordinateMax4x(texMax);
-
-            //Builder.AddTextureCoordinateMin4x(uv.TopLeft);
-            //Builder.AddTextureCoordinateMax4x(uv.BottomRight);
         }
 
         Builder.TriangleIndices.Add(i0 + 2);
@@ -78,35 +70,36 @@ public abstract class ModelBuilder : IModelBuilder
         Builder.TriangleIndices.Add(i0 + 2);
     }
 
-    private static Vector2[] GetRotatedTexcoords(in RectangleF uv, in int uvRotation)
+    private static void GetRotatedTexcoords(in RectangleF uv_in, in int uvRotation, ref Vector2[] uv_out)
     {
-        return uvRotation switch {
-            0 => new[] {
-                new Vector2(uv.Right, uv.Bottom),
-                new Vector2(uv.Left, uv.Bottom),
-                new Vector2(uv.Left, uv.Top),
-                new Vector2(uv.Right, uv.Top),
-            },
-            90 => new[] {
-                new Vector2(uv.Right, uv.Top),
-                new Vector2(uv.Right, uv.Bottom),
-                new Vector2(uv.Left, uv.Bottom),
-                new Vector2(uv.Left, uv.Top),
-            },
-            180 => new[] {
-                new Vector2(uv.Left, uv.Top),
-                new Vector2(uv.Right, uv.Top),
-                new Vector2(uv.Right, uv.Bottom),
-                new Vector2(uv.Left, uv.Bottom),
-            },
-            270 => new[] {
-                new Vector2(uv.Left, uv.Bottom),
-                new Vector2(uv.Left, uv.Top),
-                new Vector2(uv.Right, uv.Top),
-                new Vector2(uv.Right, uv.Bottom),
-            },
-            _ => throw new ApplicationException($"Invalid block model texture rotation value '{uvRotation}'!")
-        };
+        switch (uvRotation) {
+            case 0:
+                uv_out[0] = new Vector2(uv_in.Right, uv_in.Bottom);
+                uv_out[1] = new Vector2(uv_in.Left, uv_in.Bottom);
+                uv_out[2] = new Vector2(uv_in.Left, uv_in.Top);
+                uv_out[3] = new Vector2(uv_in.Right, uv_in.Top);
+                break;
+            case 90:
+                uv_out[0] = new Vector2(uv_in.Right, uv_in.Top);
+                uv_out[1] = new Vector2(uv_in.Right, uv_in.Bottom);
+                uv_out[2] = new Vector2(uv_in.Left, uv_in.Bottom);
+                uv_out[3] = new Vector2(uv_in.Left, uv_in.Top);
+                break;
+            case 180:
+                uv_out[0] = new Vector2(uv_in.Left, uv_in.Top);
+                uv_out[1] = new Vector2(uv_in.Right, uv_in.Top);
+                uv_out[2] = new Vector2(uv_in.Right, uv_in.Bottom);
+                uv_out[3] = new Vector2(uv_in.Left, uv_in.Bottom);
+                break;
+            case 270:
+                uv_out[0] = new Vector2(uv_in.Left, uv_in.Bottom);
+                uv_out[1] = new Vector2(uv_in.Left, uv_in.Top);
+                uv_out[2] = new Vector2(uv_in.Right, uv_in.Top);
+                uv_out[3] = new Vector2(uv_in.Right, uv_in.Bottom);
+                break;
+            default:
+                throw new ApplicationException($"Invalid block model texture rotation value '{uvRotation}'!");
+        }
     }
 
     private static void GetTexMinMax(in RectangleF uv, in int uvRotation, out Vector2 min, out Vector2 max)
@@ -139,13 +132,6 @@ public abstract class ModelBuilder : IModelBuilder
             default:
                 throw new ApplicationException($"Invalid block model texture rotation value '{uvRotation}'!");
         }
-    }
-
-    private static void CrossProduct(in Vector3 vector1, in Vector3 vector2, out Vector3 result)
-    {
-        result.X = vector1.Y * vector2.Z - vector1.Z * vector2.Y;
-        result.Y = vector1.Z * vector2.X - vector1.X * vector2.Z;
-        result.Z = vector1.X * vector2.Y - vector1.Y * vector2.X;
     }
 
     protected static Vector3 GetFaceNormal(ElementFaces face)
