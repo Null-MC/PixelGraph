@@ -22,6 +22,7 @@ internal class RawTextureWriter : TextureWriterBase
         LocalMap[TextureTags.SubSurfaceScattering] = "sss";
         LocalMap[TextureTags.Emissive] = "emissive";
         LocalMap[TextureTags.MER] = "mer";
+        LocalMap[TextureTags.MERS] = "mers";
             
         GlobalMap[TextureTags.Color] = name => name;
         GlobalMap[TextureTags.Opacity] = name => $"{name}_a";
@@ -39,6 +40,7 @@ internal class RawTextureWriter : TextureWriterBase
         GlobalMap[TextureTags.SubSurfaceScattering] = name => $"{name}_sss";
         GlobalMap[TextureTags.Emissive] = name => $"{name}_e";
         GlobalMap[TextureTags.MER] = name => $"{name}_mer";
+        GlobalMap[TextureTags.MERS] = name => $"{name}_mers";
 
         // Internal
         LocalMap[TextureTags.Item] = "item";

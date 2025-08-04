@@ -31,6 +31,7 @@ internal abstract class TextureReaderBase(IServiceProvider provider) : ITextureR
     {
         ArgumentNullException.ThrowIfNull(tag);
         ArgumentNullException.ThrowIfNull(Context.Material);
+        ArgumentNullException.ThrowIfNull(Context.Material.Name);
 
         var textureList = Context.IsImport
             ? EnumerateOutputTextures(Context.Material.Name, Context.Material.LocalPath, tag, true)

@@ -23,6 +23,9 @@ internal class BedrockTextureReader : TextureReaderBase
             
         if (TextureTags.Is(tag, TextureTags.MER))
             return string.Equals(fileName, "mer", StringComparison.InvariantCultureIgnoreCase);
+            
+        if (TextureTags.Is(tag, TextureTags.MERS))
+            return string.Equals(fileName, "mers", StringComparison.InvariantCultureIgnoreCase);
 
         return false;
     }
@@ -42,6 +45,9 @@ internal class BedrockTextureReader : TextureReaderBase
             
         if (TextureTags.Is(tag, TextureTags.MER))
             return string.Equals(fileName, $"{name}_mer", StringComparison.InvariantCultureIgnoreCase);
+            
+        if (TextureTags.Is(tag, TextureTags.MERS))
+            return string.Equals(fileName, $"{name}_mers", StringComparison.InvariantCultureIgnoreCase);
 
         return false;
     }

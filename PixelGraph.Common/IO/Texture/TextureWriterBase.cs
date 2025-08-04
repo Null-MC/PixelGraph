@@ -43,11 +43,15 @@ internal class TextureWriterBase : ITextureWriter
 
     public string? GetInputTextureName(MaterialProperties material, string tag)
     {
+        ArgumentNullException.ThrowIfNull(material.Name);
+
         return TryGet(tag, material.Name, "*", material.UseGlobalMatching);
     }
 
     public string? GetInputMetaName(MaterialProperties material, string tag)
     {
+        ArgumentNullException.ThrowIfNull(material.Name);
+
         var path = NamingStructure.GetPath(material, material.UseGlobalMatching);
         var name = TryGet(tag, material.Name, "mcmeta", material.UseGlobalMatching);
         if (name == null) return null;
@@ -58,8 +62,11 @@ internal class TextureWriterBase : ITextureWriter
 
     public string? GetOutputMetaName(PublishProfileProperties pack, MaterialProperties material, string tag, bool global)
     {
+        ArgumentNullException.ThrowIfNull(material.Name);
+
         var path = NamingStructure.GetPath(material, global && material.CTM?.Method == null);
         var ext = NamingStructure.GetExtension(pack);
+
         var name = TryGet(tag, material.Name, $"{ext}.mcmeta", global);
         if (name == null) return null;
 

@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "PixelGraph"
-#define MyAppVersion "1.11.0"
+#define MyAppVersion "1.12.0"
 #define MyAppPublisher "Joshua Miller"
 #define MyAppURL "https://github.com/Null-MC/PixelGraph"
 #define MyAppExeName "PixelGraph.exe"
@@ -67,9 +67,9 @@ begin
 #ifdef Dependency_Path_NetCoreCheck
   //Dependency_AddNetCore31Desktop;
   //Dependency_AddDotNet50Desktop;
-  Dependency_AddDotNet60Desktop;
+  //Dependency_AddDotNet60Desktop;
   //Dependency_AddDotNet70Desktop;
-  //Dependency_AddDotNet80Desktop;
+  Dependency_AddDotNet80Desktop;
 #endif
 
   Result := True;

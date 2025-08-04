@@ -24,6 +24,7 @@ public static class TextureTags
     public const string SubSurfaceScattering = "sss";
     public const string Emissive = "emissive";
     public const string MER = "mer";
+    public const string MERS = "mers";
 
     // Internal
     public const string General = "general";
@@ -32,7 +33,7 @@ public static class TextureTags
     public const string MagnitudeBuffer = "magnitude-buffer";
     public const string OcclusionGenerated = "occlusion-generated";
 
-    public static string[] All {get;} = {Opacity, Color, Height, Bump, Normal, Occlusion, Specular, Smooth, Rough, Metal, HCM, F0, Porosity, SubSurfaceScattering, Emissive, Item, MER};
+    public static string[] All {get;} = {Opacity, Color, Height, Bump, Normal, Occlusion, Specular, Smooth, Rough, Metal, HCM, F0, Porosity, SubSurfaceScattering, Emissive, Item, MER, MERS};
 
 
     public static string? Get(MaterialProperties material, string tag)

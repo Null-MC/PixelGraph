@@ -70,7 +70,7 @@ public class BedrockPublisher : PublisherBase
         //if (context.OutputEncoding == null) return;
         if (context.IsMaterialCtm && !(context.Material.CTM?.Placeholder ?? false)) return;
 
-        var hasNormalMer = context.OutputEncoding.Any(e => TextureTags.Is(e.Texture, TextureTags.Normal) || TextureTags.Is(e.Texture, TextureTags.MER));
+        var hasNormalMer = context.OutputEncoding.Any(e => TextureTags.Is(e.Texture, TextureTags.Normal) || TextureTags.Is(e.Texture, TextureTags.MER) || TextureTags.Is(e.Texture, TextureTags.MERS));
         if (!hasNormalMer) return;
 
         var sourcePath = context.Material.LocalPath;
